@@ -39,10 +39,10 @@ align(clearItems) {
 class NonConstantIdentifierNames extends LintRule {
   NonConstantIdentifierNames()
       : super(
-            name: 'non_constant_identifier_names',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'non_constant_identifier_names',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.non_constant_identifier_names;

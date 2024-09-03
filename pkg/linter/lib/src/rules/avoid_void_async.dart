@@ -49,10 +49,10 @@ void main() async {
 class AvoidVoidAsync extends LintRule {
   AvoidVoidAsync()
       : super(
-            name: 'avoid_void_async',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'avoid_void_async',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_void_async;

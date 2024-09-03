@@ -37,10 +37,10 @@ class MyPublicWidget extends StatelessWidget {
 class UseKeyInWidgetConstructors extends LintRule {
   UseKeyInWidgetConstructors()
       : super(
-            name: 'use_key_in_widget_constructors',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.flutter, LintRuleCategory.style});
+          name: 'use_key_in_widget_constructors',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.use_key_in_widget_constructors;

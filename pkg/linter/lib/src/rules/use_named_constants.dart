@@ -35,7 +35,6 @@ class UseNamedConstants extends LintRule {
           name: lintName,
           description: _desc,
           details: _details,
-          categories: {LintRuleCategory.style},
         );
 
   @override

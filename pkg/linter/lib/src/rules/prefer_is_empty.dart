@@ -40,10 +40,10 @@ if (words.isNotEmpty) return words.join(' ');
 class PreferIsEmpty extends LintRule {
   PreferIsEmpty()
       : super(
-            name: 'prefer_is_empty',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_is_empty',
+          description: _desc,
+          details: _details,
+        );
 
   // TODO(brianwilkerson): Both `alwaysFalse` and `alwaysTrue` should be warnings
   //  rather than lints because they represent a bug rather than a style

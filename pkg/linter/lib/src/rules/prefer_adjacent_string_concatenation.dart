@@ -32,10 +32,10 @@ raiseAlarm(
 class PreferAdjacentStringConcatenation extends LintRule {
   PreferAdjacentStringConcatenation()
       : super(
-            name: 'prefer_adjacent_string_concatenation',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_adjacent_string_concatenation',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_adjacent_string_concatenation;

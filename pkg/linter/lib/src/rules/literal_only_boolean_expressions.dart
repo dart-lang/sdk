@@ -113,10 +113,10 @@ bool _onlyLiterals(Expression? rawExpression) {
 class LiteralOnlyBooleanExpressions extends LintRule {
   LiteralOnlyBooleanExpressions()
       : super(
-            name: 'literal_only_boolean_expressions',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.unusedCode});
+          name: 'literal_only_boolean_expressions',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.literal_only_boolean_expressions;

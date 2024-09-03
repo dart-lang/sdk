@@ -53,14 +53,10 @@ class Box {
 class UnnecessaryThis extends LintRule {
   UnnecessaryThis()
       : super(
-            name: 'unnecessary_this',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.brevity,
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style,
-            });
+          name: 'unnecessary_this',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_this;

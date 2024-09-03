@@ -28,10 +28,10 @@ Iterable<T> where(bool Function(T) predicate) {}
 class UseFunctionTypeSyntaxForParameters extends LintRule {
   UseFunctionTypeSyntaxForParameters()
       : super(
-            name: 'use_function_type_syntax_for_parameters',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'use_function_type_syntax_for_parameters',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   bool get canUseParsedResult => true;

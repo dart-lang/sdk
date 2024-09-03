@@ -579,7 +579,6 @@ class TestRule extends LintRule {
           name: 'fantastic_test_rule',
           description: '',
           details: '',
-          categories: {LintRuleCategory.style},
         );
 
   TestRule.withName(String name)
@@ -587,7 +586,6 @@ class TestRule extends LintRule {
           name: name,
           description: '',
           details: '',
-          categories: {LintRuleCategory.style},
         );
 
   @override

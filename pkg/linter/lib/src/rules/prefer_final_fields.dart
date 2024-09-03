@@ -87,13 +87,10 @@ class NotAssignedInAllConstructors {
 class PreferFinalFields extends LintRule {
   PreferFinalFields()
       : super(
-            name: 'prefer_final_fields',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'prefer_final_fields',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_final_fields;

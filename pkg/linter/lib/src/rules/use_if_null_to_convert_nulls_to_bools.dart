@@ -41,7 +41,6 @@ class UseIfNullToConvertNullsToBools extends LintRule {
           name: 'use_if_null_to_convert_nulls_to_bools',
           description: _desc,
           details: _details,
-          categories: {LintRuleCategory.effectiveDart, LintRuleCategory.style},
         );
 
   @override

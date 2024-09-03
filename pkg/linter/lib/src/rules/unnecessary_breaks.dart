@@ -64,10 +64,10 @@ of 3.0 or greater. Explicit breaks are still required in Dart 2.19 and below.
 class UnnecessaryBreaks extends LintRule {
   UnnecessaryBreaks()
       : super(
-            name: 'unnecessary_breaks',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'unnecessary_breaks',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_breaks;

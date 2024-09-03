@@ -51,10 +51,10 @@ Widget buildArea() {
 class UseDecoratedBox extends LintRule {
   UseDecoratedBox()
       : super(
-            name: 'use_decorated_box',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.flutter, LintRuleCategory.style});
+          name: 'use_decorated_box',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.use_decorated_box;

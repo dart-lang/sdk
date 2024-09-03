@@ -45,10 +45,10 @@ f(String s) { ... }
 class LibraryPrivateTypesInPublicApi extends LintRule {
   LibraryPrivateTypesInPublicApi()
       : super(
-            name: 'library_private_types_in_public_api',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.publicInterface});
+          name: 'library_private_types_in_public_api',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.library_private_types_in_public_api;

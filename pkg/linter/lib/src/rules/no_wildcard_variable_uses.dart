@@ -49,13 +49,10 @@ var [a, _, b, _] = [1, 2, 3, 4];
 class NoWildcardVariableUses extends LintRule {
   NoWildcardVariableUses()
       : super(
-            name: 'no_wildcard_variable_uses',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.languageFeatureUsage,
-              LintRuleCategory.unintentional
-            });
+          name: 'no_wildcard_variable_uses',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.no_wildcard_variable_uses;

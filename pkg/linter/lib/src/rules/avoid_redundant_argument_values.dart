@@ -57,10 +57,10 @@ void main() {
 class AvoidRedundantArgumentValues extends LintRule {
   AvoidRedundantArgumentValues()
       : super(
-            name: 'avoid_redundant_argument_values',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'avoid_redundant_argument_values',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_redundant_argument_values;

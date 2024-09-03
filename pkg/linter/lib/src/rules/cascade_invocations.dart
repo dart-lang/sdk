@@ -109,14 +109,10 @@ class CascadeInvocations extends LintRule {
   /// Default constructor.
   CascadeInvocations()
       : super(
-            name: 'cascade_invocations',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.brevity,
-              LintRuleCategory.languageFeatureUsage,
-              LintRuleCategory.style
-            });
+          name: 'cascade_invocations',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.cascade_invocations;

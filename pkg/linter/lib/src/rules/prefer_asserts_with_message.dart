@@ -41,10 +41,10 @@ class A {
 class PreferAssertsWithMessage extends LintRule {
   PreferAssertsWithMessage()
       : super(
-            name: 'prefer_asserts_with_message',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_asserts_with_message',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_asserts_with_message;

@@ -33,10 +33,10 @@ void main() {
 class VoidChecks extends LintRule {
   VoidChecks()
       : super(
-            name: 'void_checks',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'void_checks',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.void_checks;

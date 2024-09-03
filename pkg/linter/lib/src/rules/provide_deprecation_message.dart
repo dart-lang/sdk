@@ -35,10 +35,10 @@ void oldFunction(arg1, arg2) {}
 class ProvideDeprecationMessage extends LintRule {
   ProvideDeprecationMessage()
       : super(
-            name: 'provide_deprecation_message',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.publicInterface});
+          name: 'provide_deprecation_message',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.provide_deprecation_message;

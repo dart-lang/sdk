@@ -35,13 +35,10 @@ class C with M {}
 class PreferMixin extends LintRule {
   PreferMixin()
       : super(
-            name: 'prefer_mixin',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.languageFeatureUsage,
-              LintRuleCategory.style
-            });
+          name: 'prefer_mixin',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_mixin;

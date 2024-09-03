@@ -18,7 +18,6 @@ class AvoidUnstableFinalFields extends LintRule {
             name: 'avoid_unstable_final_fields',
             description: _desc,
             details: _details,
-            categories: {LintRuleCategory.errors},
             state: State.removed());
 
   @override

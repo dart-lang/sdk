@@ -43,10 +43,10 @@ class A {
 class PreferConstConstructorsInImmutables extends LintRule {
   PreferConstConstructorsInImmutables()
       : super(
-            name: 'prefer_const_constructors_in_immutables',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_const_constructors_in_immutables',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

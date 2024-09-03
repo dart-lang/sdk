@@ -35,10 +35,10 @@ int _x = 1;
 class DocumentIgnores extends LintRule {
   DocumentIgnores()
       : super(
-            name: 'document_ignores',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'document_ignores',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.document_ignores;

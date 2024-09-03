@@ -56,10 +56,10 @@ bool _isEmptyInterpolationString(AstNode node) =>
 class UseStringBuffers extends LintRule {
   UseStringBuffers()
       : super(
-            name: 'use_string_buffers',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.nonPerformant});
+          name: 'use_string_buffers',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.use_string_buffers;

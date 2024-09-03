@@ -39,13 +39,10 @@ typedef num Adder(num x, num y);
 class CamelCaseTypes extends LintRule {
   CamelCaseTypes()
       : super(
-            name: 'camel_case_types',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'camel_case_types',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.camel_case_types;

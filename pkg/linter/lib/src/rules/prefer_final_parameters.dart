@@ -67,10 +67,10 @@ void mutableParameter(String label) { // OK
 class PreferFinalParameters extends LintRule {
   PreferFinalParameters()
       : super(
-            name: 'prefer_final_parameters',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_final_parameters',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<String> get incompatibleRules =>

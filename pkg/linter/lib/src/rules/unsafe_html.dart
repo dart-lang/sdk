@@ -36,10 +36,10 @@ var script = ScriptElement()..src = 'foo.js';
 class UnsafeHtml extends LintRule {
   UnsafeHtml()
       : super(
-            name: 'unsafe_html',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errors});
+          name: 'unsafe_html',
+          description: _desc,
+          details: _details,
+        );
 
   // TODO(brianwilkerson): This lint is not yet using the generated LintCodes.
   //   We would like to use the codes in the future, but doing

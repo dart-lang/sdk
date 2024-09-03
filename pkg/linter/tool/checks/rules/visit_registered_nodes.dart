@@ -71,10 +71,10 @@ class VisitRegisteredNodes extends LintRule {
 
   VisitRegisteredNodes()
       : super(
-            name: 'visit_registered_nodes',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errors});
+          name: 'visit_registered_nodes',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => code;

@@ -34,7 +34,6 @@ class DeprecatedCamelCaseTypes extends LintRule {
   DeprecatedCamelCaseTypes()
       : super(
           name: 'camel_case_types',
-          categories: {LintRuleCategory.style},
           state: State.deprecated(),
           description: '',
           details: '',

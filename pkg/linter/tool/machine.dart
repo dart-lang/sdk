@@ -14,6 +14,7 @@ import 'package:linter/src/utils.dart';
 import 'package:yaml/yaml.dart';
 
 import '../tool/util/path_utils.dart';
+import 'messages_data.dart';
 import 'since.dart';
 import 'util/score_utils.dart' as score_utils;
 
@@ -68,12 +69,13 @@ Future<String> getMachineListing(
     flutterRules: flutterRules
   ) = await _fetchSetRules(fetch: includeSetInfo);
 
+  var categories = messagesYaml.categoryMappings;
   var json = encoder.convert([
     for (var rule in rules.where((rule) => !rule.state.isInternal))
       {
         'name': rule.name,
         'description': rule.description,
-        'categories': rule.categories.toList(),
+        'categories': categories[rule.name]?.toList(),
         'state': rule.state.label,
         'incompatible': rule.incompatibleRules,
         'sets': [

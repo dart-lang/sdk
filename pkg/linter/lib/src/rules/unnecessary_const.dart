@@ -37,10 +37,10 @@ m(){
 class UnnecessaryConst extends LintRule {
   UnnecessaryConst()
       : super(
-            name: 'unnecessary_const',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'unnecessary_const',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   bool get canUseParsedResult => true;

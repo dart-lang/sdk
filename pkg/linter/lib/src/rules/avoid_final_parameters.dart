@@ -55,10 +55,10 @@ void badExpression(int value) => print(value); // OK
 class AvoidFinalParameters extends LintRule {
   AvoidFinalParameters()
       : super(
-            name: 'avoid_final_parameters',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'avoid_final_parameters',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<String> get incompatibleRules => const ['prefer_final_parameters'];

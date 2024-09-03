@@ -72,10 +72,10 @@ void someFunction() {
 class CollectionMethodsUnrelatedType extends LintRule {
   CollectionMethodsUnrelatedType()
       : super(
-            name: 'collection_methods_unrelated_type',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.unintentional});
+          name: 'collection_methods_unrelated_type',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.collection_methods_unrelated_type;

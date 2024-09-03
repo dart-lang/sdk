@@ -31,10 +31,10 @@ var l2 = ['a', 'b', 'c'];
 class PreferInlinedAdds extends LintRule {
   PreferInlinedAdds()
       : super(
-            name: 'prefer_inlined_adds',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'prefer_inlined_adds',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<LintCode> get lintCodes => [

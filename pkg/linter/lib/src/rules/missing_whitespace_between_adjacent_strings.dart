@@ -36,10 +36,10 @@ var s =
 class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
   MissingWhitespaceBetweenAdjacentStrings()
       : super(
-            name: 'missing_whitespace_between_adjacent_strings',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'missing_whitespace_between_adjacent_strings',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

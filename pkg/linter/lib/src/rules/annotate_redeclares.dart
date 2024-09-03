@@ -51,11 +51,11 @@ extension type E(C c) implements C {
 class AnnotateRedeclares extends LintRule {
   AnnotateRedeclares()
       : super(
-            name: 'annotate_redeclares',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style},
-            state: State.experimental());
+          name: 'annotate_redeclares',
+          description: _desc,
+          details: _details,
+          state: State.experimental(),
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.annotate_redeclares;

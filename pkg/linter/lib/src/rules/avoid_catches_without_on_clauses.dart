@@ -57,13 +57,10 @@ exception, the variable is not "directly used."
 class AvoidCatchesWithoutOnClauses extends LintRule {
   AvoidCatchesWithoutOnClauses()
       : super(
-            name: 'avoid_catches_without_on_clauses',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'avoid_catches_without_on_clauses',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_catches_without_on_clauses;

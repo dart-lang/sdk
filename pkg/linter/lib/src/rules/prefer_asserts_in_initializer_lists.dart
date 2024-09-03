@@ -36,10 +36,10 @@ class A {
 class PreferAssertsInInitializerLists extends LintRule {
   PreferAssertsInInitializerLists()
       : super(
-            name: 'prefer_asserts_in_initializer_lists',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_asserts_in_initializer_lists',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_asserts_in_initializer_lists;

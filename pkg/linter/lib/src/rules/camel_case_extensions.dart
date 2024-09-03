@@ -34,13 +34,10 @@ extension SmartIterable<T> on Iterable<T> {
 class CamelCaseExtensions extends LintRule {
   CamelCaseExtensions()
       : super(
-            name: 'camel_case_extensions',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'camel_case_extensions',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.camel_case_extensions;

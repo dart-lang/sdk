@@ -34,10 +34,10 @@ var x = a ?? 1;
 class UnnecessaryNullInIfNullOperators extends LintRule {
   UnnecessaryNullInIfNullOperators()
       : super(
-            name: 'unnecessary_null_in_if_null_operators',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'unnecessary_null_in_if_null_operators',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_null_in_if_null_operators;

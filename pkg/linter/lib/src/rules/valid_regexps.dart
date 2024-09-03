@@ -32,10 +32,10 @@ print(RegExp(r'\(').hasMatch('foo()'));
 class ValidRegexps extends LintRule {
   ValidRegexps()
       : super(
-            name: 'valid_regexps',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.unintentional});
+          name: 'valid_regexps',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.valid_regexps;

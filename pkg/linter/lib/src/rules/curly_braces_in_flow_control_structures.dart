@@ -54,10 +54,10 @@ if (overflowChars != other.overflowChars) {
 class CurlyBracesInFlowControlStructures extends LintRule {
   CurlyBracesInFlowControlStructures()
       : super(
-            name: 'curly_braces_in_flow_control_structures',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'curly_braces_in_flow_control_structures',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   bool get canUseParsedResult => true;

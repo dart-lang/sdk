@@ -208,10 +208,10 @@ class NonNullableFunction {
 class NullClosures extends LintRule {
   NullClosures()
       : super(
-            name: 'null_closures',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'null_closures',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.null_closures;

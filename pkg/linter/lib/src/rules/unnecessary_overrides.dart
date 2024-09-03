@@ -54,10 +54,10 @@ It's valid to override a member in the following cases:
 class UnnecessaryOverrides extends LintRule {
   UnnecessaryOverrides()
       : super(
-            name: 'unnecessary_overrides',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'unnecessary_overrides',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_overrides;

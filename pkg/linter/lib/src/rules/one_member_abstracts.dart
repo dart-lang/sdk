@@ -40,14 +40,10 @@ typedef Predicate = bool Function(item);
 class OneMemberAbstracts extends LintRule {
   OneMemberAbstracts()
       : super(
-            name: 'one_member_abstracts',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.languageFeatureUsage,
-              LintRuleCategory.style,
-            });
+          name: 'one_member_abstracts',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.one_member_abstracts;

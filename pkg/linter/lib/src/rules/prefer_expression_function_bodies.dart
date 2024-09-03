@@ -55,10 +55,10 @@ containsValue(String value) => getValues().contains(value);
 class PreferExpressionFunctionBodies extends LintRule {
   PreferExpressionFunctionBodies()
       : super(
-            name: 'prefer_expression_function_bodies',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'prefer_expression_function_bodies',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_expression_function_bodies;

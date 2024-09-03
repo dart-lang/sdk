@@ -95,11 +95,11 @@ void nestedOk5() {
 class InvariantBooleans extends LintRule {
   InvariantBooleans()
       : super(
-            name: 'invariant_booleans',
-            description: _desc,
-            details: _details,
-            state: State.removed(since: dart3),
-            categories: {LintRuleCategory.errors});
+          name: 'invariant_booleans',
+          description: _desc,
+          details: _details,
+          state: State.removed(since: dart3),
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;
