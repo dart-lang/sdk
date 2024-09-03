@@ -36,13 +36,13 @@ class C extends A {
 
   test_class_augmentation_method_withoutOverride_noSuper() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   void foo() {}

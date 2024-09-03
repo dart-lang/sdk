@@ -19,13 +19,13 @@ class AvoidAnnotatingWithDynamicTest extends LintRuleTest {
 
   test_augmentationClass() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A { }
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   void f(dynamic o) { }
@@ -37,17 +37,17 @@ augment class A {
 
     result = await resolveFile(b.path);
     await assertDiagnosticsIn(errors, [
-      lint(54, 9),
+      lint(46, 9),
     ]);
   }
 
   test_augmentationTopLevelFunction() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 void f(dynamic o) { }
 ''');
@@ -57,19 +57,19 @@ void f(dynamic o) { }
 
     result = await resolveFile(b.path);
     await assertDiagnosticsIn(errors, [
-      lint(34, 9),
+      lint(26, 9),
     ]);
   }
 
   test_augmentationTopLevelFunction_localDynamic() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 void f(int i) {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f(int i) {
   var g = (dynamic x) {};
@@ -82,13 +82,13 @@ augment void f(int i) {
 
     result = await resolveFile(b.path);
     await assertDiagnosticsIn(errors, [
-      lint(62, 9),
+      lint(54, 9),
     ]);
   }
 
   test_augmentedMethod() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {
   void f(dynamic o) { }
@@ -96,7 +96,7 @@ class A {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment void f(dynamic o) { }
@@ -105,7 +105,7 @@ augment class A {
 
     result = await resolveFile(a.path);
     await assertDiagnosticsIn(errors, [
-      lint(45, 9),
+      lint(35, 9),
     ]);
 
     result = await resolveFile(b.path);
@@ -114,20 +114,20 @@ augment class A {
 
   test_augmentedTopLevelFunction() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 void f(dynamic o) { }
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f(dynamic o) { }
 ''');
 
     result = await resolveFile(a.path);
     await assertDiagnosticsIn(errors, [
-      lint(33, 9),
+      lint(23, 9),
     ]);
 
     result = await resolveFile(b.path);
@@ -136,13 +136,13 @@ augment void f(dynamic o) { }
 
   test_augmentedTopLevelFunction_multiple() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 void f(dynamic o) { }
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f(dynamic o) { }
 augment void f(dynamic o) { }
@@ -150,7 +150,7 @@ augment void f(dynamic o) { }
 
     result = await resolveFile(a.path);
     await assertDiagnosticsIn(errors, [
-      lint(33, 9),
+      lint(23, 9),
     ]);
 
     result = await resolveFile(b.path);
