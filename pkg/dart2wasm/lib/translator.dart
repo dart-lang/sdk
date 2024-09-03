@@ -297,10 +297,6 @@ class Translator with KernelNodes {
     m = w.ModuleBuilder(sourceMapUrl, watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
 
-    // Collect imports and exports as the very first thing so the function types
-    // for the imports can be places in singleton recursion groups.
-    functions.collectImportsAndExports();
-
     closureLayouter.collect();
     classInfoCollector.collect();
 
@@ -1263,7 +1259,7 @@ class AstCompilationTask extends CompilationTask {
 
     return (
       name: canonicalName,
-      exportName: translator.functions.getExport(reference)
+      exportName: translator.functions.getExportName(reference)
     );
   }
 }
