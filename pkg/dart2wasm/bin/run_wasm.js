@@ -394,15 +394,13 @@ const main = async () => {
   }
 
   // Instantiate the Dart module, importing from the global scope.
-  const dartInstance = await dart2wasm.instantiate(
-    dart2wasm.compile(readBytes(args[wasmArg])),
-    Promise.resolve(importObject),
-  );
+  const compiledApp = await dart2wasm.compile(readBytes(args[wasmArg]));
+  const appInstance = await compiledApp.instantiate(importObject);
 
   // Call `main`. If tasks are placed into the event loop (by scheduling tasks
   // explicitly or awaiting Futures), these will automatically keep the script
   // alive even after `main` returns.
-  await dart2wasm.invoke(dartInstance, ...dartArgs);
+  await appInstance.invokeMain(...dartArgs);
 };
 
 dartMainRunner(main, []);
