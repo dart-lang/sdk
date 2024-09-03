@@ -976,8 +976,6 @@
         "vm-linux-debug-ia32",
         "vm-linux-release-ia32",
         "vm-linux-release-x64",
-        "vm-mac-debug-arm64",
-        "vm-mac-release-arm64",
         "vm-win-debug-x64",
         "vm-win-release-ia32",
         "vm-win-release-x64"
@@ -1005,6 +1003,45 @@
           ],
           "fileset": "vm",
           "shards": 16
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-mac-debug-arm64",
+        "vm-mac-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM JIT builders on mac arm64. Includes VM service testing and building shared libraries for iOS target."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--codesigning-identity=-",
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}",
+            "--default-suites",
+            "co19",
+            "pkg/pkg/vm_service/"
+          ],
+          "fileset": "vm",
+          "shards": 16
+        },
+        {
+          "name": "build iOS shared library",
+          "script": "tools/build.py",
+          "arguments": [
+            "--codesigning-identity=-",
+            "--os=ios",
+            "runtime:dart_jit_library"
+          ]
         }
       ]
     },
