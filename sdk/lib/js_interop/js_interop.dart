@@ -520,6 +520,11 @@ extension JSAnyUtilityExtension on JSAny? {
   /// Whether this <code>[JSAny]?</code> is an instance of the JavaScript type
   /// that is declared by [T].
   ///
+  /// Since the type-check this function emits is determined at compile-time,
+  /// [T] needs to be an interop extension type that can also be determined at
+  /// compile-time. In particular, `isA` can't be provided a generic type
+  /// variable as a type argument.
+  ///
   /// This method uses a combination of `null`, `typeof`, and `instanceof`
   /// checks in order to do this check. Use this instead of `is` checks.
   ///

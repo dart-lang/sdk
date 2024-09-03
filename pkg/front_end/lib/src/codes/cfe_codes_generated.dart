@@ -3849,34 +3849,35 @@ Message _withArgumentsJsInteropFunctionToJSRequiresStaticType(DartType _type) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type)>
-    templateJsInteropIsAInvalidType =
+    templateJsInteropIsAInvalidTypeVariable =
     const Template<Message Function(DartType _type)>(
-  "JsInteropIsAInvalidType",
+  "JsInteropIsAInvalidTypeVariable",
   problemMessageTemplate:
-      r"""Type argument '#type' needs to be an interop 'ExtensionType'.""",
+      r"""Type argument '#type' provided to 'isA' cannot be a type variable and must be an interop extension type that can be determined at compile-time.""",
   correctionMessageTemplate:
-      r"""Use a valid interop extension type as the type argument instead.""",
-  withArguments: _withArgumentsJsInteropIsAInvalidType,
+      r"""Use a valid interop extension type that can be determined at compile-time as the type argument instead.""",
+  withArguments: _withArgumentsJsInteropIsAInvalidTypeVariable,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type)> codeJsInteropIsAInvalidType =
+const Code<Message Function(DartType _type)>
+    codeJsInteropIsAInvalidTypeVariable =
     const Code<Message Function(DartType _type)>(
-  "JsInteropIsAInvalidType",
+  "JsInteropIsAInvalidTypeVariable",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropIsAInvalidType(DartType _type) {
+Message _withArgumentsJsInteropIsAInvalidTypeVariable(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
   return new Message(
-    codeJsInteropIsAInvalidType,
+    codeJsInteropIsAInvalidTypeVariable,
     problemMessage:
-        """Type argument '${type}' needs to be an interop 'ExtensionType'.""" +
+        """Type argument '${type}' provided to 'isA' cannot be a type variable and must be an interop extension type that can be determined at compile-time.""" +
             labeler.originMessages,
     correctionMessage:
-        """Use a valid interop extension type as the type argument instead.""",
+        """Use a valid interop extension type that can be determined at compile-time as the type argument instead.""",
     arguments: {
       'type': _type,
     },
