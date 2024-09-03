@@ -97,11 +97,10 @@ class RuntimeFinalizer {
     }
     return '''
 $jsRuntimeBlobPart1
-$jsRuntimeBlobPart3
 $jsMethods
-$jsRuntimeBlobPart4
+$jsRuntimeBlobPart2
 $internalizedStrings
-$jsRuntimeBlobPart5
+$jsRuntimeBlobPart3
 ''';
   }
 }
