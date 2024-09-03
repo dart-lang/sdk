@@ -41,25 +41,18 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
       return;
     }
 
-    // Prepare possible arguments.
-    late var childrenArgument = widgetCreation.childrenArgument;
-    late var childArgument = widgetCreation.childArgument;
-    late var builderArgument = widgetCreation.builderArgument;
-    late var sliverArgument = widgetCreation.sliverArgument;
-    late var sliversArgument = widgetCreation.sliversArgument;
-
-    if (childrenArgument != null) {
+    if (widgetCreation.childrenArgument case var childrenArgument?) {
       var childrenExpression = childrenArgument.expression;
       if (childrenExpression is ListLiteral &&
           childrenExpression.elements.isNotEmpty) {
         await _removeChildren(
             builder, widgetCreation, childrenExpression.elements);
       }
-    } else if (childArgument != null) {
+    } else if (widgetCreation.childArgument case var childArgument?) {
       await _removeSingle(builder, widgetCreation, childArgument.expression);
-    } else if (builderArgument != null) {
+    } else if (widgetCreation.builderArgument case var builderArgument?) {
       await _removeBuilder(builder, widgetCreation, builderArgument);
-    } else if (sliversArgument != null) {
+    } else if (widgetCreation.sliversArgument case var sliversArgument?) {
       var sliversExpression = sliversArgument.expression;
       if (sliversExpression is ListLiteral &&
           sliversExpression.elements.isNotEmpty) {
@@ -67,7 +60,7 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
             builder, widgetCreation, sliversExpression.elements);
       }
     }
-    else if (sliverArgument != null) {
+    else if (widgetCreation.sliverArgument case var sliverArgument?) {
       await _removeSingle(builder, widgetCreation, sliverArgument.expression);
     }
   }
