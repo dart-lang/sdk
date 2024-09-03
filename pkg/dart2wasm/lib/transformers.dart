@@ -848,7 +848,8 @@ class PushPopWasmArrayTransformer {
     }
 
     // array.length == length
-    final objectEqualsType = _procedureType(_coreTypes.objectEquals);
+    final objectEqualsType =
+        _coreTypes.objectEquals.computeSignatureOrFunctionType();
     final lengthCheck = EqualsCall(
         InstanceGet(InstanceAccessKind.Instance, array, Name('length'),
             interfaceTarget: _wasmArrayLength, resultType: _intType),
@@ -902,7 +903,7 @@ class PushPopWasmArrayTransformer {
         Arguments([clone(array), clone(length), elem], types: [elementType])));
 
     // length + 1
-    final intAddType = _procedureType(_intAdd);
+    final intAddType = _intAdd.computeSignatureOrFunctionType();
     final lengthPlusOne = InstanceInvocation(InstanceAccessKind.Instance,
         clone(length), Name('+'), Arguments([IntLiteral(1)]),
         interfaceTarget: _intAdd, functionType: intAddType);
@@ -960,7 +961,7 @@ class PushPopWasmArrayTransformer {
     }
 
     // length - 1
-    final intSubtractType = _procedureType(_intSubtract);
+    final intSubtractType = _intSubtract.computeSignatureOrFunctionType();
     final lengthMinusOne = InstanceInvocation(InstanceAccessKind.Instance,
         clone(length), Name('-'), Arguments([IntLiteral(1)]),
         interfaceTarget: _intSubtract, functionType: intSubtractType);
@@ -995,10 +996,6 @@ class PushPopWasmArrayTransformer {
         Block([arrayLengthUpdate, arrayGetVariable, arrayClearElement]),
         VariableGet(arrayGetVariable));
   }
-
-  static FunctionType _procedureType(Procedure procedure) =>
-      procedure.signatureType ??
-      procedure.function.computeFunctionType(Nullability.nonNullable);
 }
 
 class _VariableCollector extends RecursiveVisitor {
