@@ -2909,9 +2909,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (classElement is! ClassElement || !classElement.hasNonFinalField) {
       return;
     }
-    errorReporter.reportErrorForName(
-        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
-        constructor);
+    errorReporter.atConstructorDeclaration(
+      constructor,
+      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
+    );
   }
 
   /// Verify that the given 'const' instance creation [expression] is not
@@ -4710,9 +4711,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_enclosingClass is EnumElement &&
         node.constKeyword == null &&
         node.factoryKeyword == null) {
-      errorReporter.reportErrorForName(
-        CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR,
+      errorReporter.atConstructorDeclaration(
         node,
+        CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR,
       );
     }
   }

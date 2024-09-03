@@ -67,6 +67,35 @@ class ErrorReporter {
 
   Source get source => _source;
 
+  /// Report a diagnostic with the given [errorCode] and [arguments].
+  /// The location of the diagnostic will be the name of the [node].
+  void atConstructorDeclaration(
+    ConstructorDeclaration node,
+    ErrorCode errorCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+    Object? data,
+  }) {
+    // TODO(brianwilkerson): Consider extending this method to take any
+    //  declaration and compute the correct range for the name of that
+    //  declaration. This might make it easier to be consistent.
+    if (node.name case var nameToken?) {
+      var offset = node.returnType.offset;
+      atOffset(
+        offset: offset,
+        length: nameToken.end - offset,
+        errorCode: errorCode,
+        arguments: arguments,
+      );
+    } else {
+      atNode(
+        node.returnType,
+        errorCode,
+        arguments: arguments,
+      );
+    }
+  }
+
   /// Report an error with the given [errorCode] and [arguments].
   /// The [element] is used to compute the location of the error.
   void atElement(
@@ -209,30 +238,6 @@ class ErrorReporter {
       arguments: arguments,
       contextMessages: messages,
     );
-  }
-
-  /// Report a diagnostic with the given [code] and [arguments]. The
-  /// location of the diagnostic will be the name of the [constructor].
-  void reportErrorForName(ErrorCode code, ConstructorDeclaration constructor,
-      {List<Object>? arguments}) {
-    // TODO(brianwilkerson): Consider extending this method to take any
-    //  declaration and compute the correct range for the name of that
-    //  declaration. This might make it easier to be consistent.
-    if (constructor.name != null) {
-      var offset = constructor.returnType.offset;
-      atOffset(
-        offset: offset,
-        length: constructor.name!.end - offset,
-        errorCode: code,
-        arguments: arguments,
-      );
-    } else {
-      atNode(
-        constructor.returnType,
-        code,
-        arguments: arguments,
-      );
-    }
   }
 
   /// Report an error with the given [errorCode] and [arguments].

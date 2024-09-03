@@ -569,9 +569,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
       if (errorNode is ConstructorDeclaration) {
-        errorReporter.reportErrorForName(
-          errorCode,
+        errorReporter.atConstructorDeclaration(
           errorNode,
+          errorCode,
           arguments: [returnType],
         );
       } else if (errorNode is BlockFunctionBody) {
