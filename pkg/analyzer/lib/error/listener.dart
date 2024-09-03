@@ -155,6 +155,25 @@ class ErrorReporter {
     );
   }
 
+  /// Report an error with the given [errorCode] and [arguments].
+  /// The [span] is used to compute the location of the error.
+  void atSourceSpan(
+    SourceSpan span,
+    ErrorCode errorCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+    Object? data,
+  }) {
+    atOffset(
+      errorCode: errorCode,
+      offset: span.start.offset,
+      length: span.length,
+      arguments: arguments,
+      contextMessages: contextMessages,
+      data: data,
+    );
+  }
+
   /// Report an error with the given [errorCode] and [arguments]. The [token] is
   /// used to compute the location of the error.
   void atToken(
@@ -258,12 +277,15 @@ class ErrorReporter {
 
   /// Report an error with the given [errorCode] and [arguments]. The location
   /// of the error is specified by the given [span].
-  void reportErrorForSpan(ErrorCode errorCode, SourceSpan span,
-      [List<Object>? arguments]) {
-    atOffset(
-      offset: span.start.offset,
-      length: span.length,
-      errorCode: errorCode,
+  @Deprecated('Use atSourceSpan() instead')
+  void reportErrorForSpan(
+    ErrorCode errorCode,
+    SourceSpan span, [
+    List<Object>? arguments,
+  ]) {
+    atSourceSpan(
+      span,
+      errorCode,
       arguments: arguments,
     );
   }
