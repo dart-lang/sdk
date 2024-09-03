@@ -51,7 +51,7 @@ library
   }
 
   test_closure_in_variable_declaration_in_part() async {
-    addSource('$testPackageLibPath/a.dart',
+    newFile('$testPackageLibPath/a.dart',
         'part of lib; final f = (int i) => i.toDouble();');
     var library = await buildLibrary('''
 library lib;
@@ -2050,7 +2050,7 @@ library
   }
 
   test_inferred_type_nullability_class_ref_none() async {
-    addSource('$testPackageLibPath/a.dart', 'int f() => 0;');
+    newFile('$testPackageLibPath/a.dart', 'int f() => 0;');
     var library = await buildLibrary('''
 import 'a.dart';
 var x = f();
@@ -2099,7 +2099,7 @@ library
   }
 
   test_inferred_type_nullability_class_ref_question() async {
-    addSource('$testPackageLibPath/a.dart', 'int? f() => 0;');
+    newFile('$testPackageLibPath/a.dart', 'int? f() => 0;');
     var library = await buildLibrary('''
 import 'a.dart';
 var x = f();
@@ -2148,7 +2148,7 @@ library
   }
 
   test_inferred_type_nullability_function_type_none() async {
-    addSource('$testPackageLibPath/a.dart', 'void Function() f() => () {};');
+    newFile('$testPackageLibPath/a.dart', 'void Function() f() => () {};');
     var library = await buildLibrary('''
 import 'a.dart';
 var x = f();
@@ -2197,7 +2197,7 @@ library
   }
 
   test_inferred_type_nullability_function_type_question() async {
-    addSource('$testPackageLibPath/a.dart', 'void Function()? f() => () {};');
+    newFile('$testPackageLibPath/a.dart', 'void Function()? f() => () {};');
     var library = await buildLibrary('''
 import 'a.dart';
 var x = f();
@@ -2592,11 +2592,11 @@ library
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_other_lib() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 import 'b.dart';
 abstract class D extends E {}
 ''');
-    addSource('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 abstract class E {
   void f(int x, int g(String s));
 }
@@ -3025,7 +3025,7 @@ library
   }
 
   test_inferredType_definedInSdkLibraryPart() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
 class A {
   m(Stream p) {}
@@ -3210,7 +3210,7 @@ library
   }
 
   test_inferredType_implicitCreation_prefixed() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 class A {
   A();
   A.named();
@@ -3756,7 +3756,7 @@ library
   }
 
   test_type_inference_based_on_loadLibrary() async {
-    addSource('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
     var library = await buildLibrary('''
 import 'a.dart' deferred as a;
 var x = a.loadLibrary;
@@ -3892,8 +3892,8 @@ library
   }
 
   test_type_inference_depends_on_exported_variable() async {
-    addSource('$testPackageLibPath/a.dart', 'export "b.dart";');
-    addSource('$testPackageLibPath/b.dart', 'var x = 0;');
+    newFile('$testPackageLibPath/a.dart', 'export "b.dart";');
+    newFile('$testPackageLibPath/b.dart', 'var x = 0;');
     var library = await buildLibrary('''
 import 'a.dart';
 var y = x;
@@ -4770,8 +4770,8 @@ library
   }
 
   test_type_inference_multiplyDefinedElement() async {
-    addSource('$testPackageLibPath/a.dart', 'class C {}');
-    addSource('$testPackageLibPath/b.dart', 'class C {}');
+    newFile('$testPackageLibPath/a.dart', 'class C {}');
+    newFile('$testPackageLibPath/b.dart', 'class C {}');
     var library = await buildLibrary('''
 import 'a.dart';
 import 'b.dart';
@@ -6083,7 +6083,7 @@ library
   }
 
   test_type_reference_lib_to_part() async {
-    addSource('$testPackageLibPath/a.dart',
+    newFile('$testPackageLibPath/a.dart',
         'part of l; class C {} enum E { v } typedef F();');
     var library =
         await buildLibrary('library l; part "a.dart"; C c; E e; F f;');
@@ -6301,7 +6301,7 @@ library
   }
 
   test_type_reference_part_to_lib() async {
-    addSource('$testPackageLibPath/a.dart', 'part of l; C c; E e; F f;');
+    newFile('$testPackageLibPath/a.dart', 'part of l; C c; E e; F f;');
     var library = await buildLibrary(
         'library l; part "a.dart"; class C {} enum E { v } typedef F();');
     checkElementText(library, r'''
@@ -6518,9 +6518,9 @@ library
   }
 
   test_type_reference_part_to_other_part() async {
-    addSource('$testPackageLibPath/a.dart',
+    newFile('$testPackageLibPath/a.dart',
         'part of l; class C {} enum E { v } typedef F();');
-    addSource('$testPackageLibPath/b.dart', 'part of l; C c; E e; F f;');
+    newFile('$testPackageLibPath/b.dart', 'part of l; C c; E e; F f;');
     var library =
         await buildLibrary('library l; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
@@ -6749,7 +6749,7 @@ library
   }
 
   test_type_reference_part_to_part() async {
-    addSource('$testPackageLibPath/a.dart',
+    newFile('$testPackageLibPath/a.dart',
         'part of l; class C {} enum E { v } typedef F(); C c; E e; F f;');
     var library = await buildLibrary('library l; part "a.dart";');
     checkElementText(library, r'''
@@ -7285,7 +7285,7 @@ library
   }
 
   test_type_reference_to_import() async {
-    addSource(
+    newFile(
         '$testPackageLibPath/a.dart', 'class C {} enum E { v } typedef F();');
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
@@ -7364,8 +7364,8 @@ library
   }
 
   test_type_reference_to_import_export() async {
-    addSource('$testPackageLibPath/a.dart', 'export "b.dart";');
-    addSource(
+    newFile('$testPackageLibPath/a.dart', 'export "b.dart";');
+    newFile(
         '$testPackageLibPath/b.dart', 'class C {} enum E { v } typedef F();');
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
@@ -7444,9 +7444,9 @@ library
   }
 
   test_type_reference_to_import_export_export() async {
-    addSource('$testPackageLibPath/a.dart', 'export "b.dart";');
-    addSource('$testPackageLibPath/b.dart', 'export "c.dart";');
-    addSource(
+    newFile('$testPackageLibPath/a.dart', 'export "b.dart";');
+    newFile('$testPackageLibPath/b.dart', 'export "c.dart";');
+    newFile(
         '$testPackageLibPath/c.dart', 'class C {} enum E { v } typedef F();');
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
@@ -7525,9 +7525,9 @@ library
   }
 
   test_type_reference_to_import_export_export_in_subdirs() async {
-    addSource('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
-    addSource('$testPackageLibPath/a/b/b.dart', 'export "../c/c.dart";');
-    addSource('$testPackageLibPath/a/c/c.dart',
+    newFile('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
+    newFile('$testPackageLibPath/a/b/b.dart', 'export "../c/c.dart";');
+    newFile('$testPackageLibPath/a/c/c.dart',
         'class C {} enum E { v } typedef F();');
     var library = await buildLibrary('import "a/a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
@@ -7606,8 +7606,8 @@ library
   }
 
   test_type_reference_to_import_export_in_subdirs() async {
-    addSource('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
-    addSource('$testPackageLibPath/a/b/b.dart',
+    newFile('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
+    newFile('$testPackageLibPath/a/b/b.dart',
         'class C {} enum E { v } typedef F();');
     var library = await buildLibrary('import "a/a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
@@ -7686,8 +7686,8 @@ library
   }
 
   test_type_reference_to_import_part() async {
-    addSource('$testPackageLibPath/a.dart', 'library l; part "b.dart";');
-    addSource('$testPackageLibPath/b.dart',
+    newFile('$testPackageLibPath/a.dart', 'library l; part "b.dart";');
+    newFile('$testPackageLibPath/b.dart',
         'part of l; class C {} enum E { v } typedef F();');
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
@@ -7766,10 +7766,10 @@ library
   }
 
   test_type_reference_to_import_part2() async {
-    addSource('$testPackageLibPath/a.dart',
+    newFile('$testPackageLibPath/a.dart',
         'library l; part "p1.dart"; part "p2.dart";');
-    addSource('$testPackageLibPath/p1.dart', 'part of l; class C1 {}');
-    addSource('$testPackageLibPath/p2.dart', 'part of l; class C2 {}');
+    newFile('$testPackageLibPath/p1.dart', 'part of l; class C1 {}');
+    newFile('$testPackageLibPath/p2.dart', 'part of l; class C2 {}');
     var library = await buildLibrary('import "a.dart"; C1 c1; C2 c2;');
     checkElementText(library, r'''
 library
@@ -7829,8 +7829,8 @@ library
   }
 
   test_type_reference_to_import_part_in_subdir() async {
-    addSource('$testPackageLibPath/a/b.dart', 'library l; part "c.dart";');
-    addSource('$testPackageLibPath/a/c.dart',
+    newFile('$testPackageLibPath/a/b.dart', 'library l; part "c.dart";');
+    newFile('$testPackageLibPath/a/c.dart',
         'part of l; class C {} enum E { v } typedef F();');
     var library = await buildLibrary('import "a/b.dart"; C c; E e; F f;');
     checkElementText(library, r'''
@@ -7909,7 +7909,7 @@ library
   }
 
   test_type_reference_to_import_relative() async {
-    addSource(
+    newFile(
         '$testPackageLibPath/a.dart', 'class C {} enum E { v } typedef F();');
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''

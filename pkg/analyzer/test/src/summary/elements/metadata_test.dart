@@ -212,7 +212,7 @@ library
   }
 
   test_invalid_annotation_prefixed_constructor() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A.named();
 }
@@ -306,7 +306,7 @@ library
   }
 
   test_invalid_annotation_unprefixed_constructor() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A.named();
 }
@@ -1289,7 +1289,7 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 class A {
   const A.named(int _);
 }
@@ -1390,7 +1390,7 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed_generic_inference() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 class A<T> {
   const A.named(T _);
 }
@@ -1495,7 +1495,7 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed_generic_typeArguments() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 class A<T> {
   const A.named();
 }
@@ -2048,7 +2048,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed() async {
-    addSource('$testPackageLibPath/foo.dart', 'class A { const A(_); }');
+    newFile('$testPackageLibPath/foo.dart', 'class A { const A(_); }');
     var library =
         await buildLibrary('import "foo.dart" as foo; @foo.A(0) class C {}');
     checkElementText(library, r'''
@@ -2137,7 +2137,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_inference() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 class A<T> {
   const A(T _);
 }
@@ -2235,7 +2235,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_typeArguments() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 class A<T> {
   const A();
 }
@@ -2730,7 +2730,7 @@ library
   }
 
   test_metadata_exportDirective() async {
-    addSource('$testPackageLibPath/foo.dart', '');
+    newFile('$testPackageLibPath/foo.dart', '');
     var library = await buildLibrary('@a export "foo.dart"; const a = null;');
     checkElementText(library, r'''
 library
@@ -6075,11 +6075,11 @@ library
   }
 
   test_metadata_offsets_onUnit() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 part of my.lib;
 ''');
 
-    addSource('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 part of my.lib;
 ''');
 
@@ -6449,7 +6449,7 @@ library
   }
 
   test_metadata_partDirective() async {
-    addSource('$testPackageLibPath/foo.dart', 'part of L;');
+    newFile('$testPackageLibPath/foo.dart', 'part of L;');
     var library = await buildLibrary('''
 library L;
 @a
@@ -6511,10 +6511,10 @@ library
   }
 
   test_metadata_partDirective2() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
     var library = await buildLibrary('''
@@ -6772,7 +6772,7 @@ library
   }
 
   test_metadata_prefixed_variable() async {
-    addSource('$testPackageLibPath/a.dart', 'const b = null;');
+    newFile('$testPackageLibPath/a.dart', 'const b = null;');
     var library = await buildLibrary('import "a.dart" as a; @a.b class C {}');
     checkElementText(library, r'''
 library
@@ -8073,7 +8073,7 @@ library
   }
 
   test_metadata_value_prefix_extension_staticField() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 extension E on int {
   static const x = 0;
 }
@@ -9035,8 +9035,8 @@ library
   }
 
   test_unresolved_annotation_simpleIdentifier_multiplyDefined() async {
-    addSource('$testPackageLibPath/a.dart', 'const v = 0;');
-    addSource('$testPackageLibPath/b.dart', 'const v = 0;');
+    newFile('$testPackageLibPath/a.dart', 'const v = 0;');
+    newFile('$testPackageLibPath/b.dart', 'const v = 0;');
     var library = await buildLibrary('''
 import 'a.dart';
 import 'b.dart';

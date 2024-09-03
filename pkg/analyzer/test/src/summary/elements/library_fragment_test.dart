@@ -254,17 +254,17 @@ extension X on int {}
 extension Y on int {}
 ''');
 
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 import 'y.dart';
 part 'aa.dart';
 ''');
 
-    addSource('$testPackageLibPath/aa.dart', r'''
+    newFile('$testPackageLibPath/aa.dart', r'''
 part of 'a.dart';
 ''');
 
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -310,17 +310,17 @@ extension X on int {}
 extension Y on int {}
 ''');
 
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 import 'y.dart' as y;
 part 'aa.dart';
 ''');
 
-    addSource('$testPackageLibPath/aa.dart', r'''
+    newFile('$testPackageLibPath/aa.dart', r'''
 part of 'a.dart';
 ''');
 
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -358,13 +358,13 @@ package:test/b.dart
   }
 
   test_scope_accessibleExtensions_local() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 part 'aa.dart';
 extension A on int {}
 ''');
 
-    addSource('$testPackageLibPath/aa.dart', r'''
+    newFile('$testPackageLibPath/aa.dart', r'''
 part of 'a.dart';
 extension B on int {}
 ''');
@@ -421,7 +421,7 @@ package:test/test.dart
   }
 
   test_scope_hasPrefix() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -450,18 +450,18 @@ package:test/a.dart
   }
 
   test_scope_hasPrefix_append() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 import 'dart:math' as prefix;
 part 'aa.dart';
 ''');
 
-    addSource('$testPackageLibPath/aa.dart', r'''
+    newFile('$testPackageLibPath/aa.dart', r'''
 part of 'a.dart';
 part 'aaa.dart';
 ''');
 
-    addSource('$testPackageLibPath/aaa.dart', r'''
+    newFile('$testPackageLibPath/aaa.dart', r'''
 part of 'aa.dart';
 ''');
 
@@ -511,13 +511,13 @@ package:test/aaa.dart
   }
 
   test_scope_hasPrefix_deferred() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 import 'dart:math' deferred as prefix;
 part 'aa.dart';
 ''');
 
-    addSource('$testPackageLibPath/aa.dart', r'''
+    newFile('$testPackageLibPath/aa.dart', r'''
 part of 'a.dart';
 import 'dart:math' deferred as prefix;
 ''');
@@ -567,17 +567,17 @@ package:test/aa.dart
   }
 
   test_scope_hasPrefix_shadow() async {
-    addSource('$testPackageLibPath/x.dart', r'''
+    newFile('$testPackageLibPath/x.dart', r'''
 class Directory {}
 ''');
 
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 import 'x.dart' as prefix;
 part 'aa.dart';
 ''');
 
-    addSource('$testPackageLibPath/aa.dart', r'''
+    newFile('$testPackageLibPath/aa.dart', r'''
 part of 'a.dart';
 part 'aaa.dart';
 ''');
@@ -620,12 +620,12 @@ package:test/aa.dart
   }
 
   test_scope_localShadowsPrefix() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 void foo() {}
 ''');
 
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -662,7 +662,7 @@ class C {}
 class D {}
 ''');
 
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -709,7 +709,7 @@ class C {}
 class D {}
 ''');
 
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -756,7 +756,7 @@ class C {}
 class D {}
 ''');
 
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -803,7 +803,7 @@ class C {}
 class D {}
 ''');
 
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -843,21 +843,21 @@ package:test/a.dart
   }
 
   test_scope_noPrefix_fragmentImportShadowsParent() async {
-    addSource('$testPackageLibPath/x.dart', r'''
+    newFile('$testPackageLibPath/x.dart', r'''
 int get exitCode => 0;
 ''');
 
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 import 'x.dart';
 part 'aa.dart';
 ''');
 
-    addSource('$testPackageLibPath/aa.dart', r'''
+    newFile('$testPackageLibPath/aa.dart', r'''
 part of 'a.dart';
 ''');
 
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -893,7 +893,7 @@ package:test/b.dart
   }
 
   test_scope_noPrefix_implicitDartCore() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -917,7 +917,7 @@ package:test/a.dart
   }
 
   test_scope_noPrefix_inheritsFromParentFragment_fromDefining() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -949,17 +949,17 @@ package:test/a.dart
   }
 
   test_scope_noPrefix_inheritsFromParentFragment_fromPart() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 import 'dart:io';
 part 'aa.dart';
 ''');
 
-    addSource('$testPackageLibPath/aa.dart', r'''
+    newFile('$testPackageLibPath/aa.dart', r'''
 part of 'a.dart';
 ''');
 
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -994,12 +994,12 @@ package:test/b.dart
   }
 
   test_scope_noPrefix_localShadowsImported_getter() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 int get exitCode => 0;
 ''');
 
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -1029,12 +1029,12 @@ package:test/b.dart
   }
 
   test_scope_noPrefix_localShadowsImported_setter() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 set exitCode(int _) {}
 ''');
 
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -1067,13 +1067,13 @@ package:test/b.dart
   }
 
   test_scope_noPrefix_localsOfFragments() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 part 'aa.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/aa.dart', r'''
+    newFile('$testPackageLibPath/aa.dart', r'''
 part of 'a.dart';
 class B {}
 ''');
@@ -1117,7 +1117,7 @@ package:test/aa.dart
   }
 
   test_scope_noPrefix_localsOfFragments_private() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 class _A {}
 set _foo(int _) {}
@@ -1156,7 +1156,7 @@ package:test/a.dart
   }
 
   test_scope_wildcardName_class() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 class _ {}
 ''');
@@ -1185,7 +1185,7 @@ package:test/a.dart
 extension X on int {}
 ''');
 
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -1220,7 +1220,7 @@ package:test/a.dart
 extension X on int {}
 ''');
 
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
 

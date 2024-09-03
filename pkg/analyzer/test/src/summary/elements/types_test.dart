@@ -816,7 +816,7 @@ library
   }
 
   test_instanceInference_operator_equal_from() async {
-    addSource('$testPackageLibPath/nullSafe.dart', r'''
+    newFile('$testPackageLibPath/nullSafe.dart', r'''
 class NullSafeDefault {
   bool operator==(other) => false;
 }
@@ -1282,11 +1282,11 @@ library
   }
 
   test_instantiateToBounds_functionTypeAlias_reexported() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class O {}
 typedef T F<T extends O>(T p);
 ''');
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart' show F;
 ''');
     var library = await buildLibrary('''
@@ -1858,8 +1858,8 @@ library
   }
 
   test_invalid_nameConflict_imported() async {
-    addSource('$testPackageLibPath/a.dart', 'V() {}');
-    addSource('$testPackageLibPath/b.dart', 'V() {}');
+    newFile('$testPackageLibPath/a.dart', 'V() {}');
+    newFile('$testPackageLibPath/b.dart', 'V() {}');
     var library = await buildLibrary('''
 import 'a.dart';
 import 'b.dart';
@@ -1911,9 +1911,9 @@ library
   }
 
   test_invalid_nameConflict_imported_exported() async {
-    addSource('$testPackageLibPath/a.dart', 'V() {}');
-    addSource('$testPackageLibPath/b.dart', 'V() {}');
-    addSource('$testPackageLibPath/c.dart', r'''
+    newFile('$testPackageLibPath/a.dart', 'V() {}');
+    newFile('$testPackageLibPath/b.dart', 'V() {}');
+    newFile('$testPackageLibPath/c.dart', r'''
 export 'a.dart';
 export 'b.dart';
 ''');
@@ -2015,8 +2015,8 @@ library
   }
 
   test_nameConflict_exportedAndLocal() async {
-    addSource('$testPackageLibPath/a.dart', 'class C {}');
-    addSource('$testPackageLibPath/c.dart', '''
+    newFile('$testPackageLibPath/a.dart', 'class C {}');
+    newFile('$testPackageLibPath/c.dart', '''
 export 'a.dart';
 class C {}
 ''');
@@ -2068,12 +2068,12 @@ library
   }
 
   test_nameConflict_exportedAndLocal_exported() async {
-    addSource('$testPackageLibPath/a.dart', 'class C {}');
-    addSource('$testPackageLibPath/c.dart', '''
+    newFile('$testPackageLibPath/a.dart', 'class C {}');
+    newFile('$testPackageLibPath/c.dart', '''
 export 'a.dart';
 class C {}
 ''');
-    addSource('$testPackageLibPath/d.dart', 'export "c.dart";');
+    newFile('$testPackageLibPath/d.dart', 'export "c.dart";');
     var library = await buildLibrary('''
 import 'd.dart';
 C v = null;
@@ -2122,12 +2122,12 @@ library
   }
 
   test_nameConflict_exportedAndParted() async {
-    addSource('$testPackageLibPath/a.dart', 'class C {}');
-    addSource('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/a.dart', 'class C {}');
+    newFile('$testPackageLibPath/b.dart', '''
 part of lib;
 class C {}
 ''');
-    addSource('$testPackageLibPath/c.dart', '''
+    newFile('$testPackageLibPath/c.dart', '''
 library lib;
 export 'a.dart';
 part 'b.dart';

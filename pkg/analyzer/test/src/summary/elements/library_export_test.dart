@@ -19,7 +19,7 @@ main() {
 
 abstract class LibraryExportElementTest extends ElementsBaseTest {
   test_export_class() async {
-    addSource('$testPackageLibPath/a.dart', 'class C {}');
+    newFile('$testPackageLibPath/a.dart', 'class C {}');
     var library = await buildLibrary('export "a.dart";');
     configuration.withExportScope = true;
     checkElementText(library, r'''
@@ -54,7 +54,7 @@ library
   }
 
   test_export_class_type_alias() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C = _D with _E;
 class _D {}
 class _E {}
@@ -96,9 +96,9 @@ library
     declaredVariables = {
       'dart.library.io': 'false',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await buildLibrary(r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -143,9 +143,9 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await buildLibrary(r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -190,9 +190,9 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await buildLibrary(r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -233,7 +233,7 @@ library
   }
 
   test_export_cycle() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 export 'test.dart';
 class A {}
 ''');
@@ -303,7 +303,7 @@ library
   }
 
   test_export_function() async {
-    addSource('$testPackageLibPath/a.dart', 'f() {}');
+    newFile('$testPackageLibPath/a.dart', 'f() {}');
     var library = await buildLibrary('export "a.dart";');
     configuration.withExportScope = true;
     checkElementText(library, r'''
@@ -338,7 +338,7 @@ library
   }
 
   test_export_getter() async {
-    addSource('$testPackageLibPath/a.dart', 'get f() => null;');
+    newFile('$testPackageLibPath/a.dart', 'get f() => null;');
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
@@ -364,7 +364,7 @@ library
   }
 
   test_export_hide() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 class C {}
@@ -414,7 +414,7 @@ library
   }
 
   test_export_multiple_combinators() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 class C {}
@@ -462,16 +462,16 @@ library
   }
 
   test_export_reexport() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 class B {}
 ''');
 
-    addSource('$testPackageLibPath/c.dart', r'''
+    newFile('$testPackageLibPath/c.dart', r'''
 export 'a.dart';
 class C {}
 ''');
@@ -557,7 +557,7 @@ library
   }
 
   test_export_setter() async {
-    addSource('$testPackageLibPath/a.dart', 'void set f(value) {}');
+    newFile('$testPackageLibPath/a.dart', 'void set f(value) {}');
     var library = await buildLibrary('export "a.dart";');
     configuration.withExportScope = true;
     checkElementText(library, r'''
@@ -592,7 +592,7 @@ library
   }
 
   test_export_show() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 class C {}
@@ -642,7 +642,7 @@ library
   }
 
   test_export_show_getter_setter() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 get f => null;
 void set f(value) {}
 ''');
@@ -688,7 +688,7 @@ library
   }
 
   test_export_typedef() async {
-    addSource('$testPackageLibPath/a.dart', 'typedef F();');
+    newFile('$testPackageLibPath/a.dart', 'typedef F();');
     var library = await buildLibrary('export "a.dart";');
     configuration.withExportScope = true;
     checkElementText(library, r'''
@@ -732,7 +732,7 @@ export 'foo.dart';
   }
 
   test_export_variable() async {
-    addSource('$testPackageLibPath/a.dart', 'var x;');
+    newFile('$testPackageLibPath/a.dart', 'var x;');
     var library = await buildLibrary('export "a.dart";');
     configuration.withExportScope = true;
     checkElementText(library, r'''
@@ -771,7 +771,7 @@ library
   }
 
   test_export_variable_const() async {
-    addSource('$testPackageLibPath/a.dart', 'const x = 0;');
+    newFile('$testPackageLibPath/a.dart', 'const x = 0;');
     var library = await buildLibrary('export "a.dart";');
     configuration.withExportScope = true;
     checkElementText(library, r'''
@@ -806,7 +806,7 @@ library
   }
 
   test_export_variable_final() async {
-    addSource('$testPackageLibPath/a.dart', 'final x = 0;');
+    newFile('$testPackageLibPath/a.dart', 'final x = 0;');
     var library = await buildLibrary('export "a.dart";');
     configuration.withExportScope = true;
     checkElementText(library, r'''
@@ -844,10 +844,10 @@ library
     declaredVariables = {
       'dart.library.io': 'false',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    addSource('$testPackageLibPath/bar.dart', r'''
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/bar.dart', r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -917,10 +917,10 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'false',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    addSource('$testPackageLibPath/bar.dart', r'''
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/bar.dart', r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -990,10 +990,10 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
-    addSource('$testPackageLibPath/bar.dart', r'''
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/bar.dart', r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -1059,8 +1059,8 @@ library
   }
 
   test_exports() async {
-    addSource('$testPackageLibPath/a.dart', 'library a;');
-    addSource('$testPackageLibPath/b.dart', 'library b;');
+    newFile('$testPackageLibPath/a.dart', 'library a;');
+    newFile('$testPackageLibPath/b.dart', 'library b;');
     var library = await buildLibrary('export "a.dart"; export "b.dart";');
     configuration.withExportScope = true;
     checkElementText(library, r'''

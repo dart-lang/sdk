@@ -21,17 +21,17 @@ abstract class PartIncludeElementTest extends ElementsBaseTest {
       'dart.library.io': 'false',
     };
 
-    addSource('$testPackageLibPath/foo.dart', r'''
+    newFile('$testPackageLibPath/foo.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_io.dart', r'''
+    newFile('$testPackageLibPath/foo_io.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_html.dart', r'''
+    newFile('$testPackageLibPath/foo_html.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
@@ -109,17 +109,17 @@ library
       'dart.library.html': 'true',
     };
 
-    addSource('$testPackageLibPath/foo.dart', r'''
+    newFile('$testPackageLibPath/foo.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_io.dart', r'''
+    newFile('$testPackageLibPath/foo_io.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_html.dart', r'''
+    newFile('$testPackageLibPath/foo_html.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
@@ -197,17 +197,17 @@ library
       'dart.library.html': 'true',
     };
 
-    addSource('$testPackageLibPath/foo.dart', r'''
+    newFile('$testPackageLibPath/foo.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_io.dart', r'''
+    newFile('$testPackageLibPath/foo_io.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_html.dart', r'''
+    newFile('$testPackageLibPath/foo_html.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
@@ -285,17 +285,17 @@ library
       'dart.library.html': 'true',
     };
 
-    addSource('$testPackageLibPath/foo.dart', r'''
+    newFile('$testPackageLibPath/foo.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_io.dart', r'''
+    newFile('$testPackageLibPath/foo_io.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_html.dart', r'''
+    newFile('$testPackageLibPath/foo_html.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
@@ -373,17 +373,17 @@ library
       'dart.library.html': 'true',
     };
 
-    addSource('$testPackageLibPath/foo.dart', r'''
+    newFile('$testPackageLibPath/foo.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_io.dart', r'''
+    newFile('$testPackageLibPath/foo_io.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_html.dart', r'''
+    newFile('$testPackageLibPath/foo_html.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
@@ -456,8 +456,8 @@ library
   }
 
   test_library_parts() async {
-    addSource('$testPackageLibPath/a.dart', 'part of my.lib;');
-    addSource('$testPackageLibPath/b.dart', 'part of my.lib;');
+    newFile('$testPackageLibPath/a.dart', 'part of my.lib;');
+    newFile('$testPackageLibPath/b.dart', 'part of my.lib;');
     var library =
         await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
@@ -1031,11 +1031,11 @@ library
   }
 
   test_parts() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
 
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
 
