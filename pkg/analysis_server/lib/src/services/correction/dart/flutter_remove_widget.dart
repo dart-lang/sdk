@@ -37,7 +37,7 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var widgetCreation = node.findInstanceCreationExpression;
-    if (widgetCreation == null) {
+    if (widgetCreation == null || !widgetCreation.isWidgetCreation) {
       return;
     }
 

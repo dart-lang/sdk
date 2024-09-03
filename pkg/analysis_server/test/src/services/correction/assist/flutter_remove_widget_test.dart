@@ -12,7 +12,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../fix/fix_processor.dart';
 import 'assist_processor.dart';
 
-
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterRemoveWidgetTest);
@@ -32,6 +31,82 @@ class FlutterRemoveWidgetTest extends AssistProcessorTest {
     writeTestPackageConfig(
       flutter: true,
     );
+  }
+
+  Future<void> test_does_not_work_for_non_widgets_child() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class NotAWidget {
+  final int child;
+
+  NotAWidget({required this.child});
+}
+
+void f() {
+  /*caret*/NotAWidget(
+    child: 42,
+  );
+}
+''');
+    await assertNoAssist();
+  }
+
+    Future<void> test_does_not_work_for_non_widgets_children() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class NotAWidget {
+  final List<int> children;
+
+  NotAWidget({required this.children});
+}
+
+void f() {
+  /*caret*/NotAWidget(
+    children: [42],
+  );
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_does_not_work_for_non_widgets_sliver() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class NotAWidget {
+  final int sliver;
+
+  NotAWidget({required this.sliver});
+}
+
+void f() {
+  /*caret*/NotAWidget(
+    sliver: 42,
+  );
+}
+''');
+    await assertNoAssist();
+  }
+
+    Future<void> test_does_not_work_for_non_widgets_slivers() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class NotAWidget {
+  final List<int> slivers;
+
+  NotAWidget({required this.slivers});
+}
+
+void f() {
+  /*caret*/NotAWidget(
+    slivers: [42],
+  );
+}
+''');
+    await assertNoAssist();
   }
 
   Future<void> test_builder_blockFunctionBody() async {
@@ -436,7 +511,7 @@ void f() {
 ''');
   }
 
-    Future<void> test_sliver_intoChildren() async {
+  Future<void> test_sliver_intoChildren() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 void f() {
