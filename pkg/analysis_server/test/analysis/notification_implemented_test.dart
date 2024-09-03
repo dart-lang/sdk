@@ -134,13 +134,13 @@ class B extends A {}
 
   Future<void> test_class_extended_augment() async {
     newFile('$testPackageLibPath/b.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {}
 class B extends A {}
 ''');
     addTestFile('''
-augment library 'b.dart';
+part of 'b.dart';
 
 augment class A {} // 1
 augment class A {} // 2
@@ -152,12 +152,12 @@ augment class A {} // 2
 
   Future<void> test_class_extended_inAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-augment library 'test.dart';
+part of 'test.dart';
 
 class B extends A {}
 ''');
     addTestFile('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 ''');
@@ -167,12 +167,12 @@ class A {}
 
   Future<void> test_class_extended_inAugmented() async {
     newFile('$testPackageLibPath/b.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 
 class B extends A {}
 ''');
     addTestFile('''
-augment library 'b.dart';
+part of 'b.dart';
 
 class A {}
 ''');
@@ -419,7 +419,7 @@ class B extends A {
 
   Future<void> test_ofClass_byClass_method_augment() async {
     newFile('$testPackageLibPath/b.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   m() {}
@@ -429,7 +429,7 @@ class B extends A {
 }
 ''');
     addTestFile('''
-augment library 'b.dart';
+part of 'b.dart';
 
 augment class A {
   augment m() {} // 1
@@ -443,14 +443,14 @@ augment class A {
 
   Future<void> test_ofClass_byClass_method_inAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class B extends A {
   m() {}
 }
 ''');
     addTestFile('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   m() {}
@@ -463,7 +463,7 @@ class B extends A {}
 
   Future<void> test_ofClass_byClass_method_inAugmented() async {
     newFile('$testPackageLibPath/b.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {}
 class B extends A {
@@ -471,7 +471,7 @@ class B extends A {
 }
 ''');
     addTestFile('''
-augment library 'b.dart';
+part of 'b.dart';
 
 augment class A {
   m() {}

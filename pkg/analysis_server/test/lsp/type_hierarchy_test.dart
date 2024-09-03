@@ -178,13 +178,13 @@ import 'main.dart';
 
   Future<void> test_augment_extends() async {
     var content = '''
-import augment 'other.dart';
+part 'other.dart';
 
 class MyCl^ass1 {}
 [!class /*[1*/C/*1]*/ {}!]
 ''';
     var augmentation = '''
-augment library 'main.dart';
+part of 'main.dart';
 
 augment class C extends MyClass1 {}
 ''';
@@ -336,13 +336,13 @@ class MyCla^ss2 extends MyClass1 {}
 
   Future<void> test_augment_extends() async {
     var content = '''
-import augment 'other.dart';
+part 'other.dart';
 
 [!class /*[1*/MyClass1/*1]*/ {}!]
 class C^s {}
 ''';
     var augmentation = '''
-augment library 'main.dart';
+part of 'main.dart';
 
 augment class Cs extends MyClass1 {}
 ''';

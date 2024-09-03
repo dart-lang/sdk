@@ -178,29 +178,6 @@ void f(Completer f) {
 ''');
   }
 
-  Future<void> test_duplicateAugmentation() async {
-    newFile('$testPackageLibPath/a.dart', '''
-augment library 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', '''
-augment library 'test.dart';
-class B {}
-''');
-
-    await resolveTestCode('''
-import augment 'a.dart';
-import augment 'b.dart';
-import augment 'a.dart';
-''');
-
-    await assertHasFix('''
-import augment 'a.dart';
-import augment 'b.dart';
-''');
-  }
-
   Future<void> test_duplicateImport() async {
     await resolveTestCode('''
 import 'dart:math';
