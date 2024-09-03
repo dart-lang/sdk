@@ -265,6 +265,11 @@ enum RPCErrorKind {
   /// Application specific error code.
   kServerError(code: -32000, message: 'Application error'),
 
+  /// Service connection disposed.
+  ///
+  /// This may indicate the connection was closed while a request was in-flight.
+  kConnectionDisposed(code: -32010, message: 'Service connection disposed'),
+
   /// The JSON sent is not a valid Request object.
   kInvalidRequest(code: -32600, message: 'Invalid request object'),
 

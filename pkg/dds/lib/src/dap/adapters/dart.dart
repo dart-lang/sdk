@@ -2861,7 +2861,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // outside of the DAP (eg. closing the simulator) so it's possible our
       // requests will fail in this way before we've handled any event to set
       // `isTerminating`.
-      if (e.code == RpcErrorCodes.kServiceDisappeared) {
+      if (e.code == RpcErrorCodes.kServiceDisappeared ||
+          e.code == RpcErrorCodes.kConnectionDisposed) {
         return null;
       }
 
