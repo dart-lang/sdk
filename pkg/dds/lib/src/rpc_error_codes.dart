@@ -24,6 +24,8 @@ abstract class RpcErrorCodes {
 
   // static const kExtensionError = -32000;
 
+  static const kConnectionDisposed = -32010;
+
   static const kFeatureDisabled = 100;
 
   // static const kCannotAddBreakpoint = 102;
@@ -50,6 +52,7 @@ abstract class RpcErrorCodes {
   // static const kFileDoesNotExist = 1003;
 
   static const errorMessages = {
+    kConnectionDisposed: 'Service connection disposed',
     kFeatureDisabled: 'Feature is disabled',
     kStreamAlreadySubscribed: 'Stream already subscribed',
     kStreamNotSubscribed: 'Stream not subscribed',
