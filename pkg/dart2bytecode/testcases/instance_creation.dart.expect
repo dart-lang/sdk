@@ -638,15 +638,15 @@ ConstantPool {
   [2] = Reserved
 }
 
-Class 'K', script = 'DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart', abstract
-    type-params <'A' extends dart:core::Object? (default dynamic), 'B' extends dart:core::Object? (default dynamic)> (args: 2)
+Class 'L', script = 'DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart', abstract
+    type-params <'S' extends dart:core::Object? (default dynamic), 'T' extends dart:core::Object? (default dynamic)> (args: 2)
     extends dart:core::Object
 
 
 Function '', factory, static, reflectable, debuggable
-    type-params <'A' extends dart:core::Object? (default dynamic), 'B' extends dart:core::Object? (default dynamic)>
+    type-params <'S' extends dart:core::Object? (default dynamic), 'T' extends dart:core::Object? (default dynamic)>
     parameters [] (required: 0)
-    return-type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::K < DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::K:: (constructor)::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::K:: (constructor)::TypeParam/1 >
+    return-type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::L < DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::L:: (constructor)::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::L:: (constructor)::TypeParam/1 >
 
 Bytecode {
   Entry                1
@@ -669,7 +669,7 @@ ConstantPool {
 Class 'TestTypeArgReuse', script = 'DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart'
     type-params <'P' extends dart:core::Object? (default dynamic), 'Q' extends dart:core::Object? (default dynamic)> (args: 2)
     extends DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::Base < DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::TestTypeArgReuse::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::TestTypeArgReuse::TypeParam/1 >
-    implements [DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::K < DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::TestTypeArgReuse::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::TestTypeArgReuse::TypeParam/1 >]
+    implements [DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::L < DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::TestTypeArgReuse::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::TestTypeArgReuse::TypeParam/1 >]
 
 
 Function '', constructor, reflectable
