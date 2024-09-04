@@ -1699,7 +1699,8 @@ abstract class AstCodeGenerator
     final typeArguments = node.arguments.types;
     final positionalArguments = node.arguments.positional;
     final namedArguments = node.arguments.named;
-    final forwarder = translator.dynamicForwarders
+    final forwarder = translator
+        .getDynamicForwardersForModule(b.module)
         .getDynamicInvocationForwarder(node.name.text);
 
     // Evaluate receiver
@@ -1770,7 +1771,7 @@ abstract class AstCodeGenerator
     b.local_get(typeArgsLocal);
     b.local_get(positionalArgsLocal);
     b.local_get(namedArgsLocal);
-    b.call(forwarder.function);
+    translator.callFunction(forwarder.function, b);
 
     return translator.topInfo.nullableType;
   }
@@ -2091,8 +2092,9 @@ abstract class AstCodeGenerator
   @override
   w.ValueType visitDynamicGet(DynamicGet node, w.ValueType expectedType) {
     final receiver = node.receiver;
-    final forwarder =
-        translator.dynamicForwarders.getDynamicGetForwarder(node.name.text);
+    final forwarder = translator
+        .getDynamicForwardersForModule(b.module)
+        .getDynamicGetForwarder(node.name.text);
 
     // Evaluate receiver
     wrap(receiver, translator.topInfo.nullableType);
@@ -2113,7 +2115,7 @@ abstract class AstCodeGenerator
     b.end(); // nullBlock
 
     // Call get forwarder
-    b.call(forwarder.function);
+    translator.callFunction(forwarder.function, b);
 
     return translator.topInfo.nullableType;
   }
@@ -2122,8 +2124,9 @@ abstract class AstCodeGenerator
   w.ValueType visitDynamicSet(DynamicSet node, w.ValueType expectedType) {
     final receiver = node.receiver;
     final value = node.value;
-    final forwarder =
-        translator.dynamicForwarders.getDynamicSetForwarder(node.name.text);
+    final forwarder = translator
+        .getDynamicForwardersForModule(b.module)
+        .getDynamicSetForwarder(node.name.text);
 
     // Evaluate receiver
     wrap(receiver, translator.topInfo.nullableType);
@@ -2151,7 +2154,7 @@ abstract class AstCodeGenerator
 
     // Call set forwarder
     b.local_get(positionalArgLocal);
-    b.call(forwarder.function);
+    translator.callFunction(forwarder.function, b);
 
     return translator.topInfo.nullableType;
   }

@@ -12,32 +12,35 @@ import 'reference_extensions.dart';
 import 'translator.dart';
 
 /// Stores forwarders for dynamic gets, sets, and invocations. See [Forwarder]
-/// for details.
+/// for details. Each module will contain its own forwarders for the names
+/// invoked from it.
 class DynamicForwarders {
   final Translator translator;
+  final w.ModuleBuilder callingModule;
 
   final Map<String, Forwarder> _getterForwarderOfName = {};
   final Map<String, Forwarder> _setterForwarderOfName = {};
   final Map<String, Forwarder> _methodForwarderOfName = {};
 
-  DynamicForwarders(this.translator);
+  DynamicForwarders(this.translator, this.callingModule);
 
   Forwarder getDynamicGetForwarder(String memberName) =>
-      _getterForwarderOfName[memberName] ??=
-          Forwarder._(translator, _ForwarderKind.Getter, memberName)
-            .._generateCode(translator);
+      _getterForwarderOfName[memberName] ??= Forwarder._(
+          translator, _ForwarderKind.Getter, memberName, callingModule)
+        .._generateCode(translator);
 
   Forwarder getDynamicSetForwarder(String memberName) =>
-      _setterForwarderOfName[memberName] ??=
-          Forwarder._(translator, _ForwarderKind.Setter, memberName)
-            .._generateCode(translator);
+      _setterForwarderOfName[memberName] ??= Forwarder._(
+          translator, _ForwarderKind.Setter, memberName, callingModule)
+        .._generateCode(translator);
 
   Forwarder getDynamicInvocationForwarder(String memberName) {
     // Add Wasm function to the map before generating the forwarder code, to
     // allow recursive calls in the "call" forwarder.
     var forwarder = _methodForwarderOfName[memberName];
     if (forwarder == null) {
-      forwarder = Forwarder._(translator, _ForwarderKind.Method, memberName);
+      forwarder = Forwarder._(
+          translator, _ForwarderKind.Method, memberName, callingModule);
       _methodForwarderOfName[memberName] = forwarder;
       forwarder._generateCode(translator);
     }
@@ -71,8 +74,9 @@ class Forwarder {
 
   final w.FunctionBuilder function;
 
-  Forwarder._(Translator translator, this._kind, this.memberName)
-      : function = translator.m.functions.define(_kind.functionType(translator),
+  Forwarder._(Translator translator, this._kind, this.memberName,
+      w.ModuleBuilder module)
+      : function = module.functions.define(_kind.functionType(translator),
             "$_kind forwarder for '$memberName'");
 
   void _generateCode(Translator translator) {
@@ -522,7 +526,8 @@ class Forwarder {
           b.i32_ne();
           b.if_();
           // Value is not a closure
-          final callForwarder = translator.dynamicForwarders
+          final callForwarder = translator
+              .getDynamicForwardersForModule(b.module)
               .getDynamicInvocationForwarder("call")
               .function;
           b.local_get(receiverLocal);

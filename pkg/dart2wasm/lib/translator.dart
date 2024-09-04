@@ -108,7 +108,6 @@ class Translator with KernelNodes {
   late final ExceptionTag exceptionTag;
   late final CompilationQueue compilationQueue;
   late final FunctionCollector functions;
-  late final DynamicForwarders dynamicForwarders;
 
   // Information about the program used and updated by the various phases.
 
@@ -188,6 +187,11 @@ class Translator with KernelNodes {
       w.ModuleBuilder module) {
     return _polymorphicDispatchers[module] ??=
         PolymorphicDispatchers(this, module);
+  }
+
+  final Map<w.ModuleBuilder, DynamicForwarders> _dynamicForwarders = {};
+  DynamicForwarders getDynamicForwardersForModule(w.ModuleBuilder module) {
+    return _dynamicForwarders[module] ??= DynamicForwarders(this, module);
   }
 
   /// Dart types that have specialized Wasm representations.
@@ -320,7 +324,6 @@ class Translator with KernelNodes {
     functions = FunctionCollector(this);
     types = Types(this);
     exceptionTag = ExceptionTag(this);
-    dynamicForwarders = DynamicForwarders(this);
   }
 
   w.Module translate(Uri? sourceMapUrl) {
