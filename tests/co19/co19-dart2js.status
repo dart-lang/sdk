@@ -122,7 +122,24 @@ LibTest/core/List/List_class_A01_t05: Slow, Pass
 LibTest/core/List/List_class_A01_t06: Slow, Pass
 
 [ $compiler == dart2js && $runtime == firefox ]
-LibTest/html/Element/touchStartEvent_A01_t01: SkipByDesign # TouchEvent consturctor not exposed in FF
+LibTest/html/Element/onTouchCancel_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/Element/onTouchEnd_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/Element/onTouchEnter_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/Element/onTouchLeave_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/Element/onTouchMove_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/Element/onTouchStart_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/Element/touchCancelEvent_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/Element/touchEndEvent_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/Element/touchEnterEvent_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/Element/touchLeaveEvent_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/Element/touchMoveEvent_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/Element/touchStartEvent_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/IFrameElement/onTouchCancel_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/IFrameElement/onTouchEnd_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/IFrameElement/onTouchEnter_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/IFrameElement/onTouchLeave_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/IFrameElement/onTouchMove_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
+LibTest/html/IFrameElement/onTouchStart_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
 
 [ $compiler == dart2js && $runtime == ie11 ]
 LibTest/collection/ListBase/ListBase_class_A01_t04: SkipSlow # slow babeljs transformation
@@ -138,5 +155,22 @@ LibTest/core/List/List_class_A01_t06: SkipSlow # slow babeljs transformation
 [ $compiler == dart2js && $runtime == safari ]
 LibTest/html/Element/isContentEditable_A01_t01: Skip # 98% fails in Safari, evades flake detection https://github.com/dart-lang/sdk/issues/50718
 LibTest/html/Element/isContentEditable_A02_t01: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
-LibTest/html/Element/touchStartEvent_A01_t01: SkipByDesign # TouchEvent consturctor not exposed in Safari
+LibTest/html/Element/onTouchCancel_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/Element/onTouchEnd_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/Element/onTouchEnter_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/Element/onTouchLeave_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/Element/onTouchMove_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/Element/onTouchStart_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/Element/touchCancelEvent_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/Element/touchEndEvent_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/Element/touchEnterEvent_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/Element/touchLeaveEvent_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/Element/touchMoveEvent_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/Element/touchStartEvent_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
 LibTest/html/IFrameElement/isContentEditable_A01_t01: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
+LibTest/html/IFrameElement/onTouchCancel_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/IFrameElement/onTouchEnd_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/IFrameElement/onTouchEnter_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/IFrameElement/onTouchLeave_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/IFrameElement/onTouchMove_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
+LibTest/html/IFrameElement/onTouchStart_A01_t01: SkipByDesign # TouchEvent constructor not exposed in Safari
