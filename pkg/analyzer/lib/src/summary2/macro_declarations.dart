@@ -66,6 +66,7 @@ class ConstructorDeclarationImpl extends macro.ConstructorDeclarationImpl
     required super.returnType,
     required super.typeParameters,
     required super.definingType,
+    required super.isConst,
     required super.isFactory,
     required this.element,
   });
@@ -855,6 +856,7 @@ class DeclarationBuilderFromElement {
       metadata: _buildMetadata(element),
       hasBody: !element.isAbstract,
       hasExternal: element.isExternal,
+      isConst: element.isConst,
       isFactory: element.isFactory,
       namedParameters: _namedFormalParameters(element.parameters),
       positionalParameters: _positionalFormalParameters(element.parameters),
@@ -1018,6 +1020,7 @@ class DeclarationBuilderFromElement {
       isRequired: element.isRequired,
       library: library(element),
       metadata: _buildMetadata(element),
+      style: element.parameterStyle,
       type: _dartType(element.type),
     );
   }
@@ -1299,6 +1302,7 @@ class DeclarationBuilderFromNode {
       metadata: _buildMetadata(element),
       hasBody: node.body is! ast.EmptyFunctionBody,
       hasExternal: node.externalKeyword != null,
+      isConst: node.constKeyword != null,
       isFactory: node.factoryKeyword != null,
       namedParameters: namedParameters,
       positionalParameters: positionalParameters,
@@ -1813,6 +1817,7 @@ class DeclarationBuilderFromNode {
       isRequired: node.isRequired,
       library: library(element),
       metadata: _buildMetadata(element),
+      style: element.parameterStyle,
       type: typeAnnotation,
     );
   }
@@ -2511,6 +2516,17 @@ extension on Element {
     var enclosing = enclosingElement3 as InstanceElement;
     return enclosing.augmented.declaration;
   }
+}
+
+extension on ParameterElement {
+  /// Returns the [macro.ParameterStyle] for this element.
+  macro.ParameterStyle get parameterStyle => switch (this) {
+        ParameterElement(isInitializingFormal: true) =>
+          macro.ParameterStyle.fieldFormal,
+        ParameterElement(isSuperFormal: true) =>
+          macro.ParameterStyle.superFormal,
+        _ => macro.ParameterStyle.normal,
+      };
 }
 
 extension<T extends ast.DeclarationImpl> on T {
