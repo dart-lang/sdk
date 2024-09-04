@@ -18,6 +18,7 @@ import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
 import 'constants.dart';
+import 'deferred_loading.dart';
 import 'dispatch_table.dart';
 import 'dynamic_forwarders.dart';
 import 'functions.dart';
@@ -297,20 +298,25 @@ class Translator with KernelNodes {
   ]);
 
   // Module predicates and helpers
-  // TODO(natebiggs): Implement these with real module data.
-  Iterable<w.ModuleBuilder> get modules => [mainModule];
-  late final w.ModuleBuilder mainModule;
+  final ModuleOutputData _moduleOutputData;
+  Iterable<w.ModuleBuilder> get modules => _builderToOutput.keys;
+  w.ModuleBuilder get mainModule =>
+      _outputToBuilder[_moduleOutputData.mainModule]!;
   w.TypesBuilder get typesBuilder => mainModule.types;
-  bool get hasMultipleModules => false;
+  final Map<ModuleOutput, w.ModuleBuilder> _outputToBuilder = {};
+  final Map<w.ModuleBuilder, ModuleOutput> _builderToOutput = {};
+  bool get hasMultipleModules => _moduleOutputData.hasMultipleModules;
 
-  w.ModuleBuilder moduleForReference(Reference reference) => mainModule;
+  w.ModuleBuilder moduleForReference(Reference reference) =>
+      _outputToBuilder[_moduleOutputData.moduleForReference(reference)]!;
 
-  bool isMainModule(w.ModuleBuilder module) => true;
+  String nameForModule(w.ModuleBuilder module) =>
+      _builderToOutput[module]!.moduleImportName;
 
-  String nameForModule(w.ModuleBuilder module) => 'main';
+  bool isMainModule(w.ModuleBuilder module) => _builderToOutput[module]!.isMain;
 
   Translator(this.component, this.coreTypes, this.index, this.recordClasses,
-      this.options)
+      this._moduleOutputData, this.options)
       : libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
@@ -326,9 +332,44 @@ class Translator with KernelNodes {
     exceptionTag = ExceptionTag(this);
   }
 
-  w.Module translate(Uri? sourceMapUrl) {
-    mainModule =
-        w.ModuleBuilder(sourceMapUrl, watchPoints: options.watchPoints);
+  void _initLoadLibraryImportMap() {
+    final mapEntries = <MapLiteralEntry>[];
+    _moduleOutputData.generateModuleImportMap().forEach((libName, importMap) {
+      final subMapEntries = <MapLiteralEntry>[];
+      importMap.forEach((importName, moduleNames) {
+        subMapEntries.add(MapLiteralEntry(StringLiteral(importName),
+            ListLiteral([...moduleNames.map(StringLiteral.new)])));
+      });
+      mapEntries.add(
+          MapLiteralEntry(StringLiteral(libName), MapLiteral(subMapEntries)));
+    });
+    final stringClass =
+        options.jsCompatibility ? jsStringClass : stringBaseClass;
+    loadLibraryImportMap.function.body = ReturnStatement(MapLiteral(mapEntries,
+        keyType: InterfaceType(stringClass, Nullability.nonNullable),
+        valueType: InterfaceType(coreTypes.mapNonNullableRawType.classNode,
+            Nullability.nonNullable, [
+          InterfaceType(stringClass, Nullability.nonNullable),
+          InterfaceType(stringClass, Nullability.nonNullable)
+        ])));
+    loadLibraryImportMap.isExternal = false;
+  }
+
+  void _initModules(Uri Function(String moduleName)? sourceMapUrlGenerator) {
+    for (final outputModule in _moduleOutputData.modules) {
+      final builder = w.ModuleBuilder(
+          sourceMapUrlGenerator?.call(outputModule.moduleName),
+          parent: outputModule.isMain ? null : mainModule,
+          watchPoints: options.watchPoints);
+      _outputToBuilder[outputModule] = builder;
+      _builderToOutput[builder] = outputModule;
+    }
+  }
+
+  Map<ModuleOutput, w.Module> translate(
+      Uri Function(String moduleName)? sourceMapUrlGenerator) {
+    _initLoadLibraryImportMap();
+    _initModules(sourceMapUrlGenerator);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
 
     closureLayouter.collect();
@@ -370,7 +411,11 @@ class Translator with KernelNodes {
     }
     _printFunction(initFunction, "init");
 
-    return mainModule.build();
+    final result = <ModuleOutput, w.Module>{};
+    _outputToBuilder.forEach((outputModule, builder) {
+      result[outputModule] = builder.build();
+    });
+    return result;
   }
 
   void _printFunction(w.BaseFunction function, Object name) {

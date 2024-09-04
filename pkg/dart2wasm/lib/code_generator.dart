@@ -2835,20 +2835,15 @@ abstract class AstCodeGenerator
 
   @override
   w.ValueType visitLoadLibrary(LoadLibrary node, w.ValueType expectedType) {
-    LibraryDependency import = node.import;
-    _emitString(import.enclosingLibrary.importUri.toString());
-    _emitString(import.name!);
-    return translator.outputOrVoid(call(translator.loadLibrary.reference));
+    throw UnsupportedError(
+        'LoadLibrary should be lowered by modular transformer.');
   }
 
   @override
   w.ValueType visitCheckLibraryIsLoaded(
       CheckLibraryIsLoaded node, w.ValueType expectedType) {
-    LibraryDependency import = node.import;
-    _emitString(import.enclosingLibrary.importUri.toString());
-    _emitString(import.name!);
-    return translator
-        .outputOrVoid(call(translator.checkLibraryIsLoaded.reference));
+    throw UnsupportedError(
+        'CheckLibraryIsLoaded should be lowered by modular transformer.');
   }
 
   /// Pushes the `_Type` object for a function or class type parameter to the

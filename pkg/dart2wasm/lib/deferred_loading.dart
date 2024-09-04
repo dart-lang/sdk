@@ -43,10 +43,10 @@ class ModuleOutput {
   bool get isMain => _id == _mainModuleId;
 
   /// The name used to import and export this module.
-  String get moduleName => 'module$_id';
+  String get moduleImportName => 'module$_id';
 
   /// The name added to the wasm output file for this module.
-  String get moduleFileName => isMain ? '' : moduleName;
+  String get moduleName => isMain ? '' : moduleImportName;
 
   ModuleOutput._(this._id);
 
@@ -58,7 +58,7 @@ class ModuleOutput {
   }
 
   @override
-  String toString() => '$moduleName($_libraries)';
+  String toString() => '$moduleImportName($_libraries)';
 }
 
 /// The root of a deferred import subgraph.
@@ -288,7 +288,8 @@ class ModuleOutputData {
     _importMap.forEach((lib, importMapping) {
       final nameMapping = <String, List<String>>{};
       importMapping.forEach((importName, modules) {
-        nameMapping[importName] = modules.map((o) => o.moduleName).toList();
+        nameMapping[importName] =
+            modules.map((o) => o.moduleImportName).toList();
       });
       result[lib.importUri.toString()] = nameMapping;
     });
