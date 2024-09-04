@@ -3228,27 +3228,7 @@ class A {}
     assertNoErrorsInResult();
   }
 
-  test_mixin_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment mixin A {}
-''');
-
-    newFile(testFile.path, r'''
-part 'a.dart';
-
-mixin A {}
-''');
-
-    await resolveTestFile();
-    assertNoErrorsInResult();
-
-    await resolveFile2(a);
-    assertNoErrorsInResult();
-  }
-
-  test_part_library() async {
+  test_class_library_part() async {
     var lib = newFile('$testPackageLibPath/lib.dart', '''
 part 'a.dart';
 
@@ -3272,7 +3252,7 @@ class A {}
       ]);
   }
 
-  test_part_part() async {
+  test_class_part_part() async {
     var lib = newFile('$testPackageLibPath/lib.dart', '''
 part 'a.dart';
 part 'b.dart';
@@ -3303,6 +3283,131 @@ class A {}
       ..assertErrors([
         error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 27, 1,
             contextMessages: [message(a, 27, 1)]),
+      ]);
+  }
+
+  test_extension() async {
+    await assertErrorsInCode('''
+extension A on int {}
+extension B on int {}
+extension A on int {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 54, 1,
+          contextMessages: [message(testFile, 10, 1)])
+    ]);
+  }
+
+  test_extension_library_part() async {
+    var lib = newFile('$testPackageLibPath/lib.dart', '''
+part 'a.dart';
+
+extension A on int {}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', '''
+part of 'lib.dart';
+
+extension A on int {}
+''');
+
+    await resolveFile(lib);
+
+    var aResult = await resolveFile(a);
+    GatheringErrorListener()
+      ..addAll(aResult.errors)
+      ..assertErrors([
+        error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 31, 1,
+            contextMessages: [message(lib, 26, 1)]),
+      ]);
+  }
+
+  test_extensionType() async {
+    await assertErrorsInCode('''
+extension type A(int it) {}
+extension type B(int it) {}
+extension type A(int it) {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 71, 1,
+          contextMessages: [message(testFile, 15, 1)])
+    ]);
+  }
+
+  test_extensionType_library_part() async {
+    var lib = newFile('$testPackageLibPath/lib.dart', '''
+part 'a.dart';
+
+extension type A(int it) {}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', '''
+part of 'lib.dart';
+
+extension type A(int it) {}
+''');
+
+    await resolveFile(lib);
+
+    var aResult = await resolveFile(a);
+    GatheringErrorListener()
+      ..addAll(aResult.errors)
+      ..assertErrors([
+        error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 36, 1,
+            contextMessages: [message(lib, 31, 1)]),
+      ]);
+  }
+
+  test_mixin() async {
+    await assertErrorsInCode('''
+mixin A {}
+mixin B {}
+mixin A {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 28, 1,
+          contextMessages: [message(testFile, 6, 1)])
+    ]);
+  }
+
+  test_mixin_augmentation() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+
+augment mixin A {}
+''');
+
+    newFile(testFile.path, r'''
+part 'a.dart';
+
+mixin A {}
+''');
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+  }
+
+  test_mixin_library_part() async {
+    var lib = newFile('$testPackageLibPath/lib.dart', '''
+part 'a.dart';
+
+mixin A {}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', '''
+part of 'lib.dart';
+
+mixin A {}
+''');
+
+    await resolveFile(lib);
+
+    var aResult = await resolveFile(a);
+    GatheringErrorListener()
+      ..addAll(aResult.errors)
+      ..assertErrors([
+        error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 27, 1,
+            contextMessages: [message(lib, 22, 1)]),
       ]);
   }
 
