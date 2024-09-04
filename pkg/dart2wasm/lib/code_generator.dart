@@ -1909,8 +1909,9 @@ abstract class AstCodeGenerator
     pushArguments(selector.signature, selector.paramInfo);
 
     if (selector.staticDispatchRanges.isNotEmpty) {
-      b.invoke(
-          translator.polymorphicDispatchers.getPolymorphicDispatcher(selector));
+      b.invoke(translator
+          .getPolymorphicDispatchersForModule(b.module)
+          .getPolymorphicDispatcher(selector));
     } else {
       final offset = selector.offset!;
       b.comment("Instance $kind of '${selector.name}'");
@@ -4565,7 +4566,7 @@ abstract class CallTarget {
 
   /// The wasm target function to call.
   ///
-  /// This should only be accessed if caller intends to call it, as it will
+  /// This should only be accessed if caller intents to call it, as it will
   /// enqueue the function in the compilation queue.
   w.BaseFunction get function;
 }

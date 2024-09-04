@@ -182,7 +182,13 @@ class Translator with KernelNodes {
     return _partialInstantiators[module] ??= PartialInstantiator(this, module);
   }
 
-  late final polymorphicDispatchers = PolymorphicDispatchers(this);
+  final Map<w.ModuleBuilder, PolymorphicDispatchers> _polymorphicDispatchers =
+      {};
+  PolymorphicDispatchers getPolymorphicDispatchersForModule(
+      w.ModuleBuilder module) {
+    return _polymorphicDispatchers[module] ??=
+        PolymorphicDispatchers(this, module);
+  }
 
   /// Dart types that have specialized Wasm representations.
   late final Map<Class, w.StorageType> builtinTypes = {
@@ -1734,14 +1740,16 @@ class PartialInstantiator {
 
 class PolymorphicDispatchers {
   final Translator translator;
+  final w.ModuleBuilder callingModule;
   final cache = <SelectorInfo, PolymorphicDispatcherCallTarget>{};
 
-  PolymorphicDispatchers(this.translator);
+  PolymorphicDispatchers(this.translator, this.callingModule);
 
   CallTarget getPolymorphicDispatcher(SelectorInfo selector) {
     assert(selector.targetRanges.length > 1);
     return cache.putIfAbsent(selector, () {
-      return PolymorphicDispatcherCallTarget(translator, selector);
+      return PolymorphicDispatcherCallTarget(
+          translator, selector, callingModule);
     });
   }
 }
@@ -1749,8 +1757,10 @@ class PolymorphicDispatchers {
 class PolymorphicDispatcherCallTarget extends CallTarget {
   final Translator translator;
   final SelectorInfo selector;
+  final w.ModuleBuilder callingModule;
 
-  PolymorphicDispatcherCallTarget(this.translator, this.selector)
+  PolymorphicDispatcherCallTarget(
+      this.translator, this.selector, this.callingModule)
       : super(selector.signature);
 
   @override
@@ -1768,7 +1778,7 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
 
   @override
   late final w.BaseFunction function = (() {
-    final function = translator.m.functions.define(
+    final function = callingModule.functions.define(
         translator.typesBuilder
             .defineFunction(signature.inputs, signature.outputs),
         name);
