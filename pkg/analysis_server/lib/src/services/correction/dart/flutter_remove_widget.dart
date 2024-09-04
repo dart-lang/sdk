@@ -59,8 +59,7 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
         await _removeChildren(
             builder, widgetCreation, sliversExpression.elements);
       }
-    }
-    else if (widgetCreation.sliverArgument case var sliverArgument?) {
+    } else if (widgetCreation.sliverArgument case var sliverArgument?) {
       await _removeSingle(builder, widgetCreation, sliverArgument.expression);
     } else {
       await _removeSingleWhenInList(builder, widgetCreation);
@@ -149,7 +148,9 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addDeletion(range.nodeInList(widgetParentNode.elements, widgetCreation));
+      builder.addDeletion(
+        range.nodeInList(widgetParentNode.elements, widgetCreation),
+      );
     });
   }
 }

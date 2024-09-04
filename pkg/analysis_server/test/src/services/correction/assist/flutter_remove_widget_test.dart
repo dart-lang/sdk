@@ -108,7 +108,7 @@ void f() {
     await assertNoAssist();
   }
 
-    Future<void> test_does_not_work_for_non_widgets_children() async {
+  Future<void> test_does_not_work_for_non_widgets_children() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
@@ -146,7 +146,7 @@ void f() {
     await assertNoAssist();
   }
 
-    Future<void> test_does_not_work_for_non_widgets_slivers() async {
+  Future<void> test_does_not_work_for_non_widgets_slivers() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
