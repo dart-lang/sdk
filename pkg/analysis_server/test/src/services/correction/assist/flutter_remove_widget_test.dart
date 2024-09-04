@@ -33,6 +33,62 @@ class FlutterRemoveWidgetTest extends AssistProcessorTest {
     );
   }
 
+  Future<void> test_doesNotRemoveWidgetWithoutArgumentWhenNotInList() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  /*caret*/Container();
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_removeWidgetWithoutArgumentWhenInList() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  Column(
+    children: [
+      /*caret*/Container(),
+    ],
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+void f() {
+  Column(
+    children: [
+      
+    ],
+  );
+}
+''');
+  }
+
+  Future<void> test_removeWidgetWithoutArgumentWhenInListSliver() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  CustomScrollView(
+    slivers: [
+      /*caret*/SliverToBoxAdapter(),
+    ],
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+void f() {
+  CustomScrollView(
+    slivers: [
+      
+    ],
+  );
+}
+''');
+  }
+
   Future<void> test_does_not_work_for_non_widgets_child() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
