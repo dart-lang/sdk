@@ -5,12 +5,12 @@
 part of 'globals.dart';
 
 /// An (imported or defined) global variable.
-abstract class Global with Indexable implements Exportable {
+abstract class Global with Indexable, Exportable {
   @override
   final FinalizableIndex finalizableIndex;
   final GlobalType type;
+  @override
   final ModuleBuilder enclosingModule;
-  String? exportedName;
 
   /// Name of the global in the names section.
   final String? globalName;
@@ -22,9 +22,7 @@ abstract class Global with Indexable implements Exportable {
   String toString() => globalName ?? "$finalizableIndex";
 
   @override
-  Export export(String name) {
-    assert(exportedName == null);
-    exportedName = name;
+  Export buildExport(String name) {
     return GlobalExport(name, this);
   }
 }

@@ -16,13 +16,13 @@ class Local {
 }
 
 /// An (imported or defined) function.
-abstract class BaseFunction with Indexable implements Exportable {
+abstract class BaseFunction with Indexable, Exportable {
   @override
   final FinalizableIndex finalizableIndex;
   final FunctionType type;
   final String? functionName;
+  @override
   final ModuleBuilder enclosingModule;
-  String? exportedName;
 
   BaseFunction(this.enclosingModule, this.finalizableIndex, this.type,
       this.functionName);
@@ -32,9 +32,7 @@ abstract class BaseFunction with Indexable implements Exportable {
 
   /// Creates an export of this function in this module.
   @override
-  Export export(String name) {
-    assert(exportedName == null);
-    exportedName = name;
+  Export buildExport(String name) {
     return FunctionExport(name, this);
   }
 }
@@ -78,7 +76,7 @@ class DefinedFunction extends BaseFunction implements Serializable {
   }
 
   @override
-  String toString() => exportedName ?? "#$finalizableIndex";
+  String toString() => functionName ?? "#$finalizableIndex";
 }
 
 /// An imported function.

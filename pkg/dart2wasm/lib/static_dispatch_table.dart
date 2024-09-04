@@ -36,7 +36,6 @@ class StaticDispatchTables {
 /// All calls to this table will have the same signature and so `call_indirect`
 /// instructions that reference this table can omit the type check.
 class StaticDispatchTableForSignature {
-  final String _tableName;
   final w.FunctionType _functionType;
 
   final Translator translator;
@@ -45,11 +44,12 @@ class StaticDispatchTableForSignature {
   final Map<w.BaseFunction, int> _table = {};
 
   late final w.TableBuilder _definedWasmTable;
-  final Map<w.ModuleBuilder, w.ImportedTable> _importedWasmTables = {};
+  final WasmTableImporter _importedWasmTables;
 
   StaticDispatchTableForSignature(
       this.translator, this._functionType, int nameCounter)
-      : _tableName = 'static$nameCounter' {
+      : _importedWasmTables =
+            WasmTableImporter(translator, 'static$nameCounter-') {
     _definedWasmTable = translator.mainModule.tables
         .define(w.RefType(_functionType, nullable: true), _table.length);
   }
@@ -60,17 +60,7 @@ class StaticDispatchTableForSignature {
   /// This can either be the table definition itself or an import of it. Imports
   /// the table into [module] if it is not imported yet.
   w.Table getWasmTable(w.ModuleBuilder module) {
-    if (translator.isMainModule(module)) {
-      return _definedWasmTable;
-    }
-    if (_importedWasmTables.isEmpty) {
-      translator.mainModule.exports.export(_tableName, _definedWasmTable);
-    }
-    return _importedWasmTables.putIfAbsent(module, () {
-      final mainModuleName = translator.nameForModule(translator.mainModule);
-      return module.tables.import(mainModuleName, _tableName,
-          w.RefType(_functionType, nullable: true), _table.length);
-    });
+    return _importedWasmTables.get(_definedWasmTable, module);
   }
 
   /// Returns the index for [function] in the table allocating one if necessary.
@@ -86,13 +76,14 @@ class StaticDispatchTableForSignature {
       if (translator.isMainModule(targetModule)) {
         _definedWasmTable.setElement(index, fun);
       } else {
+        // This will generate the imported table if it doesn't already exist.
         (getWasmTable(targetModule) as w.ImportedTable).setElements[fun] =
             index;
       }
     });
 
     _definedWasmTable.minSize = _table.length;
-    for (final table in importedTables.values) {
+    for (final table in importedTables.imports) {
       table.minSize = _table.length;
     }
   }

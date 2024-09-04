@@ -23,5 +23,5 @@ class FunctionBuilder extends ir.BaseFunction
       enclosingModule, body.build(), finalizableIndex, type, functionName);
 
   @override
-  String toString() => exportedName ?? "#$finalizableIndex";
+  String toString() => functionName ?? "#$finalizableIndex";
 }

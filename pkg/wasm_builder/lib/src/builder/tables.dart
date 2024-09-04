@@ -10,12 +10,16 @@ part 'table.dart';
 
 /// The interface for the tables in a module.
 class TablesBuilder with Builder<ir.Tables> {
+  final ModuleBuilder _module;
   final _tableBuilders = <TableBuilder>[];
   final _importedTables = <ir.ImportedTable>[];
 
+  TablesBuilder(this._module);
+
   /// Defines a new table in this module.
   TableBuilder define(ir.RefType type, int minSize, [int? maxSize]) {
-    final table = TableBuilder(ir.FinalizableIndex(), type, minSize, maxSize);
+    final table =
+        TableBuilder(_module, ir.FinalizableIndex(), type, minSize, maxSize);
     _tableBuilders.add(table);
     return table;
   }
@@ -25,7 +29,7 @@ class TablesBuilder with Builder<ir.Tables> {
       String module, String name, ir.RefType type, int minSize,
       [int? maxSize]) {
     final table = ir.ImportedTable(
-        module, name, ir.FinalizableIndex(), type, minSize, maxSize);
+        _module, module, name, ir.FinalizableIndex(), type, minSize, maxSize);
     _importedTables.add(table);
     return table;
   }

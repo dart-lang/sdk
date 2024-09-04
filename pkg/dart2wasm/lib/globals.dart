@@ -20,8 +20,8 @@ class Globals {
   final Map<(w.ModuleBuilder, w.FunctionType), w.BaseFunction> _dummyFunctions =
       {};
   final Map<w.HeapType, w.Global> _dummyValues = {};
-  final Map<w.Global, Map<w.ModuleBuilder, w.ImportedGlobal>> _importedGlobals =
-      {};
+  late final WasmGlobalImporter _globalsModuleMap =
+      WasmGlobalImporter(translator, 'global');
   late final w.Global dummyStructGlobal;
 
   Globals(this.translator) {
@@ -156,18 +156,7 @@ class Globals {
     if (owningModule == callingModule) {
       b.global_get(global);
     } else if (translator.isMainModule(owningModule)) {
-      final importedGlobals = _importedGlobals.putIfAbsent(global, () {
-        final importName = 'global$importNameSuffix${_importedGlobals.length}';
-        owningModule.exports.export(importName, global);
-        return {};
-      });
-      final importedGlobal = importedGlobals.putIfAbsent(callingModule, () {
-        return callingModule.globals.import(
-            translator.nameForModule(owningModule),
-            global.exportedName!,
-            global.type);
-      });
-
+      final importedGlobal = _globalsModuleMap.get(global, callingModule);
       b.global_get(importedGlobal);
     } else {
       final getter = _globalGetters.putIfAbsent(global, () {
@@ -198,14 +187,7 @@ class Globals {
       pushValue(b);
       b.global_set(global);
     } else if (translator.isMainModule(owningModule)) {
-      final importName = 'global${_importedGlobals.length}';
-      final importedFunctions = _importedGlobals.putIfAbsent(global, () {
-        owningModule.exports.export(importName, global);
-        return {};
-      });
-      final importedGlobal = importedFunctions[b.module] ??= b.module.globals
-          .import(
-              translator.nameForModule(owningModule), importName, global.type);
+      final importedGlobal = _globalsModuleMap.get(global, callingModule);
       pushValue(b);
       b.global_set(importedGlobal);
     } else {

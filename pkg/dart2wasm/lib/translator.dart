@@ -137,7 +137,8 @@ class Translator with KernelNodes {
   final Map<TypeParameter, int> typeParameterIndex = {};
   final Map<Reference, ParameterInfo> staticParamInfo = {};
   final Map<Field, w.Table> _declaredFieldTables = {};
-  final Map<Field, Map<w.ModuleBuilder, w.Table>> _importedFieldTables = {};
+  late final WasmTableImporter _importedFieldTables =
+      WasmTableImporter(this, 'fieldTable');
   final Set<Member> membersContainingInnerFunctions = {};
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
@@ -435,8 +436,8 @@ class Translator with KernelNodes {
     return callFunction(functions.getFunction(reference), b);
   }
 
-  final Map<w.BaseFunction, Map<w.ModuleBuilder, w.BaseFunction>>
-      _importedFunctions = {};
+  late final WasmFunctionImporter _importedFunctions =
+      WasmFunctionImporter(this, 'func');
 
   /// Generates a set of instructions to call [function] adding indirection
   /// if the call crosses a module boundary. Calls the function directly if it
@@ -449,14 +450,7 @@ class Translator with KernelNodes {
     if (targetModule == b.module) {
       b.call(function);
     } else if (isMainModule(targetModule)) {
-      final importedFunctions = _importedFunctions.putIfAbsent(function, () {
-        final importName = 'func${_importedFunctions.length}';
-        targetModule.exports.export(importName, function);
-        return {};
-      });
-      final importedFunction = importedFunctions[b.module] ??=
-          b.module.functions.import(nameForModule(targetModule),
-              function.exportedName!, function.type);
+      final importedFunction = _importedFunctions.get(function, b.module);
       b.call(importedFunction);
     } else {
       final staticTable = staticTablesPerType.getTableForType(function.type);
@@ -988,18 +982,7 @@ class Translator with KernelNodes {
       return mainModule.tables.define(elementType, size);
     });
 
-    if (isMainModule(module)) return mainTable;
-
-    final importedTables = _importedFieldTables.putIfAbsent(field, () {
-      final importName = 'fieldTable${_importedFieldTables.length}';
-      mainModule.exports.export(importName, mainTable);
-      return {};
-    });
-
-    return importedTables.putIfAbsent(module, () {
-      return module.tables.import(nameForModule(mainModule),
-          mainTable.exportedName!, mainTable.type, mainTable.minSize);
-    });
+    return _importedFieldTables.get(mainTable, module);
   }
 
   Member? singleTarget(TreeNode node) {
@@ -1898,5 +1881,74 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
       b.return_();
     }
     b.end();
+  }
+}
+
+abstract class _WasmImporter<T extends w.Exportable> {
+  final Translator _translator;
+  final String _exportPrefix;
+  final Map<T, Map<w.ModuleBuilder, T>> _map = {};
+
+  _WasmImporter(this._translator, this._exportPrefix);
+
+  T _import(w.ModuleBuilder importingModule, T definition, String moduleName,
+      String importName);
+
+  Iterable<T> get imports => _map.values.expand((v) => v.values);
+
+  T get(T key, w.ModuleBuilder module) {
+    if (key.enclosingModule == module) return key;
+
+    final innerMap = _map.putIfAbsent(key, () {
+      key.enclosingModule.exports.export('$_exportPrefix${_map.length}', key);
+      return {};
+    });
+    return innerMap.putIfAbsent(module, () {
+      return _import(module, key,
+          _translator.nameForModule(key.enclosingModule), key.exportedName);
+    });
+  }
+}
+
+class WasmFunctionImporter extends _WasmImporter<w.BaseFunction> {
+  WasmFunctionImporter(super._translator, super._exportPrefix);
+
+  @override
+  w.BaseFunction _import(w.ModuleBuilder importingModule,
+      w.BaseFunction definition, String moduleName, String importName) {
+    return importingModule.functions
+        .import(moduleName, importName, definition.type);
+  }
+}
+
+class WasmGlobalImporter extends _WasmImporter<w.Global> {
+  WasmGlobalImporter(super._translator, super._exportPrefix);
+
+  @override
+  w.Global _import(w.ModuleBuilder importingModule, w.Global definition,
+      String moduleName, String importName) {
+    return importingModule.globals
+        .import(moduleName, importName, definition.type);
+  }
+}
+
+class WasmTableImporter extends _WasmImporter<w.Table> {
+  WasmTableImporter(super._translator, super._exportPrefix);
+
+  @override
+  w.Table _import(w.ModuleBuilder importingModule, w.Table definition,
+      String moduleName, String importName) {
+    return importingModule.tables.import(moduleName, importName,
+        definition.type, definition.minSize, definition.maxSize);
+  }
+}
+
+class WasmTagImporter extends _WasmImporter<w.Tag> {
+  WasmTagImporter(super._translator, super._exportPrefix);
+
+  @override
+  w.Tag _import(w.ModuleBuilder importingModule, w.Tag definition,
+      String moduleName, String importName) {
+    return importingModule.tags.import(moduleName, importName, definition.type);
   }
 }

@@ -213,7 +213,6 @@ class SelectorInfo {
 
 /// Builds the dispatch table for member calls.
 class DispatchTable {
-  static const _tableName = 'dispatch';
   static const _functionType = w.RefType.func(nullable: true);
 
   final Translator translator;
@@ -232,19 +231,17 @@ class DispatchTable {
   /// Maps member names to method selectors with the same member name.
   final Map<String, Set<SelectorInfo>> _dynamicMethods = {};
 
-  /// Contents of [wasmTable]. For a selector with ID S and a target class of
-  /// the selector with ID C, `table[S + C]` gives the reference to the class
-  /// member for the selector.
+  /// Contents of [_definedWasmTable]. For a selector with ID S and a target
+  /// class of the selector with ID C, `table[S + C]` gives the reference to the
+  /// class member for the selector.
   late final List<Reference?> _table;
 
   late final w.TableBuilder _definedWasmTable;
-  final Map<w.ModuleBuilder, w.ImportedTable> _importedWasmTables = {};
+  final WasmTableImporter _importedWasmTables;
 
   /// The Wasm table for the dispatch table.
   w.Table getWasmTable(w.ModuleBuilder module) =>
-      translator.isMainModule(module)
-          ? _definedWasmTable
-          : _importedWasmTables[module]!;
+      _importedWasmTables.get(_definedWasmTable, module);
 
   DispatchTable(this.translator)
       : _selectorMetadata =
@@ -255,7 +252,8 @@ class DispatchTable {
         _procedureAttributeMetadata =
             (translator.component.metadata["vm.procedure-attributes.metadata"]
                     as ProcedureAttributesMetadataRepository)
-                .mapping;
+                .mapping,
+        _importedWasmTables = WasmTableImporter(translator, 'dispatch');
 
   SelectorInfo selectorForTarget(Reference target) {
     Member member = target.asMember;
@@ -506,14 +504,10 @@ class DispatchTable {
 
     _definedWasmTable =
         translator.mainModule.tables.define(_functionType, _table.length);
-    if (translator.hasMultipleModules) {
-      final mainModuleName = translator.nameForModule(translator.mainModule);
-      translator.mainModule.exports.export(_tableName, _definedWasmTable);
-      for (final module in translator.modules) {
-        if (translator.isMainModule(module)) continue;
-        _importedWasmTables[module] = module.tables
-            .import(mainModuleName, _tableName, _functionType, _table.length);
-      }
+    for (final module in translator.modules) {
+      // Ensure the dispatch table is imported into every module as the first
+      // table.
+      getWasmTable(module);
     }
   }
 
@@ -535,7 +529,10 @@ class DispatchTable {
           if (translator.isMainModule(targetModule)) {
             _definedWasmTable.setElement(i, fun);
           } else {
-            _importedWasmTables[targetModule]!.setElements[fun] = i;
+            // This will generate the imported table if it doesn't already
+            // exist.
+            (getWasmTable(targetModule) as w.ImportedTable).setElements[fun] =
+                i;
           }
         }
       }

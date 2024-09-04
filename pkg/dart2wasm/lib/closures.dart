@@ -63,64 +63,27 @@ class ClosureRepresentation {
 
   final String exportSuffix;
 
+  final WasmFunctionImporter _instantationFunctionsImports;
+
   /// Entry point functions for instantiations of this generic closure.
   late final List<w.BaseFunction> _instantiationTrampolines =
       _instantiationTrampolinesThunk!();
   List<w.BaseFunction> Function()? _instantiationTrampolinesThunk;
-  final Map<w.ModuleBuilder, List<w.BaseFunction>>
-      _instantiationTrampolinesImports = {};
-  late final List<String> _instantiationTrampolineImportNames = List.generate(
-      _instantiationTrampolines.length,
-      (i) => 'instantiationTrampoline-$i-$exportSuffix');
   List<w.BaseFunction> _instantiationTrampolinesForModule(
       Translator translator, w.ModuleBuilder module) {
-    if (translator.isMainModule(module)) {
-      return _instantiationTrampolines;
-    }
-    if (_instantiationTrampolinesImports.isEmpty) {
-      for (int i = 0; i < _instantiationTrampolines.length; i++) {
-        final exportName = _instantiationTrampolineImportNames[i];
-
-        translator.mainModule.exports
-            .export(exportName, _instantiationTrampolines[i]);
-      }
-    }
-    return _instantiationTrampolinesImports.putIfAbsent(module, () {
-      final importedTrampolines = <w.BaseFunction>[];
-      for (var i = 0; i < _instantiationTrampolines.length; i++) {
-        final importName = _instantiationTrampolineImportNames[i];
-        final function = _instantiationTrampolines[i];
-        importedTrampolines.add(module.functions.import(
-            translator.nameForModule(translator.mainModule),
-            importName,
-            function.type));
-      }
-      return importedTrampolines;
-    });
+    return [
+      for (final trampoline in _instantiationTrampolines)
+        _instantationFunctionsImports.get(trampoline, module)
+    ];
   }
 
   /// The function that instantiates this generic closure.
   late final w.BaseFunction _instantiationFunction =
       _instantiationFunctionThunk!();
   w.BaseFunction Function()? _instantiationFunctionThunk;
-  final Map<w.ModuleBuilder, w.BaseFunction> _instantiationFunctionImports = {};
-  late final _instantiationFunctionExportName =
-      'instantiationFunction-$exportSuffix';
   w.BaseFunction instantiationFunctionForModule(
       Translator translator, w.ModuleBuilder module) {
-    if (translator.isMainModule(module)) {
-      return _instantiationFunction;
-    }
-    if (_instantiationFunctionImports.isEmpty) {
-      translator.mainModule.exports
-          .export(_instantiationFunctionExportName, _instantiationFunction);
-    }
-    return _instantiationFunctionImports.putIfAbsent(module, () {
-      return module.functions.import(
-          translator.nameForModule(translator.mainModule),
-          _instantiationFunctionExportName,
-          _instantiationFunction.type);
-    });
+    return _instantationFunctionsImports.get(_instantiationFunction, module);
   }
 
   /// The function that takes instantiation context of this generic closure and
@@ -130,50 +93,19 @@ class ClosureRepresentation {
   late final w.BaseFunction _instantiationTypeComparisonFunction =
       _instantiationTypeComparisonFunctionThunk!();
   w.BaseFunction Function()? _instantiationTypeComparisonFunctionThunk;
-  final Map<w.ModuleBuilder, w.BaseFunction>
-      _instantiationTypeComparisonFunctionImports = {};
-  late final _instantiationTypeComparisonExportName =
-      'instantiationTypeComparison-$exportSuffix';
   w.BaseFunction instantiationTypeComparisonFunctionForModule(
       Translator translator, w.ModuleBuilder module) {
-    if (translator.isMainModule(module)) {
-      return _instantiationTypeComparisonFunction;
-    }
-    if (_instantiationTypeComparisonFunctionImports.isEmpty) {
-      translator.mainModule.exports.export(
-          _instantiationTypeComparisonExportName,
-          _instantiationTypeComparisonFunction);
-    }
-    return _instantiationTypeComparisonFunctionImports.putIfAbsent(module, () {
-      return module.functions.import(
-          translator.nameForModule(translator.mainModule),
-          _instantiationTypeComparisonExportName,
-          _instantiationTypeComparisonFunction.type);
-    });
+    return _instantationFunctionsImports.get(
+        _instantiationTypeComparisonFunction, module);
   }
 
   late final w.BaseFunction _instantiationTypeHashFunction =
       _instantiationTypeHashFunctionThunk!();
   w.BaseFunction Function()? _instantiationTypeHashFunctionThunk;
-  final Map<w.ModuleBuilder, w.BaseFunction>
-      _instantiationTypeHashFunctionImports = {};
-  late final _instantiationTypeHashExportName =
-      'instantiationTypeHash-$exportSuffix';
   w.BaseFunction instantiationTypeHashFunctionForModule(
       Translator translator, w.ModuleBuilder module) {
-    if (translator.isMainModule(module)) {
-      return _instantiationTypeHashFunction;
-    }
-    if (_instantiationTypeHashFunctionImports.isEmpty) {
-      translator.mainModule.exports.export(
-          _instantiationTypeHashExportName, _instantiationTypeHashFunction);
-    }
-    return _instantiationTypeHashFunctionImports.putIfAbsent(module, () {
-      return module.functions.import(
-          translator.nameForModule(translator.mainModule),
-          _instantiationTypeHashExportName,
-          _instantiationTypeHashFunction.type);
-    });
+    return _instantationFunctionsImports.get(
+        _instantiationTypeHashFunction, module);
   }
 
   /// The signature of the function that instantiates this generic closure.
@@ -187,12 +119,15 @@ class ClosureRepresentation {
       (vtableStruct.fields[index].type as w.RefType).heapType as w.FunctionType;
 
   ClosureRepresentation(
+      Translator translator,
       this.typeCount,
       this.vtableStruct,
       this.closureStruct,
       this._indexOfCombination,
       this.instantiationContextStruct,
-      this.exportSuffix);
+      this.exportSuffix)
+      : _instantationFunctionsImports =
+            WasmFunctionImporter(translator, 'instantiation');
 
   bool get isGeneric => typeCount > 0;
 
@@ -527,6 +462,7 @@ class ClosureLayouter extends RecursiveVisitor {
     }
 
     ClosureRepresentation representation = ClosureRepresentation(
+        translator,
         typeCount,
         vtableStruct,
         closureStruct,

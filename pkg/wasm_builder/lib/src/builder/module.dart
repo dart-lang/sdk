@@ -12,9 +12,9 @@ class ModuleBuilder with Builder<ir.Module> {
   final List<int> watchPoints;
   late final TypesBuilder types;
   late final functions = FunctionsBuilder(this);
-  final tables = TablesBuilder();
-  final memories = MemoriesBuilder();
-  final tags = TagsBuilder();
+  late final tables = TablesBuilder(this);
+  late final memories = MemoriesBuilder(this);
+  late final tags = TagsBuilder(this);
   final dataSegments = DataSegmentsBuilder();
   late final globals = GlobalsBuilder(this);
   final exports = ExportsBuilder();

@@ -5,7 +5,7 @@
 part of 'tables.dart';
 
 /// An (imported or defined) table.
-class Table with Indexable implements Exportable, Serializable {
+class Table with Indexable, Exportable implements Serializable {
   @override
   final FinalizableIndex finalizableIndex;
   final RefType type;
@@ -13,9 +13,11 @@ class Table with Indexable implements Exportable, Serializable {
   // being instantiated.
   int minSize;
   final int? maxSize;
-  String? exportedName;
+  @override
+  final ModuleBuilder enclosingModule;
 
-  Table(this.finalizableIndex, this.type, this.minSize, this.maxSize);
+  Table(this.enclosingModule, this.finalizableIndex, this.type, this.minSize,
+      this.maxSize);
 
   @override
   void serialize(Serializer s) {
@@ -32,19 +34,15 @@ class Table with Indexable implements Exportable, Serializable {
 
   /// Export a table from the module.
   @override
-  Export export(String name) {
-    assert(exportedName == null);
-    exportedName = name;
-    return TableExport(name, this);
-  }
+  Export buildExport(String name) => TableExport(name, this);
 }
 
 /// A table defined in a module.
 class DefinedTable extends Table {
   final List<BaseFunction?> elements;
 
-  DefinedTable(this.elements, super.finalizableIndex, super.type, super.minSize,
-      super.maxSize);
+  DefinedTable(super.enclosingModule, this.elements, super.finalizableIndex,
+      super.type, super.minSize, super.maxSize);
 }
 
 /// An imported table.
@@ -57,8 +55,8 @@ class ImportedTable extends Table implements Import {
   /// Functions to be inserted via the elements section.
   final Map<BaseFunction, int> setElements = {};
 
-  ImportedTable(this.module, this.name, super.finalizableIndex, super.type,
-      super.minSize, super.maxSize);
+  ImportedTable(super.enclosingModule, this.module, this.name,
+      super.finalizableIndex, super.type, super.minSize, super.maxSize);
 
   @override
   void serialize(Serializer s) {
