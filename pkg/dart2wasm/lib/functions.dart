@@ -296,7 +296,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
 
   w.FunctionType _getConstructorAllocatorType(
       Constructor node, List<w.ValueType> arguments) {
-    return translator.m.types.defineFunction(arguments,
+    return translator.typesBuilder.defineFunction(arguments,
         [translator.classInfo[node.enclosingClass]!.nonNullableType.unpacked]);
   }
 
@@ -363,7 +363,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
         (contextRef != null ? [contextRef] : []) +
         fieldTypes;
 
-    return translator.m.types.defineFunction(arguments, outputs);
+    return translator.typesBuilder.defineFunction(arguments, outputs);
   }
 
   w.FunctionType _getConstructorBodyType(
@@ -405,7 +405,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
       }
     }
 
-    return translator.m.types.defineFunction(inputs, []);
+    return translator.typesBuilder.defineFunction(inputs, []);
   }
 }
 
@@ -488,5 +488,5 @@ w.FunctionType _makeFunctionType(
     outputs = !isVoidType(returnType) ? [translateType(returnType)] : const [];
   }
 
-  return translator.m.types.defineFunction(inputs, outputs);
+  return translator.typesBuilder.defineFunction(inputs, outputs);
 }

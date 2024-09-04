@@ -748,7 +748,7 @@ class IsCheckerCallTarget extends CallTarget {
   @override
   late final w.BaseFunction function = (() {
     final function = translator.m.functions.define(
-        translator.m.types.defineFunction(
+        translator.typesBuilder.defineFunction(
           signature.inputs,
           signature.outputs,
         ),
@@ -899,7 +899,7 @@ class AsCheckerCallTarget extends CallTarget {
   @override
   late final w.BaseFunction function = (() {
     final function = translator.m.functions.define(
-        translator.m.types.defineFunction(
+        translator.typesBuilder.defineFunction(
           signature.inputs,
           signature.outputs,
         ),

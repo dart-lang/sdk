@@ -49,7 +49,7 @@ mixin SyncStarCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
 
   w.FunctionBuilder _defineInnerBodyFunction(FunctionNode functionNode) =>
       m.functions.define(
-          m.types.defineFunction([
+          translator.typesBuilder.defineFunction([
             suspendStateInfo.nonNullableType, // _SuspendState
             translator.topInfo.nullableType, // Object?, error value
             translator.stackTraceInfo.repr

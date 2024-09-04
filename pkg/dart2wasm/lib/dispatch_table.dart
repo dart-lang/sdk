@@ -166,7 +166,7 @@ class SelectorInfo {
     }
     List<w.ValueType> outputs = List.generate(outputSets.length,
         (i) => _upperBound(outputSets[i], ensureBoxed: false));
-    return m.types.defineFunction(
+    return translator.typesBuilder.defineFunction(
         [inputs[0], ...typeParameters, ...inputs.sublist(1)], outputs);
   }
 

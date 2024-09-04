@@ -134,6 +134,7 @@ class Translator with KernelNodes {
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
   late final w.ModuleBuilder m;
+  w.TypesBuilder get typesBuilder => m.types;
   late final w.FunctionBuilder initFunction;
   late final w.ValueType voidMarker;
   // Lazily create exception tag if used.
@@ -222,7 +223,7 @@ class Translator with KernelNodes {
   /// Type for vtable entries for dynamic calls. These entries are used in
   /// dynamic invocations and `Function.apply`.
   late final w.FunctionType dynamicCallVtableEntryFunctionType =
-      m.types.defineFunction([
+      typesBuilder.defineFunction([
     // Closure
     w.RefType.def(closureLayouter.closureBaseStruct, nullable: false),
 
@@ -240,7 +241,7 @@ class Translator with KernelNodes {
 
   /// Type of a dynamic invocation forwarder function.
   late final w.FunctionType dynamicInvocationForwarderFunctionType =
-      m.types.defineFunction([
+      typesBuilder.defineFunction([
     // Receiver
     topInfo.nonNullableType,
 
@@ -258,7 +259,7 @@ class Translator with KernelNodes {
 
   /// Type of a dynamic get forwarder function.
   late final w.FunctionType dynamicGetForwarderFunctionType =
-      m.types.defineFunction([
+      typesBuilder.defineFunction([
     // Receiver
     topInfo.nonNullableType,
   ], [
@@ -267,7 +268,7 @@ class Translator with KernelNodes {
 
   /// Type of a dynamic set forwarder function.
   late final w.FunctionType dynamicSetForwarderFunctionType =
-      m.types.defineFunction([
+      typesBuilder.defineFunction([
     // Receiver
     topInfo.nonNullableType,
 
@@ -300,8 +301,8 @@ class Translator with KernelNodes {
     closureLayouter.collect();
     classInfoCollector.collect();
 
-    initFunction =
-        m.functions.define(m.types.defineFunction(const [], const []), "#init");
+    initFunction = m.functions
+        .define(typesBuilder.defineFunction(const [], const []), "#init");
     m.functions.start = initFunction;
 
     globals = Globals(this);
@@ -399,7 +400,7 @@ class Translator with KernelNodes {
   /// [stackTraceInfo.nonNullableType] to hold a stack trace. This single
   /// exception tag is used to throw and catch all Dart exceptions.
   w.Tag createExceptionTag() {
-    w.FunctionType tagType = m.types.defineFunction(
+    w.FunctionType tagType = typesBuilder.defineFunction(
         [topInfo.nonNullableType, stackTraceInfo.repr.nonNullableType],
         const []);
     w.Tag tag = m.tags.define(tagType);
@@ -469,7 +470,7 @@ class Translator with KernelNodes {
         List<w.ValueType> outputs = [
           if (!voidReturn) translateType(functionType.returnType)
         ];
-        w.FunctionType wasmType = m.types.defineFunction(inputs, outputs);
+        w.FunctionType wasmType = typesBuilder.defineFunction(inputs, outputs);
         return w.RefType.def(wasmType, nullable: nullable);
       }
 
@@ -543,7 +544,7 @@ class Translator with KernelNodes {
     final cache = mutable ? mutableArrayTypeCache : immutableArrayTypeCache;
     return cache.putIfAbsent(
         type,
-        () => m.types.defineArray("Array<$name>",
+        () => typesBuilder.defineArray("Array<$name>",
             elementType: w.FieldType(type, mutable: mutable)));
   }
 
@@ -1642,7 +1643,7 @@ class PartialInstantiator {
       final wasmTarget = translator.functions.getFunction(target);
 
       final function = translator.m.functions.define(
-          translator.m.types.defineFunction(
+          translator.typesBuilder.defineFunction(
             [...wasmTarget.type.inputs.skip(1)],
             wasmTarget.type.outputs,
           ),
@@ -1670,7 +1671,7 @@ class PartialInstantiator {
       final wasmTarget = translator.functions.getFunction(target);
 
       final function = translator.m.functions.define(
-          translator.m.types.defineFunction(
+          translator.typesBuilder.defineFunction(
             [...wasmTarget.type.inputs.skip(2)],
             wasmTarget.type.outputs,
           ),
@@ -1729,7 +1730,8 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
   @override
   late final w.BaseFunction function = (() {
     final function = translator.m.functions.define(
-        translator.m.types.defineFunction(signature.inputs, signature.outputs),
+        translator.typesBuilder
+            .defineFunction(signature.inputs, signature.outputs),
         name);
     translator.compilationQueue.add(CompilationTask(function, inliningCodeGen));
     return function;

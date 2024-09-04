@@ -448,7 +448,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       final global = m.globals.define(w.GlobalType(type.withNullability(true)));
       global.initializer.ref_null(w.HeapType.none);
       global.initializer.end();
-      w.FunctionType ftype = m.types.defineFunction(const [], [type]);
+      w.FunctionType ftype =
+          translator.typesBuilder.defineFunction(const [], [type]);
       final function = m.functions.define(ftype, "$constant");
       final b2 = function.body;
       generator(b2);
