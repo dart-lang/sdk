@@ -340,8 +340,9 @@ void LookupCache::Insert(intptr_t receiver_cid,
 Interpreter::Interpreter()
     : stack_(nullptr),
       fp_(nullptr),
-      pp_(nullptr),
-      argdesc_(nullptr),
+      pp_(ObjectPool::null()),
+      argdesc_(Array::null()),
+      subtype_test_cache_(SubtypeTestCache::null()),
       lookup_cache_() {
   // Setup interpreter support first. Some of this information is needed to
   // setup the architecture state.
@@ -383,8 +384,9 @@ Interpreter::Interpreter()
 
 Interpreter::~Interpreter() {
   delete[] stack_;
-  pp_ = nullptr;
-  argdesc_ = nullptr;
+  pp_ = ObjectPool::null();
+  argdesc_ = Array::null();
+  subtype_test_cache_ = SubtypeTestCache::null();
 #if defined(DEBUG)
   if (trace_file_ != nullptr) {
     FlushTraceBuffer();
@@ -1163,8 +1165,11 @@ bool Interpreter::AssertAssignable(Thread* thread,
                                    ObjectPtr* args,
                                    SubtypeTestCachePtr cache) {
   ObjectPtr null_value = Object::null();
-  if (cache != null_value) {
+  if ((cache != null_value) &&
+      (Smi::Value(cache->untag()->cache()->untag()->length()) <=
+       SubtypeTestCache::kMaxLinearCacheSize)) {
     InstancePtr instance = Instance::RawCast(args[0]);
+    AbstractTypePtr dst_type = AbstractType::RawCast(args[1]);
     TypeArgumentsPtr instantiator_type_arguments =
         static_cast<TypeArgumentsPtr>(args[2]);
     TypeArgumentsPtr function_type_arguments =
@@ -1225,7 +1230,9 @@ bool Interpreter::AssertAssignable(Thread* thread,
            parent_function_type_arguments) &&
           (entries->untag()->element(
                i + SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) ==
-           delayed_function_type_arguments)) {
+           delayed_function_type_arguments) &&
+          (entries->untag()->element(i + SubtypeTestCache::kDestinationType) ==
+           dst_type)) {
         if (Bool::True().ptr() ==
             entries->untag()->element(i + SubtypeTestCache::kTestResult)) {
           return true;
@@ -1258,8 +1265,47 @@ bool Interpreter::AssertAssignableField(Thread* thread,
                                         InstancePtr instance,
                                         FieldPtr field,
                                         InstancePtr value) {
-  // TODO(alexmarkov)
-  return true;
+  AbstractTypePtr field_type = field->untag()->type();
+  // Handle 'dynamic' early as it is not handled by the runtime type check.
+  if ((field_type->GetClassId() == kTypeCid) &&
+      (Type::RawCast(field_type)->untag()->type_class_id() == kDynamicCid)) {
+    return true;
+  }
+
+  SubtypeTestCachePtr cache = subtype_test_cache_;
+  if (UNLIKELY(cache == SubtypeTestCache::null())) {
+    // Allocate new cache.
+    SP[1] = instance;        // Preserve.
+    SP[2] = field;           // Preserve.
+    SP[3] = value;           // Preserve.
+    SP[4] = Object::null();  // Result slot.
+
+    Exit(thread, FP, SP + 5, pc);
+    if (!InvokeRuntime(thread, this, DRT_AllocateSubtypeTestCache,
+                       NativeArguments(thread, 0, /* argv */ SP + 4,
+                                       /* retval */ SP + 4))) {
+      return false;
+    }
+
+    // Reload objects after the call which may trigger GC.
+    instance = static_cast<InstancePtr>(SP[1]);
+    field = static_cast<FieldPtr>(SP[2]);
+    value = static_cast<InstancePtr>(SP[3]);
+    cache = static_cast<SubtypeTestCachePtr>(SP[4]);
+    field_type = field->untag()->type();
+
+    subtype_test_cache_ = cache;
+  }
+
+  // Push arguments of type test.
+  SP[1] = value;
+  SP[2] = field_type;
+  // Provide type arguments of instance as instantiator.
+  SP[3] = InterpreterHelpers::GetTypeArguments(thread, instance);
+  SP[4] = Object::null();  // Implicit setters cannot be generic.
+  SP[5] = is_getter ? Symbols::FunctionResult().ptr() : field->untag()->name();
+  return AssertAssignable(thread, pc, FP, /* call_top */ SP + 5,
+                          /* args */ SP + 1, cache);
 }
 
 ObjectPtr Interpreter::Call(const Function& function,
@@ -3782,6 +3828,7 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
 void Interpreter::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&pp_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&argdesc_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&subtype_test_cache_));
 }
 
 }  // namespace dart

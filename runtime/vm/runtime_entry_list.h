@@ -72,6 +72,7 @@ namespace dart {
   V(SwitchableCallMiss)                                                        \
   V(NotLoaded)                                                                 \
   V(FfiAsyncCallbackSend)                                                      \
+  V(AllocateSubtypeTestCache)                                                  \
   V(GetFieldForDispatch)                                                       \
   V(AdjustArgumentsDesciptorForImplicitClosure)                                \
   V(ClosureArgumentsValid)                                                     \

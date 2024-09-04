@@ -140,6 +140,7 @@ class Interpreter {
   ObjectPoolPtr pp_;  // Pool Pointer.
   ArrayPtr argdesc_;  // Arguments Descriptor: used to pass information between
                       // call instruction and the function entry.
+  SubtypeTestCachePtr subtype_test_cache_;
   ObjectPtr special_[KernelBytecode::kSpecialIndexCount];
 
   LookupCache lookup_cache_;
