@@ -274,6 +274,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// The current function being compiled, if any.
   FunctionNode? _currentFunction;
 
+  /// Statements in order they should be inserted into the body of the link
+  /// method for the current library.
+  final List<js_ast.Statement> _currentLibraryLinkFunctionBody = [];
+
   /// Whether the current function needs to insert parameter checks.
   ///
   /// Used to avoid adding checks for formal parameters inside a synthetic
@@ -890,11 +894,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var functionName = _emitTemporaryId('link__${_jsLibraryName(library)}');
 
     var parameters = const <js_ast.Parameter>[];
-    var body = js_ast.Block([
-      // TODO(nshahan): Remove logging and add linking statements here.
-      js.statement(
-          'console.log("Linking library: ${_jsLibraryName(library)}")'),
-    ]);
+    var body = js_ast.Block(_currentLibraryLinkFunctionBody);
     var function =
         js_ast.NamedFunction(functionName, js_ast.Fun(parameters, body));
     return js.statement('# = #', [nameExpr, function]);
@@ -1054,6 +1054,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Because D depends on B, we'll emit B first if needed. However C is not
   /// used by top-level JavaScript code, so we can ignore that dependency.
   void _emitClass(Class c) {
+    // Avoid attempting to compile classes we reach through emitting class
+    // extends supertypes when they are not members of the library being
+    // compiled.
+    // TODO(nshahan): Once `_declareBeforeUse` is removed this escape hatch will
+    // no longer be necessary.
+    if (c.enclosingLibrary != _currentLibrary) return;
     var savedClass = _currentClass;
     var savedLibrary = _currentLibrary;
     var savedUri = _currentUri;
@@ -1200,6 +1206,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _emitClassSignature(c, className, body);
     _initExtensionSymbols(c);
     if (!c.isMixinDeclaration) {
+      // TODO(55547): Move "Extension member" manipulations to the library link
+      // method.
       _defineExtensionMembers(className, body);
     }
 
@@ -1293,8 +1301,47 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       js_ast.Expression? heritage, List<js_ast.Method> methods) {
     var classIdentifier = _emitTemporaryId(getLocalClassName(c));
     if (_options.emitDebugSymbols) classIdentifiers[c] = classIdentifier;
+    if (!requiresJsExtends(c)) {
+      if (heritage != null) {
+        _currentLibraryLinkFunctionBody.add(
+            _runtimeStatement('classExtends(#, #)', [className, heritage]));
+      }
+      heritage = null;
+    }
     var classExpr = js_ast.ClassExpression(classIdentifier, heritage, methods);
     return js.statement('# = #;', [className, classExpr]);
+  }
+
+  /// Returns `true` when the compiled representation of [cls] still needs
+  /// an `extends` clause in it.
+  ///
+  /// Eventually there should be no classes that require the use of the
+  /// JavaScript `extends` keyword and this test will be unnecessary.
+  bool requiresJsExtends(Class cls) {
+    // TODO(55545): Stop emitting `extends baseClass` when mixin applications
+    // classes can be linked in the library link method.
+    if (cls.isAnonymousMixin ||
+        cls.isMixinApplication ||
+        cls.isMixinDeclaration ||
+        cls.isMixinClass) {
+      return true;
+    }
+    if (_classProperties != null &&
+        (_classProperties!.extensionAccessors.isNotEmpty ||
+            _classProperties!.extensionMethods.isNotEmpty)) {
+      // TODO(55547): Stop emitting `extends baseClass` when classes with
+      // overrides of extension members added to native peers can be linked in
+      // the library link method.
+      return true;
+    }
+    // TODO(55547): Stop emitting `extends baseClass` when classes with native
+    // peers can be linked in the library link method.
+    return _extensionTypes.getNativePeers(cls).isNotEmpty ||
+        // The entire class hierarchy of classes with native peers must be
+        // available too.
+        _isDartLibrary(_currentLibrary!, '_interceptors') ||
+        _isDartLibrary(_currentLibrary!, 'typed_data') ||
+        _isDartLibrary(_currentLibrary!, '_native_typed_data');
   }
 
   /// Like [_emitClassStatement] but emits a Dart 2.1 mixin represented by
@@ -1541,7 +1588,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       emitMixinConstructors(mixinId, superclass, mixinClass, mixinType);
       hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(mixinClass);
-
+      // TODO(55545): Move these operations to the library link method.
       if (shouldDefer(mixinType)) {
         deferredSupertypes.add(() => _runtimeStatement('applyMixin(#, #)', [
               getBaseClass(mixinApplications.length - i),
@@ -2734,6 +2781,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   void _registerExtensionType(
       Class c, String jsPeerName, List<js_ast.Statement> body) {
     var className = _emitTopLevelName(c);
+    // TODO(55547): Move these operations to the library link method.
     if (_typeRep.isPrimitive(_coreTypes.nonNullableRawType(c))) {
       body.add(_runtimeStatement(
           'definePrimitiveHashCode(#.prototype)', [className]));

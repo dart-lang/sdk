@@ -474,6 +474,13 @@ definePrimitiveHashCode(proto) {
       getOwnPropertyDescriptor(proto, extensionSymbol('hashCode')));
 }
 
+/// Connects the prototype chains such that [cls] extends [superClass].
+void classExtends(@notNull Object cls, @notNull Object superClass) {
+  jsObjectSetPrototypeOf(cls, superClass);
+  jsObjectSetPrototypeOf(
+      JS('', '#.prototype', cls), JS('', '#.prototype', superClass));
+}
+
 /// Link the [dartType] to the native [jsType] it is extending as a base class.
 ///
 /// Used for generic extension types such as `JSArray<E>`.
