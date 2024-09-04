@@ -992,7 +992,7 @@ void IsolateGroup::RehashConstants(Become* become) {
         }
 
         if (old_value.ptr() != new_value.ptr()) {
-          become->Add(old_value, new_value);
+          become->Add(old_value, new_value, "enum forwarding");
         }
         if (new_value.IsCanonical()) {
           cls.InsertCanonicalConstant(zone, new_value);
@@ -1009,7 +1009,7 @@ void IsolateGroup::RehashConstants(Become* become) {
         } else {
           new_value = old_value.Canonicalize(thread);
           if (old_value.ptr() != new_value.ptr()) {
-            become->Add(old_value, new_value);
+            become->Add(old_value, new_value, "constant forwarding");
           }
         }
       }

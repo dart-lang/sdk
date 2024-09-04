@@ -357,7 +357,9 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
     // instances of any class with the old size.
     Become::MakeDummyObject(before);
 
-    become->Add(before, after);
+    become->Add(
+        before, after,
+        is_canonical ? "instance morphing canonical" : "instance morphing");
   }
 }
 
@@ -1279,7 +1281,7 @@ void ProgramReloadContext::RegisterClass(const Class& new_cls) {
   IG->class_table()->SetAt(old_cls.id(), new_cls.ptr());
   new_cls.CopyCanonicalConstants(old_cls);
   new_cls.CopyDeclarationType(old_cls);
-  AddBecomeMapping(old_cls, new_cls);
+  AddBecomeMapping(old_cls, new_cls, "class forwarding");
   AddClassMapping(new_cls, old_cls);
 }
 
@@ -2555,7 +2557,7 @@ void ProgramReloadContext::BuildLibraryMapping() {
       // Replaced class.
       AddLibraryMapping(replacement_or_new, old);
 
-      AddBecomeMapping(old, replacement_or_new);
+      AddBecomeMapping(old, replacement_or_new, "library forwarding");
     }
   }
 }
@@ -2664,12 +2666,13 @@ void ProgramReloadContext::AddStaticFieldMapping(const Field& old_field,
                                                  const Field& new_field) {
   ASSERT(old_field.is_static());
   ASSERT(new_field.is_static());
-  AddBecomeMapping(old_field, new_field);
+  AddBecomeMapping(old_field, new_field, "static field");
 }
 
 void ProgramReloadContext::AddBecomeMapping(const Object& old,
-                                            const Object& neu) {
-  become_.Add(old, neu);
+                                            const Object& neu,
+                                            const char* whence) {
+  become_.Add(old, neu, whence);
 }
 
 void ProgramReloadContext::RestoreClassHierarchyInvariants() {
