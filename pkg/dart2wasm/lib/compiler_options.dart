@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
+import 'package:path/path.dart' as path;
 
 import 'translator.dart';
 
@@ -29,6 +30,10 @@ class WasmCompilerOptions {
       WasmCompilerOptions(mainUri: Uri(), outputFile: '');
 
   WasmCompilerOptions({required this.mainUri, required this.outputFile});
+
+  String get outputFileDir => path.dirname(outputFile);
+
+  String get outputFileName => path.basename(outputFile);
 
   void validate() {
     if (translatorOptions.importSharedMemory &&

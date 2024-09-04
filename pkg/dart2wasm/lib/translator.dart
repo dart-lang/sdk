@@ -27,6 +27,7 @@ import 'param_info.dart';
 import 'records.dart';
 import 'reference_extensions.dart';
 import 'types.dart';
+import 'util.dart' as util;
 
 /// Options controlling the translation.
 class TranslatorOptions {
@@ -1070,33 +1071,7 @@ class Translator with KernelNodes {
   }
 
   T? getPragma<T>(Annotatable node, String name, [T? defaultValue]) {
-    for (Expression annotation in node.annotations) {
-      if (annotation is ConstantExpression) {
-        Constant constant = annotation.constant;
-        if (constant is InstanceConstant) {
-          if (constant.classNode == coreTypes.pragmaClass) {
-            Constant? nameConstant =
-                constant.fieldValues[coreTypes.pragmaName.fieldReference];
-            if (nameConstant is StringConstant && nameConstant.value == name) {
-              Constant? value =
-                  constant.fieldValues[coreTypes.pragmaOptions.fieldReference];
-              if (value == null || value is NullConstant) {
-                return defaultValue;
-              }
-              if (value is PrimitiveConstant<T>) {
-                return value.value;
-              }
-              if (value is! T) {
-                throw ArgumentError("$name pragma argument has unexpected type "
-                    "${value.runtimeType} (expected $T)");
-              }
-              return value as T;
-            }
-          }
-        }
-      }
-    }
-    return null;
+    return util.getPragma(coreTypes, node, name, defaultValue: defaultValue);
   }
 
   w.ValueType makeArray(w.InstructionsBuilder b, w.ArrayType arrayType,
