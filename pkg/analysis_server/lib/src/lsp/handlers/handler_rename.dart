@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
 import 'package:analysis_server/src/analysis_server.dart' show MessageType;
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
@@ -110,18 +111,16 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
   @override
   LspJsonHandler<RenameParams> get jsonHandler => RenameParams.jsonHandler;
 
-  /// Checks whether a client supports Rename resource operations.
-  bool get _clientSupportsRename {
-    var capabilities = server.lspClientCapabilities;
-    return (capabilities?.documentChanges ?? false) &&
-        (capabilities?.renameResourceOperations ?? false);
-  }
-
   @override
   Future<ErrorOr<WorkspaceEdit?>> handle(
       RenameParams params, MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
+    }
+
+    var clientCapabilities = message.clientCapabilities;
+    if (clientCapabilities == null) {
+      return serverNotInitializedError;
     }
 
     var pos = params.position;
@@ -231,10 +230,12 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
         return fileModifiedError;
       }
 
-      var workspaceEdit = createWorkspaceEdit(server, change);
+      var workspaceEdit =
+          createWorkspaceEdit(server, clientCapabilities, change);
 
       // Check whether we should handle renaming the file to match the class.
-      if (_clientSupportsRename && _isClassRename(refactoring)) {
+      if (_clientSupportsRename(clientCapabilities) &&
+          _isClassRename(refactoring)) {
         // The rename must always be performed on the file that defines the
         // class which is not necessarily the one where the rename was invoked.
         var declaringFile = (refactoring as RenameUnitMemberRefactoringImpl)
@@ -267,6 +268,12 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
 
       return success(workspaceEdit);
     });
+  }
+
+  /// Checks whether the client supports Rename resource operations.
+  bool _clientSupportsRename(LspClientCapabilities clientCapabilities) {
+    return clientCapabilities.documentChanges &&
+        clientCapabilities.renameResourceOperations;
   }
 
   bool _isClassRename(RenameRefactoring refactoring) =>

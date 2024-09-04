@@ -82,7 +82,7 @@ abstract class RefactoringProducer {
   /// that require the ability to create new files must not create a refactoring
   /// if this getter returns `false`.
   bool get supportsFileCreation {
-    var capabilities = refactoringContext.server.lspClientCapabilities;
+    var capabilities = refactoringContext.clientCapabilities;
     return capabilities != null &&
         capabilities.documentChanges == true &&
         capabilities.createResourceOperations == true;
@@ -118,7 +118,7 @@ abstract class RefactoringProducer {
   /// that don't have a default value must not create a refactoring if this
   /// returns `false`.
   bool supportsCommandParameter(String kind) {
-    var capabilities = refactoringContext.server.lspClientCapabilities;
+    var capabilities = refactoringContext.clientCapabilities;
     return capabilities != null &&
         capabilities.codeActionCommandParameterSupportedKinds.contains(kind);
   }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -35,6 +36,11 @@ class WillRenameFilesHandler
   @override
   Future<ErrorOr<WorkspaceEdit?>> handle(RenameFilesParams params,
       MessageInfo message, CancellationToken token) async {
+    var clientCapabilities = message.clientCapabilities;
+    if (clientCapabilities == null) {
+      return serverNotInitializedError;
+    }
+
     var pathMapping = <String, String>{};
 
     for (var file in params.files) {
@@ -52,11 +58,13 @@ class WillRenameFilesHandler
         pathMapping[oldPath] = newPath;
       });
     }
-    return _renameFiles(pathMapping, token);
+    return _renameFiles(clientCapabilities, pathMapping, token);
   }
 
   Future<ErrorOr<WorkspaceEdit?>> _renameFiles(
-      Map<String, String> renames, CancellationToken token) async {
+      LspClientCapabilities clientCapabilities,
+      Map<String, String> renames,
+      CancellationToken token) async {
     // This handler has a lot of async steps and may modify files that we don't
     // know about at the start (or in the case of LSP-over-Legacy that we even
     // have version numbers for). To ensure we never produce inconsistent edits,
@@ -89,7 +97,7 @@ class WillRenameFilesHandler
 
     server.checkConsistency(sessions);
 
-    var edit = createWorkspaceEdit(server, change);
+    var edit = createWorkspaceEdit(server, clientCapabilities, change);
     return success(edit);
   }
 }

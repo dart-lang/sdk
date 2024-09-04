@@ -71,6 +71,7 @@ class LspOverLegacyHandler extends LegacyHandler {
   ) async {
     var messageInfo = lsp.MessageInfo(
       performance: performance,
+      clientCapabilities: server.editorClientCapabilities,
       timeSinceRequest: request.timeSinceRequest,
     );
 

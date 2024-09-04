@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_cancel_request.dart';
@@ -378,9 +379,28 @@ class MessageInfo {
   /// request or `null` if the client did not provide [clientRequestTime].
   final int? timeSinceRequest;
 
-  OperationPerformanceImpl performance;
+  final OperationPerformanceImpl performance;
 
-  MessageInfo({required this.performance, this.timeSinceRequest});
+  /// The capabilities for the client that sent the message/request.
+  ///
+  /// For messages from an editor these are the capabilities exchanged during
+  /// initialization, but for requests from other sources (such as DTD) they may
+  /// be a fixed set (or depend on the specific caller) so that these callers do
+  /// not receive different format responses depending on the capabilities of
+  /// the owning editor.
+  ///
+  /// May be null for messages sent prior to initialization.
+  final LspClientCapabilities? clientCapabilities;
+
+  MessageInfo({
+    required this.performance,
+    // TODO(dantup): Consider a version of this that has a non-nullable
+    //  `LspClientCapabilities` since the majority of handlers first check this
+    //  is non-null and reject the request. Only a small number of handlers need
+    //  to run without, so it would remove a bunch of boilerplate in the others.
+    required this.clientCapabilities,
+    this.timeSinceRequest,
+  });
 }
 
 mixin PositionalArgCommandHandler {
