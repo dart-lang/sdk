@@ -3186,6 +3186,19 @@ SwitchDispatch:
     instance = Instance::RawCast(FrameArguments(FP, kArgc)[0]);
     value = Instance::RawCast(FrameArguments(FP, kArgc)[1]);
 
+    if (Field::FinalBit::decode(field->untag()->kind_bits_)) {
+      // Check that final field was not initialized already.
+      ObjectPtr old_value = GET_FIELD(instance, offset_in_words);
+      if (UNLIKELY(old_value != Object::sentinel().ptr())) {
+        SP[0] = field;
+        SP[1] = 0;  // Unused space for result.
+        Exit(thread, FP, SP + 2, pc);
+        INVOKE_RUNTIME(DRT_LateFieldAlreadyInitializedError,
+                       NativeArguments(thread, 1, SP, SP + 1));
+        UNREACHABLE();
+      }
+    }
+
     if (InterpreterHelpers::FieldNeedsGuardUpdate(thread, field, value)) {
       SP[1] = 0;  // Unused result of runtime call.
       SP[2] = field;
@@ -3251,6 +3264,38 @@ SwitchDispatch:
     }
 #endif
 
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(VMInternal_ImplicitStaticSetter, 0);
+
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::KindOf(function) == UntaggedFunction::kImplicitSetter);
+
+    // Field object is cached in function's data_.
+    FieldPtr field = Field::RawCast(function->untag()->data());
+    intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
+
+    // Static fields use setters only if they are final.
+    ASSERT(Field::FinalBit::decode(field->untag()->kind_bits_));
+    // Check that final field was not initialized already.
+    ObjectPtr old_value = thread->field_table_values()[field_id];
+    if (UNLIKELY(old_value != Object::sentinel().ptr())) {
+      ++SP;
+      SP[0] = field;
+      SP[1] = 0;  // Unused space for result.
+      Exit(thread, FP, SP + 2, pc);
+      INVOKE_RUNTIME(DRT_LateFieldAlreadyInitializedError,
+                     NativeArguments(thread, 1, SP, SP + 1));
+      UNREACHABLE();
+    }
+
+    const intptr_t kArgc = 1;
+    InstancePtr value = Instance::RawCast(FrameArguments(FP, kArgc)[0]);
+    thread->field_table_values()[field_id] = value;
+
+    *++SP = null_value;
     DISPATCH();
   }
 

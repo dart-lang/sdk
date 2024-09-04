@@ -1303,6 +1303,9 @@ void Object::Init(IsolateGroup* isolate_group) {
   *implicit_static_getter_bytecode_ = CreateVMInternalBytecode(
       KernelBytecode::kVMInternal_ImplicitStaticGetter);
 
+  *implicit_static_setter_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitStaticSetter);
+
   *method_extractor_bytecode_ =
       CreateVMInternalBytecode(KernelBytecode::kVMInternal_MethodExtractor);
 
@@ -1411,6 +1414,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(implicit_setter_bytecode_->IsBytecode());
   ASSERT(!implicit_static_getter_bytecode_->IsSmi());
   ASSERT(implicit_static_getter_bytecode_->IsBytecode());
+  ASSERT(!implicit_static_setter_bytecode_->IsSmi());
+  ASSERT(implicit_static_setter_bytecode_->IsBytecode());
   ASSERT(!method_extractor_bytecode_->IsSmi());
   ASSERT(method_extractor_bytecode_->IsBytecode());
   ASSERT(!invoke_closure_bytecode_->IsSmi());
@@ -18954,6 +18959,9 @@ static const char* BytecodeStubName(const Bytecode& bytecode) {
   } else if (bytecode.ptr() ==
              Object::implicit_static_getter_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_ImplicitStaticGetter";
+  } else if (bytecode.ptr() ==
+             Object::implicit_static_setter_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_ImplicitStaticSetter";
   } else if (bytecode.ptr() == Object::method_extractor_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_MethodExtractor";
   } else if (bytecode.ptr() == Object::invoke_closure_bytecode().ptr()) {

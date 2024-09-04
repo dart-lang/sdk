@@ -73,6 +73,7 @@ class Exceptions : AllStatic {
     kType,
     kAbstractClassInstantiation,
     kCompileTimeError,
+    kLateFieldAlreadyInitialized,
     kLateFieldAssignedDuringInitialization,
     kLateFieldNotInitialized,
   };
@@ -91,6 +92,8 @@ class Exceptions : AllStatic {
                                             intptr_t expected_to);
   DART_NORETURN static void ThrowUnsupportedError(const char* msg);
   DART_NORETURN static void ThrowCompileTimeError(const LanguageError& error);
+  DART_NORETURN static void ThrowLateFieldAlreadyInitialized(
+      const String& name);
   DART_NORETURN static void ThrowLateFieldAssignedDuringInitialization(
       const String& name);
   DART_NORETURN static void ThrowLateFieldNotInitialized(const String& name);

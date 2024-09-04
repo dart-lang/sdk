@@ -1628,7 +1628,11 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       function.set_accessor_field(field);
       function.set_is_extension_member(is_extension_member);
       SetupFieldAccessorFunction(cls, function, type);
-      function.AttachBytecode(Object::implicit_setter_bytecode());
+      if (is_static) {
+        function.AttachBytecode(Object::implicit_static_setter_bytecode());
+      } else {
+        function.AttachBytecode(Object::implicit_setter_bytecode());
+      }
       functions_->SetAt(function_index_++, function);
     }
 
