@@ -765,7 +765,7 @@ void expectSerializationEquality<T extends Serializable>(T serializable,
 
 /// Deserializes [serialized] in its own remote instance cache and sends it
 /// back.
-Object? roundTrip<Declaration>(Object? serialized, int zoneId) {
+Object? roundTrip(Object? serialized, int zoneId) {
   return withRemoteInstanceZone(zoneId, () {
     var deserializer = deserializerFactory(serialized);
     var instance = RemoteInstance.deserialize(deserializer) as Serializable;
