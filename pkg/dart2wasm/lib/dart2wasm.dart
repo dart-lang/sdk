@@ -96,6 +96,9 @@ final List<Option> options = [
   Flag("no-source-maps",
       (o, value) => o.translatorOptions.generateSourceMaps = !value,
       defaultsTo: !_d.translatorOptions.generateSourceMaps),
+  Flag("enable-deferred-loading",
+      (o, value) => o.translatorOptions.enableDeferredLoading = value,
+      defaultsTo: _d.translatorOptions.enableDeferredLoading),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(
