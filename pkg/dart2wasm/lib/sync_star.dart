@@ -289,7 +289,7 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
       b.local_get(_pendingStackTraceLocal);
       b.ref_as_non_null();
 
-      b.throw_(translator.exceptionTag);
+      b.throw_(translator.getExceptionTag(b.module));
       b.end(); // exceptionCheck
     }
   }

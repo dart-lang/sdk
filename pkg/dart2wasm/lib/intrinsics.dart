@@ -1738,7 +1738,7 @@ class Intrinsifier {
       b.end(); // notErrorBlock
 
       b.local_get(stackTraceLocal);
-      b.throw_(translator.exceptionTag);
+      b.throw_(translator.getExceptionTag(b.module));
 
       return true;
     }

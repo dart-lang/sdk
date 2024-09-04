@@ -997,7 +997,7 @@ abstract class AstCodeGenerator
 
     // Insert a catch instruction which will catch any thrown Dart
     // exceptions.
-    b.catch_(translator.exceptionTag);
+    b.catch_(translator.getExceptionTag(b.module));
 
     b.local_set(thrownStackTrace);
     b.local_set(thrownException);
@@ -1103,7 +1103,7 @@ abstract class AstCodeGenerator
     }
 
     // Handle Dart exceptions.
-    b.catch_(translator.exceptionTag);
+    b.catch_(translator.getExceptionTag(b.module));
     visitStatement(node.finalizer);
     b.rethrow_(tryBlock);
 

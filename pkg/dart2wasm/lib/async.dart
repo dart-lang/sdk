@@ -271,7 +271,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     }
 
     // Handle Dart exceptions.
-    b.catch_(translator.exceptionTag);
+    b.catch_(translator.getExceptionTag(b.module));
     b.local_set(stackTraceLocal);
     b.local_set(exceptionLocal);
     callCompleteError();
@@ -386,7 +386,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     b.local_get(_pendingStackTraceLocal);
     b.ref_as_non_null();
 
-    b.throw_(translator.exceptionTag);
+    b.throw_(translator.getExceptionTag(b.module));
     b.end(); // exceptionBlock
 
     setVariable(awaitValueVar, () {

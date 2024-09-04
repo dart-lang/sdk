@@ -26,6 +26,7 @@ import 'kernel_nodes.dart';
 import 'param_info.dart';
 import 'records.dart';
 import 'reference_extensions.dart';
+import 'tags.dart';
 import 'types.dart';
 import 'util.dart' as util;
 
@@ -102,6 +103,7 @@ class Translator with KernelNodes {
   late final Globals globals;
   late final Constants constants;
   late final Types types;
+  late final ExceptionTag exceptionTag;
   late final CompilationQueue compilationQueue;
   late final FunctionCollector functions;
   late final DynamicForwarders dynamicForwarders;
@@ -136,11 +138,8 @@ class Translator with KernelNodes {
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
   late final w.ModuleBuilder m;
-  w.TypesBuilder get typesBuilder => m.types;
   late final w.FunctionBuilder initFunction;
   late final w.ValueType voidMarker;
-  // Lazily create exception tag if used.
-  late final w.Tag exceptionTag = createExceptionTag();
   // Lazily import FFI memory if used.
   late final w.Memory ffiMemory = m.memories.import("ffi", "memory",
       options.importSharedMemory, 0, options.sharedMemoryMaxPages);
@@ -280,6 +279,19 @@ class Translator with KernelNodes {
     topInfo.nullableType
   ]);
 
+  // Module predicates and helpers
+  // TODO(natebiggs): Implement these with real module data.
+  Iterable<w.ModuleBuilder> get modules => [m];
+  w.ModuleBuilder get mainModule => m;
+  w.TypesBuilder get typesBuilder => mainModule.types;
+  bool get hasMultipleModules => false;
+
+  w.ModuleBuilder moduleForReference(Reference reference) => m;
+
+  bool isMainModule(w.ModuleBuilder module) => true;
+
+  String nameForModule(w.ModuleBuilder module) => 'main';
+
   Translator(this.component, this.coreTypes, this.index, this.recordClasses,
       this.options)
       : libraries = component.libraries,
@@ -293,6 +305,7 @@ class Translator with KernelNodes {
     compilationQueue = CompilationQueue();
     functions = FunctionCollector(this);
     types = Types(this);
+    exceptionTag = ExceptionTag(this);
     dynamicForwarders = DynamicForwarders(this);
   }
 
@@ -397,17 +410,9 @@ class Translator with KernelNodes {
         requiredParameterCount: staticType.requiredParameterCount);
   }
 
-  /// Creates a [Tag] for a void [FunctionType] with two parameters,
-  /// a [topInfo.nonNullableType] parameter to hold an exception, and a
-  /// [stackTraceInfo.nonNullableType] to hold a stack trace. This single
-  /// exception tag is used to throw and catch all Dart exceptions.
-  w.Tag createExceptionTag() {
-    w.FunctionType tagType = typesBuilder.defineFunction(
-        [topInfo.nonNullableType, stackTraceInfo.repr.nonNullableType],
-        const []);
-    w.Tag tag = m.tags.define(tagType);
-    return tag;
-  }
+  /// Get the exception tag reference for [module].
+  w.Tag getExceptionTag(w.ModuleBuilder module) =>
+      exceptionTag.getExceptionTag(module);
 
   w.ValueType translateType(DartType type) {
     w.StorageType wasmType = translateStorageType(type);
