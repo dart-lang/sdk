@@ -19,7 +19,7 @@ class PreferVoidToNullTest extends LintRuleTest {
 
   test_augmentedField() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   Future<Null>? f;
@@ -27,7 +27,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment Future<Null>? f;
@@ -37,13 +37,13 @@ augment class A {
 
   test_augmentedFunction() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 Future<Null>? f() => null;
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment Future<Null>? f() => null;
 ''');
@@ -51,7 +51,7 @@ augment Future<Null>? f() => null;
 
   test_augmentedGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   Future<Null>? get v => null;
@@ -59,7 +59,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment Future<Null>? get v => null;
@@ -69,7 +69,7 @@ augment class A {
 
   test_augmentedMethod() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   Future<Null>? f() => null;
@@ -77,7 +77,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment Future<Null>? f() => null;
@@ -87,13 +87,13 @@ augment class A {
 
   test_augmentedTopLevelGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 Future<Null>? get v => null;
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment Future<Null>? get v => null;
 ''');
@@ -101,13 +101,13 @@ augment Future<Null>? get v => null;
 
   test_augmentedTopLevelVariable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 Future<Null>? v;
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment Future<Null>? v;
 ''');

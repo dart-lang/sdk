@@ -402,7 +402,7 @@ R fb<R, P>(P p) {}
 
   Future<void> test_class_augment() async {
     newFile('$testPackageLibPath/a.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 
 class C {
   // Endure that the outline for the augment doesn't include members from the
@@ -411,7 +411,7 @@ class C {
 }
 ''');
     var unitOutline = await _computeOutline('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class C {
   String f = '';

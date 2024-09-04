@@ -19,25 +19,25 @@ class AvoidUnusedConstructorParametersTest extends LintRuleTest {
 
   test_augmentationClass() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A { }
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   A(int a);
 }
 ''', [
-      lint(49, 5),
+      lint(41, 5),
     ]);
   }
 
   test_augmentedConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   A(int a);
@@ -45,7 +45,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment A.new(int a);

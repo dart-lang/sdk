@@ -140,7 +140,7 @@ library
   }
 
   test_function_entry_point_in_export() async {
-    addSource('$testPackageLibPath/a.dart', 'library a; main() {}');
+    newFile('$testPackageLibPath/a.dart', 'library a; main() {}');
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
@@ -166,7 +166,7 @@ library
   }
 
   test_function_entry_point_in_export_hidden() async {
-    addSource('$testPackageLibPath/a.dart', 'library a; main() {}');
+    newFile('$testPackageLibPath/a.dart', 'library a; main() {}');
     var library = await buildLibrary('export "a.dart" hide main;');
     checkElementText(library, r'''
 library
@@ -196,7 +196,7 @@ library
   }
 
   test_function_entry_point_in_part() async {
-    addSource('$testPackageLibPath/a.dart', 'part of my.lib; main() {}');
+    newFile('$testPackageLibPath/a.dart', 'part of my.lib; main() {}');
     var library = await buildLibrary('library my.lib; part "a.dart";');
     checkElementText(library, r'''
 library
@@ -1070,7 +1070,7 @@ library
   }
 
   test_main_class_alias_via_export() async {
-    addSource('$testPackageLibPath/a.dart',
+    newFile('$testPackageLibPath/a.dart',
         'class main = C with D; class C {} class D {}');
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
@@ -1097,7 +1097,7 @@ library
   }
 
   test_main_class_via_export() async {
-    addSource('$testPackageLibPath/a.dart', 'class main {}');
+    newFile('$testPackageLibPath/a.dart', 'class main {}');
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
@@ -1150,7 +1150,7 @@ library
   }
 
   test_main_getter_via_export() async {
-    addSource('$testPackageLibPath/a.dart', 'get main => null;');
+    newFile('$testPackageLibPath/a.dart', 'get main => null;');
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
@@ -1199,7 +1199,7 @@ library
   }
 
   test_main_typedef_via_export() async {
-    addSource('$testPackageLibPath/a.dart', 'typedef main();');
+    newFile('$testPackageLibPath/a.dart', 'typedef main();');
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
@@ -1259,7 +1259,7 @@ library
   }
 
   test_main_variable_via_export() async {
-    addSource('$testPackageLibPath/a.dart', 'var main;');
+    newFile('$testPackageLibPath/a.dart', 'var main;');
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library

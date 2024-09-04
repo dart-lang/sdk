@@ -13,7 +13,7 @@ import 'package:front_end/src/api_prototype/codes.dart'
         templateJsInteropExportClassNotMarkedExportable,
         templateJsInteropExportInvalidInteropTypeArgument,
         templateJsInteropExportInvalidTypeArgument,
-        templateJsInteropIsAInvalidType,
+        templateJsInteropIsAInvalidTypeVariable,
         templateJsInteropIsAObjectLiteralType,
         templateJsInteropIsAPrimitiveExtensionType;
 import 'package:kernel/ast.dart';
@@ -149,8 +149,10 @@ class SharedInteropTransformer extends Transformer {
         // Generated tear-offs call the original method, so ignore that
         // invocation.
         if (!_inIsATearoff) {
+          assert(interopType is TypeParameterType);
           _diagnosticReporter.report(
-              templateJsInteropIsAInvalidType.withArguments(interopType),
+              templateJsInteropIsAInvalidTypeVariable
+                  .withArguments(interopType),
               invocation.fileOffset,
               invocation.name.text.length,
               invocation.location?.file);

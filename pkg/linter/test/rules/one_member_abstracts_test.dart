@@ -59,13 +59,13 @@ mixin M {
 
   test_oneMember_augmentedAbstractClass_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 abstract class A { }
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment abstract class A {
   void m();
@@ -75,7 +75,7 @@ augment abstract class A {
 
   test_oneMember_augmentedAbstractClass_declaration() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment abstract class A {
   void m();
@@ -83,11 +83,11 @@ augment abstract class A {
 ''');
 
     await assertDiagnostics(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 abstract class A { }
 ''', [
-      lint(41, 1),
+      lint(31, 1),
     ]);
   }
 
@@ -142,7 +142,7 @@ sealed class C {
 
   test_twoMembers_augmentedAbstractClass_declaration() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment abstract class A {
   void m();
@@ -150,7 +150,7 @@ augment abstract class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment abstract class A {
   void n();
@@ -158,8 +158,8 @@ augment abstract class A {
 ''');
 
     await assertNoDiagnostics(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 
 abstract class A { }
 ''');

@@ -38,7 +38,7 @@ config("export_api_symbols") {
   } else if (is_asan || is_lsan || is_msan || is_tsan || is_ubsan) {
     # Export everything so the sanitizers can intercept whatever they want.
     ldflags = [ "-rdynamic" ]
-  } else if (is_mac) {
+  } else if (is_mac || is_ios) {
     ldflags = [
       "-Wl,-exported_symbol",
       "-Wl,_Dart_*",
@@ -251,7 +251,7 @@ template("build_gen_snapshot") {
 
     deps = [ ":${target_name}_set" ] + extra_deps
 
-    if (is_mac) {
+    if (is_mac || is_ios) {
       frameworks = [
         "CoreFoundation.framework",
         "CoreServices.framework",
@@ -465,7 +465,7 @@ template("dart_io") {
         "Foundation.framework",
       ]
 
-      if (is_mac) {
+      if (is_mac || is_ios) {
         frameworks += [ "CoreServices.framework" ]
       }
     }

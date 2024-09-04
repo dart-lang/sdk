@@ -60,7 +60,7 @@ config("dart_precompiled_runtime_config") {
 }
 
 config("add_empty_macho_section_config") {
-  if (is_mac) {
+  if (is_mac || is_ios) {
     # We create an empty __space_for_note section in a __CUSTOM segment to
     # reserve the header space needed for inserting a snapshot into the
     # executable when creating standalone executables. This segment and section
@@ -327,6 +327,17 @@ library_for_all_configs("libdart") {
     "vm/dart_api_impl.cc",
     "vm/native_api_impl.cc",
     "vm/version.h",
+  ]
+}
+
+shared_library("dart_jit_library") {
+  output_name = "dart_jit"
+  ldflags = [ "-Wl,-install_name,@rpath/Dart.framework/Dart" ]
+  public = [ "include/dart_api.h" ]
+  deps = [ ":libdart_jit" ]
+  public_configs = [
+    ":dart_public_config",
+    ":dart_shared_lib",
   ]
 }
 

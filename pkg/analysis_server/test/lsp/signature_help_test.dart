@@ -157,7 +157,7 @@ final a = A(^);
 
   Future<void> test_augmentation_method() async {
     var content = '''
-import augment 'a.dart';
+part 'a.dart';
 
 class Foo {}
 
@@ -168,7 +168,7 @@ void bar() {
 
     var augmentationFilePath = join(projectFolderPath, 'lib', 'a.dart');
     var augmentationCode = '''
-augment library 'main.dart';
+part of 'main.dart';
 
 augment class Foo {
   /// My method.

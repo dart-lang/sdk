@@ -142,7 +142,7 @@ class C {
 
   Future<void> test_augmentations() async {
     var mainContent = '''
-import augment 'main_augmentation.dart';
+part 'main_augmentation.dart';
 
 class A {
   void f() {}
@@ -151,7 +151,7 @@ class A {
 ''';
 
     var augmentationContent = '''
-augment library 'main.dart';
+part of 'main.dart';
 
 augment class A {
   augment void f() {
@@ -167,8 +167,7 @@ augment class A {
 
     // Main library.
     await _verifyTokens(mainFileUri, mainContent, [
-      _Token('import', SemanticTokenTypes.keyword),
-      _Token('augment', SemanticTokenTypes.keyword),
+      _Token('part', SemanticTokenTypes.keyword),
       _Token("'main_augmentation.dart'", SemanticTokenTypes.string),
       _Token('class', SemanticTokenTypes.keyword),
       _Token(
@@ -196,8 +195,7 @@ augment class A {
 
     // Augmentation.
     await _verifyTokens(mainFileAugmentationUri, augmentationContent, [
-      _Token('augment', SemanticTokenTypes.keyword),
-      _Token('library', SemanticTokenTypes.keyword),
+      _Token('part of', SemanticTokenTypes.keyword),
       _Token("'main.dart'", SemanticTokenTypes.string),
       _Token('augment', SemanticTokenTypes.keyword),
       _Token('class', SemanticTokenTypes.keyword),

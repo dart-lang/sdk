@@ -36,6 +36,8 @@ class W extends StatelessWidget {
     await assertNoDiagnostics(r'''
 part of 'a.dart';
 
+import 'package:flutter/widgets.dart';
+
 augment class W {
   augment const W();
 }
@@ -56,8 +58,8 @@ abstract class MyWidget extends StatelessWidget {
 
   test_constructorInAugmentedClass() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
 import 'package:flutter/widgets.dart';
+part 'test.dart';
 
 class W extends StatelessWidget {
   @override
@@ -66,7 +68,7 @@ class W extends StatelessWidget {
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 import 'package:flutter/widgets.dart';
 
@@ -76,7 +78,7 @@ augment class W {
   const W({Key? key});
 }
 ''', [
-      lint(114, 1),
+      lint(106, 1),
     ]);
   }
 
@@ -94,11 +96,13 @@ class W extends StatelessWidget {
     await assertDiagnostics(r'''
 part of 'a.dart';
 
+import 'package:flutter/widgets.dart';
+
 augment class W {
   const W();
 }
 ''', [
-      lint(45, 1),
+      lint(85, 1),
     ]);
   }
 
@@ -129,7 +133,7 @@ class MyWidget extends StatelessWidget {
 
   test_keyUse_inAugmentedConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -140,8 +144,8 @@ augment class W {
 ''');
 
     await assertNoDiagnostics(r'''
-import augment 'a.dart';
 import 'package:flutter/widgets.dart';
+part 'a.dart';
 
 class W extends StatelessWidget {
   @override

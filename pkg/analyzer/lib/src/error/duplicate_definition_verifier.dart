@@ -341,12 +341,16 @@ class MemberDuplicateDefinitionVerifier {
           }
           if (!constructorNames.add(name)) {
             if (name.isEmpty) {
-              _errorReporter.reportErrorForName(
-                  CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, member);
+              _errorReporter.atConstructorDeclaration(
+                member,
+                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
+              );
             } else {
-              _errorReporter.reportErrorForName(
-                  CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, member,
-                  arguments: [name]);
+              _errorReporter.atConstructorDeclaration(
+                member,
+                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
+                arguments: [name],
+              );
             }
           }
         case FieldDeclaration():

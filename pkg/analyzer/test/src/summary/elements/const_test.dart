@@ -2091,7 +2091,7 @@ library
   }
 
   test_const_invokeConstructor_generic_named_imported() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C<K, V> {
   const C.named(K k, V v);
 }
@@ -2177,7 +2177,7 @@ library
   }
 
   test_const_invokeConstructor_generic_named_imported_withPrefix() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C<K, V> {
   const C.named(K k, V v);
 }
@@ -2559,7 +2559,7 @@ library
   }
 
   test_const_invokeConstructor_generic_unnamed_imported() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C<K, V> {
   const C();
 }
@@ -2632,7 +2632,7 @@ library
   }
 
   test_const_invokeConstructor_generic_unnamed_imported_withPrefix() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C<K, V> {
   const C();
 }
@@ -2843,7 +2843,7 @@ library
   }
 
   test_const_invokeConstructor_named_imported() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {
   const C.named();
 }
@@ -2907,7 +2907,7 @@ library
   }
 
   test_const_invokeConstructor_named_imported_withPrefix() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {
   const C.named();
 }
@@ -3108,7 +3108,7 @@ library
   }
 
   test_const_invokeConstructor_named_unresolved3() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {
 }
 ''');
@@ -3188,7 +3188,7 @@ library
   }
 
   test_const_invokeConstructor_named_unresolved4() async {
-    addSource('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C.named();
@@ -3463,7 +3463,7 @@ library
   }
 
   test_const_invokeConstructor_unnamed_imported() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {
   const C();
 }
@@ -3522,7 +3522,7 @@ library
   }
 
   test_const_invokeConstructor_unnamed_imported_withPrefix() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {
   const C();
 }
@@ -3641,7 +3641,7 @@ library
   }
 
   test_const_invokeConstructor_unnamed_unresolved2() async {
-    addSource('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C();
@@ -3926,7 +3926,7 @@ library
   }
 
   test_const_length_ofClassConstField_imported() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {
   static const String F = '';
 }
@@ -3992,7 +3992,7 @@ library
   }
 
   test_const_length_ofClassConstField_imported_withPrefix() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {
   static const String F = '';
 }
@@ -4174,7 +4174,7 @@ library
   }
 
   test_const_length_ofTopLevelVariable_imported() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const String S = 'abc';
 ''');
     var library = await buildLibrary(r'''
@@ -4231,7 +4231,7 @@ library
   }
 
   test_const_length_ofTopLevelVariable_imported_withPrefix() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const String S = 'abc';
 ''');
     var library = await buildLibrary(r'''
@@ -5627,7 +5627,7 @@ library
   }
 
   test_const_prefixExpression_extension_unaryMinus() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 extension E on Object {
   int operator -() => 0;
 }
@@ -5975,7 +5975,7 @@ library
   }
 
   test_const_reference_staticField_imported() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {
   static const int F = 42;
 }
@@ -6034,7 +6034,7 @@ library
   }
 
   test_const_reference_staticField_imported_withPrefix() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {
   static const int F = 42;
 }
@@ -6201,7 +6201,7 @@ library
   }
 
   test_const_reference_staticMethod_imported() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {
   static int m(int a, String b) => 42;
 }
@@ -6260,7 +6260,7 @@ library
   }
 
   test_const_reference_staticMethod_imported_withPrefix() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {
   static int m(int a, String b) => 42;
 }
@@ -6517,7 +6517,7 @@ library
   }
 
   test_const_reference_topLevelFunction_imported() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 foo() {}
 ''');
     var library = await buildLibrary(r'''
@@ -6566,7 +6566,7 @@ library
   }
 
   test_const_reference_topLevelFunction_imported_withPrefix() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 foo() {}
 ''');
     var library = await buildLibrary(r'''
@@ -6693,7 +6693,7 @@ library
   }
 
   test_const_reference_topLevelVariable_imported() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const A = 1;
 ''');
     var library = await buildLibrary(r'''
@@ -6750,7 +6750,7 @@ library
   }
 
   test_const_reference_topLevelVariable_imported_withPrefix() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const A = 1;
 ''');
     var library = await buildLibrary(r'''
@@ -7279,7 +7279,7 @@ library
   }
 
   test_const_reference_type_imported() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {}
 enum E {a, b, c}
 typedef F(int a, String b);
@@ -7360,7 +7360,7 @@ library
   }
 
   test_const_reference_type_imported_withPrefix() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {}
 enum E {a, b, c}
 typedef F(int a, String b);
@@ -7659,7 +7659,7 @@ library
   }
 
   test_const_reference_unresolved_prefix2() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
     var library = await buildLibrary(r'''
@@ -9485,7 +9485,7 @@ library
   }
 
   test_const_topLevel_typedList_imported() async {
-    addSource('$testPackageLibPath/a.dart', 'class C {}');
+    newFile('$testPackageLibPath/a.dart', 'class C {}');
     var library = await buildLibrary(r'''
 import 'a.dart';
 const v = const <C>[];
@@ -9541,7 +9541,7 @@ library
   }
 
   test_const_topLevel_typedList_importedWithPrefix() async {
-    addSource('$testPackageLibPath/a.dart', 'class C {}');
+    newFile('$testPackageLibPath/a.dart', 'class C {}');
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const v = const <p.C>[];

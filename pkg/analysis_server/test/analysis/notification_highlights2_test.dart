@@ -143,15 +143,6 @@ augment enum E {a, b}
     assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
   }
 
-  Future<void> test_BUILT_IN_augment_onImport() async {
-    addTestFile('''
-import augment 'a.dart';
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.BUILT_IN, 'import');
-    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
-  }
-
   Future<void> test_BUILT_IN_augment_onInstanceGetter() async {
     addTestFile('''
 class C {
@@ -179,15 +170,6 @@ class C {
 }
 ''');
     await prepareHighlights();
-    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
-  }
-
-  Future<void> test_BUILT_IN_augment_onLibrary() async {
-    addTestFile('''
-augment library 'a.dart';
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.BUILT_IN, 'library');
     assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
   }
 

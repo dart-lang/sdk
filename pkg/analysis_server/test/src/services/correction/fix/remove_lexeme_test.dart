@@ -23,13 +23,13 @@ class RemoveLexemeMultiTest extends FixProcessorTest {
 
   Future<void> test_singleFile() async {
     newFile('$testPackageLibPath/a.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 
 class A { }
 ''');
 
     await resolveTestCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment abstract class A {}
 
@@ -37,7 +37,7 @@ augment final class A {}
 ''');
     await assertHasFixAllFix(
         CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, '''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {}
 
@@ -360,18 +360,18 @@ class C {
 
   Future<void> test_it() async {
     newFile('$testPackageLibPath/a.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 
 class A { }
 ''');
 
     await resolveTestCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment abstract class A {}
 ''');
     await assertHasFix('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {}
 ''');

@@ -1286,7 +1286,7 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
 #if defined(TESTING)
 // Used only in type_testing_stubs_test.cc. If DRT_TypeCheck is entered, then
 // this flag is set to true.
-bool TESTING_runtime_entered_on_TTS_invocation = false;
+thread_local bool TESTING_runtime_entered_on_TTS_invocation = false;
 #endif
 
 // Check that the type of the given instance is a subtype of the given type and

@@ -5782,7 +5782,7 @@ library
   }
 
   test_class_constructor_redirected_factory_named_imported() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D.named() : super._();
@@ -5861,7 +5861,7 @@ library
   }
 
   test_class_constructor_redirected_factory_named_imported_generic() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D.named() : super._();
@@ -5949,7 +5949,7 @@ library
   }
 
   test_class_constructor_redirected_factory_named_prefixed() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D.named() : super._();
@@ -6041,7 +6041,7 @@ library
   }
 
   test_class_constructor_redirected_factory_named_prefixed_generic() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D.named() : super._();
@@ -6572,7 +6572,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_imported() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D() : super._();
@@ -6651,7 +6651,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_imported_generic() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D() : super._();
@@ -6739,7 +6739,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_imported_viaTypeAlias() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 typedef A = B;
 class B extends C {
@@ -6819,7 +6819,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_prefixed() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D() : super._();
@@ -6911,7 +6911,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_prefixed_generic() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D() : super._();
@@ -7012,7 +7012,7 @@ library
   }
 
   test_class_constructor_redirected_factory_unnamed_prefixed_viaTypeAlias() async {
-    addSource('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 import 'test.dart';
 typedef A = B;
 class B extends C {
@@ -13711,7 +13711,7 @@ library
   }
 
   test_class_field_propagatedType_final_dep_inLib() async {
-    addSource('$testPackageLibPath/a.dart', 'final a = 1;');
+    newFile('$testPackageLibPath/a.dart', 'final a = 1;');
     var library = await buildLibrary('''
 import "a.dart";
 class C {
@@ -13797,7 +13797,7 @@ library
   }
 
   test_class_field_propagatedType_final_dep_inPart() async {
-    addSource('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
+    newFile('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
     var library = await buildLibrary('''
 library lib;
 part "a.dart";
@@ -26313,7 +26313,7 @@ library
   }
 
   test_classAlias_with_const_constructors() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class Base {
   const Base._priv();
   const Base();
@@ -26453,7 +26453,7 @@ library
   }
 
   test_classAlias_with_forwarding_constructors() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class Base {
   bool x = true;
   Base._priv();

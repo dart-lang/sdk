@@ -79,13 +79,13 @@ class C {
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4935')
   test_unnecessary_augmentationAddedGetterAndSetter() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   String? _x;
@@ -110,7 +110,7 @@ augment class A {
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4935')
   test_unnecessary_augmentationAddedSetter() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {
   String? _x;
@@ -120,7 +120,7 @@ class A {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   set x(String? value) {

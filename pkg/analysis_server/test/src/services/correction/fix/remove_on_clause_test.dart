@@ -23,13 +23,13 @@ class RemoveOnClauseMultiTest extends FixProcessorTest {
 
   Future<void> test_singleFile() async {
     newFile('$testPackageLibPath/a.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 
 extension E on int { }
 ''');
 
     await resolveTestCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment extension E on int { }
 
@@ -37,7 +37,7 @@ augment extension E on num { }
 ''');
     await assertHasFixAllFix(
         ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE, '''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment extension E { }
 
@@ -53,18 +53,18 @@ class RemoveOnClauseTest extends FixProcessorTest {
 
   Future<void> test_it() async {
     newFile('$testPackageLibPath/a.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 
 extension E on int { }
 ''');
 
     await resolveTestCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment extension E on int { }
 ''');
     await assertHasFix('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment extension E { }
 ''');

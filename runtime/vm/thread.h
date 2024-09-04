@@ -486,6 +486,7 @@ class Thread : public ThreadState {
   }
 
   TaskKind task_kind() const { return task_kind_; }
+  void set_task_kind(TaskKind kind) { task_kind_ = kind; }
 
   // Retrieves and clears the stack overflow flags.  These are set by
   // the generated code before the slow path runtime routine for a

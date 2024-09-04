@@ -1000,7 +1000,7 @@ library
   }
 
   test_variable_getterInLib_setterInPart() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 part of my.lib;
 void set x(int _) {}
 ''');
@@ -1064,7 +1064,7 @@ library
   }
 
   test_variable_getterInPart_setterInLib() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 part of my.lib;
 int get x => 42;
 ''');
@@ -1129,8 +1129,8 @@ library
   }
 
   test_variable_getterInPart_setterInPart() async {
-    addSource('$testPackageLibPath/a.dart', 'part of my.lib; int get x => 42;');
-    addSource(
+    newFile('$testPackageLibPath/a.dart', 'part of my.lib; int get x => 42;');
+    newFile(
         '$testPackageLibPath/b.dart', 'part of my.lib; void set x(int _) {}');
     var library =
         await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
@@ -1635,7 +1635,7 @@ library
   }
 
   test_variable_propagatedType_final_dep_inLib() async {
-    addSource('$testPackageLibPath/a.dart', 'final a = 1;');
+    newFile('$testPackageLibPath/a.dart', 'final a = 1;');
     var library = await buildLibrary('import "a.dart"; final b = a / 2;');
     checkElementText(library, r'''
 library
@@ -1674,7 +1674,7 @@ library
   }
 
   test_variable_propagatedType_final_dep_inPart() async {
-    addSource('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
+    newFile('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
     var library =
         await buildLibrary('library lib; part "a.dart"; final b = a / 2;');
     checkElementText(library, r'''
@@ -1761,8 +1761,8 @@ library
 
   test_variable_propagatedType_implicit_dep() async {
     // The propagated type is defined in a library that is not imported.
-    addSource('$testPackageLibPath/a.dart', 'class C {}');
-    addSource('$testPackageLibPath/b.dart', 'import "a.dart"; C f() => null;');
+    newFile('$testPackageLibPath/a.dart', 'class C {}');
+    newFile('$testPackageLibPath/b.dart', 'import "a.dart"; C f() => null;');
     var library = await buildLibrary('import "b.dart"; final x = f();');
     checkElementText(library, r'''
 library
@@ -1801,9 +1801,9 @@ library
   }
 
   test_variable_setterInPart_getterInPart() async {
-    addSource(
+    newFile(
         '$testPackageLibPath/a.dart', 'part of my.lib; void set x(int _) {}');
-    addSource('$testPackageLibPath/b.dart', 'part of my.lib; int get x => 42;');
+    newFile('$testPackageLibPath/b.dart', 'part of my.lib; int get x => 42;');
     var library =
         await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''

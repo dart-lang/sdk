@@ -19,13 +19,13 @@ class CamelCaseTypesTest extends LintRuleTest {
 
   test_augmentationClass_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class a {}
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class a {}
 ''');
@@ -33,7 +33,7 @@ augment class a {}
 
   test_augmentationEnum_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 enum e {
   a;
@@ -41,7 +41,7 @@ enum e {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment enum e {
   b;
@@ -51,13 +51,13 @@ augment enum e {
 
   test_augmentationExtensionType_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 extension type et(int i) {}
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment extension type et(int i) {}
 ''');
@@ -65,13 +65,13 @@ augment extension type et(int i) {}
 
   test_augmentationMixin_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 mixin m {}
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment mixin m {}
 ''');

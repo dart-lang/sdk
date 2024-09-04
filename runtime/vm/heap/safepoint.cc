@@ -60,7 +60,7 @@ ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
 }
 
 SafepointHandler::SafepointHandler(IsolateGroup* isolate_group)
-    : isolate_group_(isolate_group) {
+    : isolate_group_(isolate_group), tasks_() {
   handlers_[SafepointLevel::kGC] =
       new LevelHandler(isolate_group, SafepointLevel::kGC);
   handlers_[SafepointLevel::kGCAndDeopt] =
@@ -70,6 +70,7 @@ SafepointHandler::SafepointHandler(IsolateGroup* isolate_group)
 }
 
 SafepointHandler::~SafepointHandler() {
+  ASSERT(tasks_.IsEmpty());
   for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
     ASSERT(handlers_[level]->owner_ == nullptr);
     delete handlers_[level];
@@ -359,12 +360,71 @@ void SafepointHandler::LevelHandler::NotifyWeAreParked(Thread* T) {
 void SafepointHandler::ExitSafepointLocked(Thread* T,
                                            MonitorLocker* tl,
                                            SafepointLevel level) {
+  ASSERT(T == Thread::Current());
   while (T->IsSafepointRequestedLocked(level)) {
     T->SetBlockedForSafepoint(true);
     tl->Wait();
     T->SetBlockedForSafepoint(false);
+
+    MonitorLeaveScope mls(tl);
+    SafepointTask* task = nullptr;
+    {
+      MonitorLocker ml(threads_lock());
+      if (!tasks_.IsEmpty()) {
+        task = tasks_.RemoveFirst();
+      }
+    }
+    if (task != nullptr) {
+      Thread::ExecutionState execution_state = T->execution_state();
+      T->set_execution_state(Thread::kThreadInVM);
+      task->RunBlockedAtSafepoint();
+      delete task;
+      T->set_execution_state(execution_state);
+    }
   }
   T->SetAtSafepoint(false, level);
+}
+
+void SafepointHandler::RunTasks(IntrusiveDList<SafepointTask>* tasks) {
+  ASSERT(Thread::Current()->OwnsSafepoint());
+
+  // Withold one task for the main thread.
+  ASSERT(!tasks->IsEmpty());
+  SafepointTask* main = tasks->RemoveFirst();
+
+  // First use threads blocked at this safepoint.
+  {
+    MonitorLocker tl(threads_lock());
+    ASSERT(tasks_.IsEmpty());
+    for (auto current = isolate_group()->thread_registry()->active_list();
+         current != nullptr; current = current->next()) {
+      if (tasks->IsEmpty()) break;
+
+      MonitorLocker tl(current->thread_lock());
+      if (current->IsBlockedForSafepoint()) {
+        tasks_.Append(tasks->RemoveFirst());
+        tl.Notify();
+      }
+    }
+  }
+
+  // Then use thread pool workers.
+  while (!tasks->IsEmpty()) {
+    bool result = Dart::thread_pool()->Run(tasks->RemoveFirst());
+    ASSERT(result);
+  }
+
+  // Run one task on the main thread.
+  main->RunMain();
+  delete main;
+
+  // Clean up any tasks that took too long to start.
+  {
+    MonitorLocker tl(threads_lock());
+    while (!tasks_.IsEmpty()) {
+      delete tasks_.RemoveFirst();
+    }
+  }
 }
 
 }  // namespace dart

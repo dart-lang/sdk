@@ -22,9 +22,9 @@ abstract class LibraryImportElementTest extends ElementsBaseTest {
     declaredVariables = {
       'dart.library.io': 'false',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -93,9 +93,9 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -164,9 +164,9 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io == 'true') 'foo_io.dart'
@@ -235,9 +235,9 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -306,9 +306,9 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io == 'true') 'foo_io.dart'
@@ -439,7 +439,7 @@ library
   }
 
   test_import_deferred() async {
-    addSource('$testPackageLibPath/a.dart', 'f() {}');
+    newFile('$testPackageLibPath/a.dart', 'f() {}');
     var library = await buildLibrary('''
 import 'a.dart' deferred as p;
 ''');
@@ -766,7 +766,7 @@ library
   }
 
   test_import_prefixed() async {
-    addSource('$testPackageLibPath/a.dart', 'library a; class C {}');
+    newFile('$testPackageLibPath/a.dart', 'library a; class C {}');
     var library = await buildLibrary('import "a.dart" as a; a.C c;');
 
     var prefixElement = library.libraryImports[0].prefix!.element;
@@ -1012,8 +1012,8 @@ import 'foo.dart';
   }
 
   test_imports() async {
-    addSource('$testPackageLibPath/a.dart', 'library a; class C {}');
-    addSource('$testPackageLibPath/b.dart', 'library b; class D {}');
+    newFile('$testPackageLibPath/a.dart', 'library a; class C {}');
+    newFile('$testPackageLibPath/b.dart', 'library b; class D {}');
     var library =
         await buildLibrary('import "a.dart"; import "b.dart"; C c; D d;');
     checkElementText(library, r'''
@@ -1489,8 +1489,8 @@ library
       return;
     }
 
-    addSource('$testPackageLibPath/a.dart', 'class A {}');
-    addSource('$testPackageLibPath/b.dart', 'export "/a.dart";');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/b.dart', 'export "/a.dart";');
     var library = await buildLibrary('''
 import 'a.dart';
 import 'b.dart';

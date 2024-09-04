@@ -96,20 +96,12 @@ class ExtensionMemberResolver {
     }
 
     if (extensions.length == 1) {
-      var instantiated = extensions[0];
-      _resolver.libraryFragment.scope.notifyExtensionUsed(
-        instantiated.extension,
-      );
-      return instantiated.asResolutionResult;
+      return extensions[0].asResolutionResult;
     }
 
     var mostSpecific = _chooseMostSpecific(extensions);
     if (mostSpecific.length == 1) {
-      var instantiated = mostSpecific.first;
-      _resolver.libraryFragment.scope.notifyExtensionUsed(
-        instantiated.extension,
-      );
-      return instantiated.asResolutionResult;
+      return mostSpecific.first.asResolutionResult;
     }
 
     // The most specific extension is ambiguous.
