@@ -16,26 +16,12 @@ import 'executor/serialization.dart'
 String bootstrapMacroIsolate(
     Map<String, Map<String, List<String>>> macroDeclarations,
     SerializationMode serializationMode) {
-  StringBuffer imports = StringBuffer();
-  StringBuffer constructorEntries = StringBuffer();
-  macroDeclarations
-      .forEach((String macroImport, Map<String, List<String>> macroClasses) {
-    imports.writeln('import \'$macroImport\';');
-    constructorEntries.writeln("Uri.parse('$macroImport'): {");
-    macroClasses.forEach((String macroName, List<String> constructorNames) {
-      constructorEntries.writeln("'$macroName': {");
-      for (String constructor in constructorNames) {
-        constructorEntries.writeln("'$constructor': "
-            "$macroName.${constructor.isEmpty ? 'new' : constructor},");
-      }
-      constructorEntries.writeln('},');
-    });
-    constructorEntries.writeln('},');
-  });
-  return template
-      .replaceFirst(_importMarker, imports.toString())
-      .replaceFirst(
-          _macroConstructorEntriesMarker, constructorEntries.toString())
+  final StringBuffer imports = StringBuffer();
+  final StringBuffer constructorEntries = StringBuffer();
+
+  // Prepend template content
+  return template.replaceFirst(_importMarker, _generateImports(macroDeclarations))
+      .replaceFirst(_macroConstructorEntriesMarker, _generateConstructorEntries(macroDeclarations))
       .replaceFirst(_modeMarker, serializationMode.asCode);
 }
 
@@ -65,3 +51,17 @@ final _macroConstructors = <Uri, Map<String, Map<String, Function>>>{
   $_macroConstructorEntriesMarker
 };
 ''';
+
+String _generateImports(Map<String, Map<String, List<String>>> macroDeclarations) {
+  return macroDeclarations.entries.map((entry) {
+    return 'import \'${entry.key}\';\n';
+  }).join('');
+}
+
+String _generateConstructorEntries(Map<String, Map<String, List<String>>> macroDeclarations) {
+  return '{\n${macroDeclarations.entries.map((entry) {
+    return '${entry.key}: {\n${entry.value.entries.map((innerEntry) {
+      return '${innerEntry.key}: ${innerEntry.value.first.isEmpty ? 'new' : innerEntry.value.first},\n';
+    }).toList().join('')}\n},\n';
+  }).toList().join('')}';
+}
