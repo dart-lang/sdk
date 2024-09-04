@@ -962,20 +962,20 @@ class AsCheckerCodeGenerator implements CodeGenerator {
       b.i32_const(testedAgainstClassId);
       if (argumentCount == 1) {
         b.local_get(b.locals[1]);
-        b.call(translator.functions
-            .getFunction(translator.throwInterfaceTypeAsCheckError1.reference));
+        translator.callReference(
+            translator.throwInterfaceTypeAsCheckError1.reference, b);
       } else if (argumentCount == 2) {
         b.local_get(b.locals[1]);
         b.local_get(b.locals[2]);
-        b.call(translator.functions
-            .getFunction(translator.throwInterfaceTypeAsCheckError2.reference));
+        translator.callReference(
+            translator.throwInterfaceTypeAsCheckError2.reference, b);
       } else {
         for (int i = 0; i < argumentCount; ++i) {
           b.local_get(b.locals[1 + i]);
         }
         b.array_new_fixed(translator.types.typeArrayArrayType, argumentCount);
-        b.call(translator.functions
-            .getFunction(translator.throwInterfaceTypeAsCheckError.reference));
+        translator.callReference(
+            translator.throwInterfaceTypeAsCheckError.reference, b);
       }
     } else {
       b.local_get(b.locals[0]);
@@ -983,8 +983,7 @@ class AsCheckerCodeGenerator implements CodeGenerator {
           b,
           TypeLiteralConstant(testedAgainstType),
           translator.types.nonNullableTypeType);
-      b.call(translator.functions
-          .getFunction(translator.throwAsCheckError.reference));
+      translator.callReference(translator.throwAsCheckError.reference, b);
     }
     b.unreachable();
 

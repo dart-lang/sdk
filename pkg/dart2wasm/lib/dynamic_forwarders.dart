@@ -124,7 +124,7 @@ class Forwarder {
       b.local_get(receiverLocal);
       translator.convertType(
           b, receiverLocal.type, targetFunction.type.inputs.first);
-      b.call(targetFunction);
+      translator.callFunction(targetFunction, b);
       // Box return value if needed
       translator.convertType(b, targetFunction.type.outputs.single,
           _kind.functionType(translator).outputs.single);
@@ -156,8 +156,7 @@ class Forwarder {
       final Member targetMember = target.asMember;
       b.local_get(receiverLocal);
       b.local_get(positionalArgLocal);
-      b.call(
-          translator.functions.getFunction(targetMember.typeCheckerReference));
+      translator.callReference(targetMember.typeCheckerReference, b);
     }, () {
       generateNoSuchMethodCall(
           translator,
@@ -379,8 +378,8 @@ class Forwarder {
                 SymbolConstant(name, null),
                 translator.classInfo[translator.symbolClass]!.nonNullableType);
 
-            b.call(translator.functions
-                .getFunction(translator.getNamedParameterIndex.reference));
+            translator.callReference(
+                translator.getNamedParameterIndex.reference, b);
             b.local_tee(namedParameterIdxLocal);
 
             b.ref_is_null();
@@ -464,9 +463,7 @@ class Forwarder {
         b.local_get(typeArgsLocal);
         b.local_get(adjustedPositionalArgsLocal ?? positionalArgsLocal);
         b.local_get(adjustedNamedArgsLocal ?? namedArgsLocal);
-        final wasmFunction =
-            translator.functions.getFunction(targetMember.typeCheckerReference);
-        b.call(wasmFunction);
+        translator.callReference(targetMember.typeCheckerReference, b);
         b.return_();
         b.end(); // classIdNoMatch
       }
@@ -508,7 +505,7 @@ class Forwarder {
           b.local_get(receiverLocal);
           translator.convertType(
               b, receiverLocal.type, targetFunction.type.inputs.first);
-          b.call(targetFunction);
+          translator.callFunction(targetFunction, b);
           translator.convertType(b, targetFunction.type.outputs.single,
               translator.topInfo.nullableType);
           b.local_tee(getterValueLocal);
@@ -647,9 +644,7 @@ void generateDynamicFunctionCall(
   b.local_get(typeArgsLocal);
   b.local_get(posArgsLocal);
   b.local_get(namedArgsLocal);
-  b.call(
-      translator.functions.getFunction(translator.checkClosureShape.reference));
-
+  translator.callReference(translator.checkClosureShape.reference, b);
   b.i32_eqz();
   b.br_if(noSuchMethodBlock);
 
@@ -659,8 +654,7 @@ void generateDynamicFunctionCall(
     b.local_get(typeArgsLocal);
     b.local_get(posArgsLocal);
     b.local_get(namedArgsLocal);
-    b.call(translator.functions
-        .getFunction(translator.checkClosureType.reference));
+    translator.callReference(translator.checkClosureType.reference, b);
     b.drop();
   }
 
@@ -692,16 +686,13 @@ void createInvocationObject(
       translator.classInfo[translator.symbolClass]!.nonNullableType);
 
   b.local_get(typeArgsLocal);
-  b.call(translator.functions
-      .getFunction(translator.typeArgumentsToList.reference));
+  translator.callReference(translator.typeArgumentsToList.reference, b);
   b.local_get(positionalArgsLocal);
-  b.call(translator.functions
-      .getFunction(translator.positionalParametersToList.reference));
+  translator.callReference(translator.positionalParametersToList.reference, b);
   b.local_get(namedArgsLocal);
-  b.call(translator.functions
-      .getFunction(translator.namedParametersToMap.reference));
-  b.call(translator.functions
-      .getFunction(translator.invocationGenericMethodFactory.reference));
+  translator.callReference(translator.namedParametersToMap.reference, b);
+  translator.callReference(
+      translator.invocationGenericMethodFactory.reference, b);
 }
 
 void createGetterInvocationObject(
@@ -712,8 +703,7 @@ void createGetterInvocationObject(
   translator.constants.instantiateConstant(b, SymbolConstant(memberName, null),
       translator.classInfo[translator.symbolClass]!.nonNullableType);
 
-  b.call(translator.functions
-      .getFunction(translator.invocationGetterFactory.reference));
+  translator.callReference(translator.invocationGetterFactory.reference, b);
 }
 
 void createSetterInvocationObject(
@@ -728,8 +718,7 @@ void createSetterInvocationObject(
       translator.classInfo[translator.symbolClass]!.nonNullableType);
 
   b.local_get(positionalArgLocal);
-  b.call(translator.functions
-      .getFunction(translator.invocationSetterFactory.reference));
+  translator.callReference(translator.invocationSetterFactory.reference, b);
 }
 
 void generateNoSuchMethodCall(

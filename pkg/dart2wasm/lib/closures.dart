@@ -691,8 +691,8 @@ class ClosureLayouter extends RecursiveVisitor {
     b.array_new_fixed(translator.typeArrayType, typeCount);
 
     // Call [_TypeUniverse.substituteFunctionTypeArgument].
-    b.call(translator.functions
-        .getFunction(translator.substituteFunctionTypeArgument.reference));
+    translator.callReference(
+        translator.substituteFunctionTypeArgument.reference, b);
 
     // Finally, allocate closure struct.
     b.struct_new(instantiatedRepresentation.closureStruct);
@@ -735,8 +735,7 @@ class ClosureLayouter extends RecursiveVisitor {
       b.struct_get(contextStructType, typeFieldIdx);
       b.local_get(otherContextLocal);
       b.struct_get(contextStructType, typeFieldIdx);
-      b.call(translator.functions
-          .getFunction(translator.runtimeTypeEquals.reference));
+      translator.callReference(translator.runtimeTypeEquals.reference, b);
       b.if_();
     }
 
@@ -777,10 +776,8 @@ class ClosureLayouter extends RecursiveVisitor {
     for (int typeFieldIdx = 1; typeFieldIdx <= numTypes; typeFieldIdx += 1) {
       b.local_get(thisContextLocal);
       b.struct_get(contextStructType, typeFieldIdx);
-      b.call(translator.functions
-          .getFunction(translator.runtimeTypeHashCode.reference));
-      b.call(translator.functions
-          .getFunction(translator.systemHashCombine.reference));
+      translator.callReference(translator.runtimeTypeHashCode.reference, b);
+      translator.callReference(translator.systemHashCombine.reference, b);
     }
 
     b.end();
@@ -1280,6 +1277,7 @@ class CaptureFinder extends RecursiveVisitor {
   }
 
   void _visitLambda(FunctionNode node, [VariableDeclaration? variable]) {
+    final module = translator.moduleForReference(member.reference);
     List<w.ValueType> inputs = [
       w.RefType.struct(nullable: false),
       ...List.filled(node.typeParameters.length, closures.typeType),
@@ -1298,7 +1296,7 @@ class CaptureFinder extends RecursiveVisitor {
     } else {
       functionName = "$member closure $functionNodeName at ${node.location}";
     }
-    final function = m.functions.define(type, functionName);
+    final function = module.functions.define(type, functionName);
     closures.lambdas[node] = Lambda(node, function, _currentSource);
 
     functionIsSyncStarOrAsync.add(node.asyncMarker == AsyncMarker.SyncStar ||

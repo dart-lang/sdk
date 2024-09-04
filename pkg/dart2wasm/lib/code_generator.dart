@@ -2705,11 +2705,11 @@ abstract class AstCodeGenerator
         ? translator.growableListFromWasmArray.reference
         : translator.growableListEmpty.reference;
 
-    final w.BaseFunction target = useSharedCreator
-        ? translator.partialInstantiator.getOneTypeArgumentForwarder(
-            targetReference,
-            node.typeArgument,
-            'create${passArray ? '' : 'Empty'}List<${node.typeArgument}>')
+    final target = useSharedCreator
+        ? translator
+            .getPartialInstantiatorForModule(b.module)
+            .getOneTypeArgumentForwarder(targetReference, node.typeArgument,
+                'create${passArray ? '' : 'Empty'}List<${node.typeArgument}>')
         : translator.functions.getFunction(targetReference);
 
     if (passType) {
@@ -2720,7 +2720,8 @@ abstract class AstCodeGenerator
           translator.coreTypes.objectRawType(Nullability.nullable));
     }
 
-    b.call(target);
+    translator.callFunction(target, b);
+
     return target.type.outputs.single;
   }
 
@@ -2750,12 +2751,15 @@ abstract class AstCodeGenerator
         ? translator.mapFromWasmArray.reference
         : translator.mapFactory.reference;
 
-    final w.BaseFunction target = useSharedCreator
-        ? translator.partialInstantiator.getTwoTypeArgumentForwarder(
-            targetReference,
-            node.keyType,
-            node.valueType,
-            'create${passArray ? '' : 'Empty'}Map<${node.keyType}, ${node.valueType}>')
+    final target = useSharedCreator
+        ? translator
+            .getPartialInstantiatorForModule(b.module)
+            .getTwoTypeArgumentForwarder(
+                targetReference,
+                node.keyType,
+                node.valueType,
+                'create${passArray ? '' : 'Empty'}'
+                'Map<${node.keyType}, ${node.valueType}>')
         : translator.functions.getFunction(targetReference);
 
     if (passTypes) {
@@ -2774,7 +2778,8 @@ abstract class AstCodeGenerator
         }
       });
     }
-    b.call(target);
+    translator.callFunction(target, b);
+
     return target.type.outputs.single;
   }
 
@@ -2789,11 +2794,11 @@ abstract class AstCodeGenerator
         ? translator.setFromWasmArray.reference
         : translator.setFactory.reference;
 
-    final w.BaseFunction target = useSharedCreator
-        ? translator.partialInstantiator.getOneTypeArgumentForwarder(
-            targetReference,
-            node.typeArgument,
-            'create${passArray ? '' : 'Empty'}Set<${node.typeArgument}>')
+    final target = useSharedCreator
+        ? translator
+            .getPartialInstantiatorForModule(b.module)
+            .getOneTypeArgumentForwarder(targetReference, node.typeArgument,
+                'create${passArray ? '' : 'Empty'}Set<${node.typeArgument}>')
         : translator.functions.getFunction(targetReference);
 
     if (passType) {
@@ -2803,7 +2808,8 @@ abstract class AstCodeGenerator
       makeArrayFromExpressions(node.expressions,
           translator.coreTypes.objectRawType(Nullability.nullable));
     }
-    b.call(target);
+    translator.callFunction(target, b);
+
     return target.type.outputs.single;
   }
 
@@ -3025,7 +3031,7 @@ abstract class AstCodeGenerator
         translator.functions.getFunction(translator.printToConsole.reference);
     translator.constants.instantiateConstant(
         b, StringConstant(s), printFunction.type.inputs[0]);
-    b.call(printFunction);
+    translator.callFunction(printFunction, b);
   }
 
   @override

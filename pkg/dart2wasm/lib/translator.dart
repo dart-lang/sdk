@@ -174,7 +174,11 @@ class Translator with KernelNodes {
   late final w.RefType nullableObjectArrayTypeRef =
       w.RefType.def(nullableObjectArrayType, nullable: false);
 
-  late final partialInstantiator = PartialInstantiator(this);
+  final Map<w.ModuleBuilder, PartialInstantiator> _partialInstantiators = {};
+  PartialInstantiator getPartialInstantiatorForModule(w.ModuleBuilder module) {
+    return _partialInstantiators[module] ??= PartialInstantiator(this, module);
+  }
+
   late final polymorphicDispatchers = PolymorphicDispatchers(this);
 
   /// Dart types that have specialized Wasm representations.
@@ -362,6 +366,24 @@ class Translator with KernelNodes {
         print(f.body.trace);
       }
     }
+  }
+
+  /// Gets the function associated with [reference] and calls its using
+  /// [callFunction].
+  List<w.ValueType> callReference(
+      Reference reference, w.InstructionsBuilder b) {
+    return callFunction(functions.getFunction(reference), b);
+  }
+
+  /// Generates a set of instructions to call [function] adding indirection
+  /// if the call crosses a module boundary. Calls the function directly if it
+  /// is local. Imports the function and calls it directly if is in the main
+  /// module. Otherwise does an indirect call through the static dispatch table.
+  List<w.ValueType> callFunction(
+      w.BaseFunction function, w.InstructionsBuilder b) {
+    // TODO(natebiggs): Add indirect call.
+    b.call(function);
+    return function.type.outputs;
   }
 
   Class classForType(DartType type) {
@@ -1310,7 +1332,7 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
     assert(targetIndex == target.type.inputs.length);
     assert(argNameIndex == argNames.length);
 
-    b.call(target);
+    translator.callFunction(target, b);
 
     translator.convertType(b, translator.outputOrVoid(target.type.outputs),
         translator.outputOrVoid(trampoline.type.outputs));
@@ -1437,8 +1459,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
           b,
           SymbolConstant(paramName, null),
           translator.classInfo[translator.symbolClass]!.nonNullableType);
-      b.call(translator.functions
-          .getFunction(translator.getNamedParameterIndex.reference));
+      translator.callReference(translator.getNamedParameterIndex.reference, b);
       b.local_set(namedArgValueIndexLocal);
 
       if (functionNodeDefaultValue == null && paramInfoDefaultValue == null) {
@@ -1484,7 +1505,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
       inputIdx += 1;
     }
 
-    b.call(target);
+    translator.callFunction(target, b);
 
     translator.convertType(b, translator.outputOrVoid(target.type.outputs),
         translator.outputOrVoid(function.type.outputs));
@@ -1609,12 +1630,13 @@ class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
 /// This saves code size on the call site.
 class PartialInstantiator {
   final Translator translator;
+  final w.ModuleBuilder callingModule;
 
   final Map<(Reference, DartType), w.BaseFunction> _oneTypeArgument = {};
   final Map<(Reference, DartType, DartType), w.BaseFunction> _twoTypeArguments =
       {};
 
-  PartialInstantiator(this.translator);
+  PartialInstantiator(this.translator, this.callingModule);
 
   w.BaseFunction getOneTypeArgumentForwarder(
       Reference target, DartType type, String name) {
@@ -1623,7 +1645,7 @@ class PartialInstantiator {
     return _oneTypeArgument.putIfAbsent((target, type), () {
       final wasmTarget = translator.functions.getFunction(target);
 
-      final function = translator.m.functions.define(
+      final function = callingModule.functions.define(
           translator.typesBuilder.defineFunction(
             [...wasmTarget.type.inputs.skip(1)],
             wasmTarget.type.outputs,
@@ -1635,7 +1657,7 @@ class PartialInstantiator {
       for (int i = 1; i < wasmTarget.type.inputs.length; ++i) {
         b.local_get(b.locals[i - 1]);
       }
-      b.call(wasmTarget);
+      translator.callFunction(wasmTarget, b);
       b.return_();
       b.end();
 
@@ -1651,7 +1673,7 @@ class PartialInstantiator {
     return _twoTypeArguments.putIfAbsent((target, type1, type2), () {
       final wasmTarget = translator.functions.getFunction(target);
 
-      final function = translator.m.functions.define(
+      final function = callingModule.functions.define(
           translator.typesBuilder.defineFunction(
             [...wasmTarget.type.inputs.skip(2)],
             wasmTarget.type.outputs,
@@ -1665,7 +1687,7 @@ class PartialInstantiator {
       for (int i = 2; i < wasmTarget.type.inputs.length; ++i) {
         b.local_get(b.locals[i - 2]);
       }
-      b.call(wasmTarget);
+      translator.callFunction(wasmTarget, b);
       b.return_();
       b.end();
 
@@ -1741,7 +1763,7 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
       for (int i = 0; i < signature.inputs.length; ++i) {
         b.local_get(paramLocals[i]);
       }
-      b.call(translator.functions.getFunction(target));
+      translator.callReference(target, b);
     }
 
     void emitDispatchTableCall() {

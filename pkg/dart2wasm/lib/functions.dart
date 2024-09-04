@@ -118,7 +118,8 @@ class FunctionCollector {
 
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
-      final function = m.functions.define(
+      final module = translator.moduleForReference(target);
+      final function = module.functions.define(
           translator.signatureForDirectCall(target), getFunctionName(target));
       translator.compilationQueue.add(AstCompilationTask(function,
           getMemberCodeGenerator(translator, function, target), target));
