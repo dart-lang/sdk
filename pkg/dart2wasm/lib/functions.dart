@@ -96,7 +96,8 @@ class FunctionCollector {
         translator.compilationQueue.add(AstCompilationTask(function,
             getMemberCodeGenerator(translator, function, target), target));
       } else if (node is Field) {
-        w.Table? table = translator.getTable(node);
+        final module = translator.moduleForReference(target);
+        w.Table? table = translator.getTable(module, node);
         if (table != null) {
           m.exports.export(export.value, table);
         }

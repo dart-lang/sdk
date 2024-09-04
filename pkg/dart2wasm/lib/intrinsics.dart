@@ -156,7 +156,7 @@ class Intrinsifier {
         throw "Table size not directly on a static field"
             " at ${node.location}";
       }
-      w.Table table = translator.getTable(receiver.target as Field)!;
+      w.Table table = translator.getTable(b.module, receiver.target as Field)!;
       assert(name == "size");
       b.table_size(table);
       return w.NumType.i32;
@@ -363,7 +363,7 @@ class Intrinsifier {
         throw "Table indexing not directly on a static field"
             " at ${node.location}";
       }
-      w.Table table = translator.getTable(receiver.target as Field)!;
+      w.Table table = translator.getTable(b.module, receiver.target as Field)!;
       codeGen.wrap(node.arguments.positional[0], w.NumType.i32);
       if (name == '[]') {
         b.table_get(table);
@@ -1230,7 +1230,7 @@ class Intrinsifier {
         throw "Table callIndirect not directly on a static field"
             " at ${node.location}";
       }
-      w.Table table = translator.getTable(tableExp.target as Field)!;
+      w.Table table = translator.getTable(b.module, tableExp.target as Field)!;
       InterfaceType wasmFunctionType = InterfaceType(
           translator.wasmFunctionClass,
           Nullability.nonNullable,

@@ -13,6 +13,7 @@ class Table with Indexable implements Exportable, Serializable {
   // being instantiated.
   int minSize;
   final int? maxSize;
+  String? exportedName;
 
   Table(this.finalizableIndex, this.type, this.minSize, this.maxSize);
 
@@ -31,7 +32,11 @@ class Table with Indexable implements Exportable, Serializable {
 
   /// Export a table from the module.
   @override
-  Export export(String name) => TableExport(name, this);
+  Export export(String name) {
+    assert(exportedName == null);
+    exportedName = name;
+    return TableExport(name, this);
+  }
 }
 
 /// A table defined in a module.

@@ -135,7 +135,8 @@ class Translator with KernelNodes {
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};
   final Map<Reference, ParameterInfo> staticParamInfo = {};
-  final Map<Field, w.Table> declaredTables = {};
+  final Map<Field, w.Table> _declaredFieldTables = {};
+  final Map<Field, Map<w.ModuleBuilder, w.Table>> _importedFieldTables = {};
   final Set<Member> membersContainingInnerFunctions = {};
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
@@ -921,11 +922,12 @@ class Translator with KernelNodes {
   /// This function participates in tree shaking in the sense that if it's
   /// never called for a particular table declaration, that table is not added
   /// to the output module.
-  w.Table? getTable(Field field) {
-    w.Table? table = declaredTables[field];
-    if (table != null) return table;
+  w.Table? getTable(w.ModuleBuilder module, Field field) {
     DartType fieldType = field.type;
-    if (fieldType is InterfaceType && fieldType.classNode == wasmTableClass) {
+    if (fieldType is! InterfaceType || fieldType.classNode != wasmTableClass) {
+      return null;
+    }
+    final mainTable = _declaredFieldTables.putIfAbsent(field, () {
       w.RefType elementType =
           translateType(fieldType.typeArguments.single) as w.RefType;
       Expression sizeExp = (field.initializer as ConstructorInvocation)
@@ -938,9 +940,21 @@ class Translator with KernelNodes {
       int size = sizeExp is ConstantExpression
           ? (sizeExp.constant as IntConstant).value
           : (sizeExp as IntLiteral).value;
-      return declaredTables[field] = m.tables.define(elementType, size);
-    }
-    return null;
+      return mainModule.tables.define(elementType, size);
+    });
+
+    if (isMainModule(module)) return mainTable;
+
+    final importedTables = _importedFieldTables.putIfAbsent(field, () {
+      final importName = 'fieldTable${_importedFieldTables.length}';
+      mainModule.exports.export(importName, mainTable);
+      return {};
+    });
+
+    return importedTables.putIfAbsent(module, () {
+      return module.tables.import(nameForModule(mainModule),
+          mainTable.exportedName!, mainTable.type, mainTable.minSize);
+    });
   }
 
   Member? singleTarget(TreeNode node) {
