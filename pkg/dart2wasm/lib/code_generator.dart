@@ -707,7 +707,15 @@ abstract class AstCodeGenerator
   }
 
   List<w.ValueType> call(Reference target, {bool useUncheckedEntry = false}) {
-    return b.invoke(translator.directCallTarget(target, useUncheckedEntry));
+    final targetModule = translator.moduleForReference(target);
+    final isLocalModuleCall = targetModule == b.module;
+
+    if (isLocalModuleCall) {
+      return b.invoke(translator.directCallTarget(target, useUncheckedEntry));
+    } else {
+      b.comment('Indirect call to $target');
+      return translator.callReference(target, b);
+    }
   }
 
   @override
@@ -1912,7 +1920,8 @@ abstract class AstCodeGenerator
         b.i32_const(offset);
         b.i32_add();
       }
-      b.call_indirect(selector.signature, translator.dispatchTable.wasmTable);
+      b.call_indirect(
+          selector.signature, translator.dispatchTable.getWasmTable(b.module));
 
       translator.functions.recordSelectorUse(selector);
     }
@@ -4516,7 +4525,7 @@ abstract class CallTarget {
 
   /// The wasm target function to call.
   ///
-  /// This should only be accessed if caller intents to call it, as it will
+  /// This should only be accessed if caller intends to call it, as it will
   /// enqueue the function in the compilation queue.
   w.BaseFunction get function;
 }

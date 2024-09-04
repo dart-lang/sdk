@@ -36,4 +36,15 @@ class TablesBuilder with Builder<ir.Tables> {
         _importedTables, _tableBuilders);
     return ir.Tables(_importedTables, built);
   }
+
+  void collectUsedTypes(Set<ir.DefType> types) {
+    for (final table in _tableBuilders) {
+      final defType = table.type.containedDefType;
+      if (defType != null) types.add(defType);
+    }
+    for (final table in _importedTables) {
+      final defType = table.type.containedDefType;
+      if (defType != null) types.add(defType);
+    }
+  }
 }

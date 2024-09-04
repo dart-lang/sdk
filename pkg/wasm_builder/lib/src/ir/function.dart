@@ -21,9 +21,11 @@ abstract class BaseFunction with Indexable implements Exportable {
   final FinalizableIndex finalizableIndex;
   final FunctionType type;
   final String? functionName;
+  final ModuleBuilder enclosingModule;
   String? exportedName;
 
-  BaseFunction(this.finalizableIndex, this.type, this.functionName);
+  BaseFunction(this.enclosingModule, this.finalizableIndex, this.type,
+      this.functionName);
 
   @override
   String get name => functionName ?? super.name;
@@ -44,7 +46,8 @@ class DefinedFunction extends BaseFunction implements Serializable {
   /// All local variables defined in the function, including its inputs.
   List<Local> get locals => body.locals;
 
-  DefinedFunction(this.body, super.finalizableIndex, super.type,
+  DefinedFunction(
+      super.enclosingModule, this.body, super.finalizableIndex, super.type,
       [super.functionName]);
 
   @override
@@ -85,7 +88,8 @@ class ImportedFunction extends BaseFunction implements Import {
   @override
   final String name;
 
-  ImportedFunction(this.module, this.name, super.finalizableIndex, super.type,
+  ImportedFunction(super.enclosingModule, this.module, this.name,
+      super.finalizableIndex, super.type,
       [super.functionName]);
 
   @override

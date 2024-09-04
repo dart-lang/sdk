@@ -26,6 +26,7 @@ import 'kernel_nodes.dart';
 import 'param_info.dart';
 import 'records.dart';
 import 'reference_extensions.dart';
+import 'static_dispatch_table.dart';
 import 'tags.dart';
 import 'types.dart';
 import 'util.dart' as util;
@@ -99,6 +100,7 @@ class Translator with KernelNodes {
   final LibraryIndex index;
   late final ClosureLayouter closureLayouter;
   late final ClassInfoCollector classInfoCollector;
+  late final StaticDispatchTables staticTablesPerType;
   late final DispatchTable dispatchTable;
   late final Globals globals;
   late final Constants constants;
@@ -305,6 +307,7 @@ class Translator with KernelNodes {
     subtypes = hierarchy.computeSubtypesInformation();
     closureLayouter = ClosureLayouter(this);
     classInfoCollector = ClassInfoCollector(this);
+    staticTablesPerType = StaticDispatchTables(this);
     dispatchTable = DispatchTable(this);
     compilationQueue = CompilationQueue();
     functions = FunctionCollector(this);
@@ -337,6 +340,7 @@ class Translator with KernelNodes {
 
     constructorClosures.clear();
     dispatchTable.output();
+    staticTablesPerType.outputTables();
     initFunction.body.end();
 
     for (ConstantInfo info in constants.constantInfo.values) {
@@ -375,14 +379,36 @@ class Translator with KernelNodes {
     return callFunction(functions.getFunction(reference), b);
   }
 
+  final Map<w.BaseFunction, Map<w.ModuleBuilder, w.BaseFunction>>
+      _importedFunctions = {};
+
   /// Generates a set of instructions to call [function] adding indirection
   /// if the call crosses a module boundary. Calls the function directly if it
   /// is local. Imports the function and calls it directly if is in the main
   /// module. Otherwise does an indirect call through the static dispatch table.
   List<w.ValueType> callFunction(
       w.BaseFunction function, w.InstructionsBuilder b) {
-    // TODO(natebiggs): Add indirect call.
-    b.call(function);
+    final targetModule = function.enclosingModule;
+    // TODO(natebiggs): Consider inlining function body in some scenarios.
+    if (targetModule == b.module) {
+      b.call(function);
+    } else if (isMainModule(targetModule)) {
+      final importedFunctions = _importedFunctions.putIfAbsent(function, () {
+        final importName = 'func${_importedFunctions.length}';
+        targetModule.exports.export(importName, function);
+        return {};
+      });
+      final importedFunction = importedFunctions[b.module] ??=
+          b.module.functions.import(nameForModule(targetModule),
+              function.exportedName!, function.type);
+      b.call(importedFunction);
+    } else {
+      final staticTable = staticTablesPerType.getTableForType(function.type);
+      b.i32_const(staticTable.indexForFunction(function));
+      b.table_get(staticTable.getWasmTable(b.module));
+      b.ref_as_non_null();
+      b.call_ref(function.type);
+    }
     return function.type.outputs;
   }
 
@@ -1774,7 +1800,8 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
       b.struct_get(translator.topInfo.struct, FieldIndex.classId);
       b.i32_const(selector.offset!);
       b.i32_add();
-      b.call_indirect(signature, translator.dispatchTable.wasmTable);
+      b.call_indirect(
+          signature, translator.dispatchTable.getWasmTable(b.module));
       translator.functions.recordSelectorUse(selector);
     }
 

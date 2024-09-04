@@ -697,6 +697,18 @@ class FunctionType extends DefType {
     return true;
   }
 
+  bool isStructurallyEqualTo(FunctionType other) {
+    if (inputs.length != other.inputs.length) return false;
+    if (outputs.length != other.outputs.length) return false;
+    for (int i = 0; i < inputs.length; i++) {
+      if (inputs[i] != other.inputs[i]) return false;
+    }
+    for (int i = 0; i < outputs.length; i++) {
+      if (outputs[i] != other.outputs[i]) return false;
+    }
+    return true;
+  }
+
   @override
   void serializeDefinitionInner(Serializer s) {
     s.writeByte(0x60); // -0x20

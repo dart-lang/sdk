@@ -9,7 +9,9 @@ class Table with Indexable implements Exportable, Serializable {
   @override
   final FinalizableIndex finalizableIndex;
   final RefType type;
-  final int minSize;
+  // Mutable so that a table's size does not need to be known prior to the table
+  // being instantiated.
+  int minSize;
   final int? maxSize;
 
   Table(this.finalizableIndex, this.type, this.minSize, this.maxSize);

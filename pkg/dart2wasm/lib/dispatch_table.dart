@@ -69,8 +69,6 @@ class SelectorInfo {
   /// class member for this selector.
   int? offset;
 
-  w.ModuleBuilder get m => translator.m;
-
   /// The selector's member's name.
   String get name => paramInfo.member!.name.text;
 
@@ -215,6 +213,9 @@ class SelectorInfo {
 
 /// Builds the dispatch table for member calls.
 class DispatchTable {
+  static const _tableName = 'dispatch';
+  static const _functionType = w.RefType.func(nullable: true);
+
   final Translator translator;
   final List<TableSelectorInfo> _selectorMetadata;
   final Map<TreeNode, ProcedureAttributesMetadata> _procedureAttributeMetadata;
@@ -236,10 +237,14 @@ class DispatchTable {
   /// member for the selector.
   late final List<Reference?> _table;
 
-  /// The Wasm table for the dispatch table.
-  late final w.TableBuilder wasmTable;
+  late final w.TableBuilder _definedWasmTable;
+  final Map<w.ModuleBuilder, w.ImportedTable> _importedWasmTables = {};
 
-  w.ModuleBuilder get m => translator.m;
+  /// The Wasm table for the dispatch table.
+  w.Table getWasmTable(w.ModuleBuilder module) =>
+      translator.isMainModule(module)
+          ? _definedWasmTable
+          : _importedWasmTables[module]!;
 
   DispatchTable(this.translator)
       : _selectorMetadata =
@@ -499,7 +504,17 @@ class DispatchTable {
       selectors[i].offset = rows[i].offset;
     }
 
-    wasmTable = m.tables.define(w.RefType.func(nullable: true), _table.length);
+    _definedWasmTable =
+        translator.mainModule.tables.define(_functionType, _table.length);
+    if (translator.hasMultipleModules) {
+      final mainModuleName = translator.nameForModule(translator.mainModule);
+      translator.mainModule.exports.export(_tableName, _definedWasmTable);
+      for (final module in translator.modules) {
+        if (translator.isMainModule(module)) continue;
+        _importedWasmTables[module] = module.tables
+            .import(mainModuleName, _tableName, _functionType, _table.length);
+      }
+    }
   }
 
   void output() {
@@ -507,8 +522,21 @@ class DispatchTable {
       Reference? target = _table[i];
       if (target != null) {
         w.BaseFunction? fun = translator.functions.getExistingFunction(target);
+        // Any call to the dispatch table is guaranteed to hit a target.
+        //
+        // If a target is in a deferred module and that deferred module hasn't
+        // been loaded yet, then the entry is `null`.
+        //
+        // Though we can only hit a target if that target's class has been
+        // allocated. In order for the class to be allocated, the deferred
+        // module must've been loaded to call the constructor.
         if (fun != null) {
-          wasmTable.setElement(i, fun);
+          final targetModule = translator.moduleForReference(target);
+          if (translator.isMainModule(targetModule)) {
+            _definedWasmTable.setElement(i, fun);
+          } else {
+            _importedWasmTables[targetModule]!.setElements[fun] = i;
+          }
         }
       }
     }

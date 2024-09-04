@@ -10,7 +10,7 @@ import 'builder.dart';
 class ModuleBuilder with Builder<ir.Module> {
   final Uri? sourceMapUrl;
   final List<int> watchPoints;
-  late final types = TypesBuilder(this);
+  late final TypesBuilder types;
   late final functions = FunctionsBuilder(this);
   final tables = TablesBuilder();
   final memories = MemoriesBuilder();
@@ -25,7 +25,10 @@ class ModuleBuilder with Builder<ir.Module> {
   /// bytes to watch. When the module is serialized, the stack traces leading
   /// to the production of all watched bytes are printed. This can be used to
   /// debug runtime errors happening at specific offsets within the module.
-  ModuleBuilder(this.sourceMapUrl, {this.watchPoints = const []});
+  ModuleBuilder(this.sourceMapUrl,
+      {ModuleBuilder? parent, this.watchPoints = const []}) {
+    types = TypesBuilder(this, parent: parent?.types);
+  }
 
   @override
   ir.Module forceBuild() {
