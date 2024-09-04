@@ -276,8 +276,6 @@ class ClassInfoCollector {
 
   ClassInfoCollector(this.translator);
 
-  w.ModuleBuilder get m => translator.m;
-
   TranslatorOptions get options => translator.options;
 
   void _createStructForClassTop(int classCount) {

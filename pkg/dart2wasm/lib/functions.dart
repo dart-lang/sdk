@@ -32,8 +32,6 @@ class FunctionCollector {
 
   FunctionCollector(this.translator);
 
-  w.ModuleBuilder get m => translator.m;
-
   void _collectImportsAndExports() {
     for (Library library in translator.libraries) {
       library.procedures.forEach(_importOrExport);
@@ -57,8 +55,10 @@ class FunctionCollector {
           w.FunctionType ftype = _makeFunctionType(
               translator, member.reference, null,
               isImportOrExport: true);
-          _functions[member.reference] =
-              m.functions.import(module, name, ftype, "$importName (import)");
+          _functions[member.reference] = translator
+              .moduleForReference(member.reference)
+              .functions
+              .import(module, name, ftype, "$importName (import)");
         }
       }
     }
@@ -90,16 +90,17 @@ class FunctionCollector {
         assert(!node.isGetter);
         w.FunctionType ftype =
             _makeFunctionType(translator, target, null, isImportOrExport: true);
-        w.FunctionBuilder function = m.functions.define(ftype, "$node");
+        final module = translator.moduleForReference(target);
+        w.FunctionBuilder function = module.functions.define(ftype, "$node");
         _functions[target] = function;
-        m.exports.export(export.value, function);
+        module.exports.export(export.value, function);
         translator.compilationQueue.add(AstCompilationTask(function,
             getMemberCodeGenerator(translator, function, target), target));
       } else if (node is Field) {
         final module = translator.moduleForReference(target);
         w.Table? table = translator.getTable(module, node);
         if (table != null) {
-          m.exports.export(export.value, table);
+          module.exports.export(export.value, table);
         }
       }
     }

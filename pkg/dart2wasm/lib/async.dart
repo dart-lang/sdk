@@ -83,7 +83,7 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
   }
 
   w.FunctionBuilder _defineInnerBodyFunction(FunctionNode functionNode) =>
-      m.functions.define(
+      b.module.functions.define(
           translator.typesBuilder.defineFunction([
             asyncSuspendStateInfo.nonNullableType, // _AsyncSuspendState
             translator.topInfo.nullableType, // Object?, await value

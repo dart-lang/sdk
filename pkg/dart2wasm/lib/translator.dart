@@ -140,11 +140,10 @@ class Translator with KernelNodes {
   final Set<Member> membersContainingInnerFunctions = {};
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
-  late final w.ModuleBuilder m;
   late final w.FunctionBuilder initFunction;
   late final w.ValueType voidMarker;
   // Lazily import FFI memory if used.
-  late final w.Memory ffiMemory = m.memories.import("ffi", "memory",
+  late final w.Memory ffiMemory = mainModule.memories.import("ffi", "memory",
       options.importSharedMemory, 0, options.sharedMemoryMaxPages);
 
   /// Maps record shapes to the record class for the shape. Classes generated
@@ -299,12 +298,12 @@ class Translator with KernelNodes {
 
   // Module predicates and helpers
   // TODO(natebiggs): Implement these with real module data.
-  Iterable<w.ModuleBuilder> get modules => [m];
-  w.ModuleBuilder get mainModule => m;
+  Iterable<w.ModuleBuilder> get modules => [mainModule];
+  late final w.ModuleBuilder mainModule;
   w.TypesBuilder get typesBuilder => mainModule.types;
   bool get hasMultipleModules => false;
 
-  w.ModuleBuilder moduleForReference(Reference reference) => m;
+  w.ModuleBuilder moduleForReference(Reference reference) => mainModule;
 
   bool isMainModule(w.ModuleBuilder module) => true;
 
@@ -328,15 +327,16 @@ class Translator with KernelNodes {
   }
 
   w.Module translate(Uri? sourceMapUrl) {
-    m = w.ModuleBuilder(sourceMapUrl, watchPoints: options.watchPoints);
+    mainModule =
+        w.ModuleBuilder(sourceMapUrl, watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
 
     closureLayouter.collect();
     classInfoCollector.collect();
 
-    initFunction = m.functions
+    initFunction = mainModule.functions
         .define(typesBuilder.defineFunction(const [], const []), "#init");
-    m.functions.start = initFunction;
+    mainModule.functions.start = initFunction;
 
     globals = Globals(this);
     constants = Constants(this);
@@ -370,7 +370,7 @@ class Translator with KernelNodes {
     }
     _printFunction(initFunction, "init");
 
-    return m.build();
+    return mainModule.build();
   }
 
   void _printFunction(w.BaseFunction function, Object name) {

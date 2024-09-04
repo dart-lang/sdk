@@ -102,8 +102,6 @@ abstract class AstCodeGenerator
   /// Create a code generator for a member or one of its lambdas.
   AstCodeGenerator(this.translator, this.functionType, this.enclosingMember);
 
-  w.ModuleBuilder get m => translator.m;
-
   List<w.ValueType> get outputs => functionType.outputs;
 
   w.ValueType get returnType => translator.outputOrVoid(outputs);
