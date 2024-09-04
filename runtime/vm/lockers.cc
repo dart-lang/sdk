@@ -183,6 +183,10 @@ void SafepointRwLock::EnterWrite() {
 
   const bool can_block_without_safepoint = thread == nullptr;
 
+  RELEASE_ASSERT(can_block_without_safepoint ||
+                 thread->current_safepoint_level() >=
+                     expected_safepoint_level_);
+
   if (!TryEnterWrite(can_block_without_safepoint)) {
     // Important: must never hold monitor_ when blocking for safepoint.
     TransitionVMToBlocked transition(thread);

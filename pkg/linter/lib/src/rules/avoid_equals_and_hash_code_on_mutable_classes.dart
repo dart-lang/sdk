@@ -68,13 +68,10 @@ class C {
 class AvoidEqualsAndHashCodeOnMutableClasses extends LintRule {
   AvoidEqualsAndHashCodeOnMutableClasses()
       : super(
-            name: 'avoid_equals_and_hash_code_on_mutable_classes',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'avoid_equals_and_hash_code_on_mutable_classes',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

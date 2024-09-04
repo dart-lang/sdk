@@ -60,7 +60,6 @@ class TypeLiteralInConstantPattern extends LintRule {
           name: 'type_literal_in_constant_pattern',
           description: _desc,
           details: _details,
-          categories: {LintRuleCategory.style},
         );
 
   @override

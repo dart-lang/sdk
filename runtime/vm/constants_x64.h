@@ -285,11 +285,6 @@ struct ReThrowABI {
   static constexpr Register kStackTraceReg = RBX;
 };
 
-// ABI for AssertBooleanStub.
-struct AssertBooleanABI {
-  static constexpr Register kObjectReg = RAX;
-};
-
 // ABI for RangeErrorStub.
 struct RangeErrorABI {
   static constexpr Register kLengthReg = RAX;

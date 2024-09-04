@@ -2130,8 +2130,6 @@ class DwarfSnapshot extends Dwarf {
           throw 'Cannot locate isolate instructions section in snapshot';
         }
         return pcOffset.offset + isolateStart;
-      default:
-        throw 'Unexpected value for instructions section';
     }
   }
 

@@ -15,8 +15,6 @@ import "dart:_internal"
         jsonEncode,
         ListIterator,
         Lists,
-        makeFixedListUnmodifiable,
-        makeListFixedLength,
         mix64,
         patch,
         POWERS_OF_TEN,

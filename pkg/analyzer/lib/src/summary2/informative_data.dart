@@ -113,6 +113,7 @@ class InformativeDataApplier {
         applier.applyToMetadata(unitElement);
         applier.applyToImports(unitElement.libraryImports);
         applier.applyToExports(unitElement.libraryExports);
+        applier.applyToParts(unitElement.parts);
       },
     );
 
@@ -821,15 +822,14 @@ class InformativeDataApplier {
     );
   }
 
-  Uint8List? _getInfoUnitBytes(CompilationUnitElement element) {
+  Uint8List? _getInfoUnitBytes(CompilationUnitElementImpl element) {
     var uri = element.source.uri;
     if (_unitsInformativeBytes2[uri] case var bytes?) {
       return bytes;
     }
 
-    switch (element.enclosingElement) {
-      case LibraryAugmentationElementImpl(:var macroGenerated?):
-        return macroGenerated.informativeBytes;
+    if (element.macroGenerated case var macroGenerated?) {
+      return macroGenerated.informativeBytes;
     }
 
     return null;
@@ -2143,6 +2143,12 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   }
 
   void applyToPartDirectives(List<PartElement> elements) {
+    for (var element in elements) {
+      applyToMetadata(element);
+    }
+  }
+
+  void applyToParts(List<PartElementImpl> elements) {
     for (var element in elements) {
       applyToMetadata(element);
     }

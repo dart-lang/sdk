@@ -156,31 +156,29 @@ Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeAnalyzerMessagesYaml(
             'map');
       }
 
+      AnalyzerErrorCodeInfo errorCodeInfo;
       try {
-        var aliasFor = errorValue['aliasFor'];
-        if (aliasFor is String) {
-          var aliasForPath = aliasFor.split('.');
-          if (aliasForPath.isEmpty) {
-            problem("The 'aliasFor' value at '$className.$errorName is empty");
-          }
-          var node = yaml;
-          for (var key in aliasForPath) {
-            var value = node[key];
-            if (value is! Map<Object?, Object?>) {
-              problem('No Map value at "$aliasFor", aliased from '
-                  '$className.$errorName');
-            }
-            node = value;
-          }
+        errorCodeInfo = (result[className] ??= {})[errorName] =
+            AnalyzerErrorCodeInfo.fromYaml(errorValue);
+      } catch (e, st) {
+        Error.throwWithStackTrace(
+            'while processing $className.$errorName, $e', st);
+      }
 
-          (result[className] ??= {})[errorName] = AliasErrorCodeInfo(
-              aliasFor: aliasFor, comment: errorValue['comment'] as String?);
-        } else {
-          (result[className] ??= {})[errorName] =
-              AnalyzerErrorCodeInfo.fromYaml(errorValue);
+      if (errorCodeInfo case AliasErrorCodeInfo(:var aliasFor)) {
+        var aliasForPath = aliasFor.split('.');
+        if (aliasForPath.isEmpty) {
+          problem("The 'aliasFor' value at '$className.$errorName is empty");
         }
-      } catch (e) {
-        problem('while processing $className.$errorName, $e');
+        var node = yaml;
+        for (var key in aliasForPath) {
+          var value = node[key];
+          if (value is! Map<Object?, Object?>) {
+            problem('No Map value at "$aliasFor", aliased from '
+                '$className.$errorName');
+          }
+          node = value;
+        }
       }
     }
   }
@@ -272,14 +270,8 @@ List<String> _splitText(
 class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
   String aliasFor;
 
-  AliasErrorCodeInfo({required this.aliasFor, super.comment})
-      : super(
-            documentation: null,
-            hasPublishedDocs: false,
-            isUnresolvedIdentifier: false,
-            sharedName: null,
-            problemMessage: 'UNUSED',
-            correctionMessage: null);
+  AliasErrorCodeInfo._fromYaml(super.yaml, {required this.aliasFor})
+      : super._fromYaml();
 
   String get aliasForClass => aliasFor.split('.').first;
 
@@ -303,7 +295,15 @@ class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
     super.sharedName,
   });
 
-  AnalyzerErrorCodeInfo.fromYaml(super.yaml) : super.fromYaml();
+  factory AnalyzerErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml) {
+    if (yaml['aliasFor'] case var aliasFor?) {
+      return AliasErrorCodeInfo._fromYaml(yaml, aliasFor: aliasFor as String);
+    } else {
+      return AnalyzerErrorCodeInfo._fromYaml(yaml);
+    }
+  }
+
+  AnalyzerErrorCodeInfo._fromYaml(super.yaml) : super.fromYaml();
 }
 
 /// Data tables mapping between CFE errors and their corresponding automatically
@@ -501,9 +501,7 @@ abstract class ErrorCodeInfo {
             hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
             isUnresolvedIdentifier:
                 yaml['isUnresolvedIdentifier'] as bool? ?? false,
-            problemMessage: yaml['removedIn'] == null
-                ? yaml['problemMessage'] as String
-                : yaml['problemMessage'] as String? ?? '',
+            problemMessage: yaml['problemMessage'] as String? ?? '',
             sharedName: yaml['sharedName'] as String?,
             removedIn: yaml['removedIn'] as String?,
             previousName: yaml['previousName'] as String?);

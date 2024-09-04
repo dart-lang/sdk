@@ -7,10 +7,10 @@ import 'dart:async';
 import 'package:dap/dap.dart' as dap;
 import 'package:dds/dap.dart';
 import 'package:dds/dds.dart';
+import 'package:dds/dds_launcher.dart';
 import 'package:dds/src/dap/adapters/dart_cli_adapter.dart';
 import 'package:dds/src/dap/adapters/dart_test_adapter.dart';
 import 'package:dds/src/dap/isolate_manager.dart';
-import 'package:devtools_shared/devtools_shared.dart' show DTDConnectionInfo;
 import 'package:vm_service/vm_service.dart';
 
 /// A [DartCliDebugAdapter] that captures information about the process that
@@ -98,8 +98,9 @@ class MockDartTestDebugAdapter extends DartTestDebugAdapter {
   late List<String> processArgs;
   late String? workingDirectory;
   late Map<String, String>? env;
+
+  UriConverter? get currentUriConverter => _uriConverter;
   UriConverter? _uriConverter;
-  UriConverter? ddsUriConverter;
 
   factory MockDartTestDebugAdapter() {
     final stdinController = StreamController<List<int>>();
@@ -141,10 +142,8 @@ class MockDartTestDebugAdapter extends DartTestDebugAdapter {
   }
 
   @override
-  Future<DartDevelopmentService> startDds(
-      Uri uri, UriConverter? converter) async {
-    ddsUriConverter = converter;
-    return MockDartDevelopmentService();
+  Future<DartDevelopmentServiceLauncher> startDds(Uri uri) async {
+    return MockDartDevelopmentServiceLauncher();
   }
 }
 
@@ -232,35 +231,15 @@ class MockVmService implements VmService {
   }
 }
 
-class MockDartDevelopmentService implements DartDevelopmentService {
-  MockDartDevelopmentService();
-
-  @override
-  bool get authCodesEnabled => throw UnimplementedError();
-
-  @override
-  List<String> get cachedUserTags => throw UnimplementedError();
+class MockDartDevelopmentServiceLauncher
+    implements DartDevelopmentServiceLauncher {
+  MockDartDevelopmentServiceLauncher();
 
   @override
   Uri? get devToolsUri => throw UnimplementedError();
 
   @override
-  DTDConnectionInfo? get hostedDartToolingDaemon => throw UnimplementedError();
-
-  @override
   Future<void> get done => throw UnimplementedError();
-
-  @override
-  bool get isRunning => throw UnimplementedError();
-
-  @override
-  Uri get remoteVmServiceUri => throw UnimplementedError();
-
-  @override
-  Uri get remoteVmServiceWsUri => throw UnimplementedError();
-
-  @override
-  void setExternalDevToolsUri(Uri uri) {}
 
   @override
   Future<void> shutdown() {
@@ -268,11 +247,14 @@ class MockDartDevelopmentService implements DartDevelopmentService {
   }
 
   @override
-  Uri? get sseUri => throw UnimplementedError();
+  Uri get sseUri => throw UnimplementedError();
 
   @override
-  Uri? get uri => throw UnimplementedError();
+  Uri get uri => throw UnimplementedError();
 
   @override
-  Uri? get wsUri => Uri(scheme: 'ws', host: 'localhost');
+  Uri get wsUri => Uri(scheme: 'ws', host: 'localhost');
+
+  @override
+  Uri? get dtdUri => throw UnimplementedError();
 }

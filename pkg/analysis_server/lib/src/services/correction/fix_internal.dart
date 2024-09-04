@@ -1797,10 +1797,16 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveComparison.new,
     ReplaceWithIsNan.new,
   ],
-  WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
+  WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE: [
     RemoveComparison.new,
   ],
-  WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE: [
+  WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE: [
+    RemoveComparison.new,
+  ],
+  WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE: [
+    RemoveComparison.new,
+  ],
+  WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE: [
     RemoveComparison.new,
   ],
   WarningCode.UNNECESSARY_QUESTION_MARK: [

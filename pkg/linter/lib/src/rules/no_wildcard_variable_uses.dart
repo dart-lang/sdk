@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../linter_lint_codes.dart';
@@ -48,13 +49,10 @@ var [a, _, b, _] = [1, 2, 3, 4];
 class NoWildcardVariableUses extends LintRule {
   NoWildcardVariableUses()
       : super(
-            name: 'no_wildcard_variable_uses',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.languageFeatureUsage,
-              LintRuleCategory.unintentional
-            });
+          name: 'no_wildcard_variable_uses',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.no_wildcard_variable_uses;
@@ -62,6 +60,10 @@ class NoWildcardVariableUses extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
+    if (context.libraryElement.hasWildcardVariablesFeatureEnabled) {
+      return;
+    }
+
     var visitor = _Visitor(this);
     registry.addSimpleIdentifier(this, visitor);
   }

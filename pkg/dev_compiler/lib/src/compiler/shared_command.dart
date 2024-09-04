@@ -96,6 +96,13 @@ class SharedCompilerOptions {
   /// Whether or not the `--canary` flag was specified during compilation.
   final bool canaryFeatures;
 
+  /// When `true` the [Component] will be compiled into a format compatible with
+  /// hot reload.
+  ///
+  /// The output will still be a single file containing each library in an
+  /// isolated namespace.
+  final bool emitLibraryBundle;
+
   /// When `true` stars "*" will appear to represent legacy types when printing
   /// runtime types in the compiled application.
   final bool printLegacyStars = false;
@@ -127,7 +134,10 @@ class SharedCompilerOptions {
       this.soundNullSafety = true,
       this.canaryFeatures = false,
       this.precompiledMacros = const [],
-      this.macroSerializationMode});
+      this.macroSerializationMode})
+      : emitLibraryBundle = canaryFeatures &&
+            moduleFormats.length == 1 &&
+            moduleFormats.single == ModuleFormat.ddc;
 
   SharedCompilerOptions.fromArguments(ArgResults args)
       : this(

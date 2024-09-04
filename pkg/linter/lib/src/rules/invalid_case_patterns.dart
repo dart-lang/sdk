@@ -240,11 +240,11 @@ switch (n) {
 class InvalidCasePatterns extends LintRule {
   InvalidCasePatterns()
       : super(
-            name: 'invalid_case_patterns',
-            description: _desc,
-            details: _details,
-            state: State.experimental(),
-            categories: {LintRuleCategory.languageFeatureUsage});
+          name: 'invalid_case_patterns',
+          description: _desc,
+          details: _details,
+          state: State.experimental(),
+        );
 
   // TODO(pq): update to add specific messages w/ specific corrections
   // https://github.com/dart-lang/linter/issues/4172

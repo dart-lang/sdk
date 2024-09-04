@@ -6,7 +6,9 @@ library fasta.named_type_builder;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart' as unaliasing;
+import 'package:kernel/type_algebra.dart';
 
 import '../base/messages.dart'
     show
@@ -25,6 +27,7 @@ import '../base/messages.dart'
         messageTypedefCause,
         noLength,
         templateExtendingRestricted,
+        templateNotAPrefixInTypeAnnotation,
         templateNotAType,
         templateSupertypeIsIllegal,
         templateSupertypeIsIllegalAliased,
@@ -35,10 +38,12 @@ import '../base/messages.dart'
         templateTypeNotFound;
 import '../base/scope.dart';
 import '../base/uris.dart';
+import '../dill/dill_class_builder.dart';
+import '../dill/dill_type_alias_builder.dart';
 import '../kernel/implicit_field_type.dart';
-import '../source/builder_factory.dart';
+import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
-import '../source/type_parameter_scope_builder.dart';
+import '../source/source_loader.dart';
 import '../util/helpers.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
@@ -163,7 +168,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       DartType type,
       TypeDeclarationBuilder _declaration,
       NullabilityBuilder nullabilityBuilder,
-      {List<TypeBuilder>? arguments}) = _ExplicitNamedTypeBuilder.forDartType;
+      {List<TypeBuilder>? arguments,
+      Uri? fileUri,
+      int? charOffset}) = _ExplicitNamedTypeBuilder.forDartType;
 
   factory NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
       TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,
@@ -202,6 +209,18 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       if (prefix is PrefixBuilder) {
         _isDeferred = prefix.deferred;
         member = prefix.lookup(typeName.name, typeName.nameOffset, fileUri);
+      } else {
+        // Attempt to use a member or type variable as a prefix.
+        int nameOffset = typeName.fullNameOffset;
+        int nameLength = typeName.fullNameLength;
+        Message message = templateNotAPrefixInTypeAnnotation.withArguments(
+            qualifier, typeName.name);
+        problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
+        bind(
+            problemReporting,
+            buildInvalidTypeDeclarationBuilder(
+                message.withLocation(fileUri, nameOffset, nameLength)));
+        return;
       }
     } else {
       member = scope.lookupGetable(typeName.name, typeName.nameOffset, fileUri);
@@ -660,33 +679,6 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  NamedTypeBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      BuilderFactory builderFactory,
-      TypeParameterScopeBuilder contextDeclaration) {
-    List<TypeBuilder>? clonedArguments;
-    if (typeArguments != null) {
-      clonedArguments =
-          new List<TypeBuilder>.generate(typeArguments!.length, (int i) {
-        return typeArguments![i]
-            .clone(newTypes, builderFactory, contextDeclaration);
-      }, growable: false);
-    }
-    NamedTypeBuilderImpl newType = new NamedTypeBuilderImpl(
-        typeName, nullabilityBuilder,
-        arguments: clonedArguments,
-        fileUri: fileUri,
-        charOffset: charOffset,
-        instanceTypeVariableAccess: _instanceTypeVariableAccess);
-    if (declaration is BuiltinTypeDeclarationBuilder) {
-      newType._declaration = declaration;
-    } else {
-      newTypes.add(newType);
-    }
-    return newType;
-  }
-
-  @override
   NamedTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
     return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
@@ -709,12 +701,425 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           charOffset: charOffset,
           instanceTypeVariableAccess: _instanceTypeVariableAccess);
     } else {
+      // Coverage-ignore-block(suite): Not run.
       return new NamedTypeBuilderImpl(typeName, nullabilityBuilder,
           arguments: arguments,
           fileUri: fileUri,
           charOffset: charOffset,
           instanceTypeVariableAccess: _instanceTypeVariableAccess);
     }
+  }
+
+  @override
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    return combineNullabilitiesForSubstitution(
+        inner: declaration!.computeNullabilityWithArguments(typeArguments,
+            typeVariablesTraversalState: typeVariablesTraversalState),
+        outer: nullabilityBuilder.build());
+  }
+
+  @override
+  VarianceCalculationValue computeTypeVariableBuilderVariance(
+      NominalVariableBuilder variable,
+      {required SourceLoader sourceLoader}) {
+    TypeDeclarationBuilder? declaration = this.declaration;
+    List<TypeBuilder>? arguments = this.typeArguments;
+    assert(declaration != null);
+    switch (declaration) {
+      case ClassBuilder():
+        Variance result = Variance.unrelated;
+        if (arguments != null) {
+          for (int i = 0; i < arguments.length; ++i) {
+            result = result.meet(declaration.cls.typeParameters[i].variance
+                .combine(arguments[i]
+                    .computeTypeVariableBuilderVariance(variable,
+                        sourceLoader: sourceLoader)
+                    .variance!));
+          }
+        }
+        return new VarianceCalculationValue.fromVariance(result);
+      case TypeAliasBuilder():
+        Variance result = Variance.unrelated;
+
+        if (arguments != null) {
+          for (int i = 0; i < arguments.length; ++i) {
+            NominalVariableBuilder declarationTypeVariable =
+                declaration.typeVariables![i];
+            VarianceCalculationValue? declarationTypeVariableVariance =
+                declarationTypeVariable.varianceCalculationValue;
+            if (declarationTypeVariableVariance == null ||
+                declarationTypeVariableVariance ==
+                    VarianceCalculationValue.pending) {
+              assert(!declaration.fromDill);
+              declarationTypeVariable.varianceCalculationValue =
+                  VarianceCalculationValue.inProgress;
+              Variance computedVariance = declaration.type
+                  .computeTypeVariableBuilderVariance(declarationTypeVariable,
+                      sourceLoader: sourceLoader)
+                  .variance!;
+
+              declarationTypeVariable.varianceCalculationValue =
+                  declarationTypeVariableVariance =
+                      new VarianceCalculationValue.fromVariance(
+                          computedVariance);
+            } else if (declarationTypeVariableVariance ==
+                VarianceCalculationValue.inProgress) {
+              assert(!declaration.fromDill);
+              NominalVariableBuilder declarationTypeVariable =
+                  declaration.typeVariables![i];
+              // Cyclic type alias.
+              assert(sourceLoader.assertProblemReportedElsewhere(
+                  "computeTypeVariableBuilderVariance: Cyclic type alias.",
+                  expectedPhase: CompilationPhaseForProblemReporting.outline));
+
+              // Use [Variance.unrelated] for recovery.  The type with the
+              // cyclic dependency will be replaced with an [InvalidType]
+              // elsewhere.
+              declarationTypeVariable.varianceCalculationValue =
+                  declarationTypeVariableVariance =
+                      new VarianceCalculationValue.fromVariance(
+                          Variance.unrelated);
+              declarationTypeVariable.variance = Variance.unrelated;
+            }
+
+            result = result.meet(arguments[i]
+                .computeTypeVariableBuilderVariance(variable,
+                    sourceLoader: sourceLoader)
+                .variance!
+                .combine(declarationTypeVariableVariance.variance!));
+          }
+        }
+        return new VarianceCalculationValue.fromVariance(result);
+      case ExtensionTypeDeclarationBuilder():
+        Variance result = Variance.unrelated;
+        if (arguments != null) {
+          for (int i = 0; i < arguments.length; ++i) {
+            result = result.meet(declaration
+                .extensionTypeDeclaration.typeParameters[i].variance
+                .combine(arguments[i]
+                    .computeTypeVariableBuilderVariance(variable,
+                        sourceLoader: sourceLoader)
+                    .variance!));
+          }
+        }
+        return new VarianceCalculationValue.fromVariance(result);
+      case NominalVariableBuilder():
+        if (declaration == variable) {
+          return VarianceCalculationValue.calculatedCovariant;
+        } else {
+          return VarianceCalculationValue.calculatedUnrelated;
+        }
+      case StructuralVariableBuilder():
+      case ExtensionBuilder():
+      case InvalidTypeDeclarationBuilder():
+      case BuiltinTypeDeclarationBuilder():
+      // Coverage-ignore(suite): Not run.
+      // TODO(johnniwinther): How should we handle this case?
+      case OmittedTypeDeclarationBuilder():
+      case null:
+    }
+    return VarianceCalculationValue.calculatedUnrelated;
+  }
+
+  @override
+  TypeDeclarationBuilder? computeUnaliasedDeclaration(
+      {required bool isUsedAsClass}) {
+    TypeDeclarationBuilder? declaration = this.declaration;
+    if (declaration is TypeAliasBuilder) {
+      declaration = declaration.unaliasDeclaration(typeArguments,
+          isUsedAsClass: isUsedAsClass,
+          usedAsClassCharOffset: charOffset,
+          usedAsClassFileUri: fileUri);
+    }
+    return declaration;
+  }
+
+  @override
+  void collectReferencesFrom(Map<TypeVariableBuilder, int> variableIndices,
+      List<List<int>> edges, int index) {
+    TypeDeclarationBuilder? declaration = this.declaration;
+    List<TypeBuilder>? arguments = this.typeArguments;
+    if (declaration is NominalVariableBuilder &&
+        variableIndices.containsKey(declaration)) {
+      edges[variableIndices[declaration]!].add(index);
+    }
+    if (arguments != null) {
+      for (TypeBuilder argument in arguments) {
+        argument.collectReferencesFrom(variableIndices, edges, index);
+      }
+    }
+  }
+
+  @override
+  TypeBuilder? substituteRange(
+      Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
+      Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
+      List<TypeBuilder> unboundTypes,
+      List<StructuralVariableBuilder> unboundTypeVariables,
+      {final Variance variance = Variance.covariant}) {
+    TypeDeclarationBuilder? declaration = this.declaration;
+    List<TypeBuilder>? arguments = this.typeArguments;
+
+    if (declaration is TypeVariableBuilder) {
+      if (variance == Variance.contravariant) {
+        TypeBuilder? replacement = lowerSubstitution[declaration];
+        if (replacement != null) {
+          return replacement.withNullabilityBuilder(
+              combineNullabilityBuildersForSubstitution(
+                  replacement.nullabilityBuilder, nullabilityBuilder));
+        }
+        return null;
+      } else {
+        TypeBuilder? replacement = upperSubstitution[declaration];
+        if (replacement != null) {
+          return replacement.withNullabilityBuilder(
+              combineNullabilityBuildersForSubstitution(
+                  replacement.nullabilityBuilder, nullabilityBuilder));
+        }
+        return null;
+      }
+    }
+    if (arguments == null || arguments.length == 0) {
+      return null;
+    }
+
+    List<TypeBuilder>? newArguments;
+    switch (declaration) {
+      // Coverage-ignore(suite): Not run.
+      case null:
+        assert(
+            identical(upperSubstitution, lowerSubstitution),
+            "Can only handle unbound named type builders identical "
+            "`upperSubstitution` and `lowerSubstitution`.");
+        for (int i = 0; i < arguments.length; ++i) {
+          TypeBuilder? substitutedArgument = arguments[i].substituteRange(
+              upperSubstitution,
+              lowerSubstitution,
+              unboundTypes,
+              unboundTypeVariables,
+              variance: variance);
+          if (substitutedArgument != null) {
+            newArguments ??= arguments.toList();
+            newArguments[i] = substitutedArgument;
+          }
+        }
+      case ClassBuilder():
+        for (int i = 0; i < arguments.length; ++i) {
+          TypeBuilder? substitutedArgument = arguments[i].substituteRange(
+              upperSubstitution,
+              lowerSubstitution,
+              unboundTypes,
+              unboundTypeVariables,
+              variance: variance);
+          if (substitutedArgument != null) {
+            newArguments ??= arguments.toList();
+            newArguments[i] = substitutedArgument;
+          }
+        }
+      case ExtensionTypeDeclarationBuilder():
+        for (int i = 0; i < arguments.length; ++i) {
+          TypeBuilder? substitutedArgument = arguments[i].substituteRange(
+              upperSubstitution,
+              lowerSubstitution,
+              unboundTypes,
+              unboundTypeVariables,
+              variance: variance);
+          if (substitutedArgument != null) {
+            newArguments ??= arguments.toList();
+            newArguments[i] = substitutedArgument;
+          }
+        }
+      case TypeAliasBuilder():
+        for (int i = 0; i < arguments.length; ++i) {
+          NominalVariableBuilder variable = declaration.typeVariables![i];
+          TypeBuilder? substitutedArgument = arguments[i].substituteRange(
+              upperSubstitution,
+              lowerSubstitution,
+              unboundTypes,
+              unboundTypeVariables,
+              variance: variance.combine(variable.variance));
+          if (substitutedArgument != null) {
+            newArguments ??= arguments.toList();
+            newArguments[i] = substitutedArgument;
+          }
+        }
+      // Coverage-ignore(suite): Not run.
+      case NominalVariableBuilder():
+        // Handled above.
+        throw new UnsupportedError("Unexpected NominalVariableBuilder");
+      // Coverage-ignore(suite): Not run.
+      case StructuralVariableBuilder():
+        // Handled above.
+        throw new UnsupportedError("Unexpected StructuralVariableBuilder");
+      // Coverage-ignore(suite): Not run.
+      case InvalidTypeDeclarationBuilder():
+        // Don't substitute.
+        break;
+      // Coverage-ignore(suite): Not run.
+      case ExtensionBuilder():
+      case BuiltinTypeDeclarationBuilder():
+      // TODO(johnniwinther): How should we handle this case?
+      case OmittedTypeDeclarationBuilder():
+        assert(
+            false, "Unexpected named type builder declaration: $declaration.");
+    }
+    if (newArguments != null) {
+      NamedTypeBuilder newTypeBuilder = this.withTypeArguments(newArguments);
+      if (declaration == null) {
+        // Coverage-ignore-block(suite): Not run.
+        unboundTypes.add(newTypeBuilder);
+      }
+      return newTypeBuilder;
+    }
+    return null;
+  }
+
+  @override
+  TypeBuilder? unaliasAndErase() {
+    TypeDeclarationBuilder? declaration = this.declaration;
+    if (declaration is TypeAliasBuilder) {
+      // We pass empty lists as [unboundTypes] and [unboundTypeVariables]
+      // because new builders can be generated during unaliasing. We ignore
+      // the returned builders, however, because they will not be used in the
+      // output and are needed only for the checks.
+      //
+      // We also don't instantiate-to-bound raw types because it won't affect
+      // the dependency cycle analysis.
+      return declaration.unalias(typeArguments,
+          unboundTypes: [], unboundTypeVariables: [])?.unaliasAndErase();
+    } else if (declaration is ExtensionTypeDeclarationBuilder) {
+      TypeBuilder? representationType =
+          declaration.declaredRepresentationTypeBuilder;
+      if (representationType == null) {
+        return null;
+      } else {
+        List<NominalVariableBuilder>? typeParameters =
+            declaration.typeParameters;
+        List<TypeBuilder>? typeArguments = this.typeArguments;
+        if (typeParameters != null && typeArguments != null) {
+          representationType = representationType.subst(
+              new Map<NominalVariableBuilder, TypeBuilder>.fromIterables(
+                  typeParameters, typeArguments));
+        }
+        return representationType.unaliasAndErase();
+      }
+    } else {
+      return this;
+    }
+  }
+
+  @override
+  bool usesTypeVariables(Set<String> typeVariableNames) {
+    if (typeVariableNames.contains(typeName.name)) {
+      return true;
+    }
+    if (typeArguments != null) {
+      for (TypeBuilder argument in typeArguments!) {
+        if (argument.usesTypeVariables(typeVariableNames)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @override
+  List<TypeWithInBoundReferences> findRawTypesWithInboundReferences() {
+    List<TypeWithInBoundReferences> typesAndDependencies = [];
+    TypeDeclarationBuilder? declaration = this.declaration;
+    List<TypeBuilder>? arguments = this.typeArguments;
+    if (arguments == null) {
+      switch (declaration) {
+        case ClassBuilder():
+          if (declaration is DillClassBuilder) {
+            bool hasInbound = false;
+            List<TypeParameter> typeParameters = declaration.cls.typeParameters;
+            for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
+              if (containsTypeVariable(
+                  typeParameters[i].bound, typeParameters.toSet())) {
+                hasInbound = true;
+              }
+            }
+            if (hasInbound) {
+              typesAndDependencies
+                  .add(new TypeWithInBoundReferences(this, const []));
+            }
+          } else if (declaration.typeVariables != null) {
+            List<InBoundReferences> dependencies =
+                findInboundReferences(declaration.typeVariables!);
+            if (dependencies.length != 0) {
+              typesAndDependencies
+                  .add(new TypeWithInBoundReferences(this, dependencies));
+            }
+          }
+        case TypeAliasBuilder():
+          if (declaration is DillTypeAliasBuilder) {
+            bool hasInbound = false;
+            List<TypeParameter> typeParameters =
+                declaration.typedef.typeParameters;
+            for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
+              if (containsTypeVariable(
+                  typeParameters[i].bound, typeParameters.toSet())) {
+                hasInbound = true;
+              }
+            }
+            if (hasInbound) {
+              // Coverage-ignore-block(suite): Not run.
+              typesAndDependencies
+                  .add(new TypeWithInBoundReferences(this, const []));
+            }
+          } else {
+            if (declaration.typeVariables != null) {
+              List<InBoundReferences> dependencies =
+                  findInboundReferences(declaration.typeVariables!);
+              if (dependencies.length != 0) {
+                typesAndDependencies
+                    .add(new TypeWithInBoundReferences(this, dependencies));
+              }
+            }
+            if (declaration.type is FunctionTypeBuilder) {
+              FunctionTypeBuilder type =
+                  declaration.type as FunctionTypeBuilder;
+              if (type.typeVariables != null) {
+                List<InBoundReferences> dependencies =
+                    findInboundReferences(type.typeVariables!);
+                if (dependencies.length != 0) {
+                  // Coverage-ignore-block(suite): Not run.
+                  typesAndDependencies
+                      .add(new TypeWithInBoundReferences(type, dependencies));
+                }
+              }
+            }
+          }
+        case ExtensionTypeDeclarationBuilder():
+          if (declaration.typeParameters != null) {
+            List<InBoundReferences> dependencies =
+                findInboundReferences(declaration.typeParameters!);
+            if (dependencies.length != 0) {
+              // Coverage-ignore-block(suite): Not run.
+              typesAndDependencies
+                  .add(new TypeWithInBoundReferences(this, dependencies));
+            }
+          }
+        case NominalVariableBuilder():
+        case StructuralVariableBuilder():
+        case ExtensionBuilder():
+        case InvalidTypeDeclarationBuilder():
+        case BuiltinTypeDeclarationBuilder():
+        // Coverage-ignore(suite): Not run.
+        // TODO(johnniwinther): How should we handle this case?
+        case OmittedTypeDeclarationBuilder():
+        case null:
+      }
+    } else {
+      for (TypeBuilder argument in arguments) {
+        typesAndDependencies
+            .addAll(argument.findRawTypesWithInboundReferences());
+      }
+    }
+    return typesAndDependencies;
   }
 }
 
@@ -741,7 +1146,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
 
   _ExplicitNamedTypeBuilder.forDartType(DartType type,
       TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,
-      {List<TypeBuilder>? arguments})
+      {List<TypeBuilder>? arguments, Uri? fileUri, int? charOffset})
       : _type = type,
         super._(
             declaration: declaration,
@@ -750,8 +1155,8 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
             typeArguments: arguments,
             instanceTypeVariableAccess:
                 InstanceTypeVariableAccessState.Unexpected,
-            fileUri: null,
-            charOffset: null);
+            fileUri: fileUri,
+            charOffset: charOffset);
 
   _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder(
       TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,

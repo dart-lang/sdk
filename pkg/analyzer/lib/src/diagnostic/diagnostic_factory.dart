@@ -306,9 +306,9 @@ class DiagnosticFactory {
       errorCode: errorCode,
       arguments: [
         memberName,
-        member.enclosingElement.name!,
+        member.enclosingElement3.name!,
         member.type,
-        superMember.enclosingElement.name!,
+        superMember.enclosingElement3.name!,
         superMember.type,
       ],
       contextMessages: [

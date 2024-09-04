@@ -51,10 +51,10 @@ Widget buildRow() {
 class SizedBoxForWhitespace extends LintRule {
   SizedBoxForWhitespace()
       : super(
-            name: 'sized_box_for_whitespace',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.flutter, LintRuleCategory.style});
+          name: 'sized_box_for_whitespace',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.sized_box_for_whitespace;

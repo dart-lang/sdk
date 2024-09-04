@@ -43,6 +43,49 @@ dev_dependencies:
     ]);
   }
 
+  void test_referencedInBuildHook_listedInDeps() async {
+    newFile(testPackagePubspecPath, r'''
+name: fancy
+version: 1.1.1
+
+dependencies:
+  meta: any
+''');
+    var hookFile =
+        newFile('$testPackageRootPath/hook/build.dart', sourceReferencingMeta);
+    result = await resolveFile(hookFile.path);
+    await assertNoDiagnosticsIn(result.errors);
+  }
+
+  void test_referencedInBuildHook_listedInDevDeps() async {
+    newFile(testPackagePubspecPath, r'''
+name: fancy
+version: 1.1.1
+
+dev_dependencies:
+  meta: any
+''');
+    var hookFile =
+        newFile('$testPackageRootPath/hook/build.dart', sourceReferencingMeta);
+    result = await resolveFile(hookFile.path);
+    await assertDiagnosticsIn(result.errors, [
+      lint(7, 24),
+    ]);
+  }
+
+  void test_referencedInBuildHook_missingFromPubspec() async {
+    newFile(testPackagePubspecPath, r'''
+name: fancy
+version: 1.1.1
+''');
+    var hookFile =
+        newFile('$testPackageRootPath/hook/build.dart', sourceReferencingMeta);
+    result = await resolveFile(hookFile.path);
+    await assertDiagnosticsIn(result.errors, [
+      lint(7, 24),
+    ]);
+  }
+
   test_referencedInLib_flutterGen() async {
     var packageConfigBuilder = PackageConfigFileBuilder();
     packageConfigBuilder.add(
@@ -107,6 +150,22 @@ import 'package:test/lib.dart';
 
 var y = x;
 ''');
+  }
+
+  void test_referencedInLinkHook_listedInDevDeps() async {
+    newFile(testPackagePubspecPath, r'''
+name: fancy
+version: 1.1.1
+
+dev_dependencies:
+  meta: any
+''');
+    var hookFile =
+        newFile('$testPackageRootPath/hook/link.dart', sourceReferencingMeta);
+    result = await resolveFile(hookFile.path);
+    await assertDiagnosticsIn(result.errors, [
+      lint(7, 24),
+    ]);
   }
 
   test_referencedInTest_listedInDevDeps() async {

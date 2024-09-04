@@ -1149,8 +1149,8 @@ class ForwardingListener implements Listener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken) {
-    listener?.endOptionalFormalParameters(count, beginToken, endToken);
+      int count, Token beginToken, Token endToken, MemberKind kind) {
+    listener?.endOptionalFormalParameters(count, beginToken, endToken, kind);
   }
 
   @override

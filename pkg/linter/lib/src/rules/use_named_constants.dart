@@ -35,7 +35,6 @@ class UseNamedConstants extends LintRule {
           name: lintName,
           description: _desc,
           details: _details,
-          categories: {LintRuleCategory.style},
         );
 
   @override
@@ -70,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         //   static const a = A();
         //   static const b = A();
         // }
-        if (nodeField?.enclosingElement == element) return;
+        if (nodeField?.enclosingElement3 == element) return;
 
         var library = (node.root as CompilationUnit).declaredElement?.library;
         if (library == null) return;

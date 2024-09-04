@@ -910,6 +910,7 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
         sdkLibraryExperiments: {},
         packageExperiments: {
       "json": {
+        ExperimentalFlag.enhancedParts,
         ExperimentalFlag.macros,
       },
     });

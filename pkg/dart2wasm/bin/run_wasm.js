@@ -368,57 +368,39 @@ if (argsSplit != -1) {
 // unfortunately d8 does not return a failed error code if an unhandled
 // exception occurs asynchronously in an ES module.
 const main = async () => {
-    const dart2wasm = await import(args[jsRuntimeArg]);
+  const dart2wasm = await import(args[jsRuntimeArg]);
 
-    /// Returns whether the `js-string` built-in is supported.
-    function detectImportedStrings() {
-        let bytes = [
-            0,   97,  115, 109, 1,   0,   0,  0,   1,   4,   1,   96,  0,
-            0,   2,   23,  1,   14,  119, 97, 115, 109, 58,  106, 115, 45,
-            115, 116, 114, 105, 110, 103, 4,  99,  97,  115, 116, 0,   0
-        ];
-        return !WebAssembly.validate(
-            new Uint8Array(bytes), {builtins: ['js-string']});
+  function readBytes(filename) {
+    if (isJSC) {
+      return readFile(filename, "binary");
+    } else if (isD8) {
+      return readbuffer(filename);
     }
+    return readRelativeToScript(filename, "binary");
+  }
 
-    function compile(filename, withJsStringBuiltins) {
-        // Create a Wasm module from the binary Wasm file.
-        var bytes;
-        if (isJSC) {
-          bytes = readFile(filename, "binary");
-        } else if (isD8) {
-          bytes = readbuffer(filename);
-        } else {
-          bytes = readRelativeToScript(filename, "binary");
-        }
-        return WebAssembly.compile(
-            bytes,
-            withJsStringBuiltins ? {builtins: ['js-string']} : {}
-        );
-    }
+  globalThis.window ??= globalThis;
 
-    globalThis.window ??= globalThis;
+  let importObject = {};
 
-    let importObject = {};
+  // Is an FFI module specified?
+  if (args.length > 2) {
+    // Instantiate FFI module.
+    const ffiModule = await WebAssembly.compile(readBytes(args[ffiArg]));
+    const ffiInstance = await WebAssembly.instantiate(ffiModule, {});
 
-    // Is an FFI module specified?
-    if (args.length > 2) {
-        // Instantiate FFI module.
-        var ffiInstance = await WebAssembly.instantiate(await compile(args[ffiArg], false), {});
-        // Make its exports available as imports under the 'ffi' module name.
-        importObject.ffi = ffiInstance.exports;
-    }
+    // Make its exports available as imports under the 'ffi' module name.
+    importObject.ffi = ffiInstance.exports;
+  }
 
-    // Instantiate the Dart module, importing from the global scope.
-    var dartInstance = await dart2wasm.instantiate(
-        compile(args[wasmArg], detectImportedStrings()),
-        Promise.resolve(importObject),
-    );
+  // Instantiate the Dart module, importing from the global scope.
+  const compiledApp = await dart2wasm.compile(readBytes(args[wasmArg]));
+  const appInstance = await compiledApp.instantiate(importObject);
 
-    // Call `main`. If tasks are placed into the event loop (by scheduling tasks
-    // explicitly or awaiting Futures), these will automatically keep the script
-    // alive even after `main` returns.
-    await dart2wasm.invoke(dartInstance, ...dartArgs);
+  // Call `main`. If tasks are placed into the event loop (by scheduling tasks
+  // explicitly or awaiting Futures), these will automatically keep the script
+  // alive even after `main` returns.
+  await appInstance.invokeMain(...dartArgs);
 };
 
 dartMainRunner(main, []);

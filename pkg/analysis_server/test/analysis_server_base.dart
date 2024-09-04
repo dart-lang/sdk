@@ -30,14 +30,18 @@ import 'test_macros.dart';
 
 // TODO(scheglov): this is duplicate
 class AnalysisOptionsFileConfig {
+  final String? include;
   final List<String> experiments;
+  final List<String> plugins;
   final List<String> lints;
   final bool strictCasts;
   final bool strictInference;
   final bool strictRawTypes;
 
   AnalysisOptionsFileConfig({
+    this.include,
     this.experiments = const [],
+    this.plugins = const [],
     this.lints = const [],
     this.strictCasts = false,
     this.strictInference = false,
@@ -47,6 +51,10 @@ class AnalysisOptionsFileConfig {
   String toContent() {
     var buffer = StringBuffer();
 
+    var include = this.include;
+    if (include != null) {
+      buffer.writeln('include: $include');
+    }
     buffer.writeln('analyzer:');
     if (experiments.isNotEmpty) {
       buffer.writeln('  enable-experiment:');
@@ -58,6 +66,12 @@ class AnalysisOptionsFileConfig {
     buffer.writeln('    strict-casts: $strictCasts');
     buffer.writeln('    strict-inference: $strictInference');
     buffer.writeln('    strict-raw-types: $strictRawTypes');
+    if (plugins.isNotEmpty) {
+      buffer.writeln('  plugins:');
+      for (var plugin in plugins) {
+        buffer.writeln('    - $plugin');
+      }
+    }
 
     buffer.writeln('linter:');
     buffer.writeln('  rules:');
@@ -194,9 +208,9 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
       InstrumentationService.NULL_SERVICE,
       dartFixPromptManager: dartFixPromptManager,
       providedByteStore: _byteStore,
+      pluginManager: pluginManager,
     );
 
-    server.pluginManager = pluginManager;
     server.completionState.budgetDuration = const Duration(seconds: 30);
   }
 

@@ -16,6 +16,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
+#include "platform/growable_array.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
 #include "vm/dispatch_table.h"
@@ -23,7 +24,6 @@
 #include "vm/ffi_callback_metadata.h"
 #include "vm/field_table.h"
 #include "vm/fixed_cache.h"
-#include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/heap/verifier.h"
 #include "vm/intrusive_dlist.h"
@@ -31,6 +31,7 @@
 #include "vm/metrics.h"
 #include "vm/os_thread.h"
 #include "vm/random.h"
+#include "vm/service.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/thread_pool.h"
@@ -530,9 +531,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex* unlinked_call_map_mutex() { return &unlinked_call_map_mutex_; }
 #endif
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
   Mutex* initializer_functions_mutex() { return &initializer_functions_mutex_; }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
   SafepointRwLock* program_lock() { return program_lock_.get(); }
 
@@ -706,7 +707,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void VisitSharedPointers(ObjectPointerVisitor* visitor);
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
-  void VisitObjectIdRingPointers(ObjectPointerVisitor* visitor);
+  void VisitPointersInAllServiceIdZones(ObjectPointerVisitor& visitor);
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   // In precompilation we finalize all regular classes before compiling.
@@ -811,7 +812,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   };
 
 #define DECLARE_BITFIELD(Name)                                                 \
-  class Name##Bit : public BitField<uint32_t, bool, k##Name##Bit, 1> {};
+  using Name##Bit = BitField<uint32_t, bool, k##Name##Bit>;
   ISOLATE_GROUP_FLAG_BITS(DECLARE_BITFIELD)
 #undef DECLARE_BITFIELD
 
@@ -907,9 +908,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex unlinked_call_map_mutex_;
 #endif
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
   Mutex initializer_functions_mutex_;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
   // Protect access to boxed_field_list_.
   Mutex field_list_mutex_;
@@ -1247,8 +1248,23 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
 #if !defined(PRODUCT)
-  ObjectIdRing* object_id_ring() const { return object_id_ring_; }
-  ObjectIdRing* EnsureObjectIdRing();
+  // This method first ensures that the default Service ID zone for this isolate
+  // exists, by creating it if necessary, and then adds a new Service ID zone to
+  // `serivce_id_zones_` and returns a reference to that new zone.
+  RingServiceIdZone& AddServiceIdZone(
+      ObjectIdRing::BackingBufferKind backing_buffer_kind,
+      ObjectIdRing::IdPolicy id_assignment_policy,
+      int32_t capacity);
+
+  void DeleteServiceIdZone(int32_t id);
+
+  // The default Service ID zone is created lazily; this method returns the
+  // default Service ID zone, creating it if necessary.
+  RingServiceIdZone& EnsureDefaultServiceIdZone();
+
+  RingServiceIdZone* GetServiceIdZone(intptr_t zone_id) const;
+
+  intptr_t NumServiceIdZones() const;
 #endif  // !defined(PRODUCT)
 
   bool IsDeoptimizing() const { return deopt_context_ != nullptr; }
@@ -1586,7 +1602,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   };
 
 #define DECLARE_BITFIELD(Name)                                                 \
-  class Name##Bit : public BitField<uint32_t, bool, k##Name##Bit, 1> {};
+  using Name##Bit = BitField<uint32_t, bool, k##Name##Bit>;
   ISOLATE_FLAG_BITS(DECLARE_BITFIELD)
 #undef DECLARE_BITFIELD
 
@@ -1643,13 +1659,13 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // Used to wake the isolate when it is in the pause event loop.
   Monitor* pause_loop_monitor_ = nullptr;
 
+  // The array of Service ID zones is created lazily.
+  MallocGrowableArray<RingServiceIdZone*>* service_id_zones_;
+
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
-
-  // Ring buffer of objects assigned an id.
-  ObjectIdRing* object_id_ring_ = nullptr;
 #endif  // !defined(PRODUCT)
 
   // All other fields go here.

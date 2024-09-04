@@ -30,6 +30,20 @@ vm/type_cast_vm_test: SkipByDesign # Relies on symbol names
 [ $compiler != dart2analyzer ]
 switch/case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
+[ $compiler == dart2bytecode ]
+async_star/error_test: Crash
+await/exceptions_test: Crash
+class_modifiers/trans_legacy/legacy_superdeclaration_test: Crash
+const/inference_test: Crash
+constructor/external_constructor_test: Crash
+enum/initialization_near_stack_overflow_test: Crash
+external_abstract_fields/external_fields_test: Crash
+final/syntax_test/08: Crash
+regress/regress45763_test: Crash
+sync_star/generator3_test/test2: Crash
+sync_star/sync_star_exception_nested_test: Crash
+vm/reflect_core_vm_test: Crash
+
 [ $compiler != fasta ]
 value_class/*: Skip # Internship, jlcontreras
 

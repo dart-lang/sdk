@@ -9,6 +9,8 @@ import 'dart:typed_data';
 import 'package:dev_compiler/dev_compiler.dart' as ddc_names
     show libraryUriToJsIdentifier;
 
+import 'package:reload_test/ddc_helpers.dart' show FileDataPerGeneration;
+
 /// A pseudo in-memory filesystem with helpers to aid the hot reload runner.
 ///
 /// The Frontend Server outputs web sources and sourcemaps as concatenated
@@ -55,9 +57,11 @@ class HotReloadMemoryFilesystem {
   /// Returns a map of generation number to modified files' paths.
   ///
   /// Used to determine which JS files should be loaded per generation.
-  Map<String, List<String>> get generationsToModifiedFilePaths => {
+  FileDataPerGeneration get generationsToModifiedFilePaths => {
         for (var e in generationChanges.entries)
-          e.key: e.value.map((info) => info.jsSourcePath).toList()
+          e.key: e.value
+              .map((info) => [info.dartSourcePath, info.jsSourcePath])
+              .toList()
       };
 
   /// Returns all scripts in the filesystem in a form that can be ingested by

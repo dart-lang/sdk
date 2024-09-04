@@ -208,14 +208,14 @@ int Function() foo() {
 
   test_inClass_explicitThis_inDeclaration_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   int get foo => 0;
@@ -243,14 +243,14 @@ PropertyAccess
 
   test_inClass_explicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 int get foo => 0;
 
@@ -278,14 +278,14 @@ PropertyAccess
 
   test_inClass_explicitThis_inDeclaration_augmentationDeclares_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 int get foo => 0;
 
@@ -926,14 +926,14 @@ CascadeExpression
 
   test_ofClass_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   int get foo => 0;
@@ -966,14 +966,14 @@ PropertyAccess
 
   test_ofClass_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -1223,7 +1223,7 @@ AssignmentExpression
 
   test_ofExtension_augmentation_read() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment extension E {
   int get foo => 0;
@@ -1231,7 +1231,7 @@ augment extension E {
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -1264,7 +1264,7 @@ PropertyAccess
 
   test_ofExtension_augmentation_write() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment extension E {
   set foo(int _) {}
@@ -1272,7 +1272,7 @@ augment extension E {
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -1317,7 +1317,7 @@ AssignmentExpression
 
   test_ofExtension_augmentationGeneric_read() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment extension E<U2> {
   U2 get foo => throw 0;
@@ -1325,7 +1325,7 @@ augment extension E<U2> {
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A<T> {}
 
@@ -1713,14 +1713,14 @@ AssignmentExpression
 
   test_ofMixin_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment mixin A {
   augment int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 mixin A {
   int get foo => 0;
@@ -1753,14 +1753,14 @@ PropertyAccess
 
   test_ofMixin_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment mixin A {
   int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 mixin A {}
 

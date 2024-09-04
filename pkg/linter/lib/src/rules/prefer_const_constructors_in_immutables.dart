@@ -43,10 +43,10 @@ class A {
 class PreferConstConstructorsInImmutables extends LintRule {
   PreferConstConstructorsInImmutables()
       : super(
-            name: 'prefer_const_constructors_in_immutables',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_const_constructors_in_immutables',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>
@@ -72,7 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element == null) return;
     if (element.isConst) return;
     if (node.body is! EmptyFunctionBody) return;
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement.isMacro) return;
     if (enclosingElement.mixins.isNotEmpty) return;
     if (!_hasImmutableAnnotation(enclosingElement)) return;
@@ -112,7 +112,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declaredElement == null) {
       return false;
     }
-    var clazz = declaredElement.enclosingElement;
+    var clazz = declaredElement.enclosingElement3;
     // Constructor with super-initializer.
     var superInvocation =
         node.initializers.whereType<SuperConstructorInvocation>().firstOrNull;

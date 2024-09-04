@@ -36,10 +36,10 @@ if (!lunchBox.contains('sandwich')) return 'so hungry...';
 class PreferContains extends LintRule {
   PreferContains()
       : super(
-            name: 'prefer_contains',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_contains',
+          description: _desc,
+          details: _details,
+        );
 
   // TODO(brianwilkerson): Both `alwaysFalse` and `alwaysTrue` should be warnings
   //  rather than lints because they represent a bug rather than a style
@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     // This lint rule is only concerned with these operators.
-    if (!node.operator.matchesAny([
+    if (!node.operator.matchesAny(const [
       TokenType.EQ_EQ,
       TokenType.BANG_EQ,
       TokenType.GT,

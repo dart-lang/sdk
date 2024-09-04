@@ -33,10 +33,10 @@ if (foo is! Foo) {
 class PreferIsNotOperator extends LintRule {
   PreferIsNotOperator()
       : super(
-            name: 'prefer_is_not_operator',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'prefer_is_not_operator',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_is_not_operator;

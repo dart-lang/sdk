@@ -3,16 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/find_type_visitor.dart';
-import 'package:kernel/type_algebra.dart' show containsTypeVariable;
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
 
 import '../base/problems.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/function_type_builder.dart';
-import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
@@ -25,188 +21,10 @@ import '../codes/cfe_codes.dart'
         templateBoundIssueViaRawTypeWithNonSimpleBounds,
         templateNonSimpleBoundViaReference,
         templateNonSimpleBoundViaVariable;
-import '../dill/dill_class_builder.dart' show DillClassBuilder;
-import '../dill/dill_type_alias_builder.dart' show DillTypeAliasBuilder;
-import '../kernel/utils.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
-import '../source/source_loader.dart';
 import '../source/source_type_alias_builder.dart';
-
-// Computes the variance of a variable in a type.  The function can be run
-// before the types are resolved to compute variances of typedefs' type
-// variables.  For that case if the type has its declaration set to null and its
-// name matches that of the variable, it's interpreted as an occurrence of a
-// type variable.
-VarianceCalculationValue computeTypeVariableBuilderVariance(
-    NominalVariableBuilder variable, TypeBuilder? type,
-    {required SourceLoader sourceLoader}) {
-  switch (type) {
-    case NamedTypeBuilder(
-        :TypeDeclarationBuilder? declaration,
-        typeArguments: List<TypeBuilder>? arguments
-      ):
-      assert(declaration != null);
-      switch (declaration) {
-        case ClassBuilder():
-          Variance result = Variance.unrelated;
-          if (arguments != null) {
-            for (int i = 0; i < arguments.length; ++i) {
-              result = result.meet(declaration.cls.typeParameters[i].variance
-                  .combine(computeTypeVariableBuilderVariance(
-                          variable, arguments[i],
-                          sourceLoader: sourceLoader)
-                      .variance!));
-            }
-          }
-          return new VarianceCalculationValue.fromVariance(result);
-        case TypeAliasBuilder():
-          Variance result = Variance.unrelated;
-
-          if (type.typeArguments != null) {
-            for (int i = 0; i < type.typeArguments!.length; ++i) {
-              NominalVariableBuilder declarationTypeVariable =
-                  declaration.typeVariables![i];
-              VarianceCalculationValue? declarationTypeVariableVariance =
-                  declarationTypeVariable.varianceCalculationValue;
-              if (declarationTypeVariableVariance == null ||
-                  declarationTypeVariableVariance ==
-                      VarianceCalculationValue.pending) {
-                assert(!declaration.fromDill);
-                declarationTypeVariable.varianceCalculationValue =
-                    VarianceCalculationValue.inProgress;
-                Variance computedVariance = computeTypeVariableBuilderVariance(
-                        declarationTypeVariable, declaration.type,
-                        sourceLoader: sourceLoader)
-                    .variance!;
-
-                declarationTypeVariable.varianceCalculationValue =
-                    declarationTypeVariableVariance =
-                        new VarianceCalculationValue.fromVariance(
-                            computedVariance);
-              } else if (declarationTypeVariableVariance ==
-                  VarianceCalculationValue.inProgress) {
-                assert(!declaration.fromDill);
-                NominalVariableBuilder declarationTypeVariable =
-                    declaration.typeVariables![i];
-                // Cyclic type alias.
-                assert(sourceLoader.assertProblemReportedElsewhere(
-                    "computeTypeVariableBuilderVariance: Cyclic type alias.",
-                    expectedPhase:
-                        CompilationPhaseForProblemReporting.outline));
-
-                // Use [Variance.unrelated] for recovery.  The type with the
-                // cyclic dependency will be replaced with an [InvalidType]
-                // elsewhere.
-                declarationTypeVariable.varianceCalculationValue =
-                    declarationTypeVariableVariance =
-                        new VarianceCalculationValue.fromVariance(
-                            Variance.unrelated);
-                declarationTypeVariable.variance = Variance.unrelated;
-              }
-
-              result = result.meet(computeTypeVariableBuilderVariance(
-                      variable, type.typeArguments![i],
-                      sourceLoader: sourceLoader)
-                  .variance!
-                  .combine(declarationTypeVariableVariance.variance!));
-            }
-          }
-          return new VarianceCalculationValue.fromVariance(result);
-        case ExtensionTypeDeclarationBuilder():
-          Variance result = Variance.unrelated;
-          if (arguments != null) {
-            for (int i = 0; i < arguments.length; ++i) {
-              result = result.meet(declaration
-                  .extensionTypeDeclaration.typeParameters[i].variance
-                  .combine(computeTypeVariableBuilderVariance(
-                          variable, arguments[i],
-                          sourceLoader: sourceLoader)
-                      .variance!));
-            }
-          }
-          return new VarianceCalculationValue.fromVariance(result);
-        case NominalVariableBuilder():
-          if (declaration == variable) {
-            return VarianceCalculationValue.calculatedCovariant;
-          } else {
-            return VarianceCalculationValue.calculatedUnrelated;
-          }
-        case StructuralVariableBuilder():
-        case ExtensionBuilder():
-        case InvalidTypeDeclarationBuilder():
-        case BuiltinTypeDeclarationBuilder():
-        // Coverage-ignore(suite): Not run.
-        // TODO(johnniwinther): How should we handle this case?
-        case OmittedTypeDeclarationBuilder():
-        case null:
-      }
-      return VarianceCalculationValue.calculatedUnrelated;
-    case FunctionTypeBuilder(
-        :List<StructuralVariableBuilder>? typeVariables,
-        :List<ParameterBuilder>? formals,
-        :TypeBuilder returnType
-      ):
-      Variance result = Variance.unrelated;
-      if (returnType is! OmittedTypeBuilder) {
-        result = result.meet(computeTypeVariableBuilderVariance(
-                variable, returnType,
-                sourceLoader: sourceLoader)
-            .variance!);
-      }
-      if (typeVariables != null) {
-        for (StructuralVariableBuilder typeVariable in typeVariables) {
-          // If [variable] is referenced in the bound at all, it makes the
-          // variance of [variable] in the entire type invariant.  The
-          // invocation of [computeVariance] below is made to simply figure out
-          // if [variable] occurs in the bound.
-          if (typeVariable.bound != null &&
-              computeTypeVariableBuilderVariance(variable, typeVariable.bound!,
-                      sourceLoader: sourceLoader) !=
-                  VarianceCalculationValue.calculatedUnrelated) {
-            result = Variance.invariant;
-          }
-        }
-      }
-      if (formals != null) {
-        for (ParameterBuilder formal in formals) {
-          result = result.meet(Variance.contravariant.combine(
-              computeTypeVariableBuilderVariance(variable, formal.type,
-                      sourceLoader: sourceLoader)
-                  .variance!));
-        }
-      }
-      return new VarianceCalculationValue.fromVariance(result);
-    case RecordTypeBuilder(
-        :List<RecordTypeFieldBuilder>? positionalFields,
-        :List<RecordTypeFieldBuilder>? namedFields
-      ):
-      Variance result = Variance.unrelated;
-      if (positionalFields != null) {
-        for (RecordTypeFieldBuilder field in positionalFields) {
-          result = result.meet(computeTypeVariableBuilderVariance(
-                  variable, field.type,
-                  sourceLoader: sourceLoader)
-              .variance!);
-        }
-      }
-      if (namedFields != null) {
-        for (RecordTypeFieldBuilder field in namedFields) {
-          result = result.meet(computeTypeVariableBuilderVariance(
-                  variable, field.type,
-                  sourceLoader: sourceLoader)
-              .variance!);
-        }
-      }
-      return new VarianceCalculationValue.fromVariance(result);
-    case FixedTypeBuilder():
-    case InvalidTypeBuilder():
-    case OmittedTypeBuilder():
-    case null:
-      return VarianceCalculationValue.calculatedUnrelated;
-  }
-}
 
 /// Combines syntactic nullabilities on types for performing type substitution.
 ///
@@ -224,381 +42,6 @@ NullabilityBuilder combineNullabilityBuildersForSubstitution(
   }
 
   return const NullabilityBuilder.omitted();
-}
-
-TypeBuilder substituteRange(
-    TypeBuilder type,
-    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
-            Object,
-            TypeBuilder>
-        upperSubstitution,
-    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
-            Object,
-            TypeBuilder>
-        lowerSubstitution,
-    List<TypeBuilder> unboundTypes,
-    List<StructuralVariableBuilder> unboundTypeVariables,
-    {final Variance variance = Variance.covariant}) {
-  assert(upperSubstitution.keys.every((key) =>
-      key is NominalVariableBuilder || key is StructuralVariableBuilder));
-  assert(lowerSubstitution.keys.every((key) =>
-      key is NominalVariableBuilder || key is StructuralVariableBuilder));
-
-  switch (type) {
-    case NamedTypeBuilder():
-      return _substituteNamedTypeBuilder(type, upperSubstitution,
-          lowerSubstitution, unboundTypes, unboundTypeVariables,
-          variance: variance);
-
-    case FunctionTypeBuilder():
-      return _substituteFunctionTypeBuilder(type, upperSubstitution,
-          lowerSubstitution, unboundTypes, unboundTypeVariables,
-          variance: variance);
-
-    case RecordTypeBuilder():
-      return _substituteRecordTypeBuilder(type, upperSubstitution,
-          lowerSubstitution, unboundTypes, unboundTypeVariables,
-          variance: variance);
-
-    case OmittedTypeBuilder():
-    case FixedTypeBuilder():
-    case InvalidTypeBuilder():
-      return type;
-  }
-}
-
-TypeBuilder _substituteNamedTypeBuilder(
-    NamedTypeBuilder type,
-    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
-            Object,
-            TypeBuilder>
-        upperSubstitution,
-    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
-            Object,
-            TypeBuilder>
-        lowerSubstitution,
-    List<TypeBuilder> unboundTypes,
-    List<StructuralVariableBuilder> unboundTypeVariables,
-    {final Variance variance = Variance.covariant}) {
-  assert(upperSubstitution.keys.every((key) =>
-      key is NominalVariableBuilder || key is StructuralVariableBuilder));
-  assert(lowerSubstitution.keys.every((key) =>
-      key is NominalVariableBuilder || key is StructuralVariableBuilder));
-
-  TypeDeclarationBuilder? declaration = type.declaration;
-  List<TypeBuilder>? arguments = type.typeArguments;
-
-  if (declaration is NominalVariableBuilder) {
-    if (variance == Variance.contravariant) {
-      TypeBuilder? replacement = lowerSubstitution[declaration];
-      if (replacement != null) {
-        return replacement.withNullabilityBuilder(
-            combineNullabilityBuildersForSubstitution(
-                replacement.nullabilityBuilder, type.nullabilityBuilder));
-      }
-      return type;
-    } else {
-      TypeBuilder? replacement = upperSubstitution[type.declaration];
-      if (replacement != null) {
-        return replacement.withNullabilityBuilder(
-            combineNullabilityBuildersForSubstitution(
-                replacement.nullabilityBuilder, type.nullabilityBuilder));
-      }
-      return type;
-    }
-  } else if (declaration is StructuralVariableBuilder) {
-    if (variance == Variance.contravariant) {
-      TypeBuilder? replacement = lowerSubstitution[type.declaration];
-      if (replacement != null) {
-        return replacement.withNullabilityBuilder(
-            combineNullabilityBuildersForSubstitution(
-                replacement.nullabilityBuilder, type.nullabilityBuilder));
-      }
-      return type;
-    } else {
-      TypeBuilder? replacement = upperSubstitution[declaration];
-      if (replacement != null) {
-        return replacement.withNullabilityBuilder(
-            combineNullabilityBuildersForSubstitution(
-                replacement.nullabilityBuilder, type.nullabilityBuilder));
-      }
-      return type;
-    }
-  }
-  if (arguments == null || arguments.length == 0) {
-    return type;
-  }
-
-  List<TypeBuilder>? newArguments;
-  switch (declaration) {
-    case null:
-      assert(
-          identical(upperSubstitution, lowerSubstitution),
-          "Can only handle unbound named type builders identical "
-          "`upperSubstitution` and `lowerSubstitution`.");
-      for (int i = 0; i < arguments.length; ++i) {
-        TypeBuilder substitutedArgument = substituteRange(
-            arguments[i],
-            upperSubstitution,
-            lowerSubstitution,
-            unboundTypes,
-            unboundTypeVariables,
-            variance: variance);
-        if (substitutedArgument != arguments[i]) {
-          newArguments ??= arguments.toList();
-          newArguments[i] = substitutedArgument;
-        }
-      }
-    case ClassBuilder():
-      for (int i = 0; i < arguments.length; ++i) {
-        TypeBuilder substitutedArgument = substituteRange(
-            arguments[i],
-            upperSubstitution,
-            lowerSubstitution,
-            unboundTypes,
-            unboundTypeVariables,
-            variance: variance);
-        if (substitutedArgument != arguments[i]) {
-          newArguments ??= arguments.toList();
-          newArguments[i] = substitutedArgument;
-        }
-      }
-    case ExtensionTypeDeclarationBuilder():
-      for (int i = 0; i < arguments.length; ++i) {
-        TypeBuilder substitutedArgument = substituteRange(
-            arguments[i],
-            upperSubstitution,
-            lowerSubstitution,
-            unboundTypes,
-            unboundTypeVariables,
-            variance: variance);
-        if (substitutedArgument != arguments[i]) {
-          newArguments ??= arguments.toList();
-          newArguments[i] = substitutedArgument;
-        }
-      }
-    case TypeAliasBuilder():
-      for (int i = 0; i < arguments.length; ++i) {
-        NominalVariableBuilder variable = declaration.typeVariables![i];
-        TypeBuilder substitutedArgument = substituteRange(
-            arguments[i],
-            upperSubstitution,
-            lowerSubstitution,
-            unboundTypes,
-            unboundTypeVariables,
-            variance: variance.combine(variable.variance));
-        if (substitutedArgument != arguments[i]) {
-          newArguments ??= arguments.toList();
-          newArguments[i] = substitutedArgument;
-        }
-      }
-    // Coverage-ignore(suite): Not run.
-    case NominalVariableBuilder():
-      // Handled above.
-      throw new UnsupportedError("Unexpected NominalVariableBuilder");
-    // Coverage-ignore(suite): Not run.
-    case StructuralVariableBuilder():
-      // Handled above.
-      throw new UnsupportedError("Unexpected StructuralVariableBuilder");
-    // Coverage-ignore(suite): Not run.
-    case InvalidTypeDeclarationBuilder():
-      // Don't substitute.
-      break;
-    // Coverage-ignore(suite): Not run.
-    case ExtensionBuilder():
-    case BuiltinTypeDeclarationBuilder():
-    // TODO(johnniwinther): How should we handle this case?
-    case OmittedTypeDeclarationBuilder():
-      assert(false, "Unexpected named type builder declaration: $declaration.");
-  }
-  if (newArguments != null) {
-    NamedTypeBuilder newTypeBuilder = type.withTypeArguments(newArguments);
-    if (declaration == null) {
-      unboundTypes.add(newTypeBuilder);
-    }
-    return newTypeBuilder;
-  }
-  return type;
-}
-
-TypeBuilder _substituteFunctionTypeBuilder(
-    FunctionTypeBuilder type,
-    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
-            Object,
-            TypeBuilder>
-        upperSubstitution,
-    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
-            Object,
-            TypeBuilder>
-        lowerSubstitution,
-    List<TypeBuilder> unboundTypes,
-    List<StructuralVariableBuilder> unboundTypeVariables,
-    {final Variance variance = Variance.covariant}) {
-  List<StructuralVariableBuilder>? typeVariables = type.typeVariables;
-  List<ParameterBuilder>? formals = type.formals;
-  TypeBuilder returnType = type.returnType;
-
-  List<StructuralVariableBuilder>? newTypeVariables;
-  if (typeVariables != null) {
-    newTypeVariables = new List<StructuralVariableBuilder>.filled(
-        typeVariables.length, dummyStructuralVariableBuilder);
-  }
-  List<ParameterBuilder>? newFormals;
-  TypeBuilder newReturnType;
-  bool changed = false;
-
-  Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
-      Object,
-      TypeBuilder>? functionTypeUpperSubstitution;
-  Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
-      Object,
-      TypeBuilder>? functionTypeLowerSubstitution;
-  if (typeVariables != null) {
-    for (int i = 0; i < newTypeVariables!.length; i++) {
-      StructuralVariableBuilder variable = typeVariables[i];
-      TypeBuilder? bound;
-      if (variable.bound != null) {
-        bound = substituteRange(variable.bound!, upperSubstitution,
-            lowerSubstitution, unboundTypes, unboundTypeVariables,
-            variance: Variance.invariant);
-      }
-      if (bound != variable.bound) {
-        StructuralVariableBuilder newTypeVariableBuilder = newTypeVariables[i] =
-            new StructuralVariableBuilder(variable.name, variable.parent,
-                variable.charOffset, variable.fileUri,
-                bound: bound);
-        unboundTypeVariables.add(newTypeVariableBuilder);
-        if (functionTypeUpperSubstitution == null) {
-          functionTypeUpperSubstitution = {}..addAll(upperSubstitution);
-          functionTypeLowerSubstitution = {}..addAll(lowerSubstitution);
-        }
-        functionTypeUpperSubstitution[variable] =
-            functionTypeLowerSubstitution![variable] =
-                new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                    newTypeVariableBuilder, const NullabilityBuilder.omitted(),
-                    instanceTypeVariableAccess:
-                        InstanceTypeVariableAccessState.Unexpected);
-        changed = true;
-      } else {
-        newTypeVariables[i] = variable;
-      }
-    }
-  }
-  if (formals != null) {
-    newFormals = new List<ParameterBuilder>.filled(
-        formals.length, dummyFormalParameterBuilder);
-    for (int i = 0; i < formals.length; i++) {
-      ParameterBuilder formal = formals[i];
-      TypeBuilder parameterType = substituteRange(
-          formal.type,
-          functionTypeUpperSubstitution ?? upperSubstitution,
-          functionTypeLowerSubstitution ?? lowerSubstitution,
-          unboundTypes,
-          unboundTypeVariables,
-          variance: variance.combine(Variance.contravariant));
-      if (parameterType != formal.type) {
-        newFormals[i] = new FunctionTypeParameterBuilder(
-            formal.kind, parameterType, formal.name);
-        changed = true;
-      } else {
-        newFormals[i] = formal;
-      }
-    }
-  }
-  newReturnType = substituteRange(
-      returnType,
-      functionTypeUpperSubstitution ?? upperSubstitution,
-      functionTypeLowerSubstitution ?? lowerSubstitution,
-      unboundTypes,
-      unboundTypeVariables,
-      variance: variance);
-  changed = changed || newReturnType != returnType;
-
-  if (changed) {
-    return new FunctionTypeBuilderImpl(newReturnType, newTypeVariables,
-        newFormals, type.nullabilityBuilder, type.fileUri, type.charOffset);
-  }
-  return type;
-}
-
-TypeBuilder _substituteRecordTypeBuilder(
-    RecordTypeBuilder type,
-    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
-            Object,
-            TypeBuilder>
-        upperSubstitution,
-    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
-            Object,
-            TypeBuilder>
-        lowerSubstitution,
-    List<TypeBuilder> unboundTypes,
-    List<StructuralVariableBuilder> unboundTypeVariables,
-    {final Variance variance = Variance.covariant}) {
-  List<RecordTypeFieldBuilder>? positionalFields = type.positionalFields;
-  List<RecordTypeFieldBuilder>? namedFields = type.namedFields;
-
-  bool changed = false;
-  List<RecordTypeFieldBuilder>? newPositionalFields = positionalFields != null
-      ? new List<RecordTypeFieldBuilder>.of(positionalFields)
-      : null;
-  List<RecordTypeFieldBuilder>? newNamedFields = namedFields != null
-      ? new List<RecordTypeFieldBuilder>.of(namedFields)
-      : null;
-  if (newPositionalFields != null) {
-    for (int i = 0; i < newPositionalFields.length; i++) {
-      RecordTypeFieldBuilder positionalFieldBuilder = newPositionalFields[i];
-      TypeBuilder positionalFieldType = substituteRange(
-          positionalFieldBuilder.type,
-          upperSubstitution,
-          lowerSubstitution,
-          unboundTypes,
-          unboundTypeVariables,
-          variance: variance);
-      if (positionalFieldType != positionalFieldBuilder.type) {
-        newPositionalFields[i] = new RecordTypeFieldBuilder(
-            positionalFieldBuilder.metadata,
-            positionalFieldType,
-            positionalFieldBuilder.name,
-            positionalFieldBuilder.charOffset);
-        changed = true;
-      }
-    }
-  }
-  if (newNamedFields != null) {
-    for (int i = 0; i < newNamedFields.length; i++) {
-      RecordTypeFieldBuilder namedFieldBuilder = newNamedFields[i];
-      TypeBuilder namedFieldType = substituteRange(
-          namedFieldBuilder.type,
-          upperSubstitution,
-          lowerSubstitution,
-          unboundTypes,
-          unboundTypeVariables,
-          variance: variance);
-      if (namedFieldType != namedFieldBuilder.type) {
-        newNamedFields[i] = new RecordTypeFieldBuilder(
-            namedFieldBuilder.metadata,
-            namedFieldType,
-            namedFieldBuilder.name,
-            namedFieldBuilder.charOffset);
-        changed = true;
-      }
-    }
-  }
-
-  if (changed) {
-    return new RecordTypeBuilderImpl(newPositionalFields, newNamedFields,
-        type.nullabilityBuilder, type.fileUri, type.charOffset);
-  }
-  return type;
-}
-
-TypeBuilder substitute(
-    TypeBuilder type, Map<NominalVariableBuilder, TypeBuilder> substitution,
-    {required List<TypeBuilder> unboundTypes,
-    required List<StructuralVariableBuilder> unboundTypeVariables}) {
-  return substituteRange(
-      type, substitution, substitution, unboundTypes, unboundTypeVariables,
-      variance: Variance.covariant);
 }
 
 /// Calculates bounds to be provided as type arguments in place of missing type
@@ -628,13 +71,13 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     }
     for (int variableIndex in component) {
       TypeVariableBuilder variable = variables[variableIndex];
-      bounds[variableIndex] = substituteRange(
-          bounds[variableIndex],
-          dynamicSubstitution,
-          nullSubstitution,
-          unboundTypes,
-          unboundTypeVariables,
-          variance: variable.variance);
+      bounds[variableIndex] = bounds[variableIndex].substituteRange(
+              dynamicSubstitution,
+              nullSubstitution,
+              unboundTypes,
+              unboundTypeVariables,
+              variance: variable.variance) ??
+          bounds[variableIndex];
     }
   }
 
@@ -647,9 +90,10 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     nullSubstitution[variables[i]] = bottomType;
     for (int j = 0; j < variables.length; j++) {
       TypeVariableBuilder variable = variables[j];
-      bounds[j] = substituteRange(bounds[j], substitution, nullSubstitution,
-          unboundTypes, unboundTypeVariables,
-          variance: variable.variance);
+      bounds[j] = bounds[j].substituteRange(substitution, nullSubstitution,
+              unboundTypes, unboundTypeVariables,
+              variance: variable.variance) ??
+          bounds[j];
     }
   }
 
@@ -681,7 +125,7 @@ class TypeVariablesGraph implements Graph<int> {
       return <int>[];
     }, growable: false);
 
-    void collectReferencesFrom(int index, TypeBuilder? type) {
+    /*void collectReferencesFrom(int index, TypeBuilder? type) {
       switch (type) {
         case NamedTypeBuilder(
             :TypeDeclarationBuilder? declaration,
@@ -731,10 +175,10 @@ class TypeVariablesGraph implements Graph<int> {
         case OmittedTypeBuilder():
         case null:
       }
-    }
+    }*/
 
     for (int i = 0; i < vertices.length; i++) {
-      collectReferencesFrom(i, bounds[i]);
+      bounds[i].collectReferencesFrom(variableIndices, edges, i);
     }
   }
 
@@ -819,14 +263,20 @@ List<NamedTypeBuilder> findVariableUsesInType(
   return uses;
 }
 
+class InBoundReferences {
+  /// Type variable that references other type variables in its bound.
+  final TypeVariableBuilder typeVariableBuilder;
+
+  /// The references to other type variables.
+  final List<TypeBuilder> dependencies;
+
+  InBoundReferences(this.typeVariableBuilder, this.dependencies);
+}
+
 /// Finds those of [variables] that reference other [variables] in their bounds.
-///
-/// Returns flattened list of pairs.  The first element in the pair is the type
-/// variable builder from [variables] that references other [variables] in its
-/// bound.  The second element in the pair is the list of found references
-/// represented as type builders.
-List<Object> findInboundReferences(List<TypeVariableBuilder> variables) {
-  List<Object> variablesAndDependencies = <Object>[];
+List<InBoundReferences> findInboundReferences(
+    List<TypeVariableBuilder> variables) {
+  List<InBoundReferences> variablesAndDependencies = [];
   for (TypeVariableBuilder dependent in variables) {
     TypeBuilder? dependentBound = dependent.bound;
     List<NamedTypeBuilder> dependencies = <NamedTypeBuilder>[];
@@ -838,172 +288,25 @@ List<Object> findInboundReferences(List<TypeVariableBuilder> variables) {
       }
     }
     if (dependencies.length != 0) {
-      variablesAndDependencies.add(dependent);
-      variablesAndDependencies.add(dependencies);
+      variablesAndDependencies
+          .add(new InBoundReferences(dependent, dependencies));
     }
   }
   return variablesAndDependencies;
 }
 
-/// Finds raw generic types in [type] with inbound references in type variables.
-///
-/// Returns flattened list of pairs.  The first element in the pair is the found
-/// raw generic type.  The second element in the pair is the list of type
-/// variables of that type with inbound references in the format specified in
-/// [findInboundReferences].
-List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
-  List<Object> typesAndDependencies = <Object>[];
-  switch (type) {
-    case NamedTypeBuilder(
-        :TypeDeclarationBuilder? declaration,
-        typeArguments: List<TypeBuilder>? arguments
-      ):
-      if (arguments == null) {
-        switch (declaration) {
-          case ClassBuilder():
-            if (declaration is DillClassBuilder) {
-              bool hasInbound = false;
-              List<TypeParameter> typeParameters =
-                  declaration.cls.typeParameters;
-              for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
-                if (containsTypeVariable(
-                    typeParameters[i].bound, typeParameters.toSet())) {
-                  hasInbound = true;
-                }
-              }
-              if (hasInbound) {
-                typesAndDependencies.add(type);
-                typesAndDependencies.add(const <Object>[]);
-              }
-            } else if (declaration.typeVariables != null) {
-              List<Object> dependencies =
-                  findInboundReferences(declaration.typeVariables!);
-              if (dependencies.length != 0) {
-                typesAndDependencies.add(type);
-                typesAndDependencies.add(dependencies);
-              }
-            }
-          case TypeAliasBuilder():
-            if (declaration is DillTypeAliasBuilder) {
-              bool hasInbound = false;
-              List<TypeParameter> typeParameters =
-                  declaration.typedef.typeParameters;
-              for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
-                if (containsTypeVariable(
-                    typeParameters[i].bound, typeParameters.toSet())) {
-                  hasInbound = true;
-                }
-              }
-              if (hasInbound) {
-                // Coverage-ignore-block(suite): Not run.
-                typesAndDependencies.add(type);
-                typesAndDependencies.add(const <Object>[]);
-              }
-            } else {
-              if (declaration.typeVariables != null) {
-                List<Object> dependencies =
-                    findInboundReferences(declaration.typeVariables!);
-                if (dependencies.length != 0) {
-                  typesAndDependencies.add(type);
-                  typesAndDependencies.add(dependencies);
-                }
-              }
-              if (declaration.type is FunctionTypeBuilder) {
-                FunctionTypeBuilder type =
-                    declaration.type as FunctionTypeBuilder;
-                if (type.typeVariables != null) {
-                  List<Object> dependencies =
-                      findInboundReferences(type.typeVariables!);
-                  if (dependencies.length != 0) {
-                    // Coverage-ignore-block(suite): Not run.
-                    typesAndDependencies.add(type);
-                    typesAndDependencies.add(dependencies);
-                  }
-                }
-              }
-            }
-          case ExtensionTypeDeclarationBuilder():
-            if (declaration.typeParameters != null) {
-              List<Object> dependencies =
-                  findInboundReferences(declaration.typeParameters!);
-              if (dependencies.length != 0) {
-                // Coverage-ignore-block(suite): Not run.
-                typesAndDependencies.add(type);
-                typesAndDependencies.add(dependencies);
-              }
-            }
-          case NominalVariableBuilder():
-          case StructuralVariableBuilder():
-          case ExtensionBuilder():
-          case InvalidTypeDeclarationBuilder():
-          case BuiltinTypeDeclarationBuilder():
-          // Coverage-ignore(suite): Not run.
-          // TODO(johnniwinther): How should we handle this case?
-          case OmittedTypeDeclarationBuilder():
-          case null:
-        }
-      } else {
-        for (TypeBuilder argument in arguments) {
-          typesAndDependencies
-              .addAll(findRawTypesWithInboundReferences(argument));
-        }
-      }
-    case FunctionTypeBuilder(
-        :List<StructuralVariableBuilder>? typeVariables,
-        :List<ParameterBuilder>? formals,
-        :TypeBuilder returnType
-      ):
-      typesAndDependencies
-          .addAll(findRawTypesWithInboundReferences(returnType));
-      if (typeVariables != null) {
-        for (StructuralVariableBuilder variable in typeVariables) {
-          if (variable.bound != null) {
-            typesAndDependencies
-                .addAll(findRawTypesWithInboundReferences(variable.bound));
-          }
-          if (variable.defaultType != null) {
-            // Coverage-ignore-block(suite): Not run.
-            typesAndDependencies.addAll(
-                findRawTypesWithInboundReferences(variable.defaultType));
-          }
-        }
-      }
-      if (formals != null) {
-        for (ParameterBuilder formal in formals) {
-          typesAndDependencies
-              .addAll(findRawTypesWithInboundReferences(formal.type));
-        }
-      }
-    case RecordTypeBuilder(
-        :List<RecordTypeFieldBuilder>? positionalFields,
-        :List<RecordTypeFieldBuilder>? namedFields
-      ):
-      if (positionalFields != null) {
-        for (RecordTypeFieldBuilder field in positionalFields) {
-          typesAndDependencies
-              .addAll(findRawTypesWithInboundReferences(field.type));
-        }
-      }
-      if (namedFields != null) {
-        for (RecordTypeFieldBuilder field in namedFields) {
-          typesAndDependencies
-              .addAll(findRawTypesWithInboundReferences(field.type));
-        }
-      }
-    case FixedTypeBuilder():
-    case InvalidTypeBuilder():
-    case OmittedTypeBuilder():
-    case null:
-  }
-  return typesAndDependencies;
+class TypeWithInBoundReferences {
+  /// A [typeBuilder] of a raw generic type.
+  final TypeBuilder typeBuilder;
+
+  /// Type variables of the declaration of [typeBuilder] that reference these
+  /// type variables in their bounds.
+  final List<InBoundReferences> inBoundReferences;
+
+  TypeWithInBoundReferences(this.typeBuilder, this.inBoundReferences);
 }
 
 /// Finds issues by raw generic types with inbound references in type variables.
-///
-/// Returns flattened list of triplets.  The first element of the triplet is the
-/// [TypeDeclarationBuilder] for the type variable from [variables] that has raw
-/// generic types with inbound references in its bound.  The second element of
-/// the triplet is the error message.  The third element is the context.
 List<NonSimplicityIssue> getInboundReferenceIssues(
     List<TypeVariableBuilder>? variables) {
   if (variables == null) return <NonSimplicityIssue>[];
@@ -1012,19 +315,18 @@ List<NonSimplicityIssue> getInboundReferenceIssues(
   for (TypeVariableBuilder variable in variables) {
     TypeBuilder? variableBound = variable.bound;
     if (variableBound != null) {
-      List<Object> rawTypesAndMutualDependencies =
-          findRawTypesWithInboundReferences(variableBound);
-      for (int i = 0; i < rawTypesAndMutualDependencies.length; i += 2) {
-        NamedTypeBuilder type =
-            rawTypesAndMutualDependencies[i] as NamedTypeBuilder;
-        List<Object> variablesAndDependencies =
-            rawTypesAndMutualDependencies[i + 1] as List<Object>;
-        for (int j = 0; j < variablesAndDependencies.length; j += 2) {
-          NominalVariableBuilder dependent =
-              variablesAndDependencies[j] as NominalVariableBuilder;
-          List<NamedTypeBuilder> dependencies =
-              variablesAndDependencies[j + 1] as List<NamedTypeBuilder>;
-          for (NamedTypeBuilder dependency in dependencies) {
+      List<TypeWithInBoundReferences> rawTypesAndMutualDependencies =
+          variableBound.findRawTypesWithInboundReferences();
+      for (int i = 0; i < rawTypesAndMutualDependencies.length; i++) {
+        TypeBuilder type = rawTypesAndMutualDependencies[i].typeBuilder;
+        List<InBoundReferences> variablesAndDependencies =
+            rawTypesAndMutualDependencies[i].inBoundReferences;
+        for (int j = 0; j < variablesAndDependencies.length; j++) {
+          TypeVariableBuilder dependent =
+              variablesAndDependencies[j].typeVariableBuilder;
+          List<TypeBuilder> dependencies =
+              variablesAndDependencies[j].dependencies;
+          for (TypeBuilder dependency in dependencies) {
             issues.add(new NonSimplicityIssue(
                 variable,
                 templateBoundIssueViaRawTypeWithNonSimpleBounds

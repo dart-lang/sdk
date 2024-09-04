@@ -224,7 +224,7 @@ class NonConstantIdentifierNamesTest extends LintRuleTest {
 
   test_augmentedConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   A.Aa();
@@ -232,7 +232,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment A.Aa();
@@ -242,7 +242,7 @@ augment class A {
 
   test_augmentedField() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int Xx = 1;
@@ -250,7 +250,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int Xx = 2;
@@ -260,13 +260,13 @@ augment class A {
 
   test_augmentedFunction() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 void Ff() { }
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void Ff() { }
 ''');
@@ -274,13 +274,13 @@ augment void Ff() { }
 
   test_augmentedFunction_namedParam() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 void f({String? Ss}) { }
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f({String? Ss}) { }
 ''');
@@ -288,24 +288,24 @@ augment void f({String? Ss}) { }
 
   test_augmentedFunction_positionalParam() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 void f(String? Ss, [int? Xx]) { }
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f(String? Ss, [int? Xx]) { }
 ''', [
-      lint(50, 2),
-      lint(60, 2),
+      lint(42, 2),
+      lint(52, 2),
     ]);
   }
 
   test_augmentedGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int get Gg => 1;
@@ -313,7 +313,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int get Gg => 2;
@@ -323,7 +323,7 @@ augment class A {
 
   test_augmentedMethod() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   void Mm() { }
@@ -331,7 +331,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment void Mm() { }
@@ -341,7 +341,7 @@ augment class A {
 
   test_augmentedMethod_namedParam() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   void m({String? Ss}) { }
@@ -349,7 +349,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment void m({String? Ss}) { }
@@ -359,7 +359,7 @@ augment class A {
 
   test_augmentedMethod_positionalParam() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   void m(String? Ss, [int? Xx]) { }
@@ -367,26 +367,26 @@ class A {
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment void m(String? Ss, [int? Xx]) { }
 }
 ''', [
-      lint(70, 2),
-      lint(80, 2),
+      lint(62, 2),
+      lint(72, 2),
     ]);
   }
 
   test_augmentedTopLevelVariable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 int Xx = 1;
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment int Xx = 2;
 ''');

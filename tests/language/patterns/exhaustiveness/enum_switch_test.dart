@@ -185,7 +185,7 @@ void unreachableCase1(Enum e) {
       break;
     case Enum.a: // Unreachable
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('a2');
       break;
     case Enum.c:
@@ -208,7 +208,7 @@ void unreachableCase2(Enum e) {
       break;
     case Enum.a: // Unreachable
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('a2');
       break;
   }
@@ -248,7 +248,7 @@ void unreachableCase4(Enum? e) {
       break;
     case null: // Unreachable
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('null2');
       break;
   }
@@ -262,7 +262,7 @@ void unreachableCase5(Enum e) {
     case Enum.b:
     case Enum.a: // Unreachable
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
     case Enum.c:
       print('c');
       break;

@@ -216,7 +216,7 @@ abstract class LintRule {
 
   LintRule({
     required this.name,
-    required this.categories,
+    this.categories = const <String>{},
     required this.description,
     required this.details,
     State? state,
@@ -327,23 +327,8 @@ abstract class LintRule {
 }
 
 abstract final class LintRuleCategory {
-  /// A category of rules that help to minimize binary size.
-  static const String binarySize = 'binary size';
-
-  /// A category of rules that encourage brevity in the source code.
-  static const String brevity = 'brevity';
-
-  /// A category of rules that help to maintain documentation comments.
-  static const String documentationCommentMaintenance =
-      'documentation comment maintenance';
-
   /// A category of rules that align with the Effective Dart style guide.
   static const String effectiveDart = 'effective dart';
-
-  /// A category representing possible coding errors.
-  // TODO(srawlins): Hopefully deprecate this (or just rename `error_prone`
-  // back to this one).
-  static const String errors = 'errors';
 
   /// A category of rules that protect against error-prone code.
   static const String errorProne = 'error-prone';
@@ -487,7 +472,7 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
   bool get canBeConst {
     var element = declaredElement!;
 
-    var classElement = element.enclosingElement;
+    var classElement = element.enclosingElement3;
     if (classElement is ClassElement && classElement.hasNonFinalField) {
       return false;
     }

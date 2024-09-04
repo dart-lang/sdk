@@ -191,7 +191,7 @@ bool isLocalElement(Element? element) {
   return element is LocalVariableElement ||
       element is ParameterElement ||
       element is FunctionElement &&
-          element.enclosingElement is! CompilationUnitElement;
+          element.enclosingElement3 is! CompilationUnitElement;
 }
 
 Element? _getLocalElement(SimpleIdentifier node) {

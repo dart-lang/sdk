@@ -1510,6 +1510,21 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return ('', parameterType, argument);
     }
 
+    // If an argument is an invalid expression, ffi don't need to report
+    // any error further, so skipping transformation for its descendants of the
+    // argument by transforming into empty expression (which is invalid)
+    if ((argument is AsExpression && argument.operand is InvalidExpression) ||
+        argument is InvalidExpression) {
+      return ('E', parameterType, InvalidExpression('Invalid Type'));
+    }
+    if (argument is InstanceInvocation &&
+        argument.interfaceTarget == castMethod &&
+        argument.functionType.returnType == parameterType) {
+      // Argument is .address.cast(), so truncating .cast()
+      final subExpression = argument.receiver;
+      return _replaceNativeCallParameterAndArgument(
+          parameter, parameterType, subExpression, fileOffset);
+    }
     if (argument is! StaticInvocation ||
         !addressOfMethods.contains(argument.target)) {
       // The argument has type Pointer, but it's not produced by any of the

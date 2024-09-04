@@ -131,7 +131,7 @@ uword ObjectOffsetTrait::Hash(Key key) {
   uword body = UntaggedObject::ToAddr(obj) + sizeof(UntaggedObject);
   uword end = UntaggedObject::ToAddr(obj) + obj->untag()->HeapSize();
 
-  uint32_t hash = obj->GetClassId();
+  uint32_t hash = obj->GetClassIdOfHeapObject();
   // Don't include the header. Objects in the image are pre-marked, but objects
   // in the current isolate are not.
   for (uword cursor = body; cursor < end; cursor += sizeof(uint32_t)) {
@@ -147,7 +147,7 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
   ASSERT(!a->IsSmi());
   ASSERT(!b->IsSmi());
 
-  if (a->GetClassId() != b->GetClassId()) {
+  if (a->GetClassIdOfHeapObject() != b->GetClassIdOfHeapObject()) {
     return false;
   }
 
@@ -258,7 +258,7 @@ intptr_t ImageWriter::SizeInSnapshotForBytes(intptr_t length) {
 }
 
 intptr_t ImageWriter::SizeInSnapshot(ObjectPtr raw_object) {
-  const classid_t cid = raw_object->GetClassId();
+  const classid_t cid = raw_object->GetClassIdOfHeapObject();
 
   switch (cid) {
     case kCompressedStackMapsCid: {

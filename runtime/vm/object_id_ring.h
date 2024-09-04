@@ -28,19 +28,24 @@ class ObjectIdRing {
     kExpired,    // Entry was evicted during an insertion into a full ring.
   };
 
+  enum BackingBufferKind {
+    kRing,
+  };
+
   enum IdPolicy {
     kAllocateId,  // Always allocate a new object id.
     kReuseId,     // If the object is already in the ring, reuse id.
                   // Otherwise allocate a new object id.
-    kNumIdPolicy,
   };
 
   static constexpr int32_t kMaxId = 0x3FFFFFFF;
   static constexpr int32_t kInvalidId = -1;
-  static constexpr int32_t kDefaultCapacity = 8192;
 
-  ObjectIdRing();
+  explicit ObjectIdRing(int32_t capacity);
   ~ObjectIdRing();
+
+  // Invalidate all the Service IDs currently living in this ring.
+  void Invalidate();
 
   // Adds the argument to the ring and returns its id. Note we do not allow
   // adding Object::null().
@@ -49,7 +54,7 @@ class ObjectIdRing {
   // Returns Object::null() when the result is not kValid.
   ObjectPtr GetObjectForId(int32_t id, LookupResult* kind);
 
-  void VisitPointers(ObjectPointerVisitor* visitor);
+  void VisitPointers(ObjectPointerVisitor* visitor) const;
 
   void PrintJSON(JSONStream* js);
 
@@ -72,7 +77,7 @@ class ObjectIdRing {
   int32_t AllocateNewId(ObjectPtr object);
   int32_t IndexOfId(int32_t id);
   int32_t IdOfIndex(int32_t index);
-  bool IsValidContiguous(int32_t id);
+  bool IsValidContiguous(int32_t id) const;
   bool IsValidId(int32_t id);
 
   DISALLOW_COPY_AND_ASSIGN(ObjectIdRing);

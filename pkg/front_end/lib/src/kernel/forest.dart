@@ -400,7 +400,7 @@ class Forest {
       Statement statement = statements[i];
       if (statement is _VariablesDeclaration) {
         copy ??= new List<Statement>.of(statements.getRange(0, i));
-        copy.addAll(statement.variableOrWildcardInitializers);
+        copy.addAll(statement.declarations);
       } else if (copy != null) {
         copy.add(statement);
       }
@@ -576,20 +576,19 @@ class Forest {
   }
 
   _VariablesDeclaration variablesDeclaration(
-      List<Statement> statements, Uri uri) {
-    return new _VariablesDeclaration(statements, uri);
+      List<VariableDeclaration> declarations, Uri uri) {
+    return new _VariablesDeclaration(declarations, uri);
   }
 
   List<VariableDeclaration> variablesDeclarationExtractDeclarations(
       Object? variablesDeclaration) {
-    return (variablesDeclaration as _VariablesDeclaration).variables;
+    return (variablesDeclaration as _VariablesDeclaration).declarations;
   }
 
   Statement wrapVariables(Statement statement) {
     if (statement is _VariablesDeclaration) {
-      return new Block(new List<Statement>.of(
-          statement.variableOrWildcardInitializers,
-          growable: true))
+      return new Block(
+          new List<Statement>.of(statement.declarations, growable: true))
         ..fileOffset = statement.fileOffset;
     } else if (statement is VariableDeclaration) {
       return new Block(<Statement>[statement])
@@ -938,19 +937,11 @@ class Forest {
 }
 
 class _VariablesDeclaration extends AuxiliaryStatement {
-  /// A list of variable declarations with [ExpressionStatement]s and
-  /// [EmptyStatement]s from wildcard variable declarations.
-  final List<Statement> variableOrWildcardInitializers;
-
-  // A list of variable declarations that are not wildcard variables.
-  final List<VariableDeclaration> variables = [];
+  final List<VariableDeclaration> declarations;
   final Uri uri;
 
-  _VariablesDeclaration(this.variableOrWildcardInitializers, this.uri) {
-    setParents(variableOrWildcardInitializers, this);
-    for (Statement statement in variableOrWildcardInitializers) {
-      if (statement is VariableDeclaration) variables.add(statement);
-    }
+  _VariablesDeclaration(this.declarations, this.uri) {
+    setParents(declarations, this);
   }
 
   @override
@@ -991,19 +982,12 @@ class _VariablesDeclaration extends AuxiliaryStatement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    for (int index = 0;
-        index < variableOrWildcardInitializers.length;
-        index++) {
-      Statement statement = variableOrWildcardInitializers[index];
+    for (int index = 0; index < declarations.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      if (statement is VariableDeclaration) {
-        printer.writeVariableDeclaration(statement,
-            includeModifiersAndType: index == 0);
-      } else {
-        printer.writeStatement(statement);
-      }
+      printer.writeVariableDeclaration(declarations[index],
+          includeModifiersAndType: index == 0);
     }
     printer.write(';');
   }

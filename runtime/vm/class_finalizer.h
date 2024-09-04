@@ -68,13 +68,17 @@ class ClassFinalizer : public AllStatic {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Makes class instantiatable and usable by generated code.
   static ErrorPtr AllocateFinalizeClass(const Class& cls);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
   // Completes loading of the class, this populates the function
   // and fields of the class.
   //
   // Returns Error::null() if there is no loading error.
   static ErrorPtr LoadClassMembers(const Class& cls);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Verify that the classes have been properly prefinalized. This is
   // needed during bootstrapping where the classes have been preloaded.
   static void VerifyBootstrapClasses();
@@ -91,8 +95,10 @@ class ClassFinalizer : public AllStatic {
                                      const TypeParameters& type_params,
                                      FinalizationKind finalization);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
   static void FinalizeMemberTypes(const Class& cls);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static void PrintClassInformation(const Class& cls);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

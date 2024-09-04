@@ -25,7 +25,11 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/crash.dart' show Crash;
 import '../base/identifiers.dart'
-    show Identifier, OperatorIdentifier, QualifiedName, SimpleIdentifier;
+    show
+        Identifier,
+        OperatorIdentifier,
+        QualifiedNameIdentifier,
+        SimpleIdentifier;
 import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
 import '../base/local_scope.dart';
 import '../base/problems.dart' show DebugAbort;
@@ -450,7 +454,8 @@ class DietListener extends StackListenerImpl {
     } else {
       Identifier prefixIdentifier = prefix as Identifier;
       Identifier suffixIdentifier = suffix as Identifier;
-      push(new QualifiedName(prefixIdentifier, suffixIdentifier.token));
+      push(new QualifiedNameIdentifier(
+          prefixIdentifier, suffixIdentifier.token));
     }
   }
 
@@ -653,7 +658,7 @@ class DietListener extends StackListenerImpl {
       Token beginToken, Token factoryKeyword, Token endToken) {
     assert(checkState(beginToken, [
       /* bodyToken */ ValueKinds.Token,
-      /* name */ ValueKinds.IdentifierOrQualifiedNameOrOperatorOrParserRecovery,
+      /* name */ ValueKinds.IdentifierOrOperatorOrParserRecovery,
       /* metadata token */ ValueKinds.TokenOrNull,
     ]));
     debugEvent("ClassFactoryMethod");

@@ -33,10 +33,10 @@ m(f(int v));
 class AvoidTypesAsParameterNames extends LintRule {
   AvoidTypesAsParameterNames()
       : super(
-            name: 'avoid_types_as_parameter_names',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.unintentional});
+          name: 'avoid_types_as_parameter_names',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_types_as_parameter_names;

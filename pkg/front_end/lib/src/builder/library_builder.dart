@@ -157,8 +157,6 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   String? get name;
 
-  List<NamedTypeBuilder> get unresolvedNamedTypes;
-
   int finishNativeMethods();
 
   String? get partOfName;
@@ -253,6 +251,8 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   // TODO(johnniwinther): Remove this.
   Builder addBuilder(String name, Builder declaration, int charOffset);
+
+  int resolveTypes(ProblemReporting problemReporting);
 }
 
 abstract class LibraryBuilder implements Builder, ProblemReporting {

@@ -668,7 +668,8 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
     if (url == null) {
       String? location = headers.value(HttpHeaders.locationHeader);
       if (location == null) {
-        throw StateError("Response has no Location header for redirect");
+        throw RedirectException(
+            "Server response has no Location header for redirect", redirects);
       }
       url = Uri.parse(location);
     }
@@ -2122,7 +2123,9 @@ class _HttpClientConnection {
           "Connection closed before response was received",
           uri: _currentUri));
       _nextResponseCompleter = null;
-      close();
+      if (!closed) {
+        _close();
+      }
     });
   }
 
@@ -2280,7 +2283,7 @@ class _HttpClientConnection {
     _socket.destroy();
   }
 
-  void close() {
+  void _close() {
     closed = true;
     _httpClient._connectionClosed(this);
     _streamFuture!
@@ -2361,7 +2364,7 @@ class _HttpClientConnection {
     assert(_idleTimer == null);
     _idleTimer = Timer(_httpClient.idleTimeout, () {
       _idleTimer = null;
-      close();
+      _close();
     });
   }
 }

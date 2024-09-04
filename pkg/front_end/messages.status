@@ -647,8 +647,8 @@ JsInteropFunctionToJSTypeParameters/analyzerCode: Fail # Web compiler specific
 JsInteropFunctionToJSTypeParameters/example: Fail # Web compiler specific
 JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
 JsInteropInvalidStaticClassMemberName/example: Fail
-JsInteropIsAInvalidType/analyzerCode: Fail # Web compiler specific
-JsInteropIsAInvalidType/example: Fail # Web compiler specific
+JsInteropIsAInvalidTypeVariable/analyzerCode: Fail # Web compiler specific
+JsInteropIsAInvalidTypeVariable/example: Fail # Web compiler specific
 JsInteropIsAObjectLiteralType/analyzerCode: Fail # Web compiler specific
 JsInteropIsAObjectLiteralType/example: Fail # Web compiler specific
 JsInteropIsAPrimitiveExtensionType/analyzerCode: Fail # Web compiler specific
@@ -1018,6 +1018,7 @@ SwitchExpressionNotSubtype/analyzerCode: Fail
 SwitchExpressionUserDefinedEquals/analyzerCode: Fail
 SwitchExpressionUserDefinedEquals/example: Fail
 SyntheticToken/example: Fail # Can't be tested, used to recover from other errors.
+ThisAccessInFieldInitializer/analyzerCode: Fail
 ThisAccessInFieldInitializer/example: Fail
 ThisAsIdentifier/example: Fail
 ThisInNullAwareReceiver/analyzerCode: Fail

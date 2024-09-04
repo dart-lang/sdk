@@ -371,9 +371,6 @@ class TypeCheckingVisitor
       case AsyncMarker.SyncStar:
       case AsyncMarker.AsyncStar:
         return null;
-
-      default:
-        throw 'Unexpected async marker: ${function.asyncMarker}';
     }
   }
 
@@ -393,9 +390,6 @@ class TypeCheckingVisitor
           return returnType.typeArguments.single;
         }
         return const DynamicType();
-
-      default:
-        throw 'Unexpected async marker: ${function.asyncMarker}';
     }
   }
 

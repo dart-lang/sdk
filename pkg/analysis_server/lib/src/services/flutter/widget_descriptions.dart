@@ -276,7 +276,7 @@ class _WidgetDescriptionComputer {
     constructorElement ??= classDescription?.constructor;
     if (constructorElement == null) return;
 
-    var enclosingElement = constructorElement.enclosingElement;
+    var enclosingElement = constructorElement.enclosingElement3;
     if (!elementsBeingProcessed.add(enclosingElement)) return;
 
     var existingNamed = <String>{};
@@ -506,7 +506,7 @@ class _WidgetDescriptionComputer {
   }
 
   protocol.FlutterWidgetPropertyValueEnumItem _toEnumItem(FieldElement field) {
-    var interfaceElement = field.enclosingElement as InterfaceElement;
+    var interfaceElement = field.enclosingElement3 as InterfaceElement;
     var libraryUriStr = '${interfaceElement.library.source.uri}';
     var documentation = getFieldDocumentation(field);
 
@@ -532,7 +532,7 @@ class _WidgetDescriptionComputer {
       if (element is PropertyAccessorElement && element.isGetter) {
         var field = element.variable2;
         if (field is FieldElement && field.isStatic) {
-          var enclosingClass = field.enclosingElement as InterfaceElement;
+          var enclosingClass = field.enclosingElement3 as InterfaceElement;
           if (field.isEnumConstant ||
               enclosingClass.isExactAlignment ||
               enclosingClass.isExactAlignmentDirectional) {

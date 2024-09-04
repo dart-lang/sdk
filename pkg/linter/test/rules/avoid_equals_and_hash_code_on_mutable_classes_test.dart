@@ -58,13 +58,13 @@ class A {
       issue: 'https://github.com/dart-lang/linter/issues/4932')
   test_immutableClass_augmented() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 import 'package:meta/meta.dart';
 
@@ -102,7 +102,7 @@ class A {
 
   test_mutableClass_augmentationMethod() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   @override
@@ -111,7 +111,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int get hashCode => 0;
@@ -121,20 +121,20 @@ augment class A {
 
   test_mutableClass_augmented() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {}
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   @override
   int get hashCode => 0;
 }
 ''', [
-      lint(59, 3),
+      lint(51, 3),
     ]);
   }
 

@@ -1,3 +1,13 @@
+# 4.2.7
+- Added a new constant `RpcErrorCodes.kConnectionDisposed = -32010`) for requests
+  failing because the service connection was closed. This value is not currently
+  used but is provided for clients to handle in preperation for a future release
+  that will use it to avoid clients having to read error messages.
+
+# 4.2.6
+- [DAP] Fixed an issue where "Service connection disposed" errors may go unhandled during termination/shutdown.
+- Add `google3WorkspaceRoot` parameter to `DartDevelopmentServiceLauncher.start`.
+
 # 4.2.5+1
 - Fix issue where `DartDevelopmentServiceException.fromJson` would throw a `StateError` whenever called, except when called to create an `ExistingDartDevelopmentServiceException`.
 

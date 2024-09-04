@@ -4,11 +4,10 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:vm/modular/transformations/type_casts_optimizer.dart'
-    as typeCastsOptimizer show transformAsExpression;
 
 import 'list_factory_specializer.dart';
 
@@ -54,10 +53,15 @@ class _WasmTransformer extends Transformer {
   final Procedure _streamControllerSetOnListen;
   final Procedure _streamControllerSetOnResume;
 
+  final Procedure _trySetStackTraceForwarder;
+  final Procedure _trySetStackTrace;
+
   final List<_AsyncStarFrame> _asyncStarFrames = [];
   bool _enclosingIsAsyncStar = false;
 
   final ListFactorySpecializer _listFactorySpecializer;
+
+  final PushPopWasmArrayTransformer _pushPopWasmArrayTransformer;
 
   StaticTypeContext get typeContext =>
       _cachedTypeContext ??= StaticTypeContext(_currentMember!, env);
@@ -103,7 +107,12 @@ class _WasmTransformer extends Transformer {
             .getProcedure('dart:async', 'StreamController', 'set:onListen'),
         _streamControllerSetOnResume = coreTypes.index
             .getProcedure('dart:async', 'StreamController', 'set:onResume'),
-        _listFactorySpecializer = ListFactorySpecializer(coreTypes);
+        _trySetStackTraceForwarder = coreTypes.index
+            .getTopLevelProcedure('dart:async', '_trySetStackTrace'),
+        _trySetStackTrace = coreTypes.index
+            .getProcedure('dart:core', 'Error', '_trySetStackTrace'),
+        _listFactorySpecializer = ListFactorySpecializer(coreTypes),
+        _pushPopWasmArrayTransformer = PushPopWasmArrayTransformer(coreTypes);
 
   @override
   defaultMember(Member node) {
@@ -714,19 +723,20 @@ class _WasmTransformer extends Transformer {
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
     node.transformChildren(this);
-    return _listFactorySpecializer.transformStaticInvocation(node);
+
+    // Forward calls in `dart:async` to private `dart:core` method.
+    if (node.target == _trySetStackTraceForwarder) {
+      node.target = _trySetStackTrace;
+    }
+
+    return _pushPopWasmArrayTransformer.transformStaticInvocation(
+        _listFactorySpecializer.transformStaticInvocation(node));
   }
 
   @override
-  visitFunctionTearOff(FunctionTearOff node) {
+  TreeNode visitFunctionTearOff(FunctionTearOff node) {
     node.transformChildren(this);
     return node.receiver;
-  }
-
-  @override
-  TreeNode visitAsExpression(AsExpression node) {
-    node.transformChildren(this);
-    return typeCastsOptimizer.transformAsExpression(node, typeContext);
   }
 }
 
@@ -736,4 +746,263 @@ class _AsyncStarFrame {
   final DartType emittedValueType;
 
   _AsyncStarFrame(this.controllerVar, this.pausedVar, this.emittedValueType);
+}
+
+/// Converts `pushWasmArray<T>(array, length, elem, nextCapacity)` to:
+///
+///   if (array.length == length) {
+///     final newArray = WasmArray<T>(nextCapacity);
+///     newArray.copy(0, array, 0, length);
+///     array = newArray;
+///   }
+///   array[length] = elem;
+///   length += 1;
+///
+/// and `popWasmArray<T>(array, length)` to block expression:
+///
+///   {
+///     length -= 1;
+///     final T _value = array[length];
+///     array[length] = null;
+///   } => _value
+///
+/// This allows unboxing growable list in class fields.
+///
+/// `array` and `length` arguments need to be either `VariableGet` or
+/// `InstanceGet`.
+class PushPopWasmArrayTransformer {
+  final CoreTypes _coreTypes;
+  final Procedure _intAdd;
+  final Procedure _intSubtract;
+  final InterfaceType _intType;
+  final Procedure _popWasmArray;
+  final Procedure _pushWasmArray;
+  final Class _wasmArrayClass;
+  final Procedure _wasmArrayCopy;
+  final Procedure _wasmArrayElementGet;
+  final Procedure _wasmArrayElementSet;
+  final Procedure _wasmArrayFactory;
+  final Member _wasmArrayLength;
+
+  PushPopWasmArrayTransformer(this._coreTypes)
+      : _intAdd = _coreTypes.index.getProcedure('dart:core', 'num', '+'),
+        _intSubtract = _coreTypes.index.getProcedure('dart:core', 'num', '-'),
+        _intType = _coreTypes.intNonNullableRawType,
+        _popWasmArray = _coreTypes.index
+            .getTopLevelProcedure('dart:_internal', 'popWasmArray'),
+        _pushWasmArray = _coreTypes.index
+            .getTopLevelProcedure('dart:_internal', 'pushWasmArray'),
+        _wasmArrayClass = _coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
+        _wasmArrayCopy =
+            _coreTypes.index.getProcedure('dart:_wasm', 'WasmArrayExt', 'copy'),
+        _wasmArrayElementGet =
+            _coreTypes.index.getProcedure('dart:_wasm', 'WasmArrayExt', '[]'),
+        _wasmArrayElementSet =
+            _coreTypes.index.getProcedure('dart:_wasm', 'WasmArrayExt', '[]='),
+        _wasmArrayFactory =
+            _coreTypes.index.getProcedure('dart:_wasm', 'WasmArray', ''),
+        _wasmArrayLength = _coreTypes.index
+            .getProcedure('dart:_wasm', 'WasmArrayRef', 'get:length');
+
+  Expression transformStaticInvocation(StaticInvocation invocation) {
+    if (invocation.target == _pushWasmArray) {
+      return _transformPushWasmArray(invocation);
+    } else if (invocation.target == _popWasmArray) {
+      return _transformPopWasmArray(invocation);
+    } else {
+      return invocation;
+    }
+  }
+
+  Expression _transformPushWasmArray(StaticInvocation invocation) {
+    final elementType = invocation.arguments.types[0];
+
+    final positionalArguments = invocation.arguments.positional;
+    assert(positionalArguments.length == 4);
+
+    final array = positionalArguments[0];
+    final length = positionalArguments[1];
+    final elem = positionalArguments[2];
+    final nextCapacity = positionalArguments[3];
+
+    assert(array is InstanceGet || array is VariableGet);
+    assert(length is InstanceGet || length is VariableGet);
+
+    // Collect variables referenced in `VariableGet`s. These will be passed to
+    // the cloner as "already cloned" to avoid cloning them.
+    final variableCollector = _VariableCollector();
+    array.accept(variableCollector);
+    length.accept(variableCollector);
+    elem.accept(variableCollector);
+    nextCapacity.accept(variableCollector);
+
+    final variables = variableCollector.variables;
+
+    // Clone an expression.
+    Expression clone(Expression node) {
+      final cloner = CloneVisitorNotMembers();
+      for (final variable in variables) {
+        cloner.setVariableClone(variable, variable);
+      }
+      return cloner.clone(node);
+    }
+
+    // array.length == length
+    final objectEqualsType =
+        _coreTypes.objectEquals.computeSignatureOrFunctionType();
+    final lengthCheck = EqualsCall(
+        InstanceGet(InstanceAccessKind.Instance, array, Name('length'),
+            interfaceTarget: _wasmArrayLength, resultType: _intType),
+        length,
+        functionType: objectEqualsType,
+        interfaceTarget: _coreTypes.objectEquals);
+
+    // WasmArray<T>(nextCapacity)
+    final arrayAllocation = StaticInvocation(
+        _wasmArrayFactory, Arguments([nextCapacity], types: [elementType]));
+
+    // var newArray = WasmArray<T>(nextCapacity)
+    final newArrayVariable = VariableDeclaration('newArray',
+        initializer: arrayAllocation,
+        type: InterfaceType(
+            _wasmArrayClass, Nullability.nonNullable, [elementType]));
+
+    // newArray.copy(...)
+    final newArrayCopy = StaticInvocation(
+        _wasmArrayCopy,
+        Arguments([
+          VariableGet(newArrayVariable),
+          IntLiteral(0),
+          clone(array),
+          IntLiteral(0),
+          clone(length),
+        ], types: [
+          elementType
+        ]));
+
+    // array = newArray
+    final Statement arrayFieldUpdate;
+    if (array is InstanceGet) {
+      arrayFieldUpdate = ExpressionStatement(InstanceSet(array.kind,
+          clone(array.receiver), array.name, VariableGet(newArrayVariable),
+          interfaceTarget: array.interfaceTarget));
+    } else {
+      final arrayVariableGet = array as VariableGet;
+      arrayFieldUpdate = ExpressionStatement(VariableSet(
+          arrayVariableGet.variable, VariableGet(newArrayVariable)));
+    }
+
+    final List<Statement> arrayGrowStatements = [
+      newArrayVariable,
+      ExpressionStatement(newArrayCopy),
+      arrayFieldUpdate
+    ];
+
+    // array[length] = elem
+    final arrayPush = ExpressionStatement(StaticInvocation(_wasmArrayElementSet,
+        Arguments([clone(array), clone(length), elem], types: [elementType])));
+
+    // length + 1
+    final intAddType = _intAdd.computeSignatureOrFunctionType();
+    final lengthPlusOne = InstanceInvocation(InstanceAccessKind.Instance,
+        clone(length), Name('+'), Arguments([IntLiteral(1)]),
+        interfaceTarget: _intAdd, functionType: intAddType);
+
+    // length = length + 1
+    final Statement arrayLengthUpdate;
+    if (length is InstanceGet) {
+      arrayLengthUpdate = ExpressionStatement(InstanceSet(
+          length.kind, clone(length.receiver), length.name, lengthPlusOne,
+          interfaceTarget: length.interfaceTarget));
+    } else {
+      final lengthVariableGet = length as VariableGet;
+      arrayLengthUpdate = ExpressionStatement(
+          VariableSet(lengthVariableGet.variable, lengthPlusOne));
+    }
+
+    return BlockExpression(
+        Block([
+          IfStatement(lengthCheck, Block(arrayGrowStatements), null),
+          arrayPush,
+          arrayLengthUpdate
+        ]),
+        NullLiteral());
+  }
+
+  Expression _transformPopWasmArray(StaticInvocation invocation) {
+    final elementType = invocation.arguments.types[0] as InterfaceType;
+    final elementTypeNullable =
+        elementType.withDeclaredNullability(Nullability.nullable);
+
+    final positionalArguments = invocation.arguments.positional;
+    assert(positionalArguments.length == 2);
+
+    final array = positionalArguments[0];
+    final length = positionalArguments[1];
+
+    assert(array is InstanceGet || array is VariableGet);
+    assert(length is InstanceGet || length is VariableGet);
+
+    // Collect variables referenced in `VariableGet`s. These will be passed to
+    // the cloner as "already cloned" to avoid cloning them.
+    final variableCollector = _VariableCollector();
+    array.accept(variableCollector);
+    length.accept(variableCollector);
+
+    final variables = variableCollector.variables;
+
+    // Clone an expression.
+    Expression clone(Expression node) {
+      final cloner = CloneVisitorNotMembers();
+      for (final variable in variables) {
+        cloner.setVariableClone(variable, variable);
+      }
+      return cloner.clone(node);
+    }
+
+    // length - 1
+    final intSubtractType = _intSubtract.computeSignatureOrFunctionType();
+    final lengthMinusOne = InstanceInvocation(InstanceAccessKind.Instance,
+        clone(length), Name('-'), Arguments([IntLiteral(1)]),
+        interfaceTarget: _intSubtract, functionType: intSubtractType);
+
+    // length -= 1
+    final Statement arrayLengthUpdate;
+    if (length is InstanceGet) {
+      arrayLengthUpdate = ExpressionStatement(InstanceSet(
+          length.kind, clone(length.receiver), length.name, lengthMinusOne,
+          interfaceTarget: length.interfaceTarget));
+    } else {
+      final lengthVariableGet = length as VariableGet;
+      arrayLengthUpdate = ExpressionStatement(
+          VariableSet(lengthVariableGet.variable, lengthMinusOne));
+    }
+
+    // array[length]
+    final arrayGet = StaticInvocation(_wasmArrayElementGet,
+        Arguments([clone(array), clone(length)], types: [elementTypeNullable]));
+
+    // final temp = array[length]
+    final arrayGetVariable = VariableDeclaration.forValue(arrayGet,
+        isFinal: true, type: elementTypeNullable);
+
+    // array[length] = null
+    final arrayClearElement = ExpressionStatement(StaticInvocation(
+        _wasmArrayElementSet,
+        Arguments([clone(array), clone(length), NullLiteral()],
+            types: [elementTypeNullable])));
+
+    return BlockExpression(
+        Block([arrayLengthUpdate, arrayGetVariable, arrayClearElement]),
+        VariableGet(arrayGetVariable));
+  }
+}
+
+class _VariableCollector extends RecursiveVisitor {
+  Set<VariableDeclaration> variables = {};
+
+  @override
+  void visitVariableGet(VariableGet node) {
+    variables.add(node.variable);
+  }
 }

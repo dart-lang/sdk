@@ -22,7 +22,7 @@ void f() {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
-      error(WarningCode.DEAD_CODE, 27, 6),
+      error(WarningCode.DEAD_CODE, 24, 8),
     ]);
 
     assertResolvedNodeText(findNode.binary('=='), r'''
@@ -63,7 +63,7 @@ void f(Never x) {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(WarningCode.DEAD_CODE, 25, 6),
+      error(WarningCode.DEAD_CODE, 22, 8),
     ]);
 
     assertResolvedNodeText(findNode.binary('x =='), r'''
@@ -99,7 +99,7 @@ void f(Never x) {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(WarningCode.DEAD_CODE, 24, 8),
+      error(WarningCode.DEAD_CODE, 22, 9),
     ]);
 
     assertResolvedNodeText(findNode.binary('x +'), r'''
@@ -214,7 +214,7 @@ void f() {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
-      error(WarningCode.DEAD_CODE, 26, 8),
+      error(WarningCode.DEAD_CODE, 24, 9),
     ]);
 
     assertResolvedNodeText(findNode.binary('+ ('), r'''

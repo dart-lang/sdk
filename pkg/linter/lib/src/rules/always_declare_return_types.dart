@@ -49,10 +49,10 @@ typedef predicate = bool Function(Object o);
 class AlwaysDeclareReturnTypes extends LintRule {
   AlwaysDeclareReturnTypes()
       : super(
-            name: 'always_declare_return_types',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'always_declare_return_types',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<LintCode> get lintCodes => [

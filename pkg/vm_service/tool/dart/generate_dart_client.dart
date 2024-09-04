@@ -72,7 +72,7 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
     _disposed = true;
     await _streamSub.cancel();
     _outstandingRequests.forEach((id, request) {
-      request._completer.completeError(RPCError(
+      request.completeError(RPCError(
         request.method,
         RPCErrorKind.kServerError.code,
         'Service connection disposed',
@@ -264,6 +264,11 @@ typedef DisposeHandler = Future Function();
 enum RPCErrorKind {
   /// Application specific error code.
   kServerError(code: -32000, message: 'Application error'),
+
+  /// Service connection disposed.
+  ///
+  /// This may indicate the connection was closed while a request was in-flight.
+  kConnectionDisposed(code: -32010, message: 'Service connection disposed'),
 
   /// The JSON sent is not a valid Request object.
   kInvalidRequest(code: -32600, message: 'Invalid request object'),

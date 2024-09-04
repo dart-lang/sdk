@@ -50,13 +50,6 @@ library;
 //   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
 //                                        ^
 //
-// pkg/front_end/testcases/general/issue41842.dart:18:40: Error: 'T' is already declared in this scope.
-//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
-//                                        ^
-// pkg/front_end/testcases/general/issue41842.dart:16:39: Context: Previous declaration of 'T'.
-//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
-//                                       ^
-//
 // pkg/front_end/testcases/general/issue41842.dart:18:41: Error: Operator declarations must be preceded by the keyword 'operator'.
 // Try adding the keyword 'operator'.
 //   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
@@ -70,13 +63,6 @@ library;
 // pkg/front_end/testcases/general/issue41842.dart:18:41: Error: Operator '>' should have exactly one parameter.
 //   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
 //                                         ^
-//
-// pkg/front_end/testcases/general/issue41842.dart:18:41: Error: '>' is already declared in this scope.
-//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
-//                                         ^
-// pkg/front_end/testcases/general/issue41842.dart:16:40: Context: Previous declaration of '>'.
-//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
-//                                        ^
 //
 // pkg/front_end/testcases/general/issue41842.dart:20:33: Error: Expected ';' after this.
 //   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
@@ -95,13 +81,6 @@ library;
 //   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
 //                                     ^
 //
-// pkg/front_end/testcases/general/issue41842.dart:20:37: Error: 'T' is already declared in this scope.
-//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
-//                                     ^
-// pkg/front_end/testcases/general/issue41842.dart:18:40: Context: Previous declaration of 'T'.
-//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
-//                                        ^
-//
 // pkg/front_end/testcases/general/issue41842.dart:20:38: Error: Operator declarations must be preceded by the keyword 'operator'.
 // Try adding the keyword 'operator'.
 //   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
@@ -115,13 +94,6 @@ library;
 // pkg/front_end/testcases/general/issue41842.dart:20:38: Error: Operator '>' should have exactly one parameter.
 //   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
 //                                      ^
-//
-// pkg/front_end/testcases/general/issue41842.dart:20:38: Error: '>' is already declared in this scope.
-//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
-//                                      ^
-// pkg/front_end/testcases/general/issue41842.dart:18:41: Context: Previous declaration of '>'.
-//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
-//                                         ^
 //
 // pkg/front_end/testcases/general/issue41842.dart:21:33: Error: Expected ';' after this.
 //   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
@@ -140,13 +112,6 @@ library;
 //   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
 //                                     ^
 //
-// pkg/front_end/testcases/general/issue41842.dart:21:37: Error: 'T' is already declared in this scope.
-//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
-//                                     ^
-// pkg/front_end/testcases/general/issue41842.dart:20:37: Context: Previous declaration of 'T'.
-//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
-//                                     ^
-//
 // pkg/front_end/testcases/general/issue41842.dart:21:38: Error: Operator declarations must be preceded by the keyword 'operator'.
 // Try adding the keyword 'operator'.
 //   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
@@ -160,6 +125,41 @@ library;
 // pkg/front_end/testcases/general/issue41842.dart:21:38: Error: Operator '>' should have exactly one parameter.
 //   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
 //                                      ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:18:40: Error: 'T' is already declared in this scope.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                        ^
+// pkg/front_end/testcases/general/issue41842.dart:16:39: Context: Previous declaration of 'T'.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                       ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:18:41: Error: '>' is already declared in this scope.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                         ^
+// pkg/front_end/testcases/general/issue41842.dart:16:40: Context: Previous declaration of '>'.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                        ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:20:37: Error: 'T' is already declared in this scope.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                     ^
+// pkg/front_end/testcases/general/issue41842.dart:18:40: Context: Previous declaration of 'T'.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                        ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:20:38: Error: '>' is already declared in this scope.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                      ^
+// pkg/front_end/testcases/general/issue41842.dart:18:41: Context: Previous declaration of '>'.
+//   factory A.foo10(int x) = lib.Foo.bar<T>; // Error. Not allowed by parser.
+//                                         ^
+//
+// pkg/front_end/testcases/general/issue41842.dart:21:37: Error: 'T' is already declared in this scope.
+//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
+//                                     ^
+// pkg/front_end/testcases/general/issue41842.dart:20:37: Context: Previous declaration of 'T'.
+//   factory A.foo12(int x) = B<T>.foo<T>; // Error. Not allowed by parser.
+//                                     ^
 //
 // pkg/front_end/testcases/general/issue41842.dart:21:38: Error: '>' is already declared in this scope.
 //   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.

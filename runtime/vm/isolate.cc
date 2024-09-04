@@ -10,6 +10,7 @@
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
+#include "platform/growable_array.h"
 #include "platform/text_buffer.h"
 #include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
@@ -370,7 +371,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       kernel_constants_mutex_(),
       field_list_mutex_(),
       boxed_field_list_(GrowableObjectArray::null()),
-      program_lock_(new SafepointRwLock()),
+      program_lock_(new SafepointRwLock(SafepointLevel::kGCAndDeopt)),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount())
 #if !defined(PRODUCT)
@@ -1738,6 +1739,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       vm_tag_counters_(),
       pending_service_extension_calls_(GrowableObjectArray::null()),
       registered_service_extension_handlers_(GrowableObjectArray::null()),
+      service_id_zones_(nullptr),
 #define ISOLATE_METRIC_CONSTRUCTORS(type, variable, name, unit)                \
   metric_##variable##_(),
       ISOLATE_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
@@ -1776,8 +1778,13 @@ Isolate::~Isolate() {
 #if !defined(PRODUCT)
   delete debugger_;
   debugger_ = nullptr;
-  delete object_id_ring_;
-  object_id_ring_ = nullptr;
+  if (service_id_zones_ != nullptr) {
+    for (intptr_t i = 0; i < service_id_zones_->length(); ++i) {
+      delete service_id_zones_->At(i);
+    }
+    delete service_id_zones_;
+    service_id_zones_ = nullptr;
+  }
   delete pause_loop_monitor_;
   pause_loop_monitor_ = nullptr;
 #endif  // !defined(PRODUCT)
@@ -1871,7 +1878,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 
 #if !defined(PRODUCT)
   result->debugger_ = new Debugger(result);
-#endif
+#endif  // !defined(PRODUCT)
 
   // Now we register the isolate in the group. From this point on any GC would
   // traverse the isolate roots (before this point, the roots are only pointing
@@ -2974,12 +2981,12 @@ void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
   visitor->clear_gc_root_type();
 }
 
-void IsolateGroup::VisitObjectIdRingPointers(ObjectPointerVisitor* visitor) {
+void IsolateGroup::VisitPointersInAllServiceIdZones(
+    ObjectPointerVisitor& visitor) {
 #if !defined(PRODUCT)
   for (Isolate* isolate : isolates_) {
-    ObjectIdRing* ring = isolate->object_id_ring();
-    if (ring != nullptr) {
-      ring->VisitPointers(visitor);
+    for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
+      isolate->GetServiceIdZone(i)->VisitPointers(visitor);
     }
   }
 #endif  // !defined(PRODUCT)
@@ -3001,15 +3008,54 @@ void IsolateGroup::RememberLiveTemporaries() {
 }
 
 #if !defined(PRODUCT)
-ObjectIdRing* Isolate::EnsureObjectIdRing() {
-  if (object_id_ring_ == nullptr) {
-    object_id_ring_ = new ObjectIdRing();
+RingServiceIdZone& Isolate::AddServiceIdZone(
+    ObjectIdRing::BackingBufferKind backing_buffer_kind,
+    ObjectIdRing::IdPolicy id_assignment_policy,
+    int32_t capacity) {
+  EnsureDefaultServiceIdZone();
+  switch (backing_buffer_kind) {
+    case ObjectIdRing::BackingBufferKind::kRing:
+      service_id_zones_->Add(new RingServiceIdZone(
+          service_id_zones_->length(), id_assignment_policy, capacity));
+      return *service_id_zones_->Last();
+    default:
+      UNREACHABLE();
   }
-  return object_id_ring_;
 }
-#endif  // !defined(PRODUCT)
 
-#ifndef PRODUCT
+void Isolate::DeleteServiceIdZone(int32_t id) {
+  ASSERT(service_id_zones_ != nullptr);
+  ASSERT(id < service_id_zones_->length());
+  delete service_id_zones_->At(id);
+  (*service_id_zones_)[id] = nullptr;
+}
+
+RingServiceIdZone& Isolate::EnsureDefaultServiceIdZone() {
+  if (service_id_zones_ == nullptr) {
+    service_id_zones_ = new MallocGrowableArray<RingServiceIdZone*>();
+  }
+  if (service_id_zones_->is_empty()) {
+    service_id_zones_->Add(
+        new RingServiceIdZone(0, ObjectIdRing::IdPolicy::kAllocateId,
+                              RingServiceIdZone::kDefaultCapacity));
+  }
+  return *service_id_zones_->At(0);
+}
+
+RingServiceIdZone* Isolate::GetServiceIdZone(intptr_t zone_id) const {
+  if (service_id_zones_ == nullptr || service_id_zones_->length() <= zone_id) {
+    return nullptr;
+  }
+  return service_id_zones_->At(zone_id);
+}
+
+intptr_t Isolate::NumServiceIdZones() const {
+  if (service_id_zones_ == nullptr) {
+    return 0;
+  }
+  return service_id_zones_->length();
+}
+
 static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
   switch (pi) {
     case kPauseOnAllExceptions:
@@ -3203,7 +3249,7 @@ void Isolate::PrintPauseEventJSON(JSONStream* stream) {
   IsolatePauseEvent(this).PrintJSON(stream);
 }
 
-#endif
+#endif  // !defined(PRODUCT)
 
 void Isolate::set_tag_table(const GrowableObjectArray& value) {
   tag_table_ = value.ptr();
@@ -3237,9 +3283,7 @@ void Isolate::set_registered_service_extension_handlers(
     const GrowableObjectArray& value) {
   registered_service_extension_handlers_ = value.ptr();
 }
-#endif  // !defined(PRODUCT)
 
-#ifndef PRODUCT
 ErrorPtr Isolate::InvokePendingServiceExtensionCalls() {
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(GetAndClearPendingServiceExtensionCalls());
@@ -3516,7 +3560,7 @@ void Isolate::PauseEventHandler() {
   set_message_notify_callback(saved_notify_callback);
   Dart_ExitScope();
 }
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT)
 
 void Isolate::VisitIsolates(IsolateVisitor* visitor) {
   if (visitor == nullptr) {

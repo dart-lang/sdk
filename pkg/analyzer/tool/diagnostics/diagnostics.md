@@ -10709,7 +10709,7 @@ abstract class C {
 
 ### invalid_null_aware_operator
 
-_The receiver can't be null because of short-circuiting, so the null-aware
+_The receiver can't be 'null' because of short-circuiting, so the null-aware
 operator '{0}' can't be used._
 
 _The receiver can't be null, so the null-aware operator '{0}' is unnecessary._
@@ -16689,7 +16689,7 @@ class C with M {}
 
 ### null_argument_to_non_null_type
 
-_'{0}' shouldn't be called with a null argument for the non-nullable type
+_'{0}' shouldn't be called with a 'null' argument for the non-nullable type
 argument '{1}'._
 
 #### Description
@@ -22799,9 +22799,13 @@ void f(int x) {
 
 ### unnecessary_null_comparison
 
-_The operand can't be null, so the condition is always 'false'._
+_The operand can't be 'null', so the condition is always 'false'._
 
-_The operand can't be null, so the condition is always 'true'._
+_The operand can't be 'null', so the condition is always 'true'._
+
+_The operand must be 'null', so the condition is always 'false'._
+
+_The operand must be 'null', so the condition is always 'true'._
 
 #### Description
 

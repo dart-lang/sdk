@@ -45,10 +45,10 @@ class GoodExample {
 class UnnecessaryLate extends LintRule {
   UnnecessaryLate()
       : super(
-            name: 'unnecessary_late',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'unnecessary_late',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_late;

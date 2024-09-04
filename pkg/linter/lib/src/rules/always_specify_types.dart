@@ -64,10 +64,10 @@ main() {
 class AlwaysSpecifyTypes extends LintRule {
   AlwaysSpecifyTypes()
       : super(
-            name: 'always_specify_types',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'always_specify_types',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<String> get incompatibleRules => const [

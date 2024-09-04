@@ -1855,12 +1855,15 @@ class ParserTestListener implements Listener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-        'endOptionalFormalParameters(' '$count, ' '$beginToken, ' '$endToken)');
+    doPrint('endOptionalFormalParameters('
+        '$count, '
+        '$beginToken, '
+        '$endToken, '
+        '$kind)');
   }
 
   @override

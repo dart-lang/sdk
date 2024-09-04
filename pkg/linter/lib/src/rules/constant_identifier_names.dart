@@ -48,10 +48,10 @@ class Dice {
 class ConstantIdentifierNames extends LintRule {
   ConstantIdentifierNames()
       : super(
-            name: 'constant_identifier_names',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'constant_identifier_names',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.constant_identifier_names;

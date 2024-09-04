@@ -7,13 +7,13 @@ import 'dart:io';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/state.dart';
 import 'package:args/args.dart';
-import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
 import 'package:path/path.dart' as path;
 
 import '../test/test_constants.dart';
 import 'changelog.dart';
+import 'messages_data.dart';
 import 'since.dart';
 
 /// Generates rule and rule test stub files (into `src/rules` and `test/rules`
@@ -258,13 +258,13 @@ import 'analyzer.dart';
   names.add(libName);
   names.sort();
 
+  var categories = messagesYaml.categoryMappings;
   var imports = <String>[];
   for (var name in names) {
     var rule = Registry.ruleRegistry.getRule(name);
-    var pathPrefix =
-        rule != null && rule.categories.contains(LintRuleCategory.pub)
-            ? path.join('rules', 'pub')
-            : 'rules';
+    var pathPrefix = rule != null && categories[rule.name]!.contains('pub')
+        ? path.join('rules', 'pub')
+        : 'rules';
     imports.add("import '$pathPrefix/$name.dart';");
   }
 

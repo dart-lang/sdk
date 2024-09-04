@@ -55,7 +55,8 @@ void stopInferenceLogging() {
 /// The [SharedInferenceLogWriter] interface, augmented with analyzer-specific
 /// functionality.
 abstract interface class InferenceLogWriter
-    implements SharedInferenceLogWriter<DartType, TypeParameterElement> {
+    implements
+        SharedInferenceLogWriter<DartType, DartType, TypeParameterElement> {
   /// Checks that [enterExpression] was properly called for [expression].
   ///
   /// This is called from [ResolverVisitor.dispatchExpression], to verify that
@@ -65,9 +66,8 @@ abstract interface class InferenceLogWriter
 
 /// The [SharedInferenceLogWriterImpl] implementation, augmented with
 /// analyzer-specific functionality.
-final class _InferenceLogWriterImpl
-    extends SharedInferenceLogWriterImpl<DartType, TypeParameterElement>
-    implements InferenceLogWriter {
+final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl<
+    DartType, DartType, TypeParameterElement> implements InferenceLogWriter {
   @override
   void assertExpressionWasRecorded(Object expression) {
     if (_recordedExpressions[expression] ?? false) return;

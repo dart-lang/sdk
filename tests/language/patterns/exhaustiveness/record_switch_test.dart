@@ -150,7 +150,7 @@ void unreachableCase1((Enum, bool) r) {
       break;
     case r0: // Unreachable
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('(a, false) #2');
       break;
   }
@@ -196,7 +196,7 @@ void unreachableCase3((Enum, bool)? r) {
       break;
     case null: // Unreachable
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('null2');
       break;
   }

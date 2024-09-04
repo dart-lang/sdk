@@ -1,17 +1,10 @@
-> [!IMPORTANT]
-> This page was copied from https://github.com/dart-lang/sdk/wiki and needs review.
-> Please [contribute](../CONTRIBUTING.md) changes to bring it up-to-date -
-> removing this header - or send a CL to delete the file.
-
----
-
 # Introduction
 
-It is possible to build and run the standalone Dart VM for Android devices. This setup is not yet thoroughly tested, but is available for experimentation.
+It is possible to build and run the standalone Dart VM for Android devices.
 
 ## Limitations
 
-* The host (build) machine must be an x86 Linux machine.
+* The host (build) machine must be an x64 Linux machine or a Mac.
 * The target (Android) device must be a device or emulator that supports the Android NDK.
 * The resulting Android Dart VM can only be run from the Android command line.
 * The resulting Android Dart VM only has access to dart:core APIs. It does not have access to the Android C or Java APIs.
@@ -33,7 +26,7 @@ Run gclient sync to install the Android NDK and SDK. This may take 10 minutes or
 
 Once you've set up your build tree, you can build the Dart VM for Android by using the standard Dart build script with the addition of the --os android build flag:
 
-`$ tools/build.py --no-rbe --arch=arm,arm64,ia32,x64 --os=android runtime`
+`$ tools/build.py --arch=arm,arm64,ia32,x64,riscv64 --os=android runtime`
 
 # Testing the result
 
@@ -61,7 +54,7 @@ Create a directory on the Android emulator.
 
 Copy the Dart VM executable to the Android emulator:
 
-`$ adb push out/android/ReleaseAndroid{ARM,ARM64,IA32,X64}/dart /data/local/tmp/dart/dart`
+`$ adb push out/android/ReleaseAndroid{ARM,ARM64,IA32,X64,RISCV64}/dart /data/local/tmp/dart/dart`
 
 Create a simple Dart test script:
 
@@ -107,7 +100,3 @@ TA23701VKR  device
 ```
 
 Now, you can copy dart and hello.dart to the device as above. If an emulator is also running, be sure to give adb the -d switch to tell it to use the attached device instead of the emulator. Use the -s switch to give the device ID explicitly.
-
-# Notes
-
-The only effect of the `target_os` line in the Dart `.gclient` configuration file is to install the Android tools. Despite what the name `target_os` implies, the target_os line does not affect which OS is targeted. Therefore, once you've installed the Android tools you can (and should) leave the `target_os = ["android"]` line in place even when switching back and forth between building for Android and building for Linux.

@@ -2387,67 +2387,6 @@ FunctionPtr KernelLoader::GetClosureFunction(Thread* thread,
   return function.ptr();
 }
 
-FunctionPtr CreateFieldInitializerFunction(Thread* thread,
-                                           Zone* zone,
-                                           const Field& field) {
-  ASSERT(field.InitializerFunction() == Function::null());
-
-  String& init_name = String::Handle(zone, field.name());
-  init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
-
-  // Static field initializers are not added as members of their owning class,
-  // so they must be preemptively given a patch class to avoid the meaning of
-  // their kernel/token position changing during a reload. Compare
-  // Class::PatchFieldsAndFunctions().
-  // This might also be necessary for lazy computation of local var descriptors.
-  // Compare https://codereview.chromium.org//1317753004
-  const Script& script = Script::Handle(zone, field.Script());
-  const Class& field_owner = Class::Handle(zone, field.Owner());
-  const auto& kernel_program_info =
-      KernelProgramInfo::Handle(zone, field.KernelProgramInfo());
-  const PatchClass& initializer_owner = PatchClass::Handle(
-      zone, PatchClass::New(field_owner, kernel_program_info, script));
-  const Library& lib = Library::Handle(zone, field_owner.library());
-  initializer_owner.set_kernel_library_index(lib.kernel_library_index());
-
-  // Create a static initializer.
-  FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
-  const Function& initializer_fun = Function::Handle(
-      zone,
-      Function::New(signature, init_name, UntaggedFunction::kFieldInitializer,
-                    field.is_static(),  // is_static
-                    false,              // is_const
-                    false,              // is_abstract
-                    false,              // is_external
-                    false,              // is_native
-                    initializer_owner, TokenPosition::kNoSource));
-  if (!field.is_static()) {
-    signature.set_num_fixed_parameters(1);
-    signature.set_parameter_types(
-        Array::Handle(zone, Array::New(1, Heap::kOld)));
-    signature.SetParameterTypeAt(
-        0, AbstractType::Handle(zone, field_owner.DeclarationType()));
-    initializer_fun.CreateNameArray();
-    initializer_fun.SetParameterNameAt(0, Symbols::This());
-  }
-  signature.set_result_type(AbstractType::Handle(zone, field.type()));
-  initializer_fun.set_is_reflectable(false);
-  initializer_fun.set_is_inlinable(false);
-  initializer_fun.set_token_pos(field.token_pos());
-  initializer_fun.set_end_token_pos(field.end_token_pos());
-  initializer_fun.set_accessor_field(field);
-  initializer_fun.InheritKernelOffsetFrom(field);
-  initializer_fun.set_is_extension_member(field.is_extension_member());
-  initializer_fun.set_is_extension_type_member(
-      field.is_extension_type_member());
-
-  signature ^= ClassFinalizer::FinalizeType(signature);
-  initializer_fun.SetSignature(signature);
-
-  field.SetInitializerFunction(initializer_fun);
-  return initializer_fun.ptr();
-}
-
 }  // namespace kernel
 }  // namespace dart
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

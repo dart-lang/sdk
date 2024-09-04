@@ -275,10 +275,10 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroAugmentation isPart
     content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B {}
 ---
@@ -935,10 +935,10 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroAugmentation isPart
     content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B2 {}
 ---
@@ -1015,10 +1015,10 @@ class B {}
   ResolvedUnitResult #1
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroAugmentation isPart
     content
 ---
-augment library 'package:test/b.dart';
+part of 'package:test/b.dart';
 
 class A2 {}
 ---
@@ -1048,10 +1048,10 @@ class A2 {}
   ResolvedUnitResult #3
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroAugmentation isPart
     content
 ---
-augment library 'package:test/b.dart';
+part of 'package:test/b.dart';
 
 class A1 {}
 ---
@@ -1125,10 +1125,10 @@ class B {}
   ResolvedUnitResult #1
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroAugmentation isPart
     content
 ---
-augment library 'package:test/b.dart';
+part of 'package:test/b.dart';
 
 class A2 {}
 ---
@@ -1162,10 +1162,10 @@ class A2 {}
   ErrorsResult #3
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: isAugmentation isMacroAugmentation
+    flags: isMacroAugmentation isPart
     content
 ---
-augment library 'package:test/b.dart';
+part of 'package:test/b.dart';
 
 class A1 {}
 ---
@@ -1904,10 +1904,10 @@ class A {}
   ErrorsResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: isAugmentation isMacroAugmentation
+    flags: isMacroAugmentation isPart
     content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B {}
 ---
@@ -1915,10 +1915,10 @@ class B {}
   ResolvedUnitResult #2
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroAugmentation isPart
     content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B {}
 ---
@@ -2378,10 +2378,10 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroAugmentation isPart
     content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 void foo() {}
 void f() { foo(); }
@@ -2794,10 +2794,10 @@ class A {}
       ResolvedUnitResult #2
         path: /home/test/lib/a.macro.dart
         uri: package:test/a.macro.dart
-        flags: exists isAugmentation isMacroAugmentation
+        flags: exists isMacroAugmentation isPart
         content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B {}
 ---
@@ -3003,10 +3003,10 @@ class A {}
       ResolvedUnitResult #2
         path: /home/test/lib/a.macro.dart
         uri: package:test/a.macro.dart
-        flags: exists isAugmentation isMacroAugmentation
+        flags: exists isMacroAugmentation isPart
         content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B {}
 ---
@@ -3393,10 +3393,10 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isAugmentation isMacroAugmentation
+    flags: exists isMacroAugmentation isPart
     content
 ---
-augment library 'package:test/a.dart';
+part of 'package:test/a.dart';
 
 class B {}
 ---
@@ -3800,7 +3800,7 @@ void bar() {}
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   flags: isLibrary
-  enclosing: package:test/a.dart
+  enclosing: <null>
   selectedElements
     package:test/a.dart::<fragment>::@function::foo
     package:test/a.dart::<fragment>::@function::bar
@@ -3844,7 +3844,7 @@ import 'package:test/b.dart';
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   flags: isLibrary
-  enclosing: package:test/a.dart
+  enclosing: <null>
 [status] idle
 ''');
   }
@@ -3885,8 +3885,8 @@ class A {}
 [future] getUnitElement AM1
   path: /home/test/lib/a.macro.dart
   uri: package:test/a.macro.dart
-  flags: isAugmentation isMacroAugmentation
-  enclosing: package:test/a.dart::@augmentation::package:test/a.macro.dart
+  flags: isMacroAugmentation isPart
+  enclosing: package:test/a.dart::<fragment>
   selectedElements
     package:test/a.dart::@fragment::package:test/a.macro.dart::@class::B
 [status] idle
@@ -4761,7 +4761,7 @@ final a = new A();
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
   flags: isPart
-  enclosing: package:test/hidden/a.dart
+  enclosing: package:test/hidden/a.dart::<fragment>
 [status] idle
 ''');
   }
@@ -4797,7 +4797,7 @@ final a = new A();
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
   flags: isPart
-  enclosing: package:test/hidden/a.dart
+  enclosing: package:test/hidden/a.dart::<fragment>
 [operation] analyzeFile
   file: /home/test/lib/hidden/a.dart
   library: /home/test/lib/hidden/a.dart
@@ -4835,7 +4835,7 @@ final a = new A();
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
   flags: isPart
-  enclosing: package:test/b.dart
+  enclosing: <null>
 [status] idle
 ''');
   }

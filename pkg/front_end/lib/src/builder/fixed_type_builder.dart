@@ -4,10 +4,12 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
 import '../base/problems.dart';
-import '../source/builder_factory.dart';
-import '../source/type_parameter_scope_builder.dart';
+import '../kernel/type_algorithms.dart';
+import '../source/source_loader.dart';
+import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
@@ -20,15 +22,6 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
   final int? charOffset;
 
   const FixedTypeBuilderImpl(this.type, this.fileUri, this.charOffset);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  TypeBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      BuilderFactory builderFactory,
-      TypeParameterScopeBuilder contextDeclaration) {
-    return this;
-  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -60,6 +53,7 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType buildAliased(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
     return type;
@@ -87,4 +81,54 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isExplicit => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Nullability computeNullability(
+          {required Map<TypeVariableBuilder, TraversalState>
+              typeVariablesTraversalState}) =>
+      type.nullability;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  VarianceCalculationValue computeTypeVariableBuilderVariance(
+      NominalVariableBuilder variable,
+      {required SourceLoader sourceLoader}) {
+    return VarianceCalculationValue.calculatedUnrelated;
+  }
+
+  @override
+  TypeDeclarationBuilder? computeUnaliasedDeclaration(
+      {required bool isUsedAsClass}) {
+    throw new UnsupportedError('$runtimeType.computeUnaliasedDeclaration');
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void collectReferencesFrom(Map<TypeVariableBuilder, int> variableIndices,
+      List<List<int>> edges, int index) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  TypeBuilder? substituteRange(
+      Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
+      Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
+      List<TypeBuilder> unboundTypes,
+      List<StructuralVariableBuilder> unboundTypeVariables,
+      {Variance variance = Variance.covariant}) {
+    return null;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  TypeBuilder? unaliasAndErase() => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool usesTypeVariables(Set<String> typeVariableNames) => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<TypeWithInBoundReferences> findRawTypesWithInboundReferences() =>
+      const [];
 }

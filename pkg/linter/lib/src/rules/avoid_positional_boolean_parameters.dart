@@ -44,13 +44,10 @@ Button(ButtonState.enabled);
 class AvoidPositionalBooleanParameters extends LintRule {
   AvoidPositionalBooleanParameters()
       : super(
-            name: 'avoid_positional_boolean_parameters',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'avoid_positional_boolean_parameters',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_positional_boolean_parameters;

@@ -15,6 +15,7 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
@@ -29,6 +30,7 @@ import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
+import 'package:analysis_server/src/services/dart_tooling_daemon/dtd_services.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
@@ -103,6 +105,12 @@ abstract class AnalysisServer {
 
   /// The object through which analytics are to be sent.
   final AnalyticsManager analyticsManager;
+
+  /// A connection to DTD (the Dart Tooling Daemon) that allows other clients to
+  /// call server functionality.
+  ///
+  /// Initialized by the client through a request that calls [connectToDtd].
+  DtdServices? dtd;
 
   /// The object for managing showing surveys to users and recording their
   /// responses.
@@ -257,6 +265,7 @@ abstract class AnalysisServer {
     bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
     this.providedByteStore,
+    PluginManager? pluginManager,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']),
@@ -285,12 +294,13 @@ abstract class AnalysisServer {
 
     PluginWatcher? pluginWatcher;
     if (supportsPlugins) {
-      pluginManager = PluginManager(
+      this.pluginManager = pluginManager ??= PluginManager(
           resourceProvider,
           _getByteStorePath(),
           sdkManager.defaultSdkDirectory,
           notificationManager,
           instrumentationService);
+
       pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
     }
 
@@ -485,6 +495,26 @@ abstract class AnalysisServer {
   void completeLspUninitialization() {
     if (!_lspUninitializedCompleter.isCompleted) {
       _lspUninitializedCompleter.complete();
+    }
+  }
+
+  /// Connects to DTD at [dtdUri].
+  ///
+  /// If there is already an active connection to DTD or there is an error
+  /// connecting, returns an error, otherwise returns `null`.
+  Future<ErrorOr<Null>> connectToDtd(Uri dtdUri) async {
+    switch (dtd?.state) {
+      case DtdConnectionState.Connecting || DtdConnectionState.Connected:
+        return error(
+          lsp.ServerErrorCodes.StateError,
+          'Server is already connected to DTD',
+        );
+      case DtdConnectionState.Disconnected || DtdConnectionState.Error || null:
+        var connectResult = await DtdServices.connect(this, dtdUri);
+        return connectResult.mapResultSync((dtd) {
+          this.dtd = dtd;
+          return success(null);
+        });
     }
   }
 

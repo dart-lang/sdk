@@ -31,6 +31,8 @@ class MethodRecognizer : public AllStatic {
 #undef DEFINE_ENUM_LIST
         kNumRecognizedMethods
   };
+  static constexpr int kKindBitSize =
+      Utils::BitLength(kNumRecognizedMethods - 1);
 
   static intptr_t NumArgsCheckedForStaticCall(const Function& function);
 

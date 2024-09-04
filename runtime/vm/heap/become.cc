@@ -353,9 +353,8 @@ void Become::FollowForwardingPointers(Thread* thread) {
 #ifndef PRODUCT
   isolate_group->ForEachIsolate(
       [&](Isolate* isolate) {
-        ObjectIdRing* ring = isolate->object_id_ring();
-        if (ring != nullptr) {
-          ring->VisitPointers(&pointer_visitor);
+        for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
+          isolate->GetServiceIdZone(i)->VisitPointers(pointer_visitor);
         }
       },
       /*at_safepoint=*/true);

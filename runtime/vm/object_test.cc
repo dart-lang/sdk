@@ -369,11 +369,14 @@ ISOLATE_UNIT_TEST_CASE(Smi) {
   Object& smi_object = Object::Handle(smi.ptr());
   EXPECT(smi.IsSmi());
   EXPECT(smi_object.IsSmi());
+  EXPECT(smi_object.ptr()->IsSmi());
   EXPECT_EQ(5, smi.Value());
   const Object& object = Object::Handle();
   EXPECT(!object.IsSmi());
+  EXPECT(!object.ptr()->IsSmi());
   smi_object = Object::null();
   EXPECT(!smi_object.IsSmi());
+  EXPECT(!smi_object.ptr()->IsSmi());
 
   EXPECT(smi.Equals(Smi::Handle(Smi::New(5))));
   EXPECT(!smi.Equals(Smi::Handle(Smi::New(6))));
@@ -395,8 +398,9 @@ ISOLATE_UNIT_TEST_CASE(Smi) {
   EXPECT(!Smi::IsValid(0xFFFFFFFFu));
 #endif
 
-  EXPECT_EQ(5, smi.AsInt64Value());
-  EXPECT_EQ(5.0, smi.AsDoubleValue());
+  EXPECT_EQ(5, smi.Value());
+  EXPECT_EQ(5.0, smi.ToDouble());
+  EXPECT_EQ(5, Integer::Value(smi.ptr()));
 
   Smi& a = Smi::Handle(Smi::New(5));
   Smi& b = Smi::Handle(Smi::New(3));
@@ -518,32 +522,35 @@ ISOLATE_UNIT_TEST_CASE(Mint) {
     EXPECT(med.IsNull());
     int64_t v = DART_2PART_UINT64_C(1, 0);
     med ^= Integer::New(v);
-    EXPECT_EQ(v, med.value());
+    EXPECT_EQ(v, med.Value());
+    EXPECT_EQ(v, Integer::Value(med.ptr()));
     const String& smi_str = String::Handle(String::New("1"));
     const String& mint1_str = String::Handle(String::New("2147419168"));
     const String& mint2_str = String::Handle(String::New("-2147419168"));
     Integer& i = Integer::Handle(Integer::NewCanonical(smi_str));
     EXPECT(i.IsSmi());
+    EXPECT_EQ(1, i.Value());
     i = Integer::NewCanonical(mint1_str);
     EXPECT(i.IsMint());
-    EXPECT(!i.IsZero());
-    EXPECT(!i.IsNegative());
+    EXPECT_EQ(2147419168, i.Value());
     i = Integer::NewCanonical(mint2_str);
     EXPECT(i.IsMint());
-    EXPECT(!i.IsZero());
-    EXPECT(i.IsNegative());
+    EXPECT_EQ(-2147419168, i.Value());
   }
   Integer& i = Integer::Handle(Integer::New(DART_2PART_UINT64_C(1, 0)));
   EXPECT(i.IsMint());
-  EXPECT(!i.IsZero());
-  EXPECT(!i.IsNegative());
+  EXPECT(i.ptr()->IsMint());
+  EXPECT(!i.IsSmi());
+  EXPECT(!i.ptr()->IsSmi());
+  EXPECT(i.Value() != 0);
   Integer& i1 = Integer::Handle(Integer::New(DART_2PART_UINT64_C(1010, 0)));
   Mint& i2 = Mint::Handle();
   i2 ^= Integer::New(DART_2PART_UINT64_C(1010, 0));
   EXPECT(i1.Equals(i2));
   EXPECT(!i.Equals(i1));
   int64_t test = DART_2PART_UINT64_C(1010, 0);
-  EXPECT_EQ(test, i2.value());
+  EXPECT_EQ(test, i2.Value());
+  EXPECT_EQ(test, Integer::Value(i2.ptr()));
 
   Mint& a = Mint::Handle();
   a ^= Integer::New(DART_2PART_UINT64_C(5, 0));
@@ -568,8 +575,8 @@ ISOLATE_UNIT_TEST_CASE(Mint) {
   mint1 ^= Integer::NewCanonical(mint_string);
   Mint& mint2 = Mint::Handle();
   mint2 ^= Integer::NewCanonical(mint_string);
-  EXPECT_EQ(mint1.value(), mint_value);
-  EXPECT_EQ(mint2.value(), mint_value);
+  EXPECT_EQ(mint1.Value(), mint_value);
+  EXPECT_EQ(mint2.Value(), mint_value);
   EXPECT_EQ(mint1.ptr(), mint2.ptr());
 #endif
 }
@@ -5727,7 +5734,7 @@ class ToggleBreakpointTask : public ThreadPool::Task {
         TransitionNativeToVM transition(t);
         Integer& breakpoint_id_handle = Integer::Handle();
         breakpoint_id_handle ^= Api::UnwrapHandle(result);
-        breakpoint_id = breakpoint_id_handle.AsInt64Value();
+        breakpoint_id = breakpoint_id_handle.Value();
       }
       result = Dart_RemoveBreakpoint(Dart_NewInteger(breakpoint_id));
       EXPECT_VALID(result);
@@ -5908,6 +5915,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSON) {
   }
   for (intptr_t i = 0; i < objects.length(); ++i) {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     objects[i]->PrintJSON(&js, false);
     EXPECT_SUBSTRING("\"type\":", js.ToCString());
   }
@@ -5922,6 +5930,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Class reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Class& cls = Class::Handle(isolate->group()->object_store()->bool_class());
     cls.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -5944,6 +5953,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   {
     Thread* thread = Thread::Current();
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Class& cls = Class::Handle(isolate->group()->object_store()->bool_class());
     const String& func_name = String::Handle(String::New("toString"));
     Function& func =
@@ -5976,6 +5986,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Library reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Library& lib =
         Library::Handle(isolate->group()->object_store()->core_library());
     lib.PrintJSON(&js, true);
@@ -5990,6 +6001,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Bool reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Bool::True().PrintJSON(&js, true);
     const char* json_str = js.ToCString();
     ASSERT(strlen(json_str) < kBufferSize);
@@ -6011,6 +6023,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Smi reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const Integer& smi = Integer::Handle(Integer::New(7));
     smi.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6034,6 +6047,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Mint reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const Integer& smi = Integer::Handle(Integer::New(Mint::kMinValue));
     smi.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6058,6 +6072,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Double reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const Double& dub = Double::Handle(Double::New(0.1234));
     dub.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6082,6 +6097,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // String reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const String& str = String::Handle(String::New("dw"));
     str.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6106,6 +6122,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Array reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const Array& array = Array::Handle(Array::New(0));
     array.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6154,6 +6171,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // GrowableObjectArray reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const GrowableObjectArray& array =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
     array.PrintJSON(&js, true);
@@ -6203,6 +6221,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Map reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const Map& array = Map::Handle(Map::NewDefault());
     array.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6274,6 +6293,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // UserTag reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Instance& tag = Instance::Handle(isolate->default_tag());
     tag.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6305,6 +6325,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // TODO(turnidge): Add in all of the other Type siblings.
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Instance& type =
         Instance::Handle(isolate->group()->object_store()->bool_type());
     type.PrintJSON(&js, true);
@@ -6341,6 +6362,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Null reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Object::null_object().PrintJSON(&js, true);
     const char* json_str = js.ToCString();
     ASSERT(strlen(json_str) < kBufferSize);
@@ -6361,6 +6383,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Sentinel reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Object::sentinel().PrintJSON(&js, true);
     EXPECT_STREQ(
         "{\"type\":\"Sentinel\","
@@ -6470,11 +6493,11 @@ static bool HashCodeEqualsCanonicalizeHash(
   if (check_hashcode) {
     hashcode_dart =
         Integer::Cast(Object::Handle(Api::UnwrapHandle(hashcode_result)))
-            .AsInt64Value();
+            .Value();
   }
   const int64_t identity_hashcode_dart =
       Integer::Cast(Object::Handle(Api::UnwrapHandle(identity_hashcode_result)))
-          .AsInt64Value();
+          .Value();
   if (hashcode_canonicalize_vm == 0) {
     hashcode_canonicalize_vm = Instance::Cast(value_dart).CanonicalizeHash();
   }
@@ -8140,8 +8163,7 @@ static void SubtypeTestCacheCheckContents(Zone* zone,
     const intptr_t entry_start = i * SubtypeTestCache::kTestEntryLength;
     {
       const intptr_t cid =
-          array.At(entry_start + SubtypeTestCache::kTestResult)
-              ->GetClassIdMayBeSmi();
+          array.At(entry_start + SubtypeTestCache::kTestResult)->GetClassId();
       EXPECT(cid == kNullCid || cid == kBoolCid);
     }
 
@@ -8152,8 +8174,7 @@ static void SubtypeTestCacheCheckContents(Zone* zone,
 #define USED_INPUT_CASE(Input, ExpectedCids)                                   \
   case (Input) + 1: {                                                          \
     RELEASE_ASSERT((Input) + 1 == check_ordering);                             \
-    const intptr_t cid =                                                       \
-        array.At(entry_start + (Input))->GetClassIdMayBeSmi();                 \
+    const intptr_t cid = array.At(entry_start + (Input))->GetClassId();        \
     if (!(ExpectedCids)) {                                                     \
       FAIL("expected: " #ExpectedCids ", got: cid %" Pd "", cid);              \
     }                                                                          \
@@ -8195,7 +8216,7 @@ static void SubtypeTestCacheCheckContents(Zone* zone,
       // STCs and never set unused inputs, the only thing we know is that the
       // entry is GC-safe. Since we don't expect valid values for unused inputs,
       // we just check if it's either a Smi or null.
-      const intptr_t cid = array.At(entry_start + i)->GetClassIdMayBeSmi();
+      const intptr_t cid = array.At(entry_start + i)->GetClassId();
       EXPECT(cid == kSmiCid || cid == kNullCid);
     }
   }

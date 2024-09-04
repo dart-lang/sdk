@@ -159,6 +159,7 @@ ISOLATE_UNIT_TEST_CASE(Service_IsolateStickyError) {
 
   {
     JSONStream js;
+    js.set_id_zone(isolate->EnsureDefaultServiceIdZone());
     isolate->PrintJSON(&js, false);
     // No error property and no PauseExit state.
     EXPECT_NOTSUBSTRING("\"error\":", js.ToCString());
@@ -176,6 +177,7 @@ ISOLATE_UNIT_TEST_CASE(Service_IsolateStickyError) {
 
   {
     JSONStream js;
+    js.set_id_zone(isolate->EnsureDefaultServiceIdZone());
     isolate->PrintJSON(&js, false);
     // Error and PauseExit set.
     EXPECT_SUBSTRING("\"error\":", js.ToCString());
@@ -184,38 +186,37 @@ ISOLATE_UNIT_TEST_CASE(Service_IsolateStickyError) {
   }
 }
 
-ISOLATE_UNIT_TEST_CASE(Service_IdZones) {
+ISOLATE_UNIT_TEST_CASE(Service_RingServiceIdZonePolicies) {
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
 
   const String& test_a = String::Handle(zone, String::New("a"));
   const String& test_b = String::Handle(zone, String::New("b"));
   const String& test_c = String::Handle(zone, String::New("c"));
   const String& test_d = String::Handle(zone, String::New("d"));
 
-  // Both RingServiceIdZones share the same backing store and id space.
+  const intptr_t kDefaultIdZoneId = 0;
+  const int32_t kTestIdZoneCapacity = 32;
 
   // Always allocate a new id.
-  RingServiceIdZone always_new_zone;
-  always_new_zone.Init(ring, ObjectIdRing::kAllocateId);
-  EXPECT_STREQ("objects/0", always_new_zone.GetServiceId(test_a));
-  EXPECT_STREQ("objects/1", always_new_zone.GetServiceId(test_a));
-  EXPECT_STREQ("objects/2", always_new_zone.GetServiceId(test_a));
-  EXPECT_STREQ("objects/3", always_new_zone.GetServiceId(test_b));
-  EXPECT_STREQ("objects/4", always_new_zone.GetServiceId(test_c));
+  RingServiceIdZone always_allocate_zone(
+      kDefaultIdZoneId, ObjectIdRing::kAllocateId, kTestIdZoneCapacity);
+  EXPECT_STREQ("objects/0/0", always_allocate_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/1/0", always_allocate_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/2/0", always_allocate_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/3/0", always_allocate_zone.GetServiceId(test_b));
+  EXPECT_STREQ("objects/4/0", always_allocate_zone.GetServiceId(test_c));
 
   // Reuse an existing id or allocate a new id.
-  RingServiceIdZone reuse_zone;
-  reuse_zone.Init(ring, ObjectIdRing::kReuseId);
-  EXPECT_STREQ("objects/0", reuse_zone.GetServiceId(test_a));
-  EXPECT_STREQ("objects/0", reuse_zone.GetServiceId(test_a));
-  EXPECT_STREQ("objects/3", reuse_zone.GetServiceId(test_b));
-  EXPECT_STREQ("objects/3", reuse_zone.GetServiceId(test_b));
-  EXPECT_STREQ("objects/4", reuse_zone.GetServiceId(test_c));
-  EXPECT_STREQ("objects/4", reuse_zone.GetServiceId(test_c));
-  EXPECT_STREQ("objects/5", reuse_zone.GetServiceId(test_d));
-  EXPECT_STREQ("objects/5", reuse_zone.GetServiceId(test_d));
+  RingServiceIdZone reuse_existing_zone(
+      kDefaultIdZoneId, ObjectIdRing::kReuseId, kTestIdZoneCapacity);
+  EXPECT_STREQ("objects/0/0", reuse_existing_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/0/0", reuse_existing_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/1/0", reuse_existing_zone.GetServiceId(test_b));
+  EXPECT_STREQ("objects/1/0", reuse_existing_zone.GetServiceId(test_b));
+  EXPECT_STREQ("objects/2/0", reuse_existing_zone.GetServiceId(test_c));
+  EXPECT_STREQ("objects/2/0", reuse_existing_zone.GetServiceId(test_c));
+  EXPECT_STREQ("objects/3/0", reuse_existing_zone.GetServiceId(test_d));
+  EXPECT_STREQ("objects/3/0", reuse_existing_zone.GetServiceId(test_d));
 }
 
 ISOLATE_UNIT_TEST_CASE(Service_Code) {
@@ -385,8 +386,8 @@ ISOLATE_UNIT_TEST_CASE(Service_PcDescriptors) {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code_c.pc_descriptors());
   EXPECT(!descriptors.IsNull());
-  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
-  intptr_t id = ring->GetIdForObject(descriptors.ptr());
+  ServiceIdZone& default_id_zone = isolate->EnsureDefaultServiceIdZone();
+  const char* id = default_id_zone.GetServiceId(descriptors);
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
@@ -403,7 +404,7 @@ ISOLATE_UNIT_TEST_CASE(Service_PcDescriptors) {
   // Fetch object.
   service_msg = EvalF(lib,
                       "[0, port, '0', 'getObject', "
-                      "['objectId'], ['objects/%" Pd "']]",
+                      "['objectId'], ['%s']]",
                       id);
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
@@ -456,8 +457,8 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
   const LocalVarDescriptors& descriptors =
       LocalVarDescriptors::Handle(code_c.GetLocalVarDescriptors());
   // Generate an ID for this object.
-  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
-  intptr_t id = ring->GetIdForObject(descriptors.ptr());
+  ServiceIdZone& default_id_zone = isolate->EnsureDefaultServiceIdZone();
+  const char* id = default_id_zone.GetServiceId(descriptors);
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
@@ -474,7 +475,7 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
   // Fetch object.
   service_msg = EvalF(lib,
                       "[0, port, '0', 'getObject', "
-                      "['objectId'], ['objects/%" Pd "']]",
+                      "['objectId'], ['%s']]",
                       id);
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());

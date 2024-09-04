@@ -348,14 +348,14 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
   /// class `Widget` as a superclass.
   bool get isWidgetCreation {
     var element =
-        constructorName.staticElement?.enclosingElement.augmented.declaration;
+        constructorName.staticElement?.enclosingElement3.augmented.declaration;
     return element.isWidget;
   }
 
   /// The presentation for this node.
   String? get widgetPresentationText {
     var element =
-        constructorName.staticElement?.enclosingElement.augmented.declaration;
+        constructorName.staticElement?.enclosingElement3.augmented.declaration;
     if (!element.isWidget) {
       return null;
     }

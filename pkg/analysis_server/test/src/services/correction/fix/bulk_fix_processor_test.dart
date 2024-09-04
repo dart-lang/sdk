@@ -363,6 +363,35 @@ deps:
         file: test2Pubspec);
   }
 
+  Future<void> test_no_exception() async {
+    var content = '''
+name: test
+dependencies:
+  a: any
+  any
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+  any
+''';
+
+    updateTestPubspecFile(content);
+    await resolveTestCode('''
+import 'package:a/a.dart';
+
+void bad() {
+  try {
+  } on Error catch (e) {
+    print(e);
+  }
+}
+''');
+
+    await assertFixPubspec(content, expected);
+  }
+
   Future<void> test_no_fix() async {
     var content = '''
 name: test

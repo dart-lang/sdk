@@ -174,3 +174,6 @@ void main() {
   Expect.equals(incrementSize(27), 28);
   Expect.equals(incrementWchar(29), 30);
 }
+
+// Don't crash on an unused `Native.addressOf`.
+final adddress = Native.addressOf(incrementChar);

@@ -159,10 +159,10 @@ class TypeHierarchyComputerHelper {
     bool pivotFieldFinal = false;
     if (pivotElement is FieldElement) {
       pivotFieldFinal = pivotElement.isFinal;
-      element = pivotElement.enclosingElement;
+      element = pivotElement.enclosingElement3;
     }
     if (pivotElement is ExecutableElement) {
-      element = pivotElement.enclosingElement;
+      element = pivotElement.enclosingElement3;
     }
     InterfaceElement? pivotClass;
     if (element is InterfaceElement) {

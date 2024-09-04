@@ -16,7 +16,9 @@ dependencies:
   convert: any
   crypto: any
   dart_style: any
+  dtd: any
   http: any
+  json_rpc_2: any
   language_server_protocol: any
   linter: any
   memory_usage: any
@@ -40,6 +42,7 @@ dev_dependencies:
   matcher: any
   test_descriptor: any
   test_reflective_loader: any
+  web_socket_channel: any
 
 dependency_overrides:
   _fe_analyzer_shared:
@@ -70,6 +73,8 @@ dependency_overrides:
     path: ../../third_party/pkg/crypto
   dart_style:
     path: ../../third_party/pkg/dart_style
+  dtd:
+    path: ../dtd
   file:
     path: ../../third_party/pkg/file/packages/file
   frontend_server_client:
@@ -84,6 +89,8 @@ dependency_overrides:
     path: ../../third_party/pkg/http_parser
   intl:
     path: ../../third_party/pkg/intl
+  json_rpc_2:
+    path: ../../third_party/pkg/json_rpc_2
   js:
     path: ../js
   language_server_protocol:

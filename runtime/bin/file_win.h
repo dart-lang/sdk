@@ -16,18 +16,12 @@
 namespace dart {
 namespace bin {
 
-// Converts the given UTF8 path to wide char. If resulting path does not
-// fit into MAX_DIRECTORY_PATH (or if |force_long_prefix| is true) then
-// converts the path to the absolute `\\?\`-prefixed form.
+// Converts the given UTF8 path to wide char '\\?\'-prefix absolute path.
 //
-// Note:
-// 1. Some WinAPI functions (like SetCurrentDirectoryW) are always limited
-//    to MAX_PATH long paths and converting to `\\?\`-prefixed form does not
-//    remove this limitation. Always check Win API documentation.
-// 2. This function might change relative path to an absolute path.
-std::unique_ptr<wchar_t[]> ToWinAPIDirectoryPath(
-    const char* path,
-    bool force_long_prefix = false);
+// Note that some WinAPI functions (like SetCurrentDirectoryW) are always
+// limited to MAX_PATH long paths and converting to `\\?\`-prefixed form does
+// not remove this limitation. Always check Win API documentation.
+std::unique_ptr<wchar_t[]> ToWinAPIPath(const char* path);
 
 }  // namespace bin
 }  // namespace dart

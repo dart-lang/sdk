@@ -196,6 +196,9 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     host_os = HostOsForGn(HOST_OS)
     if target_os == 'host':
         gn_args['target_os'] = host_os
+    elif target_os == 'ios_simulator':
+        gn_args['target_os'] = 'ios'
+        gn_args['use_ios_simulator'] = True
     else:
         gn_args['target_os'] = target_os
 
@@ -235,7 +238,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
             gn_args['arm_float_abi'] = floatabi
             gn_args['arm_use_neon'] = True
     if gn_args['target_os'] == 'fuchsia':
-        gn_args['fuchsia_target_api_level'] = 21
+        gn_args['fuchsia_target_api_level'] = 22
 
     gn_args['is_debug'] = mode == 'debug'
     gn_args['is_release'] = mode == 'release'
@@ -256,6 +259,8 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
 
     enable_code_coverage = args.code_coverage and gn_args['is_clang']
     gn_args['dart_vm_code_coverage'] = enable_code_coverage
+
+    gn_args['dart_dynamic_modules'] = args.dart_dynamic_modules
 
     gn_args['is_asan'] = sanitizer == 'asan'
     gn_args['is_lsan'] = sanitizer == 'lsan'
@@ -352,7 +357,8 @@ def ProcessOptions(args):
     oses = [ProcessOsOption(os_name) for os_name in args.os]
     for os_name in oses:
         if not os_name in [
-                'android', 'freebsd', 'linux', 'macos', 'win32', 'fuchsia'
+                'android', 'freebsd', 'linux', 'macos', 'win32', 'fuchsia',
+                'ios', 'ios_simulator'
         ]:
             print("Unknown os %s" % os_name)
             return False
@@ -386,6 +392,10 @@ def ProcessOptions(args):
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
+                return False
+        elif os_name == 'ios' or os_name == 'ios_simulator':
+            if not HOST_OS in ['macos']:
+                print(f'Target os {os_name} is only supported on macOS')
                 return False
         elif os_name != HOST_OS:
             print("Unsupported target os %s" % os_name)
@@ -496,6 +506,11 @@ def AddCommonGnOptionArgs(parser):
                         default=False,
                         dest="code_coverage",
                         action='store_true')
+    parser.add_argument('--dart-dynamic-modules',
+                        help='Enable Dart dynamic modules.',
+                        default=False,
+                        dest='dart_dynamic_modules',
+                        action='store_true')
     parser.add_argument('--debug-opt-level',
                         '-d',
                         help='The optimization level to use for debug builds',
@@ -550,7 +565,7 @@ def AddCommonConfigurationArgs(parser):
     parser.add_argument('--os',
                         type=str,
                         help='Target OSs (comma-separated).',
-                        metavar='[all,host,android,fuchsia]',
+                        metavar='[all,host,android,fuchsia,ios,ios_simulator]',
                         default='host')
     parser.add_argument('--sanitizer',
                         type=str,

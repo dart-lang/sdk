@@ -30,6 +30,7 @@ import 'package:vm/modular/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
 
 import 'await_transformer.dart' as awaitTrans;
+import 'ffi_native_address_transformer.dart' as wasmFfiNativeAddressTrans;
 import 'ffi_native_transformer.dart' as wasmFfiNativeTrans;
 import 'records.dart' show RecordShape;
 import 'transformers.dart' as wasmTrans;
@@ -156,7 +157,6 @@ class WasmTarget extends Target {
         'dart:developer',
         'dart:ffi',
         'dart:io',
-        'dart:js',
         'dart:js_interop',
         'dart:js_interop_unsafe',
         'dart:js_util',
@@ -202,7 +202,7 @@ class WasmTarget extends Target {
     // Flutter's dart:ui is also package:ui (in test mode)
     if (importerString.startsWith('package:ui/')) return true;
 
-    // package:js can import dart:js* & dart:_js_*
+    // package:js can import dart:js_util & dart:_js_*
     if (importerString.startsWith('package:js/')) return true;
 
     return false;
@@ -339,6 +339,13 @@ class WasmTarget extends Target {
     if (transitiveImportingDartFfi == null) {
       logger?.call("Skipped ffi transformation");
     } else {
+      wasmFfiNativeAddressTrans.transformLibraries(
+          component,
+          coreTypes,
+          hierarchy,
+          transitiveImportingDartFfi,
+          diagnosticReporter,
+          referenceFromIndex);
       wasmFfiNativeTrans.transformLibraries(component, coreTypes, hierarchy,
           transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
       transformFfiDefinitions.transformLibraries(

@@ -210,13 +210,23 @@ if (current_os == "win") {
   is_nacl = false
   is_posix = true
   is_win = false
+} else if (current_os == "ios") {
+  is_android = false
+  is_chromeos = false
+  is_fuchsia = false
+  is_ios = true
+  is_linux = false
+  is_mac = false
+  is_nacl = false
+  is_posix = true
+  is_win = false
 }
 
 # =============================================================================
 # BUILD OPTIONS
 # =============================================================================
 
-use_flutter_cxx = is_clang && (is_msan || is_tsan)
+use_flutter_cxx = is_clang && (is_msan || is_tsan || is_ios)
 
 # =============================================================================
 # TARGET DEFAULTS
@@ -280,6 +290,8 @@ if (is_linux) {
   _native_compiler_configs += [ "//build/config/linux:sdk" ]
 } else if (is_mac) {
   _native_compiler_configs += [ "//build/config/mac:sdk" ]
+} else if (is_ios) {
+  _native_compiler_configs += [ "//build/config/ios:sdk" ]
 } else if (is_android) {
   _native_compiler_configs += [ "//build/config/android:sdk" ]
 }
@@ -416,6 +428,18 @@ if (is_win) {
 } else if (is_mac) {
   host_toolchain = "//build/toolchain/mac:clang_$host_cpu"
   set_default_toolchain("//build/toolchain/mac:clang_$current_cpu")
+} else if (is_ios) {
+  import("//build/config/ios/ios_sdk.gni")  # For use_ios_simulator
+  host_toolchain = "//build/toolchain/mac:clang_$host_cpu"
+  if (use_ios_simulator) {
+    if (target_cpu == "arm64") {
+      set_default_toolchain("//build/toolchain/mac:ios_clang_arm64_sim")
+    } else {
+      set_default_toolchain("//build/toolchain/mac:ios_clang_x64_sim")
+    }
+  } else {
+    set_default_toolchain("//build/toolchain/mac:ios_clang_arm64")
+  }
 } else if (is_fuchsia) {
   assert(host_cpu == "x64")
   if (host_os == "linux") {

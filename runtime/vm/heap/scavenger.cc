@@ -52,7 +52,7 @@ DEFINE_FLAG(int, new_gen_growth_factor, 2, "Grow new gen by this factor.");
 // object headers, and which doesn't intersect with the target address because
 // of object alignment.
 enum {
-  kForwardingMask = 1 << UntaggedObject::kCardRememberedBit,
+  kForwardingMask = UntaggedObject::CardRememberedBit::mask(),
   kNotForwarded = 0,
   kForwarded = kForwardingMask,
 };
@@ -185,8 +185,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
     // Validate 'this' is a typed data view.
     const uword view_header = ReadHeaderRelaxed(view);
     ASSERT(!IsForwarding(view_header) || view->IsOldObject());
-    ASSERT(IsTypedDataViewClassId(view->GetClassIdMayBeSmi()) ||
-           IsUnmodifiableTypedDataViewClassId(view->GetClassIdMayBeSmi()));
+    ASSERT(IsTypedDataViewClassId(view->GetClassId()) ||
+           IsUnmodifiableTypedDataViewClassId(view->GetClassId()));
 
     // Validate that the backing store is not a forwarding word. There is a data
     // race reader the backing store's header unless there is only one worker.
@@ -200,7 +200,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
         // views. This can cause the RecomputeDataFieldForInternalTypedData to
         // run inappropriately, but when the object copy continues it will fix
         // the data_ pointer.
-        ASSERT_EQUAL(IsExternalTypedDataClassId(td->GetClassId()), is_external);
+        ASSERT_EQUAL(IsExternalTypedDataClassId(td->GetClassIdOfHeapObject()),
+                     is_external);
       }
     }
 #endif
@@ -214,7 +215,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
     // Now we update the inner pointer.
 #if defined(DEBUG)
     if (!parallel) {
-      ASSERT(IsTypedDataClassId(td->GetClassId()));
+      ASSERT(IsTypedDataClassId(td->GetClassIdOfHeapObject()));
     }
 #endif
     view->untag()->RecomputeDataFieldForInternalTypedData();
@@ -669,7 +670,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
 
-class ParallelScavengerTask : public ThreadPool::Task {
+class ParallelScavengerTask : public SafepointTask {
  public:
   ParallelScavengerTask(IsolateGroup* isolate_group,
                         ThreadBarrier* barrier,
@@ -679,10 +680,10 @@ class ParallelScavengerTask : public ThreadPool::Task {
         barrier_(barrier),
         visitor_(visitor),
         num_busy_(num_busy) {}
+  ~ParallelScavengerTask() { barrier_->Release(); }
 
-  virtual void Run() {
+  void Run() override {
     if (!barrier_->TryEnter()) {
-      barrier_->Release();
       return;
     }
 
@@ -695,7 +696,28 @@ class ParallelScavengerTask : public ThreadPool::Task {
     Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
 
     barrier_->Sync();
-    barrier_->Release();
+  }
+
+  void RunBlockedAtSafepoint() override {
+    if (!barrier_->TryEnter()) {
+      return;
+    }
+
+    Thread* thread = Thread::Current();
+    Thread::TaskKind saved_task_kind = thread->task_kind();
+    thread->set_task_kind(Thread::kScavengerTask);
+
+    RunEnteredIsolateGroup();
+
+    thread->set_task_kind(saved_task_kind);
+
+    barrier_->Sync();
+  }
+
+  void RunMain() override {
+    RunEnteredIsolateGroup();
+
+    barrier_->Sync();
   }
 
   void RunEnteredIsolateGroup() {
@@ -901,7 +923,7 @@ class CollectStoreBufferScavengeVisitor : public ObjectPointerVisitor {
       RELEASE_ASSERT_WITH_MSG(obj->IsOldObject(), msg_);
 
       RELEASE_ASSERT_WITH_MSG(!obj->untag()->IsCardRemembered(), msg_);
-      if (obj.GetClassId() == kArrayCid) {
+      if (obj.GetClassIdOfHeapObject() == kArrayCid) {
         const uword length =
             Smi::Value(static_cast<UntaggedArray*>(obj.untag())->length());
         RELEASE_ASSERT_WITH_MSG(!Array::UseCardMarkingForAllocation(length),
@@ -1243,7 +1265,7 @@ void Scavenger::IterateRememberedCards(
 void Scavenger::IterateObjectIdTable(ObjectPointerVisitor* visitor) {
 #ifndef PRODUCT
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IterateObjectIdTable");
-  heap_->isolate_group()->VisitObjectIdRingPointers(visitor);
+  heap_->isolate_group()->VisitPointersInAllServiceIdZones(*visitor);
 #endif  // !PRODUCT
 }
 
@@ -1421,7 +1443,7 @@ intptr_t ScavengerVisitorBase<parallel>::ProcessObject(ObjectPtr obj) {
   }
 #endif
 
-  intptr_t cid = obj->GetClassId();
+  intptr_t cid = obj->GetClassIdOfHeapObject();
   if (UNLIKELY(cid == kWeakPropertyCid)) {
     WeakPropertyPtr weak_property = static_cast<WeakPropertyPtr>(obj);
     if (!IsScavengeSurvivor(weak_property->untag()->key())) {
@@ -1719,7 +1741,7 @@ void Scavenger::PruneWeak(GCLinkedList<Type, PtrType>* list) {
   while (weak != Object::null()) {
     PtrType next;
     if (weak->IsOldObject()) {
-      ASSERT(weak->GetClassId() == Type::kClassId);
+      ASSERT(weak->GetClassIdOfHeapObject() == Type::kClassId);
       next = weak->untag()->next_seen_by_gc_.Decompress(weak->heap_base());
       weak->untag()->next_seen_by_gc_ = Type::null();
       list->Enqueue(weak);
@@ -1727,13 +1749,13 @@ void Scavenger::PruneWeak(GCLinkedList<Type, PtrType>* list) {
       uword header = ReadHeaderRelaxed(weak);
       if (IsForwarding(header)) {
         weak = static_cast<PtrType>(ForwardedObj(header));
-        ASSERT(weak->GetClassId() == Type::kClassId);
+        ASSERT(weak->GetClassIdOfHeapObject() == Type::kClassId);
         next = weak->untag()->next_seen_by_gc_.Decompress(weak->heap_base());
         weak->untag()->next_seen_by_gc_ = Type::null();
         list->Enqueue(weak);
       } else {
         // Collected in this scavenge.
-        ASSERT(weak->GetClassId() == Type::kClassId);
+        ASSERT(weak->GetClassIdOfHeapObject() == Type::kClassId);
         next = weak->untag()->next_seen_by_gc_.Decompress(weak->heap_base());
       }
     }
@@ -2038,28 +2060,21 @@ intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
   ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
   RelaxedAtomic<uintptr_t> num_busy = 0;
 
+  IsolateGroup* isolate_group = heap_->isolate_group();
+
   ParallelScavengerVisitor** visitors =
       new ParallelScavengerVisitor*[num_tasks];
+  IntrusiveDList<SafepointTask> tasks;
   for (intptr_t i = 0; i < num_tasks; i++) {
     FreeList* freelist = heap_->old_space()->DataFreeList(i);
-    visitors[i] = new ParallelScavengerVisitor(
-        heap_->isolate_group(), this, from, freelist, &promotion_stack_);
-    if (i < (num_tasks - 1)) {
-      // Begin scavenging on a helper thread.
-      bool result = Dart::thread_pool()->Run<ParallelScavengerTask>(
-          heap_->isolate_group(), barrier, visitors[i], &num_busy);
-      ASSERT(result);
-    } else {
-      // Last worker is the main thread.
-      ParallelScavengerTask task(heap_->isolate_group(), barrier, visitors[i],
-                                 &num_busy);
-      task.RunEnteredIsolateGroup();
-      barrier->Sync();
-      barrier->Release();
-    }
+    visitors[i] = new ParallelScavengerVisitor(isolate_group, this, from,
+                                               freelist, &promotion_stack_);
+    tasks.Append(new ParallelScavengerTask(isolate_group, barrier, visitors[i],
+                                           &num_busy));
   }
+  isolate_group->safepoint_handler()->RunTasks(&tasks);
 
-  StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
+  StoreBuffer* store_buffer = isolate_group->store_buffer();
   for (intptr_t i = 0; i < num_tasks; i++) {
     ParallelScavengerVisitor* visitor = visitors[i];
     visitor->Finalize(store_buffer);

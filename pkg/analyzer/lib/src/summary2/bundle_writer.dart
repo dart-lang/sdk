@@ -141,8 +141,8 @@ class BundleWriter {
 
     _writePropertyAccessorAugmentations();
 
-    var lastAugmentation = libraryElement.augmentations.lastOrNull;
-    var macroGenerated = lastAugmentation?.macroGenerated;
+    var lastUnit = libraryElement.units.lastOrNull;
+    var macroGenerated = lastUnit?.macroGenerated;
 
     _libraries.add(
       _Library(
@@ -155,10 +155,6 @@ class BundleWriter {
   }
 
   void _writeAugmentationElement(LibraryAugmentationElementImpl augmentation) {
-    _sink.writeOptionalObject(augmentation.macroGenerated, (macroGenerated) {
-      _sink.writeStringUtf8(macroGenerated.code);
-      _sink.writeUint8List(macroGenerated.informativeBytes);
-    });
     _writeUnitElement(augmentation.definingCompilationUnit);
     // The offset where resolution for the augmentation starts.
     // We need it to skip resolution information from the unit.
@@ -636,6 +632,16 @@ class BundleWriter {
     _writeDirectiveUri(element.uri);
   }
 
+  /// We write metadata here, to keep it inside [unitElement] resolution
+  /// data, because [_writePartElement] recursively writes included unit
+  /// elements. But the bundle reader wants all metadata for `parts`
+  /// sequentially.
+  void _writePartElementsMetadata(CompilationUnitElementImpl unitElement) {
+    for (var element in unitElement.parts) {
+      _resolutionSink._writeAnnotationList(element.metadata);
+    }
+  }
+
   /// Write information to update `getter` and `setter` properties of
   /// augmented variables to use the corresponding augmentations.
   void _writePropertyAccessorAugmentations() {
@@ -735,6 +741,8 @@ class BundleWriter {
 
     _writeList(unitElement.libraryImports, _writeImportElement);
     _writeList(unitElement.libraryExports, _writeExportElement);
+
+    _writePartElementsMetadata(unitElement);
     _writeList(unitElement.parts, _writePartElement);
 
     _writeList(unitElement.classes, _writeClassElement);
@@ -755,6 +763,11 @@ class BundleWriter {
       unitElement.accessors.where((e) => !e.isSynthetic).toList(),
       _writePropertyAccessorElement,
     );
+
+    _sink.writeOptionalObject(unitElement.macroGenerated, (macroGenerated) {
+      _sink.writeStringUtf8(macroGenerated.code);
+      _sink.writeUint8List(macroGenerated.informativeBytes);
+    });
   }
 
   static TypeParameterVarianceTag _encodeVariance(
@@ -1138,7 +1151,7 @@ class ResolutionSink extends _SummaryDataWriter {
       return const [];
     }
 
-    var enclosing = declaration.enclosingElement;
+    var enclosing = declaration.enclosingElement3;
     if (enclosing is InstanceElement) {
       var typeParameters = enclosing.typeParameters;
       if (typeParameters.isEmpty) {
@@ -1298,8 +1311,8 @@ class _Library {
   final int offset;
   final List<int> classMembersOffsets;
 
-  /// The only (if any) macro generated augmentation.
-  final MacroGeneratedAugmentationLibrary? macroGenerated;
+  /// The only (if any) macro generated fragment.
+  final MacroGeneratedLibraryFragment? macroGenerated;
 
   _Library({
     required this.uriStr,

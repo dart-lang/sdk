@@ -2040,6 +2040,7 @@ vm's
 vn
 vs
 vtab
+vulnerable
 vvar
 w
 waiting

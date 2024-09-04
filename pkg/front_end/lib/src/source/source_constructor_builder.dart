@@ -9,7 +9,6 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
-import '../base/identifiers.dart';
 import '../base/local_scope.dart';
 import '../base/messages.dart'
     show
@@ -394,7 +393,7 @@ class DeclaredSourceConstructorBuilder
 
   @override
   String get fullNameForErrors {
-    return "${flattenName(declarationBuilder.name, charOffset, fileUri)}"
+    return "${declarationBuilder.name}"
         "${name.isEmpty ? '' : '.$name'}";
   }
 
@@ -587,34 +586,14 @@ class DeclaredSourceConstructorBuilder
     ClassBuilder superclassBuilder;
 
     TypeBuilder? supertype = classBuilder.supertypeBuilder;
-    if (supertype is NamedTypeBuilder) {
-      TypeDeclarationBuilder? declaration = supertype.declaration;
-      if (declaration is ClassBuilder) {
-        superclassBuilder = declaration;
-      } else if (declaration is TypeAliasBuilder) {
-        declaration = declaration.unaliasDeclaration(supertype.typeArguments);
-        if (declaration is ClassBuilder) {
-          superclassBuilder = declaration;
-        } else {
-          // Coverage-ignore-block(suite): Not run.
-          assert(libraryBuilder.loader.assertProblemReportedElsewhere(
-              "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
-              "Unaliased 'declaration' isn't a ClassBuilder.",
-              expectedPhase: CompilationPhaseForProblemReporting.outline));
-          return null;
-        }
-      } else {
-        assert(libraryBuilder.loader.assertProblemReportedElsewhere(
-            "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
-            "'declaration' isn't a ClassBuilder or a TypeAliasBuilder.",
-            expectedPhase: CompilationPhaseForProblemReporting.outline));
-        return null;
-      }
+    TypeDeclarationBuilder? supertypeDeclaration =
+        supertype?.computeUnaliasedDeclaration(isUsedAsClass: false);
+    if (supertypeDeclaration is ClassBuilder) {
+      superclassBuilder = supertypeDeclaration;
     } else {
-      // Coverage-ignore-block(suite): Not run.
       assert(libraryBuilder.loader.assertProblemReportedElsewhere(
           "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
-          "'supertype' isn't a NamedTypeBuilder.",
+          "Unaliased 'declaration' isn't a ClassBuilder.",
           expectedPhase: CompilationPhaseForProblemReporting.outline));
       return null;
     }
@@ -778,7 +757,6 @@ class DeclaredSourceConstructorBuilder
               (positionalSuperParameters ??= <int?>[]).add(null);
             }
           } else {
-            // Coverage-ignore-block(suite): Not run.
             assert(libraryBuilder.loader.assertProblemReportedElsewhere(
                 "DeclaredSourceConstructorBuilder"
                 ".finalizeSuperInitializingFormals: "

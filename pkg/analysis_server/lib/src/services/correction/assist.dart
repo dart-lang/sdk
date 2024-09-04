@@ -47,6 +47,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Add a debug reference to this property',
   );
+  static const ADD_DIGIT_SEPARATORS = AssistKind(
+    'dart.assist.add.digitSeparators',
+    DartAssistKindPriority.DEFAULT,
+    'Add digit separators',
+  );
   static const ADD_RETURN_TYPE = AssistKind(
     'dart.assist.add.returnType',
     DartAssistKindPriority.DEFAULT,
@@ -356,6 +361,11 @@ abstract final class DartAssistKind {
     'dart.assist.joinVariableDeclaration',
     DartAssistKindPriority.DEFAULT,
     'Join variable declaration',
+  );
+  static const REMOVE_DIGIT_SEPARATORS = AssistKind(
+    'dart.assist.remove.digitSeparators',
+    DartAssistKindPriority.DEFAULT,
+    'Remove digit separators',
   );
   static const REMOVE_TYPE_ANNOTATION = AssistKind(
     // TODO(pq): unify w/ fix

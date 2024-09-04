@@ -38,6 +38,7 @@ api.CompilerOptions getOptions(
     Uri? repoDir,
     Uri? packagesFileUri,
     bool compileSdk = false,
+    bool omitPlatform = true,
     api.FileSystem? fileSystem}) {
   Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   api.CompilerOptions options = new api.CompilerOptions()
@@ -46,7 +47,7 @@ api.CompilerOptions getOptions(
     ..target = new VmTarget(new TargetFlags())
     ..librariesSpecificationUri =
         (repoDir ?? Uri.base).resolve("sdk/lib/libraries.json")
-    ..omitPlatform = true
+    ..omitPlatform = omitPlatform
     ..onDiagnostic = onDiagnostic
     ..packagesFileUri = packagesFileUri
     ..environmentDefines = const {};
@@ -67,6 +68,7 @@ Future<BuildResult> compile(
     Uri? repoDir,
     Uri? packagesFileUri,
     bool compileSdk = false,
+    bool omitPlatform = true,
     KernelTargetCreator kernelTargetCreator = KernelTargetTest.new,
     BodyBuilderCreator bodyBuilderCreator = defaultBodyBuilderCreator,
     api.FileSystem? fileSystem,
@@ -77,6 +79,7 @@ Future<BuildResult> compile(
       onDiagnostic: onDiagnostic,
       packagesFileUri: packagesFileUri,
       compileSdk: compileSdk,
+      omitPlatform: omitPlatform,
       fileSystem: fileSystem);
 
   ProcessedOptions processedOptions =

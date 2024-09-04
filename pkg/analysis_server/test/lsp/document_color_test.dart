@@ -176,6 +176,24 @@ const white = [!Color(0xFFFFFFFF)!];
     );
   }
 
+  /// If a color is in a const context, we should not insert 'const'.
+  Future<void> test_colorConstructor_constContext_withSeparators() async {
+    content = '''
+import 'package:flutter/material.dart';
+
+const white = [!Color(0xFF_FF_FF_FF)!];
+''';
+
+    await _checkPresentations(
+      select: Color(alpha: 1, red: 1, green: 0, blue: 0),
+      expectPresentations: [
+        _color('Color.fromARGB(255, 255, 0, 0)'),
+        _color('Color.fromRGBO(255, 0, 0, 1)'),
+        _color('Color(0xFFFF0000)'),
+      ],
+    );
+  }
+
   /// If a color already has 'const' ahead of it, we should include it in the
   /// replacement also.
   Future<void> test_colorConstructor_constKeyword() async {
@@ -200,6 +218,23 @@ var white = [!const Color(0xFFFFFFFF)!];
 import 'package:flutter/material.dart';
 
 var white = [!Color(0xFFFFFFFF)!];
+''';
+
+    await _checkPresentations(
+      select: Color(alpha: 1, red: 1, green: 0, blue: 0),
+      expectPresentations: [
+        _color('Color.fromARGB(255, 255, 0, 0)'),
+        _color('Color.fromRGBO(255, 0, 0, 1)'),
+        _color('Color(0xFFFF0000)'),
+      ],
+    );
+  }
+
+  Future<void> test_colorConstructor_nonConst_withSeparators() async {
+    content = '''
+import 'package:flutter/material.dart';
+
+var white = [!Color(0xFF_FF_FF_FF)!];
 ''';
 
     await _checkPresentations(

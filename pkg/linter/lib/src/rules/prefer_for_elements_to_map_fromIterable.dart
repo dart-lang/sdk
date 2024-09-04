@@ -55,10 +55,10 @@ final pizzaRecipients = {
 class PreferForElementsToMapFromIterable extends LintRule {
   PreferForElementsToMapFromIterable()
       : super(
-            name: 'prefer_for_elements_to_map_fromIterable',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'prefer_for_elements_to_map_fromIterable',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>
@@ -83,7 +83,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = creation.constructorName.staticElement;
     if (element == null ||
         element.name != 'fromIterable' ||
-        element.enclosingElement != context.typeProvider.mapElement) {
+        element.enclosingElement3 != context.typeProvider.mapElement) {
       return;
     }
 

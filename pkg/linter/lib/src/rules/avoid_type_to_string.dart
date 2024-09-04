@@ -54,10 +54,10 @@ Object baz(Thing myThing) {
 class AvoidTypeToString extends LintRule {
   AvoidTypeToString()
       : super(
-            name: 'avoid_type_to_string',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.unintentional});
+          name: 'avoid_type_to_string',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_type_to_string;
@@ -124,7 +124,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   bool _isSimpleIdDeclByCoreObj(SimpleIdentifier simpleIdentifier) {
-    var encloser = simpleIdentifier.staticElement?.enclosingElement;
+    var encloser = simpleIdentifier.staticElement?.enclosingElement3;
     return encloser is ClassElement && encloser.isDartCoreObject;
   }
 

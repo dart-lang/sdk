@@ -566,6 +566,16 @@
         "compiler": "app_jitk"
       }
     },
+    "vm-dyn-(linux|mac|win)-(debug|product|release)-(x64|x64c|simarm|simarm64|simarm64c)": {
+      "options": {
+        "compiler": "dart2bytecode"
+      }
+    },
+    "vm-aot-dyn-(linux|mac|win)-(debug|release|product)-(x64|x64c|simarm|simarm64|simarm64c)": {
+      "options": {
+        "compiler": "dart2bytecode"
+      }
+    },
     "ddc-(linux|win)-chrome": {
       "options": {
         "checked": true,
@@ -966,8 +976,6 @@
         "vm-linux-debug-ia32",
         "vm-linux-release-ia32",
         "vm-linux-release-x64",
-        "vm-mac-debug-arm64",
-        "vm-mac-release-arm64",
         "vm-win-debug-x64",
         "vm-win-release-ia32",
         "vm-win-release-x64"
@@ -995,6 +1003,45 @@
           ],
           "fileset": "vm",
           "shards": 16
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-mac-debug-arm64",
+        "vm-mac-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM JIT builders on mac arm64. Includes VM service testing and building shared libraries for iOS target."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--codesigning-identity=-",
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}",
+            "--default-suites",
+            "co19",
+            "pkg/pkg/vm_service/"
+          ],
+          "fileset": "vm",
+          "shards": 16
+        },
+        {
+          "name": "build iOS shared library",
+          "script": "tools/build.py",
+          "arguments": [
+            "--codesigning-identity=-",
+            "--os=ios",
+            "runtime:dart_jit_library"
+          ]
         }
       ]
     },
@@ -1267,6 +1314,35 @@
           ],
           "fileset": "vm",
           "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-dyn-linux-debug-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the dynamic modules VM AOT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--dart-dynamic-modules",
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-dyn-${system}-${mode}-${arch}",
+            "corelib",
+            "language"
+          ],
+          "fileset": "vm",
+          "shards": 5
         }
       ]
     },
@@ -2057,15 +2133,6 @@
           "name": "ddc co19 tests",
           "arguments": [
             "-nddc-canary-linux-chrome",
-            "co19"
-          ],
-          "shards": 6,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "ddc co19 tests unsound",
-          "arguments": [
-            "-nddc-canary-linux-chrome-unsound",
             "co19"
           ],
           "shards": 6,

@@ -42,6 +42,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @34
+          reference: <testLibraryFragment>::@extension::E
 ''');
   }
 
@@ -82,6 +85,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
+          fields
+            x @36
+              reference: <testLibraryFragment>::@extension::E::@field::x
+              enclosingFragment: <testLibraryFragment>::@extension::E
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@extension::E::@getter::x
+              enclosingFragment: <testLibraryFragment>::@extension::E
 ''');
   }
 
@@ -110,6 +124,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
 ''');
   }
 
@@ -137,6 +154,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
 ''');
   }
 
@@ -230,6 +250,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @31
+          reference: <testLibraryFragment>::@extension::E
+          fields
+            foo @65
+              reference: <testLibraryFragment>::@extension::E::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extension::E
+          getters
+            get foo @-1
+              reference: <testLibraryFragment>::@extension::E::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::E
+          methods
+            bar @88
+              reference: <testLibraryFragment>::@extension::E::@method::bar
+              enclosingFragment: <testLibraryFragment>::@extension::E
+              metadata
+                Annotation
+                  atSign: @ @76
+                  name: SimpleIdentifier
+                    token: foo @77
+                    staticElement: <testLibraryFragment>::@extension::E::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@extension::E::@getter::foo
 ''');
   }
 
@@ -301,11 +344,22 @@ library
       classes
         class A @22
           reference: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
+      extensions
+        extension E @50
+          reference: <testLibraryFragment>::@extension::E
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
 
@@ -345,6 +399,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
+          fields
+            foo @-1
+              reference: <testLibraryFragment>::@extension::E::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extension::E
+          getters
+            get foo @31
+              reference: <testLibraryFragment>::@extension::E::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::E
 ''');
   }
 
@@ -388,6 +453,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
+          fields
+            foo @-1
+              reference: <testLibraryFragment>::@extension::E::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extension::E
+          setters
+            set foo= @27
+              reference: <testLibraryFragment>::@extension::E::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::E
 ''');
   }
 }
@@ -395,18 +471,18 @@ library
 abstract class ExtensionElementTest_augmentation extends ElementsBaseTest {
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-import augment 'b.dart';
+part of 'test.dart';
+part 'b.dart';
 augment extension A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 augment extension A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {}
 ''');
 
@@ -415,40 +491,44 @@ extension A on int {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-      augmentationImports
-        package:test/b.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
-          reference: <testLibrary>::@augmentation::package:test/b.dart
-          definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           augmented
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
-        augment A @72
+        augment A @54
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        augment A @44
+        augment A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
@@ -462,11 +542,24 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @54
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @36
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
   exportedReferences
     declared <testLibraryFragment>::@extension::A
   exportNamespace
@@ -476,52 +569,56 @@ library
 
   test_augmentationTarget_no2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-import augment 'b.dart';
+part of 'test.dart';
+part 'b.dart';
 augment extension A {
   void foo1() {}
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 augment extension A {
   void foo2() {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-      augmentationImports
-        package:test/b.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
-          reference: <testLibrary>::@augmentation::package:test/b.dart
-          definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
-        augment A @72
+        augment A @54
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           extendedType: InvalidType
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           methods
-            foo1 @83
+            foo1 @65
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::foo1
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: void
@@ -530,15 +627,15 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::foo1
               <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        augment A @44
+        augment A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
-            foo2 @55
+            foo2 @47
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               returnType: void
@@ -551,21 +648,37 @@ library
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @54
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          methods
+            foo1 @65
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::foo1
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @36
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo2 @47
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
 ''');
   }
 
   test_augmented_field_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment static int foo = 1;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   static int foo = 0;
 }
@@ -576,22 +689,25 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            static foo @59
+            static foo @49
               reference: <testLibraryFragment>::@extension::A::@field::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               type: int
@@ -623,15 +739,15 @@ library
               <testLibraryFragment>::@extension::A::@getter::foo
               <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           fields
-            augment static foo @72
+            augment static foo @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               type: int
@@ -644,29 +760,55 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo @49
+              reference: <testLibraryFragment>::@extension::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+          getters
+            get foo @-1
+              reference: <testLibraryFragment>::@extension::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extension::A::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          fields
+            foo @64
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@field::foo
 ''');
   }
 
   test_augmented_field_augment_field2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment static int foo = 1;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment static int foo = 2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 extension A on int {
   static int foo = 0;
 }
@@ -677,26 +819,31 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
-        A @60
+        A @40
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            static foo @84
+            static foo @64
               reference: <testLibraryFragment>::@extension::A::@field::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               type: int
@@ -728,16 +875,16 @@ library
               <testLibraryFragment>::@extension::A::@getter::foo
               <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           fields
-            augment static foo @72
+            augment static foo @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               type: int
@@ -746,15 +893,15 @@ library
               augmentationTarget: <testLibraryFragment>::@extension::A::@field::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            augment static foo @72
+            augment static foo @64
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               type: int
@@ -767,32 +914,69 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @40
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo @64
+              reference: <testLibraryFragment>::@extension::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+          getters
+            get foo @-1
+              reference: <testLibraryFragment>::@extension::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extension::A::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          fields
+            foo @64
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@field::foo
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo @64
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
 ''');
   }
 
   test_augmented_field_augment_field_afterGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment static int get foo => 1;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment static int foo = 2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 extension A on int {
   static int foo = 0;
 }
@@ -803,26 +987,31 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
-        A @60
+        A @40
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            static foo @84
+            static foo @64
               reference: <testLibraryFragment>::@extension::A::@field::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               type: int
@@ -855,16 +1044,16 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
               <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           accessors
-            augment static get foo @76
+            augment static get foo @68
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
@@ -872,15 +1061,15 @@ library
               variable: field_0
               augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            augment static foo @72
+            augment static foo @64
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               type: int
@@ -893,32 +1082,69 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @40
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo @64
+              reference: <testLibraryFragment>::@extension::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+          getters
+            get foo @-1
+              reference: <testLibraryFragment>::@extension::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extension::A::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          getters
+            augment get foo @68
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo @64
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@field::foo
 ''');
   }
 
   test_augmented_field_augment_field_afterSetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment static set foo(int _) {}
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment static int foo = 2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 extension A on int {
   static int foo = 0;
 }
@@ -929,26 +1155,31 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
-        A @60
+        A @40
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            static foo @84
+            static foo @64
               reference: <testLibraryFragment>::@extension::A::@field::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               type: int
@@ -981,35 +1212,35 @@ library
               <testLibraryFragment>::@extension::A::@getter::foo
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           accessors
-            augment static set foo= @72
+            augment static set foo= @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               parameters
-                requiredPositional _ @80
+                requiredPositional _ @72
                   type: int
               returnType: void
               id: setter_1
               variable: field_0
               augmentationTarget: <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            augment static foo @72
+            augment static foo @64
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               type: int
@@ -1022,24 +1253,61 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @40
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo @64
+              reference: <testLibraryFragment>::@extension::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+          getters
+            get foo @-1
+              reference: <testLibraryFragment>::@extension::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extension::A::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          setters
+            augment set foo= @64
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo @64
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@field::foo
 ''');
   }
 
   test_augmented_field_augment_field_differentTypes() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment static double foo = 1.2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   static int foo = 0;
 }
@@ -1050,22 +1318,25 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            static foo @59
+            static foo @49
               reference: <testLibraryFragment>::@extension::A::@field::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               type: int
@@ -1097,15 +1368,15 @@ library
               <testLibraryFragment>::@extension::A::@getter::foo
               <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           fields
-            augment static foo @75
+            augment static foo @67
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               type: double
@@ -1118,8 +1389,34 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo @49
+              reference: <testLibraryFragment>::@extension::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+          getters
+            get foo @-1
+              reference: <testLibraryFragment>::@extension::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extension::A::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          fields
+            foo @67
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@field::foo
 ''');
   }
 
@@ -1127,14 +1424,14 @@ library
   /// so we need a way to handle it.
   test_augmented_field_augment_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment static int foo = 1;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   static int get foo => 0;
 }
@@ -1145,16 +1442,19 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
@@ -1168,7 +1468,7 @@ library
               getter: getter_0
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
           accessors
-            static get foo @63
+            static get foo @53
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: int
@@ -1180,15 +1480,15 @@ library
             accessors
               <testLibraryFragment>::@extension::A::@getter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           fields
-            augment static foo @72
+            augment static foo @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               type: int
@@ -1201,21 +1501,43 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo @-1
+              reference: <testLibraryFragment>::@extension::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+          getters
+            get foo @53
+              reference: <testLibraryFragment>::@extension::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          fields
+            foo @64
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@field::foo
 ''');
   }
 
   test_augmented_fields_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   static int foo2 = 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   static int foo1 = 0;
 }
@@ -1226,22 +1548,25 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            static foo1 @59
+            static foo1 @49
               reference: <testLibraryFragment>::@extension::A::@field::foo1
               enclosingElement: <testLibraryFragment>::@extension::A
               type: int
@@ -1275,15 +1600,15 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           fields
-            static foo2 @64
+            static foo2 @56
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               type: int
@@ -1313,21 +1638,53 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo1 @49
+              reference: <testLibraryFragment>::@extension::A::@field::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          getters
+            get foo1 @-1
+              reference: <testLibraryFragment>::@extension::A::@getter::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          setters
+            set foo1= @-1
+              reference: <testLibraryFragment>::@extension::A::@setter::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          fields
+            foo2 @56
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          getters
+            get foo2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          setters
+            set foo2= @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
   test_augmented_getters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   int get foo2 => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   int get foo1 => 0;
 }
@@ -1338,16 +1695,19 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
@@ -1360,7 +1720,7 @@ library
               id: field_0
               getter: getter_0
           accessors
-            get foo1 @56
+            get foo1 @46
               reference: <testLibraryFragment>::@extension::A::@getter::foo1
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: int
@@ -1374,10 +1734,10 @@ library
               <testLibraryFragment>::@extension::A::@getter::foo1
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
@@ -1389,7 +1749,7 @@ library
               id: field_1
               getter: getter_1
           accessors
-            get foo2 @61
+            get foo2 @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
@@ -1401,21 +1761,45 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo1 @-1
+              reference: <testLibraryFragment>::@extension::A::@field::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          getters
+            get foo1 @46
+              reference: <testLibraryFragment>::@extension::A::@getter::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          fields
+            foo2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          getters
+            get foo2 @53
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
   test_augmented_getters_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A<T2> {
   T2 get foo2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A<T1> on int {
   T1 get foo1;
 }
@@ -1426,20 +1810,23 @@ extension A<T1> on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           typeParameters
-            covariant T1 @37
+            covariant T1 @27
               defaultType: dynamic
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
@@ -1451,7 +1838,7 @@ library
               id: field_0
               getter: getter_0
           accessors
-            abstract get foo1 @59
+            abstract get foo1 @49
               reference: <testLibraryFragment>::@extension::A::@getter::foo1
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: T1
@@ -1469,14 +1856,14 @@ library
                 base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
                 augmentationSubstitution: {T2: T1}
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @49
+            covariant T2 @41
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@extension::A
           fields
@@ -1487,7 +1874,7 @@ library
               id: field_1
               getter: getter_1
           accessors
-            abstract get foo2 @64
+            abstract get foo2 @56
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: T2
@@ -1499,21 +1886,45 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo1 @-1
+              reference: <testLibraryFragment>::@extension::A::@field::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          getters
+            get foo1 @49
+              reference: <testLibraryFragment>::@extension::A::@getter::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          fields
+            foo2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          getters
+            get foo2 @56
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
   test_augmented_getters_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment static int get foo => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   static int foo = 0;
 }
@@ -1524,22 +1935,25 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            static foo @59
+            static foo @49
               reference: <testLibraryFragment>::@extension::A::@field::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               type: int
@@ -1571,15 +1985,15 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
               <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           accessors
-            augment static get foo @76
+            augment static get foo @68
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
@@ -1592,29 +2006,55 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo @49
+              reference: <testLibraryFragment>::@extension::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          getters
+            get foo @-1
+              reference: <testLibraryFragment>::@extension::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extension::A::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          getters
+            augment get foo @68
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@getter::foo
 ''');
   }
 
   test_augmented_getters_augment_field2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment static int get foo => 0;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment static int get foo => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 extension A on int {
   static int foo = 0;
 }
@@ -1625,26 +2065,31 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
-        A @60
+        A @40
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            static foo @84
+            static foo @64
               reference: <testLibraryFragment>::@extension::A::@field::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               type: int
@@ -1676,16 +2121,16 @@ library
               <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
               <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           accessors
-            augment static get foo @76
+            augment static get foo @68
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
@@ -1694,15 +2139,15 @@ library
               augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           accessors
-            augment static get foo @76
+            augment static get foo @68
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               returnType: int
@@ -1715,24 +2160,61 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @40
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo @64
+              reference: <testLibraryFragment>::@extension::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          getters
+            get foo @-1
+              reference: <testLibraryFragment>::@extension::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extension::A::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          getters
+            augment get foo @68
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@getter::foo
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          getters
+            augment get foo @68
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
   test_augmented_getters_augment_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment int get foo1 => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   int get foo1 => 0;
   int get foo2 => 0;
@@ -1744,16 +2226,19 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
@@ -1772,14 +2257,14 @@ library
               id: field_1
               getter: getter_1
           accessors
-            get foo1 @56
+            get foo1 @46
               reference: <testLibraryFragment>::@extension::A::@getter::foo1
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
-            get foo2 @77
+            get foo2 @67
               reference: <testLibraryFragment>::@extension::A::@getter::foo2
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: int
@@ -1793,15 +2278,15 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
               <testLibraryFragment>::@extension::A::@getter::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           accessors
-            augment get foo1 @69
+            augment get foo1 @61
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
@@ -1814,29 +2299,57 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo1 @-1
+              reference: <testLibraryFragment>::@extension::A::@field::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
+            foo2 @-1
+              reference: <testLibraryFragment>::@extension::A::@field::foo2
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          getters
+            get foo1 @46
+              reference: <testLibraryFragment>::@extension::A::@getter::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
+            get foo2 @67
+              reference: <testLibraryFragment>::@extension::A::@getter::foo2
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          getters
+            augment get foo1 @61
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@getter::foo1
 ''');
   }
 
   test_augmented_getters_augment_getter2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment int get foo => 0;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment int get foo => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 extension A on int {
   int get foo => 0;
 }
@@ -1847,20 +2360,25 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
-        A @60
+        A @40
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
@@ -1873,7 +2391,7 @@ library
               id: field_0
               getter: getter_0
           accessors
-            get foo @81
+            get foo @61
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: int
@@ -1886,16 +2404,16 @@ library
             accessors
               <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           accessors
-            augment get foo @69
+            augment get foo @61
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
@@ -1904,15 +2422,15 @@ library
               augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           accessors
-            augment get foo @69
+            augment get foo @61
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               returnType: int
@@ -1925,24 +2443,57 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @40
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo @-1
+              reference: <testLibraryFragment>::@extension::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          getters
+            get foo @61
+              reference: <testLibraryFragment>::@extension::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          getters
+            augment get foo @61
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@getter::foo
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          getters
+            augment get foo @61
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
   test_augmented_methods() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   void bar() {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   void foo() {}
 }
@@ -1952,22 +2503,25 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
-            foo @53
+            foo @43
               reference: <testLibraryFragment>::@extension::A::@method::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: void
@@ -1976,15 +2530,15 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
               <testLibraryFragment>::@extension::A::@method::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           methods
-            bar @58
+            bar @50
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: void
@@ -1994,21 +2548,37 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@extension::A::@method::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          methods
+            bar @50
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
   test_augmented_methods_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment void foo1() {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   void foo1() {}
   void foo2() {}
@@ -2019,27 +2589,30 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
-            foo1 @53
+            foo1 @43
               reference: <testLibraryFragment>::@extension::A::@method::foo1
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: void
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
-            foo2 @70
+            foo2 @60
               reference: <testLibraryFragment>::@extension::A::@method::foo2
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: void
@@ -2048,15 +2621,15 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
               <testLibraryFragment>::@extension::A::@method::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           methods
-            augment foo1 @66
+            augment foo1 @58
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: void
@@ -2067,29 +2640,50 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo1 @43
+              reference: <testLibraryFragment>::@extension::A::@method::foo1
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
+            foo2 @60
+              reference: <testLibraryFragment>::@extension::A::@method::foo2
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          methods
+            augment foo1 @58
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
+              previousFragment: <testLibraryFragment>::@extension::A::@method::foo1
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
   test_augmented_methods_augment2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-import augment 'b.dart';
+part of 'test.dart';
+part 'b.dart';
 augment extension A {
   augment void foo() {}
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 augment extension A {
   augment void foo() {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   void foo() {}
 }
@@ -2099,27 +2693,25 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-      augmentationImports
-        package:test/b.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
-          reference: <testLibrary>::@augmentation::package:test/b.dart
-          definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
-            foo @53
+            foo @43
               reference: <testLibraryFragment>::@extension::A::@method::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: void
@@ -2128,31 +2720,37 @@ library
             methods
               <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
-        augment A @72
+        augment A @54
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           methods
-            augment foo @91
+            augment foo @73
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@extension::A::@method::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        augment A @44
+        augment A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
-            augment foo @63
+            augment foo @55
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               returnType: void
@@ -2163,24 +2761,53 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@extension::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @54
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          methods
+            augment foo @73
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              previousFragment: <testLibraryFragment>::@extension::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @36
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            augment foo @55
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
 ''');
   }
 
   test_augmented_methods_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A<T2> {
   T2 bar() => throw 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A<T> on int {
   T foo() => throw 0;
 }
@@ -2190,25 +2817,28 @@ extension A<T> on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           typeParameters
-            covariant T @37
+            covariant T @27
               defaultType: dynamic
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
-            foo @53
+            foo @43
               reference: <testLibraryFragment>::@extension::A::@method::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: T
@@ -2219,18 +2849,18 @@ library
                 augmentationSubstitution: {T2: T}
               <testLibraryFragment>::@extension::A::@method::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @49
+            covariant T2 @41
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@extension::A
           methods
-            bar @60
+            bar @52
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: T2
@@ -2240,21 +2870,37 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@extension::A::@method::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          methods
+            bar @52
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
   test_augmented_methods_generic_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A<T2> {
   augment T2 foo() => throw 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A<T> on int {
   T foo() => throw 0;
 }
@@ -2264,25 +2910,28 @@ extension A<T> on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           typeParameters
-            covariant T @37
+            covariant T @27
               defaultType: dynamic
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
-            foo @53
+            foo @43
               reference: <testLibraryFragment>::@extension::A::@method::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: T
@@ -2293,18 +2942,18 @@ library
                 base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
                 augmentationSubstitution: {T2: T}
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @49
+            covariant T2 @41
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@extension::A
           methods
-            augment foo @68
+            augment foo @60
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: T2
@@ -2315,21 +2964,39 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@extension::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          methods
+            augment foo @60
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              previousFragment: <testLibraryFragment>::@extension::A::@method::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
   test_augmented_methods_typeParameterCountMismatch() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A<T> {
   augment void foo() {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   void foo() {}
   void bar() {}
@@ -2340,27 +3007,30 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
-            foo @53
+            foo @43
               reference: <testLibraryFragment>::@extension::A::@method::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: void
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-            bar @69
+            bar @59
               reference: <testLibraryFragment>::@extension::A::@method::bar
               enclosingElement: <testLibraryFragment>::@extension::A
               returnType: void
@@ -2371,18 +3041,18 @@ library
                 base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
                 augmentationSubstitution: {T: InvalidType}
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T @49
+            covariant T @41
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@extension::A
           methods
-            augment foo @69
+            augment foo @61
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: void
@@ -2393,21 +3063,42 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@extension::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+            bar @59
+              reference: <testLibraryFragment>::@extension::A::@method::bar
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          methods
+            augment foo @61
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              previousFragment: <testLibraryFragment>::@extension::A::@method::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
   test_augmented_setters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   set foo2(int _) {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   set foo1(int _) {}
 }
@@ -2418,16 +3109,19 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
@@ -2440,11 +3134,11 @@ library
               id: field_0
               setter: setter_0
           accessors
-            set foo1= @52
+            set foo1= @42
               reference: <testLibraryFragment>::@extension::A::@setter::foo1
               enclosingElement: <testLibraryFragment>::@extension::A
               parameters
-                requiredPositional _ @61
+                requiredPositional _ @51
                   type: int
               returnType: void
               id: setter_0
@@ -2457,10 +3151,10 @@ library
               <testLibraryFragment>::@extension::A::@setter::foo1
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
@@ -2472,11 +3166,11 @@ library
               id: field_1
               setter: setter_1
           accessors
-            set foo2= @57
+            set foo2= @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               parameters
-                requiredPositional _ @66
+                requiredPositional _ @58
                   type: int
               returnType: void
               id: setter_1
@@ -2487,21 +3181,45 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo1 @-1
+              reference: <testLibraryFragment>::@extension::A::@field::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          setters
+            set foo1= @42
+              reference: <testLibraryFragment>::@extension::A::@setter::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          fields
+            foo2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          setters
+            set foo2= @49
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
   test_augmented_setters_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment static set foo(int _) {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   static int foo = 0;
 }
@@ -2512,22 +3230,25 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            static foo @59
+            static foo @49
               reference: <testLibraryFragment>::@extension::A::@field::foo
               enclosingElement: <testLibraryFragment>::@extension::A
               type: int
@@ -2559,19 +3280,19 @@ library
               <testLibraryFragment>::@extension::A::@getter::foo
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           accessors
-            augment static set foo= @72
+            augment static set foo= @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               parameters
-                requiredPositional _ @80
+                requiredPositional _ @72
                   type: int
               returnType: void
               id: setter_1
@@ -2583,21 +3304,47 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo @49
+              reference: <testLibraryFragment>::@extension::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          getters
+            get foo @-1
+              reference: <testLibraryFragment>::@extension::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extension::A::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          setters
+            augment set foo= @64
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@setter::foo
 ''');
   }
 
   test_augmented_setters_augment_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment extension A {
   augment set foo1(int _) {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 extension A on int {
   set foo1(int _) {}
   set foo2(int _) {}
@@ -2609,16 +3356,19 @@ extension A on int {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
-        A @35
+        A @25
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
@@ -2637,21 +3387,21 @@ library
               id: field_1
               setter: setter_1
           accessors
-            set foo1= @52
+            set foo1= @42
               reference: <testLibraryFragment>::@extension::A::@setter::foo1
               enclosingElement: <testLibraryFragment>::@extension::A
               parameters
-                requiredPositional _ @61
+                requiredPositional _ @51
                   type: int
               returnType: void
               id: setter_0
               variable: field_0
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
-            set foo2= @73
+            set foo2= @63
               reference: <testLibraryFragment>::@extension::A::@setter::foo2
               enclosingElement: <testLibraryFragment>::@extension::A
               parameters
-                requiredPositional _ @82
+                requiredPositional _ @72
                   type: int
               returnType: void
               id: setter_1
@@ -2664,19 +3414,19 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
               <testLibraryFragment>::@extension::A::@setter::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @47
+        augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           accessors
-            augment set foo1= @65
+            augment set foo1= @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               parameters
-                requiredPositional _ @74
+                requiredPositional _ @66
                   type: int
               returnType: void
               id: setter_2
@@ -2688,27 +3438,55 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @25
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          fields
+            foo1 @-1
+              reference: <testLibraryFragment>::@extension::A::@field::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
+            foo2 @-1
+              reference: <testLibraryFragment>::@extension::A::@field::foo2
+              enclosingFragment: <testLibraryFragment>::@extension::A
+          setters
+            set foo1= @42
+              reference: <testLibraryFragment>::@extension::A::@setter::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
+            set foo2= @63
+              reference: <testLibraryFragment>::@extension::A::@setter::foo2
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          setters
+            augment set foo1= @57
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              previousFragment: <testLibraryFragment>::@extension::A::@setter::foo1
 ''');
   }
 
   test_augmentedBy_class2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 
 extension A on int {}
 ''');
@@ -2718,36 +3496,41 @@ extension A on int {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
-        A @61
+        A @41
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
-        augment class A @44
+        augment class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTargetAny: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
-        augment class A @44
+        augment class A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTargetAny: <testLibraryFragment>::@extension::A
@@ -2757,16 +3540,19 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @41
+          reference: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class A @44
+        class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @44
+        class A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
   classes
     class A
@@ -2782,20 +3568,20 @@ library
 
   test_augmentedBy_class_extension() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment extension A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 
 extension A on int {}
 ''');
@@ -2805,38 +3591,43 @@ extension A on int {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
-        A @61
+        A @41
           reference: <testLibraryFragment>::@extension::A
           enclosingElement: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           augmented
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
-        augment class A @44
+        augment class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTargetAny: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
-        augment A @48
+        augment A @40
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
@@ -2846,14 +3637,22 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @41
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class A @44
+        class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @40
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
   classes
     class A
       reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A

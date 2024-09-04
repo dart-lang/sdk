@@ -27,7 +27,6 @@ import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/type_algorithms.dart';
 import '../type_inference/type_inference_engine.dart';
 import 'class_declaration.dart';
 import 'source_builder_mixins.dart';
@@ -77,6 +76,8 @@ class SourceExtensionTypeDeclarationBuilder
 
   final IndexedContainer? indexedContainer;
 
+  Nullability? _nullability;
+
   SourceExtensionTypeDeclarationBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -112,7 +113,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
-    _nameSpace = _nameSpaceBuilder.buildNameSpace(this);
+    _nameSpace = _nameSpaceBuilder.buildNameSpace(libraryBuilder, this);
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension type $name",
         parent: typeParameterScope);
@@ -179,8 +180,8 @@ class SourceExtensionTypeDeclarationBuilder
 
         if (typeParameters?.isNotEmpty ?? false) {
           for (NominalVariableBuilder variable in typeParameters!) {
-            Variance variance = computeTypeVariableBuilderVariance(
-                    variable, typeBuilder,
+            Variance variance = typeBuilder
+                .computeTypeVariableBuilderVariance(variable,
                     sourceLoader: libraryBuilder.loader)
                 .variance!;
             if (!variance.greaterThanOrEqual(variable.variance)) {
@@ -548,26 +549,21 @@ class SourceExtensionTypeDeclarationBuilder
           }
         }
 
-        if (typeBuilder is NamedTypeBuilder) {
-          TypeDeclarationBuilder? typeDeclaration = typeBuilder.declaration;
-          if (typeDeclaration is TypeAliasBuilder) {
-            typeDeclaration =
-                typeDeclaration.unaliasDeclaration(typeBuilder.typeArguments);
-          }
-          if (typeDeclaration is ClassBuilder ||
-              typeDeclaration is ExtensionTypeDeclarationBuilder) {
-            if (!implemented.add(typeDeclaration!)) {
-              duplicationProblems ??= {};
-              switch (duplicationProblems[typeDeclaration]) {
-                case (:var count, :var offset):
-                  duplicationProblems[typeDeclaration] =
-                      (count: count + 1, offset: offset);
-                case null:
-                  duplicationProblems[typeDeclaration] = (
-                    count: 1,
-                    offset: typeBuilder.charOffset ?? TreeNode.noOffset
-                  );
-              }
+        TypeDeclarationBuilder? typeDeclaration =
+            typeBuilder.computeUnaliasedDeclaration(isUsedAsClass: false);
+        if (typeDeclaration is ClassBuilder ||
+            typeDeclaration is ExtensionTypeDeclarationBuilder) {
+          if (!implemented.add(typeDeclaration!)) {
+            duplicationProblems ??= {};
+            switch (duplicationProblems[typeDeclaration]) {
+              case (:var count, :var offset):
+                duplicationProblems[typeDeclaration] =
+                    (count: count + 1, offset: offset);
+              case null:
+                duplicationProblems[typeDeclaration] = (
+                  count: 1,
+                  offset: typeBuilder.charOffset ?? TreeNode.noOffset
+                );
             }
           }
         }
@@ -584,6 +580,76 @@ class SourceExtensionTypeDeclarationBuilder
         }
       }
     }
+  }
+
+  @override
+  Nullability computeNullability(
+          {Map<ExtensionTypeDeclarationBuilder, TraversalState>?
+              traversalState}) =>
+      _nullability ??= _computeNullability(traversalState: traversalState);
+
+  Nullability _computeNullabilityFromType(TypeBuilder typeBuilder,
+      {required Map<ExtensionTypeDeclarationBuilder, TraversalState>
+          traversalState}) {
+    Nullability nullability = typeBuilder.nullabilityBuilder.build();
+    TypeDeclarationBuilder? declaration = typeBuilder.declaration;
+    switch (declaration) {
+      case TypeAliasBuilder():
+        return combineNullabilitiesForSubstitution(
+            inner: _computeNullabilityFromType(
+                declaration.unalias(typeBuilder.typeArguments,
+                    unboundTypes: [], unboundTypeVariables: [])!,
+                traversalState: traversalState),
+            outer: nullability);
+      case ExtensionTypeDeclarationBuilder():
+        return combineNullabilitiesForSubstitution(
+            inner:
+                declaration.computeNullability(traversalState: traversalState),
+            outer: nullability);
+      case ClassBuilder():
+      // Coverage-ignore(suite): Not run.
+      case NominalVariableBuilder():
+      // Coverage-ignore(suite): Not run.
+      case StructuralVariableBuilder():
+      // Coverage-ignore(suite): Not run.
+      case ExtensionBuilder():
+      // Coverage-ignore(suite): Not run.
+      case BuiltinTypeDeclarationBuilder():
+      // Coverage-ignore(suite): Not run.
+      case InvalidTypeDeclarationBuilder():
+      // Coverage-ignore(suite): Not run.
+      case OmittedTypeDeclarationBuilder():
+      case null:
+        return nullability;
+    }
+  }
+
+  Nullability _computeNullability(
+      {Map<ExtensionTypeDeclarationBuilder, TraversalState>? traversalState}) {
+    traversalState ??= {};
+    Nullability nullability = Nullability.undetermined;
+    switch (traversalState[this] ??= TraversalState.unvisited) {
+      case TraversalState.unvisited:
+        traversalState[this] = TraversalState.active;
+        List<TypeBuilder>? interfaceBuilders = this.interfaceBuilders;
+        if (interfaceBuilders != null) {
+          for (TypeBuilder interfaceBuilder in interfaceBuilders) {
+            Nullability interfaceNullability = _computeNullabilityFromType(
+                interfaceBuilder,
+                traversalState: traversalState);
+            if (interfaceNullability == Nullability.nonNullable) {
+              nullability = Nullability.nonNullable;
+              break;
+            }
+          }
+        }
+        traversalState[this] = TraversalState.visited;
+      // Coverage-ignore(suite): Not run.
+      case TraversalState.active:
+      case TraversalState.visited:
+        traversalState[this] = TraversalState.visited;
+    }
+    return nullability;
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
@@ -817,14 +883,9 @@ class SourceExtensionTypeDeclarationBuilder
         TypeBuilder interface = interfaces[i];
         TypeDeclarationBuilder? declarationBuilder = interface.declaration;
         if (declarationBuilder is TypeAliasBuilder) {
-          TypeAliasBuilder aliasBuilder = declarationBuilder;
-          NamedTypeBuilder namedBuilder = interface as NamedTypeBuilder;
-          declarationBuilder = aliasBuilder.unaliasDeclaration(
-              namedBuilder.typeArguments,
-              isUsedAsClass: true,
-              usedAsClassCharOffset: namedBuilder.charOffset,
-              usedAsClassFileUri: namedBuilder.fileUri);
-          result[declarationBuilder] = aliasBuilder;
+          TypeDeclarationBuilder? unaliasedDeclaration =
+              interface.computeUnaliasedDeclaration(isUsedAsClass: true);
+          result[unaliasedDeclaration] = declarationBuilder;
         } else {
           result[declarationBuilder] = null;
         }

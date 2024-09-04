@@ -235,7 +235,7 @@ class LibraryContext {
           infoDeclarationStore: infoDeclarationStore,
         );
         elementFactory.addBundle(bundleReader);
-        _addMacroAugmentations(cycle, bundleReader);
+        _addMacroParts(cycle, bundleReader);
       }
 
       // If we can compile to kernel, check if there are macros.
@@ -330,14 +330,14 @@ class LibraryContext {
     return keySet;
   }
 
-  /// Create files with macro generated augmentation libraries.
-  void _addMacroAugmentations(LibraryCycle cycle, BundleReader bundleReader) {
+  /// Create files with macro generated parts.
+  void _addMacroParts(LibraryCycle cycle, BundleReader bundleReader) {
     for (var libraryReader in bundleReader.libraryMap.values) {
       var macroGeneratedCode = libraryReader.macroGeneratedCode;
       if (macroGeneratedCode != null) {
         for (var libraryKind in cycle.libraries) {
           if (libraryKind.file.uri == libraryReader.uri) {
-            libraryKind.addMacroAugmentation(
+            libraryKind.addMacroPart(
               macroGeneratedCode,
               partialIndex: null,
               performance: OperationPerformanceImpl('<root>'),

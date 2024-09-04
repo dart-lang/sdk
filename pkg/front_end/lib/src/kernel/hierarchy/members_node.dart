@@ -704,14 +704,8 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         mixedInTypeBuilder = named.mixedInTypeBuilder!;
         mixin = mixedInTypeBuilder.declaration!;
       }
-      if (mixin is TypeAliasBuilder) {
-        TypeAliasBuilder aliasBuilder = mixin;
-        NamedTypeBuilder namedBuilder = mixedInTypeBuilder as NamedTypeBuilder;
-        mixin = aliasBuilder.unaliasDeclaration(namedBuilder.typeArguments,
-            isUsedAsClass: true,
-            usedAsClassCharOffset: namedBuilder.charOffset,
-            usedAsClassFileUri: namedBuilder.fileUri)!;
-      }
+      mixin =
+          mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true)!;
       if (mixin is ClassBuilder) {
         Iterator<MemberBuilder> iterator =
             mixin.fullMemberIterator<MemberBuilder>();

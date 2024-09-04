@@ -2791,16 +2791,12 @@ void PhiInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 void ConstantInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  if (value_.IsSmi()) {
-    int64_t value = Smi::Cast(value_).Value();
-    *range = Range(RangeBoundary::FromConstant(value),
-                   RangeBoundary::FromConstant(value));
-  } else if (value_.IsMint()) {
-    int64_t value = Mint::Cast(value_).value();
+  if (value_.IsInteger()) {
+    int64_t value = Integer::Cast(value_).Value();
     *range = Range(RangeBoundary::FromConstant(value),
                    RangeBoundary::FromConstant(value));
   } else {
-    // Only Smi and Mint supported.
+    // Only integer constants supported.
     FATAL("Unexpected constant: %s\n", value_.ToCString());
   }
 }

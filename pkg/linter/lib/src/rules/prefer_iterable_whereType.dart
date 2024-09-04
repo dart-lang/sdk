@@ -30,10 +30,10 @@ iterable.whereType<MyClass>();
 class PreferIterableWhereType extends LintRule {
   PreferIterableWhereType()
       : super(
-            name: 'prefer_iterable_whereType',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_iterable_whereType',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_iterable_whereType;

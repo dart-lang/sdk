@@ -321,7 +321,7 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
   if (start_loc.IsConstant()) {
     const auto& constant = start_loc.constant();
     ASSERT(constant.IsInteger());
-    const int64_t start_value = Integer::Cast(constant).AsInt64Value();
+    const int64_t start_value = Integer::Cast(constant).Value();
     const intptr_t add_value = Utils::AddWithWrapAround(
         Utils::MulWithWrapAround<intptr_t>(start_value, element_size_), offset);
     __ leaq(payload_reg, compiler::Address(array_reg, add_value));
@@ -648,7 +648,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
   ASSERT(pair_index == 0);  // No pair representation needed on 64-bit.
   if (destination.IsRegister()) {
     if (RepresentationUtils::IsUnboxedInteger(representation())) {
-      const int64_t value = Integer::Cast(value_).AsInt64Value();
+      const int64_t value = Integer::Cast(value_).Value();
       if (value == 0) {
         __ xorl(destination.reg(), destination.reg());
       } else {
@@ -702,7 +702,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
   } else {
     ASSERT(destination.IsStackSlot());
     if (RepresentationUtils::IsUnboxedInteger(representation())) {
-      const int64_t value = Integer::Cast(value_).AsInt64Value();
+      const int64_t value = Integer::Cast(value_).Value();
       __ movq(LocationToStackSlotAddress(destination),
               compiler::Immediate(value));
     } else if (representation() == kUnboxedFloat) {
@@ -817,24 +817,6 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   }
 
   return summary;
-}
-
-void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(locs()->always_calls());
-
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& assert_boolean_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->assert_boolean_stub());
-
-  compiler::Label done;
-  __ testq(
-      AssertBooleanABI::kObjectReg,
-      compiler::Immediate(compiler::target::ObjectAlignment::kBoolVsNullMask));
-  __ j(NOT_ZERO, &done, compiler::Assembler::kNearJump);
-  compiler->GenerateStubCall(source(), assert_boolean_stub,
-                             /*kind=*/UntaggedPcDescriptors::kOther, locs(),
-                             deopt_id(), env());
-  __ Bind(&done);
 }
 
 static Condition TokenKindToIntCondition(Token::Kind kind) {
@@ -5752,7 +5734,7 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
   // to implement the exception.
   if (auto c = instruction->right()->definition()->AsConstant()) {
     if (c->value().IsInteger()) {
-      const int64_t divisor = Integer::Cast(c->value()).AsInt64Value();
+      const int64_t divisor = Integer::Cast(c->value()).Value();
       if (divisor <= -2 || divisor >= 2) {
         // For x DIV c or x MOD c: use magic operations.
         compiler::Label pos;
@@ -5986,7 +5968,7 @@ static void EmitShiftInt64ByConstant(FlowGraphCompiler* compiler,
                                      Token::Kind op_kind,
                                      Register left,
                                      const Object& right) {
-  const int64_t shift = Integer::Cast(right).AsInt64Value();
+  const int64_t shift = Integer::Cast(right).Value();
   ASSERT(shift >= 0);
   switch (op_kind) {
     case Token::kSHR:
@@ -6032,7 +6014,7 @@ static void EmitShiftUint32ByConstant(FlowGraphCompiler* compiler,
                                       Token::Kind op_kind,
                                       Register left,
                                       const Object& right) {
-  const int64_t shift = Integer::Cast(right).AsInt64Value();
+  const int64_t shift = Integer::Cast(right).Value();
   ASSERT(shift >= 0);
   if (shift >= 32) {
     __ xorl(left, left);
@@ -6615,6 +6597,12 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // RAX: Closure with cached entry point.
     __ movq(RCX, compiler::FieldAddress(
                      RAX, compiler::target::Closure::entry_point_offset()));
+#if defined(DART_DYNAMIC_MODULES)
+    ASSERT(FUNCTION_REG != RCX);
+    __ LoadCompressed(FUNCTION_REG,
+                      compiler::FieldAddress(
+                          RAX, compiler::target::Closure::function_offset()));
+#endif
   } else {
     ASSERT(locs()->in(0).reg() == FUNCTION_REG);
     // FUNCTION_REG: Function.

@@ -37,10 +37,10 @@ bool isIdentifierPart(Token? token) =>
 class UnnecessaryBraceInStringInterps extends LintRule {
   UnnecessaryBraceInStringInterps()
       : super(
-            name: 'unnecessary_brace_in_string_interps',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'unnecessary_brace_in_string_interps',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_brace_in_string_interps;

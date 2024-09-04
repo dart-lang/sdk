@@ -72,12 +72,12 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
     show Variance;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
     show
-        SharedDynamicType,
-        SharedInvalidType,
-        SharedNamedType,
-        SharedRecordType,
-        SharedType,
-        SharedVoidType;
+        SharedDynamicTypeStructure,
+        SharedInvalidTypeStructure,
+        SharedNamedTypeStructure,
+        SharedRecordTypeStructure,
+        SharedTypeStructure,
+        SharedVoidTypeStructure;
 
 import 'src/extension_type_erasure.dart';
 import 'visitor.dart';
@@ -1953,6 +1953,27 @@ class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
   void toTextInternal(AstPrinter printer) {
     printer.writeExtensionTypeDeclarationName(reference);
   }
+
+  /// Returns the inherent nullability of this extension type declaration.
+  ///
+  /// An extension type declaration is inherently non-nullable if it implements
+  /// a non-extension type or a non-nullable extension type declaration.
+  Nullability get inherentNullability {
+    for (DartType supertype in implements) {
+      if (supertype is! ExtensionType) {
+        // A supertype that is not an extension type has to be non-nullable and
+        // implement `Object` directly or indirectly.
+        return Nullability.nonNullable;
+      } else if (supertype.extensionTypeDeclaration.inherentNullability !=
+          Nullability.undetermined) {
+        // If an extension type is non-nullable, it implements `Object` directly
+        // or indirectly.
+        return Nullability.nonNullable;
+      }
+    }
+    // Direct or indirect implementation of `Objects` isn't found.
+    return Nullability.undetermined;
+  }
 }
 
 enum ExtensionTypeMemberKind {
@@ -2958,7 +2979,10 @@ class Procedure extends Member implements GenericFunction {
   /// this, it is stored explicitly as the [signatureType] on the procedure.
   ///
   /// When [signatureType] is null, you can compute the function type with
-  /// `function.computeFunctionType(Nullability.nonNullable)`.
+  /// `function.computeFunctionType(Nullability.nonNullable)`. Alternatively,
+  /// you can use [computeSignatureOrFunctionType] that computes the interface
+  /// member signature type accounting for the possibility of [signatureType]
+  /// being null.
   FunctionType? signatureType;
 
   Procedure(Name name, ProcedureKind kind, FunctionNode function,
@@ -3211,6 +3235,15 @@ class Procedure extends Member implements GenericFunction {
     flags = value
         ? (flags | FlagHasWeakTearoffReferencePragma)
         : (flags & ~FlagHasWeakTearoffReferencePragma);
+  }
+
+  /// Computes the interface member signature type of the procedure.
+  ///
+  /// In case [signatureType] is set, returns [signatureType]. Otherwise,
+  /// computes the function type of the function node.
+  FunctionType computeSignatureOrFunctionType() {
+    return signatureType ??
+        function.computeFunctionType(Nullability.nonNullable);
   }
 
   @override
@@ -11021,7 +11054,7 @@ enum Nullability {
 ///
 /// The `==` operator on [DartType]s compare based on type equality, not
 /// object identity.
-sealed class DartType extends Node implements SharedType<DartType> {
+sealed class DartType extends Node implements SharedTypeStructure<DartType> {
   const DartType();
 
   @override
@@ -11140,7 +11173,7 @@ sealed class DartType extends Node implements SharedType<DartType> {
   String getDisplayString() => toText(const AstTextStrategy());
 
   @override
-  bool isStructurallyEqualTo(SharedType other) {
+  bool isStructurallyEqualTo(SharedTypeStructure other) {
     // TODO(cstefantsova): Use the actual algorithm for structural equality.
     return this == other;
   }
@@ -11188,7 +11221,8 @@ abstract class AuxiliaryType extends DartType {
 ///
 /// Can usually be treated as 'dynamic', but should occasionally be handled
 /// differently, e.g. `x is ERROR` should evaluate to false.
-class InvalidType extends DartType implements SharedInvalidType<DartType> {
+class InvalidType extends DartType
+    implements SharedInvalidTypeStructure<DartType> {
   @override
   final int hashCode = 12345;
 
@@ -11241,7 +11275,8 @@ class InvalidType extends DartType implements SharedInvalidType<DartType> {
   }
 }
 
-class DynamicType extends DartType implements SharedDynamicType<DartType> {
+class DynamicType extends DartType
+    implements SharedDynamicTypeStructure<DartType> {
   @override
   final int hashCode = 54321;
 
@@ -11286,7 +11321,7 @@ class DynamicType extends DartType implements SharedDynamicType<DartType> {
   }
 }
 
-class VoidType extends DartType implements SharedVoidType<DartType> {
+class VoidType extends DartType implements SharedVoidTypeStructure<DartType> {
   @override
   final int hashCode = 123121;
 
@@ -11824,7 +11859,7 @@ class TypedefType extends DartType {
     DartType result =
         Substitution.fromTypedefType(this).substituteType(typedefNode.type!);
     return result.withDeclaredNullability(combineNullabilitiesForSubstitution(
-        result.declaredNullability, nullability));
+        inner: result.declaredNullability, outer: nullability));
   }
 
   @override
@@ -12008,27 +12043,11 @@ class ExtensionType extends TypeDeclarationType {
   DartType get extensionTypeErasure => _computeTypeErasure(
       extensionTypeDeclarationReference, typeArguments, declaredNullability);
 
-  Nullability get _nullabilityDerivedFromSupertypes {
-    for (DartType supertype in extensionTypeDeclaration.implements) {
-      if (supertype is! ExtensionType) {
-        // A supertype that is not an extension type has to be non-nullable and
-        // implement `Object` directly or indirectly.
-        return Nullability.nonNullable;
-      } else if (supertype._nullabilityDerivedFromSupertypes !=
-          Nullability.undetermined) {
-        // If an extension type is non-nullable, it implements `Object` directly
-        // or indirectly.
-        return Nullability.nonNullable;
-      }
-    }
-    // Direct or indirect implementation of `Objects` isn't found.
-    return Nullability.undetermined;
-  }
-
   @override
   Nullability get nullability {
     return combineNullabilitiesForSubstitution(
-        _nullabilityDerivedFromSupertypes, declaredNullability);
+        inner: extensionTypeDeclaration.inherentNullability,
+        outer: declaredNullability);
   }
 
   @override
@@ -12074,7 +12093,7 @@ class ExtensionType extends TypeDeclarationType {
     Nullability erasureNullability;
     if (declaredNullability == Nullability.nullable) {
       erasureNullability = combineNullabilitiesForSubstitution(
-          result.nullability, declaredNullability);
+          inner: result.nullability, outer: declaredNullability);
     } else {
       erasureNullability = result.nullability;
     }
@@ -12155,7 +12174,7 @@ class ExtensionType extends TypeDeclarationType {
 
 /// A named parameter in [FunctionType].
 class NamedType extends Node
-    implements Comparable<NamedType>, SharedNamedType<DartType> {
+    implements Comparable<NamedType>, SharedNamedTypeStructure<DartType> {
   // Flag used for serialization if [isRequired].
   static const int FlagRequiredNamedType = 1 << 0;
 
@@ -12250,13 +12269,11 @@ class IntersectionType extends DartType {
             // pkg/front_end/test/fasta/types/kernel_type_parser_test
             // pkg/front_end/test/fasta/incremental_hello_test
             // pkg/front_end/test/fasta/types/fasta_types_test
-            // pkg/front_end/test/explicit_creation_test
             // pkg/front_end/tool/fasta_perf_test
             // nnbd/issue42089
             // replicated in nnbd_mixed/type_parameter_nullability
             (leftNullability == Nullability.nullable &&
                 rightNullability == Nullability.nullable) ||
-            // pkg/front_end/test/explicit_creation_test
             // pkg/front_end/test/dill_round_trip_test
             // pkg/front_end/test/compile_dart2js_with_no_sdk_test
             // pkg/front_end/test/fasta/types/large_app_benchmark_test
@@ -12274,7 +12291,6 @@ class IntersectionType extends DartType {
             (leftNullability == Nullability.legacy &&
                 rightNullability == Nullability.nonNullable) ||
             // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/explicit_creation_test
             // pkg/front_end/tool/fasta_perf_test
             // replicated in nnbd_mixed/type_parameter_nullability
             (leftNullability == Nullability.nullable &&
@@ -12308,8 +12324,8 @@ class IntersectionType extends DartType {
     DartType resolvedTypeParameterType = right.nonTypeVariableBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            resolvedTypeParameterType.declaredNullability,
-            declaredNullability));
+            inner: resolvedTypeParameterType.declaredNullability,
+            outer: declaredNullability));
   }
 
   @override
@@ -12415,12 +12431,10 @@ class IntersectionType extends DartType {
             // pkg/front_end/test/fasta/types/kernel_type_parser_test
             // pkg/front_end/test/fasta/incremental_hello_test
             // pkg/front_end/test/fasta/types/fasta_types_test
-            // pkg/front_end/test/explicit_creation_test
             // pkg/front_end/tool/fasta_perf_test
             // nnbd/issue42089
             (lhsNullability == Nullability.nullable &&
                 rhsNullability == Nullability.nullable) ||
-            // pkg/front_end/test/explicit_creation_test
             // pkg/front_end/test/dill_round_trip_test
             // pkg/front_end/test/compile_dart2js_with_no_sdk_test
             // pkg/front_end/test/fasta/types/large_app_benchmark_test
@@ -12437,7 +12451,6 @@ class IntersectionType extends DartType {
             (lhsNullability == Nullability.legacy &&
                 rhsNullability == Nullability.nonNullable) ||
             // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/explicit_creation_test
             // pkg/front_end/tool/fasta_perf_test
             // pkg/front_end/test/fasta/incremental_hello_test
             (lhsNullability == Nullability.nullable &&
@@ -12599,8 +12612,8 @@ class TypeParameterType extends DartType {
     DartType resolvedTypeParameterType = bound.nonTypeVariableBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            resolvedTypeParameterType.declaredNullability,
-            declaredNullability));
+            inner: resolvedTypeParameterType.declaredNullability,
+            outer: declaredNullability));
   }
 
   @override
@@ -12757,7 +12770,8 @@ class StructuralParameterType extends DartType {
     DartType resolvedTypeParameterType = bound.nonTypeVariableBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            resolvedTypeParameterType.nullability, declaredNullability));
+            inner: resolvedTypeParameterType.nullability,
+            outer: declaredNullability));
   }
 
   @override
@@ -12881,7 +12895,8 @@ class StructuralParameterType extends DartType {
   }
 }
 
-class RecordType extends DartType implements SharedRecordType<DartType> {
+class RecordType extends DartType
+    implements SharedRecordTypeStructure<DartType> {
   final List<DartType> positional;
   final List<NamedType> named;
 
@@ -12906,7 +12921,7 @@ class RecordType extends DartType implements SharedRecordType<DartType> {
             "in a RecordType: ${named}");
 
   @override
-  List<SharedNamedType<DartType>> get namedTypes => named;
+  List<SharedNamedTypeStructure<DartType>> get namedTypes => named;
 
   @override
   Nullability get nullability => declaredNullability;

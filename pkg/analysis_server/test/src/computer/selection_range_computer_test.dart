@@ -51,12 +51,12 @@ final foo = Foo(arg1: "^test");
 
   Future<void> test_class_augmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 class Foo {}
 ''');
 
     var content = TestCode.parse('''
-augment library a.dart;
+part of a.dart;
 
 augment class Foo {
   void a(String b) {
@@ -112,14 +112,14 @@ class Foo<T> {
 
   Future<void> test_class_fields_augmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 class Foo {
   String a = 'test';
 }
 ''');
 
     var content = TestCode.parse('''
-augment library 'a.dart';
+part of 'a.dart';
 augment class Foo {
   augment ^String get a => 'test2';
 }
@@ -139,14 +139,14 @@ augment class Foo {
 
   Future<void> test_constructor_augmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 class Foo {
   Foo();
 }
 ''');
 
     var content = TestCode.parse('''
-augment library 'a.dart';
+part of 'a.dart';
 augment class Foo {
   augment Foo(^);
 }
@@ -270,14 +270,14 @@ class Foo<T> {
 
   Future<void> test_method_augmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 class Foo {
   void f() {}
 }
 ''');
 
     var content = TestCode.parse('''
-augment library a.dart;
+part of 'a.dart';
 
 augment class Foo {
   augment void f() {
@@ -330,14 +330,14 @@ class Foo<T> {
 
   Future<void> test_mixin_augmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 mixin Foo {
   void a(String b){}
 }
 ''');
 
     var content = TestCode.parse('''
-augment library a.dart;
+part of 'a.dart';
 
 augment mixin Foo {
   augment void a(String b) {
@@ -466,12 +466,12 @@ void a(String b) {
 
   Future<void> test_topLevelFunction_augmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-import augment 'test.dart';
+part 'test.dart';
 void a(String b) {}
 ''');
 
     var content = TestCode.parse('''
-augment library 'a.dart';
+part of 'a.dart';
 augment void a(String b) {
   print((1 ^+ 2) * 3);
 }

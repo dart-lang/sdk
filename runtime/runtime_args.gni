@@ -74,6 +74,9 @@ declare_args() {
   # being built on platforms which have a problem linking in the Perfetto
   # library.
   dart_support_perfetto = true
+
+  # Whether to support dynamic loading and interpretation of Dart bytecode.
+  dart_dynamic_modules = false
 }
 
 declare_args() {

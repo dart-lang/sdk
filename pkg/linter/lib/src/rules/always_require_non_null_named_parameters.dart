@@ -38,11 +38,11 @@ NOTE: Only asserts at the start of the bodies will be taken into account.
 class AlwaysRequireNonNullNamedParameters extends LintRule {
   AlwaysRequireNonNullNamedParameters()
       : super(
-            name: 'always_require_non_null_named_parameters',
-            description: _desc,
-            details: _details,
-            state: State.removed(since: dart3_3),
-            categories: {LintRuleCategory.style});
+          name: 'always_require_non_null_named_parameters',
+          description: _desc,
+          details: _details,
+          state: State.removed(since: dart3_3),
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

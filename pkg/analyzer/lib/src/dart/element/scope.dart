@@ -14,11 +14,13 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
   ConstructorInitializerScope(super.parent, ConstructorElement element) {
-    var wildcardsEnabled = element.library.hasWildcardVariablesFeatureEnabled;
     for (var parameter in element.parameters) {
-      if (!(wildcardsEnabled && parameter.name == '_')) {
-        _addGetter(parameter);
+      // Skip wildcards.
+      if (parameter.name == '_' &&
+          element.library.featureSet.isEnabled(Feature.wildcard_variables)) {
+        continue;
       }
+      _addGetter(parameter);
     }
   }
 }
@@ -171,7 +173,6 @@ class LibraryFragmentScope implements Scope {
   final PrefixScope noPrefixScope;
 
   final Map<String, PrefixElementImpl> _prefixElements = {};
-  final Map<PrefixElementImpl, PrefixScope> _prefixScopes = {};
 
   /// The cached result for [accessibleExtensions].
   List<ExtensionElement>? _extensions;
@@ -196,7 +197,7 @@ class LibraryFragmentScope implements Scope {
   }) {
     for (var prefix in fragment.libraryImportPrefixes) {
       _prefixElements[prefix.name] = prefix;
-      _prefixScopes[prefix] = PrefixScope(
+      prefix.scope = PrefixScope(
         libraryElement: fragment.library,
         parent: _getParentPrefixScope(prefix),
         libraryImports: fragment.libraryImports,
@@ -211,14 +212,9 @@ class LibraryFragmentScope implements Scope {
     return _extensions ??= {
       ...libraryDeclarations.extensions,
       ...noPrefixScope._extensions,
-      for (var prefixScope in _prefixScopes.values) ...prefixScope._extensions,
+      for (var prefix in _prefixElements.values) ...prefix.scope._extensions,
       ...?parent?.accessibleExtensions,
     }.toFixedList();
-  }
-
-  PrefixScope getPrefixScope(PrefixElementImpl prefix) {
-    // SAFETY: We create the scope for each prefix.
-    return _prefixScopes[prefix]!;
   }
 
   @override
@@ -249,7 +245,7 @@ class LibraryFragmentScope implements Scope {
     for (var scope = parent; scope != null; scope = scope.parent) {
       var parentPrefix = scope._prefixElements[prefix.name];
       if (parentPrefix != null) {
-        return scope._prefixScopes[parentPrefix];
+        return parentPrefix.scope;
       }
     }
     return null;
@@ -297,72 +293,6 @@ class LibraryFragmentScope implements Scope {
       return !featureSet.isEnabled(Feature.wildcard_variables);
     }
     return true;
-  }
-}
-
-class LibraryOrAugmentationScope extends EnclosedScope {
-  final LibraryOrAugmentationElementImpl _container;
-  List<ExtensionElement> extensions = [];
-
-  factory LibraryOrAugmentationScope(
-    LibraryOrAugmentationElementImpl container,
-  ) {
-    var importScope = _LibraryOrAugmentationImportScope(container);
-    return LibraryOrAugmentationScope._(container, importScope);
-  }
-
-  LibraryOrAugmentationScope._(
-    this._container,
-    _LibraryOrAugmentationImportScope importScope,
-  ) : super(importScope) {
-    extensions.addAll(importScope.extensions);
-
-    for (var prefix in _container.prefixes) {
-      if (!prefix.isWildcardVariable) {
-        _addGetter(prefix);
-      }
-    }
-    _container.library.units.forEach(_addUnitElements);
-
-    // Add implicit 'dart:core' declarations.
-    if ('${_container.source.uri}' == 'dart:core') {
-      _addGetter(DynamicElementImpl.instance);
-      _addGetter(NeverElementImpl.instance);
-    }
-
-    extensions = extensions.toFixedList();
-  }
-
-  void _addExtension(ExtensionElement element) {
-    if (element.isAugmentation) {
-      return;
-    }
-
-    _addGetter(element);
-    if (!extensions.contains(element)) {
-      extensions.add(element);
-    }
-  }
-
-  void _addUnitElements(CompilationUnitElement compilationUnit) {
-    for (var element in compilationUnit.accessors) {
-      if (element.augmentation == null) {
-        _addPropertyAccessor(element);
-      }
-    }
-
-    for (var element in compilationUnit.functions) {
-      if (element.augmentation == null) {
-        _addGetter(element);
-      }
-    }
-
-    compilationUnit.enums.forEach(_addGetter);
-    compilationUnit.extensions.forEach(_addExtension);
-    compilationUnit.extensionTypes.forEach(_addGetter);
-    compilationUnit.typeAliases.forEach(_addGetter);
-    compilationUnit.mixins.forEach(_addGetter);
-    compilationUnit.classes.forEach(_addGetter);
   }
 }
 
@@ -642,33 +572,5 @@ mixin _GettersAndSetters {
       var id = considerCanonicalizeString(name.substring(0, name.length - 1));
       _setters[id] ??= element;
     }
-  }
-}
-
-class _LibraryOrAugmentationImportScope implements Scope {
-  final LibraryOrAugmentationElementImpl _container;
-  final PrefixScope _nullPrefixScope;
-  List<ExtensionElement>? _extensions;
-
-  _LibraryOrAugmentationImportScope(LibraryOrAugmentationElementImpl container)
-      : _container = container,
-        _nullPrefixScope = PrefixScope(
-          libraryElement: container.library,
-          parent: null,
-          libraryImports: container.libraryImports,
-          prefix: null,
-        );
-
-  List<ExtensionElement> get extensions {
-    return _extensions ??= {
-      ..._nullPrefixScope._extensions,
-      for (var prefix in _container.prefixes)
-        ...(prefix.scope as PrefixScope)._extensions,
-    }.toFixedList();
-  }
-
-  @override
-  ScopeLookupResult lookup(String id) {
-    return _nullPrefixScope.lookup(id);
   }
 }

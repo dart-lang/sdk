@@ -52,6 +52,11 @@ abstract class WasmListBase<E> extends ListBase<E> {
 
   @pragma("wasm:prefer-inline")
   List<E> toList({bool growable = true}) => List.of(this, growable: growable);
+
+  @pragma('wasm:prefer-inline')
+  Iterator<E> get iterator {
+    return _FixedSizeListIterator<E>(this);
+  }
 }
 
 @pragma("wasm:entry-point")
@@ -118,6 +123,11 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
     with FixedLengthListMixin<E> {
   ModifiableFixedLengthList._(int length) : super(length, length);
 
+  ModifiableFixedLengthList._withData(WasmArray<Object?> data)
+      : super._withData(data.length, data) {
+    assert((() => _elementsHaveType<E>(this))());
+  }
+
   factory ModifiableFixedLengthList(int length) =>
       ModifiableFixedLengthList._(length);
 
@@ -146,7 +156,41 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
     return result;
   }
 
+  // Target of List.of constructor with untyped iterable and growable == false.
+  factory ModifiableFixedLengthList.ofUntypedIterable(Iterable elements) {
+    // If elements is an Iterable<E>, we won't need a type-test for each
+    // element.
+    if (elements is Iterable<E>) {
+      return ModifiableFixedLengthList.of(elements);
+    }
+    // If we know the length of the list then we can avoid using growable
+    // arrays.
+    if (elements is EfficientLengthIterable) {
+      return ModifiableFixedLengthList._ofUntypedEfficientLengthIterable(
+          elements);
+    }
+
+    return ModifiableFixedLengthList._fromUntypedIterable(elements);
+  }
+
+  factory ModifiableFixedLengthList._ofUntypedEfficientLengthIterable(
+      EfficientLengthIterable elements) {
+    final length = elements.length;
+    final data = WasmArray<Object?>(length);
+    int i = 0;
+    for (final E o in elements) data[i++] = o;
+    if (i != length) throw ConcurrentModificationError(elements);
+    return ModifiableFixedLengthList<E>._withData(data);
+  }
+
+  @pragma('wasm:prefer-inline')
+  factory ModifiableFixedLengthList._fromUntypedIterable(Iterable elements) {
+    return GrowableList<E>._fromUntypedIterable(elements)
+        ._toModifiableFixedLengthList();
+  }
+
   // Specialization of List.of constructor for growable == false.
+  @pragma('wasm:entry-point')
   factory ModifiableFixedLengthList.of(Iterable<E> elements) {
     if (elements is WasmListBase) {
       return ModifiableFixedLengthList._ofListBase(unsafeCast(elements));
@@ -155,7 +199,7 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
       return ModifiableFixedLengthList._ofEfficientLengthIterable(
           unsafeCast(elements));
     }
-    return ModifiableFixedLengthList.fromIterable(elements);
+    return ModifiableFixedLengthList._fromIterable(elements);
   }
 
   factory ModifiableFixedLengthList._ofListBase(WasmListBase<E> elements) {
@@ -179,50 +223,96 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
     return list;
   }
 
-  factory ModifiableFixedLengthList.fromIterable(Iterable<E> elements) {
-    // The static type of `makeListFixedLength` is `List<E>`, not `ModifiableFixedLengthList<E>`,
-    // but we know that is what it does.  `makeListFixedLength` is too generally
-    // typed since it is available on the web platform which has different
-    // system List types.
-    return unsafeCast(
-        makeListFixedLength(GrowableList<E>.fromIterable(elements)));
-  }
-
-  Iterator<E> get iterator {
-    return _FixedSizeListIterator<E>(this);
+  factory ModifiableFixedLengthList._fromIterable(Iterable<E> elements) {
+    return GrowableList<E>._fromIterable(elements)
+        ._toModifiableFixedLengthList();
   }
 }
 
 @pragma("wasm:entry-point")
 class ImmutableList<E> extends WasmListBase<E> with UnmodifiableListMixin<E> {
-  factory ImmutableList._uninstantiable() {
-    throw UnsupportedError(
-        "ImmutableList can only be allocated by the runtime");
+  ImmutableList._withData(WasmArray<Object?> data)
+      : super._withData(data.length, data) {
+    assert((() => _elementsHaveType<E>(this))());
   }
 
-  Iterator<E> get iterator {
-    return _FixedSizeListIterator<E>(this);
+  // Target of List.unmodifiable constructor.
+  factory ImmutableList.ofUntypedIterable(Iterable elements) {
+    // If elements is an Iterable<E>, we won't need a type-test for each
+    // element.
+    if (elements is Iterable<E>) {
+      return ImmutableList<E>.of(elements);
+    }
+
+    // If we know the length of the list then we can avoid using growable
+    // arrays.
+    if (elements is EfficientLengthIterable) {
+      final length = elements.length;
+      final data = WasmArray<Object?>(length);
+      int i = 0;
+      for (final E o in elements) data[i++] = o;
+      if (i != length) throw ConcurrentModificationError(elements);
+      return ImmutableList<E>._withData(data);
+    }
+
+    final growableList = GrowableList<E>(0);
+    for (final E o in elements) growableList.add(o);
+    return growableList._toUnmodifiableList();
+  }
+
+  // Specialization of List.unmodifiable constructor for typed iterables.
+  factory ImmutableList.of(Iterable<E> elements) {
+    if (elements is WasmListBase) {
+      return ImmutableList._ofListBase(unsafeCast(elements));
+    }
+    if (elements is EfficientLengthIterable) {
+      return ImmutableList._ofEfficientLengthIterable(unsafeCast(elements));
+    }
+    return ImmutableList._fromIterable(elements);
+  }
+
+  factory ImmutableList._ofListBase(WasmListBase<E> elements) {
+    final int length = elements.length;
+    final data = WasmArray<Object?>(length)..copy(0, elements.data, 0, length);
+    return ImmutableList<E>._withData(data);
+  }
+
+  factory ImmutableList._ofEfficientLengthIterable(
+      EfficientLengthIterable<E> elements) {
+    final length = elements.length;
+    final data = WasmArray<Object?>(length);
+    int i = 0;
+    for (final o in elements) data[i++] = o as E;
+    if (i != length) throw ConcurrentModificationError(elements);
+    return ImmutableList<E>._withData(data);
+  }
+
+  @pragma('wasm:prefer-inline')
+  factory ImmutableList._fromIterable(Iterable<E> elements) {
+    return GrowableList<E>._fromIterable(elements)._toUnmodifiableList();
   }
 }
 
 // Iterator for lists with fixed size.
 class _FixedSizeListIterator<E> implements Iterator<E> {
   final WasmArray<Object?> _data;
-  final int _length; // Cache list length for faster access.
   int _index;
   E? _current;
 
+  @pragma("wasm:prefer-inline")
   _FixedSizeListIterator(WasmListBase<E> list)
       : _data = list._data,
-        _length = list.length,
         _index = 0 {
     assert(list is ModifiableFixedLengthList<E> || list is ImmutableList<E>);
+    assert(list.length == list._data.length);
   }
 
+  @pragma("wasm:prefer-inline")
   E get current => _current as E;
 
+  @pragma("wasm:prefer-inline")
   bool moveNext() {
-    if (_index >= _length) {
+    if (_index >= _data.length) {
       _current = null;
       return false;
     }
@@ -238,7 +328,15 @@ class GrowableList<E> extends _ModifiableList<E> {
 
   @pragma("wasm:entry-point")
   GrowableList._withData(WasmArray<Object?> data)
-      : super._withData(data.length, data);
+      : super._withData(data.length, data) {
+    assert((() => _elementsHaveType<E>(this))());
+  }
+
+  @pragma("wasm:prefer-inline")
+  GrowableList.withDataAndLength(WasmArray<Object?> data, int length)
+      : super._withData(length, data) {
+    assert((() => _elementsHaveType<E>(this))());
+  }
 
   @pragma("wasm:prefer-inline")
   factory GrowableList(int length) => GrowableList<E>._(length, length);
@@ -272,6 +370,40 @@ class GrowableList<E> extends _ModifiableList<E> {
     return result;
   }
 
+  // Target of List.of constructor with untyped iterable and growable == true.
+  factory GrowableList.ofUntypedIterable(Iterable elements) {
+    // If elements is an Iterable<E>, we won't need a type-test for each
+    // element.
+    if (elements is Iterable<E>) {
+      return GrowableList.of(elements);
+    }
+    // If we know the length of the list then we can avoid using growable
+    // arrays.
+    if (elements is EfficientLengthIterable) {
+      return GrowableList._ofUntypedEfficientLengthIterable(elements);
+    }
+
+    final growableList = GrowableList<E>(0);
+    for (final E o in elements) growableList.add(o);
+    return growableList;
+  }
+
+  factory GrowableList._fromUntypedIterable(Iterable elements) {
+    final list = GrowableList<E>(0);
+    for (final E o in elements) list.add(o);
+    return list;
+  }
+
+  factory GrowableList._ofUntypedEfficientLengthIterable(
+      EfficientLengthIterable elements) {
+    final length = elements.length;
+    final data = WasmArray<Object?>(length);
+    int i = 0;
+    for (final E o in elements) data[i++] = o;
+    if (i != length) throw ConcurrentModificationError(elements);
+    return GrowableList<E>._withData(data);
+  }
+
   // Specialization of List.of constructor for growable == true.
   factory GrowableList.of(Iterable<E> elements) {
     if (elements is WasmListBase) {
@@ -280,7 +412,7 @@ class GrowableList<E> extends _ModifiableList<E> {
     if (elements is EfficientLengthIterable) {
       return GrowableList._ofEfficientLengthIterable(unsafeCast(elements));
     }
-    return GrowableList.fromIterable(elements);
+    return GrowableList._fromIterable(elements);
   }
 
   factory GrowableList._ofListBase(WasmListBase<E> elements) {
@@ -304,7 +436,7 @@ class GrowableList<E> extends _ModifiableList<E> {
     return list;
   }
 
-  factory GrowableList.fromIterable(Iterable<E> elements) {
+  factory GrowableList._fromIterable(Iterable<E> elements) {
     final list = GrowableList<E>(0);
     for (var elements in elements) {
       list.add(elements);
@@ -513,8 +645,25 @@ class GrowableList<E> extends _ModifiableList<E> {
     _data = newData;
   }
 
+  @pragma('wasm:prefer-inline')
   Iterator<E> get iterator {
     return _GrowableListIterator<E>(this);
+  }
+
+  // NOTE: May use the same backing store.
+  ModifiableFixedLengthList<E> _toModifiableFixedLengthList() {
+    final fixedData = data.length == length
+        ? data
+        : (WasmArray<Object?>(length)..copy(0, data, 0, length));
+    return ModifiableFixedLengthList<E>._withData(fixedData);
+  }
+
+  // NOTE: May use the same backing store.
+  ImmutableList<E> _toUnmodifiableList() {
+    final fixedData = data.length == length
+        ? data
+        : (WasmArray<Object?>(length)..copy(0, data, 0, length));
+    return ImmutableList<E>._withData(fixedData);
   }
 }
 
@@ -525,13 +674,16 @@ class _GrowableListIterator<E> implements Iterator<E> {
   int _index;
   E? _current;
 
+  @pragma("wasm:prefer-inline")
   _GrowableListIterator(GrowableList<E> list)
       : _list = list,
         _length = list.length,
         _index = 0;
 
+  @pragma("wasm:prefer-inline")
   E get current => _current as E;
 
+  @pragma("wasm:prefer-inline")
   bool moveNext() {
     if (_list.length != _length) {
       throw ConcurrentModificationError(_list);
@@ -544,4 +696,16 @@ class _GrowableListIterator<E> implements Iterator<E> {
     _index++;
     return true;
   }
+}
+
+extension WasmListBaseUnsafeExtensions on WasmListBase {
+  @pragma('wasm:prefer-inline')
+  WasmArray<Object?> get data => _data;
+}
+
+bool _elementsHaveType<T>(List list) {
+  for (int i = 0; i < list.length; ++i) {
+    if (list[i] is! T) return false;
+  }
+  return true;
 }

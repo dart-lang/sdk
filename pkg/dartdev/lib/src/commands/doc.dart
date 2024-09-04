@@ -9,7 +9,7 @@ import 'dart:io' as io;
 // public API.
 // ignore: deprecated_member_use
 import 'package:dartdoc/dartdoc.dart';
-// ignore: deprecated_member_use
+// ignore: deprecated_member_use, unnecessary_import
 import 'package:dartdoc/options.dart';
 import 'package:path/path.dart' as path;
 

@@ -19,7 +19,7 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 /// example `List<_>`. This is distinct from `List<dynamic>`. These types will
 /// never appear in the final resolved AST.
 class UnknownInferredType extends TypeImpl
-    implements SharedUnknownType<DartType> {
+    implements SharedUnknownTypeStructure<DartType> {
   static const UnknownInferredType instance = UnknownInferredType._();
 
   const UnknownInferredType._();

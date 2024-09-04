@@ -762,7 +762,7 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
   explicit HeapMapAsJSONVisitor(JSONArray* array) : array_(array) {}
   void VisitObject(ObjectPtr obj) override {
     array_->AddValue(obj->untag()->HeapSize() / kObjectAlignment);
-    array_->AddValue(obj->GetClassId());
+    array_->AddValue(obj->GetClassIdOfHeapObject());
   }
 
  private:
@@ -1188,7 +1188,7 @@ class CollectStoreBufferEvacuateVisitor : public ObjectPointerVisitor {
       RELEASE_ASSERT_WITH_MSG(obj->IsOldObject(), msg_);
 
       RELEASE_ASSERT_WITH_MSG(!obj->untag()->IsCardRemembered(), msg_);
-      if (obj.GetClassId() == kArrayCid) {
+      if (obj.GetClassIdOfHeapObject() == kArrayCid) {
         const uword length =
             Smi::Value(static_cast<UntaggedArray*>(obj.untag())->length());
         RELEASE_ASSERT_WITH_MSG(!Array::UseCardMarkingForAllocation(length),

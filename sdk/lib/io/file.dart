@@ -173,6 +173,13 @@ class FileLock {
 /// In addition to length, the [exists], [lastModified], [stat], and
 /// other methods, are asynchronous.
 ///
+/// ## Special 'nul' file
+///
+/// On Linux and Mac '/dev/null' and on Windows '\\?\NUL' refer to a special file,
+/// such that all writes to it get consumed and disappear, and all reads produce empty
+/// output. Note that on Windows 'nul'(without '\\?\'-prefix) refers to a regular file
+/// named  'nul' in current directory.
+///
 /// ## Other resources
 ///
 /// * The [Files and directories](https://dart.dev/guides/libraries/library-tour#files-and-directories)
@@ -1063,6 +1070,7 @@ class FileSystemException implements IOException {
         case _errorFileNotFound:
         case _errorPathNotFound:
         case _errorInvalidDrive:
+        case _errorInvalidName:
         case _errorNoMoreFiles:
         case _errorBadNetpath:
         case _errorBadNetName:

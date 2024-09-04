@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -205,7 +206,7 @@ class MethodInvocationResolver with ScopeHelpers {
     ExecutableElement element,
     bool nullReceiver,
   ) {
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (nullReceiver) {
       if (_resolver.enclosingExtension != null) {
         _resolver.errorReporter.atNode(
@@ -617,8 +618,8 @@ class MethodInvocationResolver with ScopeHelpers {
       // or is static, then we do not keep searching for the getter; this
       // setter represents the property being accessed (erroneously).
       var noGetterIsPossible =
-          element.enclosingElement is CompilationUnitElement ||
-              element.enclosingElement is ExtensionElement ||
+          element.enclosingElement3 is CompilationUnitElement ||
+              element.enclosingElement3 is ExtensionElement ||
               (element is ExecutableElement && element.isStatic);
       if (noGetterIsPossible) {
         nameNode.staticElement = element;
@@ -952,16 +953,18 @@ class MethodInvocationResolver with ScopeHelpers {
       functionExpression = node.methodName;
       var element = node.methodName.staticElement;
       if (element is ExecutableElement &&
-          element.enclosingElement is InstanceElement &&
+          element.enclosingElement3 is InstanceElement &&
           !element.isStatic) {
-        targetType = _resolver.flowAnalysis.flow?.propertyGet(
-                functionExpression,
-                node.isCascaded
-                    ? CascadePropertyTarget.singleton
-                    : ThisPropertyTarget.singleton,
-                node.methodName.name,
-                element,
-                getterReturnType) ??
+        targetType = _resolver.flowAnalysis.flow
+                ?.propertyGet(
+                    functionExpression,
+                    node.isCascaded
+                        ? CascadePropertyTarget.singleton
+                        : ThisPropertyTarget.singleton,
+                    node.methodName.name,
+                    element,
+                    SharedTypeView(getterReturnType))
+                ?.unwrapTypeView() ??
             targetType;
       }
     } else {
@@ -980,20 +983,24 @@ class MethodInvocationResolver with ScopeHelpers {
         );
       }
       if (target is SuperExpressionImpl) {
-        targetType = _resolver.flowAnalysis.flow?.propertyGet(
-                functionExpression,
-                SuperPropertyTarget.singleton,
-                node.methodName.name,
-                node.methodName.staticElement,
-                getterReturnType) ??
+        targetType = _resolver.flowAnalysis.flow
+                ?.propertyGet(
+                    functionExpression,
+                    SuperPropertyTarget.singleton,
+                    node.methodName.name,
+                    node.methodName.staticElement,
+                    SharedTypeView(getterReturnType))
+                ?.unwrapTypeView() ??
             targetType;
       } else {
-        targetType = _resolver.flowAnalysis.flow?.propertyGet(
-                functionExpression,
-                ExpressionPropertyTarget(target),
-                node.methodName.name,
-                node.methodName.staticElement,
-                getterReturnType) ??
+        targetType = _resolver.flowAnalysis.flow
+                ?.propertyGet(
+                    functionExpression,
+                    ExpressionPropertyTarget(target),
+                    node.methodName.name,
+                    node.methodName.staticElement,
+                    SharedTypeView(getterReturnType))
+                ?.unwrapTypeView() ??
             targetType;
       }
       functionExpression.setPseudoExpressionStaticType(targetType);

@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -32,8 +33,8 @@ abstract class TypeInferrer {
   TypeSchemaEnvironment get typeSchemaEnvironment;
 
   /// Returns the [FlowAnalysis] used during inference.
-  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration, DartType>
-      get flowAnalysis;
+  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
+      SharedTypeView<DartType>> get flowAnalysis;
 
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables;
 
@@ -89,7 +90,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   late final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
-          DartType> flowAnalysis =
+          SharedTypeView<DartType>> flowAnalysis =
       new FlowAnalysis(operations, assignedVariables,
           respectImplicitlyTypedVarInitializers:
               libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled,
@@ -211,14 +212,16 @@ class TypeInferrerImpl implements TypeInferrer {
     List<Expression> positionalArguments = <Expression>[];
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.positionalParameters) {
-      flowAnalysis.declare(parameter, parameter.type, initialized: true);
+      flowAnalysis.declare(parameter, new SharedTypeView(parameter.type),
+          initialized: true);
       positionalArguments
           .add(new VariableGetImpl(parameter, forNullGuardedAccess: false));
     }
     List<NamedExpression> namedArguments = <NamedExpression>[];
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.namedParameters) {
-      flowAnalysis.declare(parameter, parameter.type, initialized: true);
+      flowAnalysis.declare(parameter, new SharedTypeView(parameter.type),
+          initialized: true);
       namedArguments.add(new NamedExpression(parameter.name!,
           new VariableGetImpl(parameter, forNullGuardedAccess: false)));
     }
@@ -321,8 +324,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       impl.assignedVariables;
 
   @override
-  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration, DartType>
-      get flowAnalysis => impl.flowAnalysis;
+  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
+      SharedTypeView<DartType>> get flowAnalysis => impl.flowAnalysis;
 
   @override
   TypeSchemaEnvironment get typeSchemaEnvironment => impl.typeSchemaEnvironment;

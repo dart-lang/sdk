@@ -47,10 +47,10 @@ for (var element in elements) {
 class PreferFinalInForEach extends LintRule {
   PreferFinalInForEach()
       : super(
-            name: 'prefer_final_in_for_each',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_final_in_for_each',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<LintCode> get lintCodes => [

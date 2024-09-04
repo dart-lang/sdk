@@ -30,10 +30,10 @@ b {
 class EolAtEndOfFile extends LintRule {
   EolAtEndOfFile()
       : super(
-            name: 'eol_at_end_of_file',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'eol_at_end_of_file',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.eol_at_end_of_file;

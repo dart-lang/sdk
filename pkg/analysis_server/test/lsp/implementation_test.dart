@@ -36,6 +36,12 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
       class /*[1*/C/*1]*/ extends A {}
     ''');
 
+  Future<void> test_class_sub_underscore() => _testMarkedContent('''
+      abstract class ^_ {}
+      class /*[0*/B/*0]*/ extends _ {}
+      class /*[1*/C/*1]*/ extends _ {}
+    ''');
+
   Future<void> test_class_subSub() => _testMarkedContent('''
       abstract class ^A {}
       class /*[0*/B/*0]*/ extends A {}
@@ -65,6 +71,17 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
 
       abstract class A {
         String? get a^;
+      }
+    ''');
+
+  Future<void> test_getter_overriddenByField_underscore() =>
+      _testMarkedContent('''
+      class B extends A {
+        final String? [!_!] = null;
+      }
+
+      abstract class A {
+        String? get _^;
       }
     ''');
 
@@ -159,6 +176,20 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
 
       class C extends A {
         void /*[1*/b/*1]*/() {}
+      }
+    ''');
+
+  Future<void> test_method_sub_underscore() => _testMarkedContent('''
+      abstract class A {
+        void ^_();
+      }
+
+      class B extends A {
+        void /*[0*/_/*0]*/() {}
+      }
+
+      class C extends A {
+        void /*[1*/_/*1]*/() {}
       }
     ''');
 

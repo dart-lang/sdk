@@ -157,107 +157,47 @@ enum TypedDataElementType {
 // the tags_ field not all raw objects are allocated in the heap and thus cannot
 // be dereferenced (e.g. UntaggedSmi).
 class UntaggedObject {
- public:
+ private:
   // The tags field which is a part of the object header uses the following
   // bit fields for storing tags.
-  enum TagBits {
-    kCardRememberedBit = 0,
-    kCanonicalBit = 1,
-    kNotMarkedBit = 2,                 // Incremental barrier target.
-    kNewOrEvacuationCandidateBit = 3,  // Generational barrier target.
-    kAlwaysSetBit = 4,                 // Incremental barrier source.
-    kOldAndNotRememberedBit = 5,       // Generational barrier source.
-    kImmutableBit = 6,
-    kReservedBit = 7,
+  AtomicBitFieldContainer<uword> tags_;
 
-    kSizeTagPos = kReservedBit + 1,  // = 8
-    kSizeTagSize = 4,
-    kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 12
-    kClassIdTagSize = 20,
-    kHashTagPos = kClassIdTagPos + kClassIdTagSize,  // = 32
-    kHashTagSize = 32,
-  };
-
-  static constexpr intptr_t kGenerationalBarrierMask =
-      1 << kNewOrEvacuationCandidateBit;
-  static constexpr intptr_t kIncrementalBarrierMask = 1 << kNotMarkedBit;
-  static constexpr intptr_t kBarrierOverlapShift = 2;
-  COMPILE_ASSERT(kNotMarkedBit + kBarrierOverlapShift == kAlwaysSetBit);
-  COMPILE_ASSERT(kNewOrEvacuationCandidateBit + kBarrierOverlapShift ==
-                 kOldAndNotRememberedBit);
-
+ public:
+  using CardRememberedBit = BitField<decltype(tags_), bool>;
   // The bit in the Smi tag position must be something that can be set to 0
   // for a dead filler object of either generation.
   // See Object::MakeUnusedSpaceTraversable.
-  COMPILE_ASSERT(kCardRememberedBit == 0);
+  COMPILE_ASSERT(CardRememberedBit::shift() == 0);
 
-  // Encodes the object size in the tag in units of object alignment.
-  class SizeTag {
-   public:
-    typedef intptr_t Type;
+  using CanonicalBit =
+      BitField<decltype(tags_), bool, CardRememberedBit::kNextBit>;
 
-    static constexpr intptr_t kMaxSizeTagInUnitsOfAlignment =
-        ((1 << UntaggedObject::kSizeTagSize) - 1);
-    static constexpr intptr_t kMaxSizeTag =
-        kMaxSizeTagInUnitsOfAlignment * kObjectAlignment;
+  // Incremental barrier target.
+  using NotMarkedBit = BitField<decltype(tags_), bool, CanonicalBit::kNextBit>;
 
-    static constexpr uword encode(intptr_t size) {
-      return SizeBits::encode(SizeToTagValue(size));
-    }
+  // Generational barrier target.
+  using NewOrEvacuationCandidateBit =
+      BitField<decltype(tags_), bool, NotMarkedBit::kNextBit>;
 
-    static constexpr uword decode(uword tag) {
-      return TagValueToSize(SizeBits::decode(tag));
-    }
+  // Incremental barrier source.
+  using AlwaysSetBit =
+      BitField<decltype(tags_), bool, NewOrEvacuationCandidateBit::kNextBit>;
 
-    static constexpr uword update(intptr_t size, uword tag) {
-      return SizeBits::update(SizeToTagValue(size), tag);
-    }
+  // Generational barrier source.
+  using OldAndNotRememberedBit =
+      BitField<decltype(tags_), bool, AlwaysSetBit::kNextBit>;
 
-    static constexpr bool SizeFits(intptr_t size) {
-      assert(Utils::IsAligned(size, kObjectAlignment));
-      return (size <= kMaxSizeTag);
-    }
+  static constexpr intptr_t kIncrementalBarrierMask =
+      NotMarkedBit::mask_in_place();
 
-   private:
-    // The actual unscaled bit field used within the tag field.
-    class SizeBits
-        : public BitField<uword, intptr_t, kSizeTagPos, kSizeTagSize> {};
+  static constexpr intptr_t kGenerationalBarrierMask =
+      NewOrEvacuationCandidateBit::mask_in_place();
 
-    static constexpr intptr_t SizeToTagValue(intptr_t size) {
-      assert(Utils::IsAligned(size, kObjectAlignment));
-      return !SizeFits(size) ? 0 : (size >> kObjectAlignmentLog2);
-    }
-    static constexpr intptr_t TagValueToSize(intptr_t value) {
-      return value << kObjectAlignmentLog2;
-    }
-  };
-
-  class ClassIdTag : public BitField<uword,
-                                     ClassIdTagType,
-                                     kClassIdTagPos,
-                                     kClassIdTagSize> {};
-  COMPILE_ASSERT(kBitsPerByte * sizeof(ClassIdTagType) >= kClassIdTagSize);
-  COMPILE_ASSERT(kClassIdTagMax == (1 << kClassIdTagSize) - 1);
-
-#if defined(HASH_IN_OBJECT_HEADER)
-  class HashTag : public BitField<uword, uint32_t, kHashTagPos, kHashTagSize> {
-  };
-#endif
-
-  class CardRememberedBit
-      : public BitField<uword, bool, kCardRememberedBit, 1> {};
-
-  class NotMarkedBit : public BitField<uword, bool, kNotMarkedBit, 1> {};
-
-  class NewOrEvacuationCandidateBit
-      : public BitField<uword, bool, kNewOrEvacuationCandidateBit, 1> {};
-
-  class CanonicalBit : public BitField<uword, bool, kCanonicalBit, 1> {};
-
-  class AlwaysSetBit : public BitField<uword, bool, kAlwaysSetBit, 1> {};
-
-  class OldAndNotRememberedBit
-      : public BitField<uword, bool, kOldAndNotRememberedBit, 1> {};
+  static constexpr intptr_t kBarrierOverlapShift = 2;
+  COMPILE_ASSERT(NotMarkedBit::shift() + kBarrierOverlapShift ==
+                 AlwaysSetBit::shift());
+  COMPILE_ASSERT(NewOrEvacuationCandidateBit::shift() + kBarrierOverlapShift ==
+                 OldAndNotRememberedBit::shift());
 
   // Will be set to 1 for the following instances:
   //
@@ -280,9 +220,66 @@ class UntaggedObject {
   // The bit is also used to make typed data stores efficient. 2.a.
   //
   // See also Class::kIsDeeplyImmutableBit.
-  class ImmutableBit : public BitField<uword, bool, kImmutableBit, 1> {};
+  using ImmutableBit =
+      BitField<decltype(tags_), bool, OldAndNotRememberedBit::kNextBit>;
 
-  class ReservedBit : public BitField<uword, intptr_t, kReservedBit, 1> {};
+  // The rest of the initial byte is currently reserved, so the next bitfield
+  // starts at the byte boundary.
+  COMPILE_ASSERT(ImmutableBit::kNextBit <= kBitsPerInt8);
+  using SizeTagBits = BitField<decltype(tags_), intptr_t, kBitsPerInt8, 4>;
+
+  // Encodes the object size in the tag in units of object alignment.
+  class SizeTag {
+   public:
+    typedef intptr_t Type;
+
+    static constexpr intptr_t kMaxSizeTagInUnitsOfAlignment =
+        SizeTagBits::max();
+    static constexpr intptr_t kMaxSizeTag =
+        kMaxSizeTagInUnitsOfAlignment * kObjectAlignment;
+
+    static constexpr uword encode(intptr_t size) {
+      return SizeTagBits::encode(SizeToTagValue(size));
+    }
+
+    static constexpr uword decode(uword tag) {
+      return TagValueToSize(SizeTagBits::decode(tag));
+    }
+
+    static constexpr uword update(intptr_t size, uword tag) {
+      return SizeTagBits::update(SizeToTagValue(size), tag);
+    }
+
+    static constexpr bool SizeFits(intptr_t size) {
+      assert(Utils::IsAligned(size, kObjectAlignment));
+      return (size <= kMaxSizeTag);
+    }
+
+   private:
+    static constexpr intptr_t SizeToTagValue(intptr_t size) {
+      assert(Utils::IsAligned(size, kObjectAlignment));
+      return !SizeFits(size) ? 0 : (size >> kObjectAlignmentLog2);
+    }
+    static constexpr intptr_t TagValueToSize(intptr_t value) {
+      return value << kObjectAlignmentLog2;
+    }
+  };
+
+  using ClassIdTag =
+      BitField<decltype(tags_), ClassIdTagType, SizeTagBits::kNextBit, 20>;
+  COMPILE_ASSERT(kClassIdTagMax == ClassIdTag::max());
+  static constexpr intptr_t kClassIdTagSize = ClassIdTag::bitsize();
+
+#if defined(HASH_IN_OBJECT_HEADER)
+  COMPILE_ASSERT(kBitsPerWord >= kBitsPerInt64);
+  // Make sure the hash in the object header starts on a byte boundary, to
+  // make it easy to visually distinguish the hash from the rest of the object
+  // tag when debugging.
+  COMPILE_ASSERT(ClassIdTag::kNextBit <= kBitsPerInt32);
+  using HashTag = BitField<decltype(tags_), uint32_t, kBitsPerInt32>;
+  // Make sure the hash value won't be truncated.
+  COMPILE_ASSERT(HashTag::bitsize() == kBitsPerInt32);
+#endif
 
   // Assumes this is a heap object.
   bool IsNewObject() const {
@@ -531,8 +528,6 @@ class UntaggedObject {
   }
 
  private:
-  AtomicBitFieldContainer<uword> tags_;  // Various object tags (bits).
-
   intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
                                    intptr_t class_id);
 
@@ -836,6 +831,8 @@ class UntaggedObject {
   friend class Instance;                // StorePointer
   friend class StackFrame;              // GetCodeObject assertion.
   friend class CodeLookupTableBuilder;  // profiler
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class ObjectLocator;
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
@@ -882,8 +879,11 @@ DART_FORCE_INLINE uword UntaggedObject::to_offset(intptr_t length) {
   }
 }
 
-inline intptr_t ObjectPtr::GetClassId() const {
+inline intptr_t ObjectPtr::GetClassIdOfHeapObject() const {
   return untag()->GetClassId();
+}
+inline intptr_t ObjectPtr::GetClassId() const {
+  return IsHeapObject() ? GetClassIdOfHeapObject() : kSmiCid;
 }
 
 #define POINTER_FIELD(type, name)                                              \
@@ -1176,6 +1176,8 @@ class UntaggedClass : public UntaggedObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class Instance;
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class IsolateGroup;
   friend class Object;
   friend class UntaggedInstance;
@@ -1279,6 +1281,7 @@ class UntaggedFunction : public UntaggedObject {
     FOR_EACH_RAW_FUNCTION_KIND(KIND_DEFN)
 #undef KIND_DEFN
   };
+  static constexpr int kKindBitSize = Utils::BitLength(kRecordFieldGetter);
 
   static const char* KindToCString(Kind k) {
     switch (k) {
@@ -1312,6 +1315,7 @@ class UntaggedFunction : public UntaggedObject {
     kSyncGen = kGeneratorBit,
     kAsyncGen = kAsyncBit | kGeneratorBit,
   };
+  static constexpr size_t kAsyncModifierBitSize = Utils::BitLength(kAsyncGen);
 
   // Wraps a 64-bit integer to represent the bitmap for unboxed parameters and
   // return value. Two bits are used for each of them to denote if it is boxed,
@@ -1384,6 +1388,8 @@ class UntaggedFunction : public UntaggedObject {
 
  private:
   friend class Class;
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class UnitDeserializationRoots;
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
@@ -1413,8 +1419,8 @@ class UntaggedFunction : public UntaggedObject {
     UNREACHABLE();
     return nullptr;
   }
-  // ICData of unoptimized code.
-  COMPRESSED_POINTER_FIELD(ArrayPtr, ic_data_array);
+  // ICData of unoptimized code or Bytecode.
+  COMPRESSED_POINTER_FIELD(ObjectPtr, ic_data_array_or_bytecode);
   // Currently active code. Accessed from generated code.
   COMPRESSED_POINTER_FIELD(CodePtr, code);
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1455,12 +1461,7 @@ class UntaggedFunction : public UntaggedObject {
   JIT_FUNCTION_COUNTERS(DECLARE)
 #undef DECLARE
 
-  AtomicBitFieldContainer<uint8_t> packed_fields_;
-
-  static constexpr intptr_t kMaxOptimizableBits = 1;
-
-  using PackedOptimizable =
-      BitField<decltype(packed_fields_), bool, 0, kMaxOptimizableBits>;
+  std::atomic<bool> is_optimizable_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
@@ -1476,6 +1477,8 @@ enum class InstantiationMode : uint8_t {
   // the default type arguments, as instantiating produces the same result.
   kSharesFunctionTypeArguments,
 };
+static constexpr intptr_t kInstantiationModeBitSize = Utils::BitLength(
+    static_cast<uint8_t>(InstantiationMode::kSharesFunctionTypeArguments));
 
 class UntaggedClosureData : public UntaggedObject {
  private:
@@ -1489,25 +1492,24 @@ class UntaggedClosureData : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ClosurePtr, closure)
   VISIT_TO(closure)
 
-  // kernel_to_il.cc assumes we can load the untagged value and box it in a Smi.
-  static_assert(sizeof(InstantiationMode) * kBitsPerByte <=
-                    compiler::target::kSmiBits,
-                "Instantiation mode must fit in a Smi");
-
   static constexpr uint8_t kNoAwaiterLinkDepth = 0xFF;
 
   AtomicBitFieldContainer<uint32_t> packed_fields_;
 
-  using PackedInstantiationMode =
-      BitField<decltype(packed_fields_), InstantiationMode, 0, 8>;
+  using PackedInstantiationMode = BitField<decltype(packed_fields_),
+                                           InstantiationMode,
+                                           0,
+                                           kInstantiationModeBitSize>;
+  // kernel_to_il.cc assumes we can load the untagged value and box it in a Smi.
+  static_assert(PackedInstantiationMode::mask_in_place() <=
+                    compiler::target::kSmiMax,
+                "Instantiation mode must fit in a Smi");
   using PackedAwaiterLinkDepth = BitField<decltype(packed_fields_),
                                           uint8_t,
-                                          PackedInstantiationMode::kNextBit,
-                                          8>;
+                                          PackedInstantiationMode::kNextBit>;
   using PackedAwaiterLinkIndex = BitField<decltype(packed_fields_),
                                           uint8_t,
-                                          PackedAwaiterLinkDepth::kNextBit,
-                                          8>;
+                                          PackedAwaiterLinkDepth::kNextBit>;
 
   friend class Function;
   friend class UnitDeserializationRoots;
@@ -1596,7 +1598,8 @@ class UntaggedField : public UntaggedObject {
   // field.
   int8_t static_type_exactness_state_;
 
-  uint16_t kind_bits_;  // static, final, const, has initializer....
+  // static, final, const, has initializer....
+  AtomicBitFieldContainer<uint16_t> kind_bits_;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // for instance fields, the offset in words in the target architecture
@@ -1604,6 +1607,8 @@ class UntaggedField : public UntaggedObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class CidRewriteVisitor;
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class GuardFieldClassInstr;  // For sizeof(guarded_cid_/...)
   friend class LoadFieldInstr;        // For sizeof(guarded_cid_/...)
   friend class StoreFieldInstr;       // For sizeof(guarded_cid_/...)
@@ -1656,12 +1661,11 @@ class alignas(8) UntaggedScript : public UntaggedObject {
 
  public:
   using LazyLookupSourceAndLineStartsBit =
-      BitField<decltype(flags_and_max_position_), bool, 0, 1>;
+      BitField<decltype(flags_and_max_position_), bool>;
   using HasCachedMaxPositionBit =
       BitField<decltype(flags_and_max_position_),
                bool,
-               LazyLookupSourceAndLineStartsBit::kNextBit,
-               1>;
+               LazyLookupSourceAndLineStartsBit::kNextBit>;
   using CachedMaxPositionBitField = BitField<decltype(flags_and_max_position_),
                                              intptr_t,
                                              HasCachedMaxPositionBit::kNextBit>;
@@ -1677,18 +1681,6 @@ class UntaggedLibrary : public UntaggedObject {
     kLoadInProgress,  // Library is in the process of being loaded.
     kLoaded,          // Library is loaded.
   };
-
-  enum LibraryFlags {
-    kDartSchemeBit = 0,
-    kDebuggableBit,      // True if debugger can stop in library.
-    kInFullSnapshotBit,  // True if library is in a full snapshot.
-    kNumFlagBits,
-  };
-  COMPILE_ASSERT(kNumFlagBits <= (sizeof(uint8_t) * kBitsPerByte));
-  class DartSchemeBit : public BitField<uint8_t, bool, kDartSchemeBit, 1> {};
-  class DebuggableBit : public BitField<uint8_t, bool, kDebuggableBit, 1> {};
-  class InFullSnapshotBit
-      : public BitField<uint8_t, bool, kInFullSnapshotBit, 1> {};
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
 
@@ -1743,7 +1735,15 @@ class UntaggedLibrary : public UntaggedObject {
   classid_t index_;       // Library id number.
   uint16_t num_imports_;  // Number of entries in imports_.
   int8_t load_state_;     // Of type LibraryState.
-  uint8_t flags_;         // BitField for LibraryFlags.
+  uint8_t flags_;         // Container for encoded Library BitFields below.
+
+  using DartSchemeBit = BitField<decltype(flags_), bool>;
+  // True if debugger can stop in library.
+  using DebuggableBit =
+      BitField<decltype(flags_), bool, DartSchemeBit::kNextBit>;
+  // True if library is in a full snapshot.
+  using InFullSnapshotBit =
+      BitField<decltype(flags_), bool, DebuggableBit::kNextBit>;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   uint32_t kernel_library_index_;
@@ -1961,6 +1961,36 @@ class UntaggedCode : public UntaggedObject {
   friend class CallSiteResetter;
 };
 
+class UntaggedBytecode : public UntaggedObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Bytecode);
+
+  uword instructions_;
+  intptr_t instructions_size_;
+
+  COMPRESSED_POINTER_FIELD(ObjectPoolPtr, object_pool);
+  VISIT_FROM(object_pool);
+  COMPRESSED_POINTER_FIELD(FunctionPtr, function);
+  COMPRESSED_POINTER_FIELD(ArrayPtr, closures);
+  COMPRESSED_POINTER_FIELD(TypedDataBasePtr, binary);
+  COMPRESSED_POINTER_FIELD(ExceptionHandlersPtr, exception_handlers);
+  COMPRESSED_POINTER_FIELD(PcDescriptorsPtr, pc_descriptors);
+  VISIT_TO(pc_descriptors);
+
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+    return reinterpret_cast<ObjectPtr*>(&pc_descriptors_);
+  }
+
+  int32_t instructions_binary_offset_;
+  int32_t code_offset_;
+  int32_t source_positions_binary_offset_;
+
+  static bool ContainsPC(ObjectPtr raw_obj, uword pc);
+
+  friend class Function;
+  friend class Interpreter;
+  friend class StackFrame;
+};
+
 class UntaggedObjectPool : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ObjectPool);
 
@@ -1985,6 +2015,7 @@ class UntaggedObjectPool : public UntaggedObject {
 
   friend class Object;
   friend class CodeSerializationCluster;
+  friend class Interpreter;
   friend class UnitSerializationRoots;
   friend class UnitDeserializationRoots;
 };
@@ -2013,6 +2044,7 @@ class UntaggedInstructions : public UntaggedObject {
   friend class Function;
   friend class ImageReader;
   friend class ImageWriter;
+  friend class Interpreter;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
 };
@@ -2080,7 +2112,7 @@ class UntaggedPcDescriptors : public UntaggedObject {
   // Used to represent the absence of a yield index in PcDescriptors.
   static constexpr intptr_t kInvalidYieldIndex = -1;
 
-  class KindAndMetadata {
+  class KindAndMetadata : AllStatic {
    public:
     // Most of the time try_index will be small and merged field will fit into
     // one byte.
@@ -2105,21 +2137,14 @@ class UntaggedPcDescriptors : public UntaggedObject {
     }
 
    private:
-    static constexpr intptr_t kKindShiftSize = 3;
-    static constexpr intptr_t kTryIndexSize = 10;
-    static constexpr intptr_t kYieldIndexSize =
-        32 - kKindShiftSize - kTryIndexSize;
-
-    class KindShiftBits
-        : public BitField<uint32_t, intptr_t, 0, kKindShiftSize> {};
-    class TryIndexBits : public BitField<uint32_t,
-                                         intptr_t,
-                                         KindShiftBits::kNextBit,
-                                         kTryIndexSize> {};
-    class YieldIndexBits : public BitField<uint32_t,
-                                           intptr_t,
-                                           TryIndexBits::kNextBit,
-                                           kYieldIndexSize> {};
+    using KindShiftBits =
+        BitField<uint32_t,
+                 intptr_t,
+                 0,
+                 Utils::BitLength(Utils::ShiftForPowerOfTwo<int>(kLastKind))>;
+    using TryIndexBits =
+        BitField<uint32_t, intptr_t, KindShiftBits::kNextBit, 10>;
+    using YieldIndexBits = BitField<uint32_t, intptr_t, TryIndexBits::kNextBit>;
   };
 
  private:
@@ -2257,18 +2282,12 @@ class UntaggedCompressedStackMaps : public UntaggedObject {
   Payload* payload() { OPEN_ARRAY_START(Payload, uint8_t); }
   const Payload* payload() const { OPEN_ARRAY_START(Payload, uint8_t); }
 
-  class GlobalTableBit
-      : public BitField<Payload::FlagsAndSizeHeader, bool, 0, 1> {};
-  class UsesTableBit : public BitField<Payload::FlagsAndSizeHeader,
-                                       bool,
-                                       GlobalTableBit::kNextBit,
-                                       1> {};
-  class SizeField
-      : public BitField<Payload::FlagsAndSizeHeader,
-                        Payload::FlagsAndSizeHeader,
-                        UsesTableBit::kNextBit,
-                        sizeof(Payload::FlagsAndSizeHeader) * kBitsPerByte -
-                            UsesTableBit::kNextBit> {};
+  using GlobalTableBit = BitField<Payload::FlagsAndSizeHeader, bool>;
+  using UsesTableBit =
+      BitField<Payload::FlagsAndSizeHeader, bool, GlobalTableBit::kNextBit>;
+  using SizeField = BitField<Payload::FlagsAndSizeHeader,
+                             Payload::FlagsAndSizeHeader,
+                             UsesTableBit::kNextBit>;
 
   friend class Object;
   friend class ImageWriter;
@@ -2321,21 +2340,6 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
     kSavedCurrentContext,
   };
 
-  enum {
-    kKindPos = 0,
-    kKindSize = 8,
-    kIndexPos = kKindPos + kKindSize,
-    // Since there are 24 bits for the stack slot index, Functions can have
-    // only ~16.7 million stack slots.
-    kPayloadSize = sizeof(int32_t) * kBitsPerByte,
-    kIndexSize = kPayloadSize - kIndexPos,
-    kIndexBias = 1 << (kIndexSize - 1),
-    kMaxIndex = (1 << (kIndexSize - 1)) - 1,
-  };
-
-  class IndexBits : public BitField<int32_t, int32_t, kIndexPos, kIndexSize> {};
-  class KindBits : public BitField<int32_t, int8_t, kKindPos, kKindSize> {};
-
   struct VarInfo {
     int32_t index_kind = 0;  // Bitfield for slot index on stack or in context,
                              // and Entry kind of type VarInfoKind.
@@ -2353,10 +2357,20 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
     void set_kind(VarInfoKind kind) {
       index_kind = KindBits::update(kind, index_kind);
     }
-    int32_t index() const { return IndexBits::decode(index_kind) - kIndexBias; }
+    int32_t index() const { return IndexBits::decode(index_kind); }
     void set_index(int32_t index) {
-      index_kind = IndexBits::update(index + kIndexBias, index_kind);
+      index_kind = IndexBits::update(index, index_kind);
     }
+
+   private:
+    using KindBits = BitField<decltype(index_kind), int8_t>;
+    using IndexBits =
+        SignedBitField<decltype(index_kind), int32_t, KindBits::kNextBit>;
+
+   public:
+    // Since there are 32 - 8 = 24 bits for the stack slot index, Functions can
+    // have only ~16.7 million stack slots.
+    static constexpr int kMaxIndex = IndexBits::max();
   };
 
  private:
@@ -2393,11 +2407,9 @@ class UntaggedExceptionHandlers : public UntaggedObject {
   // Async handler is used in the async/async* functions.
   // It's an implicit exception handler (stub) which runs when
   // exception is not handled within the function.
-  using AsyncHandlerBit = BitField<decltype(packed_fields_), bool, 0, 1>;
-  using NumEntriesBits = BitField<decltype(packed_fields_),
-                                  uint32_t,
-                                  AsyncHandlerBit::kNextBit,
-                                  31>;
+  using AsyncHandlerBit = BitField<decltype(packed_fields_), bool>;
+  using NumEntriesBits =
+      BitField<decltype(packed_fields_), uint32_t, AsyncHandlerBit::kNextBit>;
 
   intptr_t num_entries() const {
     return NumEntriesBits::decode(packed_fields_);
@@ -2431,6 +2443,7 @@ class UntaggedContext : public UntaggedObject {
   COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
 
   friend class Object;
+  friend class Interpreter;
   friend void UpdateLengthField(intptr_t,
                                 ObjectPtr,
                                 ObjectPtr);  // num_variables_
@@ -2610,6 +2623,8 @@ class UntaggedSubtypeTestCache : public UntaggedObject {
   VISIT_TO(cache)
   uint32_t num_inputs_;
   uint32_t num_occupied_;
+
+  friend class Interpreter;
 };
 
 class UntaggedLoadingUnit : public UntaggedObject {
@@ -2628,7 +2643,10 @@ class UntaggedLoadingUnit : public UntaggedObject {
     kLoaded,
   };
 
-  using LoadStateBits = BitField<decltype(packed_fields_), LoadState, 0, 2>;
+  using LoadStateBits = BitField<decltype(packed_fields_),
+                                 LoadState,
+                                 0,
+                                 Utils::BitLength(LoadState::kLoaded)>;
   using IdBits =
       BitField<decltype(packed_fields_), intptr_t, LoadStateBits::kNextBit>;
 };
@@ -2738,6 +2756,7 @@ class UntaggedTypeArguments : public UntaggedInstance {
   COMPRESSED_VARIABLE_POINTER_FIELDS(AbstractTypePtr, element, types)
 
   friend class Object;
+  friend class Interpreter;
 };
 
 class UntaggedTypeParameters : public UntaggedObject {
@@ -2763,7 +2782,7 @@ class UntaggedAbstractType : public UntaggedInstance {
   // Accessed from generated code.
   std::atomic<uword> type_test_stub_entry_point_;
   // Accessed from generated code.
-  std::atomic<uint32_t> flags_;
+  AtomicBitFieldContainer<uint32_t> flags_;
 #if defined(DART_COMPRESSED_POINTERS)
   uint32_t padding_;  // Makes Windows and Posix agree on layout.
 #endif
@@ -2783,26 +2802,27 @@ class UntaggedAbstractType : public UntaggedInstance {
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
 
-  using NullabilityBit = BitField<uint32_t, uint8_t, 0, 1>;
-  static constexpr intptr_t kNullabilityMask = NullabilityBit::mask();
-
-  static constexpr intptr_t kTypeStateShift = NullabilityBit::kNextBit;
-  static constexpr intptr_t kTypeStateBits = 2;
+  using NullabilityBit = BitField<decltype(flags_), uint8_t, 0, 1>;
   using TypeStateBits =
-      BitField<uint32_t, uint8_t, kTypeStateShift, kTypeStateBits>;
+      BitField<decltype(flags_),
+               uint8_t,
+               NullabilityBit::kNextBit,
+               Utils::BitLength(TypeState::kFinalizedUninstantiated)>;
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
 
+  friend class Interpreter;
   friend class ObjectStore;
   friend class StubCode;
 };
 
 class UntaggedType : public UntaggedAbstractType {
  public:
-  static constexpr intptr_t kTypeClassIdShift = TypeStateBits::kNextBit;
-  using TypeClassIdBits =
-      BitField<uint32_t, ClassIdTagType, kTypeClassIdShift, kClassIdTagSize>;
+  using TypeClassIdBits = BitField<decltype(flags_),
+                                   ClassIdTagType,
+                                   TypeStateBits::kNextBit,
+                                   UntaggedObject::ClassIdTag::bitsize()>;
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
@@ -2840,12 +2860,11 @@ class UntaggedFunctionType : public UntaggedAbstractType {
  public:
   // For packed_type_parameter_counts_.
   using PackedNumParentTypeArguments =
-      BitField<decltype(packed_type_parameter_counts_), uint8_t, 0, 8>;
+      BitField<decltype(packed_type_parameter_counts_), uint8_t>;
   using PackedNumTypeParameters =
       BitField<decltype(packed_type_parameter_counts_),
                uint8_t,
-               PackedNumParentTypeArguments::kNextBit,
-               8>;
+               PackedNumParentTypeArguments::kNextBit>;
 
   // For packed_parameter_counts_.
   using PackedNumImplicitParameters =
@@ -2853,8 +2872,7 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   using PackedHasNamedOptionalParameters =
       BitField<decltype(packed_parameter_counts_),
                bool,
-               PackedNumImplicitParameters::kNextBit,
-               1>;
+               PackedNumImplicitParameters::kNextBit>;
   using PackedNumFixedParameters =
       BitField<decltype(packed_parameter_counts_),
                uint16_t,
@@ -2889,10 +2907,8 @@ class UntaggedRecordType : public UntaggedAbstractType {
 
 class UntaggedTypeParameter : public UntaggedAbstractType {
  public:
-  static constexpr intptr_t kIsFunctionTypeParameterBit =
-      TypeStateBits::kNextBit;
   using IsFunctionTypeParameter =
-      BitField<uint32_t, bool, kIsFunctionTypeParameterBit, 1>;
+      BitField<decltype(flags_), bool, TypeStateBits::kNextBit>;
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
@@ -2958,6 +2974,7 @@ class UntaggedClosure : public UntaggedInstance {
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
+  friend class Interpreter;
   friend class UnitDeserializationRoots;
 };
 
@@ -2982,6 +2999,7 @@ class UntaggedMint : public UntaggedInteger {
   friend class Api;
   friend class Class;
   friend class Integer;
+  friend class Interpreter;
 };
 COMPILE_ASSERT(sizeof(UntaggedMint) == 16);
 
@@ -2993,6 +3011,7 @@ class UntaggedDouble : public UntaggedNumber {
 
   friend class Api;
   friend class Class;
+  friend class Interpreter;
 };
 COMPILE_ASSERT(sizeof(UntaggedDouble) == 16);
 
@@ -3231,6 +3250,7 @@ class UntaggedArray : public UntaggedInstance {
   friend class CodeSerializationCluster;
   friend class CodeDeserializationCluster;
   friend class Deserializer;
+  friend class Interpreter;
   friend class UntaggedCode;
   friend class UntaggedImmutableArray;
   friend class GrowableObjectArray;
@@ -3312,6 +3332,7 @@ class UntaggedFloat32x4 : public UntaggedInstance {
   ALIGN8 float value_[4];
 
   friend class Class;
+  friend class Interpreter;
 
  public:
   float x() const { return value_[0]; }
@@ -3347,6 +3368,7 @@ class UntaggedFloat64x2 : public UntaggedInstance {
   ALIGN8 double value_[2];
 
   friend class Class;
+  friend class Interpreter;
 
  public:
   double x() const { return value_[0]; }
@@ -3515,6 +3537,8 @@ class UntaggedSuspendState : public UntaggedInstance {
   // Variable length payload follows here.
   uint8_t* payload() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* payload() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+
+  friend class Interpreter;
 };
 
 // VM type for capturing JS regular expressions.

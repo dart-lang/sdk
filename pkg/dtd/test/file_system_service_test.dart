@@ -366,6 +366,38 @@ void main() {
             throwsAnRpcError(RpcErrorCodes.kExpectsUriParamWithFileScheme),
           );
         });
+
+        group(
+          'windows paths',
+          () {
+            // Test paths in various formats. We will test all combinations of
+            // these both as the set roots and the readFile path to ensure the
+            // calling client doesn't need to use the same escaping as the
+            // editor.
+            final roots = [
+              Uri.parse('file:///C:/foo'),
+              Uri.parse('file:///C%3A/foo'),
+              Uri.parse('file:///c:/foo'),
+            ];
+            final files = roots
+                .map((uri) => uri.replace(path: '${uri.path}/file.txt'))
+                .toList();
+
+            for (final root in roots) {
+              for (final file in files) {
+                test('can read $file in $root', () async {
+                  await client.setIDEWorkspaceRoots(dtdSecret, [root]);
+                  expect(
+                    () => client.readFileAsString(file),
+                    // Expect file does not exist (NOT a permission error).
+                    throwsAnRpcError(RpcErrorCodes.kFileDoesNotExist),
+                  );
+                });
+              }
+            }
+          },
+          skip: !Platform.isWindows,
+        );
       });
 
       group('writeFileAsString', () {
@@ -438,13 +470,13 @@ void main() {
           params: {
             'secret': dtdSecret,
             'roots': [
-              'file://$relativePath',
+              Uri.file(relativePath).toString(),
             ],
           },
         );
         final roots = await client.getIDEWorkspaceRoots();
         expect(
-          roots.ideWorkspaceRoots.map((e) => e.path),
+          roots.ideWorkspaceRoots.map((e) => e.toFilePath()),
           [simplifiedPath],
         );
       });
@@ -542,8 +574,8 @@ void main() {
         expect(listResult.result, {
           'type': 'UriList',
           'uris': containsAll([
-            'file://${fooDirectory.uri.toFilePath()}C/pubspec.yaml',
-            'file://${fooDirectory.uri.toFilePath()}C/d.txt',
+            '${fooDirectory.uri}C/pubspec.yaml',
+            '${fooDirectory.uri}C/d.txt',
           ]),
         });
       });

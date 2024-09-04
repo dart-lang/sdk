@@ -42,6 +42,9 @@ class SelectorInfo {
   /// Does this method have any tear-off uses?
   bool hasTearOffUses = false;
 
+  /// Does this method have any non-this uses?
+  bool hasNonThisUses = false;
+
   /// Targets for all concrete classes implementing this selector.
   ///
   /// As a subclass hierarchy often inherits the same target, we associate the
@@ -285,6 +288,7 @@ class DispatchTable {
             isSetter: isSetter));
     assert(selector.isSetter == isSetter);
     selector.hasTearOffUses |= metadata.hasTearOffUses;
+    selector.hasNonThisUses |= metadata.hasNonThisUses;
     selector.paramInfo.merge(paramInfo);
     if (calledDynamically) {
       if (isGetter) {

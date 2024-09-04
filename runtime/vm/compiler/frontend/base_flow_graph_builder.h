@@ -379,7 +379,6 @@ class BaseFlowGraphBuilder {
   JoinEntryInstr* BuildThrowNoSuchMethod();
   Fragment ThrowException(TokenPosition position);
 
-  Fragment AssertBool(TokenPosition position);
   Fragment BooleanNegate();
   Fragment AllocateContext(const ZoneGrowableArray<const Slot*>& scope);
   // Top of the stack should be the closure function.
@@ -471,12 +470,6 @@ class BaseFlowGraphBuilder {
   // mapping.
   bool is_recording_context_levels() const {
     return context_level_array_ != nullptr;
-  }
-
-  // Sets current context level. It will be recorded for all subsequent
-  // deopt ids (until it is adjusted again).
-  void set_context_depth(intptr_t context_level) {
-    context_depth_ = context_level;
   }
 
   // Reset context level for the given deopt id (which was allocated earlier).

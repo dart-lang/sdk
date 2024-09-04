@@ -33,7 +33,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
         }
       }
     } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement.augmented.declaration;
+      interfaceElement = element.enclosingElement3.augmented.declaration;
     }
     if (interfaceElement == null) {
       return const <TargetKind>{};
@@ -82,21 +82,20 @@ extension ElementExtension on Element {
       return true;
     }
 
-    var ancestor = enclosingElement;
+    var ancestor = enclosingElement3;
     if (ancestor is InterfaceElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement;
+      ancestor = ancestor.enclosingElement3;
     } else if (ancestor is ExtensionElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement;
+      ancestor = ancestor.enclosingElement3;
     }
 
-    return ancestor is CompilationUnitElement &&
-        ancestor.enclosingElement.hasDoNotStore;
+    return ancestor is CompilationUnitElement && ancestor.library.hasDoNotStore;
   }
 
   /// Return `true` if this element is an instance member of a class or mixin.
@@ -110,7 +109,7 @@ extension ElementExtension on Element {
     assert(this is! PropertyInducingElement,
         'Check the PropertyAccessorElement instead');
     var this_ = this;
-    var enclosing = this_.enclosingElement;
+    var enclosing = this_.enclosingElement3;
     if (enclosing is InterfaceElement) {
       return this_ is MethodElement && !this_.isStatic ||
           this_ is PropertyAccessorElement && !this_.isStatic;
@@ -134,7 +133,7 @@ extension ElementExtension on Element {
 extension ExecutableElementExtension on ExecutableElement {
   /// Whether the enclosing element is the class `Object`.
   bool get isObjectMember {
-    var enclosing = enclosingElement;
+    var enclosing = enclosingElement3;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
   }
 }

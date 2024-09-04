@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.15
+# Dart VM Service Protocol 4.16
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.14_ of the Dart VM Service Protocol. This
+This document describes of _version 4.16_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -2450,6 +2450,12 @@ class Event extends Response {
   //   IsolateReloaded
   string status [optional];
 
+  // The reason why reloading the sources in the isolate group associated with
+  // this event failed.
+  //
+  // Only provided for events of kind IsolateReload.
+  string reloadFailureReason [optional];
+
   // LogRecord data.
   //
   // This is provided for the Logging event.
@@ -4800,5 +4806,6 @@ version | comments
 4.13 | Added `librariesAlreadyCompiled` to `getSourceReport`.
 4.14 | Added `Finalizer`, `NativeFinalizer`, and `FinalizerEntry`.
 4.15 | Added `closureReceiver` property to `@Instance` and `Instance`.
+4.16 | Added `reloadFailureReason` property to `Event`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

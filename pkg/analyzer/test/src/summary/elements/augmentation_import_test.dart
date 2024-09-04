@@ -66,25 +66,41 @@ library
       classes
         class B @31
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
         class A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
   classes
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class A
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
 ''');
 
     var import_0 = library.augmentationImports[0];
     var augmentation = import_0.importedAugmentation!;
-    expect(augmentation.enclosingElement, same(library));
+    expect(augmentation.enclosingElement3, same(library));
   }
 
   test_library_augmentationImports_depthFirst() async {
@@ -159,7 +175,7 @@ library
 
     var import_0 = library.augmentationImports[0];
     var augmentation = import_0.importedAugmentation!;
-    expect(augmentation.enclosingElement, same(library));
+    expect(augmentation.enclosingElement3, same(library));
   }
 
   test_library_augmentationImports_noRelativeUriStr() async {

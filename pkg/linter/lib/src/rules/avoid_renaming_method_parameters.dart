@@ -50,10 +50,10 @@ abstract class B extends A {
 class AvoidRenamingMethodParameters extends LintRule {
   AvoidRenamingMethodParameters()
       : super(
-            name: 'avoid_renaming_method_parameters',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.documentationCommentMaintenance});
+          name: 'avoid_renaming_method_parameters',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_renaming_method_parameters;

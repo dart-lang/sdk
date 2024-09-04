@@ -34,10 +34,10 @@ class A<T> {
 class AvoidShadowingTypeParameters extends LintRule {
   AvoidShadowingTypeParameters()
       : super(
-            name: 'avoid_shadowing_type_parameters',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'avoid_shadowing_type_parameters',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_shadowing_type_parameters;

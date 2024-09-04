@@ -261,7 +261,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
   Fragment Goto(JoinEntryInstr* destination);
-  Fragment CheckBoolean(TokenPosition position);
   Fragment CheckArgumentType(LocalVariable* variable, const AbstractType& type);
   Fragment RecordCoverage(TokenPosition position);
   Fragment EnterScope(intptr_t kernel_offset,

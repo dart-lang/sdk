@@ -69,13 +69,10 @@ setters inherit the docs from the getters.
 class PublicMemberApiDocs extends LintRule {
   PublicMemberApiDocs()
       : super(
-            name: 'public_member_api_docs',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.publicInterface,
-              LintRuleCategory.style
-            });
+          name: 'public_member_api_docs',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.public_member_api_docs;

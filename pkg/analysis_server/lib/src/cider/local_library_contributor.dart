@@ -95,7 +95,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
     if (element.isOperator) {
       return;
     }
-    if (element.enclosingElement is! CompilationUnitElement) {
+    if (element.enclosingElement3 is! CompilationUnitElement) {
       return;
     }
     var returnType = element.returnType;
@@ -134,9 +134,17 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
         (opType.includeAnnotationSuggestions &&
             variable != null &&
             variable.isConst)) {
-      var parent = element.enclosingElement;
+      var parent = element.enclosingElement3;
       if (parent is InterfaceElement || parent is ExtensionElement) {
-        builder.suggestAccessor(element, inheritanceDistance: 0.0);
+        if (element.isSynthetic) {
+          if (element.isGetter) {
+            if (variable is FieldElement) {
+              builder.suggestField(variable, inheritanceDistance: 0.0);
+            }
+          }
+        } else {
+          builder.suggestAccessor(element, inheritanceDistance: 0.0);
+        }
       } else {
         builder.suggestTopLevelPropertyAccessor(element, prefix: prefix);
       }
@@ -202,7 +210,15 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
           if (field.isStatic &&
               field.isAccessibleIn(request.libraryElement) &&
               typeSystem.isSubtypeOf(field.type, contextType)) {
-            builder.suggestStaticField(field, prefix: prefix);
+            if (field.isSynthetic) {
+              var getter = field.getter;
+              if (getter != null) {
+                builder.suggestAccessor(getter,
+                    inheritanceDistance: 0.0, withEnclosingName: true);
+              }
+            } else {
+              builder.suggestStaticField(field, prefix: prefix);
+            }
           }
         }
       }

@@ -108,30 +108,6 @@ class A {
     ]);
   }
 
-  test_constructorInitializer_field_shadowingWildcard() async {
-    await assertErrorsInCode(r'''
-class A {
-  var v;
-  var _;
-  A(var _) : v = _;
-}
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 45, 1),
-    ]);
-  }
-
-  test_constructorInitializer_fieldFormalWildcard() async {
-    await assertErrorsInCode(r'''
-class C {
-  var _;
-  var f;
-  C(this._) : f = _;
-}
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 46, 1),
-    ]);
-  }
-
   test_constructorName() async {
     await assertNoErrorsInCode(r'''
 class A {

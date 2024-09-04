@@ -197,4 +197,10 @@ class DillExtensionTypeDeclarationBuilder
   @override
   List<TypeParameter> get typeParameterNodes =>
       _extensionTypeDeclaration.typeParameters;
+
+  @override
+  Nullability computeNullability(
+          {Map<ExtensionTypeDeclarationBuilder, TraversalState>?
+              traversalState}) =>
+      _extensionTypeDeclaration.inherentNullability;
 }

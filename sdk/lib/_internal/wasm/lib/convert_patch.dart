@@ -2,13 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show patch, POWERS_OF_TEN, unsafeCast;
+import "dart:_compact_hash" show createMapFromKeyValueListUnsafe;
+import "dart:_internal"
+    show patch, POWERS_OF_TEN, unsafeCast, pushWasmArray, popWasmArray;
 import "dart:_js_string_convert";
 import "dart:_js_types";
+import "dart:_js_helper" show jsStringToDartString;
+import "dart:_list" show GrowableList, WasmListBaseUnsafeExtensions;
 import "dart:_string";
 import "dart:_typed_data";
 import "dart:_wasm";
-import "dart:typed_data" show Uint8List, Uint16List;
+import "dart:typed_data" show Uint8List;
 
 /// This patch library has no additional parts.
 
@@ -19,7 +23,8 @@ dynamic _parseJson(
     String source, Object? Function(Object? key, Object? value)? reviver) {
   _JsonListener listener = new _JsonListener(reviver);
   var parser = new _JsonStringParser(listener);
-  parser.chunk = source;
+  parser.chunk = unsafeCast<StringBase>(
+      source is JSStringImpl ? jsStringToDartString(source) : source);
   parser.chunkEnd = source.length;
   parser.parse(0);
   parser.close();
@@ -76,34 +81,73 @@ class _JsonListener {
   /**
    * Stack used to handle nested containers.
    *
-   * The current container is pushed on the stack when a new one is
-   * started. If the container is a [Map], there is also a current [key]
-   * which is also stored on the stack.
+   * The current container is pushed on the stack when a new one is started.
    */
-  final List<Object?> stack = [];
+  WasmArray<GrowableList?> stack = WasmArray<GrowableList?>(0);
+  int stackLength = 0;
 
-  /** The current [Map] or [List] being built, or null if not building a
-  * container.
-  */
-  Object? currentContainer;
+  void stackPush(WasmArray<Object?>? value, int valueLength) {
+    final GrowableList<Object?>? valueAsList = value == null
+        ? null
+        : GrowableList.withDataAndLength(value, valueLength);
 
-  /** The most recently read property key. */
-  String key = '';
+    // `GrowableList._nextCapacity` is copied here as the next capacity. We
+    // can't use `GrowableList._nextCapacity` as tear-off as it's difficult to
+    // inline tear-offs manually in the `pushWasmArray` compiler.
+    pushWasmArray<GrowableList<Object?>?>(
+        this.stack, this.stackLength, valueAsList, (stackLength * 2) | 3);
+  }
+
+  GrowableList<dynamic>? stackPop() {
+    assert(stackLength != 0);
+    return popWasmArray<GrowableList<dynamic>>(stack, stackLength);
+  }
+
+  /** Contents of the current container being built, or null if not building a
+   * container.
+   *
+   * When building a [Map] this will contain array of key-value pairs.
+   */
+  WasmArray<Object?>? currentContainer = null;
+  int currentContainerLength = 0;
+
+  void currentContainerPush(Object? value) {
+    WasmArray<Object?> currentContainerNonNull =
+        unsafeCast<WasmArray<Object?>>(this.currentContainer);
+    // Per `_HashBase` invariant capacity needs to be a power of two.
+    pushWasmArray<Object?>(currentContainerNonNull, this.currentContainerLength,
+        value, currentContainerLength == 0 ? 8 : (currentContainerLength * 2));
+    currentContainer = currentContainerNonNull;
+  }
 
   /** The most recently read value. */
   Object? value;
 
-  /** Pushes the currently active container (and key, if a [Map]). */
-  void pushContainer() {
-    if (currentContainer is Map) stack.add(key);
-    stack.add(currentContainer);
+  /** Pushes the currently active container. */
+  void beginContainer() {
+    stackPush(currentContainer, currentContainerLength);
+    currentContainer = const WasmArray<Object?>.literal([]);
+    currentContainerLength = 0;
   }
 
-  /** Pops the top container from the [stack], including a key if applicable. */
+  /** Pops the top container from the [stack]. */
   void popContainer() {
-    value = currentContainer;
-    currentContainer = stack.removeLast();
-    if (currentContainer is Map) key = unsafeCast<String>(stack.removeLast());
+    final currentContainerLocal = currentContainer;
+    if (currentContainerLocal == null) {
+      value = null;
+    } else {
+      value = GrowableList.withDataAndLength(
+          currentContainerLocal, currentContainerLength);
+    }
+
+    final GrowableList<dynamic>? currentContainerList = stackPop();
+    if (currentContainerList == null) {
+      currentContainer = null;
+      currentContainerLength = 0;
+    } else {
+      currentContainer = currentContainerList.data;
+      currentContainerLength = currentContainerList.length;
+    }
   }
 
   void handleString(String value) {
@@ -123,42 +167,43 @@ class _JsonListener {
   }
 
   void beginObject() {
-    pushContainer();
-    currentContainer = <String, dynamic>{};
+    beginContainer();
   }
 
   void propertyName() {
-    key = unsafeCast<String>(value);
+    currentContainerPush(value);
     value = null;
   }
 
   void propertyValue() {
-    var map = unsafeCast<Map>(currentContainer);
-    var reviver = this.reviver;
-    if (reviver != null) {
-      value = reviver(key, value);
+    if (reviver case final reviver?) {
+      final keyValuePairs =
+          unsafeCast<WasmArray<Object?>>(currentContainer); // null deref
+      final key = keyValuePairs[currentContainerLength - 1];
+      currentContainerPush(reviver(key, value));
+    } else {
+      currentContainerPush(value);
     }
-    map[key] = value;
-    key = '';
     value = null;
   }
 
   void endObject() {
     popContainer();
+    final list = unsafeCast<GrowableList>(value);
+    value = createMapFromKeyValueListUnsafe<String, dynamic>(
+        list.data, list.length);
   }
 
   void beginArray() {
-    pushContainer();
-    currentContainer = <dynamic>[];
+    beginContainer();
   }
 
   void arrayElement() {
-    var list = unsafeCast<List>(currentContainer);
     var reviver = this.reviver;
     if (reviver != null) {
-      value = reviver(list.length, value);
+      value = reviver(currentContainerLength, value);
     }
-    list.add(value);
+    currentContainerPush(value);
     value = null;
   }
 
@@ -199,6 +244,10 @@ class _NumberBuffer {
       : array = WasmArray<WasmI8>(_initialCapacity(initialCapacity));
 
   int get capacity => array.length;
+
+  void clear() {
+    length = 0;
+  }
 
   // Pick an initial capacity greater than the first part's size.
   // The typical use case has two parts, this is the attempt at
@@ -428,12 +477,15 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
   int partialState = NO_PARTIAL;
 
   /**
-   * Extra data stored while parsing a primitive value.
-   * May be set during parsing, always set at chunk end if a value is partial.
-   *
-   * May contain a string buffer while parsing strings.
+   * String parts stored while parsing a string.
    */
-  dynamic buffer = null;
+  late final StringBuffer stringBuffer = StringBuffer();
+
+  /**
+   * Number parts stored while parsing a number.
+   */
+  late final _NumberBuffer numberBuffer =
+      _NumberBuffer(_NumberBuffer.minCapacity);
 
   /**
    * Push the current parse [state] on a stack.
@@ -473,9 +525,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         // A partial number might be a valid number if we know it's done.
         // There is an unnecessary overhead if input is a single number,
         // but this is assumed to be rare.
-        _NumberBuffer buffer = this.buffer;
-        this.buffer = null;
-        finishChunkNumber(numState, 0, 0, buffer);
+        finishChunkNumber(numState, 0, 0);
       } else if (partialType == PARTIAL_STRING) {
         fail(chunkEnd, "Unterminated string");
       } else {
@@ -641,8 +691,6 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
   int parsePartialNumber(int position, int state) {
     int start = position;
     // Primitive implementation, can be optimized.
-    _NumberBuffer buffer = this.buffer;
-    this.buffer = null;
     int end = chunkEnd;
     toBailout:
     {
@@ -676,7 +724,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
           } else if ((char | 0x20) == CHAR_e) {
             state = NUM_E;
           } else {
-            finishChunkNumber(state, start, position, buffer);
+            finishChunkNumber(state, start, position);
             return position;
           }
         }
@@ -694,7 +742,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
           if ((char | 0x20) == CHAR_e) {
             state = NUM_E;
           } else {
-            finishChunkNumber(state, start, position, buffer);
+            finishChunkNumber(state, start, position);
             return position;
           }
         }
@@ -720,12 +768,12 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         char = getChar(position);
         digit = char ^ CHAR_0;
       }
-      finishChunkNumber(state, start, position, buffer);
+      finishChunkNumber(state, start, position);
       return position;
     }
     // Bailout code in case the current chunk ends while parsing the numeral.
     assert(position == end);
-    continueChunkNumber(state, start, buffer);
+    continueChunkNumber(state, start);
     return chunkEnd;
   }
 
@@ -816,8 +864,6 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
       position = parsePartial(position);
       if (position == length) return;
     }
-    final OneByteString charAttributes =
-        unsafeCast<OneByteString>(_characterAttributes);
 
     int state = this.state;
     outer:
@@ -828,7 +874,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         if (isUtf16Input && char > 0xFF) {
           break;
         }
-        if ((charAttributes.codeUnitAtUnchecked(char) & CHAR_WHITESPACE) == 0) {
+        if ((_characterAttributes.readUnsigned(char) & CHAR_WHITESPACE) == 0) {
           break;
         }
         position++;
@@ -1016,17 +1062,30 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * list[$('\n')] |= CHAR_WHITESPACE;
    * list[$('\t')] |= CHAR_WHITESPACE;
    * for (var i = 0; i < 256; i += 64) {
-   *   print("'${String.fromCharCodes([
-   *         for (var v in list.skip(i).take(64)) v + $(' '),
-   *       ])}'");
+   *   for (var v in list.skip(i).take(64)) {
+   *     print('${v + $(' ')},');
+   *   }
    * }
    * ```
    */
-  static const String _characterAttributes =
-      '!!!!!!!!!##!!#!!!!!!!!!!!!!!!!!!" !                             '
-      '                            !                                   '
-      '                                                                '
-      '                                                                ';
+  static const WasmArray<WasmI8> _characterAttributes =
+      WasmArray<WasmI8>.literal([
+    33, 33, 33, 33, 33, 33, 33, 33, 33, 35, 35, 33, 33, 35, 33, 33, 33, 33, //
+    33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 34, 32, 33, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 33, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32,
+  ]);
 
   /**
    * Parses a string value.
@@ -1035,9 +1094,6 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * Returned position right after the final quote.
    */
   int parseString(int position) {
-    final OneByteString charAttributes =
-        unsafeCast<OneByteString>(_characterAttributes);
-
     // Format: '"'([^\x00-\x1f\\\"]|'\\'[bfnrt/\\"])*'"'
     // Initial position is right after first '"'.
     int start = position;
@@ -1055,7 +1111,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         if (isUtf16Input && char > 0xFF) {
           continue;
         }
-        if ((charAttributes.codeUnitAtUnchecked(char) &
+        if ((_characterAttributes.readUnsigned(char) &
                 CHAR_SIMPLE_STRING_END) !=
             0) {
           break;
@@ -1121,9 +1177,6 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * slices of non-escape characters using [addSliceToString].
    */
   int parseStringToBuffer(int position) {
-    final OneByteString charAttributes =
-        unsafeCast<OneByteString>(_characterAttributes);
-
     int end = chunkEnd;
     int start = position;
     while (true) {
@@ -1141,7 +1194,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         if (isUtf16Input && char > 0xFF) {
           continue;
         }
-        if ((charAttributes.codeUnitAtUnchecked(char) &
+        if ((_characterAttributes.readUnsigned(char) &
                 CHAR_SIMPLE_STRING_END) !=
             0) {
           break;
@@ -1244,50 +1297,49 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
   int beginChunkNumber(int state, int start) {
     int end = chunkEnd;
     int length = end - start;
-    var buffer = new _NumberBuffer(length);
-    copyCharsToList(start, end, buffer.array, 0);
-    buffer.length = length;
-    this.buffer = buffer;
+    numberBuffer.ensureCapacity(length);
+    copyCharsToList(start, end, numberBuffer.array, 0);
+    numberBuffer.length = length;
     this.partialState = PARTIAL_NUMERAL | state;
     return end;
   }
 
-  void addNumberChunk(_NumberBuffer buffer, int start, int end, int overhead) {
+  void addNumberChunk(int start, int end, int overhead) {
     int length = end - start;
-    int count = buffer.length;
+    int count = numberBuffer.length;
     int newCount = count + length;
     int newCapacity = newCount + overhead;
-    buffer.ensureCapacity(newCapacity);
-    copyCharsToList(start, end, buffer.array, count);
-    buffer.length = newCount;
+    numberBuffer.ensureCapacity(newCapacity);
+    copyCharsToList(start, end, numberBuffer.array, count);
+    numberBuffer.length = newCount;
   }
 
   // Continues an already chunked number across an entire chunk.
-  int continueChunkNumber(int state, int start, _NumberBuffer buffer) {
+  int continueChunkNumber(int state, int start) {
     int end = chunkEnd;
-    addNumberChunk(buffer, start, end, _NumberBuffer.defaultOverhead);
-    this.buffer = buffer;
+    addNumberChunk(start, end, _NumberBuffer.defaultOverhead);
     this.partialState = PARTIAL_NUMERAL | state;
     return end;
   }
 
-  int finishChunkNumber(int state, int start, int end, _NumberBuffer buffer) {
+  void finishChunkNumber(int state, int start, int end) {
     if (state == NUM_ZERO) {
       listener.handleNumber(0);
-      return end;
+      numberBuffer.clear();
+      return;
     }
     if (end > start) {
-      addNumberChunk(buffer, start, end, 0);
+      addNumberChunk(start, end, 0);
     }
     if (state == NUM_DIGIT) {
-      num value = buffer.parseNum();
+      num value = numberBuffer.parseNum();
       listener.handleNumber(value);
     } else if (state == NUM_DOT_DIGIT || state == NUM_E_DIGIT) {
-      listener.handleNumber(buffer.parseDouble());
+      listener.handleNumber(numberBuffer.parseDouble());
     } else {
       fail(chunkEnd, "Unterminated number literal");
     }
-    return end;
+    numberBuffer.clear();
   }
 
   int parseNumber(int char, int position) {
@@ -1460,8 +1512,8 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
  * Chunked JSON parser that parses [String] chunks.
  */
 class _JsonStringParser extends _JsonParserWithListener
-    with _ChunkedJsonParser<String> {
-  String chunk = '';
+    with _ChunkedJsonParser<StringBase> {
+  StringBase chunk = unsafeCast<StringBase>('');
   int chunkEnd = 0;
 
   _JsonStringParser(_JsonListener listener) : super(listener);
@@ -1476,23 +1528,21 @@ class _JsonStringParser extends _JsonParserWithListener
   }
 
   void beginString() {
-    this.buffer = new StringBuffer();
+    assert(stringBuffer.isEmpty);
   }
 
   void addSliceToString(int start, int end) {
-    StringBuffer buffer = this.buffer;
-    buffer.write(chunk.substringUnchecked(start, end));
+    stringBuffer.write(chunk.substringUnchecked(start, end));
   }
 
   void addCharToString(int charCode) {
-    StringBuffer buffer = this.buffer;
-    buffer.writeCharCode(charCode);
+    stringBuffer.writeCharCode(charCode);
   }
 
   String endString() {
-    StringBuffer buffer = this.buffer;
-    this.buffer = null;
-    return buffer.toString();
+    final string = stringBuffer.toString();
+    stringBuffer.clear();
+    return string;
   }
 
   void copyCharsToList(
@@ -1536,7 +1586,8 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   }
 
   void addSlice(String chunk, int start, int end, bool isLast) {
-    _parser.chunk = chunk;
+    _parser.chunk = unsafeCast<StringBase>(
+        chunk is JSStringImpl ? jsStringToDartString(chunk) : chunk);
     _parser.chunkEnd = end;
     _parser.parse(start);
     if (isLast) _parser.close();
@@ -1610,25 +1661,23 @@ class _JsonUtf8Parser extends _JsonParserWithListener
 
   void beginString() {
     decoder.reset();
-    this.buffer = new StringBuffer();
+    stringBuffer.clear();
   }
 
   void addSliceToString(int start, int end) {
-    final StringBuffer buffer = this.buffer;
-    buffer.write(decoder.convertChunked(chunk, start, end));
+    stringBuffer.write(decoder.convertChunked(chunk, start, end));
   }
 
   void addCharToString(int charCode) {
-    final StringBuffer buffer = this.buffer;
-    decoder.flush(buffer);
-    buffer.writeCharCode(charCode);
+    decoder.flush(stringBuffer);
+    stringBuffer.writeCharCode(charCode);
   }
 
   String endString() {
-    final StringBuffer buffer = this.buffer;
-    decoder.flush(buffer);
-    this.buffer = null;
-    return buffer.toString();
+    decoder.flush(stringBuffer);
+    final string = stringBuffer.toString();
+    stringBuffer.clear();
+    return string;
   }
 
   void copyCharsToList(
@@ -1728,16 +1777,39 @@ class _Utf8Decoder {
   // Non-BMP   'R' = 64 + (2 | flagNonLatin1);
   // Illegal   'a' = 64 + (1 | flagIllegal);
   // Illegal   'b' = 64 + (2 | flagIllegal);
-  static const String scanTable = ""
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 00-1F
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 20-3F
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 40-5F
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 60-7F
-      "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD" // 80-9F
-      "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD" // A0-BF
-      "aaIIQQQQQQQQQQQQQQQQQQQQQQQQQQQQ" // C0-DF
-      "QQQQQQQQQQQQQQQQRRRRRbbbbbbbbbbb" // E0-FF
-      ;
+  static const WasmArray<WasmI8> scanTable = WasmArray<WasmI8>.literal([
+    // 00-1F
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+
+    // 20-3F
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+
+    // 40-5F
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+
+    // 60-7F
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+
+    // 80-9F
+    68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
+    68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
+
+    // A0-BF
+    68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
+    68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
+
+    // C0-DF
+    97, 97, 73, 73, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+    81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+
+    // E0-FF
+    81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 82, 82, 82,
+    82, 82, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98,
+  ]);
 
   /// Max chunk to scan at a time.
   ///
@@ -1771,7 +1843,7 @@ class _Utf8Decoder {
     int size = 0;
     int flags = 0;
     for (int i = start; i < end; i++) {
-      int t = scanTable.codeUnitAtUnchecked(bytes[i]);
+      int t = scanTable.readUnsigned(bytes[i]);
       size += t & sizeMask;
       flags |= t;
     }

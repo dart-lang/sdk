@@ -3,6 +3,7 @@
   "experimentSets": {
     "sdkExperiments": [],
     "macros": [
+      "enhanced-parts",
       "macros"
     ]
   },

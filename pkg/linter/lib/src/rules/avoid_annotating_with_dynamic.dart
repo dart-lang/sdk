@@ -41,10 +41,10 @@ lookUpOrDefault(String name, Map map, defaultValue) {
 class AvoidAnnotatingWithDynamic extends LintRule {
   AvoidAnnotatingWithDynamic()
       : super(
-            name: 'avoid_annotating_with_dynamic',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'avoid_annotating_with_dynamic',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_annotating_with_dynamic;

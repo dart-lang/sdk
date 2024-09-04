@@ -39,6 +39,7 @@ class CompilerState;
 class CompilerTimings;
 class Class;
 class Code;
+class Bytecode;
 class Error;
 class ExceptionHandlers;
 class Field;
@@ -49,6 +50,7 @@ class HandleScope;
 class Heap;
 class HierarchyInfo;
 class Instance;
+class Interpreter;
 class Isolate;
 class IsolateGroup;
 class Library;
@@ -69,6 +71,10 @@ class TypeParameter;
 class TypeUsageInfo;
 class Zone;
 
+namespace bytecode {
+class BytecodeLoader;
+}
+
 namespace compiler {
 namespace target {
 class Thread;
@@ -80,6 +86,7 @@ class Thread;
   V(Array)                                                                     \
   V(Class)                                                                     \
   V(Code)                                                                      \
+  V(Bytecode)                                                                  \
   V(Error)                                                                     \
   V(ExceptionHandlers)                                                         \
   V(Field)                                                                     \
@@ -104,6 +111,8 @@ class Thread;
     StubCode::FixAllocationStubTarget().ptr(), nullptr)                        \
   V(CodePtr, invoke_dart_code_stub_, StubCode::InvokeDartCode().ptr(),         \
     nullptr)                                                                   \
+  V(CodePtr, invoke_dart_code_from_bytecode_stub_,                             \
+    StubCode::InvokeDartCodeFromBytecode().ptr(), nullptr)                     \
   V(CodePtr, call_to_runtime_stub_, StubCode::CallToRuntime().ptr(), nullptr)  \
   V(CodePtr, late_initialization_error_shared_without_fpu_regs_stub_,          \
     StubCode::LateInitializationErrorSharedWithoutFPURegs().ptr(), nullptr)    \
@@ -154,7 +163,6 @@ class Thread;
     nullptr)                                                                   \
   V(CodePtr, throw_stub_, StubCode::Throw().ptr(), nullptr)                    \
   V(CodePtr, re_throw_stub_, StubCode::Throw().ptr(), nullptr)                 \
-  V(CodePtr, assert_boolean_stub_, StubCode::AssertBoolean().ptr(), nullptr)   \
   V(CodePtr, optimize_stub_, StubCode::OptimizeFunction().ptr(), nullptr)      \
   V(CodePtr, deoptimize_stub_, StubCode::Deoptimize().ptr(), nullptr)          \
   V(CodePtr, lazy_deopt_from_return_stub_,                                     \
@@ -247,6 +255,7 @@ class Thread;
     NativeEntry::NoScopeNativeCallWrapperEntry(), 0)                           \
   V(uword, auto_scope_native_wrapper_entry_point_,                             \
     NativeEntry::AutoScopeNativeCallWrapperEntry(), 0)                         \
+  V(uword, interpret_call_entry_point_, RuntimeEntry::InterpretCallEntry(), 0) \
   V(StringPtr*, predefined_symbols_address_, Symbols::PredefinedAddress(),     \
     nullptr)                                                                   \
   V(uword, double_nan_address_, reinterpret_cast<uword>(&double_nan_constant), \
@@ -477,6 +486,7 @@ class Thread : public ThreadState {
   }
 
   TaskKind task_kind() const { return task_kind_; }
+  void set_task_kind(TaskKind kind) { task_kind_ = kind; }
 
   // Retrieves and clears the stack overflow flags.  These are set by
   // the generated code before the slow path runtime routine for a
@@ -1154,6 +1164,16 @@ class Thread : public ThreadState {
     return SafepointLevel::kGCAndDeoptAndReload;
   }
 
+#if defined(DART_DYNAMIC_MODULES)
+  Interpreter* interpreter() const { return interpreter_; }
+  void set_interpreter(Interpreter* value) { interpreter_ = value; }
+
+  bytecode::BytecodeLoader* bytecode_loader() const { return bytecode_loader_; }
+  void set_bytecode_loader(bytecode::BytecodeLoader* value) {
+    bytecode_loader_ = value;
+  }
+#endif
+
  private:
   template <class T>
   T* AllocateReusableHandle();
@@ -1347,32 +1367,23 @@ class Thread : public ThreadState {
 #undef REUSABLE_HANDLE_SCOPE_VARIABLE
 #endif  // defined(DEBUG)
 
-  class AtSafepointField : public BitField<uword, bool, 0, 1> {};
-  class SafepointRequestedField
-      : public BitField<uword, bool, AtSafepointField::kNextBit, 1> {};
-
-  class AtDeoptSafepointField
-      : public BitField<uword, bool, SafepointRequestedField::kNextBit, 1> {};
-  class DeoptSafepointRequestedField
-      : public BitField<uword, bool, AtDeoptSafepointField::kNextBit, 1> {};
-
-  class AtReloadSafepointField
-      : public BitField<uword,
-                        bool,
-                        DeoptSafepointRequestedField::kNextBit,
-                        1> {};
-  class ReloadSafepointRequestedField
-      : public BitField<uword, bool, AtReloadSafepointField::kNextBit, 1> {};
-
-  class BlockedForSafepointField
-      : public BitField<uword,
-                        bool,
-                        ReloadSafepointRequestedField::kNextBit,
-                        1> {};
-  class BypassSafepointsField
-      : public BitField<uword, bool, BlockedForSafepointField::kNextBit, 1> {};
-  class UnwindErrorInProgressField
-      : public BitField<uword, bool, BypassSafepointsField::kNextBit, 1> {};
+  using AtSafepointField = BitField<uword, bool>;
+  using SafepointRequestedField =
+      BitField<uword, bool, AtSafepointField::kNextBit>;
+  using AtDeoptSafepointField =
+      BitField<uword, bool, SafepointRequestedField::kNextBit>;
+  using DeoptSafepointRequestedField =
+      BitField<uword, bool, AtDeoptSafepointField::kNextBit>;
+  using AtReloadSafepointField =
+      BitField<uword, bool, DeoptSafepointRequestedField::kNextBit>;
+  using ReloadSafepointRequestedField =
+      BitField<uword, bool, AtReloadSafepointField::kNextBit>;
+  using BlockedForSafepointField =
+      BitField<uword, bool, ReloadSafepointRequestedField::kNextBit>;
+  using BypassSafepointsField =
+      BitField<uword, bool, BlockedForSafepointField::kNextBit>;
+  using UnwindErrorInProgressField =
+      BitField<uword, bool, BypassSafepointsField::kNextBit>;
 
   static uword AtSafepointBits(SafepointLevel level) {
     switch (level) {
@@ -1405,6 +1416,11 @@ class Thread : public ThreadState {
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler heap_sampler_;
+#endif
+
+#if defined(DART_DYNAMIC_MODULES)
+  Interpreter* interpreter_ = nullptr;
+  bytecode::BytecodeLoader* bytecode_loader_ = nullptr;
 #endif
 
   explicit Thread(bool is_vm_isolate);
@@ -1472,6 +1488,7 @@ class Thread : public ThreadState {
 
   friend class ApiZone;
   friend class ActiveIsolateScope;
+  friend class Interpreter;
   friend class InterruptChecker;
   friend class Isolate;
   friend class IsolateGroup;

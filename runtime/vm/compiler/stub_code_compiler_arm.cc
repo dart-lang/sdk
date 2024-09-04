@@ -1227,7 +1227,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
 // Called when invoking Dart code from C++ (VM code).
 // Input parameters:
 //   LR : points to return address.
-//   R0 : target code or entry point (in bare instructions mode).
+//   R0 : target code or entry point (in AOT mode).
 //   R1 : arguments descriptor array.
 //   R2 : arguments array.
 //   R3 : current thread.
@@ -1354,6 +1354,143 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   // Restore the frame pointer and return.
   RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR)));
   __ Ret();
+}
+
+// Called when invoking compiled Dart code from interpreted Dart code.
+// Input parameters:
+//   LR : points to return address.
+//   R0 : target code or entry point (in AOT mode).
+//   R1 : arguments descriptor array.
+//   R2 : address of first argument.
+//   R3 : current thread.
+void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub() {
+#if defined(DART_DYNAMIC_MODULES)
+  SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
+
+  // Push code object to PC marker slot.
+  __ ldr(IP,
+         Address(R3,
+                 target::Thread::invoke_dart_code_from_bytecode_stub_offset()));
+  __ Push(IP);
+
+  __ PushNativeCalleeSavedRegisters();
+
+  // Set up THR, which caches the current thread in Dart code.
+  if (THR != R3) {
+    __ mov(THR, Operand(R3));
+  }
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
+  // Save the current VMTag on the stack.
+  __ LoadFromOffset(R9, THR, target::Thread::vm_tag_offset());
+  __ Push(R9);
+
+  // Save top resource and top exit frame info. Use R4-6 as temporary registers.
+  // StackFrameIterator reads the top exit frame info saved in this frame.
+  __ LoadFromOffset(R4, THR, target::Thread::top_resource_offset());
+  __ Push(R4);
+  __ LoadImmediate(R8, 0);
+  __ StoreToOffset(R8, THR, target::Thread::top_resource_offset());
+
+  __ LoadFromOffset(R8, THR, target::Thread::exit_through_ffi_offset());
+  __ Push(R8);
+  __ LoadImmediate(R8, 0);
+  __ StoreToOffset(R8, THR, target::Thread::exit_through_ffi_offset());
+
+  __ LoadFromOffset(R9, THR, target::Thread::top_exit_frame_info_offset());
+  __ StoreToOffset(R8, THR, target::Thread::top_exit_frame_info_offset());
+
+  // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
+  // with the code below.
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -27);
+#else
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -28);
+#endif
+  __ Push(R9);
+
+  __ EmitEntryFrameVerification(R9);
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ LoadImmediate(R9, VMTag::kDartTagId);
+  __ StoreToOffset(R9, THR, target::Thread::vm_tag_offset());
+
+  // Load arguments descriptor array into R4, which is passed to Dart code.
+  __ mov(R4, Operand(R1));
+
+  // Load number of arguments into R9 and adjust count for type arguments.
+  __ ldr(R3,
+         FieldAddress(R4, target::ArgumentsDescriptor::type_args_len_offset()));
+  __ ldr(R9, FieldAddress(R4, target::ArgumentsDescriptor::count_offset()));
+  __ cmp(R3, Operand(0));
+  __ AddImmediate(R9, R9, target::ToRawSmi(1),
+                  NE);  // Include the type arguments.
+  __ SmiUntag(R9);
+
+  // R2 points to first argument.
+  // Set up arguments for the Dart call.
+  Label push_arguments;
+  Label done_push_arguments;
+  __ CompareImmediate(R9, 0);  // check if there are arguments.
+  __ b(&done_push_arguments, EQ);
+  __ LoadImmediate(R1, 0);
+  __ Bind(&push_arguments);
+  __ ldr(R3, Address(R2));
+  __ Push(R3);
+  __ AddImmediate(R2, target::kWordSize);
+  __ AddImmediate(R1, 1);
+  __ cmp(R1, Operand(R9));
+  __ b(&push_arguments, LT);
+  __ Bind(&done_push_arguments);
+
+  // Call the Dart code entrypoint.
+  if (FLAG_precompiled_mode) {
+    __ SetupGlobalPoolAndDispatchTable();
+    __ LoadImmediate(CODE_REG, 0);  // GC safe value into CODE_REG.
+  } else {
+    __ LoadImmediate(PP, 0);  // GC safe value into PP.
+    __ mov(CODE_REG, Operand(R0));
+    __ ldr(R0, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  }
+  __ blx(R0);  // R4 is the arguments descriptor array.
+
+  // Get rid of arguments pushed on the stack.
+  __ AddImmediate(
+      SP, FP,
+      target::frame_layout.exit_link_slot_from_entry_fp * target::kWordSize);
+
+  // Restore the saved top exit frame info and top resource back into the
+  // Isolate structure. Uses R9 as a temporary register for this.
+  __ Pop(R9);
+  __ StoreToOffset(R9, THR, target::Thread::top_exit_frame_info_offset());
+  __ Pop(R9);
+  __ StoreToOffset(R9, THR, target::Thread::exit_through_ffi_offset());
+  __ Pop(R9);
+  __ StoreToOffset(R9, THR, target::Thread::top_resource_offset());
+
+  // Restore the current VMTag from the stack.
+  __ Pop(R4);
+  __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
+  __ PopNativeCalleeSavedRegisters();
+
+  __ set_constant_pool_allowed(false);
+
+  // Restore the frame pointer and return.
+  RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR)));
+  __ Ret();
+
+#else
+  __ Stop("Not using Dart dynamic modules");
+#endif  // defined(DART_DYNAMIC_MODULES)
 }
 
 // Helper to generate space allocation of context stub.
@@ -2656,6 +2793,90 @@ void StubCodeCompiler::GenerateLazyCompileStub() {
   __ Branch(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
 }
 
+// Stub for interpreting a function call.
+// R4: Arguments descriptor.
+// R0: Function.
+void StubCodeCompiler::GenerateInterpretCallStub() {
+#if defined(DART_DYNAMIC_MODULES)
+
+  __ EnterStubFrame();
+
+#if defined(DEBUG)
+  {
+    Label ok;
+    // Check that we are always entering from Dart code.
+    __ LoadFromOffset(kWord, R8, THR, target::Thread::vm_tag_offset());
+    __ CompareImmediate(R8, VMTag::kDartTagId);
+    __ b(&ok, EQ);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Adjust arguments count for type arguments vector.
+  __ LoadFieldFromOffset(kWord, R2, R4,
+                         target::ArgumentsDescriptor::count_offset());
+  __ SmiUntag(R2);
+  __ LoadFieldFromOffset(kWord, R1, R4,
+                         target::ArgumentsDescriptor::type_args_len_offset());
+  __ cmp(R1, Operand(0));
+  __ AddImmediate(R2, R2, 1, NE);  // Include the type arguments.
+
+  // Compute argv.
+  __ mov(R3, Operand(R2, LSL, 2));
+  __ add(R3, FP, Operand(R3));
+  __ AddImmediate(R3,
+                  target::frame_layout.param_end_from_fp * target::kWordSize);
+
+  // Indicate decreasing memory addresses of arguments with negative argc.
+  __ rsb(R2, R2, Operand(0));
+
+  // Align frame before entering C++ world. Fifth argument passed on the stack.
+  __ ReserveAlignedFrameSpace(1 * target::kWordSize);
+
+  // Pass arguments in registers.
+  // R0: Function.
+  __ mov(R1, Operand(R4));  // Arguments descriptor.
+  // R2: Negative argc.
+  // R3: Argv.
+  __ str(THR, Address(SP, 0));  // Fifth argument: Thread.
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  __ StoreToOffset(kWord, FP, THR,
+                   target::Thread::top_exit_frame_info_offset());
+
+  // Mark that the thread exited generated code through a runtime call.
+  __ LoadImmediate(R5, target::Thread::exit_through_runtime_call());
+  __ StoreToOffset(kWord, R5, THR, target::Thread::exit_through_ffi_offset());
+
+  // Mark that the thread is executing VM code.
+  __ LoadFromOffset(kWord, R5, THR,
+                    target::Thread::interpret_call_entry_point_offset());
+  __ StoreToOffset(kWord, R5, THR, target::Thread::vm_tag_offset());
+
+  __ blx(R5);
+
+  // Mark that the thread is executing Dart code.
+  __ LoadImmediate(R2, VMTag::kDartTagId);
+  __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());
+
+  // Mark that the thread has not exited generated Dart code.
+  __ LoadImmediate(R2, 0);
+  __ StoreToOffset(kWord, R2, THR, target::Thread::exit_through_ffi_offset());
+
+  // Reset exit frame information in Isolate's mutator thread structure.
+  __ StoreToOffset(kWord, R2, THR,
+                   target::Thread::top_exit_frame_info_offset());
+
+  __ LeaveStubFrame();
+  __ Ret();
+
+#else
+  __ Stop("Not using Dart dynamic modules");
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
 // R9: Contains an ICData.
 void StubCodeCompiler::GenerateICCallBreakpointStub() {
 #if defined(PRODUCT)
@@ -3165,8 +3386,9 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   if (FLAG_precompiled_mode) {
     const intptr_t entry_offset =
         target::ICData::EntryPointIndexFor(1) * target::kWordSize;
-    __ LoadCompressed(R0, Address(R8, entry_offset));
-    __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
+    __ LoadCompressed(FUNCTION_REG, Address(R8, entry_offset));
+    __ Branch(
+        FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   } else {
     const intptr_t code_offset =
         target::ICData::CodeIndexFor(1) * target::kWordSize;

@@ -252,7 +252,7 @@ class IlTestPrinter : public AllStatic {
       } else if (obj->IsBool()) {
         writer_->PrintValueBool(Bool::Cast(*obj).value());
       } else if (obj->IsInteger()) {
-        auto value = Integer::Cast(*obj).AsInt64Value();
+        auto value = Integer::Cast(*obj).Value();
         // PrintValue64 and PrintValue will check if integer is representable
         // as a JS number, which is too strict. We don't actually need
         // such checks because we only load resulting JSON in Dart.
@@ -795,10 +795,6 @@ void AssertSubtypeInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->AddString("), function_type_args(");
   function_type_arguments()->PrintTo(f);
   f->AddString(")");
-}
-
-void AssertBooleanInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  value()->PrintTo(f);
 }
 
 void ClosureCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {

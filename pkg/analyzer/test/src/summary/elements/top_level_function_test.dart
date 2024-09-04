@@ -140,7 +140,7 @@ library
   }
 
   test_function_entry_point_in_export() async {
-    addSource('$testPackageLibPath/a.dart', 'library a; main() {}');
+    newFile('$testPackageLibPath/a.dart', 'library a; main() {}');
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
@@ -166,7 +166,7 @@ library
   }
 
   test_function_entry_point_in_export_hidden() async {
-    addSource('$testPackageLibPath/a.dart', 'library a; main() {}');
+    newFile('$testPackageLibPath/a.dart', 'library a; main() {}');
     var library = await buildLibrary('export "a.dart" hide main;');
     checkElementText(library, r'''
 library
@@ -196,7 +196,7 @@ library
   }
 
   test_function_entry_point_in_part() async {
-    addSource('$testPackageLibPath/a.dart', 'part of my.lib; main() {}');
+    newFile('$testPackageLibPath/a.dart', 'part of my.lib; main() {}');
     var library = await buildLibrary('library my.lib; part "a.dart";');
     checkElementText(library, r'''
 library
@@ -948,11 +948,19 @@ library
       classes
         class main @6
           reference: <testLibraryFragment>::@class::main
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::main::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::main
   classes
     class main
       reference: <testLibraryFragment>::@class::main
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::main
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::main::@constructor::new
 ''');
   }
 
@@ -1007,29 +1015,62 @@ library
       classes
         class main @6
           reference: <testLibraryFragment>::@class::main
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::main::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::main
+              constantInitializers
+                SuperConstructorInvocation
+                  superKeyword: super @0
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticElement: <testLibraryFragment>::@class::C::@constructor::new
+              superConstructor: <testLibraryFragment>::@class::C::@constructor::new
         class C @29
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
         class D @40
           reference: <testLibraryFragment>::@class::D
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
   classes
     class alias main
       reference: <testLibraryFragment>::@class::main
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::main
       supertype: C
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::main::@constructor::new
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
 ''');
   }
 
   test_main_class_alias_via_export() async {
-    addSource('$testPackageLibPath/a.dart',
+    newFile('$testPackageLibPath/a.dart',
         'class main = C with D; class C {} class D {}');
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
@@ -1056,7 +1097,7 @@ library
   }
 
   test_main_class_via_export() async {
-    addSource('$testPackageLibPath/a.dart', 'class main {}');
+    newFile('$testPackageLibPath/a.dart', 'class main {}');
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
@@ -1109,7 +1150,7 @@ library
   }
 
   test_main_getter_via_export() async {
-    addSource('$testPackageLibPath/a.dart', 'get main => null;');
+    newFile('$testPackageLibPath/a.dart', 'get main => null;');
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
@@ -1158,7 +1199,7 @@ library
   }
 
   test_main_typedef_via_export() async {
-    addSource('$testPackageLibPath/a.dart', 'typedef main();');
+    newFile('$testPackageLibPath/a.dart', 'typedef main();');
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
@@ -1218,7 +1259,7 @@ library
   }
 
   test_main_variable_via_export() async {
-    addSource('$testPackageLibPath/a.dart', 'var main;');
+    newFile('$testPackageLibPath/a.dart', 'var main;');
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
@@ -1248,42 +1289,42 @@ abstract class TopLevelFunctionElementTest_augmentation
     extends ElementsBaseTest {
   test_function_augmentationTarget() async {
     newFile('$testPackageLibPath/a1.dart', r'''
-augment library 'test.dart';
-import augment 'a11.dart';
-import augment 'a12.dart';
+part of 'test.dart';
+part 'a11.dart';
+part 'a12.dart';
 augment void foo() {}
 ''');
 
     newFile('$testPackageLibPath/a11.dart', r'''
-augment library 'a1.dart';
+part of 'a1.dart';
 augment void foo() {}
 ''');
 
     newFile('$testPackageLibPath/a12.dart', r'''
-augment library 'a1.dart';
+part of 'a1.dart';
 augment void foo() {}
 ''');
 
     newFile('$testPackageLibPath/a2.dart', r'''
-augment library 'test.dart';
-import augment 'a21.dart';
-import augment 'a22.dart';
+part of 'test.dart';
+part 'a21.dart';
+part 'a22.dart';
 augment void foo() {}
 ''');
 
     newFile('$testPackageLibPath/a21.dart', r'''
-augment library 'a2.dart';
+part of 'a2.dart';
 augment void foo() {}
 ''');
 
     newFile('$testPackageLibPath/a22.dart', r'''
-augment library 'a2.dart';
+part of 'a2.dart';
 augment void foo() {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a1.dart';
-import augment 'a2.dart';
+part 'a1.dart';
+part 'a2.dart';
 void foo() {}
 ''');
 
@@ -1291,97 +1332,106 @@ void foo() {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a1.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a1.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a1.dart
-      augmentationImports
-        package:test/a11.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a1.dart
-          reference: <testLibrary>::@augmentation::package:test/a11.dart
-          definingUnit: <testLibrary>::@fragment::package:test/a11.dart
-        package:test/a12.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a1.dart
-          reference: <testLibrary>::@augmentation::package:test/a12.dart
-          definingUnit: <testLibrary>::@fragment::package:test/a12.dart
-    package:test/a2.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a2.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a2.dart
-      augmentationImports
-        package:test/a21.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a2.dart
-          reference: <testLibrary>::@augmentation::package:test/a21.dart
-          definingUnit: <testLibrary>::@fragment::package:test/a21.dart
-        package:test/a22.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a2.dart
-          reference: <testLibrary>::@augmentation::package:test/a22.dart
-          definingUnit: <testLibrary>::@fragment::package:test/a22.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a1.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a1.dart
+        part_1
+          uri: package:test/a2.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a2.dart
       functions
-        foo @57
+        foo @37
           reference: <testLibraryFragment>::@function::foo
           enclosingElement: <testLibraryFragment>
           returnType: void
           augmentation: <testLibrary>::@fragment::package:test/a1.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a1.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a1.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_2
+          uri: package:test/a11.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
+          unit: <testLibrary>::@fragment::package:test/a11.dart
+        part_3
+          uri: package:test/a12.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
+          unit: <testLibrary>::@fragment::package:test/a12.dart
       functions
-        augment foo @96
+        augment foo @68
           reference: <testLibrary>::@fragment::package:test/a1.dart::@functionAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a1.dart
           returnType: void
           augmentationTarget: <testLibraryFragment>::@function::foo
           augmentation: <testLibrary>::@fragment::package:test/a11.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a11.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a11.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
       functions
-        augment foo @40
+        augment foo @32
           reference: <testLibrary>::@fragment::package:test/a11.dart::@functionAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a11.dart
           returnType: void
           augmentationTarget: <testLibrary>::@fragment::package:test/a1.dart::@functionAugmentation::foo
           augmentation: <testLibrary>::@fragment::package:test/a12.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a12.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a12.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
       functions
-        augment foo @40
+        augment foo @32
           reference: <testLibrary>::@fragment::package:test/a12.dart::@functionAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a12.dart
           returnType: void
           augmentationTarget: <testLibrary>::@fragment::package:test/a11.dart::@functionAugmentation::foo
           augmentation: <testLibrary>::@fragment::package:test/a2.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a2.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a2.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_4
+          uri: package:test/a21.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
+          unit: <testLibrary>::@fragment::package:test/a21.dart
+        part_5
+          uri: package:test/a22.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
+          unit: <testLibrary>::@fragment::package:test/a22.dart
       functions
-        augment foo @96
+        augment foo @68
           reference: <testLibrary>::@fragment::package:test/a2.dart::@functionAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a2.dart
           returnType: void
           augmentationTarget: <testLibrary>::@fragment::package:test/a12.dart::@functionAugmentation::foo
           augmentation: <testLibrary>::@fragment::package:test/a21.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a21.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a21.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
       functions
-        augment foo @40
+        augment foo @32
           reference: <testLibrary>::@fragment::package:test/a21.dart::@functionAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a21.dart
           returnType: void
           augmentationTarget: <testLibrary>::@fragment::package:test/a2.dart::@functionAugmentation::foo
           augmentation: <testLibrary>::@fragment::package:test/a22.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a22.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a22.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
       functions
-        augment foo @40
+        augment foo @32
           reference: <testLibrary>::@fragment::package:test/a22.dart::@functionAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a22.dart
           returnType: void
@@ -1414,13 +1464,13 @@ library
 
   test_function_augments_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment void foo() {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class foo {}
 ''');
@@ -1429,16 +1479,19 @@ class foo {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class foo @32
+        class foo @22
           reference: <testLibraryFragment>::@class::foo
           enclosingElement: <testLibraryFragment>
           constructors
@@ -1446,10 +1499,10 @@ library
               reference: <testLibraryFragment>::@class::foo::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       functions
-        augment foo @43
+        augment foo @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
@@ -1461,8 +1514,12 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class foo @32
+        class foo @22
           reference: <testLibraryFragment>::@class::foo
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::foo::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
   classes
@@ -1470,17 +1527,21 @@ library
       reference: <testLibraryFragment>::@class::foo
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::foo
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::foo::@constructor::new
 ''');
   }
 
   test_function_augments_function() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment void foo() {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 void foo() {}
 ''');
 
@@ -1489,25 +1550,28 @@ void foo() {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       functions
-        foo @30
+        foo @20
           reference: <testLibraryFragment>::@function::foo
           enclosingElement: <testLibraryFragment>
           returnType: void
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       functions
-        augment foo @42
+        augment foo @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
@@ -1533,13 +1597,13 @@ library
 
   test_function_augments_function2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 void foo() {}
 augment void foo() {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
 
     configuration.withExportScope = true;
@@ -1547,24 +1611,27 @@ import augment 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       functions
-        foo @34
+        foo @26
           reference: <testLibrary>::@fragment::package:test/a.dart::@function::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
-        augment foo @56
+        augment foo @48
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
@@ -1590,13 +1657,13 @@ library
 
   test_function_augments_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment void foo() {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 int get foo => 0;
 ''');
@@ -1605,29 +1672,32 @@ int get foo => 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
           enclosingElement: <testLibraryFragment>
           type: int
       accessors
-        static get foo @34
+        static get foo @24
           reference: <testLibraryFragment>::@getter::foo
           enclosingElement: <testLibraryFragment>
           returnType: int
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       functions
-        augment foo @43
+        augment foo @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
@@ -1645,13 +1715,13 @@ library
 
   test_function_augments_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment void foo() {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 set foo(int _) {}
 ''');
@@ -1660,32 +1730,35 @@ set foo(int _) {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
           enclosingElement: <testLibraryFragment>
           type: int
       accessors
-        static set foo= @30
+        static set foo= @20
           reference: <testLibraryFragment>::@setter::foo
           enclosingElement: <testLibraryFragment>
           parameters
-            requiredPositional _ @38
+            requiredPositional _ @28
               type: int
           returnType: void
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       functions
-        augment foo @43
+        augment foo @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
@@ -1703,13 +1776,13 @@ library
 
   test_function_augments_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment void foo() {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 int foo = 0;
 ''');
@@ -1718,16 +1791,19 @@ int foo = 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        static foo @30
+        static foo @20
           reference: <testLibraryFragment>::@topLevelVariable::foo
           enclosingElement: <testLibraryFragment>
           type: int
@@ -1745,10 +1821,10 @@ library
               type: int
           returnType: void
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       functions
-        augment foo @43
+        augment foo @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
@@ -1766,12 +1842,12 @@ library
 
   test_getter_augments_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment int get foo => 0;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 class foo {}
 ''');
 
@@ -1783,23 +1859,26 @@ class foo {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class foo @31
+        class foo @21
           reference: <testLibraryFragment>::@class::foo
           enclosingElement: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
-        augment static get foo @45
+        augment static get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
@@ -1817,7 +1896,7 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class foo @31
+        class foo @21
           reference: <testLibraryFragment>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -1835,12 +1914,12 @@ library
 
   test_getter_augments_function() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment int get foo => 0;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 void foo() {}
 ''');
 
@@ -1852,24 +1931,27 @@ void foo() {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       functions
-        foo @30
+        foo @20
           reference: <testLibraryFragment>::@function::foo
           enclosingElement: <testLibraryFragment>
           returnType: void
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
-        augment static get foo @45
+        augment static get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
@@ -1897,12 +1979,12 @@ library
 
   test_getter_augments_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment int get foo => 0;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 int get foo => 0;
 ''');
 
@@ -1913,14 +1995,17 @@ int get foo => 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -1929,7 +2014,7 @@ library
           id: variable_0
           getter: getter_0
       accessors
-        static get foo @33
+        static get foo @23
           reference: <testLibraryFragment>::@getter::foo
           enclosingElement: <testLibraryFragment>
           returnType: int
@@ -1937,10 +2022,10 @@ library
           variable: variable_0
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
-        augment static get foo @45
+        augment static get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
@@ -1968,12 +2053,12 @@ library
 
   test_getter_augments_nothing() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment int get foo => 0;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
 
     configuration
@@ -1983,19 +2068,22 @@ import augment 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
-        augment static get foo @45
+        augment static get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
@@ -2018,12 +2106,12 @@ library
 
   test_getter_augments_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment int get foo => 0;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 set foo(int _) {}
 ''');
 
@@ -2035,14 +2123,17 @@ set foo(int _) {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -2051,20 +2142,20 @@ library
           id: variable_0
           setter: setter_0
       accessors
-        static set foo= @29
+        static set foo= @19
           reference: <testLibraryFragment>::@setter::foo
           enclosingElement: <testLibraryFragment>
           parameters
-            requiredPositional _ @37
+            requiredPositional _ @27
               type: int
           returnType: void
           id: setter_0
           variable: variable_0
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
-        augment static get foo @45
+        augment static get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
@@ -2092,12 +2183,12 @@ library
 
   test_getter_augments_topVariable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment int get foo => 0;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 int foo = 0;
 ''');
 
@@ -2108,16 +2199,19 @@ int foo = 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        static foo @29
+        static foo @19
           reference: <testLibraryFragment>::@topLevelVariable::foo
           enclosingElement: <testLibraryFragment>
           type: int
@@ -2143,10 +2237,10 @@ library
           id: setter_0
           variable: variable_0
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
-        augment static get foo @45
+        augment static get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
@@ -2178,12 +2272,12 @@ library
 
   test_setter_augments_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment set foo(int _) {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 class foo {}
 ''');
 
@@ -2194,16 +2288,19 @@ class foo {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class foo @31
+        class foo @21
           reference: <testLibraryFragment>::@class::foo
           enclosingElement: <testLibraryFragment>
           constructors
@@ -2211,14 +2308,14 @@ library
               reference: <testLibraryFragment>::@class::foo::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
-        augment static set foo= @41
+        augment static set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           parameters
-            requiredPositional _ @49
+            requiredPositional _ @41
               type: int
           returnType: void
           id: setter_0
@@ -2235,8 +2332,12 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class foo @31
+        class foo @21
           reference: <testLibraryFragment>::@class::foo
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::foo::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
   classes
@@ -2244,6 +2345,10 @@ library
       reference: <testLibraryFragment>::@class::foo
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::foo
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::foo::@constructor::new
   exportedReferences
     declared <testLibraryFragment>::@class::foo
   exportNamespace
@@ -2253,12 +2358,12 @@ library
 
   test_setter_augments_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment set foo(int _) {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 int get foo => 0;
 ''');
 
@@ -2269,14 +2374,17 @@ int get foo => 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -2285,21 +2393,21 @@ library
           id: variable_0
           getter: getter_0
       accessors
-        static get foo @33
+        static get foo @23
           reference: <testLibraryFragment>::@getter::foo
           enclosingElement: <testLibraryFragment>
           returnType: int
           id: getter_0
           variable: variable_0
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
-        augment static set foo= @41
+        augment static set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           parameters
-            requiredPositional _ @49
+            requiredPositional _ @41
               type: int
           returnType: void
           id: setter_0
@@ -2326,12 +2434,12 @@ library
 
   test_setter_augments_nothing() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment set foo(int _) {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
 
     configuration
@@ -2341,23 +2449,26 @@ import augment 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
-        augment static set foo= @41
+        augment static set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           parameters
-            requiredPositional _ @49
+            requiredPositional _ @41
               type: int
           returnType: void
           id: setter_0
@@ -2379,12 +2490,12 @@ library
 
   test_setter_augments_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment set foo(int _) {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 set foo(int _) {}
 ''');
 
@@ -2395,14 +2506,17 @@ set foo(int _) {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -2411,25 +2525,25 @@ library
           id: variable_0
           setter: setter_0
       accessors
-        static set foo= @29
+        static set foo= @19
           reference: <testLibraryFragment>::@setter::foo
           enclosingElement: <testLibraryFragment>
           parameters
-            requiredPositional _ @37
+            requiredPositional _ @27
               type: int
           returnType: void
           id: setter_0
           variable: variable_0
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
-        augment static set foo= @41
+        augment static set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           parameters
-            requiredPositional _ @49
+            requiredPositional _ @41
               type: int
           returnType: void
           id: setter_1
@@ -2456,12 +2570,12 @@ library
 
   test_setter_augments_topVariable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment set foo(int _) {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 int foo = 0;
 ''');
 
@@ -2472,16 +2586,19 @@ int foo = 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        static foo @29
+        static foo @19
           reference: <testLibraryFragment>::@topLevelVariable::foo
           enclosingElement: <testLibraryFragment>
           type: int
@@ -2507,14 +2624,14 @@ library
           variable: variable_0
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
-        augment static set foo= @41
+        augment static set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           parameters
-            requiredPositional _ @49
+            requiredPositional _ @41
               type: int
           returnType: void
           id: setter_1

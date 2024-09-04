@@ -16,13 +16,13 @@ import "dart:core" as core;
 [243]class PrimitiveEquals extends core::Object /*hasConstConstructor*/  {
 [273]  final field core::int field;
 [289]  const constructor •([310] core::int field) → self::PrimitiveEquals
-    : [310] self::PrimitiveEquals::field = [-1] [-1] field, [289] super core::Object::• [-1]()
+    : [310] self::PrimitiveEquals::field = [-1] [-1] field, [289] super core::Object::• [289]()
 [-1]    ;
 }
 [327]class NonPrimitiveEquals extends core::Object /*hasConstConstructor*/  {
 [360]  final field core::int field;
 [376]  const constructor •([400] core::int field) → self::NonPrimitiveEquals
-    : [400] self::NonPrimitiveEquals::field = [-1] [-1] field, [376] super core::Object::• [-1]()
+    : [400] self::NonPrimitiveEquals::field = [-1] [-1] field, [376] super core::Object::• [376]()
 [-1]    ;
 [419]  get hashCode() → core::int
 [431]    return [437] [437] [431] [431] [431] [431] this.{self::NonPrimitiveEquals::field}{core::int}.{core::num::hashCode}{core::int};

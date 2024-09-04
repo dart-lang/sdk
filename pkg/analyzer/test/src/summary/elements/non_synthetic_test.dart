@@ -69,11 +69,47 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          fields
+            foo @16
+              reference: <testLibraryFragment>::@class::C::@field::foo
+              enclosingFragment: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get foo @-1
+              reference: <testLibraryFragment>::@class::C::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@class::C
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        foo
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        synthetic get foo
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::foo
+      setters
+        synthetic set foo=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@setter::foo
 ''');
   }
 
@@ -120,11 +156,38 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          fields
+            foo @-1
+              reference: <testLibraryFragment>::@class::C::@field::foo
+              enclosingFragment: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get foo @20
+              reference: <testLibraryFragment>::@class::C::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic foo
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        get foo
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::foo
 ''');
   }
 
@@ -175,11 +238,38 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          fields
+            foo @-1
+              reference: <testLibraryFragment>::@class::C::@field::foo
+              enclosingFragment: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          setters
+            set foo= @16
+              reference: <testLibraryFragment>::@class::C::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic foo
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      setters
+        set foo=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@setter::foo
 ''');
   }
 
@@ -287,12 +377,69 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant a @11
+              reference: <testLibraryFragment>::@enum::E::@field::a
+              enclosingFragment: <testLibraryFragment>::@enum::E
+            enumConstant b @14
+              reference: <testLibraryFragment>::@enum::E::@field::b
+              enclosingFragment: <testLibraryFragment>::@enum::E
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              enclosingFragment: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
+          getters
+            get a @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::a
+              enclosingFragment: <testLibraryFragment>::@enum::E
+            get b @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::b
+              enclosingFragment: <testLibraryFragment>::@enum::E
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const a
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@enum::E
+          type: E
+          firstFragment: <testLibraryFragment>::@enum::E::@field::a
+        static const b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@enum::E
+          type: E
+          firstFragment: <testLibraryFragment>::@enum::E::@field::b
+        synthetic static const values
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@enum::E
+          type: List<E>
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get a
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@enum::E
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::a
+        synthetic static get b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@enum::E
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::b
+        synthetic static get values
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@enum::E
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -346,6 +493,18 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          fields
+            foo @16
+              reference: <testLibraryFragment>::@mixin::M::@field::foo
+              enclosingFragment: <testLibraryFragment>::@mixin::M
+          getters
+            get foo @-1
+              reference: <testLibraryFragment>::@mixin::M::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@mixin::M
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@mixin::M::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@mixin::M
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -353,6 +512,22 @@ library
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
+      fields
+        foo
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@mixin::M
+          type: int
+          firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+      getters
+        synthetic get foo
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@mixin::M
+          firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
+      setters
+        synthetic set foo=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@mixin::M
+          firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
 ''');
   }
 
@@ -396,6 +571,14 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          fields
+            foo @-1
+              reference: <testLibraryFragment>::@mixin::M::@field::foo
+              enclosingFragment: <testLibraryFragment>::@mixin::M
+          getters
+            get foo @20
+              reference: <testLibraryFragment>::@mixin::M::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@mixin::M
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -403,6 +586,17 @@ library
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
+      fields
+        synthetic foo
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@mixin::M
+          type: int
+          firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+      getters
+        get foo
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@mixin::M
+          firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
 ''');
   }
 
@@ -450,6 +644,14 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          fields
+            foo @-1
+              reference: <testLibraryFragment>::@mixin::M::@field::foo
+              enclosingFragment: <testLibraryFragment>::@mixin::M
+          setters
+            set foo= @16
+              reference: <testLibraryFragment>::@mixin::M::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@mixin::M
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -457,6 +659,17 @@ library
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
+      fields
+        synthetic foo
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@mixin::M
+          type: int
+          firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+      setters
+        set foo=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@mixin::M
+          firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
 ''');
   }
 

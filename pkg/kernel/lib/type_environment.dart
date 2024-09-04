@@ -122,18 +122,18 @@ abstract class TypeEnvironment extends Types {
         DartType typeArgument = futureType.typeArguments.single;
         return typeArgument.withDeclaredNullability(
             combineNullabilitiesForSubstitution(
-                combineNullabilitiesForSubstitution(
-                    typeArgument.declaredNullability,
-                    futureType.declaredNullability),
-                t.declaredNullability));
+                inner: combineNullabilitiesForSubstitution(
+                    inner: typeArgument.declaredNullability,
+                    outer: futureType.declaredNullability),
+                outer: t.declaredNullability));
       } else if (futureType is FutureOrType) {
         DartType typeArgument = futureType.typeArgument;
         return typeArgument.withDeclaredNullability(
             combineNullabilitiesForSubstitution(
-                combineNullabilitiesForSubstitution(
-                    typeArgument.declaredNullability,
-                    futureType.declaredNullability),
-                t.declaredNullability));
+                inner: combineNullabilitiesForSubstitution(
+                    inner: typeArgument.declaredNullability,
+                    outer: futureType.declaredNullability),
+                outer: t.declaredNullability));
       } else {
         return t;
       }

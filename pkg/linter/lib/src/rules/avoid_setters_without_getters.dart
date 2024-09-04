@@ -47,10 +47,10 @@ class Good {
 class AvoidSettersWithoutGetters extends LintRule {
   AvoidSettersWithoutGetters()
       : super(
-            name: 'avoid_setters_without_getters',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'avoid_setters_without_getters',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_setters_without_getters;

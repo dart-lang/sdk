@@ -21,11 +21,11 @@ Experimental WIP lint to help ensure `DartType` accesses are safe in the dev_com
 class EraseDartTypeExtensionTypes extends LintRule {
   EraseDartTypeExtensionTypes()
       : super(
-            name: 'erase_dart_type_extension_types',
-            description: _desc,
-            details: _details,
-            state: State.internal(),
-            categories: {LintRuleCategory.errorProne});
+          name: 'erase_dart_type_extension_types',
+          description: _desc,
+          details: _details,
+          state: State.internal(),
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.erase_dart_type_extension_types;

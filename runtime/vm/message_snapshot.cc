@@ -890,7 +890,7 @@ class MintMessageSerializationCluster : public MessageSerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       Mint* mint = static_cast<Mint*>(objects_[i]);
       s->AssignRef(mint);
-      s->Write<int64_t>(mint->value());
+      s->Write<int64_t>(mint->Value());
     }
   }
 

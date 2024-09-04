@@ -56,6 +56,8 @@ class RuntimeEntry : public BaseRuntimeEntry {
   bool can_lazy_deopt() const { return can_lazy_deopt_; }
   uword GetEntryPoint() const;
 
+  static uword InterpretCallEntry();
+
  private:
   const char* const name_;
   const void* const function_;

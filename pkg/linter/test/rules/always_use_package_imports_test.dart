@@ -57,6 +57,23 @@ import 'package:test/lib.dart';
     await assertNoDiagnosticsIn(result.errors);
   }
 
+  test_samePackage_packageSchema_inPart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class C {}
+''');
+
+    newFile('$testPackageRootPath/test/a.dart', r'''
+part 'test.dart';
+''');
+
+    await assertNoDiagnostics(r'''
+part of 'a.dart';
+
+/// This provides [C].
+import 'package:test/lib.dart';
+''');
+  }
+
   test_samePackage_relativeUri() async {
     newFile('$testPackageLibPath/lib.dart', r'''
 class C {}
@@ -66,6 +83,25 @@ class C {}
 import 'lib.dart';
 ''', [
       lint(30, 10),
+    ]);
+  }
+
+  test_samePackage_relativeUri_inPart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class C {}
+''');
+
+    newFile('$testPackageRootPath/test/a.dart', r'''
+part 'test.dart';
+''');
+
+    await assertDiagnostics(r'''
+part of 'a.dart';
+
+/// This provides [C].
+import 'lib.dart';
+''', [
+      lint(49, 10),
     ]);
   }
 }

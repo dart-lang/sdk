@@ -91,7 +91,6 @@ Future<void> main(List<String> args) async {
       buildRootUri.resolve('gen/utils/ddc/stable/sdk/ddc/dart_sdk.js');
   final ddcModuleLoaderJsUri =
       sdkRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
-  final d8Config = ddc_helpers.D8Configuration(sdkRoot);
 
   // Contains generated code for all tests.
   final generatedCodeDir = Directory.systemTemp.createTempSync();
@@ -134,6 +133,7 @@ Future<void> main(List<String> args) async {
   ];
   switch (runtimePlatform) {
     case RuntimePlatforms.d8:
+    case RuntimePlatforms.chrome:
       final ddcPlatformDillFromSdkRoot = fe_shared.relativizeUri(
           sdkRoot, ddcPlatformDillUri, fe_shared.isWindows);
       final fesArgs = [
@@ -144,8 +144,6 @@ Future<void> main(List<String> args) async {
       ];
       controller = HotReloadFrontendServerController(fesArgs);
       break;
-    case RuntimePlatforms.chrome:
-      throw Exception('Unsupported platform: $runtimePlatform');
     case RuntimePlatforms.vm:
       final vmPlatformDillFromSdkRoot = fe_shared.relativizeUri(
           sdkRoot, vmPlatformDillUri, fe_shared.isWindows);
@@ -165,6 +163,23 @@ Future<void> main(List<String> args) async {
     _print('Frontend Server has shut down.');
     if (!debug) {
       generatedCodeDir.deleteSync(recursive: true);
+    }
+  }
+
+  // Only allow Chrome when debugging a single test.
+  // TODO(markzipan): Add support for full Chrome testing.
+  if (runtimePlatform == RuntimePlatforms.chrome) {
+    var matchingTests =
+        Directory.fromUri(allTestsUri).listSync().where((testDir) {
+      if (testDir is! Directory) return false;
+      final testDirParts = testDir.uri.pathSegments;
+      final testName = testDirParts[testDirParts.length - 2];
+      return testNameFilter.hasMatch(testName);
+    });
+
+    if (matchingTests.length > 1) {
+      throw Exception('Chrome is only supported when debugging a single test.'
+          "Please filter on a single test with '-f'.");
     }
   }
 
@@ -569,9 +584,8 @@ Future<void> main(List<String> args) async {
     switch (runtimePlatform) {
       case RuntimePlatforms.d8:
         // Run the compiled JS generations with D8.
-        // TODO(markzipan): Add logic for evaluating with Chrome or the VM.
         _print('Creating D8 hot reload test suite.', label: testName);
-
+        final d8Config = ddc_helpers.D8Configuration(sdkRoot);
         final d8Suite = D8SuiteRunner(
           config: d8Config,
           bootstrapJsUri: tempUri.resolve('generation0/bootstrap.js'),
@@ -591,6 +605,30 @@ Future<void> main(List<String> args) async {
         await d8Suite.teardownTest(testName: testName);
         break;
       case RuntimePlatforms.chrome:
+        // Run the compiled JS generations with Chrome.
+        _print('Creating Chrome hot reload test suite.', label: testName);
+        final chromeConfig = ddc_helpers.ChromeConfiguration(sdkRoot);
+        final suite = ChromeSuiteRunner(
+          config: chromeConfig,
+          mainEntrypointJsUri:
+              tempUri.resolve('generation0/main_module.bootstrap.js'),
+          bootstrapJsUri: tempUri.resolve('generation0/bootstrap.js'),
+          bootstrapHtmlUri: tempUri.resolve('generation0/index.html'),
+          entrypointLibraryExportName:
+              ddc_names.libraryUriToJsIdentifier(snapshotEntrypointUri),
+          dartSdkJsUri: soundStableDartSdkJsUri,
+          ddcModuleLoaderJsUri: ddcModuleLoaderJsUri,
+          outputSink: IOSink(testOutputStreamController.sink),
+        );
+        await suite.setupTest(
+          testName: testName,
+          scriptDescriptors: filesystem.scriptDescriptorForBootstrap,
+          generationToModifiedFiles: filesystem.generationsToModifiedFilePaths,
+        );
+        final exitCode = await suite.runTest(testName: testName);
+        testPassed = exitCode == 0;
+        await suite.teardownTest(testName: testName);
+        break;
       case RuntimePlatforms.vm:
         final firstGenerationDillUri =
             tempUri.resolve('generation0/$testName.dill');
@@ -632,7 +670,6 @@ Future<void> main(List<String> args) async {
         });
         testPassed = vmExitCode == 0;
     }
-
     await reportTestOutcome(testOutputBuffer.toString(), testPassed);
   }
 
@@ -784,7 +821,7 @@ abstract class HotReloadSuiteRunner {
   Future<void> setupTest(
       {String? testName,
       List<Map<String, String?>>? scriptDescriptors,
-      Map<String, List<String>>? generationToModifiedFiles});
+      ddc_helpers.FileDataPerGeneration? generationToModifiedFiles});
 
   /// Executes a test.
   Future<int> runTest({String? testName});
@@ -839,7 +876,7 @@ class D8SuiteRunner implements HotReloadSuiteRunner {
 
   String _generateBootstrapper({
     required List<Map<String, String?>> scriptDescriptors,
-    required Map<String, List<String>> generationToModifiedFiles,
+    required ddc_helpers.FileDataPerGeneration generationToModifiedFiles,
   }) {
     return ddc_helpers.generateD8Bootstrapper(
       ddcModuleLoaderJsPath: escapedString(ddcModuleLoaderJsUri.toFilePath()),
@@ -855,7 +892,7 @@ class D8SuiteRunner implements HotReloadSuiteRunner {
   Future<void> setupTest({
     String? testName,
     List<Map<String, String?>>? scriptDescriptors,
-    Map<String, List<String>>? generationToModifiedFiles,
+    ddc_helpers.FileDataPerGeneration? generationToModifiedFiles,
   }) async {
     _print('Preparing to run D8 test.', label: testName);
     if (scriptDescriptors == null || generationToModifiedFiles == null) {
@@ -877,6 +914,171 @@ class D8SuiteRunner implements HotReloadSuiteRunner {
       bootstrapJsUri.toFilePath()
     ]);
     unawaited(process.stdout.pipe(outputSink));
+    return process.exitCode;
+  }
+
+  @override
+  Future<void> teardownTest({String? testName}) async {}
+}
+
+class ChromeSuiteRunner implements HotReloadSuiteRunner {
+  final ddc_helpers.ChromeConfiguration config;
+  final Uri bootstrapJsUri;
+  final Uri mainEntrypointJsUri;
+  final Uri bootstrapHtmlUri;
+  @override
+  final String entrypointModuleName;
+  @override
+  final String entrypointLibraryExportName;
+  @override
+  final Uri dartSdkJsUri;
+  @override
+  final Uri ddcModuleLoaderJsUri;
+  @override
+  final StreamSink<List<int>> outputSink;
+
+  ChromeSuiteRunner._({
+    required this.config,
+    required this.mainEntrypointJsUri,
+    required this.bootstrapJsUri,
+    required this.bootstrapHtmlUri,
+    required this.entrypointModuleName,
+    required this.entrypointLibraryExportName,
+    required this.dartSdkJsUri,
+    required this.ddcModuleLoaderJsUri,
+    required this.outputSink,
+  });
+
+  factory ChromeSuiteRunner({
+    required ddc_helpers.ChromeConfiguration config,
+    required Uri mainEntrypointJsUri,
+    required Uri bootstrapJsUri,
+    required Uri bootstrapHtmlUri,
+    String entrypointModuleName = 'main.dart',
+    String entrypointLibraryExportName = 'main',
+    required Uri dartSdkJsUri,
+    required Uri ddcModuleLoaderJsUri,
+    StreamSink<List<int>>? outputSink,
+  }) {
+    return ChromeSuiteRunner._(
+      config: config,
+      entrypointModuleName: entrypointModuleName,
+      entrypointLibraryExportName: entrypointLibraryExportName,
+      mainEntrypointJsUri: mainEntrypointJsUri,
+      bootstrapJsUri: bootstrapJsUri,
+      bootstrapHtmlUri: bootstrapHtmlUri,
+      dartSdkJsUri: dartSdkJsUri,
+      ddcModuleLoaderJsUri: ddcModuleLoaderJsUri,
+      outputSink: outputSink ?? stdout,
+    );
+  }
+
+  /// Generates all files required for bootstrapping a DDC project in Chrome.
+  void _generateBootstrapper({
+    required List<Map<String, String?>> scriptDescriptors,
+    required ddc_helpers.FileDataPerGeneration generationToModifiedFiles,
+  }) {
+    var bootstrapHtml = '''
+      <html>
+          <head>
+              <base href="/">
+          </head>
+          <body>
+              <script src="$bootstrapJsUri"></script>
+          </body>
+      </html>
+    ''';
+
+    final (chromeMainEntrypointJS, chromeBootstrapJS) =
+        ddc_helpers.generateChromeBootstrapperFiles(
+      ddcModuleLoaderJsPath: escapedString(ddcModuleLoaderJsUri.toFilePath()),
+      dartSdkJsPath: escapedString(dartSdkJsUri.toFilePath()),
+      entrypointModuleName: escapedString(entrypointModuleName),
+      mainModuleEntrypointJsPath:
+          escapedString(mainEntrypointJsUri.toFilePath()),
+      entrypointLibraryExportName: escapedString(entrypointLibraryExportName),
+      scriptDescriptors: scriptDescriptors,
+      modifiedFilesPerGeneration: generationToModifiedFiles,
+    );
+
+    File.fromUri(mainEntrypointJsUri).writeAsStringSync(chromeMainEntrypointJS);
+    File.fromUri(bootstrapJsUri).writeAsStringSync(chromeBootstrapJS);
+    File.fromUri(bootstrapHtmlUri).writeAsStringSync(bootstrapHtml);
+  }
+
+  @override
+  Future<void> setupTest({
+    String? testName,
+    List<Map<String, String?>>? scriptDescriptors,
+    ddc_helpers.FileDataPerGeneration? generationToModifiedFiles,
+  }) async {
+    _print('Preparing to run Chrome test.', label: testName);
+    if (scriptDescriptors == null || generationToModifiedFiles == null) {
+      throw ArgumentError('ChromeSuiteRunner requires that "scriptDescriptors" '
+          'and "generationToModifiedFiles" be provided during setup.');
+    }
+    _generateBootstrapper(
+        scriptDescriptors: scriptDescriptors,
+        generationToModifiedFiles: generationToModifiedFiles);
+    _debugPrint('Writing Chrome bootstrapper: $bootstrapJsUri',
+        label: testName);
+  }
+
+  @override
+  Future<int> runTest({String? testName}) async {
+    // TODO(markzipan): Chrome tests are currently only configured for
+    // debugging a single test instance. This is due to:
+    // 1) Our tests not capturing test success/failure signals. These must be
+    //    determined programmatically since Chrome console errors are unrelated
+    //    to the Chrome process's stderr.
+    // 2) Chrome not closing after a test. We need to add logic to detect when
+    //    to either shut down Chrome or load the next test (reusing instances).
+
+    // Specifying '--user-data-dir' forces Chrome to not reuse an instance.
+    final chromeDataDir = Directory.systemTemp.createTempSync();
+    final process = await startProcess('Chrome', config.binary.toFilePath(), [
+      '--no-first-run',
+      '--no-default-browser-check',
+      '--allow-file-access-from-files',
+      '--user-data-dir=${chromeDataDir.path}',
+      '--disable-default-apps',
+      '--disable-translate',
+      bootstrapHtmlUri.toFilePath(),
+    ]).then((process) {
+      StreamSubscription stdoutSubscription;
+      StreamSubscription stderrSubscription;
+
+      var stdoutDone = Completer<void>();
+      var stderrDone = Completer<void>();
+
+      void closeStdout([_]) {
+        if (!stdoutDone.isCompleted) stdoutDone.complete();
+      }
+
+      void closeStderr([_]) {
+        if (!stderrDone.isCompleted) stderrDone.complete();
+      }
+
+      stdoutSubscription = process.stdout
+          .listen((data) => outputSink.addStream, onDone: closeStdout);
+
+      stderrSubscription = process.stderr
+          .listen((data) => outputSink.addStream, onDone: closeStderr);
+
+      process.exitCode.then((exitCode) {
+        stdoutSubscription.cancel();
+        stderrSubscription.cancel();
+        closeStdout();
+        closeStderr();
+      });
+
+      Future.wait([stdoutDone.future, stderrDone.future]).then((_) {
+        _debugPrint('Chrome process successfully shut down.', label: testName);
+      });
+
+      return process;
+    });
+
     return process.exitCode;
   }
 

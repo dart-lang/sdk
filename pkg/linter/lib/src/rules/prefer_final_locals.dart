@@ -52,10 +52,10 @@ void mutableCase() {
 class PreferFinalLocals extends LintRule {
   PreferFinalLocals()
       : super(
-            name: 'prefer_final_locals',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_final_locals',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<String> get incompatibleRules => const ['unnecessary_final'];

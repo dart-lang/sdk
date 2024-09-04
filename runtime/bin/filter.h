@@ -97,11 +97,13 @@ class ZLibDeflateFilter : public Filter {
 
 class ZLibInflateFilter : public Filter {
  public:
-  ZLibInflateFilter(int32_t window_bits,
+  ZLibInflateFilter(bool gzip,
+                    int32_t window_bits,
                     uint8_t* dictionary,
                     intptr_t dictionary_length,
                     bool raw)
-      : window_bits_(window_bits),
+      : gzip_(gzip),
+        window_bits_(window_bits),
         dictionary_(dictionary),
         dictionary_length_(dictionary_length),
         raw_(raw),
@@ -116,6 +118,7 @@ class ZLibInflateFilter : public Filter {
                              bool end);
 
  private:
+  const bool gzip_;
   const int32_t window_bits_;
   uint8_t* dictionary_;
   const intptr_t dictionary_length_;

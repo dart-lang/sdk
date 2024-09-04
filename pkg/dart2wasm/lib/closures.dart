@@ -440,12 +440,15 @@ class ClosureLayouter extends RecursiveVisitor {
         List<w.BaseFunction> instantiationTrampolines = [
           ...?parent?.instantiationTrampolines
         ];
+        String instantiationTrampolineFunctionName =
+            "${["#Instantiation", ...nameTags].join("-")} trampoline";
         if (names.isEmpty) {
           // Add trampoline to the corresponding entry in the generic closure.
           w.BaseFunction trampoline = _createInstantiationTrampoline(
+              instantiationTrampolineFunctionName,
               typeCount,
               closureStruct,
-              instantiationContextStruct!,
+              _getInstantiationContextBaseStruct(typeCount),
               instantiatedRepresentation!.vtableStruct,
               vtableBaseIndexNonGeneric + instantiationTrampolines.length,
               vtableStruct,
@@ -461,9 +464,10 @@ class ClosureLayouter extends RecursiveVisitor {
             int? genericIndex = indexOfCombination![combination];
             w.BaseFunction trampoline = genericIndex != null
                 ? _createInstantiationTrampoline(
+                    instantiationTrampolineFunctionName,
                     typeCount,
                     closureStruct,
-                    instantiationContextStruct!,
+                    _getInstantiationContextBaseStruct(typeCount),
                     instantiatedRepresentation.vtableStruct,
                     vtableBaseIndexNonGeneric + instantiationTrampolines.length,
                     vtableStruct,
@@ -507,14 +511,15 @@ class ClosureLayouter extends RecursiveVisitor {
   }
 
   w.BaseFunction _createInstantiationTrampoline(
+      String name,
       int typeCount,
       w.StructType genericClosureStruct,
-      w.StructType contextStruct,
+      w.StructType instantiationContextBaseStruct,
       w.StructType instantiatedVtableStruct,
       int instantiatedVtableFieldIndex,
       w.StructType genericVtableStruct,
       int genericVtableFieldIndex) {
-    assert(contextStruct.fields.length == 1 + typeCount);
+    assert(instantiationContextBaseStruct.fields.length == 1 + typeCount);
     w.FunctionType instantiatedFunctionType = (instantiatedVtableStruct
             .fields[instantiatedVtableFieldIndex].type as w.RefType)
         .heapType as w.FunctionType;
@@ -524,25 +529,27 @@ class ClosureLayouter extends RecursiveVisitor {
     assert(genericFunctionType.inputs.length ==
         instantiatedFunctionType.inputs.length + typeCount);
 
-    final trampoline = m.functions.define(instantiatedFunctionType);
+    final trampoline = m.functions.define(instantiatedFunctionType, name);
     final b = trampoline.body;
 
     // Cast context reference to actual context type.
-    w.RefType contextType = w.RefType.def(contextStruct, nullable: false);
+    w.RefType contextType =
+        w.RefType.def(instantiationContextBaseStruct, nullable: false);
     w.Local contextLocal = b.addLocal(contextType);
     b.local_get(trampoline.locals[0]);
     b.ref_cast(contextType);
     b.local_tee(contextLocal);
 
     // Push inner context
-    b.struct_get(contextStruct, FieldIndex.instantiationContextInner);
-    b.struct_get(genericClosureStruct, FieldIndex.closureContext);
+    b.struct_get(
+        instantiationContextBaseStruct, FieldIndex.instantiationContextInner);
+    b.struct_get(closureBaseStruct, FieldIndex.closureContext);
 
     // Push type arguments
     for (int t = 0; t < typeCount; t++) {
       b.local_get(contextLocal);
-      b.struct_get(
-          contextStruct, FieldIndex.instantiationContextTypeArgumentsBase + t);
+      b.struct_get(instantiationContextBaseStruct,
+          FieldIndex.instantiationContextTypeArgumentsBase + t);
     }
 
     // Push arguments
@@ -552,7 +559,10 @@ class ClosureLayouter extends RecursiveVisitor {
 
     // Call inner
     b.local_get(contextLocal);
-    b.struct_get(contextStruct, FieldIndex.instantiationContextInner);
+    b.struct_get(
+        instantiationContextBaseStruct, FieldIndex.instantiationContextInner);
+    // #ClosureBase to closure struct with the right arguments
+    b.ref_cast(w.RefType(genericClosureStruct, nullable: false));
     b.struct_get(genericClosureStruct, FieldIndex.closureVtable);
     b.struct_get(genericVtableStruct, genericVtableFieldIndex);
     b.call_ref(genericFunctionType);

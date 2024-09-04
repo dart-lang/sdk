@@ -49,4 +49,10 @@ class NeverTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       {required bool hasExplicitTypeArguments}) {
     return type.withDeclaredNullability(nullability);
   }
+
+  @override
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+          {required Map<TypeVariableBuilder, TraversalState>
+              typeVariablesTraversalState}) =>
+      Nullability.nonNullable;
 }

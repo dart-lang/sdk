@@ -390,7 +390,8 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
         type != 'application/dart' &&
         type != 'application/dart-snapshot' &&
         type != 'application/kernel-ir' &&
-        type != 'application/kernel-ir-fully-linked') {
+        type != 'application/kernel-ir-fully-linked' &&
+        type != 'application/dart-bytecode') {
       throw "Dart VM cannot run files of type '$type'.";
     }
     if (isCrashExpected) {
@@ -427,7 +428,9 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       bool isCrashExpected) {
     var script = artifact?.filename;
     var type = artifact?.mimeType;
-    if (script != null && type != 'application/dart-precompiled') {
+    if (script != null &&
+        type != 'application/dart-precompiled' &&
+        type != 'application/dart-bytecode') {
       throw "dart_precompiled cannot run files of type '$type'.";
     }
 

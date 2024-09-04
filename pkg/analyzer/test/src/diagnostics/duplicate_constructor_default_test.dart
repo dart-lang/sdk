@@ -17,7 +17,7 @@ main() {
 class DuplicateConstructorDefaultTest extends PubPackageResolutionTest {
   test_class_augmentation_augments() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   A();
@@ -25,7 +25,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A();
@@ -41,7 +41,7 @@ augment class A {
 
   test_class_augmentation_declares() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   A();
@@ -49,7 +49,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   A();
@@ -61,7 +61,7 @@ augment class A {
 
     await resolveFile2(a);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 50, 1),
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 42, 1),
     ]);
   }
 

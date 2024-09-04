@@ -60,7 +60,7 @@ void CompilerTimings::PrintTimers(
               (*static_cast<Timer* const*>(pa))->TotalElapsedTime();
           const auto b_elapsed =
               (*static_cast<Timer* const*>(pb))->TotalElapsedTime();
-          return b_elapsed < a_elapsed ? -1 : b_elapsed > a_elapsed ? 1 : 0;
+          return b_elapsed<a_elapsed ? -1 : b_elapsed> a_elapsed ? 1 : 0;
         });
 
   // Print sorted in descending order.

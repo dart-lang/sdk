@@ -41,7 +41,6 @@ import '../base/messages.dart'
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 import '../base/nnbd_mode.dart';
-import '../base/problems.dart' show unhandled;
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/scope.dart' show AmbiguousBuilder;
 import '../base/ticker.dart' show Ticker;
@@ -80,7 +79,7 @@ import 'constructor_tearoff_lowering.dart';
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
 import 'macro/macro.dart';
-import 'verifier.dart' show verifyComponent, verifyGetStaticType;
+import 'cfe_verifier.dart' show verifyComponent, verifyGetStaticType;
 
 class KernelTarget {
   final Ticker ticker;
@@ -1050,21 +1049,8 @@ class KernelTarget {
     /// >named q'i = [C/S]qi of the form q'i(ai1,...,aiki) :
     /// >super(ai1,...,aiki);.
     TypeBuilder? type = builder.supertypeBuilder;
-    TypeDeclarationBuilder? supertype;
-    if (type is NamedTypeBuilder) {
-      supertype = type.declaration;
-    } else {
-      unhandled("${type.runtimeType}", "installForwardingConstructors",
-          builder.charOffset, builder.fileUri);
-    }
-    if (supertype is TypeAliasBuilder) {
-      TypeAliasBuilder aliasBuilder = supertype;
-      NamedTypeBuilder namedBuilder = type;
-      supertype = aliasBuilder.unaliasDeclaration(namedBuilder.typeArguments,
-          isUsedAsClass: true,
-          usedAsClassCharOffset: namedBuilder.charOffset,
-          usedAsClassFileUri: namedBuilder.fileUri);
-    }
+    TypeDeclarationBuilder? supertype =
+        type?.computeUnaliasedDeclaration(isUsedAsClass: true);
     if (supertype is SourceClassBuilder && supertype.isMixinApplication) {
       installForwardingConstructors(supertype);
     }

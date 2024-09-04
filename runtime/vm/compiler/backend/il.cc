@@ -550,10 +550,6 @@ Value* AssertAssignableInstr::RedefinedValue() const {
   return value();
 }
 
-Value* AssertBooleanInstr::RedefinedValue() const {
-  return value();
-}
-
 Value* CheckBoundBaseInstr::RedefinedValue() const {
   return index();
 }
@@ -1133,7 +1129,7 @@ ConstantInstr::ConstantInstr(const Object& value,
                              const InstructionSource& source)
     : TemplateDefinition(source), value_(value), token_pos_(source.token_pos) {
   // Check that the value is not an incorrect Integer representation.
-  ASSERT(!value.IsMint() || !Smi::IsValid(Mint::Cast(value).AsInt64Value()));
+  ASSERT(!value.IsMint() || !Smi::IsValid(Mint::Cast(value).Value()));
   // Check that clones of fields are not stored as constants.
   ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
   // Check that all non-Smi objects are heap allocated and in old space.
@@ -2117,7 +2113,7 @@ bool BinaryIntegerOpInstr::RightIsNonZero() const {
   if (right()->BindsToConstant()) {
     const auto& constant = right()->BoundConstant();
     if (!constant.IsInteger()) return false;
-    return Integer::Cast(constant).AsInt64Value() != 0;
+    return Integer::Cast(constant).Value() != 0;
   }
   return !RangeUtils::CanBeZero(right()->definition()->range());
 }
@@ -3054,22 +3050,6 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
-Definition* AssertBooleanInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (FLAG_eliminate_type_checks) {
-    if (value()->Type()->ToCid() == kBoolCid) {
-      return value()->definition();
-    }
-
-    // In strong mode type is already verified either by static analysis
-    // or runtime checks, so AssertBoolean just ensures that value is not null.
-    if (!value()->Type()->is_nullable()) {
-      return value()->definition();
-    }
-  }
-
-  return this;
-}
-
 Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   // We need dst_type() to be a constant AbstractType to perform any
   // canonicalization.
@@ -3271,7 +3251,7 @@ Definition* BoxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
   // is an integer representation and [v] is representable in [from].
   if (auto* const constant = value_defn->AsUnboxedConstant()) {
     if (RepresentationUtils::IsUnboxedInteger(constant->representation())) {
-      const int64_t intval = Integer::Cast(constant->value()).AsInt64Value();
+      const int64_t intval = Integer::Cast(constant->value()).Value();
       if (RepresentationUtils::IsRepresentable(from_representation(), intval)) {
         return flow_graph->GetConstant(constant->value());
       }
@@ -3356,7 +3336,7 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
     if (val.IsInteger()) {
       const Double& double_val = Double::ZoneHandle(
           flow_graph->zone(),
-          Double::NewCanonical(Integer::Cast(val).AsDoubleValue()));
+          Double::NewCanonical(Integer::Cast(val).ToDouble()));
       return flow_graph->GetConstant(double_val, kUnboxedDouble);
     } else if (val.IsDouble()) {
       return flow_graph->GetConstant(val, kUnboxedDouble);
@@ -3366,8 +3346,7 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
   if (representation() == kUnboxedFloat && value()->BindsToConstant()) {
     const Object& val = value()->BoundConstant();
     if (val.IsInteger()) {
-      double narrowed_val =
-          static_cast<float>(Integer::Cast(val).AsDoubleValue());
+      double narrowed_val = static_cast<float>(Integer::Cast(val).ToDouble());
       return flow_graph->GetConstant(
           Double::ZoneHandle(Double::NewCanonical(narrowed_val)),
           kUnboxedFloat);
@@ -3436,7 +3415,7 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
       if (representation() == kUnboxedInt64) {
         return flow_graph->GetConstant(obj, representation());
       }
-      const int64_t intval = Integer::Cast(obj).AsInt64Value();
+      const int64_t intval = Integer::Cast(obj).Value();
       if (RepresentationUtils::IsRepresentable(representation(), intval)) {
         return flow_graph->GetConstant(obj, representation());
       }
@@ -3460,7 +3439,7 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
   if (auto constant = value()->definition()->AsConstant()) {
     if (from() != kUntagged && to() != kUntagged &&
         constant->representation() == from() && constant->value().IsInteger()) {
-      const int64_t value = Integer::Cast(constant->value()).AsInt64Value();
+      const int64_t value = Integer::Cast(constant->value()).Value();
       const int64_t result =
           Evaluator::TruncateTo(Evaluator::TruncateTo(value, from()), to());
       if (is_truncating() || (value == result)) {
@@ -4838,17 +4817,6 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // runtime might associated this call with the try-index of the next
   // instruction.
   __ Breakpoint();
-}
-
-LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
-                                                         bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(AssertBooleanABI::kObjectReg));
-  locs->set_out(0, Location::RegisterLocation(AssertBooleanABI::kObjectReg));
-  return locs;
 }
 
 LocationSummary* PhiInstr::MakeLocationSummary(Zone* zone,
@@ -7018,8 +6986,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const bool constant_length = length_loc.IsConstant();
   const Register length_reg = constant_length ? kNoRegister : length_loc.reg();
   const intptr_t num_elements =
-      constant_length ? Integer::Cast(length_loc.constant()).AsInt64Value()
-                      : -1;
+      constant_length ? Integer::Cast(length_loc.constant()).Value() : -1;
 
   // The zero constant case should be handled via canonicalization.
   ASSERT(!constant_length || num_elements > 0);
@@ -8506,9 +8473,8 @@ Definition* SimdOpInstr::Canonicalize(FlowGraph* flow_graph) {
     const Object& w = InputAt(3)->BoundConstant();
     if (x.IsInteger() && y.IsInteger() && z.IsInteger() && w.IsInteger()) {
       Int32x4& result = Int32x4::Handle(Int32x4::New(
-          Integer::Cast(x).AsInt64Value(), Integer::Cast(y).AsInt64Value(),
-          Integer::Cast(z).AsInt64Value(), Integer::Cast(w).AsInt64Value(),
-          Heap::kOld));
+          Integer::Cast(x).Value(), Integer::Cast(y).Value(),
+          Integer::Cast(z).Value(), Integer::Cast(w).Value(), Heap::kOld));
       result ^= result.Canonicalize(Thread::Current());
       return flow_graph->GetConstant(result, kUnboxedInt32x4);
     }
@@ -8729,7 +8695,7 @@ void MakePairInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 int64_t TestIntInstr::ComputeImmediateMask() {
-  int64_t mask = Integer::Cast(locs()->in(1).constant()).AsInt64Value();
+  int64_t mask = Integer::Cast(locs()->in(1).constant()).Value();
 
   switch (representation_) {
     case kTagged:

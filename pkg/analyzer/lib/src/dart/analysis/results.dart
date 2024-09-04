@@ -251,7 +251,7 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
 
   @override
   bool get isMacroAugmentation {
-    return fileState.isMacroAugmentation;
+    return fileState.isMacroPart;
   }
 
   @override

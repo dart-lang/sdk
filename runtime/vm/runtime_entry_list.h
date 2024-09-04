@@ -39,7 +39,6 @@ namespace dart {
   V(Instanceof)                                                                \
   V(SubtypeCheck)                                                              \
   V(TypeCheck)                                                                 \
-  V(NonBoolTypeError)                                                          \
   V(InstantiateType)                                                           \
   V(InstantiateTypeArguments)                                                  \
   V(NoSuchMethodFromCallStub)                                                  \
@@ -72,7 +71,14 @@ namespace dart {
   V(ResumeFrame)                                                               \
   V(SwitchableCallMiss)                                                        \
   V(NotLoaded)                                                                 \
-  V(FfiAsyncCallbackSend)
+  V(FfiAsyncCallbackSend)                                                      \
+  V(GetFieldForDispatch)                                                       \
+  V(AdjustArgumentsDesciptorForImplicitClosure)                                \
+  V(ClosureArgumentsValid)                                                     \
+  V(ResolveCallFunction)                                                       \
+  V(InterpretedInstanceCallMissHandler)                                        \
+  V(InvokeNoSuchMethod)                                                        \
+  V(ResumeInterpreter)
 
 // Note: Leaf runtime function have C linkage, so they cannot pass C++ struct
 // values like ObjectPtr.

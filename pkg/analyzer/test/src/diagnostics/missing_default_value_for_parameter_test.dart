@@ -720,6 +720,20 @@ class A<T extends Object?> {
           43, 1),
     ]);
   }
+
+  test_super_forward_wildcards() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int x, y;
+  A(this.x, [this.y = 0]);
+}
+
+class C extends A {
+  final int c;
+  C(this.c, super._, [super._]);
+}
+''');
+  }
 }
 
 @reflectiveTest

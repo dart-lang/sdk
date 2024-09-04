@@ -413,7 +413,7 @@ IndexExpression
 
   test_read_ofExtension_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment extension E {
   bool operator[](int index) => false;
@@ -421,7 +421,7 @@ augment extension E {
 ''');
 
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 extension E on int {}
 
@@ -932,7 +932,7 @@ AssignmentExpression
 
   test_write_ofExtension_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment extension E {
   operator[]=(int index, num value) {}
@@ -940,7 +940,7 @@ augment extension E {
 ''');
 
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 extension E on int {}
 

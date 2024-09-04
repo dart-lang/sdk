@@ -193,6 +193,14 @@ void f(Object? a) {
 ''');
   }
 
+  test_prefixedIdentifier_runtimeType() async {
+    await assertNoDiagnostics(r'''
+void f(dynamic a) {
+  a.runtimeType;
+}
+''');
+  }
+
   test_propertyAccess() async {
     await assertDiagnostics(r'''
 void f(C c) {
@@ -213,6 +221,39 @@ void f(C c) {
 }
 class C {
   Object? a;
+}
+''');
+  }
+
+  test_propertyAccess_hashCode() async {
+    await assertNoDiagnostics(r'''
+void f(C c) {
+  c.a.hashCode;
+}
+class C {
+  dynamic a;
+}
+''');
+  }
+
+  test_propertyAccess_runtimeType() async {
+    await assertNoDiagnostics(r'''
+void f(C c) {
+  c.a.runtimeType;
+}
+class C {
+  dynamic a;
+}
+''');
+  }
+
+  test_propertyAccess_toString() async {
+    await assertNoDiagnostics(r'''
+void f(C c) {
+  c.a.toString;
+}
+class C {
+  dynamic a;
 }
 ''');
   }

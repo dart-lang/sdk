@@ -45,10 +45,10 @@ useStrings(
 class PreferDoubleQuotes extends LintRule {
   PreferDoubleQuotes()
       : super(
-            name: 'prefer_double_quotes',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_double_quotes',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<String> get incompatibleRules => const ['prefer_single_quotes'];

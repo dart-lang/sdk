@@ -57,7 +57,7 @@ class AnalyzerDartTemplateBuffer
 
   @override
   void writeEnumValue(FieldElement value, String name) {
-    var enumElement = value.enclosingElement;
+    var enumElement = value.enclosingElement3;
     if (enumElement is! EnumElement) {
       isComplete = false;
       return;
@@ -99,7 +99,7 @@ class AnalyzerEnumOperations
 
   @override
   String getEnumElementName(FieldElement enumField) {
-    return '${enumField.enclosingElement.name}.${enumField.name}';
+    return '${enumField.enclosingElement3.name}.${enumField.name}';
   }
 
   @override
@@ -550,12 +550,12 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
         Element? element = field.element;
         DartType? extensionPropertyType;
         if (element is PropertyAccessorElement &&
-            (element.enclosingElement is ExtensionElement ||
-                element.enclosingElement is ExtensionTypeElement)) {
+            (element.enclosingElement3 is ExtensionElement ||
+                element.enclosingElement3 is ExtensionTypeElement)) {
           extensionPropertyType = element.returnType;
         } else if (element is ExecutableElement &&
-            (element.enclosingElement is ExtensionElement ||
-                element.enclosingElement is ExtensionTypeElement)) {
+            (element.enclosingElement3 is ExtensionElement ||
+                element.enclosingElement3 is ExtensionTypeElement)) {
           extensionPropertyType = element.type;
         }
         if (extensionPropertyType != null) {

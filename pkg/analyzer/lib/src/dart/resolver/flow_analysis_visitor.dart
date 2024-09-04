@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -87,8 +88,8 @@ class FlowAnalysisHelper {
   final bool fieldPromotionEnabled;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
-  FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>?
-      flow;
+  FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
+      SharedTypeView<DartType>>? flow;
 
   FlowAnalysisHelper(bool retainDataForTesting, FeatureSet featureSet,
       {required TypeSystemOperations typeSystemOperations})
@@ -115,14 +116,16 @@ class FlowAnalysisHelper {
     var expression = node.expression;
     var typeAnnotation = node.type;
 
-    flow!.asExpression_end(expression, typeAnnotation.typeOrThrow);
+    flow!.asExpression_end(
+        expression, SharedTypeView(typeAnnotation.typeOrThrow));
   }
 
   void assignmentExpression(AssignmentExpression node) {
     if (flow == null) return;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
-      flow!.ifNullExpression_rightBegin(node.leftHandSide, node.readType!);
+      flow!.ifNullExpression_rightBegin(
+          node.leftHandSide, SharedTypeView(node.readType!));
     }
   }
 
@@ -168,7 +171,7 @@ class FlowAnalysisHelper {
         var declaredElement = parameter.declaredElement!;
         // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
         // around a failure in duplicate_definition_test.dart; fix this.
-        flow!.declare(declaredElement, declaredElement.type,
+        flow!.declare(declaredElement, SharedTypeView(declaredElement.type),
             initialized: true, skipDuplicateCheck: true);
       }
     }
@@ -231,7 +234,7 @@ class FlowAnalysisHelper {
       node,
       expression,
       node.notOperator != null,
-      typeAnnotation.typeOrThrow,
+      SharedTypeView(typeAnnotation.typeOrThrow),
     );
   }
 
@@ -258,12 +261,13 @@ class FlowAnalysisHelper {
     }
     flow = isNonNullableByDefault
         ? FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
-                DartType>(typeOperations, assignedVariables!,
+                SharedTypeView<DartType>>(typeOperations, assignedVariables!,
             respectImplicitlyTypedVarInitializers:
                 respectImplicitlyTypedVarInitializers,
             fieldPromotionEnabled: fieldPromotionEnabled)
         : FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
-            DartType>.legacy(typeOperations, assignedVariables!);
+                SharedTypeView<DartType>>.legacy(
+            typeOperations, assignedVariables!);
   }
 
   void topLevelDeclaration_exit() {
@@ -296,7 +300,7 @@ class FlowAnalysisHelper {
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
         var declaredElement = variable.declaredElement as PromotableElement;
-        flow!.declare(declaredElement, declaredElement.type,
+        flow!.declare(declaredElement, SharedTypeView(declaredElement.type),
             initialized: variable.initializer != null);
       }
     }
@@ -377,8 +381,11 @@ class FlowAnalysisHelper {
 }
 
 class TypeSystemOperations
+    with
+        TypeAnalyzerOperationsMixin<DartType, PromotableElement,
+            TypeParameterElement, InterfaceType, InterfaceElement>
     implements
-        TypeAnalyzerOperations<PromotableElement, DartType, DartType,
+        TypeAnalyzerOperations<DartType, PromotableElement,
             TypeParameterElement, InterfaceType, InterfaceElement> {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
@@ -386,40 +393,62 @@ class TypeSystemOperations
   TypeSystemOperations(this.typeSystem, {required this.strictCasts});
 
   @override
-  DartType get boolType => typeSystem.typeProvider.boolType;
+  SharedTypeView<DartType> get boolType {
+    return SharedTypeView(typeSystem.typeProvider.boolType);
+  }
 
   @override
-  DartType get doubleType => throw UnimplementedError('TODO(paulberry)');
+  SharedTypeView<DartType> get doubleType {
+    throw UnimplementedError('TODO(paulberry)');
+  }
 
   @override
-  DartType get dynamicType => typeSystem.typeProvider.dynamicType;
+  SharedTypeView<DartType> get dynamicType {
+    return SharedTypeView(typeSystem.typeProvider.dynamicType);
+  }
 
   @override
-  DartType get errorType => InvalidTypeImpl.instance;
+  SharedTypeView<DartType> get errorType {
+    return SharedTypeView(InvalidTypeImpl.instance);
+  }
 
   @override
-  DartType get intType => throw UnimplementedError('TODO(paulberry)');
+  SharedTypeView<DartType> get intType {
+    throw UnimplementedError('TODO(paulberry)');
+  }
 
   @override
-  DartType get neverType => typeSystem.typeProvider.neverType;
+  SharedTypeView<DartType> get neverType {
+    return SharedTypeView(typeSystem.typeProvider.neverType);
+  }
 
   @override
-  DartType get nullType => typeSystem.typeProvider.nullType;
+  SharedTypeView<DartType> get nullType {
+    return SharedTypeView(typeSystem.typeProvider.nullType);
+  }
 
   @override
-  DartType get objectQuestionType => typeSystem.objectQuestion;
+  SharedTypeView<DartType> get objectQuestionType {
+    return SharedTypeView(typeSystem.objectQuestion);
+  }
 
   @override
-  DartType get objectType => typeSystem.objectNone;
+  SharedTypeView<DartType> get objectType {
+    return SharedTypeView(typeSystem.objectNone);
+  }
 
   @override
-  DartType get unknownType => UnknownInferredType.instance;
+  SharedTypeSchemaView<DartType> get unknownType {
+    return SharedTypeSchemaView(UnknownInferredType.instance);
+  }
 
   @override
-  TypeClassification classifyType(DartType type) {
-    if (isSubtypeOf(type, typeSystem.typeProvider.objectType)) {
+  TypeClassification classifyType(SharedTypeView<DartType> type) {
+    DartType unwrapped = type.unwrapTypeView();
+    if (isSubtypeOfInternal(unwrapped, typeSystem.typeProvider.objectType)) {
       return TypeClassification.nonNullable;
-    } else if (isSubtypeOf(type, typeSystem.typeProvider.nullType)) {
+    } else if (isSubtypeOfInternal(
+        unwrapped, typeSystem.typeProvider.nullType)) {
       return TypeClassification.nullOrEquivalent;
     } else {
       return TypeClassification.potentiallyNullable;
@@ -427,30 +456,27 @@ class TypeSystemOperations
   }
 
   @override
-  DartType extensionTypeErasure(DartType type) {
-    return type.extensionTypeErasure;
+  SharedTypeView<DartType> extensionTypeErasure(SharedTypeView<DartType> type) {
+    return SharedTypeView(type.unwrapTypeView().extensionTypeErasure);
   }
 
   @override
-  DartType factor(DartType from, DartType what) {
-    return typeSystem.factor(from, what);
+  SharedTypeView<DartType> factor(
+      SharedTypeView<DartType> from, SharedTypeView<DartType> what) {
+    return SharedTypeView(
+        typeSystem.factor(from.unwrapTypeView(), what.unwrapTypeView()));
   }
 
   @override
-  DartType futureType(DartType argumentType) {
+  DartType futureTypeInternal(DartType argumentType) {
     return typeSystem.typeProvider.futureType(argumentType);
   }
 
   @override
-  DartType futureTypeSchema(DartType argumentTypeSchema) {
-    return typeSystem.typeProvider.futureType(argumentTypeSchema);
-  }
-
-  @override
-  TypeDeclarationKind? getTypeDeclarationKind(DartType type) {
-    if (isInterfaceType(type)) {
+  TypeDeclarationKind? getTypeDeclarationKindInternal(DartType type) {
+    if (isInterfaceType(SharedTypeView(type))) {
       return TypeDeclarationKind.interfaceDeclaration;
-    } else if (isExtensionType(type)) {
+    } else if (isExtensionType(SharedTypeView(type))) {
       return TypeDeclarationKind.extensionTypeDeclaration;
     } else {
       return null;
@@ -466,72 +492,75 @@ class TypeSystemOperations
   }
 
   @override
-  TypeDeclarationKind? getTypeSchemaDeclarationKind(DartType typeSchema) {
-    return getTypeDeclarationKind(typeSchema);
-  }
-
-  @override
-  DartType glb(DartType type1, DartType type2) {
+  DartType glbInternal(DartType type1, DartType type2) {
     return typeSystem.greatestLowerBound(type1, type2);
   }
 
   @override
-  DartType greatestClosure(DartType schema) =>
-      typeSystem.greatestClosureOfSchema(schema);
-
-  @override
-  bool isAlwaysExhaustiveType(DartType type) {
-    return typeSystem.isAlwaysExhaustive(type);
+  SharedTypeView<DartType> greatestClosure(
+      SharedTypeSchemaView<DartType> schema) {
+    return SharedTypeView(
+        typeSystem.greatestClosureOfSchema(schema.unwrapTypeSchemaView()));
   }
 
   @override
-  bool isAssignableTo(DartType fromType, DartType toType) {
-    return typeSystem.isAssignableTo(fromType, toType,
+  bool isAlwaysExhaustiveType(SharedTypeView<DartType> type) {
+    return typeSystem.isAlwaysExhaustive(type.unwrapTypeView());
+  }
+
+  @override
+  bool isAssignableTo(
+      SharedTypeView<DartType> fromType, SharedTypeView<DartType> toType) {
+    return typeSystem.isAssignableTo(
+        fromType.unwrapTypeView(), toType.unwrapTypeView(),
         strictCasts: strictCasts);
   }
 
   @override
-  bool isDartCoreFunction(DartType type) {
+  bool isDartCoreFunction(SharedTypeView<DartType> type) {
     return type.nullabilitySuffix == NullabilitySuffix.none &&
-        type.isDartCoreFunction;
+        type.unwrapTypeView().isDartCoreFunction;
   }
 
   @override
-  bool isExtensionType(DartType type) {
-    return type is InterfaceType && type.element is ExtensionTypeElement;
+  bool isExtensionType(SharedTypeView<DartType> type) {
+    DartType unwrappedType = type.unwrapTypeView();
+    return unwrappedType is InterfaceType &&
+        unwrappedType.element is ExtensionTypeElement;
   }
 
   @override
-  bool isFunctionType(DartType type) {
-    return type is FunctionType;
+  bool isFunctionType(SharedTypeView<DartType> type) {
+    return type.unwrapTypeView() is FunctionType;
   }
 
   @override
-  bool isInterfaceType(DartType type) {
-    return type is InterfaceType &&
-        !type.isDartCoreNull &&
-        !type.isDartAsyncFutureOr &&
-        type.element is! ExtensionTypeElement;
+  bool isInterfaceType(SharedTypeView<DartType> type) {
+    DartType unwrappedType = type.unwrapTypeView();
+    return unwrappedType is InterfaceType &&
+        !unwrappedType.isDartCoreNull &&
+        !unwrappedType.isDartAsyncFutureOr &&
+        unwrappedType.element is! ExtensionTypeElement;
   }
 
   @override
-  bool isNever(DartType type) {
-    return type.isBottom;
+  bool isNever(SharedTypeView<DartType> type) {
+    return type.unwrapTypeView().isBottom;
   }
 
   @override
-  bool isNonNullable(DartType typeSchema) {
-    return typeSystem.isNonNullable(typeSchema);
+  bool isNonNullable(SharedTypeSchemaView<DartType> typeSchema) {
+    return typeSystem.isNonNullable(typeSchema.unwrapTypeSchemaView());
   }
 
   @override
-  bool isNull(DartType type) {
-    return type.isDartCoreNull;
+  bool isNull(SharedTypeView<DartType> type) {
+    return type.unwrapTypeView().isDartCoreNull;
   }
 
   @override
-  bool isObject(DartType type) {
-    return type.isDartCoreObject &&
+  bool isObject(SharedTypeView<DartType> type) {
+    return type.unwrapTypeView().isDartCoreObject &&
         type.nullabilitySuffix == NullabilitySuffix.none;
   }
 
@@ -544,17 +573,22 @@ class TypeSystemOperations
   }
 
   @override
-  bool isSubtypeOf(DartType leftType, DartType rightType) {
+  bool isSubtypeOfInternal(DartType leftType, DartType rightType) {
     return typeSystem.isSubtypeOf(leftType, rightType);
   }
 
   @override
-  bool isTypeParameterType(DartType type) => type is TypeParameterType;
+  bool isTypeParameterType(SharedTypeView<DartType> type) {
+    return type.unwrapTypeView() is TypeParameterType;
+  }
 
   @override
   bool isTypeSchemaSatisfied(
-          {required DartType typeSchema, required DartType type}) =>
-      isSubtypeOf(type, typeSchema);
+      {required SharedTypeSchemaView<DartType> typeSchema,
+      required SharedTypeView<DartType> type}) {
+    return typeSystem.isSubtypeOf(
+        type.unwrapTypeView(), typeSchema.unwrapTypeSchemaView());
+  }
 
   @override
   bool isVariableFinal(PromotableElement element) {
@@ -562,37 +596,29 @@ class TypeSystemOperations
   }
 
   @override
-  DartType iterableTypeSchema(DartType elementTypeSchema) {
-    return typeSystem.typeProvider.iterableType(elementTypeSchema);
+  SharedTypeSchemaView<DartType> iterableTypeSchema(
+      SharedTypeSchemaView<DartType> elementTypeSchema) {
+    return SharedTypeSchemaView(typeSystem.typeProvider
+        .iterableType(elementTypeSchema.unwrapTypeSchemaView()));
   }
 
   @override
-  DartType listType(DartType elementType) {
+  DartType listTypeInternal(DartType elementType) {
     return typeSystem.typeProvider.listType(elementType);
   }
 
   @override
-  DartType listTypeSchema(DartType elementTypeSchema) {
-    return typeSystem.typeProvider.listType(elementTypeSchema);
-  }
-
-  @override
-  DartType lub(DartType type1, DartType type2) {
+  DartType lubInternal(DartType type1, DartType type2) {
     return typeSystem.leastUpperBound(type1, type2);
   }
 
   @override
-  DartType makeNullable(DartType type) {
+  DartType makeNullableInternal(DartType type) {
     return typeSystem.makeNullable(type);
   }
 
   @override
-  DartType makeTypeSchemaNullable(DartType typeSchema) {
-    return typeSystem.makeNullable(typeSchema);
-  }
-
-  @override
-  DartType mapType({
+  DartType mapTypeInternal({
     required DartType keyType,
     required DartType valueType,
   }) {
@@ -600,15 +626,7 @@ class TypeSystemOperations
   }
 
   @override
-  DartType mapTypeSchema({
-    required DartType keyTypeSchema,
-    required DartType valueTypeSchema,
-  }) {
-    return typeSystem.typeProvider.mapType(keyTypeSchema, valueTypeSchema);
-  }
-
-  @override
-  DartType? matchFutureOr(DartType type) {
+  DartType? matchFutureOrInternal(DartType type) {
     if (type is InterfaceType && type.isDartAsyncFutureOr) {
       return type.typeArguments[0];
     } else {
@@ -617,66 +635,63 @@ class TypeSystemOperations
   }
 
   @override
-  TypeParameterElement? matchInferableParameter(DartType type) {
-    if (type is TypeParameterType) {
-      return type.element;
+  TypeParameterElement? matchInferableParameter(SharedTypeView<DartType> type) {
+    DartType unwrappedType = type.unwrapTypeView();
+    if (unwrappedType is TypeParameterType) {
+      return unwrappedType.element;
     } else {
       return null;
     }
   }
 
   @override
-  DartType? matchIterableType(DartType type) {
+  DartType? matchIterableTypeInternal(DartType type) {
     var iterableElement = typeSystem.typeProvider.iterableElement;
     var listType = type.asInstanceOf(iterableElement);
     return listType?.typeArguments[0];
   }
 
   @override
-  DartType? matchIterableTypeSchema(DartType typeSchema) {
-    var iterableElement = typeSystem.typeProvider.iterableElement;
-    var listType = typeSchema.asInstanceOf(iterableElement);
-    return listType?.typeArguments[0];
-  }
-
-  @override
-  DartType? matchListType(DartType type) {
+  SharedTypeView<DartType>? matchListType(SharedTypeView<DartType> type) {
     var listElement = typeSystem.typeProvider.listElement;
-    var listType = type.asInstanceOf(listElement);
-    return listType?.typeArguments[0];
+    var listType = type.unwrapTypeView().asInstanceOf(listElement);
+    return listType == null ? null : SharedTypeView(listType.typeArguments[0]);
   }
 
   @override
-  ({DartType keyType, DartType valueType})? matchMapType(DartType type) {
+  ({SharedTypeView<DartType> keyType, SharedTypeView<DartType> valueType})?
+      matchMapType(SharedTypeView<DartType> type) {
     var mapElement = typeSystem.typeProvider.mapElement;
-    var mapType = type.asInstanceOf(mapElement);
+    var mapType = type.unwrapTypeView().asInstanceOf(mapElement);
     if (mapType != null) {
       return (
-        keyType: mapType.typeArguments[0],
-        valueType: mapType.typeArguments[1],
+        keyType: SharedTypeView(mapType.typeArguments[0]),
+        valueType: SharedTypeView(mapType.typeArguments[1]),
       );
     }
     return null;
   }
 
   @override
-  DartType? matchStreamType(DartType type) {
+  SharedTypeView<DartType>? matchStreamType(SharedTypeView<DartType> type) {
     var streamElement = typeSystem.typeProvider.streamElement;
-    var listType = type.asInstanceOf(streamElement);
-    return listType?.typeArguments[0];
+    var listType = type.unwrapTypeView().asInstanceOf(streamElement);
+    return listType == null ? null : SharedTypeView(listType.typeArguments[0]);
   }
 
   @override
-  TypeDeclarationMatchResult? matchTypeDeclarationType(DartType type) {
+  TypeDeclarationMatchResult? matchTypeDeclarationType(
+      SharedTypeView<DartType> type) {
+    DartType unwrappedType = type.unwrapTypeView();
     if (isInterfaceType(type)) {
-      InterfaceType interfaceType = type as InterfaceType;
+      InterfaceType interfaceType = unwrappedType as InterfaceType;
       return TypeDeclarationMatchResult(
           typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
           typeDeclarationType: interfaceType,
           typeDeclaration: interfaceType.element,
           typeArguments: interfaceType.typeArguments);
     } else if (isExtensionType(type)) {
-      InterfaceType interfaceType = type as InterfaceType;
+      InterfaceType interfaceType = unwrappedType as InterfaceType;
       return TypeDeclarationMatchResult(
           typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
           typeDeclarationType: interfaceType,
@@ -688,26 +703,17 @@ class TypeSystemOperations
   }
 
   @override
-  DartType? matchTypeSchemaFutureOr(DartType typeSchema) {
-    if (typeSchema is InterfaceType && typeSchema.isDartAsyncFutureOr) {
-      return typeSchema.typeArguments[0];
-    } else {
-      return null;
-    }
+  SharedTypeView<DartType> normalize(SharedTypeView<DartType> type) {
+    return SharedTypeView(typeSystem.normalize(type.unwrapTypeView()));
   }
 
   @override
-  DartType normalize(DartType type) {
-    return typeSystem.normalize(type);
+  SharedTypeView<DartType> promoteToNonNull(SharedTypeView<DartType> type) {
+    return SharedTypeView(typeSystem.promoteToNonNull(type.unwrapTypeView()));
   }
 
   @override
-  DartType promoteToNonNull(DartType type) {
-    return typeSystem.promoteToNonNull(type);
-  }
-
-  @override
-  DartType recordType(
+  DartType recordTypeInternal(
       {required List<DartType> positional,
       required List<(String, DartType)> named}) {
     return RecordTypeImpl(
@@ -723,58 +729,28 @@ class TypeSystemOperations
   }
 
   @override
-  DartType recordTypeSchema(
-          {required List<DartType> positional,
-          required List<(String, DartType)> named}) =>
-      recordType(positional: positional, named: named);
-
-  @override
-  DartType streamTypeSchema(DartType elementTypeSchema) {
-    return typeSystem.typeProvider.streamType(elementTypeSchema);
+  SharedTypeSchemaView<DartType> streamTypeSchema(
+      SharedTypeSchemaView<DartType> elementTypeSchema) {
+    return SharedTypeSchemaView(typeSystem.typeProvider
+        .streamType(elementTypeSchema.unwrapTypeSchemaView()));
   }
 
   @override
-  DartType? tryPromoteToType(DartType to, DartType from) {
-    return typeSystem.tryPromoteToType(to, from);
+  SharedTypeView<DartType>? tryPromoteToType(
+      SharedTypeView<DartType> to, SharedTypeView<DartType> from) {
+    DartType? result =
+        typeSystem.tryPromoteToType(to.unwrapTypeView(), from.unwrapTypeView());
+    return result == null ? null : SharedTypeView(result);
   }
 
   @override
-  bool typeIsSubtypeOfTypeSchema(DartType leftType, DartType rightSchema) {
-    return isSubtypeOf(leftType, rightSchema);
+  SharedTypeSchemaView<DartType> typeToSchema(SharedTypeView<DartType> type) {
+    return SharedTypeSchemaView(type.unwrapTypeView());
   }
 
   @override
-  DartType typeSchemaGlb(DartType typeSchema1, DartType typeSchema2) {
-    return typeSystem.greatestLowerBound(typeSchema1, typeSchema2);
-  }
-
-  @override
-  bool typeSchemaIsSubtypeOfType(DartType leftSchema, DartType rightType) {
-    return isSubtypeOf(leftSchema, rightType);
-  }
-
-  @override
-  bool typeSchemaIsSubtypeOfTypeSchema(
-      DartType leftSchema, DartType rightSchema) {
-    return isSubtypeOf(leftSchema, rightSchema);
-  }
-
-  @override
-  DartType typeSchemaLub(DartType typeSchema1, DartType typeSchema2) {
-    return typeSystem.leastUpperBound(typeSchema1, typeSchema2);
-  }
-
-  @override
-  NullabilitySuffix typeSchemaNullabilitySuffix(DartType typeSchema) {
-    return typeSchema.nullabilitySuffix;
-  }
-
-  @override
-  DartType typeToSchema(DartType type) => type;
-
-  @override
-  DartType variableType(PromotableElement variable) {
-    return variable.type;
+  SharedTypeView<DartType> variableType(PromotableElement variable) {
+    return SharedTypeView(variable.type);
   }
 
   @override
@@ -802,8 +778,10 @@ class TypeSystemOperations
   }
 
   @override
-  DartType withNullabilitySuffix(DartType type, NullabilitySuffix suffix) {
-    return (type as TypeImpl).withNullability(suffix);
+  SharedTypeView<DartType> withNullabilitySuffix(
+      SharedTypeView<DartType> type, NullabilitySuffix suffix) {
+    return SharedTypeView(
+        (type.unwrapTypeView() as TypeImpl).withNullability(suffix));
   }
 }
 
@@ -1152,7 +1130,7 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
       var promotedType = isRead
           ? _manager.flow?.variableRead(node, variable)
           : _manager.flow?.promotedType(variable);
-      if (promotedType != null) return promotedType;
+      if (promotedType != null) return promotedType.unwrapTypeView();
     }
     return variable.type;
   }

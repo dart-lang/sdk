@@ -175,7 +175,7 @@ class Foo {
 
   Future<void> test_constructorCall_to_augmentation() async {
     var code = TestCode.parse('''
-import augment 'other.dart';
+part 'other.dart';
 
 class Foo {}
 
@@ -185,7 +185,7 @@ void f() {
 ''');
 
     var otherCode = TestCode.parse('''
-augment library 'test.dart';
+part of 'test.dart';
 augment class Foo {
   [!Foo.named(){}!]
 }
@@ -489,7 +489,7 @@ class Foo {
 
   Future<void> test_methodCall_to_augmentation() async {
     var code = TestCode.parse('''
-import augment 'other.dart';
+part 'other.dart';
 
 class Foo {}
 
@@ -499,7 +499,7 @@ void f() {
 ''');
 
     var otherCode = TestCode.parse('''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class Foo {
   [!void myMethod() {}!]
@@ -1127,7 +1127,7 @@ import 'test.dart';
 
   Future<void> test_method_from_augmentation() async {
     var code = TestCode.parse('''
-import augment 'other.dart';
+part 'other.dart';
 
 class Foo {
   void myMet^hod() {}
@@ -1135,7 +1135,7 @@ class Foo {
 ''');
 
     var otherCode = TestCode.parse('''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class Foo {
   [!void f() {
@@ -1354,7 +1354,7 @@ class A {
 
   Future<void> test_constructor_from_augmentation() async {
     var code = TestCode.parse('''
-import augment 'other.dart';
+part 'other.dart';
 
 class Foo {}
 
@@ -1364,7 +1364,7 @@ void ba^r() {
 ''');
 
     var otherCode = TestCode.parse('''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class Foo {
   [!Foo.named() {
@@ -1607,7 +1607,7 @@ class Foo {
 
   Future<void> test_method_from_augmentation() async {
     var code = TestCode.parse('''
-import augment 'other.dart';
+part 'other.dart';
 
 class Foo {}
 
@@ -1617,7 +1617,7 @@ void ba^r() {
 ''');
 
     var otherCode = TestCode.parse('''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class Foo {
   [!void myMethod() {

@@ -99,8 +99,10 @@ class JSONStream : ValueObject {
 
   void PostReply();
 
-  void set_id_zone(ServiceIdZone* id_zone) { id_zone_ = id_zone; }
-  ServiceIdZone* id_zone() { return id_zone_; }
+  // WARNING: It is not safe to call |id_zone| or |PrintServiceId| on a
+  // |JSONStream| until |set_id_zone| has been called on that |JSONStream|.
+  void set_id_zone(RingServiceIdZone& id_zone) { id_zone_ = &id_zone; }
+  RingServiceIdZone& id_zone() { return *id_zone_; }
 
   TextBuffer* buffer() { return writer_.buffer(); }
   const char* ToCString() { return writer_.ToCString(); }
@@ -351,9 +353,9 @@ class JSONStream : ValueObject {
   }
 
   JSONWriter writer_;
-  // Default service id zone.
-  RingServiceIdZone default_id_zone_;
-  ServiceIdZone* id_zone_;
+  // The Service ID zone where temporary IDs may be allocated by the RPC
+  // associated with this |JSONStream|.
+  RingServiceIdZone* id_zone_;
   Dart_Port reply_port_;
   Instance* seq_;
   Array* parameter_keys_;

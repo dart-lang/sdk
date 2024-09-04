@@ -9,5 +9,8 @@
 
 void genericFunction<_ extends void Function<_>(_, _), _>() {}
 //                                              ^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+// [cfe] Type '_' not found.
+//                                                 ^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+// [cfe] Type '_' not found.

@@ -513,6 +513,30 @@ def _CheckNoNewObservatoryServiceTests(input_api, output_api):
             'not runtime/observatory/tests/service:\n' + '\n'.join(files))
     ]
 
+
+def _CheckDevCompilerSync(input_api, output_api):
+    """Make sure that any changes in the original and the temporary forked
+    version of the DDC compiler are kept in sync. If a CL touches the
+    compiler.dart there should probably be in a change in compiler_new.dart
+    as well.
+    """
+    OLD = "pkg/dev_compiler/lib/src/kernel/compiler.dart"
+    NEW = "pkg/dev_compiler/lib/src/kernel/compiler_new.dart"
+
+    files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
+
+    if (OLD in files and NEW not in files):
+        return [
+            output_api.PresubmitPromptWarning(
+                "Make sure to keep the original and temporary forked versions "
+                "of compiler.dart in sync.\n"
+                "You may need to copy or adapt changes between these files:\n" +
+                "\n".join([OLD, NEW]))
+        ]
+
+    return []
+
+
 def _CommonChecks(input_api, output_api):
     results = []
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
@@ -527,6 +551,7 @@ def _CommonChecks(input_api, output_api):
     results.extend(_CheckCopyrightYear(input_api, output_api))
     results.extend(_CheckAnalyzerFiles(input_api, output_api))
     results.extend(_CheckNoNewObservatoryServiceTests(input_api, output_api))
+    results.extend(_CheckDevCompilerSync(input_api, output_api))
     return results
 
 

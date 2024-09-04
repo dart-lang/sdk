@@ -150,8 +150,14 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(bool is_final) {
   if (!FLAG_precompiled_mode) {
     __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
                                      target::Function::code_offset());
+#if defined(DART_DYNAMIC_MODULES)
+    // InterpretCall stub needs arguments descriptor for all function calls.
+    __ LoadObject(ARGS_DESC_REG, ArgumentsDescriptorBoxed(/*type_args_len=*/0,
+                                                          /*num_arguments=*/1));
+#else
     // Load a GC-safe value for the arguments descriptor (unused but tagged).
     __ LoadImmediate(ARGS_DESC_REG, 0);
+#endif  // defined(DART_DYNAMIC_MODULES)
   }
   __ Call(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ Drop(1);  // Drop argument.
@@ -226,14 +232,6 @@ void StubCodeCompiler::GenerateReThrowStub() {
       {ReThrowABI::kExceptionReg, ReThrowABI::kStackTraceReg});
   __ PushImmediate(Smi::RawValue(0));  // Do not bypass debugger.
   __ CallRuntime(kReThrowRuntimeEntry, /*argument_count=*/3);
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateAssertBooleanStub() {
-  __ EnterStubFrame();
-  __ PushObject(NullObject());  // Make room for (unused) result.
-  __ PushRegister(AssertBooleanABI::kObjectReg);
-  __ CallRuntime(kNonBoolTypeErrorRuntimeEntry, /*argument_count=*/1);
   __ Breakpoint();
 }
 
@@ -2577,6 +2575,29 @@ void StubCodeCompiler::GenerateCloneSuspendStateStub() {
   __ Drop(1);                                      // Drop argument
   __ PopRegister(CallingConventions::kReturnReg);  // Get result.
   __ LeaveStubFrame();
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateResumeInterpreterStub() {
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+  // On X64/IA32 execution is resumed at PC + kResumePcDistance.
+  const intptr_t start = __ CodeSize();
+  for (intptr_t i = 0; i < SuspendStubABI::kResumePcDistance; ++i) {
+    __ nop();
+  }
+  RELEASE_ASSERT(__ CodeSize() - start == SuspendStubABI::kResumePcDistance);
+#endif
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  SPILLS_LR_TO_FRAME({});  // Simulate entering the caller (Dart) frame.
+#endif
+
+  __ PushObject(NullObject());  // Make room for result.
+  __ PushRegister(CallingConventions::kReturnReg);
+  __ CallRuntime(kResumeInterpreterRuntimeEntry, /*argument_count=*/1);
+  __ Drop(1);                                      // Drop argument.
+  __ PopRegister(CallingConventions::kReturnReg);  // Get result.
+  __ LeaveDartFrame();
   __ Ret();
 }
 

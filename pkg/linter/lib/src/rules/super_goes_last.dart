@@ -46,11 +46,11 @@ View(Style style, List children)
 class SuperGoesLast extends LintRule {
   SuperGoesLast()
       : super(
-            name: 'super_goes_last',
-            description: _desc,
-            details: _details,
-            state: State.removed(since: dart3),
-            categories: {LintRuleCategory.style});
+          name: 'super_goes_last',
+          description: _desc,
+          details: _details,
+          state: State.removed(since: dart3),
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

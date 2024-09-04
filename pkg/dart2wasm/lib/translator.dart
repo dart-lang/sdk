@@ -297,10 +297,6 @@ class Translator with KernelNodes {
     m = w.ModuleBuilder(sourceMapUrl, watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
 
-    // Collect imports and exports as the very first thing so the function types
-    // for the imports can be places in singleton recursion groups.
-    functions.collectImportsAndExports();
-
     closureLayouter.collect();
     classInfoCollector.collect();
 
@@ -800,9 +796,9 @@ class Translator with KernelNodes {
     return dispatchTable.selectorForTarget(target).paramInfo;
   }
 
-  AstCallTarget directCallTarget(Reference target) {
+  AstCallTarget directCallTarget(Reference target, bool useUncheckedEntry) {
     final signature = signatureForDirectCall(target);
-    return AstCallTarget(signature, this, target);
+    return AstCallTarget(signature, this, target, useUncheckedEntry);
   }
 
   w.FunctionType signatureForDirectCall(Reference target) {
@@ -874,6 +870,15 @@ class Translator with KernelNodes {
 
   Member? singleTarget(TreeNode node) {
     return directCallMetadata[node]?.targetMember;
+  }
+
+  bool canSkipImplicitCheck(VariableDeclaration node) {
+    return inferredArgTypeMetadata[node]?.skipCheck ?? false;
+  }
+
+  bool canUseUncheckedEntry(InstanceInvocationExpression node) {
+    if (node is ThisExpression) return true;
+    return inferredTypeMetadata[node]?.skipCheck ?? false;
   }
 
   DartType typeOfParameterVariable(VariableDeclaration node, bool isRequired) {
@@ -984,26 +989,79 @@ class Translator with KernelNodes {
     return InterfaceType(concreteClass, nullability, typeArguments);
   }
 
-  bool shouldInline(Reference target) {
+  bool shouldInline(
+      Reference target, w.FunctionType signature, bool useUncheckedEntry) {
     if (!options.inlining) return false;
-    Member member = target.asMember;
+
+    final member = target.asMember;
     if (getPragma<bool>(member, "wasm:never-inline", true) == true) {
       return false;
     }
-    if (target.isInitializerReference) return true;
-    if (member is Field) return true;
     if (getPragma<bool>(member, "wasm:prefer-inline", true) == true) {
       return true;
     }
-    Statement? body = member.function!.body;
-    return body != null &&
-        NodeCounter().countNodes(body) <= options.inliningLimit;
+    if (member is Field) return true;
+    if (target.isInitializerReference) return true;
+
+    final function = member.function!;
+    if (function.body == null) return false;
+
+    // We never want to inline throwing functions (as they are slow paths).
+    if (member is Procedure && member.function.returnType is NeverType) {
+      return false;
+    }
+
+    final nodeCount =
+        NodeCounter(options.omitImplicitTypeChecks || useUncheckedEntry)
+            .countNodes(member);
+
+    // Special cases for iterator inlining:
+    //   class ... implements Iterable<T> {
+    //     Iterator<T> get iterator => FooIterator(...)
+    //   }
+    //   class ... implements Iterator<T> {
+    //     T get current => _current as E;
+    //   }
+    final klass = member.enclosingClass;
+    if (klass != null) {
+      final name = member.name.text;
+      if (name == 'iterator' && nodeCount <= 20) {
+        if (typeEnvironment.isSubtypeOf(
+            klass.getThisType(coreTypes, Nullability.nonNullable),
+            coreTypes.iterableRawType(Nullability.nonNullable),
+            SubtypeCheckMode.ignoringNullabilities)) {
+          return true;
+        }
+      }
+      if (name == 'current' && nodeCount <= 5) {
+        if (typeEnvironment.isSubtypeOf(
+            klass.getThisType(coreTypes, Nullability.nonNullable),
+            coreTypes.iteratorRawType(Nullability.nonNullable),
+            SubtypeCheckMode.ignoringNullabilities)) {
+          return true;
+        }
+      }
+    }
+
+    // If we think the overhead of pushing arguments is around the same as the
+    // body itself, we always inline.
+    if (nodeCount <= signature.inputs.length) return true;
+
+    return nodeCount <= options.inliningLimit;
   }
 
   bool supportsInlining(Reference target) {
     final Member member = target.asMember;
     if (membersContainingInnerFunctions.contains(member)) return false;
-    if (membersBeingGenerated.contains(member)) return false;
+    if (membersBeingGenerated.contains(member)) {
+      // Guard against recursive inlining.
+      // Though we allow inlining calls to constructor initializer & body
+      // functions while generating the constructor.
+      if (!target.isInitializerReference &&
+          !target.isConstructorBodyReference) {
+        return false;
+      }
+    }
     if (member is Field) return true;
     if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
     return true;
@@ -1201,7 +1259,7 @@ class AstCompilationTask extends CompilationTask {
 
     return (
       name: canonicalName,
-      exportName: translator.functions.getExport(reference)
+      exportName: translator.functions.getExportName(reference)
     );
   }
 }
@@ -1454,17 +1512,92 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
 }
 
 class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
+  final bool omitCovarianceChecks;
   int count = 0;
 
-  int countNodes(Node node) {
+  NodeCounter(this.omitCovarianceChecks);
+
+  int countNodes(Member member) {
     count = 0;
-    node.accept(this);
+    if (member is Constructor) {
+      count += 2; // object creation overhead
+      for (final init in member.initializers) {
+        init.accept(this);
+      }
+      for (final field in member.enclosingClass.fields) {
+        field.initializer?.accept(this);
+      }
+    }
+
+    final function = member.function!;
+    if (!omitCovarianceChecks) {
+      for (final parameter in function.positionalParameters) {
+        if (parameter.isCovariantByDeclaration ||
+            parameter.isCovariantByClass) {
+          count++;
+        }
+      }
+    }
+    for (final parameter in function.positionalParameters) {
+      if (!omitCovarianceChecks) {
+        if (parameter.isCovariantByDeclaration ||
+            parameter.isCovariantByClass) {
+          count++;
+        }
+      }
+      if (!parameter.isRequired) count++;
+    }
+
+    function.body?.accept(this);
     return count;
   }
 
+  // We only count tree nodes and do not recurse into things that aren't part of
+  // the tree (e.g. constants, variable types, ...)
+
   @override
-  void defaultNode(Node node) {
+  void defaultTreeNode(TreeNode node) {
     count++;
+    node.visitChildren(this);
+  }
+
+  // The following AST nodes do not actually emit any code, so we don't count
+  // those nodes but we recurse into children that do emit code and therefore
+  // should count.
+
+  @override
+  void visitBlock(Block node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitEmptyStatement(EmptyStatement node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitLabeledStatement(LabeledStatement node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitBlockExpression(BlockExpression node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitExpressionStatement(ExpressionStatement node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitArguments(Arguments node) {
+    count += node.types.length;
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitNamedExpression(NamedExpression node) {
     node.visitChildren(this);
   }
 }

@@ -72,3 +72,50 @@ final class TestStruct7 extends Struct {
   //                                         ^
   // [cfe] Field 'a0' must have an 'Array' annotation that matches the dimensions.
 }
+
+final class TestStruct8 extends Struct {
+  /**/ @Array.variable()
+  //   ^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.VARIABLE_LENGTH_ARRAY_NOT_LAST
+  external Array<Uint8> a0;
+  //                    ^
+  // [cfe] Variable length 'Array's must only occur as the last field of Structs.
+
+  @Uint8()
+  external int get a1;
+}
+
+final class TestStruct9 extends Struct {
+  /**/ @Array.variable()
+  //   ^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.VARIABLE_LENGTH_ARRAY_NOT_LAST
+  external Array<Uint8> a0;
+  //                    ^
+  // [cfe] Variable length 'Array's must only occur as the last field of Structs.
+
+  @Uint8()
+  external int get a1;
+  external set a1(int value);
+}
+
+final class TestStruct10 extends Struct {
+  @Array.variable()
+  external Array<Uint8> a0;
+
+  bool get a1 => true;
+}
+
+final class TestStruct11 extends Struct {
+  @Array.variable()
+  external Array<Uint8> a0;
+
+  set a1(bool value) {}
+}
+
+final class TestStruct12 extends Struct {
+  @Array.variable()
+  external Array<Uint8> a0;
+
+  bool get a1 => true;
+  set a1(bool value) {}
+}

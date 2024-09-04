@@ -56,13 +56,10 @@ print('2');
 class AvoidEmptyElse extends LintRule {
   AvoidEmptyElse()
       : super(
-            name: 'avoid_empty_else',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.brevity,
-              LintRuleCategory.errorProne
-            });
+          name: 'avoid_empty_else',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_empty_else;

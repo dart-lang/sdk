@@ -5,19 +5,28 @@
 library fasta.function_type_builder;
 
 import 'package:kernel/ast.dart'
-    show DartType, FunctionType, StructuralParameter, NamedType, Supertype;
+    show
+        DartType,
+        FunctionType,
+        StructuralParameter,
+        Nullability,
+        NamedType,
+        Supertype,
+        Variance;
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart';
 
 import '../codes/cfe_codes.dart' show messageSupertypeIsFunction, noLength;
 import '../kernel/implicit_field_type.dart';
-import '../source/builder_factory.dart';
+import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
-import '../source/type_parameter_scope_builder.dart';
+import '../source/source_loader.dart';
 import 'declaration_builders.dart';
 import 'formal_parameter_builder.dart';
 import 'inferable_type_builder.dart';
 import 'library_builder.dart';
+import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 
@@ -204,38 +213,216 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   }
 
   @override
-  FunctionTypeBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      BuilderFactory builderFactory,
-      TypeParameterScopeBuilder contextDeclaration) {
-    List<StructuralVariableBuilder>? clonedTypeVariables;
-    if (typeVariables != null) {
-      clonedTypeVariables = builderFactory.copyStructuralVariables(
-          typeVariables!, contextDeclaration,
-          kind: TypeVariableKind.function);
-    }
-    List<ParameterBuilder>? clonedFormals;
-    if (formals != null) {
-      clonedFormals =
-          new List<ParameterBuilder>.generate(formals!.length, (int i) {
-        ParameterBuilder formal = formals![i];
-        return formal.clone(newTypes, builderFactory, contextDeclaration);
-      }, growable: false);
-    }
-    return new FunctionTypeBuilderImpl(
-        returnType.clone(newTypes, builderFactory, contextDeclaration),
-        clonedTypeVariables,
-        clonedFormals,
-        nullabilityBuilder,
-        fileUri,
-        charOffset);
-  }
-
-  @override
   FunctionTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
     return new FunctionTypeBuilderImpl(returnType, typeVariables, formals,
         nullabilityBuilder, fileUri, charOffset);
+  }
+
+  @override
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    return nullabilityBuilder.build();
+  }
+
+  @override
+  VarianceCalculationValue computeTypeVariableBuilderVariance(
+      NominalVariableBuilder variable,
+      {required SourceLoader sourceLoader}) {
+    List<StructuralVariableBuilder>? typeVariables = this.typeVariables;
+    List<ParameterBuilder>? formals = this.formals;
+    TypeBuilder returnType = this.returnType;
+
+    Variance result = Variance.unrelated;
+    if (returnType is! OmittedTypeBuilder) {
+      result = result.meet(returnType
+          .computeTypeVariableBuilderVariance(variable,
+              sourceLoader: sourceLoader)
+          .variance!);
+    }
+    if (typeVariables != null) {
+      for (StructuralVariableBuilder typeVariable in typeVariables) {
+        // If [variable] is referenced in the bound at all, it makes the
+        // variance of [variable] in the entire type invariant.  The
+        // invocation of [computeVariance] below is made to simply figure out
+        // if [variable] occurs in the bound.
+        if (typeVariable.bound != null &&
+            typeVariable.bound!.computeTypeVariableBuilderVariance(variable,
+                    sourceLoader: sourceLoader) !=
+                VarianceCalculationValue.calculatedUnrelated) {
+          result = Variance.invariant;
+        }
+      }
+    }
+    if (formals != null) {
+      for (ParameterBuilder formal in formals) {
+        result = result.meet(Variance.contravariant.combine(formal.type
+            .computeTypeVariableBuilderVariance(variable,
+                sourceLoader: sourceLoader)
+            .variance!));
+      }
+    }
+    return new VarianceCalculationValue.fromVariance(result);
+  }
+
+  @override
+  TypeDeclarationBuilder? computeUnaliasedDeclaration(
+          {required bool isUsedAsClass}) =>
+      null;
+
+  @override
+  void collectReferencesFrom(Map<TypeVariableBuilder, int> variableIndices,
+      List<List<int>> edges, int index) {
+    List<StructuralVariableBuilder>? typeVariables = this.typeVariables;
+    List<ParameterBuilder>? formals = this.formals;
+    TypeBuilder returnType = this.returnType;
+    if (typeVariables != null) {
+      for (StructuralVariableBuilder typeVariable in typeVariables) {
+        typeVariable.bound
+            ?.collectReferencesFrom(variableIndices, edges, index);
+      }
+    }
+    if (formals != null) {
+      for (ParameterBuilder parameter in formals) {
+        parameter.type.collectReferencesFrom(variableIndices, edges, index);
+      }
+    }
+    returnType.collectReferencesFrom(variableIndices, edges, index);
+  }
+
+  @override
+  TypeBuilder? substituteRange(
+      Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
+      Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
+      List<TypeBuilder> unboundTypes,
+      List<StructuralVariableBuilder> unboundTypeVariables,
+      {final Variance variance = Variance.covariant}) {
+    List<StructuralVariableBuilder>? typeVariables = this.typeVariables;
+    List<ParameterBuilder>? formals = this.formals;
+    TypeBuilder returnType = this.returnType;
+
+    List<StructuralVariableBuilder>? newTypeVariables;
+    List<ParameterBuilder>? newFormals;
+    TypeBuilder? newReturnType;
+
+    Map<TypeVariableBuilder, TypeBuilder>? functionTypeUpperSubstitution;
+    Map<TypeVariableBuilder, TypeBuilder>? functionTypeLowerSubstitution;
+    if (typeVariables != null) {
+      for (int i = 0; i < typeVariables.length; i++) {
+        StructuralVariableBuilder variable = typeVariables[i];
+        TypeBuilder? bound;
+        if (variable.bound != null) {
+          bound = variable.bound!.substituteRange(upperSubstitution,
+              lowerSubstitution, unboundTypes, unboundTypeVariables,
+              variance: Variance.invariant);
+        }
+        if (bound != null) {
+          newTypeVariables ??= typeVariables.toList();
+          StructuralVariableBuilder newTypeVariableBuilder =
+              newTypeVariables[i] = new StructuralVariableBuilder(variable.name,
+                  variable.parent, variable.charOffset, variable.fileUri,
+                  bound: bound);
+          unboundTypeVariables.add(newTypeVariableBuilder);
+          if (functionTypeUpperSubstitution == null) {
+            functionTypeUpperSubstitution = {...upperSubstitution};
+            functionTypeLowerSubstitution = {...lowerSubstitution};
+          }
+          functionTypeUpperSubstitution[variable] =
+              functionTypeLowerSubstitution![variable] =
+                  new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+                      newTypeVariableBuilder,
+                      const NullabilityBuilder.omitted(),
+                      instanceTypeVariableAccess:
+                          InstanceTypeVariableAccessState.Unexpected);
+        }
+      }
+    }
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        ParameterBuilder formal = formals[i];
+        TypeBuilder? parameterType = formal.type.substituteRange(
+            functionTypeUpperSubstitution ?? upperSubstitution,
+            functionTypeLowerSubstitution ?? lowerSubstitution,
+            unboundTypes,
+            unboundTypeVariables,
+            variance: variance.combine(Variance.contravariant));
+        if (parameterType != null) {
+          newFormals ??= new List.of(formals);
+          newFormals[i] = new FunctionTypeParameterBuilder(
+              formal.kind, parameterType, formal.name);
+        }
+      }
+    }
+    newReturnType = returnType.substituteRange(
+        functionTypeUpperSubstitution ?? upperSubstitution,
+        functionTypeLowerSubstitution ?? lowerSubstitution,
+        unboundTypes,
+        unboundTypeVariables,
+        variance: variance);
+
+    if (newTypeVariables != null ||
+        newFormals != null ||
+        newReturnType != null) {
+      return new FunctionTypeBuilderImpl(
+          newReturnType ?? returnType,
+          newTypeVariables ?? typeVariables,
+          newFormals ?? formals,
+          this.nullabilityBuilder,
+          this.fileUri,
+          this.charOffset);
+    }
+    return null;
+  }
+
+  @override
+  TypeBuilder? unaliasAndErase() => this;
+
+  @override
+  bool usesTypeVariables(Set<String> typeVariableNames) {
+    if (formals != null) {
+      for (ParameterBuilder formal in formals!) {
+        if (formal.type.usesTypeVariables(typeVariableNames)) {
+          return true;
+        }
+      }
+    }
+    if (typeVariables != null) {
+      for (StructuralVariableBuilder variable in typeVariables!) {
+        if (variable.bound?.usesTypeVariables(typeVariableNames) ?? false) {
+          return true;
+        }
+      }
+    }
+    return returnType.usesTypeVariables(typeVariableNames);
+  }
+
+  @override
+  List<TypeWithInBoundReferences> findRawTypesWithInboundReferences() {
+    List<TypeWithInBoundReferences> typesAndDependencies = [];
+    List<StructuralVariableBuilder>? typeVariables = this.typeVariables;
+    List<ParameterBuilder>? formals = this.formals;
+    typesAndDependencies.addAll(returnType.findRawTypesWithInboundReferences());
+    if (typeVariables != null) {
+      for (StructuralVariableBuilder variable in typeVariables) {
+        if (variable.bound != null) {
+          typesAndDependencies
+              .addAll(variable.bound!.findRawTypesWithInboundReferences());
+        }
+        if (variable.defaultType != null) {
+          // Coverage-ignore-block(suite): Not run.
+          typesAndDependencies.addAll(
+              variable.defaultType!.findRawTypesWithInboundReferences());
+        }
+      }
+    }
+    if (formals != null) {
+      for (ParameterBuilder formal in formals) {
+        typesAndDependencies
+            .addAll(formal.type.findRawTypesWithInboundReferences());
+      }
+    }
+    return typesAndDependencies;
   }
 }
 

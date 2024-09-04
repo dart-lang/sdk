@@ -34,10 +34,10 @@ repository: https://github.com/dart-lang/example
 class SecurePubspecUrls extends LintRule {
   SecurePubspecUrls()
       : super(
-            name: 'secure_pubspec_urls',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.pub});
+          name: 'secure_pubspec_urls',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.secure_pubspec_urls;

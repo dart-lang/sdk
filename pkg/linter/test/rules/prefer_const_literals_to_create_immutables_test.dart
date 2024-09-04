@@ -52,6 +52,184 @@ var e = E([1]);
     ]);
   }
 
+  test_listLiteral_const() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(List<Object> p);
+}
+var x = C(const []);
+''');
+  }
+
+  test_listLiteral_nested_const() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(List<Object> p);
+}
+var x = C(const [
+  const [],
+]);
+''');
+  }
+
+  test_listLiteral_nested_noConst() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(List<Object> p);
+}
+var x = C([
+  [],
+]);
+''', [
+      lint(93, 9),
+      lint(97, 2),
+    ]);
+  }
+
+  test_listLiteral_noConst() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(List<Object> p);
+}
+var x = C([]);
+''', [
+      lint(93, 2),
+    ]);
+  }
+
+  test_listLiteral_notConstable_noConst() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(List<Object> p);
+}
+class D {}
+var x = C([D()]);
+''');
+  }
+
+  test_mapLiteral_const() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(Map<int, int> p);
+}
+var x = C(const {1: 2});
+''');
+  }
+
+  test_mapLiteral_inParens_const() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(Object? p);
+}
+var x = C(((const {})));
+''');
+  }
+
+  test_mapLiteral_inParens_noConst() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(Object? p);
+}
+var x = C((({})));
+''', [
+      lint(90, 2),
+    ]);
+  }
+
+  test_mapLiteral_intToDouble_noConst() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(Map<int, Object?> p);
+}
+var x = C({1: 1.0});
+''', [
+      lint(98, 8),
+    ]);
+  }
+
+  test_mapLiteral_intToInstantiation_const() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(Object? p);
+}
+var x = C({1: const C(null)});
+''', [
+      lint(88, 18),
+    ]);
+  }
+
+  test_mapLiteral_intToInt_noConst() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(Map<int, Object?> p);
+}
+var x = C({1: 1});
+''', [
+      lint(98, 6),
+    ]);
+  }
+
+  test_mapLiteral_intToNull_noConst() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(Map<int, Object?> p);
+}
+var x = C({1: null});
+''', [
+      lint(98, 9),
+    ]);
+  }
+
+  test_mapLiteral_intToString_noConst() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(Map<int, Object?> p);
+}
+var x = C({1: ''});
+''', [
+      lint(98, 7),
+    ]);
+  }
+
+  test_mapLiteral_noConst() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(Map<int, int> p);
+}
+var x = C({1: 2});
+''', [
+      lint(94, 6),
+    ]);
+  }
+
   test_missingRequiredArgument() async {
     await assertDiagnostics(r'''
 import 'package:meta/meta.dart';
@@ -71,6 +249,19 @@ final k = K(
     ]);
   }
 
+  test_namedParameter_noConst() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C({Object? p});
+}
+var x = C(p: []);
+''', [
+      lint(93, 2),
+    ]);
+  }
+
   test_newWithNonType() async {
     await assertDiagnostics(r'''
 var e1 = new B([]); // OK
@@ -78,5 +269,14 @@ var e1 = new B([]); // OK
       // No lint
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 13, 1),
     ]);
+  }
+
+  test_notImmutable_noConst() async {
+    await assertNoDiagnostics(r'''
+class C {
+  const C(List<Object> p);
+}
+var x = C([]);
+''');
   }
 }

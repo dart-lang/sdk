@@ -133,7 +133,7 @@ class SuiteFolderOptions {
       Map<String, String> environment) {
     Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{
       // Force enable features in development.
-      ExperimentalFlag.inlineClass: true,
+      ExperimentalFlag.nullAwareElements: true,
     };
 
     void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {

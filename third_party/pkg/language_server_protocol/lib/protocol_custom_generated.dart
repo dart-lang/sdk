@@ -854,6 +854,57 @@ class CompletionItemResolutionInfo implements ToJsonable {
   }
 }
 
+class ConnectToDtdParams implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    ConnectToDtdParams.canParse,
+    ConnectToDtdParams.fromJson,
+  );
+
+  final Uri uri;
+
+  ConnectToDtdParams({
+    required this.uri,
+  });
+
+  @override
+  int get hashCode => uri.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is ConnectToDtdParams &&
+        other.runtimeType == ConnectToDtdParams &&
+        uri == other.uri;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['uri'] = uri.toString();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseUri(obj, reporter, 'uri',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type ConnectToDtdParams');
+      return false;
+    }
+  }
+
+  static ConnectToDtdParams fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = Uri.parse(uriJson as String);
+    return ConnectToDtdParams(
+      uri: uri,
+    );
+  }
+}
+
 class DartCompletionResolutionInfo
     implements CompletionItemResolutionInfo, ToJsonable {
   static const jsonHandler = LspJsonHandler(

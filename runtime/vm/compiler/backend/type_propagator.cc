@@ -376,11 +376,6 @@ void FlowGraphTypePropagator::VisitAssertAssignable(
   FlowGraph::RenameDominatedUses(defn, check, check);
 }
 
-void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
-  SetTypeOf(instr->value()->definition(),
-            new (zone()) CompileType(CompileType::Bool()));
-}
-
 void FlowGraphTypePropagator::VisitAssertSubtype(AssertSubtypeInstr* instr) {}
 
 void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
@@ -1387,10 +1382,6 @@ CompileType AssertAssignableInstr::ComputeType() const {
 
 bool AssertAssignableInstr::RecomputeType() {
   return UpdateType(ComputeType());
-}
-
-CompileType AssertBooleanInstr::ComputeType() const {
-  return CompileType::Bool();
 }
 
 CompileType BooleanNegateInstr::ComputeType() const {

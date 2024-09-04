@@ -116,10 +116,10 @@ class C {
 class NoSelfAssignments extends LintRule {
   NoSelfAssignments()
       : super(
-            name: 'no_self_assignments',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.unintentional});
+          name: 'no_self_assignments',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.no_self_assignments;

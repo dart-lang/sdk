@@ -2,13 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/declared_values.dart:21:7: Error: 'values' is already declared in this scope.
-//   int values = 42; // Error: Duplicate.
-//       ^^^^^^
-// pkg/front_end/testcases/enhanced_enums/declared_values.dart:20:25: Context: Previous declaration of 'values'.
-//   static const List<E3> values = [E3.element]; // Error in E3.
-//                         ^^^^^^
-//
 // pkg/front_end/testcases/enhanced_enums/declared_values.dart:8:25: Error: An enum can't declare a member named 'values'.
 //   static const List<E1> values = [E1.element]; // Error in E1.
 //                         ^^^^^^
@@ -16,6 +9,13 @@ library;
 // pkg/front_end/testcases/enhanced_enums/declared_values.dart:14:7: Error: An enum can't declare a member named 'values'.
 //   int values = 42; // Error in E2.
 //       ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_values.dart:21:7: Error: 'values' is already declared in this scope.
+//   int values = 42; // Error: Duplicate.
+//       ^^^^^^
+// pkg/front_end/testcases/enhanced_enums/declared_values.dart:20:25: Context: Previous declaration of 'values'.
+//   static const List<E3> values = [E3.element]; // Error in E3.
+//                         ^^^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/declared_values.dart:20:25: Error: An enum can't declare a member named 'values'.
 //   static const List<E3> values = [E3.element]; // Error in E3.

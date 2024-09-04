@@ -864,6 +864,35 @@ void f() {
     );
   }
 
+  /// Verifies a color completion with text [label] for the code [content] that
+  /// includes a prefix for [colorHex] in the description.
+  Future<void> expectColorCompletion(
+    String content,
+    String label,
+    String colorHex,
+  ) async {
+    await initialize();
+    var code = TestCode.parse(content);
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+    var completion = res.singleWhere((c) => c.label == label);
+
+    // Verify correct kind for color preview.
+    expect(completion.kind, CompletionItemKind.Color);
+
+    // Verify the docs are either entirely the hex code, or end with it.
+    // VS Code's regex only allows the hex code at the start or end to show the
+    // preview.
+    var docs = completion.documentation?.map(
+      (markup) => markup.value,
+      (string) => string,
+    );
+    expect(
+      docs,
+      anyOf(equals(colorHex), endsWith('\n\n$colorHex')),
+    );
+  }
+
   /// Expect [item] to use the default edit range, inserting the value [text].
   void expectUsesDefaultEditRange(CompletionItem item, String text) {
     expect(item.textEditText ?? item.label, text);
@@ -966,6 +995,24 @@ void g() {
       applyEditsFor: '({a, b}) =>',
       expectedContent: expectedContent,
     );
+  }
+
+  Future<void> test_color_material() async {
+    var content = '''
+import 'package:flutter/material.dart';
+var a = Colors.re^
+''';
+
+    await expectColorCompletion(content, 'red', '#FF0000');
+  }
+
+  Future<void> test_color_materialAccent() async {
+    var content = '''
+import 'package:flutter/material.dart';
+var a = Colors.redAcce^
+''';
+
+    await expectColorCompletion(content, 'redAccent', '#FFAA00');
   }
 
   Future<void> test_comment() async {
@@ -3269,6 +3316,64 @@ void f() {
     var resolved = await resolveCompletion(completions.first);
     // It should not include auto-import text since it's already imported.
     expect(resolved.detail, isNot(contains('Auto import from')));
+  }
+
+  /// Verify extensions can be auto-imported if not already in-scope.
+  Future<void> test_unimportedSymbols_extension() async {
+    // Define extensions in 'extensions.dart'.
+    newFile(
+      join(projectFolderPath, 'lib', 'extensions.dart'),
+      '''
+extension StringExtensions on String {
+  String get empty => '';
+}
+''',
+    );
+
+    // Also import the extensions into an unrelated file to ensure this doesn't
+    // cause extra suggestions (https://github.com/dart-lang/sdk/issues/56320).
+    newFile(
+      join(projectFolderPath, 'lib', 'other.dart'),
+      'import "extensions.dart";',
+    );
+
+    var content = '''
+void f(String a) {
+  a.empt^
+}
+''';
+
+    await initialize();
+    var code = TestCode.parse(content);
+    await openFile(mainFileUri, code.code);
+    await initialAnalysis;
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    // Expect only a single entry for the 'empty' extension member.
+    var completions = res.where((c) => c.label == 'empty');
+    expect(completions, hasLength(1));
+
+    // Expect it to auto-import from 'extensions.dart'.
+    var resolved = await resolveCompletion(completions.single);
+    expect(
+      resolved.detail,
+      startsWith("Auto import from 'package:test/extensions.dart'"),
+    );
+
+    // Verify the edits.
+    var newContent = applyTextEdits(
+      code.code,
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
+    );
+    expect(newContent, equals('''
+import 'package:test/extensions.dart';
+
+void f(String a) {
+  a.empty
+}
+'''));
   }
 
   Future<void> test_unimportedSymbols_filtersOutAlreadyImportedSymbols() async {

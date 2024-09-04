@@ -107,7 +107,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
 
   void _recordIfExtensionMember(Element? element) {
     if (element != null) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement is ExtensionElement) {
         _recordUsedExtension(enclosingElement);
       }
@@ -208,14 +208,14 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
     if (_recordPrefixMap(identifier, element)) {
       return;
     }
-    var enclosingElement = element.enclosingElement;
-    if (enclosingElement is CompilationUnitElement) {
+    var enclosingElement = element.enclosingElement3;
+    if (element is PrefixElement) {
+      usedElements.prefixMap.putIfAbsent(element, () => <Element>[]);
+    } else if (enclosingElement is CompilationUnitElement) {
       _recordUsedElement(element);
     } else if (enclosingElement is ExtensionElement) {
       _recordUsedExtension(enclosingElement);
       return;
-    } else if (element is PrefixElement) {
-      usedElements.prefixMap.putIfAbsent(element, () => <Element>[]);
     } else if (element is MultiplyDefinedElement) {
       // If the element is multiply defined then call this method recursively
       // for each of the conflicting elements.

@@ -4,9 +4,11 @@
 
 import '../base/messages.dart';
 import '../base/name_space.dart';
+import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import 'name_scheme.dart';
@@ -34,66 +36,6 @@ enum TypeParameterScopeKind {
   enumDeclaration,
 }
 
-extension TypeParameterScopeBuilderExtension on TypeParameterScopeBuilder {
-  /// Returns the [ContainerName] corresponding to this type parameter scope,
-  /// if any.
-  ContainerName? get containerName {
-    switch (kind) {
-      case TypeParameterScopeKind.library:
-        return null;
-      case TypeParameterScopeKind.classOrNamedMixinApplication:
-      case TypeParameterScopeKind.classDeclaration:
-      case TypeParameterScopeKind.mixinDeclaration:
-      case TypeParameterScopeKind.unnamedMixinApplication:
-      case TypeParameterScopeKind.namedMixinApplication:
-      case TypeParameterScopeKind.enumDeclaration:
-      case TypeParameterScopeKind.extensionTypeDeclaration:
-        return new ClassName(name);
-      case TypeParameterScopeKind.extensionDeclaration:
-        return extensionName;
-      // Coverage-ignore(suite): Not run.
-      case TypeParameterScopeKind.typedef:
-      case TypeParameterScopeKind.staticMethod:
-      case TypeParameterScopeKind.instanceMethod:
-      case TypeParameterScopeKind.constructor:
-      case TypeParameterScopeKind.topLevelMethod:
-      case TypeParameterScopeKind.factoryMethod:
-      case TypeParameterScopeKind.functionType:
-      case TypeParameterScopeKind.extensionOrExtensionTypeDeclaration:
-        throw new UnsupportedError("Unexpected field container: ${this}");
-    }
-  }
-
-  /// Returns the [ContainerType] corresponding to this type parameter scope.
-  ContainerType get containerType {
-    switch (kind) {
-      case TypeParameterScopeKind.library:
-        return ContainerType.Library;
-      case TypeParameterScopeKind.classOrNamedMixinApplication:
-      case TypeParameterScopeKind.classDeclaration:
-      case TypeParameterScopeKind.mixinDeclaration:
-      case TypeParameterScopeKind.unnamedMixinApplication:
-      case TypeParameterScopeKind.namedMixinApplication:
-      case TypeParameterScopeKind.enumDeclaration:
-        return ContainerType.Class;
-      case TypeParameterScopeKind.extensionDeclaration:
-        return ContainerType.Extension;
-      case TypeParameterScopeKind.extensionTypeDeclaration:
-        return ContainerType.ExtensionType;
-      // Coverage-ignore(suite): Not run.
-      case TypeParameterScopeKind.typedef:
-      case TypeParameterScopeKind.staticMethod:
-      case TypeParameterScopeKind.instanceMethod:
-      case TypeParameterScopeKind.constructor:
-      case TypeParameterScopeKind.topLevelMethod:
-      case TypeParameterScopeKind.factoryMethod:
-      case TypeParameterScopeKind.functionType:
-      case TypeParameterScopeKind.extensionOrExtensionTypeDeclaration:
-        throw new UnsupportedError("Unexpected field container: ${this}");
-    }
-  }
-}
-
 /// A builder object preparing for building declarations that can introduce type
 /// parameter and/or members.
 ///
@@ -106,26 +48,18 @@ class TypeParameterScopeBuilder {
 
   final Map<String, Builder>? members;
 
-  final Map<String, MemberBuilder>? constructors;
-
   final Map<String, MemberBuilder>? setters;
 
   final Set<ExtensionBuilder>? extensions;
-
-  final List<NamedTypeBuilder> unresolvedNamedTypes = <NamedTypeBuilder>[];
 
   final Map<String, List<Builder>> augmentations = <String, List<Builder>>{};
 
   final Map<String, List<Builder>> setterAugmentations =
       <String, List<Builder>>{};
 
-  List<SourceFieldBuilder>? primaryConstructorFields;
-
   // TODO(johnniwinther): Stop using [_name] for determining the declaration
   // kind.
   String _name;
-
-  ExtensionName? _extensionName;
 
   /// Offset of name token, updated by the outline builder along
   /// with the name as the current declaration changes.
@@ -139,37 +73,25 @@ class TypeParameterScopeBuilder {
   /// with a synthesized parameter of this type.
   TypeBuilder? _extensionThisType;
 
-  bool declaresConstConstructor = false;
-
-  TypeParameterScopeBuilder(
-      this._kind,
-      this.members,
-      this.setters,
-      this.constructors,
-      this.extensions,
-      this._name,
-      this._charOffset,
-      this.parent);
+  TypeParameterScopeBuilder(this._kind, this.members, this.setters,
+      this.extensions, this._name, this._charOffset, this.parent);
 
   TypeParameterScopeBuilder.library()
       : this(
             TypeParameterScopeKind.library,
             <String, Builder>{},
             <String, MemberBuilder>{},
-            null,
-            // No support for constructors in library scopes.
             <ExtensionBuilder>{},
             "<library>",
             -1,
             null);
 
   TypeParameterScopeBuilder createNested(
-      TypeParameterScopeKind kind, String name, bool hasMembers) {
+      TypeParameterScopeKind kind, String name) {
     return new TypeParameterScopeBuilder(
         kind,
-        hasMembers ? <String, MemberBuilder>{} : null,
-        hasMembers ? <String, MemberBuilder>{} : null,
-        hasMembers ? <String, MemberBuilder>{} : null,
+        null,
+        null,
         null,
         // No support for extensions in nested scopes.
         name,
@@ -231,10 +153,7 @@ class TypeParameterScopeBuilder {
         // Coverage-ignore(suite): Not run.
         "Unexpected declaration kind: $_kind");
     _kind = TypeParameterScopeKind.extensionDeclaration;
-    _extensionName = name != null
-        ? new FixedExtensionName(name)
-        : new UnnamedExtensionName();
-    _name = _extensionName!.name;
+    _name = name ?? UnnamedExtensionName.unnamedExtensionSentinel;
     _charOffset = charOffset;
     _typeVariables = typeVariables;
   }
@@ -294,8 +213,6 @@ class TypeParameterScopeBuilder {
 
   String get name => _name;
 
-  ExtensionName? get extensionName => _extensionName;
-
   int get charOffset => _charOffset;
 
   List<NominalVariableBuilder>? get typeVariables => _typeVariables;
@@ -324,136 +241,339 @@ class TypeParameterScopeBuilder {
     return _extensionThisType!;
   }
 
-  /// Adds the yet unresolved [type] to this scope builder.
-  ///
-  /// Unresolved type will be resolved through [resolveNamedTypes] when the
-  /// scope is fully built. This allows for resolving self-referencing types,
-  /// like type parameter used in their own bound, for instance
-  /// `<T extends A<T>>`.
-  void registerUnresolvedNamedType(NamedTypeBuilder type) {
-    unresolvedNamedTypes.add(type);
-  }
-
-  void addPrimaryConstructorField(SourceFieldBuilder builder) {
-    (primaryConstructorFields ??= []).add(builder);
-  }
-
-  /// Resolves type variables in [unresolvedNamedTypes] and propagate other
-  /// types to [parent].
-  void resolveNamedTypes(List<TypeVariableBuilder>? typeVariables,
-      ProblemReporting problemReporting) {
-    Map<String, Builder>? map;
-    if (typeVariables != null) {
-      map = <String, Builder>{};
-      for (TypeVariableBuilder builder in typeVariables) {
-        if (builder.isWildcard) continue;
-        map[builder.name] = builder;
-      }
-    }
-    LookupScope? lookupScope;
-    for (NamedTypeBuilder namedTypeBuilder in unresolvedNamedTypes) {
-      TypeName typeName = namedTypeBuilder.typeName;
-      String? qualifier = typeName.qualifier;
-      String? name = qualifier ?? typeName.name;
-      Builder? declaration;
-      if (members != null) {
-        declaration = members![name];
-      }
-      if (declaration == null && map != null) {
-        declaration = map[name];
-      }
-      if (declaration == null) {
-        // Since name didn't resolve in this scope, propagate it to the
-        // parent declaration.
-        parent!.registerUnresolvedNamedType(namedTypeBuilder);
-      } else if (qualifier != null) {
-        // Attempt to use a member or type variable as a prefix.
-        int nameOffset = typeName.fullNameOffset;
-        int nameLength = typeName.fullNameLength;
-        Message message = templateNotAPrefixInTypeAnnotation.withArguments(
-            qualifier, typeName.name);
-        problemReporting.addProblem(
-            message, nameOffset, nameLength, namedTypeBuilder.fileUri!);
-        namedTypeBuilder.bind(
-            problemReporting,
-            namedTypeBuilder.buildInvalidTypeDeclarationBuilder(
-                message.withLocation(
-                    namedTypeBuilder.fileUri!, nameOffset, nameLength)));
-      } else {
-        lookupScope ??= toLookupScope(typeVariables);
-        namedTypeBuilder.resolveIn(lookupScope, namedTypeBuilder.charOffset!,
-            namedTypeBuilder.fileUri!, problemReporting);
-      }
-    }
-    unresolvedNamedTypes.clear();
-  }
-
-  LookupScope toLookupScope(List<TypeVariableBuilder>? typeVariableBuilders) {
-    LookupScope lookupScope = new FixedLookupScope(
-        ScopeKind.typeParameters, name,
-        getables: members, setables: setters);
-    return TypeParameterScope.fromList(lookupScope, typeVariableBuilders);
-  }
-
   NameSpace toNameSpace() {
     return new NameSpaceImpl(
         getables: members, setables: setters, extensions: extensions);
-  }
-
-  DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder(
-      Map<String, NominalVariableBuilder>? typeVariables) {
-    return new DeclarationNameSpaceBuilder._(
-        members, setters, constructors, extensions, typeVariables);
   }
 
   @override
   String toString() => 'DeclarationBuilder(${hashCode}:kind=$kind,name=$name)';
 }
 
+class NominalParameterScope extends AbstractTypeParameterScope {
+  final NominalParameterNameSpace _nameSpace;
+
+  NominalParameterScope(super._parent, this._nameSpace);
+
+  @override
+  Builder? getTypeParameter(String name) => _nameSpace.getTypeParameter(name);
+}
+
+class NominalParameterNameSpace {
+  Map<String, NominalVariableBuilder> _typeParametersByName = {};
+
+  NominalVariableBuilder? getTypeParameter(String name) =>
+      _typeParametersByName[name];
+
+  void addTypeVariables(ProblemReporting _problemReporting,
+      List<NominalVariableBuilder>? typeVariables,
+      {required String? ownerName, required bool allowNameConflict}) {
+    if (typeVariables == null || typeVariables.isEmpty) return;
+    for (NominalVariableBuilder tv in typeVariables) {
+      NominalVariableBuilder? existing = _typeParametersByName[tv.name];
+      if (tv.isWildcard) continue;
+      if (existing != null) {
+        if (existing.kind == TypeVariableKind.extensionSynthesized) {
+          // The type parameter from the extension is shadowed by the type
+          // parameter from the member. Rename the shadowed type parameter.
+          existing.parameter.name = '#${existing.name}';
+          _typeParametersByName[tv.name] = tv;
+        } else {
+          _problemReporting.addProblem(messageTypeVariableDuplicatedName,
+              tv.charOffset, tv.name.length, tv.fileUri,
+              context: [
+                templateTypeVariableDuplicatedNameCause
+                    .withArguments(tv.name)
+                    .withLocation(existing.fileUri!, existing.charOffset,
+                        existing.name.length)
+              ]);
+        }
+      } else {
+        _typeParametersByName[tv.name] = tv;
+        // Only classes and extension types and type variables can't have the
+        // same name. See
+        // [#29555](https://github.com/dart-lang/sdk/issues/29555) and
+        // [#54602](https://github.com/dart-lang/sdk/issues/54602).
+        if (tv.name == ownerName && !allowNameConflict) {
+          _problemReporting.addProblem(messageTypeVariableSameNameAsEnclosing,
+              tv.charOffset, tv.name.length, tv.fileUri);
+        }
+      }
+    }
+  }
+}
+
+enum DeclarationFragmentKind {
+  classDeclaration,
+  mixinDeclaration,
+  enumDeclaration,
+  extensionDeclaration,
+  extensionTypeDeclaration,
+}
+
+abstract class DeclarationFragment {
+  final int nameOffset;
+  final LookupScope typeParameterScope;
+  final DeclarationBuilderScope bodyScope = new DeclarationBuilderScope();
+  final List<_AddBuilder> _addedBuilders = [];
+
+  List<SourceFieldBuilder>? primaryConstructorFields;
+
+  DeclarationFragment(this.nameOffset, this.typeParameterScope);
+
+  String get name;
+
+  ContainerName get containerName;
+
+  ContainerType get containerType;
+
+  DeclarationFragmentKind get kind;
+
+  bool declaresConstConstructor = false;
+
+  void addPrimaryConstructorField(SourceFieldBuilder builder) {
+    (primaryConstructorFields ??= []).add(builder);
+  }
+
+  void addBuilder(
+      String name, Builder declaration, Uri fileUri, int charOffset) {
+    _addedBuilders.add(new _AddBuilder(name, declaration, fileUri, charOffset));
+  }
+
+  DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder(
+      NominalParameterNameSpace? nominalParameterNameSpace) {
+    return new DeclarationNameSpaceBuilder._(
+        name, nominalParameterNameSpace, _addedBuilders);
+  }
+}
+
+class ClassFragment extends DeclarationFragment {
+  @override
+  final String name;
+
+  final ClassName _className;
+
+  ClassFragment(this.name, super.nameOffset, super.typeParameterScope)
+      : _className = new ClassName(name);
+
+  @override
+  ContainerName get containerName => _className;
+
+  @override
+  ContainerType get containerType => ContainerType.Class;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DeclarationFragmentKind get kind => DeclarationFragmentKind.classDeclaration;
+}
+
+class MixinFragment extends DeclarationFragment {
+  @override
+  final String name;
+
+  final ClassName _className;
+
+  MixinFragment(this.name, super.nameOffset, super.typeParameterScope)
+      : _className = new ClassName(name);
+
+  @override
+  ContainerName get containerName => _className;
+
+  @override
+  ContainerType get containerType => ContainerType.Class;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DeclarationFragmentKind get kind => DeclarationFragmentKind.mixinDeclaration;
+}
+
+class EnumFragment extends DeclarationFragment {
+  @override
+  final String name;
+
+  final ClassName _className;
+
+  EnumFragment(this.name, super.nameOffset, super.typeParameterScope)
+      : _className = new ClassName(name);
+
+  @override
+  ContainerName get containerName => _className;
+
+  @override
+  ContainerType get containerType => ContainerType.Class;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DeclarationFragmentKind get kind => DeclarationFragmentKind.enumDeclaration;
+}
+
+class ExtensionFragment extends DeclarationFragment {
+  final ExtensionName extensionName;
+
+  ExtensionFragment(String? name, super.nameOffset, super.typeParameterScope)
+      : extensionName = name != null
+            ? new FixedExtensionName(name)
+            : new UnnamedExtensionName();
+
+  @override
+  String get name => extensionName.name;
+
+  @override
+  ContainerName get containerName => extensionName;
+
+  @override
+  ContainerType get containerType => ContainerType.Extension;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DeclarationFragmentKind get kind =>
+      DeclarationFragmentKind.extensionDeclaration;
+}
+
+class ExtensionTypeFragment extends DeclarationFragment {
+  @override
+  final String name;
+
+  final ClassName _className;
+
+  ExtensionTypeFragment(this.name, super.nameOffset, super.typeParameterScope)
+      : _className = new ClassName(name);
+
+  @override
+  ContainerName get containerName => _className;
+
+  @override
+  ContainerType get containerType => ContainerType.ExtensionType;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DeclarationFragmentKind get kind =>
+      DeclarationFragmentKind.extensionTypeDeclaration;
+}
+
+class _AddBuilder {
+  final String name;
+  final Builder declaration;
+  final Uri fileUri;
+  final int charOffset;
+
+  _AddBuilder(this.name, this.declaration, this.fileUri, this.charOffset);
+}
+
 class DeclarationNameSpaceBuilder {
-  final Map<String, Builder>? _getables;
-  final Map<String, MemberBuilder>? _setables;
-  final Map<String, MemberBuilder>? _constructors;
-  final Set<ExtensionBuilder>? _extensions;
-  final Map<String, NominalVariableBuilder>? _typeVariables;
+  final String _name;
+  final NominalParameterNameSpace? _nominalParameterNameSpace;
+  final List<_AddBuilder> _addedBuilders;
 
   DeclarationNameSpaceBuilder.empty()
-      : _getables = null,
-        _setables = null,
-        _constructors = null,
-        _extensions = null,
-        _typeVariables = null;
+      : _name = '',
+        _nominalParameterNameSpace = null,
+        _addedBuilders = const [];
 
-  DeclarationNameSpaceBuilder._(this._getables, this._setables,
-      this._constructors, this._extensions, this._typeVariables);
+  DeclarationNameSpaceBuilder._(
+      this._name, this._nominalParameterNameSpace, this._addedBuilders);
 
-  void addLocalMember(String name, MemberBuilder builder,
-      {required bool setter}) {
-    (setter
-        ?
+  void _addBuilder(
+      ProblemReporting problemReporting,
+      Map<String, Builder> getables,
+      Map<String, MemberBuilder> setables,
+      Map<String, MemberBuilder> constructors,
+      _AddBuilder addBuilder) {
+    String name = addBuilder.name;
+    Builder declaration = addBuilder.declaration;
+    Uri fileUri = addBuilder.fileUri;
+    int charOffset = addBuilder.charOffset;
+
+    bool isConstructor = declaration is FunctionBuilder &&
+        (declaration.isConstructor || declaration.isFactory);
+    if (!isConstructor && name == _name) {
+      problemReporting.addProblem(
+          messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);
+    }
+    Map<String, Builder> members = isConstructor
+        ? constructors
+        : (declaration.isSetter ? setables : getables);
+
+    Builder? existing = members[name];
+
+    if (existing == declaration) return;
+
+    if (declaration.next != null &&
         // Coverage-ignore(suite): Not run.
-        _setables
-        : _getables)![name] = builder;
+        declaration.next != existing) {
+      unexpected(
+          "${declaration.next!.fileUri}@${declaration.next!.charOffset}",
+          "${existing?.fileUri}@${existing?.charOffset}",
+          declaration.charOffset,
+          declaration.fileUri);
+    }
+    declaration.next = existing;
+    if (isDuplicatedDeclaration(existing, declaration)) {
+      String fullName = name;
+      if (isConstructor) {
+        if (name.isEmpty) {
+          fullName = _name;
+        } else {
+          fullName = "${_name}.$name";
+        }
+      }
+      problemReporting.addProblem(
+          templateDuplicatedDeclaration.withArguments(fullName),
+          charOffset,
+          fullName.length,
+          declaration.fileUri!,
+          context: <LocatedMessage>[
+            templateDuplicatedDeclarationCause
+                .withArguments(fullName)
+                .withLocation(
+                    existing!.fileUri!, existing.charOffset, fullName.length)
+          ]);
+    } else if (declaration.isAugment) {
+      // Coverage-ignore-block(suite): Not run.
+      if (existing != null) {
+        if (declaration.isSetter) {
+          // TODO(johnniwinther): Collection augment setables.
+        } else {
+          // TODO(johnniwinther): Collection augment getables.
+        }
+      } else {
+        // TODO(cstefantsova): Report an error.
+      }
+    }
+    members[name] = declaration;
   }
 
-  MemberBuilder? lookupLocalMember(String name, {required bool setter}) {
-    return (setter
-        ?
-        // Coverage-ignore(suite): Not run.
-        _setables
-        : _getables)![name] as MemberBuilder?;
+  void checkTypeVariableConflict(ProblemReporting _problemReporting,
+      String name, Builder member, Uri fileUri) {
+    if (_nominalParameterNameSpace != null) {
+      NominalVariableBuilder? tv =
+          _nominalParameterNameSpace.getTypeParameter(name);
+      if (tv != null) {
+        _problemReporting.addProblem(
+            templateConflictsWithTypeVariable.withArguments(name),
+            member.charOffset,
+            name.length,
+            fileUri,
+            context: [
+              messageConflictsWithTypeVariableCause.withLocation(
+                  tv.fileUri!, tv.charOffset, name.length)
+            ]);
+      }
+    }
   }
 
-  void addConstructor(String name, MemberBuilder builder) {
-    _constructors![name] = builder;
-  }
-
-  Iterable<MemberBuilder> get constructors =>
-      _constructors?.values ?? // Coverage-ignore(suite): Not run.
-      [];
-
-  DeclarationNameSpace buildNameSpace(IDeclarationBuilder parent,
+  DeclarationNameSpace buildNameSpace(
+      ProblemReporting problemReporting, IDeclarationBuilder parent,
       {bool includeConstructors = true}) {
+    Map<String, Builder> getables = {};
+    Map<String, MemberBuilder> setables = {};
+    Map<String, MemberBuilder> constructors = {};
+
+    for (_AddBuilder addedBuilder in _addedBuilders) {
+      _addBuilder(
+          problemReporting, getables, setables, constructors, addedBuilder);
+    }
+
     void setParent(MemberBuilder? member) {
       while (member != null) {
         member.parent = parent;
@@ -462,33 +582,129 @@ class DeclarationNameSpaceBuilder {
     }
 
     void setParentAndCheckConflicts(String name, Builder member) {
-      if (_typeVariables != null) {
-        NominalVariableBuilder? tv = _typeVariables![name];
-        if (tv != null) {
-          parent.addProblem(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
-              context: [
-                messageConflictsWithTypeVariableCause.withLocation(
-                    tv.fileUri!, tv.charOffset, name.length)
-              ]);
-        }
-      }
+      checkTypeVariableConflict(
+          problemReporting, name, member, member.fileUri!);
       setParent(member as MemberBuilder);
     }
 
-    _getables?.forEach(setParentAndCheckConflicts);
-    _setables?.forEach(setParentAndCheckConflicts);
-    _constructors?.forEach(setParentAndCheckConflicts);
+    getables.forEach(setParentAndCheckConflicts);
+    setables.forEach(setParentAndCheckConflicts);
+    constructors.forEach(setParentAndCheckConflicts);
 
     return new DeclarationNameSpaceImpl(
-        getables: _getables,
-        setables: _setables,
-        extensions: _extensions,
+        getables: getables,
+        setables: setables,
         // TODO(johnniwinther): Handle constructors in extensions consistently.
         // Currently they are not part of the name space but still processed
         // for instance when inferring redirecting factories.
-        constructors: includeConstructors ? _constructors : null);
+        constructors: includeConstructors ? constructors : null);
   }
+}
+
+enum TypeScopeKind {
+  library,
+  declarationTypeParameters,
+  classDeclaration,
+  mixinDeclaration,
+  enumDeclaration,
+  extensionDeclaration,
+  extensionTypeDeclaration,
+  memberTypeParameters,
+  functionTypeParameters,
+
+  unnamedMixinApplication,
+}
+
+class TypeScope {
+  final TypeScopeKind kind;
+
+  List<NamedTypeBuilder> _unresolvedNamedTypes = [];
+
+  List<TypeScope> _childScopes = [];
+
+  final LookupScope lookupScope;
+
+  TypeScope(this.kind, this.lookupScope, [TypeScope? parent]) {
+    parent?._childScopes.add(this);
+  }
+
+  void registerUnresolvedNamedType(NamedTypeBuilder namedTypeBuilder) {
+    _unresolvedNamedTypes.add(namedTypeBuilder);
+  }
+
+  int resolveTypes(ProblemReporting problemReporting) {
+    int typeCount = _unresolvedNamedTypes.length;
+    if (_unresolvedNamedTypes.isNotEmpty) {
+      for (NamedTypeBuilder namedTypeBuilder in _unresolvedNamedTypes) {
+        namedTypeBuilder.resolveIn(lookupScope, namedTypeBuilder.charOffset!,
+            namedTypeBuilder.fileUri!, problemReporting);
+      }
+      _unresolvedNamedTypes.clear();
+    }
+    for (TypeScope childScope in _childScopes) {
+      typeCount += childScope.resolveTypes(problemReporting);
+    }
+    return typeCount;
+  }
+
+  bool get isEmpty => _unresolvedNamedTypes.isEmpty && _childScopes.isEmpty;
+
+  @override
+  String toString() => 'TypeScope($kind,$_unresolvedNamedTypes)';
+}
+
+class DeclarationBuilderScope implements LookupScope {
+  DeclarationBuilder? _declarationBuilder;
+
+  DeclarationBuilderScope();
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void forEachExtension(void Function(ExtensionBuilder) f) {
+    _declarationBuilder?.scope.forEachExtension(f);
+  }
+
+  void set declarationBuilder(DeclarationBuilder value) {
+    assert(_declarationBuilder == null,
+        "declarationBuilder has already been set.");
+    _declarationBuilder = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ScopeKind get kind =>
+      _declarationBuilder?.scope.kind ?? ScopeKind.declaration;
+
+  @override
+  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
+    return _declarationBuilder?.scope.lookupGetable(name, charOffset, fileUri);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
+    return _declarationBuilder?.scope.lookupSetable(name, charOffset, fileUri);
+  }
+}
+
+bool isDuplicatedDeclaration(Builder? existing, Builder other) {
+  if (existing == null) return false;
+  if (other.isAugment) return false;
+  Builder? next = existing.next;
+  if (next == null) {
+    if (existing.isGetter && other.isSetter) return false;
+    if (existing.isSetter && other.isGetter) return false;
+  } else {
+    if (next is ClassBuilder && !next.isMixinApplication) return true;
+  }
+  if (existing is ClassBuilder && other is ClassBuilder) {
+    // We allow multiple mixin applications with the same name. An
+    // alternative is to share these mixin applications. This situation can
+    // happen if you have `class A extends Object with Mixin {}` and `class B
+    // extends Object with Mixin {}` in the same library.
+    return !existing.isMixinApplication ||
+        // Coverage-ignore(suite): Not run.
+        !other.isMixinApplication;
+  }
+  return true;
 }

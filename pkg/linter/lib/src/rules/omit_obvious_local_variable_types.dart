@@ -81,11 +81,11 @@ https://github.com/dart-lang/linter/issues/3480.
 class OmitObviousLocalVariableTypes extends LintRule {
   OmitObviousLocalVariableTypes()
       : super(
-            name: 'omit_obvious_local_variable_types',
-            description: _desc,
-            details: _details,
-            state: State.experimental(),
-            categories: {LintRuleCategory.style});
+          name: 'omit_obvious_local_variable_types',
+          description: _desc,
+          details: _details,
+          state: State.experimental(),
+        );
 
   @override
   List<String> get incompatibleRules => const ['always_specify_types'];
@@ -136,9 +136,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitVariableDeclarationList(VariableDeclarationList node) {
     var staticType = node.type?.type;
-    if (staticType == null ||
-        staticType is DynamicType ||
-        staticType.isDartCoreNull) {
+    if (staticType == null || staticType.isDartCoreNull) {
       return;
     }
     for (var child in node.variables) {

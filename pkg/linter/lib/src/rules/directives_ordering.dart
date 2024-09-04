@@ -166,10 +166,10 @@ class DirectivesOrdering extends LintRule {
 
   DirectivesOrdering()
       : super(
-            name: 'directives_ordering',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'directives_ordering',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<LintCode> get lintCodes => allCodes;

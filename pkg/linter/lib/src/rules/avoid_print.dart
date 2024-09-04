@@ -61,10 +61,10 @@ void f(int x) {
 class AvoidPrint extends LintRule {
   AvoidPrint()
       : super(
-            name: 'avoid_print',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.unintentional});
+          name: 'avoid_print',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_print;

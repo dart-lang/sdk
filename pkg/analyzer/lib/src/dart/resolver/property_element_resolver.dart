@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -261,12 +262,10 @@ class PropertyElementResolver with ScopeHelpers {
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {
         var unpromotedType = readElementRequested.returnType;
-        getType = _resolver.flowAnalysis.flow?.propertyGet(
-                node,
-                ThisPropertyTarget.singleton,
-                node.name,
-                readElementRequested,
-                unpromotedType) ??
+        getType = _resolver.flowAnalysis.flow
+                ?.propertyGet(node, ThisPropertyTarget.singleton, node.name,
+                    readElementRequested, SharedTypeView(unpromotedType))
+                ?.unwrapTypeView() ??
             unpromotedType;
       }
       _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
@@ -326,7 +325,7 @@ class PropertyElementResolver with ScopeHelpers {
           CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
         );
       } else {
-        var enclosingElement = element.enclosingElement;
+        var enclosingElement = element.enclosingElement3;
         if (enclosingElement is ExtensionElement &&
             enclosingElement.name == null) {
           _resolver.errorReporter.atNode(
@@ -491,15 +490,17 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasRead) {
       var unpromotedType =
           result.getter?.returnType ?? _typeSystem.typeProvider.dynamicType;
-      getType = _resolver.flowAnalysis.flow?.propertyGet(
-              node,
-              isCascaded
-                  ? CascadePropertyTarget.singleton
-                      as PropertyTarget<Expression>
-                  : ExpressionPropertyTarget(target),
-              propertyName.name,
-              result.getter,
-              unpromotedType) ??
+      getType = _resolver.flowAnalysis.flow
+              ?.propertyGet(
+                  node,
+                  isCascaded
+                      ? CascadePropertyTarget.singleton
+                          as PropertyTarget<Expression>
+                      : ExpressionPropertyTarget(target),
+                  propertyName.name,
+                  result.getter,
+                  SharedTypeView(unpromotedType))
+              ?.unwrapTypeView() ??
           unpromotedType;
 
       _checkForStaticMember(target, propertyName, result.getter);
@@ -830,12 +831,14 @@ class PropertyElementResolver with ScopeHelpers {
         }
         var unpromotedType =
             readElement?.returnType ?? _typeSystem.typeProvider.dynamicType;
-        getType = _resolver.flowAnalysis.flow?.propertyGet(
-                node,
-                SuperPropertyTarget.singleton,
-                propertyName.name,
-                readElement,
-                unpromotedType) ??
+        getType = _resolver.flowAnalysis.flow
+                ?.propertyGet(
+                    node,
+                    SuperPropertyTarget.singleton,
+                    propertyName.name,
+                    readElement,
+                    SharedTypeView(unpromotedType))
+                ?.unwrapTypeView() ??
             unpromotedType;
       }
 

@@ -239,6 +239,33 @@ class A {
     await testContents(contents);
   }
 
+  Future<void> test_constructor_redirectingSuper_wildcards() async {
+    var contents = '''
+class A {
+  final int x, y;
+  A(this.[!x!], [this.y = 0]);
+}
+
+class C extends A {
+  final int c;
+  C(this.c, super.^_);
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_constructor_thisReference_wildcards() async {
+    var contents = '''
+class A {
+  final int [!_!];
+  A(this.^_);
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_constructorNamed() async {
     var contents = '''
 f() {
@@ -267,13 +294,6 @@ class [!A!] {
     await testContents(contents);
   }
 
-  Future<void> test_directive_augmentLibrary() async {
-    await verifyDirective(
-      source: "augment library 'destin^ation.dart';",
-      destination: "import augment 'source.dart';",
-    );
-  }
-
   Future<void> test_directive_export() async {
     await verifyDirective(
       source: "export 'destin^ation.dart';",
@@ -283,13 +303,6 @@ class [!A!] {
   Future<void> test_directive_import() async {
     await verifyDirective(
       source: "import 'desti^nation.dart';",
-    );
-  }
-
-  Future<void> test_directive_importAugment() async {
-    await verifyDirective(
-      source: "import augment 'destin^ation.dart';",
-      destination: "augment library 'source.dart';",
     );
   }
 
@@ -305,6 +318,17 @@ class [!A!] {
       source: "part of 'destin^ation.dart';",
       destination: "part 'source.dart';",
     );
+  }
+
+  Future<void> test_field_underscore() async {
+    var contents = '''
+class A {
+  int [!_!] = 1;
+  int f() => _^;  
+}
+''';
+
+    await testContents(contents);
   }
 
   Future<void> test_fieldFormalParam() async {
@@ -663,6 +687,17 @@ class A {}
     expect(getTextForRange(macroContent, location.targetSelectionRange), 'foo');
   }
 
+  Future<void> test_method_underscore() async {
+    var contents = '''
+class A {
+  int [!_!]() => 1;
+  int f() => _^();  
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
@@ -742,6 +777,15 @@ class A {
 class B extends A {
   B({required super.^a}) : assert(a > 0);
 }
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_topLevelVariable_underscore() async {
+    var contents = '''
+int [!_!] = 0;
+int f = ^_;
 ''';
 
     await testContents(contents);

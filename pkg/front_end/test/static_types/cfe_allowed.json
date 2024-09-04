@@ -14,11 +14,6 @@
     "Dynamic invocation of 'unregisterKernelBlobUri'.": 1,
     "Dynamic invocation of 'createUriForKernelBlob'.": 1
   },
-  "pkg/_fe_analyzer_shared/lib/src/scanner/token_impl.dart": {
-    "Dynamic access of 'data'.": 1,
-    "Dynamic access of 'start'.": 1,
-    "Dynamic access of 'boolValue'.": 2
-  },
   "pkg/front_end/lib/src/dill/dill_member_builder.dart": {
     "Dynamic access of 'fileUri'.": 1
   }

@@ -243,9 +243,9 @@ class _Element2Writer extends _AbstractElementWriter {
 
       _writeElements('fragments', fragments, _writeLibraryFragment);
 
-      _writeElements('classes', e.classes, _writeInterfaceElement);
-      _writeElements('enums', e.enums, _writeInterfaceElement);
-      _writeElements('mixins', e.mixins, _writeInterfaceElement);
+      _writeElements('classes', e.classes, _writeInstanceElement);
+      _writeElements('enums', e.enums, _writeInstanceElement);
+      _writeElements('mixins', e.mixins, _writeInstanceElement);
 
       if (configuration.withExportScope) {
         _sink.writelnWithIndent('exportedReferences');
@@ -274,6 +274,20 @@ class _Element2Writer extends _AbstractElementWriter {
     if (e is SetterElement) {
       expect(name, endsWith('='));
     }
+    if (name.isEmpty && e is ConstructorElement2) {
+      return 'new';
+    }
+    return name;
+  }
+
+  String _fragmentName(Fragment f) {
+    var name = f.name ?? '<null>';
+    if (f is PropertyAccessorElementImpl && f.isSetter) {
+      expect(name, endsWith('='));
+    }
+    if (name.isEmpty && f is ConstructorFragment) {
+      return 'new';
+    }
     return name;
   }
 
@@ -282,9 +296,150 @@ class _Element2Writer extends _AbstractElementWriter {
       if (e is MaybeAugmentedInstanceElementMixin) {
         e = e.declaration;
       }
-      e as ElementImpl;
-      _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
-      _sink.writelnWithIndent('codeLength: ${e.codeLength}');
+      if (e is ElementImpl) {
+        _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
+        _sink.writelnWithIndent('codeLength: ${e.codeLength}');
+      } else {
+        throw UnsupportedError('Code range not supported for ${e.runtimeType}');
+      }
+    }
+  }
+
+  void _writeConstructorElement(ConstructorElement2 e) {
+    // Check that the reference exists, and filled with the element.
+    // var reference = e.reference;
+    // if (reference == null) {
+    //   fail('Every constructor must have a reference.');
+    // }
+
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isSynthetic, 'synthetic ');
+      // _sink.writeIf(e.isExternal, 'external ');
+      _sink.writeIf(e.isConst, 'const ');
+      _sink.writeIf(e.isFactory, 'factory ');
+      expect(e.isAbstract, isFalse);
+      _writeElementName(e);
+    });
+
+    _sink.withIndent(() {
+      _writeElementReference(e);
+      // _writeEnclosingElement(e);
+      _writeDocumentation(e.documentationComment);
+      _writeMetadata(e.metadata);
+      _writeSinceSdkVersion(e.sinceSdkVersion);
+      // _writeDisplayName(e);
+
+      // _writeParameterElements(e.parameters2);
+
+      // _writeElements(
+      //   'constantInitializers',
+      //   e.constantInitializers,
+      //   _writeNode,
+      // );
+
+      var superConstructor = e.superConstructor2;
+      if (superConstructor != null) {
+        var enclosingElement = superConstructor.enclosingElement2;
+        if (enclosingElement is ClassElement2 &&
+            !enclosingElement.isDartCoreObject) {
+          _writeElementReference(superConstructor, label: 'superConstructor');
+        }
+      }
+
+      var redirectedConstructor = e.redirectedConstructor2;
+      if (redirectedConstructor != null) {
+        _writeElementReference(redirectedConstructor,
+            label: 'redirectedConstructor');
+      }
+
+      // _writeNonSyntheticElement(e);
+      _writeMacroDiagnostics(e);
+      _writeFragmentReference(e.firstFragment, label: 'firstFragment');
+    });
+
+    // if (e.isSynthetic) {
+    //   expect(e.nameOffset, -1);
+    //   expect(e.nonSynthetic, same(e.enclosingElement));
+    // } else {
+    //   expect(e.nameOffset, isPositive);
+    // }
+  }
+
+  void _writeConstructorFragment(ConstructorFragment f) {
+    // Check that the reference exists, and filled with the element.
+    var reference = (f as ConstructorElementImpl).reference;
+    if (reference == null) {
+      fail('Every constructor must have a reference.');
+    }
+
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(f.isAugmentation, 'augment ');
+      _sink.writeIf(f.isSynthetic, 'synthetic ');
+      _sink.writeIf(f.isExternal, 'external ');
+      _sink.writeIf(f.isConst, 'const ');
+      _sink.writeIf(f.isFactory, 'factory ');
+      expect(f.isAbstract, isFalse);
+      _writeFragmentName(f);
+    });
+
+    _sink.withIndent(() {
+      _writeFragmentReference(f);
+      _writeFragmentReference(f.enclosingFragment, label: 'enclosingFragment');
+      _writeDocumentation(f.documentationComment);
+      _writeMetadata(f.metadata);
+      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeCodeRange(f);
+      // _writeDisplayName(f);
+
+      var periodOffset = f.periodOffset;
+      var nameEnd = f.nameEnd;
+      if (periodOffset != null && nameEnd != null) {
+        _sink.writelnWithIndent('periodOffset: $periodOffset');
+        _sink.writelnWithIndent('nameEnd: $nameEnd');
+      }
+
+      // _writeParameterElements(f.parameters);
+
+      _writeElements(
+        'constantInitializers',
+        f.constantInitializers,
+        _writeNode,
+      );
+
+      var superConstructor = f.superConstructor;
+      if (superConstructor != null) {
+        var enclosingElement = superConstructor.enclosingElement3;
+        if (enclosingElement is ClassElement &&
+            !enclosingElement.isDartCoreObject) {
+          _elementPrinter.writeNamedElement(
+            'superConstructor',
+            superConstructor,
+          );
+        }
+      }
+
+      var redirectedConstructor = f.redirectedConstructor;
+      if (redirectedConstructor != null) {
+        _elementPrinter.writeNamedElement(
+          'redirectedConstructor',
+          redirectedConstructor,
+        );
+      }
+
+      // _writeNonSyntheticElement(f);
+      _writeMacroDiagnostics(f);
+      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
+      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
+    });
+
+    expect(f.isAsynchronous, isFalse);
+    expect(f.isGenerator, isFalse);
+
+    if (f.isSynthetic) {
+      expect(f.nameOffset, -1);
+      expect(f.nonSynthetic, same(f.enclosingElement3));
+    } else {
+      expect(f.nameOffset, isPositive);
     }
   }
 
@@ -298,18 +453,36 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeElementName(Element2 e) {
-    String name = _elementName(e);
-    _sink.write(name);
+    _sink.write(_elementName(e));
   }
 
-  void _writeElementReference(Element2 e) {
+  void _writeElementReference(Element2? e, {String? label}) {
+    if (e == null) {
+      return;
+    }
     if (e is MaybeAugmentedInstanceElementMixin) {
       e = e.declaration;
     }
-    if ((e as ElementImpl).reference case var reference?) {
+    if (e is ElementImpl) {
+      if (e.reference case var reference?) {
+        _sink.writeIndentedLine(() {
+          _sink.write(label ?? 'reference');
+          _sink.write(': ');
+          _elementPrinter.writeReference(reference);
+        });
+      }
+      // } else if (e is MethodElementImpl2) {
+      //   if (e.reference case var reference?) {
+      //     _sink.writeIndentedLine(() {
+      //       _sink.write(label ?? 'reference: ');
+      //       _elementPrinter.writeReference(reference);
+      //     });
+      //   }
+    } else {
       _sink.writeIndentedLine(() {
-        _sink.write('reference: ');
-        _elementPrinter.writeReference(reference);
+        _sink.write(label ?? 'reference');
+        _sink.write(': ');
+        _sink.write('<none>');
       });
     }
   }
@@ -329,13 +502,189 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
+  void _writeFieldElement(FieldElement2 e) {
+    DartType type = e.type;
+    expect(type, isNotNull);
+
+    // if (e.isSynthetic) {
+    //   expect(e.nameOffset, -1);
+    // } else {
+    //   if (!e.isAugmentation) {
+    //     expect(e.getter, isNotNull);
+    //   }
+
+    //   expect(e.nameOffset, isPositive);
+    //   _assertNonSyntheticElementSelf(e);
+    // }
+
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isSynthetic, 'synthetic ');
+      _sink.writeIf(e.isStatic, 'static ');
+      _sink.writeIf(e is FieldElementImpl && e.isAbstract, 'abstract ');
+      _sink.writeIf(e is FieldElementImpl && e.isCovariant, 'covariant ');
+      _sink.writeIf(e is FieldElementImpl && e.isExternal, 'external ');
+      _sink.writeIf(e.isLate, 'late ');
+      _sink.writeIf(e.isFinal, 'final ');
+      _sink.writeIf(e.isConst, 'const ');
+      if (e is FieldElementImpl) {
+        _sink.writeIf(e.isEnumConstant, 'enumConstant ');
+        _sink.writeIf(e.isPromotable, 'promotable ');
+      }
+
+      _writeElementName(e);
+    });
+
+    // void writeLinking() {
+    //   if (configuration.withPropertyLinking) {
+    //     _sink.writelnWithIndent('id: ${_idMap[e]}');
+
+    //     var getter = e.getter;
+    //     if (getter != null) {
+    //       _sink.writelnWithIndent('getter: ${_idMap[getter]}');
+    //     }
+
+    //     var setter = e.setter;
+    //     if (setter != null) {
+    //       _sink.writelnWithIndent('setter: ${_idMap[setter]}');
+    //     }
+    //   }
+    // }
+
+    _sink.withIndent(() {
+      _writeElementReference(e);
+      _writeElementReference(e.enclosingElement2!, label: 'enclosingElement');
+      // _writeDocumentation(e.documentationComment);
+      // _writeMetadata(e.metadata);
+      // _writeSinceSdkVersion(e.sinceSdkVersion);
+      // _writeCodeRange(e);
+      // _writeTypeInferenceError(e);
+      _writeType('type', e.type);
+      // _writeShouldUseTypeForInitializerInference(e);
+      // _writeConstantInitializer(e);
+      // _writeNonSyntheticElement(e);
+      // writeLinking();
+      _writeMacroDiagnostics(e);
+      _writeFragmentReference(e.firstFragment, label: 'firstFragment');
+    });
+  }
+
+  void _writeFieldFragment(FieldFragment f) {
+    // TODO(brianwilkerson): Implement `type`.
+    // DartType type = e.type;
+    // expect(type, isNotNull);
+
+    // if (f.isSynthetic) {
+    //   expect(f.nameOffset, -1);
+    // } else {
+    // // TODO(brianwilkerson): Implement `isAugmentation`.
+    //   if (!f.isAugmentation) {
+    //     expect(f.getter2, isNotNull);
+    //   }
+    //   expect(f.nameOffset, isPositive);
+    //   // _assertNonSyntheticElementSelf(e);
+    // }
+
+    _sink.writeIndentedLine(() {
+      // _sink.writeIf(f.isAugmentation, 'augment ');
+      // _sink.writeIf(f.isSynthetic, 'synthetic ');
+      // _sink.writeIf(f.isStatic, 'static ');
+      _sink.writeIf(f is FieldElementImpl && f.isAbstract, 'abstract ');
+      _sink.writeIf(f is FieldElementImpl && f.isCovariant, 'covariant ');
+      _sink.writeIf(f is FieldElementImpl && f.isExternal, 'external ');
+      // _sink.writeIf(f.isLate, 'late ');
+      // _sink.writeIf(f.isFinal, 'final ');
+      // _sink.writeIf(f.isConst, 'const ');
+      if (f is FieldElementImpl) {
+        _sink.writeIf(f.isEnumConstant, 'enumConstant ');
+        _sink.writeIf(f.isPromotable, 'promotable ');
+      }
+
+      _writeFragmentName(f);
+    });
+
+    // void writeLinking() {
+    //   if (configuration.withPropertyLinking) {
+    //     _sink.writelnWithIndent('id: ${_idMap[f]}');
+
+    //     var getter = f.getter2;
+    //     if (getter != null) {
+    //       _sink.writelnWithIndent('getter: ${_idMap[getter]}');
+    //     }
+
+    //     var setter = f.setter2;
+    //     if (setter != null) {
+    //       _sink.writelnWithIndent('setter: ${_idMap[setter]}');
+    //     }
+    //   }
+    // }
+
+    _sink.withIndent(() {
+      _writeFragmentReference(f);
+      _writeFragmentReference(f.enclosingFragment, label: 'enclosingFragment');
+      // _writeDocumentation(f.documentationComment);
+      // _writeMetadata(f.metadata);
+      // _writeSinceSdkVersion(f.sinceSdkVersion);
+      // _writeCodeRange(f);
+      // _writeTypeInferenceError(f);
+      // _writeType('type', f.type);
+      // _writeShouldUseTypeForInitializerInference(f);
+      // _writeConstantInitializer(f);
+      // _writeNonSyntheticElement(f);
+      // writeLinking();
+      // _writeMacroDiagnostics(f);
+      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
+      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
+    });
+  }
+
+  void _writeFragentBodyModifiers(ExecutableFragment f) {
+    if (f.isAsynchronous) {
+      expect(f.isSynchronous, isFalse);
+      _sink.write(' async');
+    }
+
+    if (f.isSynchronous && f.isGenerator) {
+      expect(f.isAsynchronous, isFalse);
+      _sink.write(' sync');
+    }
+
+    _sink.writeIf(f.isGenerator, '*');
+
+    if (f is ExecutableElementImpl && f.invokesSuperSelf) {
+      _sink.write(' invokesSuperSelf');
+    }
+  }
+
+  void _writeFragmentCodeRange(Fragment f) {
+    if (configuration.withCodeRanges) {
+      if (f is ElementImpl) {
+        var e = f as ElementImpl;
+        if (!e.isSynthetic) {
+          _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
+          _sink.writelnWithIndent('codeLength: ${e.codeLength}');
+        }
+      }
+    }
+  }
+
+  void _writeFragmentName(Fragment f) {
+    var name = _fragmentName(f);
+    _sink.write(name);
+    var offset = f.nameOffset;
+    if (offset != null) {
+      _sink.write(name.isNotEmpty ? ' @' : '@');
+      _sink.write(offset);
+    }
+  }
+
   void _writeFragmentReference(Fragment? f, {String? label}) {
     if (f == null) {
       return;
     }
     if (f is CompilationUnitElementImpl) {
       _sink.writeIndentedLine(() {
-        _sink.write(label ?? 'reference: ');
+        _sink.write(label ?? 'reference');
+        _sink.write(': ');
         _elementPrinter.writeReference(f.reference!);
       });
       return;
@@ -354,18 +703,169 @@ class _Element2Writer extends _AbstractElementWriter {
       }
     }
     if (element is! ElementImpl) {
-      _sink.write('<none>');
+      _sink.writeIndentedLine(() {
+        _sink.write(label ?? 'reference');
+        _sink.write(': <none>');
+      });
       return;
     }
     if (element.reference case var reference?) {
       _sink.writeIndentedLine(() {
-        _sink.write(label ?? 'reference: ');
+        _sink.write(label ?? 'reference');
+        _sink.write(': ');
         _elementPrinter.writeReference(reference);
       });
     }
   }
 
-  void _writeInterfaceElement(InterfaceElement2 e) {
+  // void _writeTypeParameterElement(TypeParameterElement2 e) {
+  //   e as TypeParameterElementImpl;
+
+  //   _sink.writeIndentedLine(() {
+  //     _sink.write('${(e as TypeParameterElementImpl).variance.name} ');
+  //     _writeElementName(e);
+  //   });
+
+  //   _sink.withIndent(() {
+  //     _writeCodeRange(e);
+
+  //     var bound = e.bound;
+  //     if (bound != null) {
+  //       _writeType('bound', bound);
+  //     }
+
+  //     // var defaultType = e.defaultType;
+  //     // if (defaultType != null) {
+  //     //   _writeType('defaultType', defaultType);
+  //     // }
+
+  //     _writeMetadata(e.metadata);
+  //   });
+
+  //   _assertNonSyntheticElementSelf(e);
+  // }
+
+  void _writeGetterElement(GetterElement e) {
+    var variable = e.variable3;
+    if (variable != null) {
+      var variableEnclosing = variable.enclosingElement2;
+      if (variableEnclosing is LibraryElement2) {
+        expect(variableEnclosing.topLevelVariables, contains(variable));
+      } else if (variableEnclosing is InterfaceElement2) {
+        expect(variableEnclosing.fields2, contains(variable));
+      }
+    }
+
+    // if (e.isSynthetic) {
+    //   expect(e.nameOffset, -1);
+    // } else {
+    //   expect(e.nameOffset, isPositive);
+    //   _assertNonSyntheticElementSelf(e);
+    // }
+
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isSynthetic, 'synthetic ');
+      _sink.writeIf(e.isStatic, 'static ');
+      _sink.writeIf(e.isAbstract, 'abstract ');
+      _sink.writeIf(e.isExternal, 'external ');
+
+      _sink.write('get ');
+      _writeElementName(e);
+    });
+
+    // void writeLinking() {
+    //   if (configuration.withPropertyLinking) {
+    //     _sink.writelnWithIndent('id: ${_idMap[e]}');
+    //     if (e.variable2 case var variable?) {
+    //       _sink.writelnWithIndent('variable: ${_idMap[variable]}');
+    //     } else {
+    //       _sink.writelnWithIndent('variable: <null>');
+    //     }
+    //   }
+    // }
+
+    _sink.withIndent(() {
+      _writeElementReference(e);
+      _writeElementReference(e.enclosingElement2, label: 'enclosingElement');
+      _writeDocumentation(e.documentationComment);
+      _writeMetadata(e.metadata);
+      _writeSinceSdkVersion(e.sinceSdkVersion);
+
+      expect(e.typeParameters2, isEmpty);
+      // _writeParameterElements(e.parameters2);
+      // _writeReturnType(e.returnType);
+      // _writeNonSyntheticElement(e);
+      // writeLinking();
+      _writeMacroDiagnostics(e);
+      _writeFragmentReference(e.firstFragment, label: 'firstFragment');
+    });
+  }
+
+  void _writeGetterFragment(GetterFragment f) {
+    var variable = f.variable3;
+    if (variable != null) {
+      var variableEnclosing = variable.enclosingFragment;
+      if (variableEnclosing is LibraryFragment) {
+        expect(variableEnclosing.topLevelVariables2, contains(variable));
+      } else if (variableEnclosing is InterfaceFragment) {
+        expect(variableEnclosing.fields2, contains(variable));
+      }
+    } else {
+      expect(f.isAugmentation, isTrue);
+      expect(f.previousFragment, isNull);
+    }
+
+    // if (f.isSynthetic) {
+    //   expect(f.nameOffset, -1);
+    // } else {
+    //   expect(f.nameOffset, isPositive);
+    //   _assertNonSyntheticElementSelf(f);
+    // }
+
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(f.isAugmentation, 'augment ');
+      // _sink.writeIf(e.isSynthetic, 'synthetic ');
+      // _sink.writeIf(e.isStatic, 'static ');
+      // _sink.writeIf(e.isAbstract, 'abstract ');
+      // _sink.writeIf(e.isExternal, 'external ');
+
+      _sink.write('get ');
+
+      _writeFragmentName(f);
+      // _writeBodyModifiers(e);
+    });
+
+    // void writeLinking() {
+    //   if (configuration.withPropertyLinking) {
+    //     _sink.writelnWithIndent('id: ${_idMap[e]}');
+    //     if (e.variable2 case var variable?) {
+    //       _sink.writelnWithIndent('variable: ${_idMap[variable]}');
+    //     } else {
+    //       _sink.writelnWithIndent('variable: <null>');
+    //     }
+    //   }
+    // }
+
+    _sink.withIndent(() {
+      _writeFragmentReference(f);
+      _writeFragmentReference(f.enclosingFragment, label: 'enclosingFragment');
+      _writeDocumentation(f.documentationComment);
+      _writeMetadata(f.metadata);
+      _writeSinceSdkVersion(f.sinceSdkVersion);
+      // _writeCodeRange(f);
+
+      // expect(f.typeParameters2, isEmpty);
+      // _writeParameterElements(f.parameters2);
+      // _writeReturnType(f.returnType);
+      // _writeNonSyntheticElement(f);
+      // writeLinking();
+      // _writeMacroDiagnostics(f);
+      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
+      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
+    });
+  }
+
+  void _writeInstanceElement(InstanceElement2 e) {
     _sink.writeIndentedLine(() {
       switch (e) {
         case ClassElement2():
@@ -382,16 +882,19 @@ class _Element2Writer extends _AbstractElementWriter {
         case EnumElement2():
           // _writeNotSimplyBounded(e);
           _sink.write('enum ');
-        // case ExtensionTypeElement2():
-        //   _sink.writeIf(
-        //     e.hasRepresentationSelfReference,
-        //     'hasRepresentationSelfReference ',
-        //   );
-        //   _sink.writeIf(
-        //     e.hasImplementsSelfReference,
-        //     'hasImplementsSelfReference ',
-        //   );
-        //   // _writeNotSimplyBounded(e);
+        case ExtensionElement2():
+          _sink.write('extension ');
+        case ExtensionTypeElement2():
+          //   _sink.writeIf(
+          //     e.hasRepresentationSelfReference,
+          //     'hasRepresentationSelfReference ',
+          //   );
+          //   _sink.writeIf(
+          //     e.hasImplementsSelfReference,
+          //     'hasImplementsSelfReference ',
+          //   );
+          //   // _writeNotSimplyBounded(e);
+          _sink.write('extension type ');
         case MixinElement2():
           _sink.writeIf(e.isBase, 'base ');
           // _writeNotSimplyBounded(e);
@@ -410,22 +913,22 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeCodeRange(e);
       // _writeElements('typeParameters', e.typeParameters2, _writeTypeParameterElement);
       _writeMacroDiagnostics(e);
-      _writeFragmentReference(e.firstFragment, label: 'firstFragment: ');
+      _writeFragmentReference(e.firstFragment, label: 'firstFragment');
 
-      var supertype = e.supertype;
-      if (supertype != null &&
-          (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
-        _writeType('supertype', supertype);
+      if (e is InterfaceElement2) {
+        var supertype = e.supertype;
+        if (supertype != null &&
+            (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
+          _writeType('supertype', supertype);
+        }
       }
 
-      // if (e is ExtensionTypeElement2) {
-      //   if (e.augmentationTarget == null) {
-      //     _elementPrinter.writeNamedElement('representation', f.representation);
-      //     _elementPrinter.writeNamedElement(
-      //         'primaryConstructor', f.primaryConstructor);
-      //     _elementPrinter.writeNamedType('typeErasure', f.typeErasure);
-      //   }
-      // }
+      if (e is ExtensionTypeElement2) {
+        // _elementPrinter.writeNamedElement('representation', e.representation2);
+        // _elementPrinter.writeNamedElement(
+        //     'primaryConstructor', e.primaryConstructor2);
+        _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
+      }
 
       if (e is MixinElement2) {
         _elementPrinter.writeTypeList(
@@ -439,29 +942,30 @@ class _Element2Writer extends _AbstractElementWriter {
       // _elementPrinter.writeTypeList('mixins', e.mixins);
       // _elementPrinter.writeTypeList('interfaces', e.interfaces);
 
-      if (configuration.withAllSupertypes) {
+      if (configuration.withAllSupertypes && e is InterfaceElement2) {
         var sorted = e.allSupertypes.sortedBy((t) => t.element.name);
         _elementPrinter.writeTypeList('allSupertypes', sorted);
       }
 
-      // _writeElements('fields', e.fields, _writePropertyInducingElement);
-
-      // var constructors = e.constructors;
-      // if (e is MixinElement) {
-      //   expect(constructors, isEmpty);
-      // } else if (configuration.withConstructors) {
-      //   _writeElements('constructors', constructors, _writeConstructorElement);
-      // }
-
-      // _writeElements('getters', f.getters, _writeGetterElement);
-      // _writeElements('setters', f.setters, _writeSetterElement);
-      // _writeMethods(e.methods);
+      _writeElements('fields', e.fields2, _writeFieldElement);
+      if (e is InterfaceElement2) {
+        var constructors = e.constructors2;
+        if (e is MixinElement2) {
+          expect(constructors, isEmpty);
+        } else if (configuration.withConstructors) {
+          _writeElements(
+              'constructors', constructors, _writeConstructorElement);
+        }
+      }
+      _writeElements('getters', e.getters2, _writeGetterElement);
+      _writeElements('setters', e.setters2, _writeSetterElement);
+      _writeElements('methods', e.methods2, _writeMethodElement);
     });
 
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeInterfaceFragment(InterfaceFragment f) {
+  void _writeInstanceFragment(InstanceFragment f) {
     _sink.writeIndentedLine(() {
       switch (f) {
         case ClassFragment():
@@ -480,16 +984,19 @@ class _Element2Writer extends _AbstractElementWriter {
         case EnumFragment():
           // _writeNotSimplyBounded(f);
           _sink.write('enum ');
-        // case ExtensionTypeFragment():
-        //   _sink.writeIf(
-        //     e.hasRepresentationSelfReference,
-        //     'hasRepresentationSelfReference ',
-        //   );
-        //   _sink.writeIf(
-        //     e.hasImplementsSelfReference,
-        //     'hasImplementsSelfReference ',
-        //   );
-        //   // _writeNotSimplyBounded(e);
+        case ExtensionFragment():
+          _sink.write('extension ');
+        case ExtensionTypeFragment():
+          //   _sink.writeIf(
+          //     e.hasRepresentationSelfReference,
+          //     'hasRepresentationSelfReference ',
+          //   );
+          //   _sink.writeIf(
+          //     e.hasImplementsSelfReference,
+          //     'hasImplementsSelfReference ',
+          //   );
+          //   // _writeNotSimplyBounded(e);
+          _sink.write('extension type ');
         case MixinFragment():
           // _sink.writeIf(f.isBase, 'base ');
           // _writeNotSimplyBounded(f);
@@ -507,8 +1014,22 @@ class _Element2Writer extends _AbstractElementWriter {
     });
     _sink.withIndent(() {
       _writeFragmentReference(f);
-      _writeFragmentReference(f.previousFragment, label: 'previousFragment: ');
-      _writeFragmentReference(f.nextFragment, label: 'nextFragment: ');
+      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
+      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
+
+      _writeElements('fields', f.fields2, _writeFieldFragment);
+      if (f is InterfaceFragment) {
+        var constructors = f.constructors2;
+        if (f is MixinElement2) {
+          expect(constructors, isEmpty);
+        } else if (configuration.withConstructors) {
+          _writeElements(
+              'constructors', constructors, _writeConstructorFragment);
+        }
+      }
+      _writeElements('getters', f.getters, _writeGetterFragment);
+      _writeElements('setters', f.setters, _writeSetterFragment);
+      _writeElements('methods', f.methods2, _writeMethodFragment);
     });
   }
 
@@ -519,8 +1040,8 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeFragmentReference(f.previousFragment, label: 'previousFragment: ');
-      _writeFragmentReference(f.nextFragment, label: 'nextFragment: ');
+      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
+      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
 
       _writeMetadata(f.metadata);
 
@@ -540,15 +1061,15 @@ class _Element2Writer extends _AbstractElementWriter {
       //     'libraryExports', f.libraryExports, _writeLibraryExportElement);
       // _writeElements('parts', f.parts, _writePartElement);
 
-      _writeElements('classes', f.classes2, _writeInterfaceFragment);
-      _writeElements('enums', f.enums2, _writeInterfaceFragment);
-      // _writeElements('extensions', f.extensions, _writeExtensionElement);
-      // _writeElements(
-      //   'extensionTypes',
-      //   f.extensionTypes,
-      //   _writeInterfaceElement,
-      // );
-      _writeElements('mixins', f.mixins2, _writeInterfaceFragment);
+      _writeElements('classes', f.classes2, _writeInstanceFragment);
+      _writeElements('enums', f.enums2, _writeInstanceFragment);
+      _writeElements('extensions', f.extensions2, _writeInstanceFragment);
+      _writeElements(
+        'extensionTypes',
+        f.extensionTypes2,
+        _writeInstanceFragment,
+      );
+      _writeElements('mixins', f.mixins2, _writeInstanceFragment);
       // _writeElements('typeAliases', f.typeAliases, _writeTypeAliasElement);
       // _writeElements(
       //   'topLevelVariables',
@@ -849,6 +1370,73 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
+  void _writeMethodElement(MethodElement2 e) {
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isSynthetic, 'synthetic ');
+      _sink.writeIf(e.isStatic, 'static ');
+      _sink.writeIf(e.isAbstract, 'abstract ');
+      // _sink.writeIf(e.isExternal, 'external ');
+
+      _writeElementName(e);
+    });
+
+    _sink.withIndent(() {
+      _writeElementReference(e);
+      // _writeElementReference(e.enclosingElement2, label: 'enclosingElement2');
+      _writeDocumentation(e.documentationComment);
+      _writeMetadata(e.metadata);
+      _writeSinceSdkVersion(e.sinceSdkVersion);
+      // _writeTypeInferenceError(e);
+
+      // _writeTypeParameterElements(e.typeParameters2);
+      // _writeParameterElements(e.parameters2);
+      // _writeReturnType(e.returnType);
+      // _writeNonSyntheticElement(e);
+      _writeMacroDiagnostics(e);
+      _writeFragmentReference(e.firstFragment, label: 'firstFragment');
+    });
+
+    // if (e.isSynthetic && e.enclosingElement2 is EnumElementImpl) {
+    //   expect(e.name, 'toString');
+    //   expect(e.nonSynthetic2, same(e.enclosingElement2));
+    // } else {
+    //   _assertNonSyntheticElementSelf(e);
+    // }
+  }
+
+  void _writeMethodFragment(MethodFragment f) {
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(f.isAugmentation, 'augment ');
+      // _sink.writeIf(f.isSynthetic, 'synthetic ');
+      // _sink.writeIf(f.isStatic, 'static ');
+      // _sink.writeIf(f.isAbstract, 'abstract ');
+      // _sink.writeIf(f.isExternal, 'external ');
+
+      _writeFragmentName(f);
+      _writeFragentBodyModifiers(f);
+    });
+
+    _sink.withIndent(() {
+      _writeFragmentReference(f);
+      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
+      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
+      _writeFragmentReference(f.enclosingFragment, label: 'enclosingFragment');
+      _writeDocumentation(f.documentationComment);
+      _writeMetadata(f.metadata);
+      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeFragmentCodeRange(f);
+      // _writeTypeInferenceError(f);
+
+      // _writeTypeParameterElements(f.typeParameters);
+      // _writeParameterElements(f.parameters);
+      // _writeReturnType(f.returnType);
+      // _writeNonSyntheticElement(f);
+      // _writeMacroDiagnostics(f);
+      // _writeAugmentationTarget(f);
+      // _writeAugmentation(f);
+    });
+  }
+
   void _writePrefixElement(PrefixElement2 e) {
     _sink.writeIndentedLine(() {
       _writeElementName(e);
@@ -857,6 +1445,125 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeElementReference(e);
       // _writeEnclosingElement(e);
+    });
+  }
+
+  void _writeSetterElement(SetterElement e) {
+    var variable = e.variable3;
+    if (variable != null) {
+      var variableEnclosing = variable.enclosingElement2;
+      if (variableEnclosing is LibraryElement2) {
+        expect(variableEnclosing.topLevelVariables, contains(variable));
+      } else if (variableEnclosing is InterfaceElement2) {
+        expect(variableEnclosing.fields2, contains(variable));
+      }
+    }
+
+    // if (e.isSynthetic) {
+    //   expect(e.nameOffset, -1);
+    // } else {
+    //   expect(e.nameOffset, isPositive);
+    //   _assertNonSyntheticElementSelf(e);
+    // }
+
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isSynthetic, 'synthetic ');
+      _sink.writeIf(e.isStatic, 'static ');
+      _sink.writeIf(e.isAbstract, 'abstract ');
+      _sink.writeIf(e.isExternal, 'external ');
+
+      _sink.write('set ');
+      _writeElementName(e);
+    });
+
+    // void writeLinking() {
+    //   if (configuration.withPropertyLinking) {
+    //     _sink.writelnWithIndent('id: ${_idMap[e]}');
+    //     if (e.variable2 case var variable?) {
+    //       _sink.writelnWithIndent('variable: ${_idMap[variable]}');
+    //     } else {
+    //       _sink.writelnWithIndent('variable: <null>');
+    //     }
+    //   }
+    // }
+
+    _sink.withIndent(() {
+      _writeElementReference(e);
+      _writeElementReference(e.enclosingElement2, label: 'enclosingElement');
+      _writeDocumentation(e.documentationComment);
+      _writeMetadata(e.metadata);
+      _writeSinceSdkVersion(e.sinceSdkVersion);
+
+      expect(e.typeParameters2, isEmpty);
+      // _writeParameterElements(e.parameters2);
+      // _writeReturnType(e.returnType);
+      // _writeNonSyntheticElement(e);
+      // writeLinking();
+      _writeMacroDiagnostics(e);
+      _writeFragmentReference(e.firstFragment, label: 'firstFragment');
+    });
+  }
+
+  void _writeSetterFragment(SetterFragment f) {
+    var variable = f.variable3;
+    if (variable != null) {
+      var variableEnclosing = variable.enclosingFragment;
+      if (variableEnclosing is LibraryFragment) {
+        expect(variableEnclosing.topLevelVariables2, contains(variable));
+      } else if (variableEnclosing is InterfaceFragment) {
+        expect(variableEnclosing.fields2, contains(variable));
+      }
+    } else {
+      expect(f.isAugmentation, isTrue);
+      expect(f.previousFragment, isNull);
+    }
+
+    // if (f.isSynthetic) {
+    //   expect(f.nameOffset, -1);
+    // } else {
+    //   expect(f.nameOffset, isPositive);
+    //   _assertNonSyntheticElementSelf(f);
+    // }
+
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(f.isAugmentation, 'augment ');
+      // _sink.writeIf(f.isSynthetic, 'synthetic ');
+      // _sink.writeIf(f.isStatic, 'static ');
+      // _sink.writeIf(f.isAbstract, 'abstract ');
+      // _sink.writeIf(f.isExternal, 'external ');
+
+      _sink.write('set ');
+      _writeFragmentName(f);
+      // _writeBodyModifiers(f);
+    });
+
+    // void writeLinking() {
+    //   if (configuration.withPropertyLinking) {
+    //     _sink.writelnWithIndent('id: ${_idMap[e]}');
+    //     if (e.variable2 case var variable?) {
+    //       _sink.writelnWithIndent('variable: ${_idMap[variable]}');
+    //     } else {
+    //       _sink.writelnWithIndent('variable: <null>');
+    //     }
+    //   }
+    // }
+
+    _sink.withIndent(() {
+      _writeFragmentReference(f);
+      _writeFragmentReference(f.enclosingFragment, label: 'enclosingFragment');
+      _writeDocumentation(f.documentationComment);
+      _writeMetadata(f.metadata);
+      _writeSinceSdkVersion(f.sinceSdkVersion);
+      // _writeCodeRange(f);
+
+      // expect(f.typeParameters2, isEmpty);
+      // _writeParameterElements(f.parameters2);
+      // _writeReturnType(f.returnType);
+      // _writeNonSyntheticElement(f);
+      // writeLinking();
+      // _writeMacroDiagnostics(f);
+      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
+      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
     });
   }
 
@@ -879,33 +1586,6 @@ class _Element2Writer extends _AbstractElementWriter {
     //   }
     // }
   }
-
-  // void _writeTypeParameterElement(TypeParameterElement2 e) {
-  //   e as TypeParameterElementImpl;
-
-  //   _sink.writeIndentedLine(() {
-  //     _sink.write('${(e as TypeParameterElementImpl).variance.name} ');
-  //     _writeElementName(e);
-  //   });
-
-  //   _sink.withIndent(() {
-  //     _writeCodeRange(e);
-
-  //     var bound = e.bound;
-  //     if (bound != null) {
-  //       _writeType('bound', bound);
-  //     }
-
-  //     // var defaultType = e.defaultType;
-  //     // if (defaultType != null) {
-  //     //   _writeType('defaultType', defaultType);
-  //     // }
-
-  //     _writeMetadata(e.metadata);
-  //   });
-
-  //   _assertNonSyntheticElementSelf(e);
-  // }
 }
 
 /// Writes the canonical text presentation of elements.
@@ -917,7 +1597,7 @@ class _ElementWriter extends _AbstractElementWriter {
   });
 
   void writeLibraryElement(LibraryElementImpl e) {
-    expect(e.enclosingElement, isNull);
+    expect(e.enclosingElement3, isNull);
 
     _sink.writelnWithIndent('library');
     _sink.withIndent(() {
@@ -1213,7 +1893,7 @@ class _ElementWriter extends _AbstractElementWriter {
 
       var superConstructor = e.superConstructor;
       if (superConstructor != null) {
-        var enclosingElement = superConstructor.enclosingElement;
+        var enclosingElement = superConstructor.enclosingElement3;
         if (enclosingElement is ClassElement &&
             !enclosingElement.isDartCoreObject) {
           _elementPrinter.writeNamedElement(
@@ -1242,7 +1922,7 @@ class _ElementWriter extends _AbstractElementWriter {
 
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
-      expect(e.nonSynthetic, same(e.enclosingElement));
+      expect(e.nonSynthetic, same(e.enclosingElement3));
     } else {
       expect(e.nameOffset, isPositive);
     }
@@ -1267,6 +1947,7 @@ class _ElementWriter extends _AbstractElementWriter {
   void _writeEnclosingElement(ElementImpl e) {
     _elementPrinter.writeNamedElement(
       'enclosingElement',
+      // ignore: deprecated_member_use_from_same_package
       e.enclosingElement,
     );
 
@@ -1297,7 +1978,7 @@ class _ElementWriter extends _AbstractElementWriter {
           e.enclosingElement3,
         );
       default:
-        expect(e.enclosingElement3, same(e.enclosingElement));
+        expect(e.enclosingElement3, same(e.enclosingElement3));
     }
   }
 
@@ -1540,15 +2221,6 @@ class _ElementWriter extends _AbstractElementWriter {
 
   void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElementImpl e) {
     _writeReference(e);
-
-    if (e is LibraryAugmentationElementImpl) {
-      if (e.macroGenerated case var macroGenerated?) {
-        _sink.writelnWithIndent('macroGeneratedCode');
-        _sink.writeln('---');
-        _sink.write(macroGenerated.code);
-        _sink.writeln('---');
-      }
-    }
 
     _writeDocumentation(e);
     _writeMetadata(e);
@@ -1885,9 +2557,9 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeAugmentation(e);
     });
 
-    if (e.isSynthetic && e.enclosingElement is EnumElementImpl) {
+    if (e.isSynthetic && e.enclosingElement3 is EnumElementImpl) {
       expect(e.name, 'toString');
-      expect(e.nonSynthetic, same(e.enclosingElement));
+      expect(e.nonSynthetic, same(e.enclosingElement3));
     } else {
       _assertNonSyntheticElementSelf(e);
     }
@@ -1948,7 +2620,7 @@ class _ElementWriter extends _AbstractElementWriter {
   void _writeParameterElement(ParameterElement e) {
     e as ParameterElementImpl;
 
-    if (e.isNamed && e.enclosingElement is ExecutableElement) {
+    if (e.isNamed && e.enclosingElement3 is ExecutableElement) {
       expect(e.reference, isNotNull);
     } else {
       expect(e.reference, isNull);
@@ -2037,7 +2709,7 @@ class _ElementWriter extends _AbstractElementWriter {
 
     var variable = e.variable2;
     if (variable != null) {
-      var variableEnclosing = variable.enclosingElement;
+      var variableEnclosing = variable.enclosingElement3;
       if (variableEnclosing is CompilationUnitElement) {
         expect(variableEnclosing.topLevelVariables, contains(variable));
       } else if (variableEnclosing is InterfaceElement) {
@@ -2317,6 +2989,13 @@ class _ElementWriter extends _AbstractElementWriter {
 
   void _writeUnitElement(CompilationUnitElementImpl e) {
     _writeEnclosingElement(e);
+
+    if (e.macroGenerated case var macroGenerated?) {
+      _sink.writelnWithIndent('macroGeneratedCode');
+      _sink.writeln('---');
+      _sink.write(macroGenerated.code);
+      _sink.writeln('---');
+    }
 
     if (configuration.withImports) {
       var imports = e.libraryImports.where((import) {

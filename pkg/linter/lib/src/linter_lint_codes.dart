@@ -520,19 +520,19 @@ class LinterLintCode extends LintCode {
     uniqueName: 'deprecated_consistency_constructor',
   );
 
-  static const LintCode deprecated_consistency_parameter = LinterLintCode(
-    'deprecated_consistency',
-    "Parameters that initialize a deprecated field should be deprecated.",
-    correctionMessage: "Try marking the parameter as deprecated.",
-    uniqueName: 'deprecated_consistency_parameter',
-  );
-
   static const LintCode deprecated_consistency_field = LinterLintCode(
     'deprecated_consistency',
     "Fields that are initialized by a deprecated parameter should be "
         "deprecated.",
     correctionMessage: "Try marking the field as deprecated.",
     uniqueName: 'deprecated_consistency_field',
+  );
+
+  static const LintCode deprecated_consistency_parameter = LinterLintCode(
+    'deprecated_consistency',
+    "Parameters that initialize a deprecated field should be deprecated.",
+    correctionMessage: "Try marking the parameter as deprecated.",
+    uniqueName: 'deprecated_consistency_parameter',
   );
 
   static const LintCode deprecated_member_use_from_same_package_with_message =
@@ -1225,20 +1225,20 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
-  static const LintCode prefer_inlined_adds_single = LinterLintCode(
-    'prefer_inlined_adds',
-    "The addition of a list item could be inlined.",
-    correctionMessage: "Try adding the item to the list literal directly.",
-    hasPublishedDocs: true,
-    uniqueName: 'prefer_inlined_adds_single',
-  );
-
   static const LintCode prefer_inlined_adds_multiple = LinterLintCode(
     'prefer_inlined_adds',
     "The addition of multiple list items could be inlined.",
     correctionMessage: "Try adding the items to the list literal directly.",
     hasPublishedDocs: true,
     uniqueName: 'prefer_inlined_adds_multiple',
+  );
+
+  static const LintCode prefer_inlined_adds_single = LinterLintCode(
+    'prefer_inlined_adds',
+    "The addition of a list item could be inlined.",
+    correctionMessage: "Try adding the item to the list literal directly.",
+    hasPublishedDocs: true,
+    uniqueName: 'prefer_inlined_adds_single',
   );
 
   static const LintCode prefer_int_literals = LinterLintCode(
@@ -1738,18 +1738,18 @@ class LinterLintCode extends LintCode {
     uniqueName: 'unsafe_html_attribute',
   );
 
-  static const LintCode unsafe_html_method = LinterLintCode(
-    'unsafe_html',
-    "Invoking the method '{0}' is unsafe.",
-    correctionMessage: "Try finding a different way to implement the page.",
-    uniqueName: 'unsafe_html_method',
-  );
-
   static const LintCode unsafe_html_constructor = LinterLintCode(
     'unsafe_html',
     "Invoking the constructor '{0}' is unsafe.",
     correctionMessage: "Try finding a different way to implement the page.",
     uniqueName: 'unsafe_html_constructor',
+  );
+
+  static const LintCode unsafe_html_method = LinterLintCode(
+    'unsafe_html',
+    "Invoking the method '{0}' is unsafe.",
+    correctionMessage: "Try finding a different way to implement the page.",
+    uniqueName: 'unsafe_html_method',
   );
 
   static const LintCode use_build_context_synchronously_async_use =
@@ -1761,18 +1761,6 @@ class LinterLintCode extends LintCode {
         "use with a 'mounted' check.",
     hasPublishedDocs: true,
     uniqueName: 'use_build_context_synchronously_async_use',
-  );
-
-  static const LintCode use_colored_box = LinterLintCode(
-    'use_colored_box',
-    "Use a 'ColoredBox' rather than a 'Container' with only a 'Color'.",
-    correctionMessage: "Try replacing the 'Container' with a 'ColoredBox'.",
-  );
-
-  static const LintCode use_decorated_box = LinterLintCode(
-    'use_decorated_box',
-    "Use 'DecoratedBox' rather than a 'Container' with only a 'Decoration'.",
-    correctionMessage: "Try replacing the 'Container' with a 'DecoratedBox'.",
   );
 
   static const LintCode use_build_context_synchronously_wrong_mounted =
@@ -1787,6 +1775,18 @@ class LinterLintCode extends LintCode {
     uniqueName: 'use_build_context_synchronously_wrong_mounted',
   );
 
+  static const LintCode use_colored_box = LinterLintCode(
+    'use_colored_box',
+    "Use a 'ColoredBox' rather than a 'Container' with only a 'Color'.",
+    correctionMessage: "Try replacing the 'Container' with a 'ColoredBox'.",
+  );
+
+  static const LintCode use_decorated_box = LinterLintCode(
+    'use_decorated_box',
+    "Use 'DecoratedBox' rather than a 'Container' with only a 'Decoration'.",
+    correctionMessage: "Try replacing the 'Container' with a 'DecoratedBox'.",
+  );
+
   static const LintCode use_enums = LinterLintCode(
     'use_enums',
     "Class should be an enum.",
@@ -1797,8 +1797,6 @@ class LinterLintCode extends LintCode {
     'use_full_hex_values_for_flutter_colors',
     "Instances of 'Color' should be created using an 8-digit hexadecimal "
         "integer (such as '0xFFFFFFFF').",
-    correctionMessage:
-        "Try using an 8-digit hexadecimal integer to create the 'Color'.",
     hasPublishedDocs: true,
   );
 

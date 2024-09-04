@@ -57,7 +57,6 @@ class UseTestThrowsMatchers extends LintRule {
           name: 'use_test_throws_matchers',
           description: _desc,
           details: _details,
-          categories: {LintRuleCategory.style},
         );
 
   @override

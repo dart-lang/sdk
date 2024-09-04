@@ -208,6 +208,16 @@ abstract class JSArrayBase implements TypedData {
   }
 }
 
+/// Base class for all JS typed integer-based array classes.
+abstract class JSIntegerArrayBase extends JSArrayBase {
+  JSIntegerArrayBase(super._ref, super.elementSizeShift);
+}
+
+/// Base class for all JS typed float-based array classes.
+abstract class JSFloatArrayBase extends JSArrayBase {
+  JSFloatArrayBase(super._ref, super.elementSizeShift);
+}
+
 /// A JS `DataView`.
 final class JSDataViewImpl implements ByteData {
   /// `externref` of a JS `DataView`.
@@ -722,7 +732,7 @@ mixin _UnmodifiableIntListMixin {
   }
 }
 
-final class JSUint8ArrayImpl extends JSArrayBase
+final class JSUint8ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint8List {
   JSUint8ArrayImpl._(WasmExternRef? _ref) : super(_ref, 0);
@@ -805,7 +815,7 @@ final class UnmodifiableJSUint8Array extends JSUint8ArrayImpl
   UnmodifiableJSUint8Array._(WasmExternRef? ref) : super._(ref);
 }
 
-final class JSInt8ArrayImpl extends JSArrayBase
+final class JSInt8ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Int8List {
   JSInt8ArrayImpl._(WasmExternRef? _ref) : super(_ref, 0);
@@ -888,7 +898,7 @@ final class UnmodifiableJSInt8Array extends JSInt8ArrayImpl
   UnmodifiableJSInt8Array._(WasmExternRef? ref) : super._(ref);
 }
 
-final class JSUint8ClampedArrayImpl extends JSArrayBase
+final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint8ClampedList {
   JSUint8ClampedArrayImpl._(WasmExternRef? _ref) : super(_ref, 0);
@@ -958,7 +968,7 @@ final class UnmodifiableJSUint8ClampedArray extends JSUint8ClampedArrayImpl
   UnmodifiableJSUint8ClampedArray._(WasmExternRef? ref) : super._(ref);
 }
 
-final class JSUint16ArrayImpl extends JSArrayBase
+final class JSUint16ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint16List {
   JSUint16ArrayImpl._(WasmExternRef? _ref) : super(_ref, 1);
@@ -1048,7 +1058,7 @@ final class UnmodifiableJSUint16Array extends JSUint16ArrayImpl
   UnmodifiableJSUint16Array._(WasmExternRef? ref) : super._(ref);
 }
 
-final class JSInt16ArrayImpl extends JSArrayBase
+final class JSInt16ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Int16List {
   JSInt16ArrayImpl._(WasmExternRef? _ref) : super(_ref, 1);
@@ -1138,7 +1148,7 @@ final class UnmodifiableJSInt16Array extends JSInt16ArrayImpl
   UnmodifiableJSInt16Array._(WasmExternRef? ref) : super._(ref);
 }
 
-final class JSUint32ArrayImpl extends JSArrayBase
+final class JSUint32ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint32List {
   JSUint32ArrayImpl._(WasmExternRef? _ref) : super(_ref, 2);
@@ -1228,7 +1238,7 @@ final class UnmodifiableJSUint32Array extends JSUint32ArrayImpl
   UnmodifiableJSUint32Array._(WasmExternRef? ref) : super._(ref);
 }
 
-final class JSInt32ArrayImpl extends JSArrayBase
+final class JSInt32ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Int32List {
   JSInt32ArrayImpl._(WasmExternRef? _ref) : super(_ref, 2);
@@ -1404,7 +1414,7 @@ final class JSInt32x4ArrayImpl
   }
 }
 
-final class JSBigUint64ArrayImpl extends JSArrayBase
+final class JSBigUint64ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint64List {
   JSBigUint64ArrayImpl._(WasmExternRef? _ref) : super(_ref, 3);
@@ -1494,7 +1504,7 @@ final class UnmodifiableJSBigUint64Array extends JSBigUint64ArrayImpl
   UnmodifiableJSBigUint64Array._(WasmExternRef? ref) : super._(ref);
 }
 
-final class JSBigInt64ArrayImpl extends JSArrayBase
+final class JSBigInt64ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Int64List {
   JSBigInt64ArrayImpl._(WasmExternRef? _ref) : super(_ref, 3);
@@ -1926,7 +1936,7 @@ mixin _UnmodifiableDoubleListMixin {
   }
 }
 
-final class JSFloat32ArrayImpl extends JSArrayBase
+final class JSFloat32ArrayImpl extends JSFloatArrayBase
     with _DoubleListMixin
     implements Float32List {
   JSFloat32ArrayImpl._(WasmExternRef? _ref) : super(_ref, 2);
@@ -2016,7 +2026,7 @@ final class UnmodifiableJSFloat32Array extends JSFloat32ArrayImpl
   UnmodifiableJSFloat32Array._(WasmExternRef? ref) : super._(ref);
 }
 
-final class JSFloat64ArrayImpl extends JSArrayBase
+final class JSFloat64ArrayImpl extends JSFloatArrayBase
     with _DoubleListMixin
     implements Float64List {
   JSFloat64ArrayImpl._(WasmExternRef? _ref) : super(_ref, 3);

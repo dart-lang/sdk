@@ -577,6 +577,46 @@ class B extends A {
     );
   }
 
+  Future<void> test_searchReferences_parameter_topLevelShadow_wildcard() async {
+    var code = '''
+int _ = 0;
+int f(int _) => _; 
+''';
+    await resolveTestCode(code);
+
+    var parameter = findElement.parameter('_');
+    var parameterMatches = await searchEngine.searchReferences(parameter);
+    expect(parameterMatches, isEmpty);
+
+    var topLevelVariable = findElement.topVar('_');
+    var topLevelVariableMatches =
+        await searchEngine.searchReferences(topLevelVariable);
+    expect(
+      topLevelVariableMatches,
+      unorderedEquals([
+        predicate((SearchMatch m) {
+          return m.kind == MatchKind.READ &&
+              identical(m.element, findElement.topFunction('f')) &&
+              m.sourceRange.offset == code.indexOf('_;') &&
+              m.sourceRange.length == '_'.length;
+        }),
+      ]),
+    );
+  }
+
+  Future<void> test_searchReferences_parameter_wildcard() async {
+    var code = '''
+f(int _) {} 
+''';
+    await resolveTestCode(code);
+
+    var element = findElement.parameter('_');
+    var matches = await searchEngine.searchReferences(element);
+
+    // No crashes.
+    expect(matches, isEmpty);
+  }
+
   Future<void>
       test_searchReferences_topFunction_parameter_optionalNamed_anywhere() async {
     var code = '''
@@ -598,6 +638,54 @@ void g() {
               identical(m.element, findElement.topFunction('g')) &&
               m.sourceRange.offset == code.indexOf('test: 0') &&
               m.sourceRange.length == 'test'.length;
+        }),
+      ]),
+    );
+  }
+
+  Future<void> test_searchReferences_underscoreField() async {
+    var code = '''
+class A {
+  final _ = 1;
+  int a() => _;
+}
+''';
+    await resolveTestCode(code);
+
+    var element = findElement.field('_');
+    var matches = await searchEngine.searchReferences(element);
+
+    expect(
+      matches,
+      unorderedEquals([
+        predicate((SearchMatch m) {
+          return m.kind == MatchKind.READ &&
+              identical(m.element, findElement.method('a')) &&
+              m.sourceRange.offset == code.indexOf('_;') &&
+              m.sourceRange.length == '_'.length;
+        }),
+      ]),
+    );
+  }
+
+  Future<void> test_searchReferences_underscoreTopLevelVariable() async {
+    var code = '''
+final _ = 1;
+int f() => _;
+''';
+    await resolveTestCode(code);
+
+    var element = findElement.topVar('_');
+    var matches = await searchEngine.searchReferences(element);
+
+    expect(
+      matches,
+      unorderedEquals([
+        predicate((SearchMatch m) {
+          return m.kind == MatchKind.READ &&
+              identical(m.element, findElement.topFunction('f')) &&
+              m.sourceRange.offset == code.indexOf('_;') &&
+              m.sourceRange.length == '_'.length;
         }),
       ]),
     );

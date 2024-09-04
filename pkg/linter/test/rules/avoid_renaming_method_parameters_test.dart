@@ -29,13 +29,13 @@ class AvoidRenamingMethodParametersTest extends LintRuleTest {
       issue: 'https://github.com/dart-lang/linter/issues/4891')
   test_augmentedFunction() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 void f(int p) {}
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f(int q) {}
 ''', [
@@ -45,7 +45,7 @@ augment void f(int q) {}
 
   test_augmentedMethod() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   void m(int p) {}
@@ -53,14 +53,14 @@ class A {
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment void m(int q) {}
   augment void m(int q) {} 
 }
 ''', [
-      lint(66, 1), // Only the first augmentation gets linted.
+      lint(58, 1), // Only the first augmentation gets linted.
     ]);
   }
 

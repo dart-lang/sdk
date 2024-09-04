@@ -51,10 +51,10 @@ Widget buildRow() {
 class AvoidUnnecessaryContainers extends LintRule {
   AvoidUnnecessaryContainers()
       : super(
-            name: 'avoid_unnecessary_containers',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.flutter, LintRuleCategory.style});
+          name: 'avoid_unnecessary_containers',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_unnecessary_containers;

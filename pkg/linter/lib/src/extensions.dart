@@ -271,7 +271,7 @@ extension ConstructorElementExtension on ConstructorElement {
     required String constructorName,
   }) =>
       library.name == uri &&
-      enclosingElement.name == className &&
+      enclosingElement3.name == className &&
       name == constructorName;
 }
 
@@ -555,7 +555,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
     if (name == null) {
       return false;
     }
-    var parentElement = declaredElement?.enclosingElement;
+    var parentElement = declaredElement?.enclosingElement3;
     if (parentElement is! InterfaceElement) {
       return false;
     }
@@ -581,7 +581,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
     if (declaredElement == null) {
       return null;
     }
-    var parent = declaredElement.enclosingElement;
+    var parent = declaredElement.enclosingElement3;
     if (parent is InterfaceElement) {
       return parent.augmented
           .lookUpGetter(name: name.lexeme, library: declaredElement.library);
@@ -597,7 +597,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
     if (declaredElement == null) {
       return null;
     }
-    var parent = declaredElement.enclosingElement;
+    var parent = declaredElement.enclosingElement3;
     if (parent is InterfaceElement) {
       return parent.lookUpInheritedConcreteGetter(
           name.lexeme, declaredElement.library);
@@ -609,7 +609,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
   MethodElement? lookUpInheritedConcreteMethod() {
     var declaredElement = this.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement3;
       if (parent is InterfaceElement) {
         return parent.lookUpInheritedConcreteMethod(
             name.lexeme, declaredElement.library);
@@ -622,7 +622,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
   PropertyAccessorElement? lookUpInheritedConcreteSetter() {
     var declaredElement = this.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement3;
       if (parent is InterfaceElement) {
         return parent.lookUpInheritedConcreteSetter(
             name.lexeme, declaredElement.library);
@@ -635,7 +635,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
   MethodElement? lookUpInheritedMethod() {
     var declaredElement = this.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement3;
       if (parent is InterfaceElement) {
         return parent.lookUpInheritedMethod(
             name.lexeme, declaredElement.library);

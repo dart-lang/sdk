@@ -235,7 +235,8 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
       jsobj.AddProperty("status", "success");
     } else {
       jsobj.AddProperty("status", "failure");
-      jsobj.AddProperty("reloadError", *(reload_error()));
+      jsobj.AddProperty("reloadFailureReason",
+                        reload_error()->ToErrorCString());
     }
   }
   if (kind() == kServiceExtensionAdded) {

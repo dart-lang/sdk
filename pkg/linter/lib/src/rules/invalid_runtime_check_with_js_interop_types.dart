@@ -160,7 +160,7 @@ DartType? getJsTypeForStaticInterop(InterfaceType type) {
     var annotationElement = annotation.element;
     if (annotationElement is ConstructorElement &&
         isFromLibrary(annotationElement.library, _dartJsInteropUri) &&
-        annotationElement.enclosingElement.name == 'JS') {
+        annotationElement.enclosingElement3.name == 'JS') {
       hasJS = true;
       dartJsInterop = annotationElement.library;
     } else if (annotationElement is PropertyAccessorElement &&
@@ -282,10 +282,10 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
 class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
   InvalidRuntimeCheckWithJSInteropTypes()
       : super(
-            name: 'invalid_runtime_check_with_js_interop_types',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne, LintRuleCategory.web});
+          name: 'invalid_runtime_check_with_js_interop_types',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<LintCode> get lintCodes => [

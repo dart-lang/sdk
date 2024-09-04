@@ -51,7 +51,7 @@ import 'package:front_end/src/kernel/hierarchy/hierarchy_node.dart'
     show ClassHierarchyNode;
 import 'package:front_end/src/kernel/kernel_target.dart' show KernelTarget;
 import 'package:front_end/src/kernel/utils.dart' show ByteSink;
-import 'package:front_end/src/kernel/verifier.dart' show verifyComponent;
+import 'package:front_end/src/kernel/cfe_verifier.dart' show verifyComponent;
 import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:front_end/src/util/parser_ast.dart'
     show IgnoreSomeForCompatibilityAstVisitor, getAST;

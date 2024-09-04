@@ -28,6 +28,114 @@ mixin RecordTypeTestCases on AbstractCompletionDriverTest {
     );
   }
 
+  Future<void> test_fromExtension_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E on (int,) {
+  void foo() {}
+}
+''');
+
+    await computeSuggestions('''
+import 'a.dart';
+
+void f((int,) r) {
+  r.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  hashCode
+    kind: getter
+    returnType: int
+  runtimeType
+    kind: getter
+    returnType: Type
+  $1
+    kind: identifier
+    returnType: int
+  foo
+    kind: methodInvocation
+    returnType: void
+  toString
+    kind: methodInvocation
+    returnType: String
+  noSuchMethod
+    kind: methodInvocation
+    returnType: dynamic
+''');
+  }
+
+  Future<void> test_fromExtension_local() async {
+    await computeSuggestions('''
+void f((int,) r) {
+  r.^
+}
+
+extension on (int,) {
+  void foo() {}
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  hashCode
+    kind: getter
+    returnType: int
+  runtimeType
+    kind: getter
+    returnType: Type
+  $1
+    kind: identifier
+    returnType: int
+  foo
+    kind: methodInvocation
+    returnType: void
+  toString
+    kind: methodInvocation
+    returnType: String
+  noSuchMethod
+    kind: methodInvocation
+    returnType: dynamic
+''');
+  }
+
+  Future<void> test_fromExtension_notImported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E on (int,) {
+  void foo() {}
+}
+''');
+
+    await computeSuggestions('''
+void f((int,) r) {
+  r.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  hashCode
+    kind: getter
+    returnType: int
+  runtimeType
+    kind: getter
+    returnType: Type
+  $1
+    kind: identifier
+    returnType: int
+  toString
+    kind: methodInvocation
+    returnType: String
+  foo
+    kind: methodInvocation
+    returnType: void
+  noSuchMethod
+    kind: methodInvocation
+    returnType: dynamic
+''');
+  }
+
   Future<void> test_mixed() async {
     await computeSuggestions('''
 void f((int, {String foo02}) r) {

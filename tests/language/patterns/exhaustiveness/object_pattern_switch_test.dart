@@ -157,7 +157,7 @@ void unreachableCase1(A r) {
       break;
     case A(a: Enum.a, b: false): // Unreachable
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('(a, false) #2');
       break;
   }
@@ -203,7 +203,7 @@ void unreachableCase3(A? r) {
       break;
     case null: // Unreachable
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('null #2');
       break;
   }

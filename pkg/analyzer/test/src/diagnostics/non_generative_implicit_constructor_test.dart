@@ -17,7 +17,7 @@ main() {
 class NonGenerativeImplicitConstructorTest extends PubPackageResolutionTest {
   test_explicit_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class B {
   B.named();
@@ -25,7 +25,7 @@ augment class B {
 ''');
 
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 class B extends A {}

@@ -17,6 +17,7 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
+#include "vm/interpreter.h"
 #include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -105,14 +106,25 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != nullptr);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle();
+  Bytecode& bytecode = Bytecode::Handle();
   for (; frame != nullptr; frame = frames.NextFrame()) {
     if (!frame->IsDartFrame()) {
       continue;
     }
-    code = frame->LookupDartCode();
-    ASSERT(code.ContainsInstructionAt(frame->pc()));
-    const uword pc_offset = frame->pc() - code.PayloadStart();
-    builder->AddFrame(code, pc_offset);
+    if (frame->is_interpreted()) {
+      bytecode = frame->LookupDartBytecode();
+      ASSERT(bytecode.ContainsInstructionAt(frame->pc()));
+      if (bytecode.function() == Function::null()) {
+        continue;
+      }
+      const uword pc_offset = frame->pc() - bytecode.PayloadStart();
+      builder->AddFrame(bytecode, pc_offset);
+    } else {
+      code = frame->LookupDartCode();
+      ASSERT(code.ContainsInstructionAt(frame->pc()));
+      const uword pc_offset = frame->pc() - code.PayloadStart();
+      builder->AddFrame(code, pc_offset);
+    }
   }
 }
 
@@ -587,7 +599,9 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
                                StackFrameIterator::kNoCrossThreadIteration);
       for (StackFrame* frame = frames.NextFrame(); frame != nullptr;
            frame = frames.NextFrame()) {
-        if (frame->fp() >= frame_pointer) {
+        if (frame->is_interpreted()) {
+          continue;
+        } else if (frame->fp() >= frame_pointer) {
           break;
         }
         if (frame->IsMarkedForLazyDeopt()) {
@@ -634,6 +648,15 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
                             uword frame_pointer,
                             bool clear_deopt_at_target) {
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
+
+#if defined(DART_DYNAMIC_MODULES)
+  Interpreter* interpreter = thread->interpreter();
+  if ((interpreter != nullptr) && interpreter->HasFrame(frame_pointer)) {
+    interpreter->JumpToFrame(program_counter, stack_pointer, frame_pointer,
+                             thread);
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
+
   const uword fp_for_clearing =
       (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
   ClearLazyDeopts(thread, fp_for_clearing);
@@ -799,12 +822,7 @@ static void ThrowExceptionHelper(Thread* thread,
       // If this is not a rethrow, it's a "throw with stacktrace".
       // Set an Error object's stackTrace field if needed.
       if (!is_rethrow) {
-        const Field& stacktrace_field =
-            Field::Handle(zone, LookupStackTraceField(exception));
-        if (!stacktrace_field.IsNull() &&
-            (exception.GetField(stacktrace_field) == Object::null())) {
-          exception.SetField(stacktrace_field, stacktrace);
-        }
+        Exceptions::TrySetStackTrace(zone, exception, stacktrace);
       }
     } else {
       // Get stacktrace field of class Error to determine whether we have a
@@ -998,6 +1016,17 @@ void Exceptions::ThrowWithStackTrace(Thread* thread,
   // Null object is a valid exception object.
   ThrowExceptionHelper(thread, exception, stacktrace, /*is_rethrow=*/false,
                        /*bypass_debugger=*/false);
+}
+
+void Exceptions::TrySetStackTrace(Zone* zone,
+                                  const Instance& error,
+                                  const Instance& stacktrace) {
+  const Field& stacktrace_field =
+      Field::Handle(zone, dart::LookupStackTraceField(error));
+  if (!stacktrace_field.IsNull() &&
+      (error.GetField(stacktrace_field) == Object::null())) {
+    error.SetField(stacktrace_field, stacktrace);
+  }
 }
 
 void Exceptions::PropagateError(const Error& error) {

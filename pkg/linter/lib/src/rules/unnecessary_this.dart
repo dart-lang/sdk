@@ -53,14 +53,10 @@ class Box {
 class UnnecessaryThis extends LintRule {
   UnnecessaryThis()
       : super(
-            name: 'unnecessary_this',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.brevity,
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style,
-            });
+          name: 'unnecessary_this',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_this;
@@ -133,7 +129,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     //  - prevents us from going up to the library scope;
     //  - the requested element must be inherited, or from an extension.
     if (result.isDifferentName) {
-      var enclosing = result.element?.enclosingElement;
+      var enclosing = result.element?.enclosingElement3;
       return enclosing is ClassElement;
     }
 

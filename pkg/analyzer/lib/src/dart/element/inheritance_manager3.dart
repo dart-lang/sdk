@@ -386,7 +386,7 @@ class InheritanceManager3 {
         continue;
       }
 
-      var class_ = executable.enclosingElement;
+      var class_ = executable.enclosingElement3;
       if (class_ is ClassElement && class_.isDartCoreObject) {
         continue;
       }
@@ -535,7 +535,7 @@ class InheritanceManager3 {
         }
 
         var current = currentList.single;
-        if (candidate.enclosingElement == mixinElement) {
+        if (candidate.enclosingElement3 == mixinElement) {
           namedCandidates[name] = [candidate];
           if (current.kind != candidate.kind) {
             var currentIsGetter = current.kind == ElementKind.GETTER;
@@ -903,7 +903,7 @@ class InheritanceManager3 {
     Name name,
     ExecutableElement executable,
   ) {
-    if (executable.enclosingElement == class_) {
+    if (executable.enclosingElement3 == class_) {
       return executable;
     }
 
@@ -958,6 +958,7 @@ class InheritanceManager3 {
     if (executable is MethodElement) {
       var result = MethodElementImpl(executable.name, -1);
       result.enclosingElement = class_;
+      result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.prototype = executable;
@@ -970,6 +971,7 @@ class InheritanceManager3 {
       assert(executable.isSetter);
       var result = PropertyAccessorElementImpl(executable.name, -1);
       result.enclosingElement = class_;
+      result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.prototype = executable;
@@ -978,6 +980,7 @@ class InheritanceManager3 {
       var field = executable.variable2!;
       var resultField = FieldElementImpl(field.name, -1);
       resultField.enclosingElement = class_;
+      resultField.enclosingElement3 = class_;
       resultField.getter = field.getter;
       resultField.setter = executable;
       resultField.type = executable.parameters[0].type;
@@ -1031,6 +1034,7 @@ class InheritanceManager3 {
       var firstMethod = first;
       var result = MethodElementImpl(firstMethod.name, -1);
       result.enclosingElement = targetClass;
+      result.enclosingElement3 = targetClass;
       result.typeParameters = resultType.typeFormals;
       result.returnType = resultType.returnType;
       result.parameters = resultType.parameters;
@@ -1041,6 +1045,7 @@ class InheritanceManager3 {
 
       var result = PropertyAccessorElementImpl(variableName, -1);
       result.enclosingElement = targetClass;
+      result.enclosingElement3 = targetClass;
       result.isGetter = firstAccessor.isGetter;
       result.isSetter = firstAccessor.isSetter;
       result.returnType = resultType.returnType;
@@ -1048,6 +1053,7 @@ class InheritanceManager3 {
 
       var field = FieldElementImpl(variableName, -1);
       field.enclosingElement = targetClass;
+      field.enclosingElement3 = targetClass;
       if (firstAccessor.isGetter) {
         field.getter = result;
         field.type = result.returnType;
@@ -1090,7 +1096,7 @@ class InheritanceManager3 {
   }
 
   static bool _isDeclaredInObject(ExecutableElement element) {
-    var enclosing = element.enclosingElement;
+    var enclosing = element.enclosingElement3;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
   }
 }

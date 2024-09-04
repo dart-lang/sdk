@@ -44,10 +44,10 @@ if (complicated.expression.foo())
 class EmptyStatements extends LintRule {
   EmptyStatements()
       : super(
-            name: 'empty_statements',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'empty_statements',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.empty_statements;

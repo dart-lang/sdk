@@ -132,6 +132,8 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   abstract TypeBuilder? mixedInTypeBuilder;
 
+  bool get isFutureOr;
+
   /// The [Class] built by this builder.
   ///
   /// For an augmentation class the origin class is returned.
@@ -310,6 +312,18 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   InterfaceType? aliasedTypeWithBuiltArgumentsCacheNullable;
 
   @override
+  bool get isFutureOr {
+    if (name == "FutureOr") {
+      LibraryBuilder parentLibrary = parent as LibraryBuilder;
+      if (parentLibrary.importUri.isScheme("dart") &&
+          parentLibrary.importUri.path == "async") {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   DartType buildAliasedTypeWithBuiltArguments(
       LibraryBuilder library,
       Nullability nullability,
@@ -322,13 +336,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (isNullClass) {
       return const NullType();
     }
-    if (name == "FutureOr") {
-      LibraryBuilder parentLibrary = parent as LibraryBuilder;
-      if (parentLibrary.importUri.isScheme("dart") &&
-          parentLibrary.importUri.path == "async") {
-        assert(arguments.length == 1);
-        return new FutureOrType(arguments.single, nullability);
-      }
+    if (isFutureOr) {
+      assert(arguments.length == 1);
+      return new FutureOrType(arguments.single, nullability);
     }
     if (arguments.isEmpty) {
       return rawType(nullability);
@@ -468,6 +478,24 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       }
     }
     return target;
+  }
+
+  @override
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    if (isNullClass) {
+      return Nullability.nullable;
+    } else if (isFutureOr) {
+      if (typeArguments != null && typeArguments.length == 1) {
+        return typeArguments.single.computeNullability(
+            typeVariablesTraversalState: typeVariablesTraversalState);
+      } else {
+        // This is `FutureOr<dynamic>`.
+        return Nullability.nullable;
+      }
+    }
+    return Nullability.nonNullable;
   }
 }
 

@@ -10,8 +10,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
@@ -21,6 +23,7 @@ import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:collection/collection.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart';
@@ -121,8 +124,20 @@ class ContextLocatorImpl implements ContextLocator {
         root.included.add(folder);
       }
 
-      _createContextRootsIn(roots, {}, folder, excludedFolders, root,
-          root.excludedGlobs, defaultOptionsFile, defaultPackagesFile);
+      var rootEnabledPlugins =
+          _getEnabledPlugins(location.workspace, location.optionsFile);
+
+      _createContextRootsIn(
+        roots,
+        {},
+        folder,
+        excludedFolders,
+        root,
+        rootEnabledPlugins,
+        root.excludedGlobs,
+        defaultOptionsFile,
+        defaultPackagesFile,
+      );
     }
 
     for (File file in includedFiles) {
@@ -290,6 +305,7 @@ class ContextLocatorImpl implements ContextLocator {
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
+      Set<String> containingRootEnabledPlugins,
       List<LocatedGlob> excludedGlobs,
       File? optionsFile,
       File? packagesFile) {
@@ -307,11 +323,19 @@ class ContextLocatorImpl implements ContextLocator {
     }
     var buildGnFile = folder.getExistingFile(file_paths.buildGn);
 
+    var localEnabledPlugins =
+        _getEnabledPlugins(containingRoot.workspace, localOptionsFile);
+    // Plugins differ only if there is an analysis_options and it contains
+    // a different set of plugins from the containing context.
+    var pluginsDiffer = localOptionsFile != null &&
+        !const SetEquality<String>()
+            .equals(containingRootEnabledPlugins, localEnabledPlugins);
+
     //
     // Create a context root for the given [folder] if a packages or build file
-    // is locally specified.
+    // is locally specified, or the set of enabled plugins changed.
     //
-    if (localPackagesFile != null || buildGnFile != null) {
+    if (pluginsDiffer || localPackagesFile != null || buildGnFile != null) {
       if (optionsFile != null) {
         localOptionsFile = optionsFile;
       }
@@ -331,6 +355,7 @@ class ContextLocatorImpl implements ContextLocator {
       containingRoot.excluded.add(folder);
       roots.add(root);
       containingRoot = root;
+      containingRootEnabledPlugins = localEnabledPlugins;
       excludedGlobs = _getExcludedGlobs(root.optionsFile, workspace);
       root.excludedGlobs = excludedGlobs;
     }
@@ -343,8 +368,17 @@ class ContextLocatorImpl implements ContextLocator {
           _getExcludedGlobs(localOptionsFile, containingRoot.workspace);
       containingRoot.excludedGlobs.addAll(excludes);
     }
-    _createContextRootsIn(roots, visited, folder, excludedFolders,
-        containingRoot, excludedGlobs, optionsFile, packagesFile);
+    _createContextRootsIn(
+      roots,
+      visited,
+      folder,
+      excludedFolders,
+      containingRoot,
+      containingRootEnabledPlugins,
+      excludedGlobs,
+      optionsFile,
+      packagesFile,
+    );
   }
 
   /// For each directory within the given [folder] that is neither in the list
@@ -359,6 +393,7 @@ class ContextLocatorImpl implements ContextLocator {
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
+      Set<String> containingRootEnabledPlugins,
       List<LocatedGlob> excludedGlobs,
       File? optionsFile,
       File? packagesFile) {
@@ -396,8 +431,17 @@ class ContextLocatorImpl implements ContextLocator {
           if (excludedFolders.contains(child)) {
             containingRoot.excluded.add(child);
           } else if (!isExcluded(child)) {
-            _createContextRoots(roots, visited, child, excludedFolders,
-                containingRoot, excludedGlobs, optionsFile, packagesFile);
+            _createContextRoots(
+              roots,
+              visited,
+              child,
+              excludedFolders,
+              containingRoot,
+              containingRootEnabledPlugins,
+              excludedGlobs,
+              optionsFile,
+              packagesFile,
+            );
           }
         }
       }
@@ -476,6 +520,28 @@ class ContextLocatorImpl implements ContextLocator {
       }
     }
     return null;
+  }
+
+  /// Gets the set of enabled plugins for [optionsFile]m taking into account
+  /// any includes.
+  Set<String> _getEnabledPlugins(Workspace workspace, File? optionsFile) {
+    if (optionsFile == null) {
+      return const {};
+    }
+    try {
+      var provider =
+          AnalysisOptionsProvider(workspace.createSourceFactory(null, null));
+
+      var options = AnalysisOptionsImpl(file: optionsFile);
+      var optionsYaml = provider.getOptionsFromFile(optionsFile);
+      options.applyOptions(optionsYaml);
+
+      return options.enabledPluginNames.toSet();
+    } catch (_) {
+      // No plugins will be enabled if the file doesn't parse or cannot be read
+      // for any reason.
+      return {};
+    }
   }
 
   /// Return a list containing the glob patterns used to exclude files from

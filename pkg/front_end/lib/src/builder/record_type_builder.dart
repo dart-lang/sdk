@@ -3,8 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart'
-    show DartType, InvalidType, NamedType, RecordType, Supertype;
+    show
+        DartType,
+        InvalidType,
+        NamedType,
+        Nullability,
+        RecordType,
+        Supertype,
+        Variance;
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart';
 
 import '../codes/cfe_codes.dart'
@@ -17,10 +25,11 @@ import '../codes/cfe_codes.dart'
         templateDuplicatedRecordTypeFieldName,
         templateDuplicatedRecordTypeFieldNameContext;
 import '../kernel/implicit_field_type.dart';
-import '../source/builder_factory.dart';
+import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
-import '../source/type_parameter_scope_builder.dart';
+import '../source/source_loader.dart';
 import '../util/helpers.dart';
+import 'declaration_builders.dart';
 import 'inferable_type_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
@@ -288,36 +297,168 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   }
 
   @override
-  RecordTypeBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      BuilderFactory builderFactory,
-      TypeParameterScopeBuilder contextDeclaration) {
-    List<RecordTypeFieldBuilder>? clonedPositional;
-    if (positionalFields != null) {
-      clonedPositional = new List<RecordTypeFieldBuilder>.generate(
-          positionalFields!.length, (int i) {
-        RecordTypeFieldBuilder entry = positionalFields![i];
-        return entry.clone(newTypes, builderFactory, contextDeclaration);
-      }, growable: false);
-    }
-    List<RecordTypeFieldBuilder>? clonedNamed;
-    if (namedFields != null) {
-      // Coverage-ignore-block(suite): Not run.
-      clonedNamed = new List<RecordTypeFieldBuilder>.generate(
-          namedFields!.length, (int i) {
-        RecordTypeFieldBuilder entry = namedFields![i];
-        return entry.clone(newTypes, builderFactory, contextDeclaration);
-      }, growable: false);
-    }
-    return new RecordTypeBuilderImpl(
-        clonedPositional, clonedNamed, nullabilityBuilder, fileUri, charOffset);
-  }
-
-  @override
   RecordTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
     return new RecordTypeBuilderImpl(
         positionalFields, namedFields, nullabilityBuilder, fileUri, charOffset);
+  }
+
+  @override
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    return nullabilityBuilder.build();
+  }
+
+  @override
+  VarianceCalculationValue computeTypeVariableBuilderVariance(
+      NominalVariableBuilder variable,
+      {required SourceLoader sourceLoader}) {
+    List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
+    List<RecordTypeFieldBuilder>? namedFields = this.namedFields;
+    Variance result = Variance.unrelated;
+    if (positionalFields != null) {
+      for (RecordTypeFieldBuilder field in positionalFields) {
+        result = result.meet(field.type
+            .computeTypeVariableBuilderVariance(variable,
+                sourceLoader: sourceLoader)
+            .variance!);
+      }
+    }
+    if (namedFields != null) {
+      for (RecordTypeFieldBuilder field in namedFields) {
+        result = result.meet(field.type
+            .computeTypeVariableBuilderVariance(variable,
+                sourceLoader: sourceLoader)
+            .variance!);
+      }
+    }
+    return new VarianceCalculationValue.fromVariance(result);
+  }
+
+  @override
+  TypeDeclarationBuilder? computeUnaliasedDeclaration(
+          {required bool isUsedAsClass}) =>
+      null;
+
+  @override
+  void collectReferencesFrom(Map<TypeVariableBuilder, int> variableIndices,
+      List<List<int>> edges, int index) {
+    List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
+    List<RecordTypeFieldBuilder>? namedFields = this.namedFields;
+    if (positionalFields != null) {
+      for (RecordTypeFieldBuilder field in positionalFields) {
+        field.type.collectReferencesFrom(variableIndices, edges, index);
+      }
+    }
+    if (namedFields != null) {
+      for (RecordTypeFieldBuilder field in namedFields) {
+        field.type.collectReferencesFrom(variableIndices, edges, index);
+      }
+    }
+  }
+
+  @override
+  TypeBuilder? substituteRange(
+      Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
+      Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
+      List<TypeBuilder> unboundTypes,
+      List<StructuralVariableBuilder> unboundTypeVariables,
+      {final Variance variance = Variance.covariant}) {
+    List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
+    List<RecordTypeFieldBuilder>? namedFields = this.namedFields;
+
+    List<RecordTypeFieldBuilder>? newPositionalFields;
+    List<RecordTypeFieldBuilder>? newNamedFields;
+    if (positionalFields != null) {
+      for (int i = 0; i < positionalFields.length; i++) {
+        RecordTypeFieldBuilder positionalFieldBuilder = positionalFields[i];
+        TypeBuilder? positionalFieldType = positionalFieldBuilder.type
+            .substituteRange(upperSubstitution, lowerSubstitution, unboundTypes,
+                unboundTypeVariables,
+                variance: variance);
+        if (positionalFieldType != null) {
+          newPositionalFields ??= positionalFields.toList();
+          newPositionalFields[i] = new RecordTypeFieldBuilder(
+              positionalFieldBuilder.metadata,
+              positionalFieldType,
+              positionalFieldBuilder.name,
+              positionalFieldBuilder.charOffset);
+        }
+      }
+    }
+    if (namedFields != null) {
+      for (int i = 0; i < namedFields.length; i++) {
+        RecordTypeFieldBuilder namedFieldBuilder = namedFields[i];
+        TypeBuilder? namedFieldType = namedFieldBuilder.type.substituteRange(
+            upperSubstitution,
+            lowerSubstitution,
+            unboundTypes,
+            unboundTypeVariables,
+            variance: variance);
+        if (namedFieldType != null) {
+          newNamedFields ??= namedFields.toList();
+          newNamedFields[i] = new RecordTypeFieldBuilder(
+              namedFieldBuilder.metadata,
+              namedFieldType,
+              namedFieldBuilder.name,
+              namedFieldBuilder.charOffset);
+        }
+      }
+    }
+
+    if (positionalFields != null || newNamedFields != null) {
+      return new RecordTypeBuilderImpl(
+          newPositionalFields ?? positionalFields,
+          newNamedFields ?? namedFields,
+          this.nullabilityBuilder,
+          this.fileUri,
+          this.charOffset);
+    }
+    return null;
+  }
+
+  @override
+  TypeBuilder? unaliasAndErase() => this;
+
+  @override
+  bool usesTypeVariables(Set<String> typeVariableNames) {
+    if (positionalFields != null) {
+      for (RecordTypeFieldBuilder fieldBuilder in positionalFields!) {
+        if (fieldBuilder.type.usesTypeVariables(typeVariableNames)) {
+          return true;
+        }
+      }
+    }
+    // Coverage-ignore(suite): Not run.
+    if (namedFields != null) {
+      for (RecordTypeFieldBuilder fieldBuilder in namedFields!) {
+        if (fieldBuilder.type.usesTypeVariables(typeVariableNames)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @override
+  List<TypeWithInBoundReferences> findRawTypesWithInboundReferences() {
+    List<TypeWithInBoundReferences> typesAndDependencies = [];
+    List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
+    List<RecordTypeFieldBuilder>? namedFields = this.namedFields;
+    if (positionalFields != null) {
+      for (RecordTypeFieldBuilder field in positionalFields) {
+        typesAndDependencies
+            .addAll(field.type.findRawTypesWithInboundReferences());
+      }
+    }
+    if (namedFields != null) {
+      for (RecordTypeFieldBuilder field in namedFields) {
+        typesAndDependencies
+            .addAll(field.type.findRawTypesWithInboundReferences());
+      }
+    }
+    return typesAndDependencies;
   }
 }
 
@@ -401,20 +542,6 @@ class RecordTypeFieldBuilder {
 
   RecordTypeFieldBuilder(this.metadata, this.type, this.name, this.charOffset,
       {this.isWildcard = false});
-
-  RecordTypeFieldBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      BuilderFactory builderFactory,
-      TypeParameterScopeBuilder contextDeclaration) {
-    // TODO(cstefantsova):  It's not clear how [metadata] is used currently,
-    // and how it should be cloned.  Consider cloning it instead of reusing it.
-    return new RecordTypeFieldBuilder(
-        metadata,
-        type.clone(newTypes, builderFactory, contextDeclaration),
-        name,
-        charOffset,
-        isWildcard: isWildcard);
-  }
 
   @override
   String toString() {

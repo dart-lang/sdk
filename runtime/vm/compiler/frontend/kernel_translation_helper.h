@@ -1390,7 +1390,6 @@ class KernelReaderHelper {
   friend class VariableDeclarationHelper;
   friend class ObfuscationProhibitionsMetadataHelper;
   friend class LoadingUnitsMetadataHelper;
-  friend bool NeedsDynamicInvocationForwarder(const Function& function);
   friend ArrayPtr CollectConstConstructorCoverageFrom(
       const Script& interesting_script);
 

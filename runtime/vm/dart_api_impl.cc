@@ -562,9 +562,6 @@ bool Api::StringGetPeerHelper(NativeArguments* arguments,
                               void** peer) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
-  if (!raw_obj->IsHeapObject()) {
-    return false;
-  }
   intptr_t cid = raw_obj->GetClassId();
   if (cid == kOneByteStringCid || cid == kTwoByteStringCid) {
     auto isolate_group = arguments->thread()->isolate_group();
@@ -577,21 +574,19 @@ bool Api::StringGetPeerHelper(NativeArguments* arguments,
 bool Api::GetNativeReceiver(NativeArguments* arguments, intptr_t* value) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArg0();
-  if (raw_obj->IsHeapObject()) {
-    intptr_t cid = raw_obj->GetClassId();
-    if (cid >= kNumPredefinedCids) {
-      ASSERT(Instance::Cast(Object::Handle(raw_obj)).IsValidNativeIndex(0));
-      TypedDataPtr native_fields =
-          reinterpret_cast<CompressedTypedDataPtr*>(
-              UntaggedObject::ToAddr(raw_obj) + sizeof(UntaggedObject))
-              ->Decompress(raw_obj->heap_base());
-      if (native_fields == TypedData::null()) {
-        *value = 0;
-      } else {
-        *value = *bit_cast<intptr_t*, uint8_t*>(native_fields->untag()->data());
-      }
-      return true;
+  intptr_t cid = raw_obj->GetClassId();
+  if (cid >= kNumPredefinedCids) {
+    ASSERT(Instance::Cast(Object::Handle(raw_obj)).IsValidNativeIndex(0));
+    TypedDataPtr native_fields =
+        reinterpret_cast<CompressedTypedDataPtr*>(
+            UntaggedObject::ToAddr(raw_obj) + sizeof(UntaggedObject))
+            ->Decompress(raw_obj->heap_base());
+    if (native_fields == TypedData::null()) {
+      *value = 0;
+    } else {
+      *value = *bit_cast<intptr_t*, uint8_t*>(native_fields->untag()->data());
     }
+    return true;
   }
   return false;
 }
@@ -601,16 +596,14 @@ bool Api::GetNativeBooleanArgument(NativeArguments* arguments,
                                    bool* value) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
-  if (raw_obj->IsHeapObject()) {
-    intptr_t cid = raw_obj->GetClassId();
-    if (cid == kBoolCid) {
-      *value = (raw_obj == Object::bool_true().ptr());
-      return true;
-    }
-    if (cid == kNullCid) {
-      *value = false;
-      return true;
-    }
+  intptr_t cid = raw_obj->GetClassId();
+  if (cid == kBoolCid) {
+    *value = (raw_obj == Object::bool_true().ptr());
+    return true;
+  }
+  if (cid == kNullCid) {
+    *value = false;
+    return true;
   }
   return false;
 }
@@ -620,16 +613,16 @@ bool Api::GetNativeIntegerArgument(NativeArguments* arguments,
                                    int64_t* value) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
-  if (raw_obj->IsHeapObject()) {
-    intptr_t cid = raw_obj->GetClassId();
-    if (cid == kMintCid) {
-      *value = static_cast<MintPtr>(raw_obj)->untag()->value_;
-      return true;
-    }
-    return false;
+  intptr_t cid = raw_obj->GetClassId();
+  if (cid == kSmiCid) {
+    *value = Smi::Value(static_cast<SmiPtr>(raw_obj));
+    return true;
   }
-  *value = Smi::Value(static_cast<SmiPtr>(raw_obj));
-  return true;
+  if (cid == kMintCid) {
+    *value = static_cast<MintPtr>(raw_obj)->untag()->value_;
+    return true;
+  }
+  return false;
 }
 
 bool Api::GetNativeDoubleArgument(NativeArguments* arguments,
@@ -637,21 +630,21 @@ bool Api::GetNativeDoubleArgument(NativeArguments* arguments,
                                   double* value) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
-  if (raw_obj->IsHeapObject()) {
-    intptr_t cid = raw_obj->GetClassId();
-    if (cid == kDoubleCid) {
-      *value = static_cast<DoublePtr>(raw_obj)->untag()->value_;
-      return true;
-    }
-    if (cid == kMintCid) {
-      *value =
-          static_cast<double>(static_cast<MintPtr>(raw_obj)->untag()->value_);
-      return true;
-    }
-    return false;
+  intptr_t cid = raw_obj->GetClassId();
+  if (cid == kDoubleCid) {
+    *value = static_cast<DoublePtr>(raw_obj)->untag()->value_;
+    return true;
   }
-  *value = static_cast<double>(Smi::Value(static_cast<SmiPtr>(raw_obj)));
-  return true;
+  if (cid == kSmiCid) {
+    *value = static_cast<double>(Smi::Value(static_cast<SmiPtr>(raw_obj)));
+    return true;
+  }
+  if (cid == kMintCid) {
+    *value =
+        static_cast<double>(static_cast<MintPtr>(raw_obj)->untag()->value_);
+    return true;
+  }
+  return false;
 }
 
 bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
@@ -660,7 +653,7 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
                                     intptr_t* field_values) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
-  intptr_t cid = raw_obj->GetClassIdMayBeSmi();
+  intptr_t cid = raw_obj->GetClassId();
   int class_num_fields = arguments->thread()
                              ->isolate_group()
                              ->class_table()
@@ -2635,7 +2628,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
     RETURN_TYPE_ERROR(Z, integer, Integer);
   }
   ASSERT(int_obj.IsMint());
-  *fits = !int_obj.IsNegative();
+  *fits = (int_obj.Value() >= 0);
   return Api::Success();
 }
 
@@ -2691,7 +2684,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
     RETURN_TYPE_ERROR(Z, integer, Integer);
   }
   ASSERT(int_obj.IsMint());
-  *value = int_obj.AsInt64Value();
+  *value = int_obj.Value();
   return Api::Success();
 }
 
@@ -2715,11 +2708,12 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
     RETURN_TYPE_ERROR(Z, integer, Integer);
   }
   if (int_obj.IsSmi()) {
-    ASSERT(int_obj.IsNegative());
+    ASSERT(int_obj.Value() < 0);
   } else {
     ASSERT(int_obj.IsMint());
-    if (!int_obj.IsNegative()) {
-      *value = int_obj.AsInt64Value();
+    const int64_t v = int_obj.Value();
+    if (v >= 0) {
+      *value = v;
       return Api::Success();
     }
   }
@@ -3178,7 +3172,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
     *len = Smi::Cast(retval).Value();
     return Api::Success();
   } else if (retval.IsMint()) {
-    int64_t mint_value = Mint::Cast(retval).value();
+    int64_t mint_value = Mint::Cast(retval).Value();
     if (mint_value >= kIntptrMin && mint_value <= kIntptrMax) {
       *len = static_cast<intptr_t>(mint_value);
       return Api::Success();
@@ -3398,8 +3392,8 @@ static ObjectPtr ThrowArgumentError(const char* exception_message) {
             T, ThrowArgumentError("List contains non-int elements"));          \
       }                                                                        \
       const Integer& integer = Integer::Cast(element);                         \
-      native_array[i] = static_cast<uint8_t>(integer.AsInt64Value() & 0xff);   \
-      ASSERT(integer.AsInt64Value() <= 0xff);                                  \
+      native_array[i] = static_cast<uint8_t>(integer.Value() & 0xff);          \
+      ASSERT(integer.Value() <= 0xff);                                         \
     }                                                                          \
     return Api::Success();                                                     \
   }                                                                            \
@@ -3460,11 +3454,10 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
             CURRENT_FUNC);
       }
       const Integer& integer_result = Integer::Cast(result);
-      ASSERT(integer_result.AsInt64Value() <= 0xff);
+      ASSERT(integer_result.Value() <= 0xff);
       // TODO(hpayer): value should always be smaller then 0xff. Add error
       // handling.
-      native_array[i] =
-          static_cast<uint8_t>(integer_result.AsInt64Value() & 0xff);
+      native_array[i] = static_cast<uint8_t>(integer_result.Value() & 0xff);
     }
     return Api::Success();
   }

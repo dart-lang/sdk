@@ -16,7 +16,7 @@ String _parenthesizeIf(bool condition, String s) => condition ? '($s)' : s;
 /// Representation of the type `dynamic` suitable for unit testing of code in
 /// the `_fe_analyzer_shared` package.
 class DynamicType extends _SpecialSimpleType
-    implements SharedDynamicType<Type> {
+    implements SharedDynamicTypeStructure<Type> {
   static final instance = DynamicType._();
 
   DynamicType._()
@@ -111,7 +111,7 @@ class FutureOrType extends PrimaryType {
 /// Representation of an invalid type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
 class InvalidType extends _SpecialSimpleType
-    implements SharedInvalidType<Type> {
+    implements SharedInvalidTypeStructure<Type> {
   static final instance = InvalidType._();
 
   InvalidType._() : super._('error', nullabilitySuffix: NullabilitySuffix.none);
@@ -120,7 +120,7 @@ class InvalidType extends _SpecialSimpleType
   Type withNullability(NullabilitySuffix suffix) => this;
 }
 
-class NamedType implements SharedNamedType<Type> {
+class NamedType implements SharedNamedTypeStructure<Type> {
   @override
   final String name;
 
@@ -272,7 +272,7 @@ class PromotedTypeVariableType extends Type {
           '${promotion.toString(parenthesizeIfComplex: true)}');
 }
 
-class RecordType extends Type implements SharedRecordType<Type> {
+class RecordType extends Type implements SharedRecordTypeStructure<Type> {
   @override
   final List<Type> positionalTypes;
 
@@ -385,7 +385,7 @@ class RecordType extends Type implements SharedRecordType<Type> {
 
 /// Representation of a type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-abstract class Type implements SharedType<Type> {
+abstract class Type implements SharedTypeStructure<Type> {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
@@ -412,7 +412,7 @@ abstract class Type implements SharedType<Type> {
   String getDisplayString() => type;
 
   @override
-  bool isStructurallyEqualTo(SharedType other) => '$this' == '$other';
+  bool isStructurallyEqualTo(SharedTypeStructure other) => '$this' == '$other';
 
   /// Finds the nearest type that doesn't involve any type parameter promotion.
   /// If `covariant` is `true`, a supertype will be returned (replacing promoted
@@ -459,37 +459,6 @@ abstract class Type implements SharedType<Type> {
   /// - A function type (e.g. `void Function()`)
   /// - A promoted type variable type (e.g. `T&int`)
   String _toStringWithoutSuffix({required bool parenthesizeIfComplex});
-}
-
-class TypeSchema implements SharedType<TypeSchema> {
-  final Type _type;
-
-  TypeSchema(String typeString) : _type = Type(typeString);
-
-  TypeSchema.fromType(this._type);
-
-  String get typeString => _type.type;
-
-  Type toType() => _type;
-
-  @override
-  String getDisplayString() {
-    throw UnsupportedError("TypeSchema.getDisplayString");
-  }
-
-  @override
-  bool isStructurallyEqualTo(SharedType<TypeSchema> other) {
-    throw UnsupportedError("TypeSchema.isStructurallyEqualTo");
-  }
-
-  @override
-  // TODO: implement nullabilitySuffix
-  NullabilitySuffix get nullabilitySuffix => throw UnimplementedError();
-}
-
-class DynamicTypeSchema extends TypeSchema
-    implements SharedDynamicType<TypeSchema> {
-  DynamicTypeSchema() : super.fromType(DynamicType.instance);
 }
 
 class TypeSystem {
@@ -969,7 +938,7 @@ class TypeSystem {
 
 /// Representation of the unknown type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class UnknownType extends Type implements SharedUnknownType<Type> {
+class UnknownType extends Type implements SharedUnknownTypeStructure<Type> {
   const UnknownType({super.nullabilitySuffix = NullabilitySuffix.none})
       : super._();
 
@@ -990,7 +959,8 @@ class UnknownType extends Type implements SharedUnknownType<Type> {
 
 /// Representation of the type `void` suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class VoidType extends _SpecialSimpleType implements SharedVoidType<Type> {
+class VoidType extends _SpecialSimpleType
+    implements SharedVoidTypeStructure<Type> {
   static final instance = VoidType._();
 
   VoidType._() : super._('void', nullabilitySuffix: NullabilitySuffix.none);

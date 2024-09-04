@@ -136,7 +136,6 @@ class JsInteropChecks extends RecursiveVisitor {
     'package:js/js.dart',
     'package:js/js_util.dart',
     'dart:js_util',
-    'dart:js',
     'dart:ffi',
   ];
 
@@ -478,6 +477,8 @@ class JsInteropChecks extends RecursiveVisitor {
     } else {
       _checkNoNamedParameters(node.function);
     }
+
+    super.visitConstructor(node);
   }
 
   @override

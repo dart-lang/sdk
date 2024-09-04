@@ -55,11 +55,11 @@ Set<ParameterElement> _referencedParameters(
 class UseSuperParameters extends LintRule {
   UseSuperParameters()
       : super(
-            name: 'use_super_parameters',
-            description: _desc,
-            details: _details,
-            state: State.experimental(),
-            categories: {LintRuleCategory.brevity});
+          name: 'use_super_parameters',
+          description: _desc,
+          details: _details,
+          state: State.experimental(),
+        );
 
   @override
   List<LintCode> get lintCodes => [

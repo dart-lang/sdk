@@ -1341,7 +1341,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
 // Called when invoking Dart code from C++ (VM code).
 // Input parameters:
 //   RA : points to return address.
-//   A0 : target code or entry point (in bare instructions mode).
+//   A0 : target code or entry point (in AOT mode).
 //   A1 : arguments descriptor array.
 //   A2 : arguments array.
 //   A3 : current thread.
@@ -1469,6 +1469,17 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
   __ ret();
+}
+
+// Called when invoking compiled Dart code from interpreted Dart code.
+// Input parameters:
+//   RSP : points to return address.
+//   RDI : target code or entry point (in AOT mode).
+//   RSI : arguments descriptor array.
+//   RDX : address of first argument.
+//   RCX : current thread.
+void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub() {
+  __ Stop("Not implemented on RISC-V.");
 }
 
 // Helper to generate space allocation of context stub.
@@ -2765,6 +2776,13 @@ void StubCodeCompiler::GenerateLazyCompileStub() {
   __ jr(TMP);
 }
 
+// Stub for interpreting a function call.
+// ARGS_DESC_REG: Arguments descriptor.
+// FUNCTION_REG: Function.
+void StubCodeCompiler::GenerateInterpretCallStub() {
+  __ Stop("Not implemented on RISC-V.");
+}
+
 // A0: Receiver
 // S5: ICData
 void StubCodeCompiler::GenerateICCallBreakpointStub() {
@@ -3243,8 +3261,9 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   if (FLAG_precompiled_mode) {
     const intptr_t entry_offset =
         target::ICData::EntryPointIndexFor(1) * target::kCompressedWordSize;
-    __ LoadCompressed(A1, Address(T1, entry_offset));
-    __ lx(A1, FieldAddress(A1, target::Function::entry_point_offset()));
+    __ LoadCompressed(FUNCTION_REG, Address(T1, entry_offset));
+    __ lx(A1,
+          FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   } else {
     const intptr_t code_offset =
         target::ICData::CodeIndexFor(1) * target::kCompressedWordSize;

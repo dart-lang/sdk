@@ -253,6 +253,9 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(FormalParameterKind.requiredPositional, 0,
         const ImplicitTypeBuilder(), '', null, -1,
         fileUri: dummyUri, hasImmediatelyDeclaredInitializer: false);
+final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
+    new FunctionTypeParameterBuilder(FormalParameterKind.requiredPositional,
+        const ImplicitTypeBuilder(), '');
 final NominalVariableBuilder dummyNominalVariableBuilder =
     new NominalVariableBuilder(
         NominalVariableBuilder.noNameSentinel, null, -1, null,

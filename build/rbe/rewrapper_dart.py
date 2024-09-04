@@ -564,6 +564,8 @@ trace to find the place to insert the appropriate support.
                 self.outputs.append(self.rebase(self.optarg))
             elif self.get_option(['--platform']):
                 self.extra_paths.add(self.rebase(self.optarg))
+            elif self.get_option(['--dynamic-interface']):
+                self.extra_paths.add(self.rebase(self.optarg))
             elif self.get_option(['--packages', '-D']):
                 pass
             elif arg in [

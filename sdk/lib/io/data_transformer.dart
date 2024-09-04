@@ -149,9 +149,6 @@ const GZipCodec gzip = const GZipCodec._default();
 
 /// The [GZipCodec] encodes raw bytes to GZip compressed bytes and decodes GZip
 /// compressed bytes to raw bytes.
-///
-/// The difference between [ZLibCodec] and [GZipCodec] is that the [GZipCodec]
-/// wraps the `ZLib` compressed bytes in `GZip` frames.
 final class GZipCodec extends Codec<List<int>, List<int>> {
   /// When true, `GZip` frames will be added to the compressed data.
   final bool gzip;
@@ -234,8 +231,8 @@ final class GZipCodec extends Codec<List<int>, List<int>> {
       raw: raw);
 
   /// Get a [ZLibDecoder] for decoding `GZip` compressed data.
-  ZLibDecoder get decoder =>
-      new ZLibDecoder(windowBits: windowBits, dictionary: dictionary, raw: raw);
+  ZLibDecoder get decoder => new ZLibDecoder(
+      gzip: true, windowBits: windowBits, dictionary: dictionary, raw: raw);
 }
 
 /// The [ZLibEncoder] encoder is used by [ZLibCodec] and [GZipCodec] to compress
@@ -329,6 +326,10 @@ final class ZLibEncoder extends Converter<List<int>, List<int>> {
 
 /// The [ZLibDecoder] is used by [ZLibCodec] and [GZipCodec] to decompress data.
 final class ZLibDecoder extends Converter<List<int>, List<int>> {
+  /// When true, all concatenated compressed data sets in the input are
+  /// decompressed and concatenated in the output.
+  final bool gzip;
+
   /// Base two logarithm of the window size (the size of the history buffer). It
   /// should be in the range `8..15`. Larger values result in better compression
   /// at the expense of memory usage. The default value is `15`.
@@ -349,7 +350,8 @@ final class ZLibDecoder extends Converter<List<int>, List<int>> {
   final bool raw;
 
   ZLibDecoder(
-      {this.windowBits = ZLibOption.defaultWindowBits,
+      {this.gzip = false,
+      this.windowBits = ZLibOption.defaultWindowBits,
       this.dictionary,
       this.raw = false}) {
     _validateZLibWindowBits(windowBits);
@@ -374,7 +376,7 @@ final class ZLibDecoder extends Converter<List<int>, List<int>> {
     if (sink is! ByteConversionSink) {
       sink = new ByteConversionSink.from(sink);
     }
-    return new _ZLibDecoderSink._(sink, windowBits, dictionary, raw);
+    return new _ZLibDecoderSink._(sink, gzip, windowBits, dictionary, raw);
   }
 }
 
@@ -398,11 +400,12 @@ abstract interface class RawZLibFilter {
   /// Returns a [RawZLibFilter] whose [process] and [processed] methods
   /// decompress data.
   factory RawZLibFilter.inflateFilter({
+    bool gzip = false,
     int windowBits = ZLibOption.defaultWindowBits,
     List<int>? dictionary,
     bool raw = false,
   }) {
-    return _makeZLibInflateFilter(windowBits, dictionary, raw);
+    return _makeZLibInflateFilter(gzip, windowBits, dictionary, raw);
   }
 
   /// Process a chunk of data.
@@ -431,7 +434,7 @@ abstract interface class RawZLibFilter {
       bool raw);
 
   external static RawZLibFilter _makeZLibInflateFilter(
-      int windowBits, List<int>? dictionary, bool raw);
+      bool gzip, int windowBits, List<int>? dictionary, bool raw);
 }
 
 class _BufferSink extends ByteConversionSink {
@@ -471,10 +474,12 @@ class _ZLibEncoderSink extends _FilterSink {
 }
 
 class _ZLibDecoderSink extends _FilterSink {
-  _ZLibDecoderSink._(
-      ByteConversionSink sink, int windowBits, List<int>? dictionary, bool raw)
-      : super(sink,
-            RawZLibFilter._makeZLibInflateFilter(windowBits, dictionary, raw));
+  _ZLibDecoderSink._(ByteConversionSink sink, bool gzip, int windowBits,
+      List<int>? dictionary, bool raw)
+      : super(
+            sink,
+            RawZLibFilter._makeZLibInflateFilter(
+                gzip, windowBits, dictionary, raw));
 }
 
 class _FilterSink extends ByteConversionSink {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -35,7 +36,8 @@ mixin ErrorDetectionHelpers {
       DartType expectedStaticType,
       DartType actualStaticType,
       ErrorCode errorCode,
-      {Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
+      {Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+          whyNotPromoted}) {
     if (expectedStaticType is! VoidType &&
         checkForUseOfVoidResult(expression)) {
       return;
@@ -55,7 +57,8 @@ mixin ErrorDetectionHelpers {
   /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypeNotAssignableForArgument(Expression argument,
       {bool promoteParameterToNullable = false,
-      Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
+      Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+          whyNotPromoted}) {
     _checkForArgumentTypeNotAssignableForArgument(
       argument: argument is NamedExpression ? argument.expression : argument,
       parameter: argument.staticParameterElement,
@@ -69,7 +72,8 @@ mixin ErrorDetectionHelpers {
       DartType actualStaticType,
       DartType expectedStaticType,
       ErrorCode errorCode,
-      {Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
+      {Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+          whyNotPromoted}) {
     if (expectedStaticType is! VoidType &&
         checkForUseOfVoidResult(expression)) {
       return;
@@ -164,7 +168,8 @@ mixin ErrorDetectionHelpers {
   void checkForFieldInitializerNotAssignable(
       ConstructorFieldInitializer initializer, FieldElement fieldElement,
       {required bool isConstConstructor,
-      required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
+      required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+          whyNotPromoted}) {
     // prepare field type
     DartType fieldType = fieldElement.type;
     // prepare expression type
@@ -253,7 +258,8 @@ mixin ErrorDetectionHelpers {
     Expression index, {
     required ExecutableElement? readElement,
     required ExecutableElement? writeElement,
-    required Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
+    required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+        whyNotPromoted,
   }) {
     if (readElement is MethodElement) {
       var parameters = readElement.parameters;
@@ -293,7 +299,7 @@ mixin ErrorDetectionHelpers {
   /// analysis engine.
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
       SyntacticEntity errorEntity,
-      Map<DartType, NonPromotionReason>? whyNotPromoted);
+      Map<SharedTypeView<DartType>, NonPromotionReason>? whyNotPromoted);
 
   /// If an assignment from [type] to [context] is a case of an implicit 'call'
   /// method, returns the element of the 'call' method.
@@ -343,7 +349,8 @@ mixin ErrorDetectionHelpers {
     required Expression argument,
     required ParameterElement? parameter,
     required bool promoteParameterToNullable,
-    Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
+    Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+        whyNotPromoted,
   }) {
     var staticParameterType = parameter?.type;
     if (staticParameterType != null) {

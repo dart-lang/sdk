@@ -27,7 +27,6 @@ class DeprecatedLint extends LintRule {
   DeprecatedLint()
       : super(
           name: 'deprecated_lint',
-          categories: {LintRuleCategory.style},
           state: State.deprecated(),
           description: '',
           details: '',
@@ -38,7 +37,6 @@ class DeprecatedLintWithReplacement extends LintRule {
   DeprecatedLintWithReplacement()
       : super(
           name: 'deprecated_lint_with_replacement',
-          categories: {LintRuleCategory.style},
           state: State.deprecated(replacedBy: 'replacing_lint'),
           description: '',
           details: '',
@@ -49,7 +47,6 @@ class DeprecatedSince3Lint extends LintRule {
   DeprecatedSince3Lint()
       : super(
           name: 'deprecated_since_3_lint',
-          categories: {LintRuleCategory.style},
           state: State.deprecated(since: dart3),
           description: '',
           details: '',
@@ -293,7 +290,6 @@ class RemovedIn2_12Lint extends LintRule {
   RemovedIn2_12Lint()
       : super(
           name: 'removed_in_2_12_lint',
-          categories: {LintRuleCategory.style},
           state: State.removed(since: dart2_12),
           description: '',
           details: '',
@@ -304,7 +300,6 @@ class ReplacedLint extends LintRule {
   ReplacedLint()
       : super(
           name: 'replaced_lint',
-          categories: {LintRuleCategory.style},
           state: State.removed(since: dart3, replacedBy: 'replacing_lint'),
           description: '',
           details: '',
@@ -315,7 +310,6 @@ class ReplacingLint extends LintRule {
   ReplacingLint()
       : super(
           name: 'replacing_lint',
-          categories: {LintRuleCategory.style},
           description: '',
           details: '',
         );
@@ -325,7 +319,6 @@ class RuleNeg extends LintRule {
   RuleNeg()
       : super(
           name: 'rule_neg',
-          categories: {LintRuleCategory.style},
           description: '',
           details: '',
         );
@@ -338,7 +331,6 @@ class RulePos extends LintRule {
   RulePos()
       : super(
           name: 'rule_pos',
-          categories: {LintRuleCategory.style},
           description: '',
           details: '',
         );
@@ -351,7 +343,6 @@ class StableLint extends LintRule {
   StableLint()
       : super(
           name: 'stable_lint',
-          categories: {LintRuleCategory.style},
           state: State.stable(),
           description: '',
           details: '',

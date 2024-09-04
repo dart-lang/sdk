@@ -34,13 +34,12 @@ class BadTwo {
 ''';
 
 class AvoidUnusedConstructorParameters extends LintRule {
-  AvoidUnusedConstructorParameters() : super(
-            name: 'avoid_unused_constructor_parameters',
-            description: _desc,
-            details: _details,
-            // TODO(srawlins): This isn't even just about unintentional syntax;
-            // unused parameters can represent code bloat.
-            categories: {LintRuleCategory.unintentional});
+  AvoidUnusedConstructorParameters()
+      : super(
+          name: 'avoid_unused_constructor_parameters',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_unused_constructor_parameters;

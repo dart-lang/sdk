@@ -18,7 +18,7 @@ class ConstructorFieldInitializerResolutionTest
     extends PubPackageResolutionTest {
   test_fieldOfAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int get foo;
@@ -26,7 +26,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   final int _foo;

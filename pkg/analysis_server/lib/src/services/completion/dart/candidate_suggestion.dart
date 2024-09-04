@@ -6,6 +6,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -66,19 +67,88 @@ final class ClosureSuggestion extends CandidateSuggestion {
   /// Whether a trailing comma should be included in the suggestion.
   final bool includeTrailingComma;
 
+  /// Whether the code for the closure is a block or an expression.
+  final bool useBlockStatement;
+
+  /// Whether types should be specified whenever possible.
+  final bool includeTypes;
+
+  /// The identation to be used for a multi-line completion.
+  final String indent;
+
+  // Indicates whether _completion, _displayText, and _selectionOffset have been initialized.
+  bool _initialized = false;
+
+  late String _displayText;
+
+  late int _selectionOffset;
+
+  late String _completion;
+
   /// Initialize a newly created candidate suggestion to suggest a closure that
   /// conforms to the given [functionType].
   ///
   /// If [includeTrailingComma] is `true`, then the replacement will include a
   /// trailing comma.
-  ClosureSuggestion(
-      {required this.functionType,
-      required this.includeTrailingComma,
-      required super.matcherScore});
+  ClosureSuggestion({
+    required this.functionType,
+    required this.includeTrailingComma,
+    required super.matcherScore,
+    required this.includeTypes,
+    required this.indent,
+    this.useBlockStatement = true,
+  });
 
   @override
-  // TODO(brianwilkerson): Fix this.
-  String get completion => '() {}${includeTrailingComma ? ', ' : ''}';
+  String get completion {
+    _init();
+    return _completion;
+  }
+
+  /// Text to be displayed in a completion pop-up.
+  String get displayText {
+    _init();
+    return _displayText;
+  }
+
+  /// The offset, from the beginning of the inserted text, where the cursor
+  /// should be positioned.
+  int get selectionOffset {
+    _init();
+    return _selectionOffset;
+  }
+
+  void _init() {
+    if (_initialized) {
+      return;
+    }
+    var parametersString = buildClosureParameters(functionType,
+        includeTypes: includeTypes, includeKeywords: true);
+    // Build a short version of the parameter string without keywords or types
+    // for the completion label because they're less useful there and may push
+    // the end of the completion (`=>` vs `() {}`) off the end.
+    var parametersDisplayString = buildClosureParameters(functionType,
+        includeKeywords: false, includeTypes: false);
+
+    var stringBuffer = StringBuffer(parametersString);
+    if (useBlockStatement) {
+      _displayText = '$parametersDisplayString {}';
+      stringBuffer.writeln(' {');
+      stringBuffer.write('$indent  ');
+      _selectionOffset = stringBuffer.length;
+      stringBuffer.writeln();
+      stringBuffer.write('$indent}');
+    } else {
+      _displayText = '$parametersDisplayString =>';
+      stringBuffer.write(' => ');
+      _selectionOffset = stringBuffer.length;
+    }
+    if (includeTrailingComma) {
+      stringBuffer.write(',');
+    }
+    _completion = stringBuffer.toString();
+    _initialized = true;
+  }
 }
 
 /// The information about a candidate suggestion based on a constructor.
@@ -117,7 +187,25 @@ final class ConstructorSuggestion extends ImportableSuggestion
   }) : assert((isTearOff ? 1 : 0) | (isRedirect ? 1 : 0) < 2);
 
   @override
-  String get completion => '$completionPrefix${element.displayName}';
+  String get completion {
+    var enclosingClass = element.enclosingElement3.augmented.declaration;
+
+    var className = enclosingClass.name;
+
+    var completion = element.name;
+    if (completion.isEmpty && suggestUnnamedAsNew) {
+      completion = 'new';
+    }
+
+    if (!hasClassName) {
+      if (completion.isEmpty) {
+        completion = className;
+      } else {
+        completion = '$className.$completion';
+      }
+    }
+    return completion;
+  }
 }
 
 abstract interface class ElementBasedSuggestion {
@@ -146,7 +234,7 @@ final class EnumConstantSuggestion extends ImportableSuggestion
   @override
   String get completion {
     if (includeEnumName) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       return '$completionPrefix${enclosingElement.name}.${element.name}';
     } else {
       return element.name;
@@ -508,7 +596,7 @@ mixin MemberSuggestion implements ElementBasedSuggestion {
     var inheritanceDistance = 0.0;
     var element = this.element;
     if (!(element is FieldElement && element.isEnumConstant)) {
-      var declaringClass = element.enclosingElement;
+      var declaringClass = element.enclosingElement3;
       var referencingInterface = this.referencingInterface;
       if (referencingInterface != null && declaringClass is InterfaceElement) {
         inheritanceDistance = featureComputer.inheritanceDistanceFeature(
@@ -641,15 +729,49 @@ final class PropertyAccessSuggestion extends ImportableSuggestion
   @override
   final InterfaceElement? referencingInterface;
 
+  /// Whether the accessor is being invoked with a target.
+  final bool withEnclosingName;
+
   /// Initialize a newly created candidate suggestion to suggest the [element].
   PropertyAccessSuggestion(
       {required this.element,
       required super.importData,
       required this.referencingInterface,
-      required super.matcherScore});
+      required super.matcherScore,
+      this.withEnclosingName = false});
 
   @override
-  String get completion => element.name;
+  String get completion {
+    var prefix = _enclosingPrefix;
+    if (prefix.isNotEmpty) {
+      return '$prefix${element.displayName}';
+    }
+    return element.displayName;
+  }
+
+  /// Return the name of the enclosing class or extension.
+  ///
+  /// The enclosing element must be either a class, or extension; otherwise
+  /// we either fail with assertion, or return `null`.
+  String? get _enclosingClassOrExtensionName {
+    var enclosing = element.enclosingElement3;
+    if (enclosing is InterfaceElement) {
+      return enclosing.name;
+    } else if (enclosing is ExtensionElement) {
+      return enclosing.name;
+    } else {
+      assert(false, 'Expected ClassElement or ExtensionElement');
+      return null;
+    }
+  }
+
+  String get _enclosingPrefix {
+    if (withEnclosingName) {
+      var enclosingName = _enclosingClassOrExtensionName;
+      return enclosingName != null ? '$enclosingName.' : '';
+    }
+    return '';
+  }
 }
 
 /// The information about a candidate suggestion based on a field in a record
@@ -693,6 +815,75 @@ final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion {
   String get completion => field.name;
 }
 
+/// The information about a candidate suggestion for Flutter's `setState` method.
+final class SetStateMethodSuggestion extends ExecutableSuggestion
+    with MemberSuggestion {
+  @override
+  final MethodElement element;
+
+  late String _completion;
+
+  /// The element defined by the declaration in which the suggestion is to be
+  /// applied, or `null` if the completion is in a static context.
+  @override
+  final InterfaceElement? referencingInterface;
+
+  /// The identation to be used for a multi-line completion.
+  final String indent;
+
+  // Indicates whether _completion, _displayText, and _selectionOffset have been initialized.
+  bool _initialized = false;
+
+  late int _selectionOffset;
+
+  late String _displayText;
+
+  /// Initialize a newly created candidate suggestion to suggest the [element].
+  SetStateMethodSuggestion(
+      {required this.element,
+      required super.importData,
+      required this.referencingInterface,
+      required super.matcherScore,
+      required this.indent,
+      super.kind = CompletionSuggestionKind.INVOCATION});
+
+  @override
+  String get completion {
+    _init();
+    return _completion;
+  }
+
+  /// Text to be displayed in a completion pop-up.
+  String get displayText {
+    _init();
+    return _displayText;
+  }
+
+  /// The offset, from the beginning of the inserted text, where the cursor
+  /// should be positioned.
+  int get selectionOffset {
+    _init();
+    return _selectionOffset;
+  }
+
+  void _init() {
+    if (_initialized) {
+      return;
+    }
+    // Build the completion and the selection offset.
+    var buffer = StringBuffer();
+    buffer.writeln('setState(() {');
+    buffer.write('$indent  ');
+    _selectionOffset = buffer.length;
+    buffer.writeln();
+    buffer.write('$indent});');
+    _completion = buffer.toString();
+    _displayText = 'setState(() {});';
+
+    _initialized = true;
+  }
+}
+
 /// The information about a candidate suggestion based on a static field in a
 /// location where the name of the field must be qualified by the name of the
 /// enclosing element.
@@ -709,7 +900,7 @@ final class StaticFieldSuggestion extends ImportableSuggestion
 
   @override
   String get completion {
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     return '$completionPrefix${enclosingElement.name}.${element.name}';
   }
 }
@@ -865,11 +1056,18 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         suggestInterface(suggestion.element,
             prefix: suggestion.prefix, relevance: relevance);
       case ClosureSuggestion():
-        suggestClosure(suggestion.functionType,
-            includeTrailingComma: suggestion.includeTrailingComma);
+        suggestClosure(
+            completion: suggestion.completion,
+            displayText: suggestion.displayText,
+            selectionOffset: suggestion.selectionOffset);
       case ConstructorSuggestion():
+        var completion = suggestion.completion;
+        if (completion.isEmpty) {
+          break;
+        }
         suggestConstructor(suggestion.element,
             hasClassName: suggestion.hasClassName,
+            completion: completion,
             kind: suggestion.isRedirect || suggestion.isTearOff
                 ? CompletionSuggestionKind.IDENTIFIER
                 : CompletionSuggestionKind.INVOCATION,
@@ -982,6 +1180,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           suggestion.element,
           inheritanceDistance: inheritanceDistance,
           relevance: relevance,
+          completion: suggestion.completion,
         );
       case RecordFieldSuggestion():
         suggestRecordField(
@@ -993,6 +1192,18 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           suggestion.field,
           appendColon: suggestion.appendColon,
           appendComma: suggestion.appendComma,
+        );
+      case SetStateMethodSuggestion():
+        var inheritanceDistance =
+            suggestion.inheritanceDistance(request.featureComputer);
+        suggestSetStateMethod(
+          suggestion.element,
+          kind: suggestion.kind,
+          completion: suggestion.completion,
+          displayText: suggestion.displayText,
+          selectionOffset: suggestion.selectionOffset,
+          inheritanceDistance: inheritanceDistance,
+          relevance: relevance,
         );
       case StaticFieldSuggestion():
         suggestStaticField(suggestion.element,

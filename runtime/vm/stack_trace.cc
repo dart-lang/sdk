@@ -90,6 +90,7 @@ class AsyncAwareStackUnwinder : public ValueObject {
         encountered_async_catch_error_(encountered_async_catch_error),
         closure_(Closure::Handle(zone_)),
         code_(Code::Handle(zone_)),
+        bytecode_(Bytecode::Handle(zone_)),
         context_(Context::Handle(zone_)),
         function_(Function::Handle(zone_)),
         parent_function_(Function::Handle(zone_)),
@@ -100,7 +101,9 @@ class AsyncAwareStackUnwinder : public ValueObject {
         subscription_(Object::Handle(zone_)),
         stream_iterator_(Object::Handle(zone_)),
         async_lib_(Library::Handle(zone_, Library::AsyncLibrary())),
-        null_closure_(Closure::Handle(zone_)) {
+        null_closure_(Closure::Handle(zone_)),
+        null_code_(Code::Handle(zone_)),
+        null_bytecode_(Bytecode::Handle(zone_)) {
     if (encountered_async_catch_error_ != nullptr) {
       *encountered_async_catch_error_ = false;
     }
@@ -259,6 +262,7 @@ class AsyncAwareStackUnwinder : public ValueObject {
 
   Closure& closure_;
   Code& code_;
+  Bytecode& bytecode_;
   Context& context_;
   Function& function_;
   Function& parent_function_;
@@ -275,6 +279,8 @@ class AsyncAwareStackUnwinder : public ValueObject {
   Field* fields_[kUsedFieldCount] = {};
 
   const Closure& null_closure_;
+  const Code& null_code_;
+  const Bytecode& null_bytecode_;
 
   DISALLOW_COPY_AND_ASSIGN(AsyncAwareStackUnwinder);
 };
@@ -294,16 +300,27 @@ void AsyncAwareStackUnwinder::Unwind(
   while (sync_frame_ != nullptr && awaiter_frame_.closure.IsNull()) {
     const bool was_handled = HandleSynchronousFrame();
     if (!was_handled) {
-      code_ = sync_frame_->LookupDartCode();
-      const uword pc_offset = sync_frame_->pc() - code_.PayloadStart();
-      handle_frame({sync_frame_, code_, pc_offset, null_closure_});
+      if (sync_frame_->is_interpreted()) {
+        bytecode_ = sync_frame_->LookupDartBytecode();
+        if (bytecode_.function() == Function::null()) {
+          continue;
+        }
+        const uword pc_offset = sync_frame_->pc() - bytecode_.PayloadStart();
+        handle_frame(
+            {sync_frame_, null_code_, bytecode_, pc_offset, null_closure_});
+      } else {
+        code_ = sync_frame_->LookupDartCode();
+        const uword pc_offset = sync_frame_->pc() - code_.PayloadStart();
+        handle_frame(
+            {sync_frame_, code_, null_bytecode_, pc_offset, null_closure_});
+      }
     }
     sync_frame_ = sync_frames_.NextFrame();
   }
 
-  const StackTraceUtils::Frame gap_frame = {nullptr,
-                                            StubCode::AsynchronousGapMarker(),
-                                            /*pc_offset=*/0, null_closure_};
+  const StackTraceUtils::Frame gap_frame = {
+      nullptr, StubCode::AsynchronousGapMarker(), null_bytecode_,
+      /*pc_offset=*/0, null_closure_};
 
   // Traverse awaiter frames.
   bool any_async = false;
@@ -336,7 +353,8 @@ void AsyncAwareStackUnwinder::Unwind(
     }
 
     handle_frame(gap_frame);
-    handle_frame({nullptr, code_, pc_offset, awaiter_frame_.closure});
+    handle_frame(
+        {nullptr, code_, null_bytecode_, pc_offset, awaiter_frame_.closure});
   }
 
   if (any_async) {
@@ -366,10 +384,14 @@ bool AsyncAwareStackUnwinder::HandleSynchronousFrame() {
   if (function_.HasAwaiterLink()) {
     object_ = GetReceiver();
     if (object_.IsClosure() &&
-        StackTraceUtils::GetSuspendState(Closure::Cast(object_),
-                                         &awaiter_frame_.next)) {
-      awaiter_frame_.closure ^= object_.ptr();
-      return true;  // Hide this frame from the stack trace.
+        TryGetAwaiterLink(Closure::Cast(object_), &awaiter_frame_.next)) {
+      if (awaiter_frame_.next.IsSuspendState()) {
+        awaiter_frame_.closure ^= object_.ptr();
+        return true;  // Hide this frame from the stack trace.
+      } else if (awaiter_frame_.next.GetClassId() == _Future().id()) {
+        UnwindFrameToFutureListener();
+        return false;  // Do not hide this from the stack trace.
+      }
     }
   }
 

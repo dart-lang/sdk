@@ -46,10 +46,10 @@ void main() async {
 class UnawaitedFutures extends LintRule {
   UnawaitedFutures()
       : super(
-            name: 'unawaited_futures',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'unawaited_futures',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unawaited_futures;
@@ -126,7 +126,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _isMapPutIfAbsentInvocation(Expression expr) =>
       expr is MethodInvocation &&
       expr.methodName.name == 'putIfAbsent' &&
-      _isMapClass(expr.methodName.staticElement?.enclosingElement);
+      _isMapClass(expr.methodName.staticElement?.enclosingElement3);
 
   void _visit(Expression expr) {
     if ((expr.staticType?.isDartAsyncFuture ?? false) &&

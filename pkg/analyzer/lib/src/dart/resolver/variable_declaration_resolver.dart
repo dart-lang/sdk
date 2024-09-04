@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -51,14 +52,16 @@ class VariableDeclarationResolver {
             element.shouldUseTypeForInitializerInference
         ? element.type
         : UnknownInferredType.instance;
-    _resolver.analyzeExpression(initializer, contextType);
+    _resolver.analyzeExpression(initializer, SharedTypeSchemaView(contextType));
     initializer = _resolver.popRewrite()!;
     var whyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(initializer);
 
     var initializerType = initializer.typeOrThrow;
     if (parent.type == null && element is LocalVariableElementImpl) {
-      element.type = _resolver.variableTypeFromInitializerType(initializerType);
+      element.type = _resolver
+          .variableTypeFromInitializerType(SharedTypeView(initializerType))
+          .unwrapTypeView();
     }
 
     if (isTopLevel) {
