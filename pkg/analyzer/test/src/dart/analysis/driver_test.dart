@@ -3065,45 +3065,6 @@ class B {}
 ''');
   }
 
-  test_getResolvedUnit_augmentation_library() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'package:test/a.dart';
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    collector.getResolvedUnit('B1', b);
-    collector.getResolvedUnit('A1', a);
-
-    // Note, the library is resolved only once.
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/b.dart
-  library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
-[future] getResolvedUnit B1
-  ResolvedUnitResult #1
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: exists isAugmentation
-[stream]
-  ResolvedUnitResult #1
-[status] idle
-''');
-  }
-
   test_getResolvedUnit_importLibrary_thenRemoveIt() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {}''');
@@ -3233,45 +3194,6 @@ part of 'a.dart';
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
-[status] idle
-''');
-  }
-
-  test_getResolvedUnit_library_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'package:test/a.dart';
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    collector.getResolvedUnit('A1', a);
-    collector.getResolvedUnit('B1', b);
-
-    // Note, the library is resolved only once.
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/a.dart
-  library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
-[future] getResolvedUnit B1
-  ResolvedUnitResult #1
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: exists isAugmentation
-[stream]
-  ResolvedUnitResult #1
 [status] idle
 ''');
   }

@@ -15,63 +15,6 @@ main() {
 
 @reflectiveTest
 class UndefinedClassTest extends PubPackageResolutionTest {
-  test_augmentation_exists_uriGenerated_nameIgnorable() async {
-    newFile('$testPackageLibPath/a.g.dart', r'''
-augment library 'test.dart';
-''');
-
-    await assertErrorsInCode(r'''
-import augment 'a.g.dart';
-
-_$A a;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 28, 3),
-    ]);
-  }
-
-  test_augmentation_notExist_uriGenerated_nameIgnorable() async {
-    await assertErrorsInCode(r'''
-import augment 'a.g.dart';
-
-_$A a;
-''', [
-      error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 15, 10),
-    ]);
-  }
-
-  test_augmentation_notExist_uriGenerated_nameNotIgnorable() async {
-    await assertErrorsInCode(r'''
-import augment 'a.g.dart';
-
-A a;
-''', [
-      error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 15, 10),
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 28, 1),
-    ]);
-  }
-
-  test_augmentation_notExist_uriNotGenerated_nameIgnorable() async {
-    await assertErrorsInCode(r'''
-import augment 'a.dart';
-
-_$A a;
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 15, 8),
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 26, 3),
-    ]);
-  }
-
-  test_augmentation_notExist_uriNotGenerated_nameNotIgnorable() async {
-    await assertErrorsInCode(r'''
-import augment 'a.dart';
-
-A a;
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 15, 8),
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 26, 1),
-    ]);
-  }
-
   test_const() async {
     await assertErrorsInCode(r'''
 f() {
