@@ -228,12 +228,8 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
   @override
   w.FunctionType visitField(Field node, Reference target) {
     if (!node.isInstanceMember) {
-      if (target == node.fieldReference) {
-        // Static field initializer function
-        return _makeFunctionType(translator, target, null);
-      }
-      String kind = target == node.setterReference ? "setter" : "getter";
-      throw "No implicit $kind function for static field: $node";
+      // Static field initializer function or implicit getter/setter.
+      return _makeFunctionType(translator, target, null);
     }
     assert(!translator.dispatchTable
         .selectorForTarget(target)
@@ -465,6 +461,19 @@ w.FunctionType _makeFunctionType(
     {bool isImportOrExport = false}) {
   Member member = target.asMember;
 
+  if (member is Field && !member.isInstanceMember) {
+    final isGetter = target.isImplicitGetter;
+    final isSetter = target.isImplicitSetter;
+    if (isGetter || isSetter) {
+      final global = translator.globals.getGlobalForStaticField(member);
+      final globalType = global.type.type;
+      if (isGetter) {
+        return translator.typesBuilder.defineFunction(const [], [globalType]);
+      }
+      return translator.typesBuilder.defineFunction([globalType], const []);
+    }
+  }
+
   // Translate types differently for imports and exports.
   w.ValueType translateType(DartType type) => isImportOrExport
       ? translator.translateExternalType(type)
@@ -473,6 +482,7 @@ w.FunctionType _makeFunctionType(
   final List<w.ValueType> inputs = _getInputTypes(
       translator, target, receiverType, isImportOrExport, translateType);
 
+  // Setters don't have an output with the exception of static implicit setters.
   final bool emptyOutputList =
       (member is Field && member.setterReference == target) ||
           (member is Procedure && member.isSetter);

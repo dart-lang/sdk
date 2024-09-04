@@ -10,6 +10,7 @@ abstract class Global with Indexable implements Exportable {
   final FinalizableIndex finalizableIndex;
   final GlobalType type;
   final ModuleBuilder enclosingModule;
+  String? exportedName;
 
   /// Name of the global in the names section.
   final String? globalName;
@@ -21,7 +22,11 @@ abstract class Global with Indexable implements Exportable {
   String toString() => globalName ?? "$finalizableIndex";
 
   @override
-  Export export(String name) => GlobalExport(name, this);
+  Export export(String name) {
+    assert(exportedName == null);
+    exportedName = name;
+    return GlobalExport(name, this);
+  }
 }
 
 /// A global variable defined in a module.

@@ -1061,9 +1061,8 @@ class Intrinsifier {
         StaticTearOffConstant func = f.constant as StaticTearOffConstant;
         w.BaseFunction wasmFunction =
             translator.functions.getFunction(func.targetReference);
-        w.Global functionRef = translator.makeFunctionRef(wasmFunction);
-        b.global_get(functionRef);
-        return functionRef.type.type;
+        return translator.globals
+            .readGlobal(b, translator.makeFunctionRef(b.module, wasmFunction));
       }
 
       // Wasm(AnyRef|FuncRef|EqRef|StructRef|I32|I64|F32|F64) constructors

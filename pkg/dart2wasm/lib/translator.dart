@@ -129,7 +129,8 @@ class Translator with KernelNodes {
 
   /// Internalized strings to move to the JS runtime
   final List<String> internalizedStringsForJSRuntime = [];
-  final Map<String, w.Global> _internalizedStringGlobals = {};
+  final Map<(w.ModuleBuilder, String), w.Global> _internalizedStringGlobals =
+      {};
 
   final Map<w.HeapType, ClassInfo> classForHeapType = {};
   final Map<Field, int> fieldIndex = {};
@@ -568,6 +569,7 @@ class Translator with KernelNodes {
     if (type is FunctionType) {
       ClosureRepresentation? representation =
           closureLayouter.getClosureRepresentation(
+              mainModule,
               type.typeParameters.length,
               type.positionalParameters.length,
               type.namedParameters.map((p) => p.name).toList());
@@ -631,9 +633,11 @@ class Translator with KernelNodes {
     return w.RefType.any(nullable: true);
   }
 
-  w.Global makeFunctionRef(w.BaseFunction f) {
+  /// Creates a global reference to [f] in [module]. [f] must also be located
+  /// in [module].
+  w.Global makeFunctionRef(w.ModuleBuilder module, w.BaseFunction f) {
     return functionRefCache.putIfAbsent(f, () {
-      final global = m.globals.define(
+      final global = module.globals.define(
           w.GlobalType(w.RefType.def(f.type, nullable: false), mutable: false));
       global.initializer.ref_func(f);
       global.initializer.end();
@@ -652,6 +656,7 @@ class Translator with KernelNodes {
 
   ClosureImplementation getClosure(FunctionNode functionNode,
       w.BaseFunction target, ParameterInfo paramInfo, String name) {
+    final targetModule = target.enclosingModule;
     // The target function takes an extra initial parameter if it's a function
     // expression / local function (which takes a context) or a tear-off of an
     // instance method (which takes a receiver).
@@ -673,8 +678,9 @@ class Translator with KernelNodes {
             paramInfo.typeParamCount +
             paramInfo.positional.length +
             paramInfo.named.length);
-    ClosureRepresentation representation = closureLayouter
-        .getClosureRepresentation(typeCount, positionalCount, names)!;
+    ClosureRepresentation representation =
+        closureLayouter.getClosureRepresentation(
+            targetModule, typeCount, positionalCount, names)!;
     assert(representation.vtableStruct.fields.length ==
         representation.vtableBaseIndex +
             (1 + positionalCount) +
@@ -728,7 +734,8 @@ class Translator with KernelNodes {
 
     w.BaseFunction makeTrampoline(
         w.FunctionType signature, int posArgCount, List<String> argNames) {
-      final trampoline = m.functions.define(signature, "$name trampoline");
+      final trampoline =
+          targetModule.functions.define(signature, "$name trampoline");
       compilationQueue.add(CompilationTask(
           trampoline,
           _ClosureTrampolineGenerator(this, trampoline, target, typeCount,
@@ -737,7 +744,7 @@ class Translator with KernelNodes {
     }
 
     w.BaseFunction makeDynamicCallEntry() {
-      final function = m.functions.define(
+      final function = targetModule.functions.define(
           dynamicCallVtableEntryFunctionType, "$name dynamic call entry");
       compilationQueue.add(CompilationTask(
           function,
@@ -754,21 +761,24 @@ class Translator with KernelNodes {
       w.FunctionType signature = representation.getVtableFieldType(fieldIndex);
       w.BaseFunction function = canBeCalledWith(posArgCount, argNames)
           ? makeTrampoline(signature, posArgCount, argNames)
-          : globals.getDummyFunction(signature);
+          : globals.getDummyFunction(ib.module, signature);
       functions.add(function);
       ib.ref_func(function);
     }
 
-    final vtable = m.globals.define(w.GlobalType(
+    final vtable = targetModule.globals.define(w.GlobalType(
         w.RefType.def(representation.vtableStruct, nullable: false),
         mutable: false));
     final ib = vtable.initializer;
     final dynamicCallEntry = makeDynamicCallEntry();
     ib.ref_func(dynamicCallEntry);
     if (representation.isGeneric) {
-      ib.ref_func(representation.instantiationTypeComparisonFunction);
-      ib.ref_func(representation.instantiationTypeHashFunction);
-      ib.ref_func(representation.instantiationFunction);
+      ib.ref_func(representation.instantiationTypeComparisonFunctionForModule(
+          this, ib.module));
+      ib.ref_func(representation.instantiationTypeHashFunctionForModule(
+          this, ib.module));
+      ib.ref_func(
+          representation.instantiationFunctionForModule(this, ib.module));
     }
     for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
       fillVtableEntry(ib, posArgCount, const []);
@@ -780,7 +790,7 @@ class Translator with KernelNodes {
     ib.end();
 
     return ClosureImplementation(
-        representation, functions, dynamicCallEntry, vtable);
+        representation, functions, dynamicCallEntry, vtable, targetModule);
   }
 
   w.ValueType outputOrVoid(List<w.ValueType> outputs) {
@@ -1180,15 +1190,15 @@ class Translator with KernelNodes {
   ClassInfo getRecordClassInfo(RecordType recordType) =>
       classInfo[recordClasses[RecordShape.fromType(recordType)]!]!;
 
-  w.Global getInternalizedStringGlobal(String s) {
-    w.Global? internalizedString = _internalizedStringGlobals[s];
+  w.Global getInternalizedStringGlobal(w.ModuleBuilder module, String s) {
+    w.Global? internalizedString = _internalizedStringGlobals[(module, s)];
     if (internalizedString != null) {
       return internalizedString;
     }
     final i = internalizedStringsForJSRuntime.length;
-    internalizedString = m.globals.import('s', '$i',
+    internalizedString = module.globals.import('s', '$i',
         w.GlobalType(w.RefType.extern(nullable: true), mutable: false));
-    _internalizedStringGlobals[s] = internalizedString;
+    _internalizedStringGlobals[(module, s)] = internalizedString;
     internalizedStringsForJSRuntime.add(s);
     return internalizedString;
   }
