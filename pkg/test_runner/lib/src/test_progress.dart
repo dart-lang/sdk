@@ -378,7 +378,7 @@ class FailedTestsPrinter extends EventListener {
     Terminal.print('');
     Terminal.print('=== Failed tests ===');
     for (var test in _failedTests) {
-      var result = test.realResult.toString();
+      var result = test.result.toString();
       if (test.realExpected != Expectation.pass) {
         result += ' (expected ${test.realExpected})';
       }
@@ -688,9 +688,9 @@ class ResultWriter extends EventListener {
       "suite": suite,
       "test_name": testName,
       "time_ms": time.inMilliseconds,
-      "result": test.realResult.toString(),
+      "result": test.result.toString(),
       "expected": test.realExpected.toString(),
-      "matches": test.realResult.canBeOutcomeOf(test.realExpected),
+      "matches": test.result.canBeOutcomeOf(test.realExpected),
       if (experiments.isNotEmpty) "experiments": experiments,
     };
     _results.add(record);
