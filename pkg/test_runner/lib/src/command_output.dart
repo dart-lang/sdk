@@ -919,6 +919,28 @@ class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
       super.stdout, super.stderr, super.time, super.compilationSkipped);
 
   @override
+  Expectation result(TestCase testCase) {
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
+
+    switch (exitCode) {
+      case VMCommandOutput._dfeErrorExitCode:
+        return Expectation.dartkCrash;
+      case VMCommandOutput._compileErrorExitCode:
+        if (testCase.testFile.isStaticErrorTest) {
+          return _validateExpectedErrors(testCase);
+        }
+        return Expectation.compileTimeError;
+      case VMCommandOutput._uncaughtExceptionExitCode:
+        return Expectation.crash;
+      default:
+        return exitCode != 0 ? Expectation.fail : Expectation.pass;
+    }
+  }
+
+  @override
   void _parseErrors() {
     var errors = <StaticError>[];
     // We expect errors to be printed to `stderr` for dart2wasm.

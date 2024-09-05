@@ -144,8 +144,9 @@ void main() {
   toggleBool();
   Expect.equals(boolReturn(789), false);
 
-  final Pointer<MyStruct> structPointer = getStruct();
-  final MyStruct struct = structPointer.ref;
+  final Pointer<dynamic> structPointer = getStruct();
+  Expect.isTrue(structPointer is Pointer<MyStruct>);
+  final MyStruct struct = (structPointer as Pointer<MyStruct>).ref;
   Expect.equals(struct.x, 1.0);
   Expect.equals(struct.y, 2);
   // Structs are Dart objects that are views on top of actual memory (which may

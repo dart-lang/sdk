@@ -71,6 +71,12 @@ number, like `.`, `x`, or the `e` in scientific notation.
 
 [#56466]: https://github.com/dart-lang/sdk/issues/56466
 
+#### Dart format
+
+- Preserve type parameters on old-style function-typed formals that also use
+  `this.` or `super.`.
+- Correctly format imports with both `as` and `if` clauses.
+
 #### Wasm compiler (dart2wasm)
 
 - The condition `dart.library.js` is now false on conditional imports in

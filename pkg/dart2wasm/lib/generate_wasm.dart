@@ -47,17 +47,31 @@ Future<int> generateWasm(WasmCompilerOptions options,
           ? moduleNameToRelativeSourceMapUri
           : null;
 
-  CompilerOutput? output = await compileToModule(
-      options,
-      relativeSourceMapUrlMapper,
-      (message) => printDiagnosticMessage(message, errorPrinter));
+  CompilationResult result =
+      await compileToModule(options, relativeSourceMapUrlMapper, (message) {
+    printDiagnosticMessage(message, errorPrinter);
+  });
 
-  if (output == null) {
-    return 1;
+  // If the compilation to wasm failed we use appropriate exit codes recognized
+  // by our test infrastructure. We use the same exit codes as the VM does. See:
+  //    runtime/bin/error_exit.h:kDartFrontendErrorExitCode
+  //    runtime/bin/error_exit.h:kCompilationErrorExitCode
+  //    runtime/bin/error_exit.h:kErrorExitCode
+  if (result is! CompilationSuccess) {
+    if (result is CFECrashError) {
+      print('The compiler crashed with: ${result.error}');
+      print(result.stackTrace);
+      return 252;
+    }
+    if (result is CFECompileTimeErrors) {
+      return 254;
+    }
+
+    return 255;
   }
 
   final writeFutures = <Future>[];
-  output.wasmModules.forEach((moduleName, moduleInfo) {
+  result.wasmModules.forEach((moduleName, moduleInfo) {
     final (:moduleBytes, :sourceMap) = moduleInfo;
     final File outFile = File(moduleNameToWasmOutputFile(moduleName));
     outFile.parent.createSync(recursive: true);
@@ -72,7 +86,7 @@ Future<int> generateWasm(WasmCompilerOptions options,
 
   final jsFile = options.outputJSRuntimeFile ??
       path.setExtension(options.outputFile, '.mjs');
-  await File(jsFile).writeAsString(output.jsRuntime);
+  await File(jsFile).writeAsString(result.jsRuntime);
 
   return 0;
 }

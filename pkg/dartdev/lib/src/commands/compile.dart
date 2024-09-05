@@ -20,7 +20,7 @@ import '../sdk.dart';
 import '../utils.dart';
 
 const int genericErrorExitCode = 255;
-const int compileErrorExitCode = 64;
+const int compileErrorExitCode = 254;
 
 class Option {
   final String flag;
@@ -847,7 +847,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     ];
     try {
       final exitCode = await runProcess(dart2wasmCommand);
-      if (exitCode != 0) return compileErrorExitCode;
+      if (exitCode != 0) return exitCode;
     } catch (e, st) {
       log.stderr('Error: Wasm compilation failed');
       log.stderr(e.toString());

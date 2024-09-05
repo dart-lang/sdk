@@ -244,6 +244,9 @@
           "_internal/wasm/lib/int_common_patch.dart"
         ]
       },
+      "_boxed_bool": {
+        "uri": "_internal/wasm/lib/boxed_bool.dart"
+      },
       "_boxed_int": {
         "uri": "_internal/wasm/lib/boxed_int.dart"
       },
@@ -316,7 +319,8 @@
           "_internal/vm/lib/ffi_allocation_patch.dart",
           "_internal/vm/lib/ffi_dynamic_library_patch.dart",
           "_internal/vm/lib/ffi_native_type_patch.dart",
-          "_internal/vm/lib/ffi_struct_patch.dart"
+          "_internal/vm/lib/ffi_struct_patch.dart",
+          "_internal/wasm/lib/ffi_patch.dart"
         ]
       },
       "nativewrappers": {

@@ -28,7 +28,8 @@ mixin KernelNodes {
       index.getClass("dart:_compact_hash", "_ConstSet");
 
   // dart:core various classes
-  late final Class boxedBoolClass = index.getClass("dart:core", "_BoxedBool");
+  late final Class boxedBoolClass =
+      index.getClass("dart:_boxed_bool", "BoxedBool");
   late final Class boxedDoubleClass =
       index.getClass("dart:_boxed_double", "BoxedDouble");
   late final Class boxedIntClass =
@@ -148,7 +149,6 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:async", "_newAsyncSuspendState");
 
   // dart:ffi classes
-  late final Class ffiCompoundClass = index.getClass("dart:ffi", "_Compound");
   late final Class ffiPointerClass = index.getClass("dart:ffi", "Pointer");
 
   // dart:_wasm classes
@@ -231,7 +231,7 @@ mixin KernelNodes {
 
   // dart:core various procedures
   late final Procedure boxedBoolEquals =
-      index.getProcedure("dart:core", "_BoxedBool", "==");
+      index.getProcedure("dart:_boxed_bool", "BoxedBool", "==");
   late final Procedure boxedIntEquals =
       index.getProcedure("dart:_boxed_int", "BoxedInt", "==");
   late final Procedure objectHashCode =

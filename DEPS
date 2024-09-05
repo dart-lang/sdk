@@ -72,7 +72,7 @@ vars = {
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
   "d8_tag": "version:12.9.98",
-  "jsshell_tag": "version:127.0.2",
+  "jsshell_tag": "version:130.0",
   "jsc_tag": "version:282418",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
@@ -143,7 +143,7 @@ vars = {
   #   and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "f7bd4c42ad6015143f08931540631448048f692d", # disable tools/rev_sdk_deps.dart
+  "dart_style_rev": "003cb15b8d27e4a72eb25dba6f695cd2c7a6f4fb", # disable tools/rev_sdk_deps.dart
   "dartdoc_rev": "b4449742c0f7d7fa0179897cac163388e03236c2",
   "ecosystem_rev": "8626bffad30d08792f0acbc813391800838e8207",
   "file_rev": "855831c242a17c2dee163828d52710d9043c7c8d",
@@ -163,7 +163,7 @@ vars = {
   "matcher_rev": "d6d573d0f8d65b36550ce62aad3ce6b5e987b642",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mockito_rev": "eb4d1daa20c105c94ac29689c1975f0850fa18f2",
-  "native_rev": "5e9e4795d1faa39efeb92ae42fc0fa353778308f", # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
+  "native_rev": "e022fea9572390bd4f183492b6650209b49292c9", # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "76934c2ca25922ec72909bbff7dfbddaf0d02bd9",
   "path_rev": "e969f42ed112dd702a9453beb9df6c12ae2d3805",
   "pool_rev": "924fb04353cec915d927f9f1aed88e2eda92b98a",
