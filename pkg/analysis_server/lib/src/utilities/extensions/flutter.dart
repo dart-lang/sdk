@@ -317,6 +317,18 @@ extension ExpressionExtension on Expression {
     var self = this;
     return self is NamedExpression && self.name.label.name == 'children';
   }
+
+  /// Whether this is the `sliver` argument.
+  bool get isSliverArgument {
+    var self = this;
+    return self is NamedExpression && self.name.label.name == 'sliver';
+  }
+
+  /// Whether this is the `slivers` argument.
+  bool get isSliversArgument {
+    var self = this;
+    return self is NamedExpression && self.name.label.name == 'slivers';
+  }
 }
 
 extension InstanceCreationExpressionExtension on InstanceCreationExpression {
@@ -351,6 +363,18 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
         constructorName.staticElement?.enclosingElement3.augmented.declaration;
     return element.isWidget;
   }
+
+  /// The named expression representing the `sliver` argument, or `null` if there
+  /// is none.
+  NamedExpression? get sliverArgument => argumentList.arguments
+      .whereType<NamedExpression>()
+      .firstWhereOrNull((argument) => argument.isSliverArgument);
+
+  /// The named expression representing the `slivers` argument, or `null` if
+  /// there is none.
+  NamedExpression? get sliversArgument => argumentList.arguments
+      .whereType<NamedExpression>()
+      .firstWhereOrNull((argument) => argument.isSliversArgument);
 
   /// The presentation for this node.
   String? get widgetPresentationText {
