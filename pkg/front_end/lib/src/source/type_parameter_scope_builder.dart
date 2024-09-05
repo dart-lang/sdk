@@ -6,37 +6,158 @@ import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import 'name_scheme.dart';
+import 'source_extension_builder.dart';
 import 'source_field_builder.dart';
+import 'source_library_builder.dart';
 
-/// A builder object preparing for building declarations that can introduce type
-/// parameter and/or members.
-///
-/// Unlike [Scope], this scope is used during construction of builders to
-/// ensure types and members are added to and resolved in the correct location.
-class TypeParameterScopeBuilder {
-  final Map<String, Builder> members = {};
+class LibraryNameSpaceBuilder {
+  final Map<String, Builder> _members = {};
 
-  final Map<String, MemberBuilder> setters = {};
+  final Map<String, MemberBuilder> _setters = {};
 
-  final Set<ExtensionBuilder> extensions = {};
+  final Set<ExtensionBuilder> _extensions = {};
 
   final Map<String, List<Builder>> augmentations = {};
 
   final Map<String, List<Builder>> setterAugmentations = {};
 
-  NameSpace toNameSpace() {
-    return new NameSpaceImpl(
-        getables: members, setables: setters, extensions: extensions);
+  /// List of [PrefixBuilder]s for imports with prefixes.
+  List<PrefixBuilder>? _prefixBuilders;
+
+  late final NameSpace _nameSpace;
+
+  LibraryNameSpaceBuilder() {
+    _nameSpace = new NameSpaceImpl(
+        getables: _members, setables: _setters, extensions: _extensions);
   }
 
-  @override
-  String toString() => 'TypeParameterScopeBuilder(${hashCode})';
+  Iterable<Builder> get builders => [
+        ..._members.values,
+        ..._setters.values,
+        for (Builder builder in _extensions)
+          if (builder is SourceExtensionBuilder && builder.isUnnamedExtension)
+            builder
+      ];
+
+  Builder addBuilder(
+      SourceLibraryBuilder _parent,
+      ProblemReporting _problemReporting,
+      String name,
+      Builder declaration,
+      Uri fileUri,
+      int charOffset) {
+    if (declaration is SourceExtensionBuilder &&
+        declaration.isUnnamedExtension) {
+      declaration.parent = _parent;
+      _extensions.add(declaration);
+      return declaration;
+    }
+
+    if (declaration is MemberBuilder) {
+      declaration.parent = _parent;
+    } else if (declaration is TypeDeclarationBuilder) {
+      declaration.parent = _parent;
+    } else if (declaration is PrefixBuilder) {
+      assert(declaration.parent == _parent);
+    } else {
+      return unhandled(
+          "${declaration.runtimeType}", "addBuilder", charOffset, fileUri);
+    }
+
+    assert(
+        !(declaration is FunctionBuilder &&
+            (declaration.isConstructor || declaration.isFactory)),
+        // Coverage-ignore(suite): Not run.
+        "Unexpected constructor in library: $declaration.");
+
+    Map<String, Builder> members =
+        declaration.isSetter ? _setters : this._members;
+
+    Builder? existing = members[name];
+
+    if (existing == declaration) return declaration;
+
+    if (declaration.next != null && declaration.next != existing) {
+      unexpected(
+          "${declaration.next!.fileUri}@${declaration.next!.charOffset}",
+          "${existing?.fileUri}@${existing?.charOffset}",
+          declaration.charOffset,
+          declaration.fileUri);
+    }
+    declaration.next = existing;
+    if (declaration is PrefixBuilder && existing is PrefixBuilder) {
+      assert(existing.next is! PrefixBuilder);
+      Builder? deferred;
+      Builder? other;
+      if (declaration.deferred) {
+        deferred = declaration;
+        other = existing;
+      } else if (existing.deferred) {
+        deferred = existing;
+        other = declaration;
+      }
+      if (deferred != null) {
+        // Coverage-ignore-block(suite): Not run.
+        _problemReporting.addProblem(
+            templateDeferredPrefixDuplicated.withArguments(name),
+            deferred.charOffset,
+            noLength,
+            fileUri,
+            context: [
+              templateDeferredPrefixDuplicatedCause
+                  .withArguments(name)
+                  .withLocation(fileUri, other!.charOffset, noLength)
+            ]);
+      }
+      existing.mergeScopes(declaration, _problemReporting, _nameSpace,
+          uriOffset: new UriOffset(fileUri, charOffset));
+      return existing;
+    } else if (isDuplicatedDeclaration(existing, declaration)) {
+      String fullName = name;
+      _problemReporting.addProblem(
+          templateDuplicatedDeclaration.withArguments(fullName),
+          charOffset,
+          fullName.length,
+          declaration.fileUri!,
+          context: <LocatedMessage>[
+            templateDuplicatedDeclarationCause
+                .withArguments(fullName)
+                .withLocation(
+                    existing!.fileUri!, existing.charOffset, fullName.length)
+          ]);
+    } else if (declaration.isExtension) {
+      // We add the extension declaration to the extension scope only if its
+      // name is unique. Only the first of duplicate extensions is accessible
+      // by name or by resolution and the remaining are dropped for the output.
+      _extensions.add(declaration as SourceExtensionBuilder);
+    } else if (declaration.isAugment) {
+      if (existing != null) {
+        if (declaration.isSetter) {
+          (setterAugmentations[name] ??= []).add(declaration);
+        } else {
+          (augmentations[name] ??= []).add(declaration);
+        }
+      } else {
+        // TODO(cstefantsova): Report an error.
+      }
+    } else if (declaration is PrefixBuilder) {
+      _prefixBuilders ??= <PrefixBuilder>[];
+      _prefixBuilders!.add(declaration);
+    }
+    return members[name] = declaration;
+  }
+
+  List<PrefixBuilder>? get prefixBuilders => _prefixBuilders;
+
+  NameSpace toNameSpace() => _nameSpace;
 }
 
 class NominalParameterScope extends AbstractTypeParameterScope {

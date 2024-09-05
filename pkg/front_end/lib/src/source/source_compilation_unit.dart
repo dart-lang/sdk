@@ -83,7 +83,7 @@ class SourceCompilationUnitImpl
   final bool isUnsupported;
 
   SourceCompilationUnitImpl(this._sourceLibraryBuilder,
-      TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
+      LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       {required this.importUri,
       required this.fileUri,
       required Uri? packageUri,
@@ -107,10 +107,9 @@ class SourceCompilationUnitImpl
         compilationUnit: this,
         augmentationRoot: _sourceLibraryBuilder,
         parent: _sourceLibraryBuilder,
-        libraryTypeParameterScopeBuilder: libraryTypeParameterScopeBuilder,
+        libraryNameSpaceBuilder: libraryNameSpaceBuilder,
         problemReporting: this,
         scope: _scope,
-        nameSpace: _nameSpace,
         libraryName: _libraryName,
         indexedLibrary: indexedLibrary,
         omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders);
@@ -1052,17 +1051,8 @@ class SourceCompilationUnitImpl
       }
     }
 
-    for (Builder declaration in _builderFactoryResult.members) {
+    for (Builder declaration in _builderFactoryResult.builders) {
       computeDefaultValuesForDeclaration(declaration);
-    }
-    for (Builder declaration in _builderFactoryResult.setters) {
-      computeDefaultValuesForDeclaration(declaration);
-    }
-    for (ExtensionBuilder declaration in _builderFactoryResult.extensions) {
-      if (declaration is SourceExtensionBuilder &&
-          declaration.isUnnamedExtension) {
-        computeDefaultValuesForDeclaration(declaration);
-      }
     }
     return count;
   }
@@ -1162,7 +1152,7 @@ class SourceCompilationUnitImpl
   int computeVariances() {
     int count = 0;
 
-    for (Builder? declaration in _builderFactoryResult.members) {
+    for (Builder? declaration in _builderFactoryResult.builders) {
       while (declaration != null) {
         if (declaration is TypeAliasBuilder &&
             declaration.typeVariablesCount > 0) {

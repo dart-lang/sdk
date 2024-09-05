@@ -34,19 +34,15 @@ import '../base/modifier.dart'
         lateMask,
         namedMixinApplicationMask,
         staticMask;
-import '../base/name_space.dart';
-import '../base/problems.dart' show internalProblem, unexpected, unhandled;
+import '../base/problems.dart' show internalProblem, unhandled;
 import '../base/scope.dart';
-import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
@@ -90,7 +86,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   // the outline builder.
   final SourceLibraryBuilder _parent;
 
-  final TypeParameterScopeBuilder _libraryTypeParameterScopeBuilder;
+  final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
   /// Index of the library we use references for.
   final IndexedLibrary? indexedLibrary;
@@ -114,9 +110,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   final List<Export> exports = <Export>[];
 
-  /// List of [PrefixBuilder]s for imports with prefixes.
-  List<PrefixBuilder>? _prefixBuilders;
-
   /// Map from synthesized names used for omitted types to their corresponding
   /// synthesized type declarations.
   ///
@@ -136,8 +129,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   final LookupScope _scope;
 
-  final NameSpace _nameSpace;
-
   /// Index for building unique lowered names for wildcard variables.
   int wildcardVariableIndex = 0;
 
@@ -156,20 +147,18 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       {required SourceCompilationUnit compilationUnit,
       required SourceLibraryBuilder augmentationRoot,
       required SourceLibraryBuilder parent,
-      required TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
+      required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       required ProblemReporting problemReporting,
       required LookupScope scope,
-      required NameSpace nameSpace,
       required LibraryName libraryName,
       required IndexedLibrary? indexedLibrary,
       required Map<String, Builder>? omittedTypeDeclarationBuilders})
       : _compilationUnit = compilationUnit,
         _augmentationRoot = augmentationRoot,
-        _libraryTypeParameterScopeBuilder = libraryTypeParameterScopeBuilder,
+        _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _problemReporting = problemReporting,
         _parent = parent,
         _scope = scope,
-        _nameSpace = nameSpace,
         libraryName = libraryName,
         indexedLibrary = indexedLibrary,
         _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders,
@@ -2825,110 +2814,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   Builder _addBuilderToLibrary(
       String name, Builder declaration, int charOffset) {
     assert(_declarationFragments.isEmpty);
-    if (declaration is SourceExtensionBuilder &&
-        declaration.isUnnamedExtension) {
-      declaration.parent = _parent;
-      _libraryTypeParameterScopeBuilder.extensions.add(declaration);
-      return declaration;
-    }
-
-    if (declaration is MemberBuilder) {
-      declaration.parent = _parent;
-    } else if (declaration is TypeDeclarationBuilder) {
-      declaration.parent = _parent;
-    } else if (declaration is PrefixBuilder) {
-      assert(declaration.parent == _parent);
-    } else {
-      return unhandled("${declaration.runtimeType}", "addBuilder", charOffset,
-          _compilationUnit.fileUri);
-    }
-
-    assert(
-        !(declaration is FunctionBuilder &&
-            (declaration.isConstructor || declaration.isFactory)),
-        // Coverage-ignore(suite): Not run.
-        "Unexpected constructor in library: $declaration.");
-
-    Map<String, Builder> members = declaration.isSetter
-        ? _libraryTypeParameterScopeBuilder.setters
-        : _libraryTypeParameterScopeBuilder.members;
-
-    Builder? existing = members[name];
-
-    if (existing == declaration) return declaration;
-
-    if (declaration.next != null && declaration.next != existing) {
-      unexpected(
-          "${declaration.next!.fileUri}@${declaration.next!.charOffset}",
-          "${existing?.fileUri}@${existing?.charOffset}",
-          declaration.charOffset,
-          declaration.fileUri);
-    }
-    declaration.next = existing;
-    if (declaration is PrefixBuilder && existing is PrefixBuilder) {
-      assert(existing.next is! PrefixBuilder);
-      Builder? deferred;
-      Builder? other;
-      if (declaration.deferred) {
-        deferred = declaration;
-        other = existing;
-      } else if (existing.deferred) {
-        deferred = existing;
-        other = declaration;
-      }
-      if (deferred != null) {
-        // Coverage-ignore-block(suite): Not run.
-        _problemReporting.addProblem(
-            templateDeferredPrefixDuplicated.withArguments(name),
-            deferred.charOffset,
-            noLength,
-            _compilationUnit.fileUri,
-            context: [
-              templateDeferredPrefixDuplicatedCause
-                  .withArguments(name)
-                  .withLocation(
-                      _compilationUnit.fileUri, other!.charOffset, noLength)
-            ]);
-      }
-      existing.mergeScopes(declaration, _problemReporting, _nameSpace,
-          uriOffset: new UriOffset(_compilationUnit.fileUri, charOffset));
-      return existing;
-    } else if (isDuplicatedDeclaration(existing, declaration)) {
-      String fullName = name;
-      _problemReporting.addProblem(
-          templateDuplicatedDeclaration.withArguments(fullName),
-          charOffset,
-          fullName.length,
-          declaration.fileUri!,
-          context: <LocatedMessage>[
-            templateDuplicatedDeclarationCause
-                .withArguments(fullName)
-                .withLocation(
-                    existing!.fileUri!, existing.charOffset, fullName.length)
-          ]);
-    } else if (declaration.isExtension) {
-      // We add the extension declaration to the extension scope only if its
-      // name is unique. Only the first of duplicate extensions is accessible
-      // by name or by resolution and the remaining are dropped for the output.
-      _libraryTypeParameterScopeBuilder.extensions
-          .add(declaration as SourceExtensionBuilder);
-    } else if (declaration.isAugment) {
-      if (existing != null) {
-        if (declaration.isSetter) {
-          (_libraryTypeParameterScopeBuilder.setterAugmentations[name] ??= [])
-              .add(declaration);
-        } else {
-          (_libraryTypeParameterScopeBuilder.augmentations[name] ??= [])
-              .add(declaration);
-        }
-      } else {
-        // TODO(cstefantsova): Report an error.
-      }
-    } else if (declaration is PrefixBuilder) {
-      _prefixBuilders ??= <PrefixBuilder>[];
-      _prefixBuilders!.add(declaration);
-    }
-    return members[name] = declaration;
+    return _libraryNameSpaceBuilder.addBuilder(_parent, _problemReporting, name,
+        declaration, _compilationUnit.fileUri, charOffset);
   }
 
   void _addBuilderToDeclaration(
@@ -2973,16 +2860,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   List<MetadataBuilder>? get metadata => _metadata;
 
   @override
-  Iterable<Builder> get members =>
-      _libraryTypeParameterScopeBuilder.members.values;
-
-  @override
-  Iterable<Builder> get setters =>
-      _libraryTypeParameterScopeBuilder.setters.values;
-
-  @override
-  Iterable<ExtensionBuilder> get extensions =>
-      _libraryTypeParameterScopeBuilder.extensions;
+  Iterable<Builder> get builders => _libraryNameSpaceBuilder.builders;
 
   @override
   bool get isPart => _partOfName != null || _partOfUri != null;
@@ -2997,7 +2875,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   List<Part> get parts => _parts;
 
   @override
-  List<PrefixBuilder>? get prefixBuilders => _prefixBuilders;
+  List<PrefixBuilder>? get prefixBuilders =>
+      _libraryNameSpaceBuilder.prefixBuilders;
 
   @override
   void registerUnresolvedNamedTypes(List<NamedTypeBuilder> unboundTypes) {
