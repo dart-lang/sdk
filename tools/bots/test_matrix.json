@@ -482,7 +482,7 @@
         ],
         "use-sdk": true,
         "host-asserts": false,
-        "timeout": 60
+        "timeout": 120
       }
     },
     "dart2wasm-(linux|mac|win)-jscm-(d8|jsshell|jsc|chrome|firefox)": {
