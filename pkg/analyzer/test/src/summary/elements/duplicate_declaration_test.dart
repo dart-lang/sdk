@@ -162,9 +162,11 @@ library
             f01 @25
               reference: <testLibraryFragment>::@class::A::@def::0::@field::f01
               enclosingFragment: <testLibraryFragment>::@class::A::@def::0
+              getter2: <testLibraryFragment>::@class::A::@def::0::@getter::f01
             f02 @49
               reference: <testLibraryFragment>::@class::A::@def::0::@field::f02
               enclosingFragment: <testLibraryFragment>::@class::A::@def::0
+              getter2: <testLibraryFragment>::@class::A::@def::0::@getter::f02
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@def::0::@constructor::new
@@ -182,9 +184,11 @@ library
             f11 @88
               reference: <testLibraryFragment>::@class::A::@def::1::@field::f11
               enclosingFragment: <testLibraryFragment>::@class::A::@def::1
+              getter2: <testLibraryFragment>::@class::A::@def::1::@getter::f11
             f12 @112
               reference: <testLibraryFragment>::@class::A::@def::1::@field::f12
               enclosingFragment: <testLibraryFragment>::@class::A::@def::1
+              getter2: <testLibraryFragment>::@class::A::@def::1::@getter::f12
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@def::1::@constructor::new
@@ -202,9 +206,11 @@ library
             f21 @151
               reference: <testLibraryFragment>::@class::A::@def::2::@field::f21
               enclosingFragment: <testLibraryFragment>::@class::A::@def::2
+              getter2: <testLibraryFragment>::@class::A::@def::2::@getter::f21
             f22 @175
               reference: <testLibraryFragment>::@class::A::@def::2::@field::f22
               enclosingFragment: <testLibraryFragment>::@class::A::@def::2
+              getter2: <testLibraryFragment>::@class::A::@def::2::@getter::f22
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@def::2::@constructor::new
@@ -227,11 +233,13 @@ library
           enclosingElement: <testLibraryFragment>::@class::A::@def::0
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@def::0::@field::f01
+          getter: <none>
         static const f02
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A::@def::0
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@def::0::@field::f02
+          getter: <none>
       constructors
         synthetic new
           reference: <none>
@@ -255,11 +263,13 @@ library
           enclosingElement: <testLibraryFragment>::@class::A::@def::1
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@def::1::@field::f11
+          getter: <none>
         static const f12
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A::@def::1
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@def::1::@field::f12
+          getter: <none>
       constructors
         synthetic new
           reference: <none>
@@ -283,11 +293,13 @@ library
           enclosingElement: <testLibraryFragment>::@class::A::@def::2
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@def::2::@field::f21
+          getter: <none>
         static const f22
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A::@def::2
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@def::2::@field::f22
+          getter: <none>
       constructors
         synthetic new
           reference: <none>
@@ -449,9 +461,13 @@ library
             foo @16
               reference: <testLibraryFragment>::@class::A::@field::foo::@def::0
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::foo::@def::0
+              setter2: <testLibraryFragment>::@class::A::@setter::foo::@def::0
             foo @30
               reference: <testLibraryFragment>::@class::A::@field::foo::@def::1
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::foo::@def::1
+              setter2: <testLibraryFragment>::@class::A::@setter::foo::@def::1
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -481,11 +497,15 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo::@def::0
+          getter: <none>
+          setter: <none>
         foo
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
           type: double
           firstFragment: <testLibraryFragment>::@class::A::@field::foo::@def::1
+          getter: <none>
+          setter: <none>
       constructors
         synthetic new
           reference: <none>
@@ -948,12 +968,15 @@ library
             enumConstant a @8
               reference: <testLibraryFragment>::@enum::E::@def::0::@field::a
               enclosingFragment: <testLibraryFragment>::@enum::E::@def::0
+              getter2: <testLibraryFragment>::@enum::E::@def::0::@getter::a
             enumConstant b @11
               reference: <testLibraryFragment>::@enum::E::@def::0::@field::b
               enclosingFragment: <testLibraryFragment>::@enum::E::@def::0
+              getter2: <testLibraryFragment>::@enum::E::@def::0::@getter::b
             values @-1
               reference: <testLibraryFragment>::@enum::E::@def::0::@field::values
               enclosingFragment: <testLibraryFragment>::@enum::E::@def::0
+              getter2: <testLibraryFragment>::@enum::E::@def::0::@getter::values
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@enum::E::@def::0::@constructor::new
@@ -974,15 +997,19 @@ library
             enumConstant c @22
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::c
               enclosingFragment: <testLibraryFragment>::@enum::E::@def::1
+              getter2: <testLibraryFragment>::@enum::E::@def::1::@getter::c
             enumConstant d @25
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::d
               enclosingFragment: <testLibraryFragment>::@enum::E::@def::1
+              getter2: <testLibraryFragment>::@enum::E::@def::1::@getter::d
             enumConstant e @28
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::e
               enclosingFragment: <testLibraryFragment>::@enum::E::@def::1
+              getter2: <testLibraryFragment>::@enum::E::@def::1::@getter::e
             values @-1
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::values
               enclosingFragment: <testLibraryFragment>::@enum::E::@def::1
+              getter2: <testLibraryFragment>::@enum::E::@def::1::@getter::values
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@enum::E::@def::1::@constructor::new
@@ -1012,16 +1039,19 @@ library
           enclosingElement: <testLibraryFragment>::@enum::E::@def::0
           type: E
           firstFragment: <testLibraryFragment>::@enum::E::@def::0::@field::a
+          getter: <none>
         static const b
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::E::@def::0
           type: E
           firstFragment: <testLibraryFragment>::@enum::E::@def::0::@field::b
+          getter: <none>
         synthetic static const values
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::E::@def::0
           type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@def::0::@field::values
+          getter: <none>
       constructors
         synthetic const new
           reference: <none>
@@ -1050,21 +1080,25 @@ library
           enclosingElement: <testLibraryFragment>::@enum::E::@def::1
           type: E
           firstFragment: <testLibraryFragment>::@enum::E::@def::1::@field::c
+          getter: <none>
         static const d
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::E::@def::1
           type: E
           firstFragment: <testLibraryFragment>::@enum::E::@def::1::@field::d
+          getter: <none>
         static const e
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::E::@def::1
           type: E
           firstFragment: <testLibraryFragment>::@enum::E::@def::1::@field::e
+          getter: <none>
         synthetic static const values
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::E::@def::1
           type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@def::1::@field::values
+          getter: <none>
       constructors
         synthetic const new
           reference: <none>
@@ -1169,6 +1203,8 @@ library
             x @56
               reference: <testLibraryFragment>::@extension::E::@def::1::@field::x
               enclosingFragment: <testLibraryFragment>::@extension::E::@def::1
+              getter2: <testLibraryFragment>::@extension::E::@def::1::@getter::x
+              setter2: <testLibraryFragment>::@extension::E::@def::1::@setter::x
           getters
             get x @-1
               reference: <testLibraryFragment>::@extension::E::@def::1::@getter::x
@@ -1183,6 +1219,8 @@ library
             y @95
               reference: <testLibraryFragment>::@extension::E::@def::2::@field::y
               enclosingFragment: <testLibraryFragment>::@extension::E::@def::2
+              getter2: <testLibraryFragment>::@extension::E::@def::2::@getter::y
+              setter2: <testLibraryFragment>::@extension::E::@def::2::@setter::y
           getters
             get y @-1
               reference: <testLibraryFragment>::@extension::E::@def::2::@getter::y
@@ -1191,6 +1229,55 @@ library
             set y= @-1
               reference: <testLibraryFragment>::@extension::E::@def::2::@setter::y
               enclosingFragment: <testLibraryFragment>::@extension::E::@def::2
+  extensions
+    extension E
+      reference: <testLibraryFragment>::@extension::E::@def::0
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@extension::E::@def::0
+    extension E
+      reference: <testLibraryFragment>::@extension::E::@def::1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@extension::E::@def::1
+      fields
+        static x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extension::E::@def::1
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@extension::E::@def::1::@field::x
+          getter: <none>
+          setter: <none>
+      getters
+        synthetic static get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extension::E::@def::1
+          firstFragment: <testLibraryFragment>::@extension::E::@def::1::@getter::x
+      setters
+        synthetic static set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extension::E::@def::1
+          firstFragment: <testLibraryFragment>::@extension::E::@def::1::@setter::x
+    extension E
+      reference: <testLibraryFragment>::@extension::E::@def::2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@extension::E::@def::2
+      fields
+        static y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extension::E::@def::2
+          type: int
+          firstFragment: <testLibraryFragment>::@extension::E::@def::2::@field::y
+          getter: <none>
+          setter: <none>
+      getters
+        synthetic static get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extension::E::@def::2
+          firstFragment: <testLibraryFragment>::@extension::E::@def::2::@getter::y
+      setters
+        synthetic static set y=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extension::E::@def::2
+          firstFragment: <testLibraryFragment>::@extension::E::@def::2::@setter::y
 ''');
   }
 
@@ -1268,6 +1355,7 @@ library
             it @21
               reference: <testLibraryFragment>::@extensionType::E::@def::0::@field::it
               enclosingFragment: <testLibraryFragment>::@extensionType::E::@def::0
+              getter2: <testLibraryFragment>::@extensionType::E::@def::0::@getter::it
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new
@@ -1282,6 +1370,7 @@ library
             it @52
               reference: <testLibraryFragment>::@extensionType::E::@def::1::@field::it
               enclosingFragment: <testLibraryFragment>::@extensionType::E::@def::1
+              getter2: <testLibraryFragment>::@extensionType::E::@def::1::@getter::it
           constructors
             new @43
               reference: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new
@@ -1290,6 +1379,49 @@ library
             get it @-1
               reference: <testLibraryFragment>::@extensionType::E::@def::1::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::E::@def::1
+  extensionTypes
+    extension type E
+      reference: <testLibraryFragment>::@extensionType::E::@def::0
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@extensionType::E::@def::0
+      typeErasure: int
+      fields
+        final it
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extensionType::E::@def::0
+          type: int
+          firstFragment: <testLibraryFragment>::@extensionType::E::@def::0::@field::it
+          getter: <none>
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new
+      getters
+        synthetic get it
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extensionType::E::@def::0
+          firstFragment: <testLibraryFragment>::@extensionType::E::@def::0::@getter::it
+    extension type E
+      reference: <testLibraryFragment>::@extensionType::E::@def::1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@extensionType::E::@def::1
+      typeErasure: double
+      fields
+        final it
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extensionType::E::@def::1
+          type: double
+          firstFragment: <testLibraryFragment>::@extensionType::E::@def::1::@field::it
+          getter: <none>
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new
+      getters
+        synthetic get it
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extensionType::E::@def::1
+          firstFragment: <testLibraryFragment>::@extensionType::E::@def::1::@getter::it
 ''');
   }
 
@@ -1497,6 +1629,8 @@ library
             x @27
               reference: <testLibraryFragment>::@mixin::A::@def::1::@field::x
               enclosingFragment: <testLibraryFragment>::@mixin::A::@def::1
+              getter2: <testLibraryFragment>::@mixin::A::@def::1::@getter::x
+              setter2: <testLibraryFragment>::@mixin::A::@def::1::@setter::x
           getters
             get x @-1
               reference: <testLibraryFragment>::@mixin::A::@def::1::@getter::x
@@ -1511,6 +1645,8 @@ library
             y @48
               reference: <testLibraryFragment>::@mixin::A::@def::2::@field::y
               enclosingFragment: <testLibraryFragment>::@mixin::A::@def::2
+              getter2: <testLibraryFragment>::@mixin::A::@def::2::@getter::y
+              setter2: <testLibraryFragment>::@mixin::A::@def::2::@setter::y
           getters
             get y @-1
               reference: <testLibraryFragment>::@mixin::A::@def::2::@getter::y
@@ -1538,6 +1674,8 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A::@def::1
           type: dynamic
           firstFragment: <testLibraryFragment>::@mixin::A::@def::1::@field::x
+          getter: <none>
+          setter: <none>
       getters
         synthetic get x
           reference: <none>
@@ -1560,6 +1698,8 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A::@def::2
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@def::2::@field::y
+          getter: <none>
+          setter: <none>
       getters
         synthetic get y
           reference: <none>
@@ -1675,6 +1815,107 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      topLevelVariables
+        x @5
+          reference: <testLibraryFragment>::@topLevelVariable::x::@def::0
+          enclosingFragment: <testLibraryFragment>
+          getter2: <testLibraryFragment>::@getter::x::@def::0
+          setter2: <testLibraryFragment>::@setter::x::@def::0
+        x @12
+          reference: <testLibraryFragment>::@topLevelVariable::x::@def::1
+          enclosingFragment: <testLibraryFragment>
+          getter2: <testLibraryFragment>::@getter::x::@def::1
+          setter2: <testLibraryFragment>::@setter::x::@def::1
+        final x @21
+          reference: <testLibraryFragment>::@topLevelVariable::x::@def::2
+          enclosingFragment: <testLibraryFragment>
+          getter2: <testLibraryFragment>::@getter::x::@def::2
+        x @32
+          reference: <testLibraryFragment>::@topLevelVariable::x::@def::3
+          enclosingFragment: <testLibraryFragment>
+          getter2: <testLibraryFragment>::@getter::x::@def::3
+          setter2: <testLibraryFragment>::@setter::x::@def::2
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x::@def::0
+          enclosingFragment: <testLibraryFragment>
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x::@def::1
+          enclosingFragment: <testLibraryFragment>
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x::@def::2
+          enclosingFragment: <testLibraryFragment>
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x::@def::3
+          enclosingFragment: <testLibraryFragment>
+      setters
+        set x= @-1
+          reference: <testLibraryFragment>::@setter::x::@def::0
+          enclosingFragment: <testLibraryFragment>
+        set x= @-1
+          reference: <testLibraryFragment>::@setter::x::@def::1
+          enclosingFragment: <testLibraryFragment>
+        set x= @-1
+          reference: <testLibraryFragment>::@setter::x::@def::2
+          enclosingFragment: <testLibraryFragment>
+  topLevelVariables
+    x
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: bool
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x::@def::0
+      getter: <none>
+      setter: <none>
+    x
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: dynamic
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x::@def::1
+      getter: <none>
+      setter: <none>
+    final x
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x::@def::2
+      getter: <none>
+    x
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: double
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x::@def::3
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get x
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@getter::x::@def::0
+    synthetic static get x
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@getter::x::@def::1
+    synthetic static get x
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@getter::x::@def::2
+    synthetic static get x
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@getter::x::@def::3
+  setters
+    synthetic static set x=
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@setter::x::@def::0
+    synthetic static set x=
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@setter::x::@def::1
+    synthetic static set x=
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@setter::x::@def::2
 ''');
   }
 
@@ -1716,6 +1957,34 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      topLevelVariables
+        synthetic foo @-1
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          enclosingFragment: <testLibraryFragment>
+          getter2: <testLibraryFragment>::@getter::foo::@def::1
+      getters
+        get foo @8
+          reference: <testLibraryFragment>::@getter::foo::@def::0
+          enclosingFragment: <testLibraryFragment>
+        get foo @26
+          reference: <testLibraryFragment>::@getter::foo::@def::1
+          enclosingFragment: <testLibraryFragment>
+  topLevelVariables
+    synthetic foo
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: double
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      getter: <none>
+  getters
+    static get foo
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@getter::foo::@def::0
+    static get foo
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@getter::foo::@def::1
 ''');
   }
 
@@ -1763,6 +2032,34 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      topLevelVariables
+        synthetic foo @-1
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          enclosingFragment: <testLibraryFragment>
+          setter2: <testLibraryFragment>::@setter::foo::@def::1
+      setters
+        set foo= @4
+          reference: <testLibraryFragment>::@setter::foo::@def::0
+          enclosingFragment: <testLibraryFragment>
+        set foo= @22
+          reference: <testLibraryFragment>::@setter::foo::@def::1
+          enclosingFragment: <testLibraryFragment>
+  topLevelVariables
+    synthetic foo
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: double
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      setter: <none>
+  setters
+    static set foo=
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@setter::foo::@def::0
+    static set foo=
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@setter::foo::@def::1
 ''');
   }
 }

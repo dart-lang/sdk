@@ -181,6 +181,7 @@ library
             f @71
               reference: <testLibraryFragment>::@class::X::@field::f
               enclosingFragment: <testLibraryFragment>::@class::X
+              getter2: <testLibraryFragment>::@class::X::@getter::f
           constructors
             const new @82
               reference: <testLibraryFragment>::@class::X::@constructor::new
@@ -203,6 +204,7 @@ library
               typeArguments
                 dynamic
           firstFragment: <testLibraryFragment>::@class::X::@field::f
+          getter: <none>
       constructors
         const new
           reference: <none>
@@ -672,6 +674,18 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  extensions
+    extension E
+      reference: <testLibraryFragment>::@extension::E
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@extension::E
+      methods
+        static f
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@extension::E::@method::f
+        static g
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@extension::E::@method::g
 ''');
   }
 

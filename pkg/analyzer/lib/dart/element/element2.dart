@@ -1415,7 +1415,7 @@ abstract class PromotableFragment implements VariableFragment {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingElement2
-    implements VariableElement2, _Fragmented {
+    implements VariableElement2, _Annotatable, _Fragmented {
   /// The getter associated with this variable.
   ///
   /// If this variable was explicitly defined (is not synthetic) then the
@@ -1439,7 +1439,8 @@ abstract class PropertyInducingElement2
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PropertyInducingFragment implements VariableFragment {
+abstract class PropertyInducingFragment
+    implements VariableFragment, _Annotatable {
   /// The getter associated with this variable.
   ///
   /// If this variable was explicitly defined (is not synthetic) then the
@@ -1448,6 +1449,26 @@ abstract class PropertyInducingFragment implements VariableFragment {
 
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
+
+  /// Whether the element is an augmentation.
+  ///
+  /// Property indicing fragments are augmentations if they are explicitly
+  /// marked as such using the 'augment' modifier.
+  bool get isAugmentation;
+
+  /// Whether the fragment is a static fragment.
+  ///
+  /// A static fragment is a fragment that is not associated with a particular
+  /// instance, but rather with an entire library or class.
+  bool get isStatic;
+
+  /// Whether this fragment is synthetic.
+  ///
+  /// A synthetic fragment is a fragment that is not represented in the source
+  /// code explicitly, but is implied by the source code, such as the default
+  /// constructor for a class that does not explicitly define any constructors.
+  // TODO(brianwilkerson): Should synthetic elements have a fragment?
+  bool get isSynthetic;
 
   @override
   PropertyInducingFragment? get nextFragment;
@@ -1755,7 +1776,16 @@ abstract class VariableElement2 implements Element2 {
 /// The portion of a [VariableElement2] contributed by a single declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class VariableFragment implements Fragment {}
+abstract class VariableFragment implements Fragment {
+  /// Whether the variable was declared with the 'const' modifier.
+  bool get isConst;
+
+  /// Whether the variable was declared with the 'final' modifier.
+  ///
+  /// Variables that are declared with the 'const' modifier will return `false`
+  /// even though they are implicitly final.
+  bool get isFinal;
+}
 
 /// An element or fragment that can have either annotations (metadata), a
 /// documentation comment, or both associated with it.

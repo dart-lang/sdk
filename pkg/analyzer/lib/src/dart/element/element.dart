@@ -3810,7 +3810,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
 }
 
 class FieldElementImpl2 extends PropertyInducingElementImpl2
-    with FragmentedElementMixin<FieldFragment>
+    with
+        FragmentedAnnotatableElementMixin<FieldFragment>,
+        FragmentedElementMixin<FieldFragment>
     implements FieldElement2 {
   @override
   final FieldElementImpl firstFragment;
@@ -3831,7 +3833,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
       (firstFragment._enclosingElement as InstanceFragment).element;
 
   @override
-  GetterElement get getter => firstFragment.getter?.element as GetterElement;
+  GetterElement? get getter => firstFragment.getter?.element as GetterElement?;
 
   @override
   bool get hasImplicitType => firstFragment.hasImplicitType;
@@ -3870,7 +3872,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   String? get name => firstFragment.name;
 
   @override
-  SetterElement get setter => firstFragment.setter?.element as SetterElement;
+  SetterElement? get setter => firstFragment.setter?.element as SetterElement?;
 
   @override
   DartType get type => firstFragment.type;
@@ -5613,8 +5615,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     var declarations = <GetterElement>{};
     for (var unit in units) {
       declarations.addAll(unit._accessors
-          .where((element) => element.isGetter)
-          .cast<GetterElement>());
+          .where((accessor) => accessor.isGetter)
+          .map((accessor) =>
+              (accessor as GetterFragment).element as GetterElement));
     }
     return declarations.toList();
   }
@@ -5760,8 +5763,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     var declarations = <SetterElement>{};
     for (var unit in units) {
       declarations.addAll(unit._accessors
-          .where((element) => element.isSetter)
-          .cast<SetterElement>());
+          .where((accessor) => accessor.isSetter)
+          .map((accessor) =>
+              (accessor as SetterFragment).element as SetterElement));
     }
     return declarations.toList();
   }
@@ -5790,7 +5794,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<TopLevelVariableElement2> get topLevelVariables {
     var declarations = <TopLevelVariableElement2>{};
     for (var unit in units) {
-      declarations.addAll(unit._variables.cast<TopLevelVariableElement2>());
+      declarations.addAll(unit._variables.map((fragment) =>
+          (fragment as TopLevelVariableFragment).element
+              as TopLevelVariableElement2));
     }
     return declarations.toList();
   }
@@ -8444,7 +8450,7 @@ abstract class PropertyInducingElementImpl
   Fragment? get enclosingFragment => enclosingElement3 as Fragment;
 
   @override
-  GetterFragment? get getter2 => getter as GetterFragment;
+  GetterFragment? get getter2 => getter as GetterFragment?;
 
   /// Return `true` if this variable needs the setter.
   bool get hasSetter {
@@ -8498,7 +8504,7 @@ abstract class PropertyInducingElementImpl
   // bool get hasInitializer;
 
   @override
-  SetterFragment? get setter2 => setter as SetterFragment;
+  SetterFragment? get setter2 => setter as SetterFragment?;
 
   bool get shouldUseTypeForInitializerInference {
     return hasModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE);
@@ -8714,7 +8720,7 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
 /// A concrete implementation of a [TopLevelVariableElement].
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     with AugmentableElement<TopLevelVariableElementImpl>
-    implements TopLevelVariableElement {
+    implements TopLevelVariableElement, TopLevelVariableFragment {
   /// The element corresponding to this fragment.
   TopLevelVariableElement2? _element;
 
@@ -8730,17 +8736,19 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     if (_element != null) {
       return _element!;
     }
-    throw UnsupportedError('Top-level variable elements');
-    // TopLevelVariableFragment firstFragment = this;
-    // var previousFragment = firstFragment.previousFragment;
-    // while (previousFragment != null) {
-    //   firstFragment = previousFragment;
-    //   previousFragment = firstFragment.previousFragment;
-    // }
-    // // As a side-effect of creating the element, all of the fragments in the
-    // // chain will have their `_element` set to the newly created element.
-    // return TopLevelVariableElementImpl2(firstFragment);
+    TopLevelVariableFragment firstFragment = this;
+    var previousFragment = firstFragment.previousFragment;
+    while (previousFragment != null) {
+      firstFragment = previousFragment;
+      previousFragment = firstFragment.previousFragment;
+    }
+    // As a side-effect of creating the element, all of the fragments in the
+    // chain will have their `_element` set to the newly created element.
+    return TopLevelVariableElementImpl2(
+        firstFragment as TopLevelVariableElementImpl);
   }
+
+  set element(TopLevelVariableElement2 element) => _element = element;
 
   @override
   bool get isExternal {
@@ -8760,8 +8768,76 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   }
 
   @override
+  TopLevelVariableFragment? get nextFragment =>
+      super.nextFragment as TopLevelVariableFragment?;
+
+  @override
+  TopLevelVariableFragment? get previousFragment =>
+      super.previousFragment as TopLevelVariableFragment?;
+
+  @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitTopLevelVariableElement(this);
+}
+
+class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
+    with
+        FragmentedAnnotatableElementMixin<TopLevelVariableFragment>,
+        FragmentedElementMixin<TopLevelVariableFragment>
+    implements TopLevelVariableElement2 {
+  @override
+  final TopLevelVariableElementImpl firstFragment;
+
+  TopLevelVariableElementImpl2(this.firstFragment) {
+    TopLevelVariableElementImpl? fragment = firstFragment;
+    while (fragment != null) {
+      fragment.element = this;
+      fragment = fragment.nextFragment as TopLevelVariableElementImpl?;
+    }
+  }
+
+  @override
+  TopLevelVariableElement2 get baseElement => this;
+
+  @override
+  LibraryElement2 get enclosingElement2 =>
+      firstFragment.library as LibraryElement2;
+
+  @override
+  GetterElement? get getter => firstFragment.getter2?.element as GetterElement?;
+
+  @override
+  bool get hasImplicitType => firstFragment.hasImplicitType;
+
+  @override
+  bool get isConst => firstFragment.isConst;
+
+  @override
+  bool get isExternal => firstFragment.isExternal;
+
+  @override
+  bool get isFinal => firstFragment.isFinal;
+
+  @override
+  bool get isLate => firstFragment.isLate;
+
+  @override
+  bool get isStatic => firstFragment.isStatic;
+
+  @override
+  ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
+
+  @override
+  String? get name => firstFragment.name;
+
+  @override
+  SetterElement? get setter => firstFragment.setter2?.element as SetterElement?;
+
+  @override
+  DartType get type => firstFragment.type;
+
+  @override
+  DartObject? computeConstantValue() => firstFragment.computeConstantValue();
 }
 
 /// An element that represents [GenericTypeAlias].
