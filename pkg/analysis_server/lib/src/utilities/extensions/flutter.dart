@@ -376,7 +376,6 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
       .whereType<NamedExpression>()
       .firstWhereOrNull((argument) => argument.isSliversArgument);
 
-
   /// The presentation for this node.
   String? get widgetPresentationText {
     var element =
