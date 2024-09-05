@@ -106,9 +106,7 @@ abstract class _AbstractElementWriter {
   }
 
   void _writeDirectiveUri(DirectiveUri uri) {
-    if (uri is DirectiveUriWithAugmentationImpl) {
-      _sink.write('${uri.augmentation.source.uri}');
-    } else if (uri is DirectiveUriWithLibraryImpl) {
+    if (uri is DirectiveUriWithLibraryImpl) {
       _sink.write('${uri.library.source.uri}');
     } else if (uri is DirectiveUriWithUnit) {
       _sink.write('${uri.unit.source.uri}');
@@ -1812,25 +1810,6 @@ class _ElementWriter extends _AbstractElementWriter {
     }
   }
 
-  void _writeAugmentationElement(LibraryAugmentationElementImpl e) {
-    _writeLibraryOrAugmentationElement(e);
-  }
-
-  void _writeAugmentationImportElement(AugmentationImportElementImpl e) {
-    var uri = e.uri;
-    _sink.writeIndentedLine(() {
-      _writeDirectiveUri(e.uri);
-    });
-
-    _sink.withIndent(() {
-      _writeEnclosingElement(e);
-      _writeMetadata(e);
-      if (uri is DirectiveUriWithAugmentationImpl) {
-        _writeAugmentationElement(uri.augmentation);
-      }
-    });
-  }
-
   void _writeAugmentationTarget(ElementImpl e) {
     if (e is AugmentableElement && e.isAugmentation) {
       if (e.augmentationTarget case var target?) {
@@ -2300,21 +2279,6 @@ class _ElementWriter extends _AbstractElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeLibraryAugmentations(LibraryElementImpl e) {
-    if (configuration.withLibraryAugmentations) {
-      var augmentations = e.augmentations;
-      if (augmentations.isNotEmpty) {
-        _sink.writelnWithIndent('augmentations');
-        _sink.withIndent(() {
-          for (var element in augmentations) {
-            _sink.writeIndent();
-            _elementPrinter.writeElement(element);
-          }
-        });
-      }
-    }
-  }
-
   void _writeLibraryExportElement(LibraryExportElementImpl e) {
     e.location;
 
@@ -2379,13 +2343,6 @@ class _ElementWriter extends _AbstractElementWriter {
     if (configuration.filter(definingUnit)) {
       _elementPrinter.writeNamedElement('definingUnit', definingUnit);
     }
-
-    if (e is LibraryElementImpl) {
-      _writeLibraryAugmentations(e);
-    }
-
-    _writeElements('augmentationImports', e.augmentationImports,
-        _writeAugmentationImportElement);
   }
 
   void _writeMacroDiagnostics(Element e) {

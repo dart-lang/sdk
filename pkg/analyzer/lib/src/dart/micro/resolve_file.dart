@@ -356,7 +356,7 @@ class FileResolver {
         content: file.content,
         uri: file.uri,
         lineInfo: file.lineInfo,
-        isAugmentation: file.kind is AugmentationFileKind,
+        isAugmentation: false,
         isLibrary: file.kind is LibraryFileKind,
         isMacroAugmentation: file.isMacroPart,
         isPart: file.kind is PartFileKind,

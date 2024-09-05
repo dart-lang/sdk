@@ -97,10 +97,13 @@ class ExportLocation {
   }
 
   LibraryExportElementImpl exportOf(LibraryElementImpl library) {
-    var container = containerIndex == 0
-        ? library
-        : library.augmentations[containerIndex - 1];
-    return container.libraryExports[exportIndex];
+    // TODO(scheglov): support for exports from parts
+    assert(containerIndex == 0);
+    return library.libraryExports[exportIndex];
+    // var container = containerIndex == 0
+    //     ? library
+    //     : library.augmentations[containerIndex - 1];
+    // return container.libraryExports[exportIndex];
   }
 
   @override

@@ -2245,16 +2245,6 @@ void f() {
     _assertSource(code, findNode.labeledStatement(code));
   }
 
-  void test_visitLibraryAugmentationDirective() {
-    var findNode = _parseStringToFindNode(r'''
-augment library 'a.dart';
-''');
-    _assertSource(
-      "augment library 'a.dart';",
-      findNode.libraryAugmentation('library'),
-    );
-  }
-
   void test_visitLibraryDirective() {
     var code = 'library my;';
     var findNode = _parseStringToFindNode('''

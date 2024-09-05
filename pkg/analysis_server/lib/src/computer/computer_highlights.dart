@@ -638,15 +638,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.importKeyword, HighlightRegionType.BUILT_IN);
-    computer._addRegion_token(
-        node.augmentKeyword, HighlightRegionType.BUILT_IN);
-    super.visitAugmentationImportDirective(node);
-  }
-
-  @override
   void visitAugmentedExpression(AugmentedExpression node) {
     computer._addRegion_token(
         node.augmentedKeyword, HighlightRegionType.KEYWORD);
@@ -1187,16 +1178,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitIsExpression(IsExpression node) {
     computer._addRegion_token(node.isOperator, HighlightRegionType.KEYWORD);
     super.visitIsExpression(node);
-  }
-
-  @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(
-        node.libraryKeyword, HighlightRegionType.BUILT_IN);
-    computer._addRegion_token(
-        node.augmentKeyword, HighlightRegionType.BUILT_IN);
-    super.visitLibraryAugmentationDirective(node);
   }
 
   @override

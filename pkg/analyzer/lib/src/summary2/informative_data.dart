@@ -97,8 +97,6 @@ class InformativeDataApplier {
       if (identical(enclosing.definingCompilationUnit, unitElement)) {
         _applyToLibrary(enclosing, unitInfo);
       }
-    } else if (enclosing is LibraryAugmentationElementImpl) {
-      _applyToAugmentation(enclosing, unitInfo);
     }
 
     unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
@@ -213,32 +211,6 @@ class InformativeDataApplier {
         }
       },
     );
-  }
-
-  void _applyToAugmentation(
-    LibraryAugmentationElementImpl element,
-    _InfoUnit info,
-  ) {
-    if (info.docComment.isNotEmpty) {
-      element.documentationComment = info.docComment;
-    }
-
-    var applyOffsets = ApplyConstantOffsets(
-      info.libraryConstantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToImports(element.libraryImports);
-        applier.applyToExports(element.libraryExports);
-        applier.applyToAugmentationImports(element.augmentationImports);
-      },
-    );
-
-    var linkedData = element.linkedData;
-    if (linkedData is LibraryAugmentationElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
   }
 
   void _applyToClassDeclaration(
@@ -696,7 +668,6 @@ class InformativeDataApplier {
         applier.applyToMetadata(element);
         applier.applyToImports(element.libraryImports);
         applier.applyToExports(element.libraryExports);
-        applier.applyToAugmentationImports(element.augmentationImports);
         applier.applyToPartDirectives(element.parts);
       },
     );
@@ -1768,8 +1739,6 @@ class _InformativeDataWriter {
       metadata: firstDirective?.metadata,
       importDirectives: unit.directives.whereType<ImportDirective>(),
       exportDirectives: unit.directives.whereType<ExportDirective>(),
-      augmentationImportDirectives:
-          unit.directives.whereType<AugmentationImportDirective>(),
       partDirectives: unit.directives.whereType<PartDirective>(),
     );
   }
@@ -1800,7 +1769,6 @@ class _InformativeDataWriter {
     NodeList<Annotation>? metadata,
     Iterable<ImportDirective>? importDirectives,
     Iterable<ExportDirective>? exportDirectives,
-    Iterable<AugmentationImportDirective>? augmentationImportDirectives,
     Iterable<PartDirective>? partDirectives,
     TypeParameterList? typeParameters,
     FormalParameterList? formalParameters,
@@ -1847,7 +1815,6 @@ class _InformativeDataWriter {
     metadata?.accept(collector);
     addDirectives(importDirectives);
     addDirectives(exportDirectives);
-    addDirectives(augmentationImportDirectives);
     addDirectives(partDirectives);
     addTypeParameters(typeParameters);
     addFormalParameters(formalParameters);
@@ -2088,12 +2055,6 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   final _SafeListIterator<int> _iterator;
 
   _OffsetsApplier(this._iterator);
-
-  void applyToAugmentationImports(List<AugmentationImportElement> elements) {
-    for (var element in elements) {
-      applyToMetadata(element);
-    }
-  }
 
   void applyToConstantInitializer(Element element) {
     if (element is ConstFieldElementImpl && element.isEnumConstant) {

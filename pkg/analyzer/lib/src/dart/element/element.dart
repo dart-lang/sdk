@@ -18,8 +18,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
@@ -105,47 +103,6 @@ mixin AugmentableElement<T extends ElementImpl> on ElementImpl {
   }
 
   ElementLinkedData? get linkedData;
-}
-
-class AugmentationImportElementImpl extends _ExistingElementImpl
-    implements AugmentationImportElement {
-  @override
-  final int importKeywordOffset;
-
-  @override
-  final DirectiveUri uri;
-
-  AugmentationImportElementImpl({
-    required this.importKeywordOffset,
-    required this.uri,
-  }) : super(null, importKeywordOffset);
-
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  LibraryOrAugmentationElementImpl get enclosingElement {
-    return super.enclosingElement as LibraryOrAugmentationElementImpl;
-  }
-
-  @override
-  LibraryOrAugmentationElementImpl get enclosingElement3 {
-    return super.enclosingElement3 as LibraryOrAugmentationElementImpl;
-  }
-
-  @override
-  LibraryAugmentationElementImpl? get importedAugmentation {
-    var uri = this.uri;
-    if (uri is DirectiveUriWithAugmentationImpl) {
-      return uri.augmentation;
-    }
-    return null;
-  }
-
-  @override
-  ElementKind get kind => ElementKind.AUGMENTATION_IMPORT;
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitAugmentationImportElement(this);
 }
 
 class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
@@ -854,11 +811,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   CompilationUnitElementImpl? get enclosingElement3 {
-    if (libraryOrAugmentationElement is LibraryAugmentationElementImpl) {
-      return (libraryOrAugmentationElement.enclosingElement3
-              as LibraryOrAugmentationElementImpl)
-          .definingCompilationUnit;
-    }
     return super.enclosingElement3 as CompilationUnitElementImpl?;
   }
 
@@ -1728,19 +1680,6 @@ class DeferredImportElementPrefixImpl extends ImportElementPrefixImpl
 }
 
 class DirectiveUriImpl implements DirectiveUri {}
-
-class DirectiveUriWithAugmentationImpl extends DirectiveUriWithSourceImpl
-    implements DirectiveUriWithAugmentation {
-  @override
-  late LibraryAugmentationElementImpl augmentation;
-
-  DirectiveUriWithAugmentationImpl({
-    required super.relativeUriString,
-    required super.relativeUri,
-    required super.source,
-    required this.augmentation,
-  });
-}
 
 class DirectiveUriWithLibraryImpl extends DirectiveUriWithSourceImpl
     implements DirectiveUriWithLibrary {
@@ -5306,69 +5245,6 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitLabelElement(this);
 }
 
-class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
-    implements LibraryAugmentationElement {
-  @override
-  final LibraryOrAugmentationElementImpl augmentationTarget;
-
-  LibraryAugmentationElementLinkedData? linkedData;
-
-  LibraryAugmentationElementImpl({
-    required this.augmentationTarget,
-    required super.nameOffset,
-  }) : super(name: null);
-
-  @override
-  // TODO(scheglov): implement accessibleExtensions
-  List<ExtensionElement> get accessibleExtensions => throw UnimplementedError();
-
-  @override
-  List<AugmentationImportElementImpl> get augmentationImports {
-    _readLinkedData();
-    return super.augmentationImports;
-  }
-
-  @override
-  FeatureSet get featureSet => augmentationTarget.featureSet;
-
-  @Deprecated('Only non-nullable by default mode is supported')
-  @override
-  bool get isNonNullableByDefault => augmentationTarget.isNonNullableByDefault;
-
-  @override
-  ElementKind get kind => ElementKind.LIBRARY_AUGMENTATION;
-
-  @override
-  LibraryLanguageVersion get languageVersion {
-    return augmentationTarget.languageVersion;
-  }
-
-  @override
-  LibraryElementImpl get library => augmentationTarget.library;
-
-  @override
-  Source get librarySource => library.source;
-
-  @override
-  AnalysisSessionImpl get session => augmentationTarget.session;
-
-  @override
-  TypeProvider get typeProvider => augmentationTarget.typeProvider;
-
-  @override
-  TypeSystem get typeSystem => augmentationTarget.typeSystem;
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitLibraryAugmentationElement(this);
-  }
-
-  @override
-  void _readLinkedData() {
-    augmentationTarget._readLinkedData();
-  }
-}
-
 /// A concrete implementation of a [LibraryElement] or [LibraryElement2].
 class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     with _HasLibraryMixin, MacroTargetElement
@@ -5431,9 +5307,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   /// See [fieldNameNonPromotabilityInfo].
   Map<String, FieldNameNonPromotabilityInfo>? _fieldNameNonPromotabilityInfo;
 
-  /// The cache for [augmentations].
-  List<LibraryAugmentationElementImpl>? _augmentations;
-
   /// The map of top-level declarations, from all units.
   LibraryDeclarations? _libraryDeclarations;
 
@@ -5454,23 +5327,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return scope.accessibleExtensions
         .map((element) => element.augmentation as ExtensionElement2)
         .toList();
-  }
-
-  @override
-  List<AugmentationImportElementImpl> get augmentationImports {
-    _readLinkedData();
-    return super.augmentationImports;
-  }
-
-  @override
-  set augmentationImports(List<AugmentationImportElementImpl> imports) {
-    super.augmentationImports = imports;
-    _augmentations = null;
-  }
-
-  /// All augmentations of this library, in the depth-first pre-order order.
-  List<LibraryAugmentationElementImpl> get augmentations {
-    return _augmentations ??= _computeAugmentations();
   }
 
   @override
@@ -5500,7 +5356,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   FunctionElement? get entryPoint {
-    _readLinkedData();
+    linkedData?.read(this);
     return _entryPoint;
   }
 
@@ -5588,7 +5444,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   /// If a field in the library has a private name and that name does not appear
   /// as a key in this map, the field is promotable.
   Map<String, FieldNameNonPromotabilityInfo> get fieldNameNonPromotabilityInfo {
-    _readLinkedData();
+    linkedData?.read(this);
     return _fieldNameNonPromotabilityInfo!;
   }
 
@@ -5726,7 +5582,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<ElementAnnotationImpl> get metadata {
-    _readLinkedData();
+    linkedData?.read(this);
     return super.metadata;
   }
 
@@ -5816,7 +5672,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return [
       _definingCompilationUnit,
       ..._partUnits,
-      ...augmentations.map((e) => e.definingCompilationUnit),
     ];
   }
 
@@ -5940,14 +5795,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     }
 
     if (prefix == null && name.startsWith(r'_$')) {
-      for (var augmentation in augmentationImports) {
-        var uri = augmentation.uri;
-        if (uri is DirectiveUriWithSource &&
-            uri is! DirectiveUriWithAugmentation &&
-            file_paths.isGenerated(uri.relativeUriString)) {
-          return true;
-        }
-      }
       for (var partElement in parts) {
         var uri = partElement.uri;
         if (uri is DirectiveUriWithSource &&
@@ -5996,30 +5843,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   DartType toLegacyTypeIfOptOut(DartType type) {
     return type;
-  }
-
-  List<LibraryAugmentationElementImpl> _computeAugmentations() {
-    var result = <LibraryAugmentationElementImpl>[];
-
-    void visitAugmentations(LibraryOrAugmentationElementImpl container) {
-      if (container is LibraryAugmentationElementImpl) {
-        result.add(container);
-      }
-      for (var import in container.augmentationImports) {
-        var augmentation = import.importedAugmentation;
-        if (augmentation != null) {
-          visitAugmentations(augmentation);
-        }
-      }
-    }
-
-    visitAugmentations(this);
-    return result.toFixedList();
-  }
-
-  @override
-  void _readLinkedData() {
-    linkedData?.read(this);
   }
 
   static List<PrefixElementImpl> buildPrefixesFromImports(
@@ -6173,28 +5996,10 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   /// The compilation unit that defines this library.
   late CompilationUnitElementImpl _definingCompilationUnit;
 
-  List<AugmentationImportElementImpl> _augmentationImports =
-      _Sentinel.augmentationImportElement;
-
   LibraryOrAugmentationElementImpl({
     required String? name,
     required int nameOffset,
   }) : super(name, nameOffset);
-
-  @override
-  List<AugmentationImportElementImpl> get augmentationImports {
-    return _augmentationImports;
-  }
-
-  set augmentationImports(List<AugmentationImportElementImpl> imports) {
-    for (var importElement in imports) {
-      importElement.enclosingElement3 = this;
-      importElement.enclosingElement = this;
-      importElement.importedAugmentation?.enclosingElement3 = this;
-      importElement.importedAugmentation?.enclosingElement = this;
-    }
-    _augmentationImports = imports;
-  }
 
   @override
   List<Element> get children => [
@@ -6202,7 +6007,6 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
         definingCompilationUnit,
         ...libraryExports,
         ...libraryImports,
-        ...augmentationImports,
       ];
 
   @override
@@ -6255,8 +6059,6 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   Source get source {
     return _definingCompilationUnit.source;
   }
-
-  void _readLinkedData();
 }
 
 /// A concrete implementation of a [LocalVariableElement].
@@ -9454,8 +9256,6 @@ mixin _HasLibraryMixin on ElementImpl {
 /// Instances of [List]s that are used as "not yet computed" values, they
 /// must be not `null`, and not identical to `const <T>[]`.
 class _Sentinel {
-  static final List<AugmentationImportElementImpl> augmentationImportElement =
-      List.unmodifiable([]);
   static final List<ConstructorElementImpl> constructorElement =
       List.unmodifiable([]);
   static final List<FieldElementImpl> fieldElement = List.unmodifiable([]);

@@ -731,79 +731,6 @@ class LibraryAnalyzer {
     }
   }
 
-  void _resolveAugmentationImportDirective({
-    required FileAnalysis enclosingFile,
-    required AugmentationImportDirectiveImpl? directive,
-    required AugmentationImportElementImpl element,
-    required AugmentationImportState state,
-    required ErrorReporter errorReporter,
-    required Set<AugmentationFileKind> seenAugmentations,
-  }) {
-    directive?.element = element;
-
-    void reportOnDirective(ErrorCode errorCode, List<Object>? arguments) {
-      if (directive != null) {
-        errorReporter.atNode(
-          directive.uri,
-          errorCode,
-          arguments: arguments,
-        );
-      }
-    }
-
-    AugmentationFileKind? importedAugmentationKind;
-    if (state is AugmentationImportWithFile) {
-      importedAugmentationKind = state.importedAugmentation;
-      if (!state.importedFile.exists) {
-        reportOnDirective(
-          isGeneratedSource(state.importedFile.source)
-              ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
-              : CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-          [state.importedFile.uriStr],
-        );
-        return;
-      } else if (importedAugmentationKind == null) {
-        reportOnDirective(
-          CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION,
-          [state.importedFile.uriStr],
-        );
-        return;
-      } else if (!seenAugmentations.add(importedAugmentationKind)) {
-        reportOnDirective(
-          CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT,
-          [state.importedFile.uriStr],
-        );
-        return;
-      }
-    } else if (state is AugmentationImportWithUri) {
-      reportOnDirective(
-        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        [state.uri.relativeUriStr],
-      );
-      return;
-    } else if (state is AugmentationImportWithUriStr) {
-      reportOnDirective(
-        CompileTimeErrorCode.INVALID_URI,
-        [state.uri.relativeUriStr],
-      );
-      return;
-    } else {
-      reportOnDirective(
-        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
-        null,
-      );
-      return;
-    }
-
-    var importedAugmentation = element.importedAugmentation!;
-
-    _resolveDirectives(
-      enclosingFile: enclosingFile,
-      fileKind: importedAugmentationKind,
-      fileElement: importedAugmentation.definingCompilationUnit,
-    );
-  }
-
   /// Parses the file of [fileKind], and resolves directives.
   /// Recursively parses augmentations and parts.
   void _resolveDirectives({
@@ -819,25 +746,12 @@ class LibraryAnalyzer {
 
     var containerErrorReporter = fileAnalysis.errorReporter;
 
-    var augmentationImportIndex = 0;
     var libraryExportIndex = 0;
     var libraryImportIndex = 0;
     var partIndex = 0;
 
-    var seenAugmentations = <AugmentationFileKind>{};
     for (Directive directive in containerUnit.directives) {
-      if (directive is AugmentationImportDirectiveImpl) {
-        var index = augmentationImportIndex++;
-        _resolveAugmentationImportDirective(
-          enclosingFile: fileAnalysis,
-          directive: directive,
-          element: fileElement
-              .libraryOrAugmentationElement.augmentationImports[index],
-          state: fileKind.augmentationImports[index],
-          errorReporter: containerErrorReporter,
-          seenAugmentations: seenAugmentations,
-        );
-      } else if (directive is ExportDirectiveImpl) {
+      if (directive is ExportDirectiveImpl) {
         var index = libraryExportIndex++;
         _resolveLibraryExportDirective(
           directive: directive,
@@ -852,13 +766,6 @@ class LibraryAnalyzer {
           element: fileElement.libraryImports[index],
           state: fileKind.libraryImports[index],
           errorReporter: containerErrorReporter,
-        );
-      } else if (directive is LibraryAugmentationDirectiveImpl) {
-        _resolveLibraryAugmentationDirective(
-          directive: directive,
-          containerKind: fileKind as LibraryOrAugmentationFileKind,
-          containerElement: fileElement.libraryOrAugmentationElement,
-          containerErrorReporter: containerErrorReporter,
         );
       } else if (directive is LibraryDirectiveImpl) {
         if (fileKind == _library) {
@@ -978,54 +885,6 @@ class LibraryAnalyzer {
     unit.accept(resolver);
     _testingData?.recordTypeConstraintGenerationDataForTesting(
         fileAnalysis.file.uri, resolver.inferenceHelper.dataForTesting!);
-  }
-
-  void _resolveLibraryAugmentationDirective({
-    required LibraryAugmentationDirectiveImpl directive,
-    required LibraryOrAugmentationFileKind containerKind,
-    required LibraryOrAugmentationElementImpl containerElement,
-    required ErrorReporter containerErrorReporter,
-  }) {
-    directive.element = containerElement;
-
-    // If we had to treat this augmentation as a library.
-    if (containerKind is! LibraryFileKind) {
-      return;
-    }
-
-    // We should recover from an augmentation.
-    var recoveredFrom = containerKind.recoveredFrom;
-    if (recoveredFrom is! AugmentationFileKind) {
-      return;
-    }
-
-    var targetUri = recoveredFrom.uri;
-    if (targetUri is DirectiveUriWithFile) {
-      var targetFile = targetUri.file;
-      if (!targetFile.exists) {
-        containerErrorReporter.atNode(
-          directive.uri,
-          CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-          arguments: [targetUri.relativeUriStr],
-        );
-        return;
-      }
-
-      var targetFileKind = targetFile.kind;
-      if (targetFileKind is LibraryFileKind) {
-        containerErrorReporter.atNode(
-          directive.uri,
-          CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT,
-        );
-        return;
-      }
-    }
-
-    // Otherwise, there are many other problems with the URI.
-    containerErrorReporter.atNode(
-      directive.uri,
-      CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY,
-    );
   }
 
   /// Resolves the `@docImport` directive URI and reports any import errors of

@@ -220,12 +220,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    super.visitAugmentationImportDirective(node);
-    _addUriDirectiveRegion(node, node.element?.importedAugmentation);
-  }
-
-  @override
   void visitBinaryExpression(BinaryExpression node) {
     node.leftOperand.accept(this);
     computer._addRegionForToken(node.operator, node.staticElement);
@@ -435,18 +429,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     var element = node.writeOrReadElement;
     computer._addRegionForToken(node.leftBracket, element);
     computer._addRegionForToken(node.rightBracket, element);
-  }
-
-  @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    super.visitLibraryAugmentationDirective(node);
-    var element = node.element;
-    var library = element?.library;
-    // If the library URI is unresolved, library will be the augmentation
-    // itself, so don't create a navigation region in that case.
-    if (element != library) {
-      _addUriDirectiveRegion(node, library);
-    }
   }
 
   @override

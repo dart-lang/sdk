@@ -1931,14 +1931,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitAugmentationImportDirective(
-    covariant AugmentationImportDirectiveImpl node,
-  ) {
-    node.visitChildren(this);
-    elementResolver.visitAugmentationImportDirective(node);
-  }
-
-  @override
   void visitAugmentedExpression(covariant AugmentedExpressionImpl node,
       {DartType contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
@@ -3104,13 +3096,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     node.visitChildren(this);
     flowAnalysis.labeledStatement_exit(node);
     inferenceLogWriter?.exitStatement(node);
-  }
-
-  @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    checkUnreachableNode(node);
-    node.visitChildren(this);
-    elementResolver.visitLibraryAugmentationDirective(node);
   }
 
   @override

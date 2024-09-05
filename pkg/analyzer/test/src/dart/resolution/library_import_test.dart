@@ -688,30 +688,6 @@ ImportDirective
 ''');
   }
 
-  test_inLibrary_notLibrary_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-''');
-
-    await assertErrorsInCode(r'''
-import 'a.dart';
-''', [
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 8),
-    ]);
-
-    var node = findNode.import('a.dart');
-    assertResolvedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
-  uri: SimpleStringLiteral
-    literal: 'a.dart'
-  semicolon: ;
-  element: LibraryImportElement
-    uri: DirectiveUriWithSource
-      source: package:test/a.dart
-''');
-  }
-
   test_inLibrary_notLibrary_partOfName() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of my.lib;

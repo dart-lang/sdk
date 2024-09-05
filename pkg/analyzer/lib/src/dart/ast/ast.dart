@@ -1196,8 +1196,6 @@ abstract class AstVisitor<R> {
 
   R? visitAssignmentExpression(AssignmentExpression node);
 
-  R? visitAugmentationImportDirective(AugmentationImportDirective node);
-
   R? visitAugmentedExpression(AugmentedExpression node);
 
   R? visitAugmentedInvocation(AugmentedInvocation node);
@@ -1361,8 +1359,6 @@ abstract class AstVisitor<R> {
   R? visitLabel(Label node);
 
   R? visitLabeledStatement(LabeledStatement node);
-
-  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node);
 
   R? visitLibraryDirective(LibraryDirective node);
 
@@ -1533,71 +1529,6 @@ abstract class AstVisitor<R> {
   R? visitWithClause(WithClause node);
 
   R? visitYieldStatement(YieldStatement node);
-}
-
-/// An augmentation import directive.
-///
-///    importDirective ::=
-///        [Annotation] 'import' 'augment' [StringLiteral] ';'
-@experimental
-abstract final class AugmentationImportDirective implements UriBasedDirective {
-  /// The token representing the `augment` keyword.
-  Token get augmentKeyword;
-
-  @override
-  AugmentationImportElement? get element;
-
-  /// The token representing the `import` keyword.
-  Token get importKeyword;
-
-  /// The semicolon terminating the directive.
-  Token get semicolon;
-}
-
-final class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
-    implements AugmentationImportDirective {
-  @override
-  final Token importKeyword;
-
-  @override
-  final Token augmentKeyword;
-
-  @override
-  final Token semicolon;
-
-  AugmentationImportDirectiveImpl({
-    required super.comment,
-    required super.metadata,
-    required this.importKeyword,
-    required this.augmentKeyword,
-    required this.semicolon,
-    required super.uri,
-  }) {
-    _becomeParentOf(_uri);
-  }
-
-  @override
-  AugmentationImportElementImpl? get element {
-    return super.element as AugmentationImportElementImpl?;
-  }
-
-  @override
-  Token get endToken => semicolon;
-
-  @override
-  Token get firstTokenAfterCommentAndMetadata => importKeyword;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('importKeyword', importKeyword)
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addNode('uri', uri)
-    ..addToken('semicolon', semicolon);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    return visitor.visitAugmentationImportDirective(this);
-  }
 }
 
 /// The augmented expression.
@@ -10639,62 +10570,6 @@ final class LabelImpl extends AstNodeImpl implements Label {
   @override
   void visitChildren(AstVisitor visitor) {
     _label.accept(visitor);
-  }
-}
-
-/// A library augmentation directive.
-///
-///    libraryAugmentationDirective ::=
-///        [metadata] 'library' 'augment' [StringLiteral] ';'
-@experimental
-abstract final class LibraryAugmentationDirective implements UriBasedDirective {
-  /// The token representing the `augment` keyword.
-  Token get augmentKeyword;
-
-  /// The token representing the `library` keyword.
-  Token get libraryKeyword;
-
-  /// The semicolon terminating the directive.
-  Token get semicolon;
-}
-
-@experimental
-final class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
-    implements LibraryAugmentationDirective {
-  @override
-  final Token augmentKeyword;
-
-  @override
-  final Token libraryKeyword;
-
-  @override
-  final Token semicolon;
-
-  LibraryAugmentationDirectiveImpl({
-    required super.comment,
-    required super.metadata,
-    required this.augmentKeyword,
-    required this.libraryKeyword,
-    required super.uri,
-    required this.semicolon,
-  });
-
-  @override
-  Token get endToken => semicolon;
-
-  @override
-  Token get firstTokenAfterCommentAndMetadata => augmentKeyword;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('libraryKeyword', libraryKeyword)
-    ..addNode('uri', uri)
-    ..addToken('semicolon', semicolon);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    return visitor.visitLibraryAugmentationDirective(this);
   }
 }
 

@@ -239,7 +239,7 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
     required this.fileState,
   })  : content = fileState.content,
         lineInfo = fileState.lineInfo,
-        isAugmentation = fileState.kind is AugmentationFileKind,
+        isAugmentation = false,
         isLibrary = fileState.kind is LibraryFileKind,
         isPart = fileState.kind is PartFileKind;
 

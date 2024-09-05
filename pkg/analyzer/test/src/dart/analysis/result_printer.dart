@@ -179,8 +179,6 @@ class DriverEventsPrinter {
     switch (result) {
       case CannotResolveUriResult():
         sink.writelnWithIndent('CannotResolveUriResult');
-      case NotLibraryButAugmentationResult():
-        sink.writelnWithIndent('NotLibraryButAugmentationResult');
       case NotLibraryButPartResult():
         sink.writelnWithIndent('NotLibraryButPartResult');
       default:
@@ -192,8 +190,6 @@ class DriverEventsPrinter {
     switch (result) {
       case CannotResolveUriResult():
         sink.writelnWithIndent('CannotResolveUriResult');
-      case NotLibraryButAugmentationResult():
-        sink.writelnWithIndent('NotLibraryButAugmentationResult');
       case NotLibraryButPartResult():
         sink.writelnWithIndent('NotLibraryButPartResult');
       case ResolvedLibraryResult():
