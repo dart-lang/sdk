@@ -95,7 +95,6 @@ class TestCase {
   }
 
   Expectation get result => lastCommandOutput.result(this);
-  Expectation get realResult => lastCommandOutput.realResult(this);
   Expectation get realExpected {
     if (hasCrash) {
       return Expectation.crash;

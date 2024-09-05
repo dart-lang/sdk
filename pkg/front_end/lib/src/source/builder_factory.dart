@@ -66,22 +66,12 @@ abstract class BuilderFactoryResult {
   void registerUnresolvedStructuralVariables(
       List<StructuralVariableBuilder> unboundTypeVariables);
 
-  Iterable<Builder> get members;
-
-  Iterable<Builder> get setters;
-
-  Iterable<ExtensionBuilder> get extensions;
+  Iterable<Builder> get builders;
 
   List<LibraryPart> get libraryParts;
 }
 
 abstract class BuilderFactory {
-  /// The current declaration that is being built. When we start parsing a
-  /// declaration (class, method, and so on), we don't have enough information
-  /// to create a builder and this object records its members and types until,
-  /// for example, [addClass] is called.
-  TypeParameterScopeBuilder get currentTypeParameterScopeBuilder;
-
   void beginClassOrNamedMixinApplicationHeader();
 
   /// Registers that this builder is preparing for a class declaration with the
@@ -91,7 +81,7 @@ abstract class BuilderFactory {
 
   void beginClassBody();
 
-  TypeParameterScopeBuilder endClassDeclaration(String name);
+  void endClassDeclaration(String name);
 
   void endClassDeclarationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables);
@@ -103,7 +93,7 @@ abstract class BuilderFactory {
 
   void beginMixinBody();
 
-  TypeParameterScopeBuilder endMixinDeclaration(String name);
+  void endMixinDeclaration(String name);
 
   void endMixinDeclarationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables);
@@ -141,7 +131,7 @@ abstract class BuilderFactory {
 
   void beginExtensionBody(TypeBuilder? extensionThisType);
 
-  TypeParameterScopeBuilder endExtensionDeclaration(String? name);
+  void endExtensionDeclaration(String? name);
 
   /// Registers that this builder is preparing for an extension type declaration
   /// with the given [name] and [typeVariables] located [charOffset].
@@ -150,7 +140,7 @@ abstract class BuilderFactory {
 
   void beginExtensionTypeBody();
 
-  TypeParameterScopeBuilder endExtensionTypeDeclaration(String name);
+  void endExtensionTypeDeclaration(String name);
 
   void beginFactoryMethod();
 
@@ -422,7 +412,7 @@ abstract class BuilderFactory {
       AsyncMarker asyncModifier);
 
   String? computeAndValidateConstructorName(
-      TypeParameterScopeBuilder parentDeclaration, Identifier identifier,
+      DeclarationFragment enclosingDeclaration, Identifier identifier,
       {isFactory = false});
 
   void addProcedure(

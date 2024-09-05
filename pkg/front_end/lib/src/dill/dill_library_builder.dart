@@ -89,10 +89,6 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
   Loader get loader => _dillLibraryBuilder.loader;
 
   @override
-  NameIterator<Builder> get localMembersNameIterator =>
-      _dillLibraryBuilder.localMembersNameIterator;
-
-  @override
   Null get partOfLibrary => _dillLibraryBuilder.partOfLibrary;
 
   @override

@@ -449,7 +449,8 @@ class AstBuilder extends StackListener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
+      Token name,
+      String? enclosingDeclarationName) {
     _Modifiers modifiers = _Modifiers();
     if (augmentToken != null) {
       assert(augmentToken.isModifier);

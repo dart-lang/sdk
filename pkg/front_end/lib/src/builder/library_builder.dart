@@ -81,13 +81,6 @@ sealed class CompilationUnit {
   void addExporter(CompilationUnit exporter,
       List<CombinatorBuilder>? combinators, int charOffset);
 
-  /// Returns an iterator of all members (typedefs, classes and members)
-  /// declared in this library, including duplicate declarations.
-  ///
-  /// Compared to [localMembersIterator] this also gives access to the name
-  /// that the builders are mapped to.
-  NameIterator<Builder> get localMembersNameIterator;
-
   /// Add a problem with a severity determined by the severity of the message.
   ///
   /// If [fileUri] is null, it defaults to `this.fileUri`.

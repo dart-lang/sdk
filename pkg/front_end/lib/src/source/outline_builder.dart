@@ -1891,10 +1891,9 @@ class OutlineBuilder extends StackListenerImpl {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
-    inConstructor =
-        name.lexeme == _builderFactory.currentTypeParameterScopeBuilder.name &&
-            getOrSet == null;
+      Token name,
+      String? enclosingDeclarationName) {
+    inConstructor = name.lexeme == enclosingDeclarationName && getOrSet == null;
     DeclarationContext declarationContext;
     switch (declarationKind) {
       case DeclarationKind.TopLevel:
@@ -2243,8 +2242,8 @@ class OutlineBuilder extends StackListenerImpl {
         returnType = null;
       }
     } else {
+      // Coverage-ignore-block(suite): Not run.
       if (isConst) {
-        // Coverage-ignore-block(suite): Not run.
         // TODO(danrubel): consider removing this
         // because it is an error to have a const method.
         modifiers &= ~constMask;

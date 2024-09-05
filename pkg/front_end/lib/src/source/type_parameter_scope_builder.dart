@@ -6,248 +6,158 @@ import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import 'name_scheme.dart';
+import 'source_extension_builder.dart';
 import 'source_field_builder.dart';
+import 'source_library_builder.dart';
 
-// The kind of type parameter scope built by a [TypeParameterScopeBuilder]
-// object.
-enum TypeParameterScopeKind {
-  library,
-  classOrNamedMixinApplication,
-  classDeclaration,
-  mixinDeclaration,
-  unnamedMixinApplication,
-  namedMixinApplication,
-  extensionOrExtensionTypeDeclaration,
-  extensionDeclaration,
-  extensionTypeDeclaration,
-  typedef,
-  staticMethod,
-  instanceMethod,
-  constructor,
-  topLevelMethod,
-  factoryMethod,
-  functionType,
-  enumDeclaration,
-}
+class LibraryNameSpaceBuilder {
+  final Map<String, Builder> _members = {};
 
-/// A builder object preparing for building declarations that can introduce type
-/// parameter and/or members.
-///
-/// Unlike [Scope], this scope is used during construction of builders to
-/// ensure types and members are added to and resolved in the correct location.
-class TypeParameterScopeBuilder {
-  TypeParameterScopeKind _kind;
+  final Map<String, MemberBuilder> _setters = {};
 
-  final TypeParameterScopeBuilder? parent;
+  final Set<ExtensionBuilder> _extensions = {};
 
-  final Map<String, Builder>? members;
+  final Map<String, List<Builder>> augmentations = {};
 
-  final Map<String, MemberBuilder>? setters;
+  final Map<String, List<Builder>> setterAugmentations = {};
 
-  final Set<ExtensionBuilder>? extensions;
+  /// List of [PrefixBuilder]s for imports with prefixes.
+  List<PrefixBuilder>? _prefixBuilders;
 
-  final Map<String, List<Builder>> augmentations = <String, List<Builder>>{};
+  late final NameSpace _nameSpace;
 
-  final Map<String, List<Builder>> setterAugmentations =
-      <String, List<Builder>>{};
-
-  // TODO(johnniwinther): Stop using [_name] for determining the declaration
-  // kind.
-  String _name;
-
-  /// Offset of name token, updated by the outline builder along
-  /// with the name as the current declaration changes.
-  int _charOffset;
-
-  List<NominalVariableBuilder>? _typeVariables;
-
-  /// The type of `this` in instance methods declared in extension declarations.
-  ///
-  /// Instance methods declared in extension declarations methods are extended
-  /// with a synthesized parameter of this type.
-  TypeBuilder? _extensionThisType;
-
-  TypeParameterScopeBuilder(this._kind, this.members, this.setters,
-      this.extensions, this._name, this._charOffset, this.parent);
-
-  TypeParameterScopeBuilder.library()
-      : this(
-            TypeParameterScopeKind.library,
-            <String, Builder>{},
-            <String, MemberBuilder>{},
-            <ExtensionBuilder>{},
-            "<library>",
-            -1,
-            null);
-
-  TypeParameterScopeBuilder createNested(
-      TypeParameterScopeKind kind, String name) {
-    return new TypeParameterScopeBuilder(
-        kind,
-        null,
-        null,
-        null,
-        // No support for extensions in nested scopes.
-        name,
-        -1,
-        this);
+  LibraryNameSpaceBuilder() {
+    _nameSpace = new NameSpaceImpl(
+        getables: _members, setables: _setters, extensions: _extensions);
   }
 
-  /// Registers that this builder is preparing for a class declaration with the
-  /// given [name] and [typeVariables] located [charOffset].
-  void markAsClassDeclaration(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
+  Iterable<Builder> get builders => [
+        ..._members.values,
+        ..._setters.values,
+        for (Builder builder in _extensions)
+          if (builder is SourceExtensionBuilder && builder.isUnnamedExtension)
+            builder
+      ];
+
+  Builder addBuilder(
+      SourceLibraryBuilder _parent,
+      ProblemReporting _problemReporting,
+      String name,
+      Builder declaration,
+      Uri fileUri,
+      int charOffset) {
+    if (declaration is SourceExtensionBuilder &&
+        declaration.isUnnamedExtension) {
+      declaration.parent = _parent;
+      _extensions.add(declaration);
+      return declaration;
+    }
+
+    if (declaration is MemberBuilder) {
+      declaration.parent = _parent;
+    } else if (declaration is TypeDeclarationBuilder) {
+      declaration.parent = _parent;
+    } else if (declaration is PrefixBuilder) {
+      assert(declaration.parent == _parent);
+    } else {
+      return unhandled(
+          "${declaration.runtimeType}", "addBuilder", charOffset, fileUri);
+    }
+
     assert(
-        _kind == TypeParameterScopeKind.classOrNamedMixinApplication,
+        !(declaration is FunctionBuilder &&
+            (declaration.isConstructor || declaration.isFactory)),
         // Coverage-ignore(suite): Not run.
-        "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.classDeclaration;
-    _name = name;
-    _charOffset = charOffset;
-    _typeVariables = typeVariables;
+        "Unexpected constructor in library: $declaration.");
+
+    Map<String, Builder> members =
+        declaration.isSetter ? _setters : this._members;
+
+    Builder? existing = members[name];
+
+    if (existing == declaration) return declaration;
+
+    if (declaration.next != null && declaration.next != existing) {
+      unexpected(
+          "${declaration.next!.fileUri}@${declaration.next!.charOffset}",
+          "${existing?.fileUri}@${existing?.charOffset}",
+          declaration.charOffset,
+          declaration.fileUri);
+    }
+    declaration.next = existing;
+    if (declaration is PrefixBuilder && existing is PrefixBuilder) {
+      assert(existing.next is! PrefixBuilder);
+      Builder? deferred;
+      Builder? other;
+      if (declaration.deferred) {
+        deferred = declaration;
+        other = existing;
+      } else if (existing.deferred) {
+        deferred = existing;
+        other = declaration;
+      }
+      if (deferred != null) {
+        // Coverage-ignore-block(suite): Not run.
+        _problemReporting.addProblem(
+            templateDeferredPrefixDuplicated.withArguments(name),
+            deferred.charOffset,
+            noLength,
+            fileUri,
+            context: [
+              templateDeferredPrefixDuplicatedCause
+                  .withArguments(name)
+                  .withLocation(fileUri, other!.charOffset, noLength)
+            ]);
+      }
+      existing.mergeScopes(declaration, _problemReporting, _nameSpace,
+          uriOffset: new UriOffset(fileUri, charOffset));
+      return existing;
+    } else if (isDuplicatedDeclaration(existing, declaration)) {
+      String fullName = name;
+      _problemReporting.addProblem(
+          templateDuplicatedDeclaration.withArguments(fullName),
+          charOffset,
+          fullName.length,
+          declaration.fileUri!,
+          context: <LocatedMessage>[
+            templateDuplicatedDeclarationCause
+                .withArguments(fullName)
+                .withLocation(
+                    existing!.fileUri!, existing.charOffset, fullName.length)
+          ]);
+    } else if (declaration.isExtension) {
+      // We add the extension declaration to the extension scope only if its
+      // name is unique. Only the first of duplicate extensions is accessible
+      // by name or by resolution and the remaining are dropped for the output.
+      _extensions.add(declaration as SourceExtensionBuilder);
+    } else if (declaration.isAugment) {
+      if (existing != null) {
+        if (declaration.isSetter) {
+          (setterAugmentations[name] ??= []).add(declaration);
+        } else {
+          (augmentations[name] ??= []).add(declaration);
+        }
+      } else {
+        // TODO(cstefantsova): Report an error.
+      }
+    } else if (declaration is PrefixBuilder) {
+      _prefixBuilders ??= <PrefixBuilder>[];
+      _prefixBuilders!.add(declaration);
+    }
+    return members[name] = declaration;
   }
 
-  /// Registers that this builder is preparing for a named mixin application
-  /// with the given [name] and [typeVariables] located [charOffset].
-  void markAsNamedMixinApplication(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
-    assert(
-        _kind == TypeParameterScopeKind.classOrNamedMixinApplication,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.namedMixinApplication;
-    _name = name;
-    _charOffset = charOffset;
-    _typeVariables = typeVariables;
-  }
+  List<PrefixBuilder>? get prefixBuilders => _prefixBuilders;
 
-  /// Registers that this builder is preparing for a mixin declaration with the
-  /// given [name] and [typeVariables] located [charOffset].
-  void markAsMixinDeclaration(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
-    // TODO(johnniwinther): Avoid using 'classOrNamedMixinApplication' for mixin
-    // declaration. These are syntactically distinct so we don't need the
-    // transition.
-    assert(
-        _kind == TypeParameterScopeKind.classOrNamedMixinApplication,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.mixinDeclaration;
-    _name = name;
-    _charOffset = charOffset;
-    _typeVariables = typeVariables;
-  }
-
-  /// Registers that this builder is preparing for an extension declaration with
-  /// the given [name] and [typeVariables] located [charOffset].
-  void markAsExtensionDeclaration(String? name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
-    assert(
-        _kind == TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.extensionDeclaration;
-    _name = name ?? UnnamedExtensionName.unnamedExtensionSentinel;
-    _charOffset = charOffset;
-    _typeVariables = typeVariables;
-  }
-
-  /// Registers that this builder is preparing for an extension type declaration
-  /// with the given [name] and [typeVariables] located [charOffset].
-  void markAsExtensionTypeDeclaration(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
-    assert(
-        _kind == TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.extensionTypeDeclaration;
-    _name = name;
-    _charOffset = charOffset;
-    _typeVariables = typeVariables;
-  }
-
-  /// Registers that this builder is preparing for an enum declaration with
-  /// the given [name] and [typeVariables] located [charOffset].
-  void markAsEnumDeclaration(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
-    assert(
-        _kind == TypeParameterScopeKind.enumDeclaration,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration kind: $_kind");
-    _name = name;
-    _charOffset = charOffset;
-    _typeVariables = typeVariables;
-  }
-
-  /// Registers the 'extension this type' of the extension declaration prepared
-  /// for by this builder.
-  ///
-  /// See [extensionThisType] for terminology.
-  void registerExtensionThisType(TypeBuilder type) {
-    assert(
-        _kind == TypeParameterScopeKind.extensionDeclaration,
-        // Coverage-ignore(suite): Not run.
-        "DeclarationBuilder.registerExtensionThisType is not supported $_kind");
-    assert(_extensionThisType == null,
-        "Extension this type has already been set.");
-    _extensionThisType = type;
-  }
-
-  /// Returns what kind of declaration this [TypeParameterScopeBuilder] is
-  /// preparing for.
-  ///
-  /// This information is transient for some declarations. In particular
-  /// classes and named mixin applications are initially created with the kind
-  /// [TypeParameterScopeKind.classOrNamedMixinApplication] before a call to
-  /// either [markAsClassDeclaration] or [markAsNamedMixinApplication] sets the
-  /// value to its actual kind.
-  // TODO(johnniwinther): Avoid the transition currently used on mixin
-  // declarations.
-  TypeParameterScopeKind get kind => _kind;
-
-  String get name => _name;
-
-  int get charOffset => _charOffset;
-
-  List<NominalVariableBuilder>? get typeVariables => _typeVariables;
-
-  /// Returns the 'extension this type' of the extension declaration prepared
-  /// for by this builder.
-  ///
-  /// The 'extension this type' is the type mentioned in the on-clause of the
-  /// extension declaration. For instance `B` in this extension declaration:
-  ///
-  ///     extension A on B {
-  ///       B method() => this;
-  ///     }
-  ///
-  /// The 'extension this type' is the type if `this` expression in instance
-  /// methods declared in extension declarations.
-  TypeBuilder get extensionThisType {
-    assert(
-        kind == TypeParameterScopeKind.extensionDeclaration,
-        // Coverage-ignore(suite): Not run.
-        "DeclarationBuilder.extensionThisType not supported on $kind.");
-    assert(
-        _extensionThisType != null,
-        // Coverage-ignore(suite): Not run.
-        "DeclarationBuilder.extensionThisType has not been set on $this.");
-    return _extensionThisType!;
-  }
-
-  NameSpace toNameSpace() {
-    return new NameSpaceImpl(
-        getables: members, setables: setters, extensions: extensions);
-  }
-
-  @override
-  String toString() => 'DeclarationBuilder(${hashCode}:kind=$kind,name=$name)';
+  NameSpace toNameSpace() => _nameSpace;
 }
 
 class NominalParameterScope extends AbstractTypeParameterScope {
@@ -311,7 +221,7 @@ enum DeclarationFragmentKind {
   extensionTypeDeclaration,
 }
 
-abstract class DeclarationFragment {
+sealed class DeclarationFragment {
   final int nameOffset;
   final LookupScope typeParameterScope;
   final DeclarationBuilderScope bodyScope = new DeclarationBuilderScope();
@@ -319,7 +229,10 @@ abstract class DeclarationFragment {
 
   List<SourceFieldBuilder>? primaryConstructorFields;
 
-  DeclarationFragment(this.nameOffset, this.typeParameterScope);
+  final List<NominalVariableBuilder>? typeParameters;
+
+  DeclarationFragment(
+      this.nameOffset, this.typeParameters, this.typeParameterScope);
 
   String get name;
 
@@ -353,7 +266,8 @@ class ClassFragment extends DeclarationFragment {
 
   final ClassName _className;
 
-  ClassFragment(this.name, super.nameOffset, super.typeParameterScope)
+  ClassFragment(this.name, super.nameOffset, super.typeParameters,
+      super.typeParameterScope)
       : _className = new ClassName(name);
 
   @override
@@ -373,7 +287,8 @@ class MixinFragment extends DeclarationFragment {
 
   final ClassName _className;
 
-  MixinFragment(this.name, super.nameOffset, super.typeParameterScope)
+  MixinFragment(this.name, super.nameOffset, super.typeParameters,
+      super.typeParameterScope)
       : _className = new ClassName(name);
 
   @override
@@ -393,7 +308,8 @@ class EnumFragment extends DeclarationFragment {
 
   final ClassName _className;
 
-  EnumFragment(this.name, super.nameOffset, super.typeParameterScope)
+  EnumFragment(this.name, super.nameOffset, super.typeParameters,
+      super.typeParameterScope)
       : _className = new ClassName(name);
 
   @override
@@ -410,7 +326,14 @@ class EnumFragment extends DeclarationFragment {
 class ExtensionFragment extends DeclarationFragment {
   final ExtensionName extensionName;
 
-  ExtensionFragment(String? name, super.nameOffset, super.typeParameterScope)
+  /// The type of `this` in instance methods declared in extension declarations.
+  ///
+  /// Instance methods declared in extension declarations methods are extended
+  /// with a synthesized parameter of this type.
+  TypeBuilder? _extensionThisType;
+
+  ExtensionFragment(String? name, super.nameOffset, super.typeParameters,
+      super.typeParameterScope)
       : extensionName = name != null
             ? new FixedExtensionName(name)
             : new UnnamedExtensionName();
@@ -428,6 +351,36 @@ class ExtensionFragment extends DeclarationFragment {
   // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind =>
       DeclarationFragmentKind.extensionDeclaration;
+
+  /// Registers the 'extension this type' of the extension declaration prepared
+  /// for by this builder.
+  ///
+  /// See [extensionThisType] for terminology.
+  void registerExtensionThisType(TypeBuilder type) {
+    assert(_extensionThisType == null,
+        "Extension this type has already been set.");
+    _extensionThisType = type;
+  }
+
+  /// Returns the 'extension this type' of the extension declaration prepared
+  /// for by this builder.
+  ///
+  /// The 'extension this type' is the type mentioned in the on-clause of the
+  /// extension declaration. For instance `B` in this extension declaration:
+  ///
+  ///     extension A on B {
+  ///       B method() => this;
+  ///     }
+  ///
+  /// The 'extension this type' is the type if `this` expression in instance
+  /// methods declared in extension declarations.
+  TypeBuilder get extensionThisType {
+    assert(
+        _extensionThisType != null,
+        // Coverage-ignore(suite): Not run.
+        "DeclarationBuilder.extensionThisType has not been set on $this.");
+    return _extensionThisType!;
+  }
 }
 
 class ExtensionTypeFragment extends DeclarationFragment {
@@ -436,7 +389,8 @@ class ExtensionTypeFragment extends DeclarationFragment {
 
   final ClassName _className;
 
-  ExtensionTypeFragment(this.name, super.nameOffset, super.typeParameterScope)
+  ExtensionTypeFragment(this.name, super.nameOffset, super.typeParameters,
+      super.typeParameterScope)
       : _className = new ClassName(name);
 
   @override
@@ -611,7 +565,6 @@ enum TypeScopeKind {
   extensionTypeDeclaration,
   memberTypeParameters,
   functionTypeParameters,
-
   unnamedMixinApplication,
 }
 

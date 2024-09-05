@@ -57,18 +57,6 @@ class CommandOutput {
     return Expectation.pass;
   }
 
-  /// Cloned code from member result(), with changes.
-  /// Delete existing result() function and rename, when status files are gone.
-  Expectation realResult(TestCase testCase) {
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (_didFail(testCase)) return Expectation.fail;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-    if (truncatedOutput) return Expectation.truncatedOutput;
-
-    return Expectation.pass;
-  }
-
   bool get hasCrashed {
     // dart2js exits with code 253 in case of unhandled exceptions.
     // The dart binary exits with code 253 in case of an API error such
@@ -338,27 +326,6 @@ class BrowserCommandOutput extends CommandOutput
 
   @override
   Expectation result(TestCase testCase) {
-    // Handle timeouts first.
-    if (_result.didTimeout) {
-      return Expectation.timeout;
-    }
-
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-    if (truncatedOutput) return Expectation.truncatedOutput;
-
-    // Multitests are handled specially.
-    if (testCase.hasRuntimeError) {
-      if (_outcome == Expectation.runtimeError) return Expectation.pass;
-      return Expectation.missingRuntimeError;
-    }
-
-    return _outcome;
-  }
-
-  /// Cloned code from member result(), with changes.
-  /// Delete existing result() function and rename, when status files are gone.
-  @override
-  Expectation realResult(TestCase testCase) {
     // Handle timeouts first.
     if (_result.didTimeout) {
       return Expectation.timeout;
@@ -671,54 +638,6 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       return _validateExpectedErrors(testCase);
     }
 
-    // Handle errors / missing errors.
-    if (testCase.hasCompileError) {
-      if (errors.isNotEmpty) {
-        return Expectation.pass;
-      }
-      return Expectation.missingCompileTimeError;
-    }
-    if (errors.isNotEmpty) {
-      return Expectation.compileTimeError;
-    }
-
-    // Handle static warnings / missing static warnings.
-    if (testCase.hasStaticWarning) {
-      if (warnings.isNotEmpty) {
-        return Expectation.pass;
-      }
-      return Expectation.missingStaticWarning;
-    }
-    if (warnings.isNotEmpty) {
-      return Expectation.staticWarning;
-    }
-
-    assert(errors.isEmpty && warnings.isEmpty);
-    assert(!testCase.hasCompileError && !testCase.hasStaticWarning);
-    return Expectation.pass;
-  }
-
-  /// Cloned code from member result(), with changes.
-  /// Delete existing result() function and rename, when status files are gone.
-  @override
-  Expectation realResult(TestCase testCase) {
-    // TODO(kustermann): If we run the analyzer not in batch mode, make sure
-    // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
-    // no errors)
-
-    // Handle crashes and timeouts first.
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-    if (truncatedOutput) return Expectation.truncatedOutput;
-
-    if (invalidJsonStdout != null) return Expectation.fail;
-
-    // If it's a static error test, validate the exact errors.
-    if (testCase.testFile.isStaticErrorTest) {
-      return _validateExpectedErrors(testCase);
-    }
-
     if (errors.isNotEmpty) {
       return Expectation.compileTimeError;
     }
@@ -818,24 +737,6 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
     }
     return Expectation.fail;
   }
-
-  /// Cloned code from member result(), with changes.
-  /// Delete existing result() function and rename, when status files are gone.
-  @override
-  Expectation realResult(TestCase testCase) {
-    // Handle crashes and timeouts first
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-    if (truncatedOutput) return Expectation.truncatedOutput;
-
-    if (exitCode != 0) return Expectation.fail;
-    for (var line in decodeUtf8(stdout).split('\n')) {
-      if (line.contains('No differences found')) return Expectation.pass;
-      if (line.contains('Differences found')) return Expectation.fail;
-    }
-    return Expectation.fail;
-  }
 }
 
 class SpecParseCommandOutput extends CommandOutput {
@@ -854,34 +755,6 @@ class SpecParseCommandOutput extends CommandOutput {
 
   @override
   Expectation result(TestCase testCase) {
-    // Handle crashes and timeouts first.
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-    if (truncatedOutput) return Expectation.truncatedOutput;
-
-    if (testCase.hasCompileError) {
-      if (testCase.hasSyntaxError) {
-        // A syntax error is expected.
-        return hasSyntaxError
-            ? Expectation.pass
-            : Expectation.missingSyntaxError;
-      } else {
-        // A non-syntax compile-time error is expected by the test, so a run
-        // with no failures is a successful run. A run with failures is an
-        // actual (but unexpected) syntax error.
-        return exitCode == 0 ? Expectation.pass : Expectation.syntaxError;
-      }
-    }
-
-    // No compile-time errors expected (including: no syntax errors).
-    return exitCode == 0 ? Expectation.pass : Expectation.syntaxError;
-  }
-
-  /// Cloned code from member result(), with changes.
-  /// Delete existing result() function and rename, when status files are gone.
-  @override
-  Expectation realResult(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
@@ -906,57 +779,6 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
 
   @override
   Expectation result(TestCase testCase) {
-    // `ffx test` isn't preserving exit codes.
-    // TODO(38752): Plumb exit codes through something else?
-    if (testCase.configuration.system == System.fuchsia) {
-      if (utf8.decode(stdout).contains("completed with result: PASSED")) {
-        return Expectation.pass;
-      }
-      return Expectation.fail;
-    }
-
-    // Handle crashes and timeouts first.
-    if (exitCode == _dfeErrorExitCode) return Expectation.dartkCrash;
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-    if (truncatedOutput) return Expectation.truncatedOutput;
-
-    // Multitests are handled specially.
-    if (testCase.hasCompileError) {
-      if (exitCode == _compileErrorExitCode) {
-        return Expectation.pass;
-      }
-      return Expectation.missingCompileTimeError;
-    }
-
-    if (testCase.hasRuntimeError) {
-      // TODO(kustermann): Do we consider a "runtimeError" only an uncaught
-      // exception or does any nonzero exit code fullfil this requirement?
-      if (exitCode != 0) {
-        return Expectation.pass;
-      }
-      return Expectation.missingRuntimeError;
-    }
-
-    // The actual outcome depends on the exitCode.
-    var outcome = Expectation.pass;
-    if (exitCode == _compileErrorExitCode) {
-      outcome = Expectation.compileTimeError;
-    } else if (exitCode == _uncaughtExceptionExitCode) {
-      outcome = Expectation.runtimeError;
-    } else if (exitCode != 0) {
-      // This is a general fail, in case we get an unknown nonzero exitcode.
-      outcome = Expectation.fail;
-    }
-
-    return _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
-  }
-
-  /// Cloned code from member result(), with changes.
-  /// Delete existing result() function and rename, when status files are gone.
-  @override
-  Expectation realResult(TestCase testCase) {
     // `ffx test` isn't preserving exit codes.
     // TODO(38752): Plumb exit codes through something else?
     if (testCase.configuration.system == System.fuchsia) {
@@ -1014,35 +836,6 @@ class CompilationCommandOutput extends CommandOutput {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, 0);
 
-  /// Cloned code from member result(), with changes.
-  /// Delete existing result() function and rename, when status files are gone.
-  /// This code can return Expectation.ignore - we may want to fix that.
-  @override
-  Expectation realResult(TestCase testCase) {
-    // Handle general crash/timeout detection.
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) {
-      var isWindows = io.Platform.operatingSystem == 'windows';
-      var isBrowserTestCase =
-          testCase.commands.any((command) => command is BrowserTestCommand);
-      // TODO(26060) Dart2js batch mode hangs on Windows under heavy load.
-      return (isWindows && isBrowserTestCase)
-          ? Expectation.ignore
-          : Expectation.timeout;
-    }
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-    if (truncatedOutput) return Expectation.truncatedOutput;
-
-    // Handle dart2js specific crash detection
-    if (exitCode == _crashExitCode ||
-        exitCode == VMCommandOutput._compileErrorExitCode ||
-        exitCode == VMCommandOutput._uncaughtExceptionExitCode) {
-      return Expectation.crash;
-    }
-    if (exitCode != 0) return Expectation.compileTimeError;
-    return Expectation.pass;
-  }
-
   @override
   Expectation result(TestCase testCase) {
     // Handle general crash/timeout detection.
@@ -1065,26 +858,8 @@ class CompilationCommandOutput extends CommandOutput {
         exitCode == VMCommandOutput._uncaughtExceptionExitCode) {
       return Expectation.crash;
     }
-
-    // Multitests are handled specially.
-    if (testCase.hasCompileError) {
-      // Nonzero exit code of the compiler means compilation failed
-      // TODO(kustermann): Do we have a special exit code in that case???
-      if (exitCode != 0) {
-        return Expectation.pass;
-      }
-      return Expectation.missingCompileTimeError;
-    }
-
-    // TODO(kustermann): This is a hack, remove it.
-    if (testCase.hasRuntimeError && testCase.commands.length > 1) {
-      // We expected to run the test, but we got an compile time error.
-      // If the compilation succeeded, we wouldn't be in here!
-      assert(exitCode != 0);
-      return Expectation.compileTimeError;
-    }
-
-    return exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
+    if (exitCode != 0) return Expectation.compileTimeError;
+    return Expectation.pass;
   }
 }
 
@@ -1195,30 +970,6 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
       return _validateExpectedErrors(testCase);
     }
 
-    // Handle errors / missing errors
-    if (testCase.hasCompileError) {
-      return exitCode == 0
-          ? Expectation.missingCompileTimeError
-          : Expectation.pass;
-    }
-
-    return exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
-  }
-
-  /// Cloned code from member result(), with changes.
-  /// Delete existing result() function and rename, when status files are gone.
-  @override
-  Expectation realResult(TestCase testCase) {
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-    if (truncatedOutput) return Expectation.truncatedOutput;
-
-    // If it's a static error test, validate the exact errors.
-    if (testCase.testFile.isStaticErrorTest) {
-      return _validateExpectedErrors(testCase);
-    }
-
     if (exitCode != 0) return Expectation.compileTimeError;
 
     return Expectation.pass;
@@ -1252,50 +1003,6 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
 
   @override
   Expectation result(TestCase testCase) {
-    // TODO(kustermann): Currently the batch mode runner (which can be found
-    // in `test_runner.dart:BatchRunnerProcess`) does not really distinguish
-    // between different kinds of failures and will mark a failed
-    // compilation to just an exit code of "1".  So we treat all `exitCode ==
-    // 1`s as compile-time errors as well.
-    const batchModeCompileTimeErrorExit = 1;
-
-    // Handle crashes and timeouts first.
-    if (hasCrashed) return Expectation.dartkCrash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-    if (truncatedOutput) return Expectation.truncatedOutput;
-
-    // If the frontend had an uncaught exception, then we'll consider this a
-    // crash.
-    if (exitCode == VMCommandOutput._uncaughtExceptionExitCode) {
-      return Expectation.dartkCrash;
-    }
-
-    // Multitests are handled specially.
-    if (testCase.hasCompileError) {
-      if (exitCode == VMCommandOutput._compileErrorExitCode ||
-          exitCode == batchModeCompileTimeErrorExit) {
-        return Expectation.pass;
-      }
-      return Expectation.missingCompileTimeError;
-    }
-
-    // The actual outcome depends on the exitCode.
-    if (exitCode == VMCommandOutput._compileErrorExitCode ||
-        exitCode == batchModeCompileTimeErrorExit) {
-      return Expectation.compileTimeError;
-    } else if (exitCode != 0) {
-      // This is a general fail, in case we get an unknown nonzero exitcode.
-      return Expectation.fail;
-    }
-
-    return Expectation.pass;
-  }
-
-  /// Cloned code from member result(), with changes.
-  /// Delete existing result() function and rename, when status files are gone.
-  @override
-  Expectation realResult(TestCase testCase) {
     // TODO(kustermann): Currently the batch mode runner (which can be found
     // in `test_runner.dart:BatchRunnerProcess`) does not really distinguish
     // between different kinds of failures and will mark a failed
@@ -1352,25 +1059,6 @@ class JSCommandLineOutput extends CommandOutput
     if (hasNonUtf8) return Expectation.nonUtf8Error;
     if (truncatedOutput) return Expectation.truncatedOutput;
 
-    if (testCase.hasRuntimeError) {
-      if (exitCode != 0) return Expectation.pass;
-      return Expectation.missingRuntimeError;
-    }
-
-    var outcome = exitCode == 0 ? Expectation.pass : Expectation.runtimeError;
-    return _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
-  }
-
-  /// Cloned code from member result(), with changes.
-  /// Delete existing result() function and rename, when status files are gone.
-  @override
-  Expectation realResult(TestCase testCase) {
-    // Handle crashes and timeouts first.
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-    if (truncatedOutput) return Expectation.truncatedOutput;
-
     if (exitCode != 0) return Expectation.runtimeError;
     var output = decodeUtf8(stdout);
     if (_isAsyncTest(output) && !_isAsyncTestSuccessful(output)) {
@@ -1405,25 +1093,6 @@ class Dart2WasmCommandLineOutput extends CommandOutput
     if (hasNonUtf8) return Expectation.nonUtf8Error;
     if (truncatedOutput) return Expectation.truncatedOutput;
 
-    if (testCase.hasRuntimeError) {
-      if (exitCode != 0) return Expectation.pass;
-      return Expectation.missingRuntimeError;
-    }
-
-    var outcome = exitCode == 0 ? Expectation.pass : Expectation.runtimeError;
-    return _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
-  }
-
-  /// Cloned code from member result(), with changes.
-  /// Delete existing result() function and rename, when status files are gone.
-  @override
-  Expectation realResult(TestCase testCase) {
-    // Handle crashes and timeouts first.
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-    if (truncatedOutput) return Expectation.truncatedOutput;
-
     if (exitCode != 0) return Expectation.runtimeError;
     var output = decodeUtf8(stdout);
     if (_isAsyncTest(output) && !_isAsyncTestSuccessful(output)) {
@@ -1445,9 +1114,6 @@ class ScriptCommandOutput extends CommandOutput {
 
   @override
   Expectation result(TestCase testCase) => _result;
-
-  @override
-  Expectation realResult(TestCase testCase) => _result;
 
   @override
   bool get canRunDependentCommands => _result == Expectation.pass;
@@ -1629,21 +1295,6 @@ mixin _StaticErrorOutput on CommandOutput {
     return super.result(testCase);
   }
 
-  @override
-  Expectation realResult(TestCase testCase) {
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-    if (truncatedOutput) return Expectation.truncatedOutput;
-
-    // If it's a static error test, validate the exact errors.
-    if (testCase.testFile.isStaticErrorTest) {
-      return _validateExpectedErrors(testCase);
-    }
-
-    return super.realResult(testCase);
-  }
-
   /// A subclass should override this to parse the command's output for any
   /// reported errors and warnings.
   ///
@@ -1699,19 +1350,6 @@ mixin _UnittestSuiteMessagesMixin {
 
   bool _isAsyncTestSuccessful(String testOutput) {
     return testOutput.contains("unittest-suite-success");
-  }
-
-  Expectation _negateOutcomeIfIncompleteAsyncTest(
-      Expectation outcome, String testOutput) {
-    // If this is an asynchronous test and the asynchronous operation didn't
-    // complete successfully, it's outcome is Expectation.FAIL.
-    // TODO: maybe we should introduce a AsyncIncomplete marker or so
-    if (outcome == Expectation.pass) {
-      if (_isAsyncTest(testOutput) && !_isAsyncTestSuccessful(testOutput)) {
-        return Expectation.fail;
-      }
-    }
-    return outcome;
   }
 }
 

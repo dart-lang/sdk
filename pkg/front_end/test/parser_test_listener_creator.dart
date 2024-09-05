@@ -157,7 +157,8 @@ class ParserCreatorListener extends Listener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
+      Token name,
+      String? enclosingDeclarationName) {
     currentMethodName = name.lexeme;
   }
 
