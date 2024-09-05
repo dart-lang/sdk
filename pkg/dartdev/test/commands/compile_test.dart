@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 
 import '../utils.dart';
 
-const int compileErrorExitCode = 64;
+const int compileErrorExitCode = 254;
 
 void main() {
   ensureRunFromSdkBinDart();
@@ -179,7 +179,7 @@ void defineCompileTests() {
       ],
     );
     expect(result.stderr, contains('Compile Dart'));
-    expect(result.exitCode, compileErrorExitCode);
+    expect(result.exitCode, 64);
   });
 
   test('--help', () async {
@@ -1310,7 +1310,7 @@ void main() {
 
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('must be assigned before it can be used'));
-    expect(result.exitCode, 64);
+    expect(result.exitCode, compileErrorExitCode);
   });
 
   test('Compile JIT snapshot with default (sound null safety)', () async {

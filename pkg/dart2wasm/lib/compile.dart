@@ -45,11 +45,38 @@ import 'target.dart' as wasm show Mode;
 import 'target.dart' hide Mode;
 import 'translator.dart';
 
-class CompilerOutput {
+sealed class CompilationResult {}
+
+class CompilationSuccess extends CompilationResult {
   final Map<String, ({Uint8List moduleBytes, String? sourceMap})> wasmModules;
   final String jsRuntime;
 
-  CompilerOutput(this.wasmModules, this.jsRuntime);
+  CompilationSuccess(this.wasmModules, this.jsRuntime);
+}
+
+class CompilationError extends CompilationResult {}
+
+/// The CFE has crashed with an exception.
+///
+/// This is a CFE bug and should be reported by users.
+class CFECrashError extends CompilationError {
+  final Object error;
+  final StackTrace stackTrace;
+
+  CFECrashError(this.error, this.stackTrace);
+}
+
+/// Compiling the Dart program resulted in compile-time errors.
+///
+/// This is a bug in the dart program (e.g. syntax errors, static type errors,
+/// ...) that's being compiled.  Users have to address those errors in their
+/// code for it to compile successfully.
+///
+/// The errors are already printed via the `handleDiagnosticMessage` callback.
+/// (We print them as soon as they are reported by CFE. i.e. we stream errors
+/// instead of accumulating/batching all of them and reporting at the end.)
+class CFECompileTimeErrors extends CompilationError {
+  CFECompileTimeErrors();
 }
 
 /// Compile a Dart file into a Wasm module.
@@ -63,14 +90,14 @@ class CompilerOutput {
 /// This value will be added to the Wasm module in `sourceMappingURL` section.
 /// When this argument is null the code generator does not generate source
 /// mappings.
-Future<CompilerOutput?> compileToModule(
+Future<CompilationResult> compileToModule(
     compiler.WasmCompilerOptions options,
     Uri Function(String moduleName)? sourceMapUrlGenerator,
     void Function(DiagnosticMessage) handleDiagnosticMessage) async {
-  var succeeded = true;
+  var hadCompileTimeError = false;
   void diagnosticMessageHandler(DiagnosticMessage message) {
     if (message.severity == Severity.error) {
-      succeeded = false;
+      hadCompileTimeError = true;
     }
     handleDiagnosticMessage(message);
   }
@@ -118,12 +145,16 @@ Future<CompilerOutput?> compileToModule(
     compilerOptions.compileSdk = true;
   }
 
-  CompilerResult? compilerResult =
-      await kernelForProgram(options.mainUri, compilerOptions);
-  if (compilerResult == null || !succeeded) {
-    return null;
+  CompilerResult? compilerResult;
+  try {
+    compilerResult = await kernelForProgram(options.mainUri, compilerOptions);
+  } catch (e, s) {
+    return CFECrashError(e, s);
   }
-  Component component = compilerResult.component!;
+  if (hadCompileTimeError) return CFECompileTimeErrors();
+  assert(compilerResult != null);
+
+  Component component = compilerResult!.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
   ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
   LibraryIndex libraryIndex = LibraryIndex(component, [
@@ -231,5 +262,5 @@ Future<CompilerOutput?> compileToModule(
       translator.internalizedStringsForJSRuntime,
       mode);
 
-  return CompilerOutput(wasmModules, jsRuntime);
+  return CompilationSuccess(wasmModules, jsRuntime);
 }
