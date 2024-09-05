@@ -779,7 +779,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         originImportUri: _compilationUnit.originImportUri,
         fileUri: newFileUri,
         accessor: _compilationUnit,
-        isPatch: _compilationUnit.isAugmenting);
+        isPatch: _compilationUnit.isAugmenting,
+        referencesFromIndex: indexedLibrary,
+        referenceIsPartOwner: indexedLibrary != null);
     _parts.add(new Part(charOffset, compilationUnit));
 
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].

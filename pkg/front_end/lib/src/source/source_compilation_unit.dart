@@ -300,7 +300,6 @@ class SourceCompilationUnitImpl
   @override
   bool get isSynthetic => accessProblem != null;
 
-  @override
   NameIterator<Builder> get localMembersNameIterator =>
       _sourceLibraryBuilder.localMembersNameIterator;
 
