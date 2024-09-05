@@ -113,6 +113,7 @@ import 'exhaustive_cases_test.dart' as exhaustive_cases;
 import 'file_names_test.dart' as file_names;
 import 'flutter_style_todos_test.dart' as flutter_style_todos;
 import 'hash_and_equals_test.dart' as hash_and_equals;
+import 'implementation_imports_test.dart' as implementation_imports;
 import 'implicit_call_tearoffs_test.dart' as implicit_call_tearoffs;
 import 'implicit_reopen_test.dart' as implicit_reopen;
 import 'invalid_case_patterns_test.dart' as invalid_case_patterns;
@@ -381,6 +382,7 @@ void main() {
   file_names.main();
   flutter_style_todos.main();
   hash_and_equals.main();
+  implementation_imports.main();
   implicit_call_tearoffs.main();
   implicit_reopen.main();
   invalid_case_patterns.main();
