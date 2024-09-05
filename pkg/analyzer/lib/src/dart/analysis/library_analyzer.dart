@@ -182,11 +182,18 @@ class LibraryAnalyzer {
       _testingData?.recordFlowAnalysisDataForTesting(
           file.uri, flowAnalysisHelper.dataForTesting!);
 
-      var resolverVisitor = ResolverVisitor(_inheritance, _libraryElement,
-          libraryResolutionContext, file.source, _typeProvider, errorListener,
-          featureSet: _libraryElement.featureSet,
-          analysisOptions: _library.file.analysisOptions,
-          flowAnalysisHelper: flowAnalysisHelper);
+      var resolverVisitor = ResolverVisitor(
+        _inheritance,
+        _libraryElement,
+        libraryResolutionContext,
+        file.source,
+        _typeProvider,
+        errorListener,
+        featureSet: _libraryElement.featureSet,
+        analysisOptions: _library.file.analysisOptions,
+        flowAnalysisHelper: flowAnalysisHelper,
+        libraryFragment: unitElement,
+      );
       _testingData?.recordTypeConstraintGenerationDataForTesting(
           file.uri, resolverVisitor.inferenceHelper.dataForTesting!);
 
@@ -497,8 +504,10 @@ class LibraryAnalyzer {
     LanguageVersionOverrideVerifier(errorReporter).verify(unit);
 
     // Verify imports.
-    {
-      ImportsVerifier verifier = ImportsVerifier();
+    if (!_hasDiagnosticReportedThatPreventsImportWarnings()) {
+      var verifier = ImportsVerifier(
+        fileAnalysis: fileAnalysis,
+      );
       verifier.addImports(unit);
       usedImportedElements.forEach(verifier.removeUsedElements);
       verifier.generateDuplicateExportWarnings(errorReporter);
@@ -586,6 +595,35 @@ class LibraryAnalyzer {
     ];
   }
 
+  bool _hasDiagnosticReportedThatPreventsImportWarnings() {
+    var errorCodes = _libraryFiles.values.map((analysis) {
+      return analysis.errorListener.errors.map((e) => e.errorCode);
+    }).flattenedToSet;
+
+    for (var errorCode in errorCodes) {
+      if (const {
+        CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+        CompileTimeErrorCode.CONST_WITH_NON_TYPE,
+        CompileTimeErrorCode.EXTENDS_NON_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
+        CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
+        CompileTimeErrorCode.NEW_WITH_NON_TYPE,
+        CompileTimeErrorCode.NOT_A_TYPE,
+        CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+        CompileTimeErrorCode.UNDEFINED_ANNOTATION,
+        CompileTimeErrorCode.UNDEFINED_CLASS,
+        CompileTimeErrorCode.UNDEFINED_FUNCTION,
+        CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+        CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
+        WarningCode.DEPRECATED_EXPORT_USE,
+      }.contains(errorCode)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /// Return a new parsed unresolved [CompilationUnit].
   FileAnalysis _parse({
     required FileState file,
@@ -618,8 +656,22 @@ class LibraryAnalyzer {
       fileElement: _libraryElement.definingCompilationUnit,
     );
 
+    // Configure scopes for all files to track imports usages.
+    // Associate tracking objects with file objects.
+    for (var fileAnalysis in _libraryFiles.values) {
+      var scope = fileAnalysis.element.scope;
+      var tracking = scope.importsTrackingInit();
+      fileAnalysis.importsTracking = tracking;
+    }
+
     for (var fileAnalysis in _libraryFiles.values) {
       _resolveFile(fileAnalysis);
+    }
+
+    // Stop tracking usages by scopes.
+    for (var fileAnalysis in _libraryFiles.values) {
+      var scope = fileAnalysis.element.scope;
+      scope.importsTrackingDestroy();
     }
 
     _computeConstants();
@@ -911,11 +963,18 @@ class LibraryAnalyzer {
     _testingData?.recordFlowAnalysisDataForTesting(
         fileAnalysis.file.uri, flowAnalysisHelper.dataForTesting!);
 
-    var resolver = ResolverVisitor(_inheritance, _libraryElement,
-        libraryResolutionContext, source, _typeProvider, errorListener,
-        analysisOptions: _library.file.analysisOptions,
-        featureSet: unit.featureSet,
-        flowAnalysisHelper: flowAnalysisHelper);
+    var resolver = ResolverVisitor(
+      _inheritance,
+      _libraryElement,
+      libraryResolutionContext,
+      source,
+      _typeProvider,
+      errorListener,
+      analysisOptions: _library.file.analysisOptions,
+      featureSet: unit.featureSet,
+      flowAnalysisHelper: flowAnalysisHelper,
+      libraryFragment: unitElement,
+    );
     unit.accept(resolver);
     _testingData?.recordTypeConstraintGenerationDataForTesting(
         fileAnalysis.file.uri, resolver.inferenceHelper.dataForTesting!);

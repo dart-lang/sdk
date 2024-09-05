@@ -171,25 +171,6 @@ f(p.A a, p.B b) {}
     ]);
   }
 
-  test_class_deprecatedExport() async {
-    newFile('$testPackageLibPath/a.dart', '''
-class A {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', '''
-library;
-@deprecated
-export 'a.dart';
-class B {}
-''');
-
-    await assertNoErrorsInCode('''
-import 'a.dart';
-import 'b.dart';
-void f(A a, B b) {}
-''');
-  }
-
   test_duplicateImport_differentPrefix() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 class A {}
@@ -271,6 +252,91 @@ void f() {
     ]);
   }
 
+  test_hasDeprecatedExport_hasNotDeprecatedImport_hasOtherClass() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library;
+
+@deprecated
+export 'a.dart';
+
+class B {}
+''');
+
+    // `import b` is not reported because provides used `B`.
+    // `A` is from both `a.dart` and `b.dart`, so not reported.
+    await assertNoErrorsInCode('''
+import 'a.dart';
+import 'b.dart';
+
+void f(A _, B _) {}
+''');
+  }
+
+  test_hasDeprecatedExport_hasNotDeprecatedImport_noOtherClass() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+library;
+
+@deprecated
+export 'b.dart';
+
+class C {}
+''');
+
+    // `import c` is unnecessary because we use only `B` from it.
+    // But the export of `B` from `c.dart` is deprecated.
+    // We can get `B` from `import b`, in a not deprecated way.
+    // It also declares `C`, but we don't use it.
+    await assertErrorsInCode('''
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
+
+void f(A _, B _) {}
+''', [
+      error(HintCode.UNNECESSARY_IMPORT, 41, 8),
+    ]);
+  }
+
+  test_hasDeprecatedExport_noNotDeprecatedImport() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+library;
+
+@deprecated
+export 'b.dart';
+''');
+
+    // `import c` is not marked as unnecessary because of there is
+    // `DEPRECATED_EXPORT_USE` already reported.
+    await assertErrorsInCode('''
+import 'a.dart';
+import 'c.dart';
+
+void f(A _, B _) {}
+''', [
+      error(WarningCode.DEPRECATED_EXPORT_USE, 47, 1),
+    ]);
+  }
+
   test_hide() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 class A {}
@@ -295,6 +361,25 @@ import 'dart:io';
 import 'lib1.dart';
 g(Directory d, File f) {}
 ''');
+  }
+
+  test_unnecessary_hasError() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', '''
+export 'a.dart';
+class B {}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+import 'b.dart';
+void f(A _, B _, C _) {}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 51, 1),
+    ]);
   }
 
   test_unnecessaryImport() async {

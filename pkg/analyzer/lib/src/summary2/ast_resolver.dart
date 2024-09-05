@@ -58,6 +58,7 @@ class AstResolver {
     featureSet: _featureSet,
     analysisOptions: analysisOptions,
     flowAnalysisHelper: _flowAnalysis,
+    libraryFragment: _unitElement,
   );
 
   AstResolver(

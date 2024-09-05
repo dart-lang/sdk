@@ -5,10 +5,11 @@
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/summary2/combinator.dart';
 
 /// A visitor that visits ASTs and fills [UsedImportedElements].
 class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
@@ -241,6 +242,8 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
 /// this logic built up in this class could be used for such an action in the
 /// future.
 class ImportsVerifier {
+  final FileAnalysis fileAnalysis;
+
   /// All [ImportDirective]s of the current library.
   final List<ImportDirectiveImpl> _allImports = [];
 
@@ -295,6 +298,10 @@ class ImportsVerifier {
   /// A map of names that are shown more than once.
   final Map<NamespaceDirective, List<SimpleIdentifier>>
       _duplicateShownNamesMap = {};
+
+  ImportsVerifier({
+    required this.fileAnalysis,
+  });
 
   void addImports(CompilationUnit node) {
     var importsWithLibraries = <_NamespaceDirective>[];
@@ -418,50 +425,103 @@ class ImportsVerifier {
     });
   }
 
-  /// Report an [HintCode.UNNECESSARY_IMPORT] hint for each unnecessary import.
+  /// Report import directives that are unnecessary.
   ///
-  /// Only call this method after unused imports have been determined by
-  /// [removeUsedElements].
+  /// In a given library, every import directive has a set of "used elements",
+  /// the subset of elements provided by the import which are used in the
+  /// library. In a given library, an import directive is "unnecessary" if
+  /// there exists at least one other import directive with the same prefix
+  /// as the first import directive, and a "used elements" set which is a
+  /// proper superset of the first import directive's "used elements" set.
   void generateUnnecessaryImportHints(ErrorReporter errorReporter,
       List<UsedImportedElements> usedImportedElementsList) {
+    var importsTracking = fileAnalysis.importsTracking;
     var usedImports = {..._allImports}..removeAll(_unusedImports);
 
-    var verifier = _UnnecessaryImportsVerifier(usedImports);
-    verifier.processUsedElements(usedImportedElementsList);
-    verifier.reportImports(errorReporter);
-  }
+    for (var firstDirective in usedImports) {
+      var firstElement = firstDirective.element!;
+      var tracker = importsTracking.trackerOf(firstElement);
 
-  /// Report an [HintCode.UNUSED_IMPORT] hint for each unused import.
-  ///
-  /// Only call this method after all of the compilation units have been visited
-  /// by this visitor.
-  ///
-  /// @param errorReporter the error reporter used to report the set of
-  ///        [HintCode.UNUSED_IMPORT] hints
-  void generateUnusedImportHints(ErrorReporter errorReporter) {
-    int length = _unusedImports.length;
-    for (int i = 0; i < length; i++) {
-      ImportDirective unusedImport = _unusedImports[i];
-      // Check that the imported URI exists and isn't dart:core
-      var importElement = unusedImport.element;
-      if (importElement != null) {
-        var libraryElement = importElement.importedLibrary;
-        if (libraryElement == null ||
-            libraryElement.isDartCore ||
-            libraryElement.isSynthetic) {
+      for (var secondDirective in usedImports) {
+        if (secondDirective == firstDirective) {
           continue;
         }
+
+        var secondElement = secondDirective.element!;
+
+        // Must be the same import prefix, so the same tracker.
+        var secondTracker = importsTracking.trackerOf(secondElement);
+        if (secondTracker != tracker) {
+          continue;
+        }
+
+        var firstSet = tracker.elementsOf2(firstElement);
+        var secondSet = tracker.elementsOf2(secondElement);
+
+        // The second must provide all elements of the first.
+        if (!secondSet.containsAll(firstSet)) {
+          continue;
+        }
+
+        // The second must provide strictly more than the first.
+        if (!(secondSet.length > firstSet.length)) {
+          continue;
+        }
+
+        var firstElementUri = firstElement.uri;
+        var secondElementUri = secondElement.uri;
+        if (firstElementUri is DirectiveUriWithLibraryImpl &&
+            secondElementUri is DirectiveUriWithLibraryImpl) {
+          errorReporter.atNode(
+            firstDirective.uri,
+            HintCode.UNNECESSARY_IMPORT,
+            arguments: [
+              firstElementUri.relativeUriString,
+              secondElementUri.relativeUriString,
+            ],
+          );
+          // Now that we reported on the first, so we are done.
+          break;
+        }
       }
-      StringLiteral uri = unusedImport.uri;
-      // We can safely assume that `uri.stringValue` is non-`null`, because the
-      // only way for it to be `null` is if the import contains a string
-      // interpolation, in which case the import wouldn't have resolved and
-      // would not have been included in [_unusedImports].
-      errorReporter.atNode(
-        uri,
-        WarningCode.UNUSED_IMPORT,
-        arguments: [uri.stringValue!],
-      );
+    }
+  }
+
+  /// Report [WarningCode.UNUSED_IMPORT] for each unused import.
+  void generateUnusedImportHints(ErrorReporter errorReporter) {
+    var importsTracking = fileAnalysis.importsTracking;
+    for (var importDirective in fileAnalysis.unit.directives) {
+      if (importDirective is ImportDirectiveImpl) {
+        var importElement = importDirective.element!;
+        var prefixElement = importElement.prefix?.element;
+        var tracking = importsTracking.map[prefixElement]!;
+
+        // Ignore the group of imports with a prefix in a comment reference.
+        if (tracking.hasPrefixUsedInCommentReference) {
+          continue;
+        }
+
+        if (importElement.uri case DirectiveUriWithLibraryImpl uri) {
+          // Ignore explicit dart:core import.
+          if (uri.library.isDartCore) {
+            continue;
+          }
+
+          // The URI target does not exist, reported this elsewhere.
+          if (uri.library.isSynthetic) {
+            continue;
+          }
+
+          var isUsed = tracking.importToUsedElements.containsKey(importElement);
+          if (!isUsed) {
+            errorReporter.atNode(
+              importDirective.uri,
+              WarningCode.UNUSED_IMPORT,
+              arguments: [uri.relativeUriString],
+            );
+          }
+        }
+      }
     }
   }
 
@@ -727,97 +787,6 @@ class _NamespaceDirective {
 
   /// Returns the absolute URI of the library.
   String get libraryUriStr => '${library.source.uri}';
-}
-
-/// A class which verifies (and reports) whether any import directives are
-/// unnecessary.
-///
-/// In a given library, every import directive has a set of "used elements," the
-/// subset of elements provided by the import which are used in the library. In
-/// a given library, an import directive is "unnecessary" if there exists at
-/// least one other import directive with the same prefix as the aforementioned
-/// import directive, and a "used elements" set which is a proper superset of
-/// the aforementioned import directive's "used elements" set.
-class _UnnecessaryImportsVerifier {
-  /// The set of imports which provide at least one element used in the library.
-  final Set<ImportDirectiveImpl> _usedImports;
-
-  /// The mapping of each import to its "used elements" set.
-  ///
-  /// This is computed in [processUsedElements].
-  final Map<ImportDirective, Set<Element>> _usedElementSets = {};
-
-  _UnnecessaryImportsVerifier(this._usedImports);
-
-  /// Determines the "used elements" set for each import directive in
-  /// [_usedImports].
-  void processUsedElements(
-    List<UsedImportedElements> usedImportedElementsList,
-  ) {
-    assert(_usedElementSets.isEmpty);
-
-    var allUsedElements = <Element>{};
-    for (var usedElements in usedImportedElementsList) {
-      allUsedElements.addAll(usedElements.elements);
-      allUsedElements.addAll(usedElements.usedExtensions);
-      for (var elements in usedElements.prefixMap.values) {
-        allUsedElements.addAll(elements);
-      }
-    }
-
-    for (var importDirective in _usedImports) {
-      var importElement = importDirective.element;
-      if (importElement == null) continue;
-
-      var importedLibrary = importElement.importedLibrary;
-      if (importedLibrary == null) continue;
-
-      var combinators = importElement.combinators.build();
-      for (var exportedReference in importedLibrary.exportedReferences) {
-        var reference = exportedReference.reference;
-        var element = reference.element;
-        if (combinators.allows(reference.name) && element != null) {
-          if (allUsedElements.contains(element)) {
-            if (!importedLibrary.isFromDeprecatedExport(exportedReference)) {
-              (_usedElementSets[importDirective] ??= {}).add(element);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /// Reports the import directives which are unnecessary.
-  void reportImports(ErrorReporter errorReporter) {
-    for (var importDirective in _usedImports) {
-      if (!_usedElementSets.containsKey(importDirective)) continue;
-      for (var otherImport in _usedImports) {
-        if (otherImport == importDirective) continue;
-        if (importDirective.prefix?.name != otherImport.prefix?.name) continue;
-        if (!_usedElementSets.containsKey(otherImport)) continue;
-        var importElementSet = _usedElementSets[importDirective]!;
-        var otherElementSet = _usedElementSets[otherImport]!;
-        if (otherElementSet.containsAll(importElementSet)) {
-          if (otherElementSet.length > importElementSet.length) {
-            StringLiteral uri = importDirective.uri;
-            // The only way an import URI's `stringValue` can be `null` is if
-            // the string contained interpolations, in which case the import
-            // would have failed to resolve, and we would never reach here.  So
-            // it is safe to assume that `uri.stringValue` and
-            // `otherImport.uri.stringValue` are both non-`null`.
-            errorReporter.atNode(
-              uri,
-              HintCode.UNNECESSARY_IMPORT,
-              arguments: [uri.stringValue!, otherImport.uri.stringValue!],
-            );
-            // Break out of the loop of "other imports" to prevent reporting
-            // UNNECESSARY_IMPORT on [importDirective] multiple times.
-            break;
-          }
-        }
-      }
-    }
-  }
 }
 
 extension on Map<ImportDirective, Namespace> {

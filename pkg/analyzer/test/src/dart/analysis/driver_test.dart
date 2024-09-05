@@ -2237,7 +2237,6 @@ void f(A a) {}
     flags: exists isLibrary
     errors
       25 +1 UNDEFINED_CLASS
-      7 +8 UNUSED_IMPORT
 [stream]
   ResolvedUnitResult #1
 [status] idle

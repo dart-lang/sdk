@@ -336,17 +336,19 @@ class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library b;
+library;
 
 @deprecated
 export 'a.dart';
+
+class B {}
 ''');
 
     await assertNoErrorsInCode('''
 import 'a.dart';
 import 'b.dart';
 
-void f(A a) {}
+void f(A a, B b) {}
 ''');
   }
 
