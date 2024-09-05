@@ -392,6 +392,7 @@ augment int Xx = 2;
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/5048')
   test_catch_underscores() async {
     await assertDiagnostics(r'''
 f() {
@@ -470,12 +471,9 @@ class A {
   }
 
   test_formalParams_underscores() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 f(int _, int __, int ___) {}
-''', [
-      lint(13, 2),
-      lint(21, 3),
-    ]);
+''');
   }
 
   test_formalParams_underscores_preWildcards() async {
