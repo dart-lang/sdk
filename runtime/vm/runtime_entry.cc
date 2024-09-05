@@ -871,6 +871,18 @@ DEFINE_RUNTIME_ENTRY(CloneSuspendState, 1) {
   RuntimeAllocationEpilogue(thread);
 }
 
+// Allocate a new SubtypeTestCache for use in interpreted implicit setters.
+// Return value: newly allocated SubtypeTestCache.
+DEFINE_RUNTIME_ENTRY(AllocateSubtypeTestCache, 0) {
+#if defined(DART_DYNAMIC_MODULES)
+  const auto& cache = SubtypeTestCache::Handle(
+      zone, SubtypeTestCache::New(SubtypeTestCache::kMaxInputs));
+  arguments.SetReturn(cache);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
 // Invoke field getter before dispatch.
 // Arg0: instance.
 // Arg1: field name (may be demangled during call).
@@ -1039,7 +1051,7 @@ static void PrintTypeCheck(const char* message,
   }
 }
 
-#if defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_IA32) || defined(DART_DYNAMIC_MODULES)
 static BoolPtr CheckHashBasedSubtypeTestCache(
     Zone* zone,
     Thread* thread,
@@ -1091,7 +1103,7 @@ static BoolPtr CheckHashBasedSubtypeTestCache(
 
   return Bool::null();
 }
-#endif  // defined(TARGET_ARCH_IA32)
+#endif  // defined(TARGET_ARCH_IA32) || defined(DART_DYNAMIC_MODULES)
 
 // This updates the type test cache, an array containing 8 elements:
 // - instance class (or function if the instance is a closure)
@@ -1326,8 +1338,12 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 
 #if defined(TARGET_ARCH_IA32)
   ASSERT(mode == kTypeCheckFromInline);
-  // Hash-based caches are still not handled by the stubs on IA32.
-  if (cache.IsHash()) {
+#endif
+
+#if defined(TARGET_ARCH_IA32) || defined(DART_DYNAMIC_MODULES)
+  // Hash-based caches are not handled by the inline AssertAssignable
+  // on IA32 and in the interpreter.
+  if ((mode == kTypeCheckFromInline) && cache.IsHash()) {
     const auto& result = Bool::Handle(
         zone, CheckHashBasedSubtypeTestCache(
                   zone, thread, src_instance, dst_type,
@@ -1338,7 +1354,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       return;
     }
   }
-#endif  // defined(TARGET_ARCH_IA32)
+#endif  // defined(TARGET_ARCH_IA32) || defined(DART_DYNAMIC_MODULES)
 
   // This is guaranteed on the calling side.
   ASSERT(!dst_type.IsDynamicType());
@@ -4042,6 +4058,11 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   result = field.StaticValue();
   ASSERT(result.ptr() != Object::sentinel().ptr());
   arguments.SetReturn(result);
+}
+
+DEFINE_RUNTIME_ENTRY(LateFieldAlreadyInitializedError, 1) {
+  const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
+  Exceptions::ThrowLateFieldAlreadyInitialized(String::Handle(field.name()));
 }
 
 DEFINE_RUNTIME_ENTRY(LateFieldAssignedDuringInitializationError, 1) {

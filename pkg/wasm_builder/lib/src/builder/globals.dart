@@ -42,7 +42,8 @@ class GlobalsBuilder with Builder<ir.Globals> {
 
   /// Imports a global variable into this module.
   ir.ImportedGlobal import(String module, String name, ir.GlobalType type) {
-    final global = ir.ImportedGlobal(module, name, ir.FinalizableIndex(), type);
+    final global =
+        ir.ImportedGlobal(_module, module, name, ir.FinalizableIndex(), type);
     _importedGlobals.add(global);
     return global;
   }

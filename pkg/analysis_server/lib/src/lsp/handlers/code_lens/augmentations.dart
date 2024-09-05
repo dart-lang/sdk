@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart'
     hide Declaration, Element;
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/code_lens/abstract_code_lens_provider.dart';
@@ -29,6 +30,11 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
     CancellationToken token,
     Map<String, LineInfo?> lineInfoCache,
   ) async {
+    var clientCapabilities = message.clientCapabilities;
+    if (clientCapabilities == null) {
+      return serverNotInitializedError;
+    }
+
     var performance = message.performance;
     var path = pathOfDoc(params.textDocument);
     var unit = await performance.runAsync(
@@ -38,21 +44,23 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
     return await unit.mapResult((result) {
       return performance.runAsync(
         '_getCodeLenses',
-        (performance) =>
-            _getCodeLenses(result, token, performance, lineInfoCache),
+        (performance) => _getCodeLenses(
+            clientCapabilities, result, token, performance, lineInfoCache),
       );
     });
   }
 
   @override
-  bool isAvailable(CodeLensParams params) {
+  bool isAvailable(
+      LspClientCapabilities clientCapabilities, CodeLensParams params) {
     return isDartDocument(params.textDocument) &&
         // We need to run if either of these are enabled.
         (codeLens.augmentation || codeLens.augmented) &&
-        clientSupportsGoToLocationCommand;
+        clientSupportsGoToLocationCommand(clientCapabilities);
   }
 
   Future<ErrorOr<List<CodeLens>>> _getCodeLenses(
+    LspClientCapabilities clientCapabilities,
     ResolvedUnitResult result,
     CancellationToken token,
     OperationPerformanceImpl performance,
@@ -63,7 +71,8 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
 
     /// Helper to add a CodeLens at [declaration] to [target] for [title].
     void addCodeLens(String title, Element declaration, Element target) {
-      var command = getNavigationCommand(title, target, lineInfoCache);
+      var command = getNavigationCommand(
+          clientCapabilities, title, target, lineInfoCache);
       if (command != null && declaration.nameOffset != -1) {
         var range = toRange(
           lineInfo,

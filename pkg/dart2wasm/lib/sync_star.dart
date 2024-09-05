@@ -36,7 +36,8 @@ mixin SyncStarCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
     } else {
       b.ref_null(w.HeapType.struct);
     }
-    b.global_get(translator.makeFunctionRef(resumeFun));
+    translator.globals
+        .readGlobal(b, translator.makeFunctionRef(b.module, resumeFun));
     b.struct_new(syncStarIterableInfo.struct);
     b.return_();
     b.end();
@@ -48,8 +49,8 @@ mixin SyncStarCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
   }
 
   w.FunctionBuilder _defineInnerBodyFunction(FunctionNode functionNode) =>
-      m.functions.define(
-          m.types.defineFunction([
+      translator.moduleForReference(enclosingMember.reference).functions.define(
+          translator.typesBuilder.defineFunction([
             suspendStateInfo.nonNullableType, // _SuspendState
             translator.topInfo.nullableType, // Object?, error value
             translator.stackTraceInfo.repr
@@ -289,7 +290,7 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
       b.local_get(_pendingStackTraceLocal);
       b.ref_as_non_null();
 
-      b.throw_(translator.exceptionTag);
+      b.throw_(translator.getExceptionTag(b.module));
       b.end(); // exceptionCheck
     }
   }

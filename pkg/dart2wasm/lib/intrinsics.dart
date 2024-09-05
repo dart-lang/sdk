@@ -156,7 +156,7 @@ class Intrinsifier {
         throw "Table size not directly on a static field"
             " at ${node.location}";
       }
-      w.Table table = translator.getTable(receiver.target as Field)!;
+      w.Table table = translator.getTable(b.module, receiver.target as Field)!;
       assert(name == "size");
       b.table_size(table);
       return w.NumType.i32;
@@ -363,7 +363,7 @@ class Intrinsifier {
         throw "Table indexing not directly on a static field"
             " at ${node.location}";
       }
-      w.Table table = translator.getTable(receiver.target as Field)!;
+      w.Table table = translator.getTable(b.module, receiver.target as Field)!;
       codeGen.wrap(node.arguments.positional[0], w.NumType.i32);
       if (name == '[]') {
         b.table_get(table);
@@ -1061,9 +1061,8 @@ class Intrinsifier {
         StaticTearOffConstant func = f.constant as StaticTearOffConstant;
         w.BaseFunction wasmFunction =
             translator.functions.getFunction(func.targetReference);
-        w.Global functionRef = translator.makeFunctionRef(wasmFunction);
-        b.global_get(functionRef);
-        return functionRef.type.type;
+        return translator.globals
+            .readGlobal(b, translator.makeFunctionRef(b.module, wasmFunction));
       }
 
       // Wasm(AnyRef|FuncRef|EqRef|StructRef|I32|I64|F32|F64) constructors
@@ -1231,7 +1230,7 @@ class Intrinsifier {
         throw "Table callIndirect not directly on a static field"
             " at ${node.location}";
       }
-      w.Table table = translator.getTable(tableExp.target as Field)!;
+      w.Table table = translator.getTable(b.module, tableExp.target as Field)!;
       InterfaceType wasmFunctionType = InterfaceType(
           translator.wasmFunctionClass,
           Nullability.nonNullable,
@@ -1738,7 +1737,7 @@ class Intrinsifier {
       b.end(); // notErrorBlock
 
       b.local_get(stackTraceLocal);
-      b.throw_(translator.exceptionTag);
+      b.throw_(translator.getExceptionTag(b.module));
 
       return true;
     }

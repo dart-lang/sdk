@@ -1144,6 +1144,12 @@ void Exceptions::ThrowCompileTimeError(const LanguageError& error) {
   Exceptions::ThrowByType(Exceptions::kCompileTimeError, args);
 }
 
+void Exceptions::ThrowLateFieldAlreadyInitialized(const String& name) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, name);
+  Exceptions::ThrowByType(Exceptions::kLateFieldAlreadyInitialized, args);
+}
+
 void Exceptions::ThrowLateFieldNotInitialized(const String& name) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, name);
@@ -1234,6 +1240,11 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kCompileTimeError:
       library = Library::CoreLibrary();
       class_name = &Symbols::_CompileTimeError();
+      break;
+    case kLateFieldAlreadyInitialized:
+      library = Library::InternalLibrary();
+      class_name = &Symbols::LateError();
+      constructor_name = &Symbols::DotFieldAI();
       break;
     case kLateFieldAssignedDuringInitialization:
       library = Library::InternalLibrary();

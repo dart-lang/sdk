@@ -302,12 +302,11 @@ void AsyncAwareStackUnwinder::Unwind(
     if (!was_handled) {
       if (sync_frame_->is_interpreted()) {
         bytecode_ = sync_frame_->LookupDartBytecode();
-        if (bytecode_.function() == Function::null()) {
-          continue;
+        if (bytecode_.function() != Function::null()) {
+          const uword pc_offset = sync_frame_->pc() - bytecode_.PayloadStart();
+          handle_frame(
+              {sync_frame_, null_code_, bytecode_, pc_offset, null_closure_});
         }
-        const uword pc_offset = sync_frame_->pc() - bytecode_.PayloadStart();
-        handle_frame(
-            {sync_frame_, null_code_, bytecode_, pc_offset, null_closure_});
       } else {
         code_ = sync_frame_->LookupDartCode();
         const uword pc_offset = sync_frame_->pc() - code_.PayloadStart();

@@ -862,19 +862,23 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   bool _needsSetter(Field field) {
-    // Late fields always need a setter, unless they're static and non-final, or
-    // final with an initializer.
-    if (field.isLate) {
-      if (field.isStatic && !field.isFinal) return false;
-      if (field.isFinal && field.initializer != null) return false;
-      return true;
+    // Final fields don't have a setter, except late final fields
+    // without initializer.
+    if (field.isFinal) {
+      // Late final fields without initializer always need a setter to check
+      // if they are already initialized.
+      if (field.isLate && (field.initializer == null)) {
+        return true;
+      }
+      return false;
     }
 
-    // Non-late static fields never need a setter.
-    if (field.isStatic) return false;
+    // Instance non-final fields always need a setter.
+    if (!field.isStatic) return true;
 
-    // Otherwise, the field only needs a setter if it isn't final.
-    return !field.isFinal;
+    // Otherwise, setters for static fields can be omitted
+    // and fields can be accessed directly.
+    return false;
   }
 
   LibraryIndex get libraryIndex => coreTypes.index;
@@ -929,6 +933,10 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   late Procedure throwLocalAlreadyInitialized = libraryIndex.getProcedure(
       'dart:_internal', 'LateError', '_throwLocalAlreadyInitialized');
+
+  late Procedure throwLocalAssignedDuringInitialization =
+      libraryIndex.getProcedure('dart:_internal', 'LateError',
+          '_throwLocalAssignedDuringInitialization');
 
   late Procedure throwNewAssertionError =
       libraryIndex.getProcedure('dart:core', '_AssertionError', '_throwNew');
@@ -3462,6 +3470,23 @@ class BytecodeGenerator extends RecursiveVisitor {
             init.arguments.positional.isEmpty);
         locals.withTemp(
             init, locals.tempIndexInFrame(node), () => _generateNode(init));
+        if (v.isFinal) {
+          // Check that variable was not assigned during initialization.
+          _genLoadVar(v);
+
+          final error = Label();
+          final store = Label();
+          asm.emitJumpIfInitialized(error);
+          asm.emitJump(store);
+
+          asm.bind(error);
+          asm.emitPushConstant(cp.addName(v.name!));
+          _genDirectCall(throwLocalAssignedDuringInitialization,
+              objectTable.getArgDescHandle(1), 1);
+          asm.emitDrop1();
+
+          asm.bind(store);
+        }
         _genStoreVar(v);
       } else {
         asm.emitPushConstant(cp.addName(v.name!));

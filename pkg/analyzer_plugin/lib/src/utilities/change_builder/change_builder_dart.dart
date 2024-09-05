@@ -2226,16 +2226,16 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       // the URI and prefix we care about.
       for (var element in resolvedUnit.libraryElement.libraryImports) {
         var library = element.importedLibrary;
-        if (library == null || element.prefix?.element.name != prefix) {
+        if (library == null) {
+          continue;
+        }
+        if ((element.prefix?.element.name ?? '') != (prefix ?? '')) {
+          // Imports need to have the same prefix to be replaced.
           continue;
         }
         var elementUrlText = _getLibraryUriText(library.source.uri,
             forceAbsolute: forceAbsolute, forceRelative: forceRelative);
         if (uriText != elementUrlText) {
-          continue;
-        }
-        if ((element.prefix?.element.name ?? '') != (prefix ?? '')) {
-          // Imports need to have the same prefix to be replaced.
           continue;
         }
         for (var combinator in element.combinators) {

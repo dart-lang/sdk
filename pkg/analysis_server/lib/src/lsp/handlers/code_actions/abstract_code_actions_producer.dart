@@ -77,7 +77,7 @@ abstract class AbstractCodeActionsProducer
       kind: toCodeActionKind(change.id, CodeActionKind.Refactor),
       diagnostics: const [],
       command: createLogActionCommand(change.id),
-      edit: createWorkspaceEdit(server, change,
+      edit: createWorkspaceEdit(server, capabilities, change,
           allowSnippets: true, filePath: path, lineInfo: lineInfo),
     );
   }
@@ -107,7 +107,7 @@ abstract class AbstractCodeActionsProducer
       kind: toCodeActionKind(change.id, CodeActionKind.QuickFix),
       diagnostics: [diagnostic],
       command: createLogActionCommand(change.id),
-      edit: createWorkspaceEdit(server, change,
+      edit: createWorkspaceEdit(server, capabilities, change,
           allowSnippets: true, filePath: path, lineInfo: lineInfo),
     );
   }

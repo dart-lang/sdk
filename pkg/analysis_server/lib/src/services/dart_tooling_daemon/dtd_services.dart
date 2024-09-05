@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -140,7 +141,13 @@ class DtdServices {
       method: messageHandler.handlesMessage,
       params: params.asMap,
     );
-    var info = MessageInfo(performance: performance);
+    var info = MessageInfo(
+      performance: performance,
+      // DTD clients requests are always executed with a fixed set of
+      // capabilities so that the responses don't change in format based on the
+      // owning editor.
+      clientCapabilities: fixedBasicLspClientCapabilities,
+    );
     var token = NotCancelableToken(); // We don't currently support cancel.
 
     // Execute the handler.

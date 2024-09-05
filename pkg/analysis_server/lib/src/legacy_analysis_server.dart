@@ -290,22 +290,7 @@ class LegacyAnalysisServer extends AnalysisServer {
       ServerSetClientCapabilitiesParams([]);
 
   @override
-  final lspClientCapabilities = lsp.LspClientCapabilities(
-    lsp.ClientCapabilities(
-      textDocument: lsp.TextDocumentClientCapabilities(
-        hover: lsp.HoverClientCapabilities(
-          contentFormat: [
-            lsp.MarkupKind.Markdown,
-          ],
-        ),
-      ),
-      workspace: lsp.WorkspaceClientCapabilities(
-        workspaceEdit: lsp.WorkspaceEditClientCapabilities(
-          documentChanges: true,
-        ),
-      ),
-    ),
-  );
+  final editorClientCapabilities = lsp.fixedBasicLspClientCapabilities;
 
   @override
   final lsp.LspClientConfiguration lspClientConfiguration;

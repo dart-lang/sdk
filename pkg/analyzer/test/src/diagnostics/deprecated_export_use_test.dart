@@ -15,33 +15,6 @@ main() {
 
 @reflectiveTest
 class DeprecatedExportUseTest extends PubPackageResolutionTest {
-  test_deprecated_augmentation_function() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-void foo() {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-augment library 'c.dart';
-
-@deprecated
-export 'a.dart';
-''');
-
-    newFile('$testPackageLibPath/c.dart', r'''
-import augment 'b.dart';
-''');
-
-    await assertErrorsInCode('''
-import 'c.dart';
-
-void f() {
-  foo();
-}
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3),
-    ]);
-  }
-
   test_deprecated_class_asExpression() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}

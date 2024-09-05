@@ -12,6 +12,7 @@ import 'package:analysis_server/src/analysis_server.dart'
         MessageType,
         OpenUriNotificationSender,
         UserPromptSender;
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -103,19 +104,6 @@ class DartFixPromptManager {
         DateTime.now().difference(lastCheck) <= _sleepTime;
   }
 
-  /// Whether to use in-editor fixes (by executing commands).
-  ///
-  /// This is only allowed if the client supports applyEdit and
-  /// changeAnnotations.
-  bool get useInEditorFixes {
-    var server = this.server;
-    return (server.lspClientCapabilities?.applyEdit ?? false) &&
-        (server.lspClientCapabilities?.changeAnnotations ?? false) &&
-        // Temporary flag.
-        server is LspAnalysisServer &&
-        (server.initializationOptions?.useInEditorDartFixPrompt ?? false);
-  }
-
   /// Whether or not "dart fix" may be able to fix diagnostics in the project.
   ///
   /// This method is exposed to allow tests to override the results. It should
@@ -157,6 +145,7 @@ class DartFixPromptManager {
 
   @visibleForTesting
   Future<void> showPrompt({
+    required LspClientCapabilities clientCapabilities,
     required UserPromptSender userPromptSender,
     required OpenUriNotificationSender openUriNotificationSender,
   }) async {
@@ -168,7 +157,7 @@ class DartFixPromptManager {
 
     // Depending on capabilities, use an in-editor prompt/command buttons or a
     // simple prompt that jumps to "dart fix" on the website.
-    if (useInEditorFixes && executeCommandHandler != null) {
+    if (useInEditorFixes(clientCapabilities) && executeCommandHandler != null) {
       prompt = inEditorPromptText;
       actions = [
         previewFixesActionText,
@@ -200,7 +189,8 @@ class DartFixPromptManager {
         var command = response == applyFixesActionText
             ? Commands.fixAllInWorkspace
             : Commands.previewFixAllInWorkspace;
-        unawaited(_executeCommand(execHandler, userPromptSender, command));
+        unawaited(_executeCommand(
+            clientCapabilities, execHandler, userPromptSender, command));
 
       case (doNotShowAgainActionText, _):
         preferences.showDartFixPrompts = false;
@@ -226,9 +216,23 @@ class DartFixPromptManager {
     );
   }
 
+  /// Whether to use in-editor fixes (by executing commands).
+  ///
+  /// This is only allowed if the client supports applyEdit and
+  /// changeAnnotations.
+  bool useInEditorFixes(LspClientCapabilities clientCapabilities) {
+    var server = this.server;
+    return clientCapabilities.applyEdit &&
+        clientCapabilities.changeAnnotations &&
+        // Temporary flag.
+        server is LspAnalysisServer &&
+        (server.initializationOptions?.useInEditorDartFixPrompt ?? false);
+  }
+
   /// Executes the server command [command] with no parameters and handles
   /// showing any error to the user.
   Future<void> _executeCommand(
+    LspClientCapabilities clientCapabilities,
     ExecuteCommandHandler handler,
     UserPromptSender userPromptSender,
     String command,
@@ -239,7 +243,10 @@ class DartFixPromptManager {
     //  from this prompt versus from the command palette?
     var result = await handler.handle(
       ExecuteCommandParams(command: command),
-      MessageInfo(performance: OperationPerformanceImpl('')),
+      MessageInfo(
+        performance: OperationPerformanceImpl(''),
+        clientCapabilities: clientCapabilities,
+      ),
       NotCancelableToken(),
     );
 
@@ -263,7 +270,12 @@ class DartFixPromptManager {
     var userPromptSender = server.userPromptSender;
     var openUriNotificationSender = server.openUriNotificationSender;
 
-    if (_hasPromptedThisSession ||
+    // Use the editors capabilities because that's where the request will be
+    // sent.
+    var clientCapabilities = server.editorClientCapabilities;
+
+    if (clientCapabilities == null ||
+        _hasPromptedThisSession ||
         userPromptSender == null ||
         openUriNotificationSender == null ||
         !preferences.showDartFixPrompts) {
@@ -287,6 +299,7 @@ class DartFixPromptManager {
     }
 
     await showPrompt(
+      clientCapabilities: clientCapabilities,
       userPromptSender: userPromptSender,
       openUriNotificationSender: openUriNotificationSender,
     );

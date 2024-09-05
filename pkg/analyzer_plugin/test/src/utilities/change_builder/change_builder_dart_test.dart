@@ -2582,6 +2582,32 @@ class B {}
         ));
   }
 
+  /// Ensure that trying to add an import to show a symbol works with an
+  /// explicit empty prefix (to ensure an import with a prefix is not reused nor
+  /// a prefix generated).
+  Future<void> test_importLibrary_showName_emptyPrefix() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    var aContent = 'class A {} class Other {}';
+    addSource(aPath, aContent);
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'package:test/test_a.dart' show Other; A";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(bPath, (builder) {
+      // Add an import to ensure 'A' is visible without a prefix.
+      builder.importLibrary(Uri.parse('package:test/test_a.dart'),
+          showName: 'A', prefix: '');
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    var edited = SourceEdit.applySequence(bContent, edits);
+    expect(
+        edited,
+        equalsIgnoringWhitespace(
+            "import 'package:test/test_a.dart' show A, Other; A"));
+  }
+
   Future<void> test_multipleEdits_concurrently() async {
     var initialCode = '00';
     var path = convertPath('/home/test/lib/test.dart');

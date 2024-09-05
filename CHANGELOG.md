@@ -55,6 +55,8 @@ number, like `.`, `x`, or the `e` in scientific notation.
 - Added `length` and `[]`/`[]=` operators to `JSArray`.
 - Added `toJSCaptureThis` so `this` is passed in from JavaScript to the
   callback as the first parameter.
+- Added a static `from` method on `JSArray` to create a `JSArray` from a given
+  JavaScript iterable or array-like object.
 
 ### Tools
 

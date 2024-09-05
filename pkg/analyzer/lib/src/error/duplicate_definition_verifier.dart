@@ -128,22 +128,33 @@ class DuplicateDefinitionVerifier {
         }
         definedGetters[name] = accessor;
       }
-      for (ClassElement class_ in element.classes) {
+      for (var class_ in element.classes) {
         definedGetters[class_.name] = class_;
       }
-      for (var type in element.enums) {
-        definedGetters[type.name] = type;
+      for (var enum_ in element.enums) {
+        definedGetters[enum_.name] = enum_;
       }
-      for (FunctionElement function in element.functions) {
+      for (var extension_ in element.extensions) {
+        if (extension_.name case var name?) {
+          definedGetters[name] = extension_;
+        }
+      }
+      for (var extensionType in element.extensionTypes) {
+        definedGetters[extensionType.name] = extensionType;
+      }
+      for (var function in element.functions) {
         definedGetters[function.name] = function;
       }
-      for (TopLevelVariableElement variable in element.topLevelVariables) {
+      for (var mixin_ in element.mixins) {
+        definedGetters[mixin_.name] = mixin_;
+      }
+      for (var variable in element.topLevelVariables) {
         definedGetters[variable.name] = variable;
         if (!variable.isFinal && !variable.isConst) {
           definedGetters['${variable.name}='] = variable;
         }
       }
-      for (TypeAliasElement alias in element.typeAliases) {
+      for (var alias in element.typeAliases) {
         definedGetters[alias.name] = alias;
       }
     }

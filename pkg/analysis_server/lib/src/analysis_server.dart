@@ -386,11 +386,19 @@ abstract class AnalysisServer {
   Map<Folder, analysis.AnalysisDriver> get driverMap =>
       contextManager.driverMap;
 
-  /// The capabilities of the LSP client.
+  /// The capabilities of the editor that owns this server.
   ///
-  /// For the legacy server, this set may be a fixed set that is not configured
-  /// by the client.
-  LspClientCapabilities? get lspClientCapabilities;
+  /// Request handlers should be careful to use the correct clients capabilities
+  /// if they are available to non-editor clients (such as over DTD). The
+  /// capabilities of the caller are available in [MessageInfo] and should
+  /// usually be used when computing the results for requests, but if those
+  /// requests additionally trigger requests to the editor, those requests to
+  /// the editor should consider these capabilities.
+  ///
+  /// For the legacy server, this set may be a fixed set that is not actually
+  /// configured by the client, but matches what legacy protocol editors expect
+  /// when using LSP-over-Legacy.
+  LspClientCapabilities? get editorClientCapabilities;
 
   /// The configuration (user/workspace settings) from the LSP client.
   ///

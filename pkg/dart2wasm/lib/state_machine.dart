@@ -339,7 +339,7 @@ class ExceptionHandlerStack {
         codeGen._jumpToTarget(_handlers[nextHandlerIdx].target);
       }
 
-      b.catch_(codeGen.translator.exceptionTag);
+      b.catch_(codeGen.translator.getExceptionTag(b.module));
       b.local_set(stackTraceLocal);
       b.local_set(exceptionLocal);
 
@@ -996,7 +996,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
                     () => _getVariableBoxed(catch_.exception!),
                     () => _getVariable(catch_.stackTrace!),
                   ));
-          b.throw_(translator.exceptionTag);
+          b.throw_(translator.getExceptionTag(b.module));
         }
         b.end();
       }
@@ -1046,7 +1046,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     b.ref_as_non_null();
     getSuspendStateCurrentStackTrace();
     b.ref_as_non_null();
-    b.throw_(translator.exceptionTag);
+    b.throw_(translator.getExceptionTag(b.module));
 
     emitTargetLabel(after);
   }
@@ -1102,7 +1102,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
       b.ref_as_non_null();
       finalizer.pushStackTrace();
       b.ref_as_non_null();
-      b.throw_(translator.exceptionTag);
+      b.throw_(translator.getExceptionTag(b.module));
       b.end();
 
       // Any other value: jump to the target.
@@ -1222,7 +1222,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     b.ref_as_non_null();
     getSuspendStateCurrentStackTrace();
     b.ref_as_non_null();
-    b.throw_(translator.exceptionTag);
+    b.throw_(translator.getExceptionTag(b.module));
     b.unreachable();
     return expectedType;
   }

@@ -67,7 +67,9 @@ class ExecuteCommandHandler
     var workDoneToken = params.workDoneToken;
     var progress = workDoneToken != null
         ? ProgressReporter.clientProvided(server, workDoneToken)
-        : server.lspClientCapabilities?.workDoneProgress ?? false
+        // Use editor client capabilities, as that's who gets progress
+        // notifications, not the caller.
+        : server.editorClientCapabilities?.workDoneProgress ?? false
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
 

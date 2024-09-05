@@ -65,6 +65,7 @@ namespace dart {
   V(UpdateFieldCid)                                                            \
   V(InitInstanceField)                                                         \
   V(InitStaticField)                                                           \
+  V(LateFieldAlreadyInitializedError)                                          \
   V(LateFieldAssignedDuringInitializationError)                                \
   V(LateFieldNotInitializedError)                                              \
   V(CompileFunction)                                                           \
@@ -72,6 +73,7 @@ namespace dart {
   V(SwitchableCallMiss)                                                        \
   V(NotLoaded)                                                                 \
   V(FfiAsyncCallbackSend)                                                      \
+  V(AllocateSubtypeTestCache)                                                  \
   V(GetFieldForDispatch)                                                       \
   V(AdjustArgumentsDesciptorForImplicitClosure)                                \
   V(ClosureArgumentsValid)                                                     \

@@ -194,30 +194,6 @@ class SuggestionBuilder {
     }
   }
 
-  /// Add a suggestion for a catch [parameter].
-  void suggestCatchParameter(LocalVariableElement parameter) {
-    var variableType = parameter.type;
-    var contextType = request.featureComputer
-        .contextTypeFeature(request.contextType, variableType);
-    var elementKind = _computeElementKind(parameter);
-    var isConstant = _preferConstants
-        ? request.featureComputer.isConstantFeature(parameter)
-        : 0.0;
-    var relevance = relevanceComputer.computeScore(
-      contextType: contextType,
-      elementKind: elementKind,
-      isConstant: isConstant,
-    );
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        parameter,
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        relevance: relevance,
-        isNotImported: isNotImportedLibrary,
-      ),
-    );
-  }
-
   /// Add a suggestion to insert a closure.
   void suggestClosure(
       {required String completion,
@@ -293,29 +269,6 @@ class SuggestionBuilder {
           isNotImported: isNotImportedLibrary,
         ),
       );
-    }
-  }
-
-  /// Add a suggestion for a top-level [element]. If a [kind] is provided it
-  /// will be used as the kind for the suggestion.
-  void suggestElement(Element element,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
-    if (element is InterfaceElement) {
-      suggestInterface(element);
-    } else if (element is ConstructorElement) {
-      suggestConstructor(element, kind: kind);
-    } else if (element is ExtensionElement) {
-      suggestExtension(element, kind: kind);
-    } else if (element is FunctionElement &&
-        element.enclosingElement3 is CompilationUnitElement) {
-      suggestTopLevelFunction(element, kind: kind);
-    } else if (element is PropertyAccessorElement &&
-        element.enclosingElement3 is CompilationUnitElement) {
-      suggestTopLevelPropertyAccessor(element);
-    } else if (element is TypeAliasElement) {
-      suggestTypeAlias(element);
-    } else {
-      throw ArgumentError('Cannot suggest a ${element.runtimeType}');
     }
   }
 
@@ -406,20 +359,6 @@ class SuggestionBuilder {
         ),
       );
     }
-  }
-
-  /// Add a suggestion to reference a [field] in a field formal parameter.
-  void suggestFieldFormalParameter(FieldElement field) {
-    // TODO(brianwilkerson): Add a parameter (`bool includePrefix`) indicating
-    //  whether to include the `this.` prefix in the completion.
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        field,
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        relevance: Relevance.fieldFormalParameter,
-        isNotImported: isNotImportedLibrary,
-      ),
-    );
   }
 
   void suggestFormalParameter({

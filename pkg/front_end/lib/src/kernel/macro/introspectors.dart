@@ -369,6 +369,7 @@ class MacroIntrospection {
             metadata: const [],
             isRequired: formal.isRequiredNamed,
             isNamed: true,
+            style: formal.parameterStyle,
             type: type,
           );
           namedParameters.add(declaration);
@@ -384,6 +385,7 @@ class MacroIntrospection {
             metadata: const [],
             isRequired: formal.isRequiredPositional,
             isNamed: false,
+            style: formal.parameterStyle,
             type: type,
           );
           positionalParameters.add(declaration);
@@ -427,6 +429,7 @@ class MacroIntrospection {
       // TODO: Provide metadata annotations.
       metadata: const [],
       definingType: definingTypeDeclaration.identifier as macro.IdentifierImpl,
+      isConst: builder.isConst,
       isFactory: builder.isFactory,
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
@@ -472,6 +475,7 @@ class MacroIntrospection {
       // TODO: Provide metadata annotations.
       metadata: const [],
       definingType: definingTypeDeclaration.identifier as macro.IdentifierImpl,
+      isConst: builder.isConst,
       isFactory: builder.isFactory,
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
@@ -903,4 +907,16 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
           'Unsupported identifier ${identifier} (${identifier.runtimeType})');
     }
   }
+}
+
+// Coverage-ignore(suite): Not run.
+extension on FormalParameterBuilder {
+  /// Returns the [macro.ParameterStyle] for this element.
+  macro.ParameterStyle get parameterStyle => switch (this) {
+        FormalParameterBuilder(isInitializingFormal: true) =>
+          macro.ParameterStyle.fieldFormal,
+        FormalParameterBuilder(isSuperInitializingFormal: true) =>
+          macro.ParameterStyle.superFormal,
+        _ => macro.ParameterStyle.normal,
+      };
 }

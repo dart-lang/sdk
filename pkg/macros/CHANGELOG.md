@@ -1,3 +1,9 @@
+## 0.1.3-main.0
+
+- Add `isConst` to constructors.
+- Bug fix: Add `const` and `factory` modifiers to constructor augmentations.
+- Add `isField` and `isSuper` to parameters.
+
 ## 0.1.2-main.4
 
 - Fix bug where augmenting classes with type parameters didn't work.

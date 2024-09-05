@@ -61,7 +61,12 @@ class CompiledApp {
     this.module = module;
   }
 
-  async instantiate(additionalImports) {
+  // The second argument is an options object containing:
+  // `loadDeferredWasm` is a JS function that takes a module name matching a
+  //   wasm file produced by the dart2wasm compiler and returns the bytes to
+  //   load the module. These bytes can be in either a format supported by
+  //   `WebAssembly.compile` or `WebAssembly.compileStreaming`.
+  async instantiate(additionalImports, {loadDeferredWasm} = {}) {
     let dartInstance;
 
     // Prints to the console
@@ -140,9 +145,20 @@ const jsRuntimeBlobPart3 = r'''
       "substring": (s, a, b) => s.substring(a, b),
     };
 
+    const deferredLibraryHelper = {
+      "loadModule": async (moduleName) => {
+        if (!loadDeferredWasm) {
+          throw "No implementation of loadDeferredWasm provided.";
+        }
+        const compiledWasm = await loadDeferredWasm(moduleName);
+        return await compiledWasm.instantiate({"module0": dartInstance.exports});
+      },
+    };
+
     dartInstance = await WebAssembly.instantiate(this.module, {
       ...baseImports,
       ...additionalImports,
+      "deferredLibraryHelper": deferredLibraryHelper,
       "wasm:js-string": jsStringPolyfill,
     });
 

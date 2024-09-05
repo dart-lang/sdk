@@ -59,7 +59,7 @@ abstract class AstCodeGenerator
   final Member enclosingMember;
 
   // To be initialized in `generate()`
-  late final w.InstructionsBuilder b;
+  late w.InstructionsBuilder b;
   late final List<w.Local> paramLocals;
   late final w.Label? returnLabel;
 
@@ -101,8 +101,6 @@ abstract class AstCodeGenerator
 
   /// Create a code generator for a member or one of its lambdas.
   AstCodeGenerator(this.translator, this.functionType, this.enclosingMember);
-
-  w.ModuleBuilder get m => translator.m;
 
   List<w.ValueType> get outputs => functionType.outputs;
 
@@ -707,7 +705,15 @@ abstract class AstCodeGenerator
   }
 
   List<w.ValueType> call(Reference target, {bool useUncheckedEntry = false}) {
-    return b.invoke(translator.directCallTarget(target, useUncheckedEntry));
+    final targetModule = translator.moduleForReference(target);
+    final isLocalModuleCall = targetModule == b.module;
+
+    if (isLocalModuleCall) {
+      return b.invoke(translator.directCallTarget(target, useUncheckedEntry));
+    } else {
+      b.comment('Indirect call to $target');
+      return translator.callReference(target, b);
+    }
   }
 
   @override
@@ -997,7 +1003,7 @@ abstract class AstCodeGenerator
 
     // Insert a catch instruction which will catch any thrown Dart
     // exceptions.
-    b.catch_(translator.exceptionTag);
+    b.catch_(translator.getExceptionTag(b.module));
 
     b.local_set(thrownStackTrace);
     b.local_set(thrownException);
@@ -1103,7 +1109,7 @@ abstract class AstCodeGenerator
     }
 
     // Handle Dart exceptions.
-    b.catch_(translator.exceptionTag);
+    b.catch_(translator.getExceptionTag(b.module));
     visitStatement(node.finalizer);
     b.rethrow_(tryBlock);
 
@@ -1691,7 +1697,8 @@ abstract class AstCodeGenerator
     final typeArguments = node.arguments.types;
     final positionalArguments = node.arguments.positional;
     final namedArguments = node.arguments.named;
-    final forwarder = translator.dynamicForwarders
+    final forwarder = translator
+        .getDynamicForwardersForModule(b.module)
         .getDynamicInvocationForwarder(node.name.text);
 
     // Evaluate receiver
@@ -1762,7 +1769,7 @@ abstract class AstCodeGenerator
     b.local_get(typeArgsLocal);
     b.local_get(positionalArgsLocal);
     b.local_get(namedArgsLocal);
-    b.call(forwarder.function);
+    translator.callFunction(forwarder.function, b);
 
     return translator.topInfo.nullableType;
   }
@@ -1901,8 +1908,9 @@ abstract class AstCodeGenerator
     pushArguments(selector.signature, selector.paramInfo);
 
     if (selector.staticDispatchRanges.isNotEmpty) {
-      b.invoke(
-          translator.polymorphicDispatchers.getPolymorphicDispatcher(selector));
+      b.invoke(translator
+          .getPolymorphicDispatchersForModule(b.module)
+          .getPolymorphicDispatcher(selector));
     } else {
       final offset = selector.offset!;
       b.comment("Instance $kind of '${selector.name}'");
@@ -1912,7 +1920,8 @@ abstract class AstCodeGenerator
         b.i32_const(offset);
         b.i32_add();
       }
-      b.call_indirect(selector.signature, translator.dispatchTable.wasmTable);
+      b.call_indirect(
+          selector.signature, translator.dispatchTable.getWasmTable(b.module));
 
       translator.functions.recordSelectorUse(selector);
     }
@@ -1982,12 +1991,7 @@ abstract class AstCodeGenerator
         intrinsifier.generateStaticGetterIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
 
-    Member target = node.target;
-    if (target is Field) {
-      return translator.globals.readGlobal(b, target);
-    } else {
-      return translator.outputOrVoid(call(target.reference));
-    }
+    return translator.outputOrVoid(call(node.targetReference));
   }
 
   @override
@@ -2001,39 +2005,20 @@ abstract class AstCodeGenerator
   w.ValueType visitStaticSet(StaticSet node, w.ValueType expectedType) {
     bool preserved = expectedType != voidMarker;
     Member target = node.target;
-    if (target is Field) {
-      w.Global global = translator.globals.getGlobal(target);
-      w.Global? flag = translator.globals.getGlobalInitializedFlag(target);
-      wrap(node.value, global.type.type);
-      b.global_set(global);
-      if (flag != null) {
-        b.i32_const(1); // true
-        b.global_set(flag);
-      }
-      if (preserved) {
-        b.global_get(global);
-        return global.type.type;
-      } else {
-        return voidMarker;
-      }
-    } else {
-      w.FunctionType targetFunctionType =
-          translator.signatureForDirectCall(target.reference);
-      w.ValueType paramType = targetFunctionType.inputs.single;
-      wrap(node.value, paramType);
-      w.Local? temp;
-      if (preserved) {
-        temp = addLocal(paramType);
-        b.local_tee(temp);
-      }
-      call(target.reference);
-      if (preserved) {
-        b.local_get(temp!);
-        return temp.type;
-      } else {
-        return voidMarker;
-      }
+    w.ValueType paramType = target is Field
+        ? translator.globals.getGlobalForStaticField(target).type.type
+        : translator.signatureForDirectCall(target.reference).inputs.single;
+    wrap(node.value, paramType);
+    if (!preserved) {
+      call(node.targetReference);
+      return voidMarker;
     }
+    w.Local temp = addLocal(paramType);
+    b.local_tee(temp);
+
+    call(node.targetReference);
+    b.local_get(temp);
+    return temp.type;
   }
 
   @override
@@ -2105,8 +2090,9 @@ abstract class AstCodeGenerator
   @override
   w.ValueType visitDynamicGet(DynamicGet node, w.ValueType expectedType) {
     final receiver = node.receiver;
-    final forwarder =
-        translator.dynamicForwarders.getDynamicGetForwarder(node.name.text);
+    final forwarder = translator
+        .getDynamicForwardersForModule(b.module)
+        .getDynamicGetForwarder(node.name.text);
 
     // Evaluate receiver
     wrap(receiver, translator.topInfo.nullableType);
@@ -2127,7 +2113,7 @@ abstract class AstCodeGenerator
     b.end(); // nullBlock
 
     // Call get forwarder
-    b.call(forwarder.function);
+    translator.callFunction(forwarder.function, b);
 
     return translator.topInfo.nullableType;
   }
@@ -2136,8 +2122,9 @@ abstract class AstCodeGenerator
   w.ValueType visitDynamicSet(DynamicSet node, w.ValueType expectedType) {
     final receiver = node.receiver;
     final value = node.value;
-    final forwarder =
-        translator.dynamicForwarders.getDynamicSetForwarder(node.name.text);
+    final forwarder = translator
+        .getDynamicForwardersForModule(b.module)
+        .getDynamicSetForwarder(node.name.text);
 
     // Evaluate receiver
     wrap(receiver, translator.topInfo.nullableType);
@@ -2165,7 +2152,7 @@ abstract class AstCodeGenerator
 
     // Call set forwarder
     b.local_get(positionalArgLocal);
-    b.call(forwarder.function);
+    translator.callFunction(forwarder.function, b);
 
     return translator.topInfo.nullableType;
   }
@@ -2343,7 +2330,7 @@ abstract class AstCodeGenerator
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     pushContext();
-    b.global_get(closure.vtable);
+    translator.globals.readGlobal(b, closure.vtable);
     types.makeType(this, functionType);
     b.struct_new(struct);
 
@@ -2359,7 +2346,8 @@ abstract class AstCodeGenerator
         b.ref_as_non_null();
       }
     } else {
-      b.global_get(translator.globals.dummyStructGlobal); // Dummy context
+      translator.globals
+          .readGlobal(b, translator.globals.dummyStructGlobal); // Dummy context
     }
   }
 
@@ -2385,7 +2373,7 @@ abstract class AstCodeGenerator
     int posArgCount = arguments.positional.length;
     List<String> argNames = arguments.named.map((a) => a.name).toList()..sort();
     ClosureRepresentation? representation = translator.closureLayouter
-        .getClosureRepresentation(typeCount, posArgCount, argNames);
+        .getClosureRepresentation(b.module, typeCount, posArgCount, argNames);
     if (representation == null) {
       // This is a dynamic function call with a signature that matches no
       // functions in the program.
@@ -2457,7 +2445,8 @@ abstract class AstCodeGenerator
       int posArgCount = type.positionalParameters.length;
       List<String> argNames = type.namedParameters.map((a) => a.name).toList();
       ClosureRepresentation representation = translator.closureLayouter
-          .getClosureRepresentation(typeCount, posArgCount, argNames)!;
+          .getClosureRepresentation(
+              b.module, typeCount, posArgCount, argNames)!;
 
       // Operand closure
       w.RefType closureType =
@@ -2705,11 +2694,11 @@ abstract class AstCodeGenerator
         ? translator.growableListFromWasmArray.reference
         : translator.growableListEmpty.reference;
 
-    final w.BaseFunction target = useSharedCreator
-        ? translator.partialInstantiator.getOneTypeArgumentForwarder(
-            targetReference,
-            node.typeArgument,
-            'create${passArray ? '' : 'Empty'}List<${node.typeArgument}>')
+    final target = useSharedCreator
+        ? translator
+            .getPartialInstantiatorForModule(b.module)
+            .getOneTypeArgumentForwarder(targetReference, node.typeArgument,
+                'create${passArray ? '' : 'Empty'}List<${node.typeArgument}>')
         : translator.functions.getFunction(targetReference);
 
     if (passType) {
@@ -2720,7 +2709,8 @@ abstract class AstCodeGenerator
           translator.coreTypes.objectRawType(Nullability.nullable));
     }
 
-    b.call(target);
+    translator.callFunction(target, b);
+
     return target.type.outputs.single;
   }
 
@@ -2750,12 +2740,15 @@ abstract class AstCodeGenerator
         ? translator.mapFromWasmArray.reference
         : translator.mapFactory.reference;
 
-    final w.BaseFunction target = useSharedCreator
-        ? translator.partialInstantiator.getTwoTypeArgumentForwarder(
-            targetReference,
-            node.keyType,
-            node.valueType,
-            'create${passArray ? '' : 'Empty'}Map<${node.keyType}, ${node.valueType}>')
+    final target = useSharedCreator
+        ? translator
+            .getPartialInstantiatorForModule(b.module)
+            .getTwoTypeArgumentForwarder(
+                targetReference,
+                node.keyType,
+                node.valueType,
+                'create${passArray ? '' : 'Empty'}'
+                'Map<${node.keyType}, ${node.valueType}>')
         : translator.functions.getFunction(targetReference);
 
     if (passTypes) {
@@ -2774,7 +2767,8 @@ abstract class AstCodeGenerator
         }
       });
     }
-    b.call(target);
+    translator.callFunction(target, b);
+
     return target.type.outputs.single;
   }
 
@@ -2789,11 +2783,11 @@ abstract class AstCodeGenerator
         ? translator.setFromWasmArray.reference
         : translator.setFactory.reference;
 
-    final w.BaseFunction target = useSharedCreator
-        ? translator.partialInstantiator.getOneTypeArgumentForwarder(
-            targetReference,
-            node.typeArgument,
-            'create${passArray ? '' : 'Empty'}Set<${node.typeArgument}>')
+    final target = useSharedCreator
+        ? translator
+            .getPartialInstantiatorForModule(b.module)
+            .getOneTypeArgumentForwarder(targetReference, node.typeArgument,
+                'create${passArray ? '' : 'Empty'}Set<${node.typeArgument}>')
         : translator.functions.getFunction(targetReference);
 
     if (passType) {
@@ -2803,7 +2797,8 @@ abstract class AstCodeGenerator
       makeArrayFromExpressions(node.expressions,
           translator.coreTypes.objectRawType(Nullability.nullable));
     }
-    b.call(target);
+    translator.callFunction(target, b);
+
     return target.type.outputs.single;
   }
 
@@ -2840,20 +2835,15 @@ abstract class AstCodeGenerator
 
   @override
   w.ValueType visitLoadLibrary(LoadLibrary node, w.ValueType expectedType) {
-    LibraryDependency import = node.import;
-    _emitString(import.enclosingLibrary.importUri.toString());
-    _emitString(import.name!);
-    return translator.outputOrVoid(call(translator.loadLibrary.reference));
+    throw UnsupportedError(
+        'LoadLibrary should be lowered by modular transformer.');
   }
 
   @override
   w.ValueType visitCheckLibraryIsLoaded(
       CheckLibraryIsLoaded node, w.ValueType expectedType) {
-    LibraryDependency import = node.import;
-    _emitString(import.enclosingLibrary.importUri.toString());
-    _emitString(import.name!);
-    return translator
-        .outputOrVoid(call(translator.checkLibraryIsLoaded.reference));
+    throw UnsupportedError(
+        'CheckLibraryIsLoaded should be lowered by modular transformer.');
   }
 
   /// Pushes the `_Type` object for a function or class type parameter to the
@@ -3025,7 +3015,7 @@ abstract class AstCodeGenerator
         translator.functions.getFunction(translator.printToConsole.reference);
     translator.constants.instantiateConstant(
         b, StringConstant(s), printFunction.type.inputs[0]);
-    b.call(printFunction);
+    translator.callFunction(printFunction, b);
   }
 
   @override
@@ -3122,6 +3112,10 @@ CodeGenerator? getInlinableMemberCodeGenerator(
 
   if (member is Field) {
     if (member.isStatic) {
+      if (reference.isImplicitGetter || reference.isImplicitSetter) {
+        return StaticFieldImplicitAccessorCodeGenerator(
+            translator, functionType, member, reference.isImplicitGetter);
+      }
       return StaticFieldInitializerCodeGenerator(
           translator, functionType, member);
     }
@@ -3203,7 +3197,7 @@ class TearOffCodeGenerator extends AstCodeGenerator {
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     b.local_get(paramLocals[0]); // `this` as context
-    b.global_get(closure.vtable);
+    translator.globals.readGlobal(b, closure.vtable);
     types.makeType(this, functionType);
     b.struct_new(struct);
     b.end();
@@ -3830,7 +3824,7 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     closures.collectContexts(field);
     closures.buildContexts();
 
-    w.Global global = translator.globals.getGlobal(field);
+    w.Global global = translator.globals.getGlobalForStaticField(field);
     w.Global? flag = translator.globals.getGlobalInitializedFlag(field);
     wrap(field.initializer!, global.type.type);
     b.global_set(global);
@@ -3842,6 +3836,64 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     translator.convertType(b, global.type.type, outputs.single);
     b.end();
     addNestedClosuresToCompilationQueue();
+  }
+}
+
+class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
+  final Field field;
+  final bool isImplicitGetter;
+
+  StaticFieldImplicitAccessorCodeGenerator(Translator translator,
+      w.FunctionType functionType, this.field, this.isImplicitGetter)
+      : super(translator, functionType, field);
+
+  @override
+  void generateInternal() {
+    final global = translator.globals.getGlobalForStaticField(field);
+    final flag = translator.globals.getGlobalInitializedFlag(field);
+    if (isImplicitGetter) {
+      final initFunction =
+          translator.functions.getExistingFunction(field.fieldReference);
+      _generateGetter(global, flag, initFunction);
+    } else {
+      _generateSetter(global, flag);
+    }
+    b.end();
+  }
+
+  void _generateGetter(
+      w.Global global, w.Global? flag, w.BaseFunction? initFunction) {
+    if (initFunction == null) {
+      // Statically initialized
+      b.global_get(global);
+    } else {
+      if (flag != null) {
+        // Explicit initialization flag
+        assert(global.type.type == initFunction.type.outputs.single);
+        b.global_get(flag);
+        b.if_(const [], [global.type.type]);
+        b.global_get(global);
+        b.else_();
+        b.call(initFunction);
+        b.end();
+      } else {
+        // Null signals uninitialized
+        w.Label block = b.block(const [], [initFunction.type.outputs.single]);
+        b.global_get(global);
+        b.br_on_non_null(block);
+        b.call(initFunction);
+        b.end();
+      }
+    }
+  }
+
+  void _generateSetter(w.Global global, w.Global? flag) {
+    b.local_get(paramLocals.single);
+    b.global_set(global);
+    if (flag != null) {
+      b.i32_const(1); // true
+      b.global_set(flag);
+    }
   }
 }
 

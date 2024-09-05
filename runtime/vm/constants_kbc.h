@@ -650,6 +650,7 @@ namespace dart {
   V(VMInternal_ImplicitGetter,             0, ORDN, ___, ___, ___)             \
   V(VMInternal_ImplicitSetter,             0, ORDN, ___, ___, ___)             \
   V(VMInternal_ImplicitStaticGetter,       0, ORDN, ___, ___, ___)             \
+  V(VMInternal_ImplicitStaticSetter,       0, ORDN, ___, ___, ___)             \
   V(VMInternal_MethodExtractor,            0, ORDN, ___, ___, ___)             \
   V(VMInternal_InvokeClosure,              0, ORDN, ___, ___, ___)             \
   V(VMInternal_InvokeField,                0, ORDN, ___, ___, ___)             \

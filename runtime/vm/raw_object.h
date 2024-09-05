@@ -2841,6 +2841,7 @@ class UntaggedType : public UntaggedAbstractType {
 
   friend class compiler::target::UntaggedType;
   friend class CidRewriteVisitor;
+  friend class Interpreter;
   friend class UntaggedTypeArguments;
 };
 

@@ -2,26 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests multiple local wildcard variable declarations.
+// Tests that top-level const variables are still binding.
 
 // SharedOptions=--enable-experiment=wildcard-variables
+
+import 'package:expect/expect.dart';
+
+const _ = 100;
 
 void main() {
   var _ = 1;
   int _ = 2;
   final _ = 3;
+  late int _ = 4;
+  const int _ = 5;
 
-  var i = 2, _ = 2;
-  i = i + 1;
-
-  int _;
-  final _;
-
-  late int _;
-  late int _ = 2;
-
-  late final int _;
-  late final int _ = 2;
-
-  const int _ = 2;
+  Expect.equals(100, _);
 }

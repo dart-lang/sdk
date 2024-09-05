@@ -27,29 +27,52 @@ Future<int> generateWasm(WasmCompilerOptions options,
         '  - generate source maps = ${options.translatorOptions.generateSourceMaps}');
   }
 
-  final relativeSourceMapUrl = options.translatorOptions.generateSourceMaps
-      ? Uri.file('${path.basename(options.outputFile)}.map')
-      : null;
+  String moduleNameToWasmOutputFile(String moduleName) {
+    final outputFile = options.outputFile;
+    if (moduleName.isEmpty) return outputFile;
+    final extension = path.extension(outputFile);
+    return path.setExtension(outputFile, '_$moduleName$extension');
+  }
 
-  CompilerOutput? output = await compileToModule(options, relativeSourceMapUrl,
+  String moduleNameToSourceMapFile(String moduleName) {
+    return '${moduleNameToWasmOutputFile(moduleName)}.map';
+  }
+
+  Uri moduleNameToRelativeSourceMapUri(String moduleName) {
+    return Uri.file(path.basename(moduleNameToSourceMapFile(moduleName)));
+  }
+
+  final relativeSourceMapUrlMapper =
+      options.translatorOptions.generateSourceMaps
+          ? moduleNameToRelativeSourceMapUri
+          : null;
+
+  CompilerOutput? output = await compileToModule(
+      options,
+      relativeSourceMapUrlMapper,
       (message) => printDiagnosticMessage(message, errorPrinter));
 
   if (output == null) {
     return 1;
   }
 
-  final File outFile = File(options.outputFile);
-  outFile.parent.createSync(recursive: true);
-  await outFile.writeAsBytes(output.wasmModule);
+  final writeFutures = <Future>[];
+  output.wasmModules.forEach((moduleName, moduleInfo) {
+    final (:moduleBytes, :sourceMap) = moduleInfo;
+    final File outFile = File(moduleNameToWasmOutputFile(moduleName));
+    outFile.parent.createSync(recursive: true);
+    writeFutures.add(outFile.writeAsBytes(moduleBytes));
+
+    if (sourceMap != null) {
+      writeFutures.add(
+          File(moduleNameToSourceMapFile(moduleName)).writeAsString(sourceMap));
+    }
+  });
+  await Future.wait(writeFutures);
 
   final jsFile = options.outputJSRuntimeFile ??
       path.setExtension(options.outputFile, '.mjs');
   await File(jsFile).writeAsString(output.jsRuntime);
-
-  final sourceMap = output.sourceMap;
-  if (sourceMap != null) {
-    await File('${options.outputFile}.map').writeAsString(sourceMap);
-  }
 
   return 0;
 }

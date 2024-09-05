@@ -33,7 +33,7 @@ class SignatureHelpHandler
       return success(null);
     }
 
-    var clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = message.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;

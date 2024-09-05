@@ -209,7 +209,8 @@ class LspAnalysisServer extends AnalysisServer {
   /// 'codespaces'), else 'web'.
   String? get clientAppHost => _initializationOptions?.appHost;
 
-  /// The capabilities of the LSP client. Will be null prior to initialization.
+  /// Information about the connected editor client. Will be `null` prior to
+  /// initialization.
   InitializeParamsClientInfo? get clientInfo => _clientInfo;
 
   /// The name of the remote when the client is running using a remote workspace.
@@ -222,15 +223,15 @@ class LspAnalysisServer extends AnalysisServer {
   /// as 'ssh-remote' or 'wsl' for remote workspaces.
   String? get clientRemoteName => _initializationOptions?.remoteName;
 
+  /// The capabilities of the LSP client. Will be null prior to initialization.
+  @override
+  LspClientCapabilities? get editorClientCapabilities => _clientCapabilities;
+
   Future<void> get exited => channel.closed;
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
   LspInitializationOptions? get initializationOptions => _initializationOptions;
-
-  /// The capabilities of the LSP client. Will be null prior to initialization.
-  @override
-  LspClientCapabilities? get lspClientCapabilities => _clientCapabilities;
 
   /// A [Future] that completes with the [InitializedStateMessageHandler] for
   /// the server once it transitions to the initialized state.
@@ -283,7 +284,7 @@ class LspAnalysisServer extends AnalysisServer {
   @override
   @protected
   bool get supportsShowMessageRequest =>
-      lspClientCapabilities?.supportsShowMessageRequest ?? false;
+      editorClientCapabilities?.supportsShowMessageRequest ?? false;
 
   Future<void> addPriorityFile(String filePath) async {
     // When pubspecs are opened, trigger pre-loading of pub package names and
@@ -312,7 +313,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// Fetches configuration from the client (if supported) and then sends
   /// register/unregister requests for any supported/enabled dynamic registrations.
   Future<void> fetchClientConfigurationAndPerformDynamicRegistration() async {
-    if (lspClientCapabilities?.configuration ?? false) {
+    if (editorClientCapabilities?.configuration ?? false) {
       // Take a copy of workspace folders because we need to match up the
       // responses to the request by index and it's possible _workspaceFolders
       // will change after we sent the request but before we get the response.
@@ -496,6 +497,7 @@ class LspAnalysisServer extends AnalysisServer {
 
             var messageInfo = MessageInfo(
               performance: performance,
+              clientCapabilities: editorClientCapabilities,
               timeSinceRequest: message.timeSinceRequest,
             );
 
@@ -838,7 +840,7 @@ class LspAnalysisServer extends AnalysisServer {
       wasAnalyzing = true;
     }
 
-    if (lspClientCapabilities?.workDoneProgress != true) {
+    if (editorClientCapabilities?.workDoneProgress != true) {
       channel.sendNotification(NotificationMessage(
         method: CustomMethods.analyzerStatus,
         params: AnalyzerStatusParams(isAnalyzing: isAnalyzing),

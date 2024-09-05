@@ -255,6 +255,7 @@ class _MacroResultReader {
           defaultValue: _readOptionalCode(),
           keywords: reader.readStringUtf8List(),
           name: reader.readOptionalStringUtf8(),
+          style: reader.readEnum(macro.ParameterStyle.values),
           type: _readOptionalCode(),
         );
       case _MacroCodeKind.rawTypeAnnotation:
@@ -456,6 +457,7 @@ class _MacroResultWriter {
         _writeOptionalCode(object.defaultValue);
         sink.writeStringUtf8Iterable(object.keywords);
         sink.writeOptionalStringUtf8(object.name);
+        sink.writeEnum(object.style);
         _writeOptionalCode(object.type);
       case macro.RawTypeAnnotationCode():
         sink.writeEnum(_MacroCodeKind.rawTypeAnnotation);
