@@ -109,7 +109,7 @@ LibTest/html/Window/animationFrame_A01_t01: SkipByDesign # Issue #53985: request
 [ $compiler == ddc && $runtime == d8 ]
 LibTest/html/*: SkipByDesign # Browser tests
 
-[ $compiler == ddc && $runtime == firefox ]
+[ $compiler == ddc && $runtime == ff ]
 LibTest/html/Element/onTouchCancel_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
 LibTest/html/Element/onTouchEnd_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
 LibTest/html/Element/onTouchEnter_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF
