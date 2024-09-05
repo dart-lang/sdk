@@ -13,9 +13,6 @@
 //
 // Run as follows on JSC:
 //
-// $> export JSC_useWebAssemblyTypedFunctionReferences=1
-// $> export JSC_useWebAssemblyExtendedConstantExpressions=1
-// $> export JSC_useWebAssemblyGC=1
 // $> jsc run_wasm.js -- <dart_module>.mjs <dart_module>.wasm [<ffi_module>.wasm] \
 //       [-- Dart commandline arguments...]
 //
