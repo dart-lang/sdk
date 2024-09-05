@@ -92,12 +92,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   final TypeParameterScopeBuilder _libraryTypeParameterScopeBuilder;
 
-  /// The current declaration that is being built. When we start parsing a
-  /// declaration (class, method, and so on), we don't have enough information
-  /// to create a builder and this object records its members and types until,
-  /// for example, [addClass] is called.
-  TypeParameterScopeBuilder _currentTypeParameterScopeBuilder;
-
   /// Index of the library we use references for.
   final IndexedLibrary? indexedLibrary;
 
@@ -172,7 +166,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       : _compilationUnit = compilationUnit,
         _augmentationRoot = augmentationRoot,
         _libraryTypeParameterScopeBuilder = libraryTypeParameterScopeBuilder,
-        _currentTypeParameterScopeBuilder = libraryTypeParameterScopeBuilder,
         _problemReporting = problemReporting,
         _parent = parent,
         _scope = scope,
@@ -191,11 +184,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginClassOrNamedMixinApplicationHeader() {
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.createNested(
-            TypeParameterScopeKind.classOrNamedMixinApplication,
-            "class or mixin application");
-
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -209,7 +197,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginClassDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
-    _currentTypeParameterScopeBuilder.markAsClassDeclaration(name, charOffset);
     _declarationFragments.push(new ClassFragment(
         name, charOffset, typeVariables, _typeScopes.current.lookupScope));
   }
@@ -221,22 +208,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  TypeParameterScopeBuilder endClassDeclaration(String name) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.classDeclaration;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    assert(
-        name.startsWith(_currentTypeParameterScopeBuilder.name),
-        // Coverage-ignore(suite): Not run.
-        "${name} != ${_currentTypeParameterScopeBuilder.name}");
-    TypeParameterScopeBuilder previous = _currentTypeParameterScopeBuilder;
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
-
+  void endClassDeclaration(String name) {
     TypeScope bodyScope = _typeScopes.pop();
     assert(
         bodyScope.kind == TypeScopeKind.classDeclaration,
@@ -247,23 +219,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         // Coverage-ignore(suite): Not run.
         "Unexpected type scope: $typeParameterScope.");
-
-    return previous;
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void endClassDeclarationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.classDeclaration;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
-
     TypeScope bodyScope = _typeScopes.pop();
     assert(bodyScope.kind == TypeScopeKind.classDeclaration,
         "Unexpected type scope: $bodyScope.");
@@ -280,7 +241,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginMixinDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
-    _currentTypeParameterScopeBuilder.markAsMixinDeclaration(name, charOffset);
     _declarationFragments.push(new MixinFragment(
         name, charOffset, typeVariables, _typeScopes.current.lookupScope));
   }
@@ -292,22 +252,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  TypeParameterScopeBuilder endMixinDeclaration(String name) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.mixinDeclaration;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    assert(
-        name == _currentTypeParameterScopeBuilder.name,
-        // Coverage-ignore(suite): Not run.
-        "${name} != ${_currentTypeParameterScopeBuilder.name}");
-    TypeParameterScopeBuilder previous = _currentTypeParameterScopeBuilder;
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
-
+  void endMixinDeclaration(String name) {
     TypeScope bodyScope = _typeScopes.pop();
     assert(
         bodyScope.kind == TypeScopeKind.mixinDeclaration,
@@ -318,23 +263,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         // Coverage-ignore(suite): Not run.
         "Unexpected type scope: $typeParameterScope.");
-
-    return previous;
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void endMixinDeclarationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.mixinDeclaration;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
-
     TypeScope bodyScope = _typeScopes.pop();
     assert(bodyScope.kind == TypeScopeKind.mixinDeclaration,
         "Unexpected type scope: $bodyScope.");
@@ -350,27 +284,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginNamedMixinApplication(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
-    _currentTypeParameterScopeBuilder.markAsNamedMixinApplication(
-        name, charOffset);
-  }
+      List<NominalVariableBuilder>? typeVariables) {}
 
   @override
   void endNamedMixinApplication(String name) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.namedMixinApplication;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    assert(
-        name == _currentTypeParameterScopeBuilder.name,
-        // Coverage-ignore(suite): Not run.
-        "${name} != ${_currentTypeParameterScopeBuilder.name}");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
-
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(
         typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
@@ -381,16 +298,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endNamedMixinApplicationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.namedMixinApplication;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
-
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(
         typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
@@ -404,8 +311,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginEnumDeclarationHeader(String name) {
-    _currentTypeParameterScopeBuilder = _currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.enumDeclaration, name);
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -419,7 +324,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginEnumDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
-    _currentTypeParameterScopeBuilder.markAsEnumDeclaration(name, charOffset);
     _declarationFragments.push(new EnumFragment(
         name, charOffset, typeVariables, _typeScopes.current.lookupScope));
   }
@@ -432,21 +336,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endEnumDeclaration(String name) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.enumDeclaration;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    assert(
-        name == _currentTypeParameterScopeBuilder.name,
-        // Coverage-ignore(suite): Not run.
-        "${name} != ${_currentTypeParameterScopeBuilder.name}");
-
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
-
     TypeScope bodyScope = _typeScopes.pop();
     assert(
         bodyScope.kind == TypeScopeKind.enumDeclaration,
@@ -462,16 +351,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endEnumDeclarationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.enumDeclaration;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
-
     TypeScope bodyScope = _typeScopes.pop();
     assert(
         bodyScope.kind == TypeScopeKind.enumDeclaration,
@@ -491,10 +370,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginExtensionOrExtensionTypeHeader() {
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.createNested(
-            TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
-            "extension");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -508,8 +383,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginExtensionDeclaration(String? name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
-    _currentTypeParameterScopeBuilder.markAsExtensionDeclaration(
-        name, charOffset);
     _declarationFragments.push(new ExtensionFragment(
         name, charOffset, typeVariables, _typeScopes.current.lookupScope));
   }
@@ -526,24 +399,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  TypeParameterScopeBuilder endExtensionDeclaration(String? name) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.extensionDeclaration;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    assert(
-        name == _currentTypeParameterScopeBuilder.name ||
-            _currentTypeParameterScopeBuilder.name ==
-                UnnamedExtensionName.unnamedExtensionSentinel,
-        // Coverage-ignore(suite): Not run.
-        "${name} != ${_currentTypeParameterScopeBuilder.name}");
-    TypeParameterScopeBuilder previous = _currentTypeParameterScopeBuilder;
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
-
+  void endExtensionDeclaration(String? name) {
     TypeScope bodyScope = _typeScopes.pop();
     assert(
         bodyScope.kind == TypeScopeKind.extensionDeclaration,
@@ -554,15 +410,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         // Coverage-ignore(suite): Not run.
         "Unexpected type scope: $typeParameterScope.");
-
-    return previous;
   }
 
   @override
   void beginExtensionTypeDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
-    _currentTypeParameterScopeBuilder.markAsExtensionTypeDeclaration(
-        name, charOffset);
     _declarationFragments.push(new ExtensionTypeFragment(
         name, charOffset, typeVariables, _typeScopes.current.lookupScope));
   }
@@ -574,23 +426,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  TypeParameterScopeBuilder endExtensionTypeDeclaration(String name) {
-    TypeParameterScopeKind kind =
-        TypeParameterScopeKind.extensionTypeDeclaration;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    assert(
-        name == _currentTypeParameterScopeBuilder.name,
-        // Coverage-ignore(suite): Not run.
-        "${name} != ${_currentTypeParameterScopeBuilder.name}");
-    TypeParameterScopeBuilder previous = _currentTypeParameterScopeBuilder;
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
-
+  void endExtensionTypeDeclaration(String name) {
     TypeScope bodyScope = _typeScopes.pop();
     assert(
         bodyScope.kind == TypeScopeKind.extensionTypeDeclaration,
@@ -601,14 +437,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         // Coverage-ignore(suite): Not run.
         "Unexpected type scope: $typeParameterScope.");
-
-    return previous;
   }
 
   @override
   void beginFactoryMethod() {
-    _currentTypeParameterScopeBuilder = _currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.factoryMethod, "#factory_method");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -621,15 +453,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endFactoryMethod() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.factoryMethod;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(
         typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
@@ -640,14 +463,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   // Coverage-ignore(suite): Not run.
   void endFactoryMethodForParserRecovery() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.factoryMethod;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
@@ -658,8 +473,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginConstructor() {
-    _currentTypeParameterScopeBuilder = _currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.constructor, "#method");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -672,15 +485,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endConstructor() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.constructor;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(
         typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
@@ -691,15 +495,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endConstructorForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.constructor;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(
         typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
@@ -713,8 +508,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginStaticMethod() {
-    _currentTypeParameterScopeBuilder = _currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.staticMethod, "#method");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -727,15 +520,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endStaticMethod() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.staticMethod;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(
         typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
@@ -747,14 +531,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   // Coverage-ignore(suite): Not run.
   void endStaticMethodForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.staticMethod;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
@@ -766,8 +542,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginInstanceMethod() {
-    _currentTypeParameterScopeBuilder = _currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.instanceMethod, "#method");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -780,15 +554,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endInstanceMethod() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.instanceMethod;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(
         typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
@@ -799,15 +564,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endInstanceMethodForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.instanceMethod;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(
         typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
@@ -821,8 +577,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginTopLevelMethod() {
-    _currentTypeParameterScopeBuilder = _currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.topLevelMethod, "#method");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -835,15 +589,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endTopLevelMethod() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.topLevelMethod;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(
         typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
@@ -854,15 +599,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endTopLevelMethodForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.topLevelMethod;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(
         typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
@@ -876,8 +612,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginTypedef() {
-    _currentTypeParameterScopeBuilder = _currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.typedef, "#typedef");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -890,15 +624,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endTypedef() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.typedef;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(
         typeVariableScope.kind == TypeScopeKind.declarationTypeParameters,
@@ -910,14 +635,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   // Coverage-ignore(suite): Not run.
   void endTypedefForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.typedef;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(typeVariableScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
@@ -929,8 +646,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginFunctionType() {
-    _currentTypeParameterScopeBuilder = _currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.functionType, "#function_type");
     Map<String, StructuralVariableBuilder> structuralParameterScope = {};
     _structuralParameterScopes.push(structuralParameterScope);
     _typeScopes.push(new TypeScope(
@@ -942,15 +657,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endFunctionType() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.functionType;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(
         typeVariableScope.kind == TypeScopeKind.functionTypeParameters,
@@ -959,10 +665,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   void beginUnnamedMixinApplication() {
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.createNested(
-            TypeParameterScopeKind.unnamedMixinApplication,
-            "mixin application");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -974,16 +676,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   void endUnnamedMixinApplication() {
-    TypeParameterScopeKind kind =
-        TypeParameterScopeKind.unnamedMixinApplication;
-    assert(
-        _currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${_currentTypeParameterScopeBuilder.kind} as a "
-        "$kind.");
-    _currentTypeParameterScopeBuilder =
-        _currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(
         typeVariableScope.kind == TypeScopeKind.unnamedMixinApplication,
@@ -1424,13 +1116,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isMixinClass}) {
     String className = identifier.name;
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
-    TypeParameterScopeBuilder declaration;
     if (isMixinDeclaration) {
-      declaration = endMixinDeclaration(className);
+      endMixinDeclaration(className);
     } else {
-      declaration = endClassDeclaration(className);
+      endClassDeclaration(className);
     }
-    assert(declaration.parent == _libraryTypeParameterScopeBuilder);
 
     DeclarationFragment declarationFragment = _declarationFragments.pop();
 
@@ -1812,12 +1502,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     String? name = identifier?.name;
     // Nested declaration began in
     // `OutlineBuilder.beginExtensionDeclarationPrelude`.
-    TypeParameterScopeBuilder declaration = endExtensionDeclaration(name);
+    endExtensionDeclaration(name);
 
     ExtensionFragment declarationFragment =
         _declarationFragments.pop() as ExtensionFragment;
 
-    assert(declaration.parent == _libraryTypeParameterScopeBuilder);
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
     nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
@@ -1870,8 +1559,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       int endOffset) {
     String name = identifier.name;
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
-    TypeParameterScopeBuilder declaration = endExtensionTypeDeclaration(name);
-    assert(declaration.parent == _libraryTypeParameterScopeBuilder);
+    endExtensionTypeDeclaration(name);
 
     DeclarationFragment declarationFragment = _declarationFragments.pop();
 
@@ -1899,7 +1587,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         new SourceExtensionTypeDeclarationBuilder(
             metadata,
             modifiers,
-            declaration.name,
+            declarationFragment.name,
             typeVariables,
             interfaces,
             typeParameterScope,
@@ -2100,9 +1788,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
 
     if (isConstructor) {
-      String constructorName = computeAndValidateConstructorName(
-              _currentTypeParameterScopeBuilder, identifier) ??
-          name;
+      String constructorName =
+          computeAndValidateConstructorName(declarationFragment, identifier) ??
+              name;
       addConstructor(
           offsetMap,
           metadata,
@@ -2270,8 +1958,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
     AbstractSourceConstructorBuilder constructorBuilder;
 
-    if (_currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.extensionTypeDeclaration) {
+    if (_declarationFragments.current.kind ==
+        DeclarationFragmentKind.extensionTypeDeclaration) {
       constructorBuilder = new SourceExtensionTypeConstructorBuilder(
           metadata,
           modifiers & ~abstractMask,
@@ -2348,19 +2036,19 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       AsyncMarker asyncModifier) {
     TypeBuilder returnType;
     List<TypeBuilder>? returnTypeArguments;
-    TypeParameterScopeBuilder? parentDeclaration =
-        _currentTypeParameterScopeBuilder.parent!;
-    if (parentDeclaration.kind == TypeParameterScopeKind.extensionDeclaration) {
+    DeclarationFragment enclosingDeclaration = _declarationFragments.current;
+    if (enclosingDeclaration.kind ==
+        DeclarationFragmentKind.extensionDeclaration) {
       // Make the synthesized return type invalid for extensions.
-      String name = _currentTypeParameterScopeBuilder.parent!.name;
+      String name = enclosingDeclaration.name;
       returnType = new NamedTypeBuilderImpl.forInvalidType(
-          _currentTypeParameterScopeBuilder.parent!.name,
+          name,
           const NullabilityBuilder.omitted(),
           messageExtensionDeclaresConstructor.withLocation(
               _compilationUnit.fileUri, charOffset, name.length));
     } else {
       returnType = addNamedType(
-          new SyntheticTypeName(parentDeclaration.name, charOffset),
+          new SyntheticTypeName(enclosingDeclaration.name, charOffset),
           const NullabilityBuilder.omitted(),
           returnTypeArguments = [],
           charOffset,
@@ -2370,7 +2058,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // Prepare the simple procedure name.
     String procedureName;
     String? constructorName = computeAndValidateConstructorName(
-        parentDeclaration, identifier,
+        enclosingDeclaration, identifier,
         isFactory: true);
     if (constructorName != null) {
       procedureName = constructorName;
@@ -2378,7 +2066,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       procedureName = identifier.name;
     }
 
-    DeclarationFragment enclosingDeclaration = _declarationFragments.current;
     ContainerType containerType = enclosingDeclaration.containerType;
     ContainerName containerName = enclosingDeclaration.containerName;
 
@@ -2509,13 +2196,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       List<TypeBuilder>? typeArguments, Identifier? suffix, int charOffset) {
     // At the moment, the name of the type in a constructor reference can be
     // omitted only within an enum element declaration.
-    if (_currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.enumDeclaration) {
+    DeclarationFragment enclosingDeclaration = _declarationFragments.current;
+    if (enclosingDeclaration.kind == DeclarationFragmentKind.enumDeclaration) {
       if (libraryFeatures.enhancedEnums.isEnabled) {
         int constructorNameOffset = suffix?.nameOffset ?? charOffset;
         return addConstructorReference(
             new SyntheticTypeName(
-                _currentTypeParameterScopeBuilder.name, constructorNameOffset),
+                enclosingDeclaration.name, constructorNameOffset),
             typeArguments,
             suffix?.name,
             constructorNameOffset);
@@ -2542,9 +2229,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   String? computeAndValidateConstructorName(
-      TypeParameterScopeBuilder parentDeclaration, Identifier identifier,
+      DeclarationFragment enclosingDeclaration, Identifier identifier,
       {isFactory = false}) {
-    String className = parentDeclaration.name;
+    String className = enclosingDeclaration.name;
     String prefix;
     String? suffix;
     int charOffset;
@@ -2573,9 +2260,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         prefix.length, _compilationUnit.fileUri,
         context: [
           templateConstructorWithWrongNameContext
-              .withArguments(parentDeclaration.name)
-              .withLocation(_compilationUnit.importUri,
-                  parentDeclaration.charOffset, parentDeclaration.name.length)
+              .withArguments(enclosingDeclaration.name)
+              .withLocation(
+                  _compilationUnit.importUri,
+                  enclosingDeclaration.nameOffset,
+                  enclosingDeclaration.name.length)
         ]);
 
     return suffix;
@@ -2605,14 +2294,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       {required bool isInstanceMember,
       required bool isExtensionMember,
       required bool isExtensionTypeMember}) {
-    assert(!isExtensionMember ||
-        _currentTypeParameterScopeBuilder.kind ==
-            TypeParameterScopeKind.extensionDeclaration);
-    assert(!isExtensionTypeMember ||
-        _currentTypeParameterScopeBuilder.kind ==
-            TypeParameterScopeKind.extensionTypeDeclaration);
     DeclarationFragment? enclosingDeclaration =
         _declarationFragments.currentOrNull;
+    assert(!isExtensionMember ||
+        enclosingDeclaration?.kind ==
+            DeclarationFragmentKind.extensionDeclaration);
+    assert(!isExtensionTypeMember ||
+        enclosingDeclaration?.kind ==
+            DeclarationFragmentKind.extensionTypeDeclaration);
     ContainerType containerType =
         enclosingDeclaration?.containerType ?? ContainerType.Library;
     ContainerName? containerName = enclosingDeclaration?.containerName;
@@ -2757,15 +2446,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             (loader.target.backendTarget.useStaticFieldLowering &&
                 (isStatic || isTopLevel)));
 
-    final bool isInstanceMember = _currentTypeParameterScopeBuilder.kind !=
-            TypeParameterScopeKind.library &&
-        (modifiers & staticMask) == 0;
-    final bool isExtensionMember = _currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.extensionDeclaration;
-    final bool isExtensionTypeMember = _currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.extensionTypeDeclaration;
     DeclarationFragment? enclosingDeclaration =
         _declarationFragments.currentOrNull;
+    final bool isInstanceMember = enclosingDeclaration != null && !isStatic;
+    final bool isExtensionMember = enclosingDeclaration?.kind ==
+        DeclarationFragmentKind.extensionDeclaration;
+    final bool isExtensionTypeMember = enclosingDeclaration?.kind ==
+        DeclarationFragmentKind.extensionTypeDeclaration;
     ContainerType containerType =
         enclosingDeclaration?.containerType ?? ContainerType.Library;
     ContainerName? containerName = enclosingDeclaration?.containerName;
@@ -3128,8 +2815,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   void _addBuilder(String name, Builder declaration, int charOffset) {
-    if (_currentTypeParameterScopeBuilder ==
-        _libraryTypeParameterScopeBuilder) {
+    if (_declarationFragments.isEmpty) {
       _addBuilderToLibrary(name, declaration, charOffset);
     } else {
       _addBuilderToDeclaration(name, declaration, charOffset);
@@ -3138,12 +2824,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   Builder _addBuilderToLibrary(
       String name, Builder declaration, int charOffset) {
-    assert(
-        _currentTypeParameterScopeBuilder == _libraryTypeParameterScopeBuilder);
+    assert(_declarationFragments.isEmpty);
     if (declaration is SourceExtensionBuilder &&
         declaration.isUnnamedExtension) {
       declaration.parent = _parent;
-      _currentTypeParameterScopeBuilder.extensions!.add(declaration);
+      _libraryTypeParameterScopeBuilder.extensions.add(declaration);
       return declaration;
     }
 
@@ -3165,8 +2850,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         "Unexpected constructor in library: $declaration.");
 
     Map<String, Builder> members = declaration.isSetter
-        ? _currentTypeParameterScopeBuilder.setters!
-        : _currentTypeParameterScopeBuilder.members!;
+        ? _libraryTypeParameterScopeBuilder.setters
+        : _libraryTypeParameterScopeBuilder.members;
 
     Builder? existing = members[name];
 
@@ -3225,15 +2910,15 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       // We add the extension declaration to the extension scope only if its
       // name is unique. Only the first of duplicate extensions is accessible
       // by name or by resolution and the remaining are dropped for the output.
-      _currentTypeParameterScopeBuilder.extensions!
+      _libraryTypeParameterScopeBuilder.extensions
           .add(declaration as SourceExtensionBuilder);
     } else if (declaration.isAugment) {
       if (existing != null) {
         if (declaration.isSetter) {
-          (_currentTypeParameterScopeBuilder.setterAugmentations[name] ??= [])
+          (_libraryTypeParameterScopeBuilder.setterAugmentations[name] ??= [])
               .add(declaration);
         } else {
-          (_currentTypeParameterScopeBuilder.augmentations[name] ??= [])
+          (_libraryTypeParameterScopeBuilder.augmentations[name] ??= [])
               .add(declaration);
         }
       } else {
@@ -3248,9 +2933,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   void _addBuilderToDeclaration(
       String name, Builder declaration, int charOffset) {
-    assert(_currentTypeParameterScopeBuilder.parent ==
-        _libraryTypeParameterScopeBuilder);
-
+    assert(_declarationFragments.hasCurrent);
     _declarationFragments.current
         .addBuilder(name, declaration, _compilationUnit.fileUri, charOffset);
   }
@@ -3291,15 +2974,15 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   Iterable<Builder> get members =>
-      _libraryTypeParameterScopeBuilder.members!.values;
+      _libraryTypeParameterScopeBuilder.members.values;
 
   @override
   Iterable<Builder> get setters =>
-      _libraryTypeParameterScopeBuilder.setters!.values;
+      _libraryTypeParameterScopeBuilder.setters.values;
 
   @override
   Iterable<ExtensionBuilder> get extensions =>
-      _libraryTypeParameterScopeBuilder.extensions!;
+      _libraryTypeParameterScopeBuilder.extensions;
 
   @override
   bool get isPart => _partOfName != null || _partOfUri != null;

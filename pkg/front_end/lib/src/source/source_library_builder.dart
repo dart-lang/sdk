@@ -220,7 +220,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           ..setLanguageVersion(packageLanguageVersion.version));
     LibraryName libraryName = new LibraryName(library.reference);
     TypeParameterScopeBuilder libraryTypeParameterScopeBuilder =
-        new TypeParameterScopeBuilder.library();
+        new TypeParameterScopeBuilder();
     NameSpace? importNameSpace = new NameSpaceImpl();
     LookupScope importScope = new NameSpaceLookupScope(
         importNameSpace, ScopeKind.library, 'top',
@@ -300,7 +300,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
     _scope = new SourceLibraryBuilderScope(
-        this, ScopeKind.typeParameters, libraryTypeParameterScopeBuilder.name);
+        this, ScopeKind.typeParameters, 'library');
     compilationUnit = new SourceCompilationUnitImpl(
         this, libraryTypeParameterScopeBuilder,
         importUri: importUri,

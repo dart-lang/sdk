@@ -14,172 +14,21 @@ import '../builder/type_builder.dart';
 import 'name_scheme.dart';
 import 'source_field_builder.dart';
 
-// The kind of type parameter scope built by a [TypeParameterScopeBuilder]
-// object.
-enum TypeParameterScopeKind {
-  library,
-  classOrNamedMixinApplication,
-  classDeclaration,
-  mixinDeclaration,
-  unnamedMixinApplication,
-  namedMixinApplication,
-  extensionOrExtensionTypeDeclaration,
-  extensionDeclaration,
-  extensionTypeDeclaration,
-  typedef,
-  staticMethod,
-  instanceMethod,
-  constructor,
-  topLevelMethod,
-  factoryMethod,
-  functionType,
-  enumDeclaration,
-}
-
 /// A builder object preparing for building declarations that can introduce type
 /// parameter and/or members.
 ///
 /// Unlike [Scope], this scope is used during construction of builders to
 /// ensure types and members are added to and resolved in the correct location.
 class TypeParameterScopeBuilder {
-  TypeParameterScopeKind _kind;
+  final Map<String, Builder> members = {};
 
-  final TypeParameterScopeBuilder? parent;
+  final Map<String, MemberBuilder> setters = {};
 
-  final Map<String, Builder>? members;
+  final Set<ExtensionBuilder> extensions = {};
 
-  final Map<String, MemberBuilder>? setters;
+  final Map<String, List<Builder>> augmentations = {};
 
-  final Set<ExtensionBuilder>? extensions;
-
-  final Map<String, List<Builder>> augmentations = <String, List<Builder>>{};
-
-  final Map<String, List<Builder>> setterAugmentations =
-      <String, List<Builder>>{};
-
-  // TODO(johnniwinther): Stop using [_name] for determining the declaration
-  // kind.
-  String _name;
-
-  /// Offset of name token, updated by the outline builder along
-  /// with the name as the current declaration changes.
-  int _charOffset;
-
-  TypeParameterScopeBuilder(this._kind, this.members, this.setters,
-      this.extensions, this._name, this._charOffset, this.parent);
-
-  TypeParameterScopeBuilder.library()
-      : this(
-            TypeParameterScopeKind.library,
-            <String, Builder>{},
-            <String, MemberBuilder>{},
-            <ExtensionBuilder>{},
-            "<library>",
-            -1,
-            null);
-
-  TypeParameterScopeBuilder createNested(
-      TypeParameterScopeKind kind, String name) {
-    return new TypeParameterScopeBuilder(
-        kind,
-        null,
-        null,
-        null,
-        // No support for extensions in nested scopes.
-        name,
-        -1,
-        this);
-  }
-
-  /// Registers that this builder is preparing for a class declaration with the
-  /// given [name] and [typeVariables] located [charOffset].
-  void markAsClassDeclaration(String name, int charOffset) {
-    assert(
-        _kind == TypeParameterScopeKind.classOrNamedMixinApplication,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.classDeclaration;
-    _name = name;
-    _charOffset = charOffset;
-  }
-
-  /// Registers that this builder is preparing for a named mixin application
-  /// with the given [name] and [typeVariables] located [charOffset].
-  void markAsNamedMixinApplication(String name, int charOffset) {
-    assert(
-        _kind == TypeParameterScopeKind.classOrNamedMixinApplication,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.namedMixinApplication;
-    _name = name;
-    _charOffset = charOffset;
-  }
-
-  /// Registers that this builder is preparing for a mixin declaration with the
-  /// given [name] and [typeVariables] located [charOffset].
-  void markAsMixinDeclaration(String name, int charOffset) {
-    // TODO(johnniwinther): Avoid using 'classOrNamedMixinApplication' for mixin
-    // declaration. These are syntactically distinct so we don't need the
-    // transition.
-    assert(
-        _kind == TypeParameterScopeKind.classOrNamedMixinApplication,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.mixinDeclaration;
-    _name = name;
-    _charOffset = charOffset;
-  }
-
-  /// Registers that this builder is preparing for an extension declaration with
-  /// the given [name] and [typeVariables] located [charOffset].
-  void markAsExtensionDeclaration(String? name, int charOffset) {
-    assert(
-        _kind == TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.extensionDeclaration;
-    _name = name ?? UnnamedExtensionName.unnamedExtensionSentinel;
-    _charOffset = charOffset;
-  }
-
-  /// Registers that this builder is preparing for an extension type declaration
-  /// with the given [name] and [typeVariables] located [charOffset].
-  void markAsExtensionTypeDeclaration(String name, int charOffset) {
-    assert(
-        _kind == TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.extensionTypeDeclaration;
-    _name = name;
-    _charOffset = charOffset;
-  }
-
-  /// Registers that this builder is preparing for an enum declaration with
-  /// the given [name] and [typeVariables] located [charOffset].
-  void markAsEnumDeclaration(String name, int charOffset) {
-    assert(
-        _kind == TypeParameterScopeKind.enumDeclaration,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration kind: $_kind");
-    _name = name;
-    _charOffset = charOffset;
-  }
-
-  /// Returns what kind of declaration this [TypeParameterScopeBuilder] is
-  /// preparing for.
-  ///
-  /// This information is transient for some declarations. In particular
-  /// classes and named mixin applications are initially created with the kind
-  /// [TypeParameterScopeKind.classOrNamedMixinApplication] before a call to
-  /// either [markAsClassDeclaration] or [markAsNamedMixinApplication] sets the
-  /// value to its actual kind.
-  // TODO(johnniwinther): Avoid the transition currently used on mixin
-  // declarations.
-  TypeParameterScopeKind get kind => _kind;
-
-  String get name => _name;
-
-  int get charOffset => _charOffset;
+  final Map<String, List<Builder>> setterAugmentations = {};
 
   NameSpace toNameSpace() {
     return new NameSpaceImpl(
@@ -187,7 +36,7 @@ class TypeParameterScopeBuilder {
   }
 
   @override
-  String toString() => 'DeclarationBuilder(${hashCode}:kind=$kind,name=$name)';
+  String toString() => 'TypeParameterScopeBuilder(${hashCode})';
 }
 
 class NominalParameterScope extends AbstractTypeParameterScope {
