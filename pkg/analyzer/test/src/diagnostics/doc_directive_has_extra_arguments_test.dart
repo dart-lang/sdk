@@ -38,12 +38,12 @@ class C {}
 ''');
   }
 
-  test_example_hasExtraArgument() async {
+  test_macro_hasExtraArgument() async {
     await assertErrorsInCode('''
-/// {@example one two}
+/// {@macro one two}
 class C {}
 ''', [
-      error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 18, 3),
+      error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 16, 3),
     ]);
   }
 

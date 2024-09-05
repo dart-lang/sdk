@@ -25,18 +25,18 @@ class C {}
     ]);
   }
 
-  test_example_hasExtraArgument() async {
+  test_macro_hasExtraArgument() async {
     await assertErrorsInCode('''
-/// {@example path foo=bar}
+/// {@macro name foo=bar}
 class C {}
 ''', [
-      error(WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT, 19, 7),
+      error(WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT, 17, 7),
     ]);
   }
 
-  test_example_noExtraArgument() async {
+  test_macro_noExtraArgument() async {
     await assertNoErrorsInCode('''
-/// {@example path}
+/// {@macro name}
 class C {}
 ''');
   }
