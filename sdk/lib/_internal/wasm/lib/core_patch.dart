@@ -62,7 +62,6 @@ import 'dart:_string_helper';
 
 import 'dart:_wasm';
 
-part "bool.dart";
 part "closure.dart";
 part "double_patch.dart";
 part "errors_patch.dart";
