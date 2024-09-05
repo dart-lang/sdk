@@ -436,7 +436,7 @@ class DeclarationHelper {
     }
     for (var accessor in extension.accessors) {
       if (!accessor.isStatic) {
-        _suggestFieldOrProperty(
+        _suggestProperty(
             accessor: accessor,
             referencingInterface: referencingInterface,
             importData: importData);
@@ -931,7 +931,7 @@ class DeclarationHelper {
             referencingInterface: referencingInterface,
           );
         case PropertyAccessorElement():
-          _suggestFieldOrProperty(
+          _suggestProperty(
               accessor: member, referencingInterface: referencingInterface);
       }
     }
@@ -1634,30 +1634,6 @@ class DeclarationHelper {
             referencingInterface: referencingInterface);
         collector.addSuggestion(suggestion);
       }
-    }
-  }
-
-  /// Adds a suggestion for a [FieldElement] or a [PropertyAccessorElement].
-  void _suggestFieldOrProperty(
-      {required PropertyAccessorElement accessor,
-      required InterfaceElement? referencingInterface,
-      ImportData? importData}) {
-    if (accessor.isSynthetic) {
-      // Avoid visiting a field twice. All fields induce a getter, but only
-      // non-final fields induce a setter, so we don't add a suggestion for a
-      // synthetic setter.
-      if (accessor.isGetter) {
-        var variable = accessor.variable2;
-        if (variable is FieldElement) {
-          _suggestField(
-              field: variable, referencingInterface: referencingInterface);
-        }
-      }
-    } else {
-      _suggestProperty(
-          accessor: accessor,
-          referencingInterface: referencingInterface,
-          importData: importData);
     }
   }
 

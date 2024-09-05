@@ -1,4 +1,4 @@
-## 6.9.0-dev
+## 6.9.0
 * `NormalFormalParameter` now implements `AnnotatedNode`.
 * Deprecated `Element.enclosingElement`, use `enclosingElement3`.
 

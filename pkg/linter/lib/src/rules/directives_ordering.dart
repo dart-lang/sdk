@@ -339,7 +339,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkSectionInOrder(
-      Set<AstNode> lintedNodes, Iterable<NamespaceDirective> nodes) {
+      Set<AstNode> lintedNodes, Iterable<UriBasedDirective> nodes) {
     if (nodes.isEmpty) return;
 
     var previousUri = nodes.first.uri.stringValue;

@@ -1831,6 +1831,37 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
             "import 'package:test/test_a.dart' show A, Other;A"));
   }
 
+  /// The same test as [test_writeType_shownImport] but where the updated
+  /// import is not the last import. This verifies the code that updates imports
+  /// correctly breaks after updating the import so it does not also import a
+  /// duplicate.
+  Future<void> test_writeType_shownImport_nonLast() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    var aContent = 'class A {} class Other {}';
+    addSource(aPath, aContent);
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = '''
+import 'package:test/test_a.dart' show Other;
+import 'package:test/test_b.dart';
+''';
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    var typeA = await _getType(aPath, 'A');
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.addInsertion(bContent.length, (builder) {
+        builder.writeType(typeA);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    var edited = SourceEdit.applySequence(bContent, edits);
+    expect(edited, equalsIgnoringWhitespace('''
+import 'package:test/test_a.dart' show A, Other;
+import 'package:test/test_b.dart';
+A'''));
+  }
+
   Future<void> test_writeType_shownImportUnsorted() async {
     var aPath = convertPath('/home/test/lib/test_a.dart');
     var aContent = 'class A {} class B {} class C {} class D {}';
