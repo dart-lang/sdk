@@ -33,138 +33,6 @@ class FlutterRemoveWidgetTest extends AssistProcessorTest {
     );
   }
 
-  Future<void> test_doesNotRemoveWidgetWithoutArgumentWhenNotInList() async {
-    await resolveTestCode('''
-import 'package:flutter/material.dart';
-void f() {
-  /*caret*/Container();
-}
-''');
-    await assertNoAssist();
-  }
-
-  Future<void> test_removeWidgetWithoutArgumentWhenInList() async {
-    await resolveTestCode('''
-import 'package:flutter/material.dart';
-void f() {
-  Column(
-    children: [
-      /*caret*/Container(),
-    ],
-  );
-}
-''');
-    await assertHasAssist('''
-import 'package:flutter/material.dart';
-void f() {
-  Column(
-    children: [
-      
-    ],
-  );
-}
-''');
-  }
-
-  Future<void> test_removeWidgetWithoutArgumentWhenInListSliver() async {
-    await resolveTestCode('''
-import 'package:flutter/material.dart';
-void f() {
-  CustomScrollView(
-    slivers: [
-      /*caret*/SliverToBoxAdapter(),
-    ],
-  );
-}
-''');
-    await assertHasAssist('''
-import 'package:flutter/material.dart';
-void f() {
-  CustomScrollView(
-    slivers: [
-      
-    ],
-  );
-}
-''');
-  }
-
-  Future<void> test_does_not_work_for_non_widgets_child() async {
-    await resolveTestCode('''
-import 'package:flutter/material.dart';
-
-class NotAWidget {
-  final int child;
-
-  NotAWidget({required this.child});
-}
-
-void f() {
-  /*caret*/NotAWidget(
-    child: 42,
-  );
-}
-''');
-    await assertNoAssist();
-  }
-
-  Future<void> test_does_not_work_for_non_widgets_children() async {
-    await resolveTestCode('''
-import 'package:flutter/material.dart';
-
-class NotAWidget {
-  final List<int> children;
-
-  NotAWidget({required this.children});
-}
-
-void f() {
-  /*caret*/NotAWidget(
-    children: [42],
-  );
-}
-''');
-    await assertNoAssist();
-  }
-
-  Future<void> test_does_not_work_for_non_widgets_sliver() async {
-    await resolveTestCode('''
-import 'package:flutter/material.dart';
-
-class NotAWidget {
-  final int sliver;
-
-  NotAWidget({required this.sliver});
-}
-
-void f() {
-  /*caret*/NotAWidget(
-    sliver: 42,
-  );
-}
-''');
-    await assertNoAssist();
-  }
-
-  Future<void> test_does_not_work_for_non_widgets_slivers() async {
-    await resolveTestCode('''
-import 'package:flutter/material.dart';
-
-class NotAWidget {
-  final List<int> slivers;
-
-  NotAWidget({required this.slivers});
-}
-
-void f() {
-  /*caret*/NotAWidget(
-    slivers: [42],
-  );
-}
-''');
-    await assertNoAssist();
-  }
-
   Future<void> test_builder_blockFunctionBody() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
@@ -264,42 +132,6 @@ void f() {
 ''');
   }
 
-  Future<void> test_sliver_childIntoChild_multiLine() async {
-    await resolveTestCode('''
-import 'package:flutter/material.dart';
-void f() {
-  CustomScrollView(
-    slivers: [
-      SliverPadding(
-        padding: const EdgeInsets.all(8.0),
-        sliver: /*caret*/DecoratedSliver(
-          decoration: BoxDecoration(),
-          sliver: SliverToBoxAdapter(
-            child: Text('foo'),
-          ),
-        ),
-      ),
-    ],
-  );
-}
-''');
-    await assertHasAssist('''
-import 'package:flutter/material.dart';
-void f() {
-  CustomScrollView(
-    slivers: [
-      SliverPadding(
-        padding: const EdgeInsets.all(8.0),
-        sliver: SliverToBoxAdapter(
-          child: Text('foo'),
-        ),
-      ),
-    ],
-  );
-}
-''');
-  }
-
   Future<void> test_childIntoChild_singleLine() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
@@ -360,42 +192,6 @@ void f() {
 ''');
   }
 
-  Future<void> test_sliver_childIntoChildren() async {
-    await resolveTestCode('''
-import 'package:flutter/material.dart';
-void f() {
-  CustomScrollView(
-    slivers: [
-      SliverToBoxAdapter(child: Text('foo')),
-      /*caret*/DecoratedSliver(
-        decoration: BoxDecoration(),
-        sliver: SliverPadding(
-          padding: const EdgeInsets.all(8.0),
-          sliver: SliverToBoxAdapter(child: Text('bar')),
-        ),
-      ),
-      SliverToBoxAdapter(child: Text('baz')),
-    ],
-  );
-}
-''');
-    await assertHasAssist('''
-import 'package:flutter/material.dart';
-void f() {
-  CustomScrollView(
-    slivers: [
-      SliverToBoxAdapter(child: Text('foo')),
-      SliverPadding(
-        padding: const EdgeInsets.all(8.0),
-        sliver: SliverToBoxAdapter(child: Text('bar')),
-      ),
-      SliverToBoxAdapter(child: Text('baz')),
-    ],
-  );
-}
-''');
-  }
-
   Future<void> test_childrenMultipleIntoChild() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
@@ -405,23 +201,6 @@ void f() {
       children: [
         Text('aaa'),
         Text('bbb'),
-      ],
-    ),
-  );
-}
-''');
-    await assertNoAssist();
-  }
-
-  Future<void> test_sliver_childrenMultipleIntoChild() async {
-    await resolveTestCode('''
-import 'package:flutter/material.dart';
-void f() {
-  Center(
-    child: /*caret*/CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(child: Text('aaa')),
-        SliverToBoxAdapter(child: Text('bbb')),
       ],
     ),
   );
@@ -453,29 +232,6 @@ void f() {
 ''');
   }
 
-  Future<void> test_sliver_childrenOneIntoChild() async {
-    await resolveTestCode('''
-import 'package:flutter/material.dart';
-void f() {
-  Center(
-    child: /*caret*/CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(child: Text('foo')),
-      ],
-    ),
-  );
-}
-''');
-    await assertHasAssist('''
-import 'package:flutter/material.dart';
-void f() {
-  Center(
-    child: SliverToBoxAdapter(child: Text('foo')),
-  );
-}
-''');
-  }
-
   Future<void> test_childrenOneIntoReturn() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
@@ -495,23 +251,90 @@ Widget f() {
 ''');
   }
 
-  Future<void> test_sliver_childrenOneIntoReturn() async {
+  Future<void> test_does_not_work_for_non_widgets_child() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-Widget f() {
-  return /*caret*/CustomScrollView(
-    slivers: [
-      SliverToBoxAdapter(child: Text('foo')),
-    ],
+
+class NotAWidget {
+  final int child;
+
+  NotAWidget({required this.child});
+}
+
+void f() {
+  /*caret*/NotAWidget(
+    child: 42,
   );
 }
 ''');
-    await assertHasAssist('''
+    await assertNoAssist();
+  }
+
+  Future<void> test_does_not_work_for_non_widgets_children() async {
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
-Widget f() {
-  return SliverToBoxAdapter(child: Text('foo'));
+
+class NotAWidget {
+  final List<int> children;
+
+  NotAWidget({required this.children});
+}
+
+void f() {
+  /*caret*/NotAWidget(
+    children: [42],
+  );
 }
 ''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_does_not_work_for_non_widgets_sliver() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class NotAWidget {
+  final int sliver;
+
+  NotAWidget({required this.sliver});
+}
+
+void f() {
+  /*caret*/NotAWidget(
+    sliver: 42,
+  );
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_does_not_work_for_non_widgets_slivers() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class NotAWidget {
+  final List<int> slivers;
+
+  NotAWidget({required this.slivers});
+}
+
+void f() {
+  /*caret*/NotAWidget(
+    slivers: [42],
+  );
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_doesNotRemoveWidgetWithoutArgumentWhenNotInList() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  /*caret*/Container();
+}
+''');
+    await assertNoAssist();
   }
 
   Future<void> test_intoChildren() async {
@@ -563,6 +386,229 @@ void f() {
       Text('fff'),
     ],
   );
+}
+''');
+  }
+
+  Future<void> test_prefixedConstructor_onConstructor() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as m;
+void f() {
+  Center(
+    child: m./*caret*/Center(
+      child: Text(''),
+    ),
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as m;
+void f() {
+  Center(
+    child: Text(''),
+  );
+}
+''');
+  }
+
+  Future<void> test_prefixedConstructor_onPrefix() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as m;
+void f() {
+  Center(
+    child: /*caret*/m.Center(
+      child: Text(''),
+    ),
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as m;
+void f() {
+  Center(
+    child: Text(''),
+  );
+}
+''');
+  }
+
+  Future<void> test_removeWidgetWithoutArgumentWhenInList() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  Column(
+    children: [
+      /*caret*/Container(),
+    ],
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+void f() {
+  Column(
+    children: [
+      
+    ],
+  );
+}
+''');
+  }
+
+  Future<void> test_removeWidgetWithoutArgumentWhenInListSliver() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  CustomScrollView(
+    slivers: [
+      /*caret*/SliverToBoxAdapter(),
+    ],
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+void f() {
+  CustomScrollView(
+    slivers: [
+      
+    ],
+  );
+}
+''');
+  }
+
+  Future<void> test_sliver_childIntoChild_multiLine() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  CustomScrollView(
+    slivers: [
+      SliverPadding(
+        padding: const EdgeInsets.all(8.0),
+        sliver: /*caret*/DecoratedSliver(
+          decoration: BoxDecoration(),
+          sliver: SliverToBoxAdapter(
+            child: Text('foo'),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+void f() {
+  CustomScrollView(
+    slivers: [
+      SliverPadding(
+        padding: const EdgeInsets.all(8.0),
+        sliver: SliverToBoxAdapter(
+          child: Text('foo'),
+        ),
+      ),
+    ],
+  );
+}
+''');
+  }
+
+  Future<void> test_sliver_childIntoChildren() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  CustomScrollView(
+    slivers: [
+      SliverToBoxAdapter(child: Text('foo')),
+      /*caret*/DecoratedSliver(
+        decoration: BoxDecoration(),
+        sliver: SliverPadding(
+          padding: const EdgeInsets.all(8.0),
+          sliver: SliverToBoxAdapter(child: Text('bar')),
+        ),
+      ),
+      SliverToBoxAdapter(child: Text('baz')),
+    ],
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+void f() {
+  CustomScrollView(
+    slivers: [
+      SliverToBoxAdapter(child: Text('foo')),
+      SliverPadding(
+        padding: const EdgeInsets.all(8.0),
+        sliver: SliverToBoxAdapter(child: Text('bar')),
+      ),
+      SliverToBoxAdapter(child: Text('baz')),
+    ],
+  );
+}
+''');
+  }
+
+  Future<void> test_sliver_childrenMultipleIntoChild() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  Center(
+    child: /*caret*/CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(child: Text('aaa')),
+        SliverToBoxAdapter(child: Text('bbb')),
+      ],
+    ),
+  );
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_sliver_childrenOneIntoChild() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  Center(
+    child: /*caret*/CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(child: Text('foo')),
+      ],
+    ),
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+void f() {
+  Center(
+    child: SliverToBoxAdapter(child: Text('foo')),
+  );
+}
+''');
+  }
+
+  Future<void> test_sliver_childrenOneIntoReturn() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+Widget f() {
+  return /*caret*/CustomScrollView(
+    slivers: [
+      SliverToBoxAdapter(child: Text('foo')),
+    ],
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+Widget f() {
+  return SliverToBoxAdapter(child: Text('foo'));
 }
 ''');
   }
@@ -620,29 +666,6 @@ void f() {
 ''');
   }
 
-  Future<void> test_prefixedConstructor_onConstructor() async {
-    await resolveTestCode('''
-import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' as m;
-void f() {
-  Center(
-    child: m./*caret*/Center(
-      child: Text(''),
-    ),
-  );
-}
-''');
-    await assertHasAssist('''
-import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' as m;
-void f() {
-  Center(
-    child: Text(''),
-  );
-}
-''');
-  }
-
   Future<void> test_sliver_prefixedConstructor_onConstructor() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
@@ -663,29 +686,6 @@ void f() {
   SliverPadding(
     padding: const EdgeInsets.all(8.0),
     sliver: Text(''),
-  );
-}
-''');
-  }
-
-  Future<void> test_prefixedConstructor_onPrefix() async {
-    await resolveTestCode('''
-import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' as m;
-void f() {
-  Center(
-    child: /*caret*/m.Center(
-      child: Text(''),
-    ),
-  );
-}
-''');
-    await assertHasAssist('''
-import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' as m;
-void f() {
-  Center(
-    child: Text(''),
   );
 }
 ''');

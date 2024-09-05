@@ -350,18 +350,6 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
       .whereType<NamedExpression>()
       .firstWhereOrNull((argument) => argument.isChildrenArgument);
 
-  /// The named expression representing the `sliver` argument, or `null` if there
-  /// is none.
-  NamedExpression? get sliverArgument => argumentList.arguments
-      .whereType<NamedExpression>()
-      .firstWhereOrNull((argument) => argument.isSliverArgument);
-
-  /// The named expression representing the `slivers` argument, or `null` if
-  /// there is none.
-  NamedExpression? get sliversArgument => argumentList.arguments
-      .whereType<NamedExpression>()
-      .firstWhereOrNull((argument) => argument.isSliversArgument);
-
   bool get isExactlyAlignCreation => staticType.isExactWidgetTypeAlign;
 
   bool get isExactlyContainerCreation => staticType.isExactWidgetTypeContainer;
@@ -375,6 +363,19 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
         constructorName.staticElement?.enclosingElement3.augmented.declaration;
     return element.isWidget;
   }
+
+  /// The named expression representing the `sliver` argument, or `null` if there
+  /// is none.
+  NamedExpression? get sliverArgument => argumentList.arguments
+      .whereType<NamedExpression>()
+      .firstWhereOrNull((argument) => argument.isSliverArgument);
+
+  /// The named expression representing the `slivers` argument, or `null` if
+  /// there is none.
+  NamedExpression? get sliversArgument => argumentList.arguments
+      .whereType<NamedExpression>()
+      .firstWhereOrNull((argument) => argument.isSliversArgument);
+
 
   /// The presentation for this node.
   String? get widgetPresentationText {
