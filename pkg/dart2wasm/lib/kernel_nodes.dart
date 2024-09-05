@@ -148,7 +148,6 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:async", "_newAsyncSuspendState");
 
   // dart:ffi classes
-  late final Class ffiCompoundClass = index.getClass("dart:ffi", "_Compound");
   late final Class ffiPointerClass = index.getClass("dart:ffi", "Pointer");
 
   // dart:_wasm classes

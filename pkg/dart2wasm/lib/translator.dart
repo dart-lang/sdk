@@ -204,7 +204,6 @@ class Translator with KernelNodes {
     boxedBoolClass: w.NumType.i32,
     boxedIntClass: w.NumType.i64,
     boxedDoubleClass: w.NumType.f64,
-    ffiPointerClass: w.NumType.i32,
     wasmI8Class: w.PackedType.i8,
     wasmI16Class: w.PackedType.i16,
     wasmI32Class: w.NumType.i32,
@@ -895,7 +894,7 @@ class Translator with KernelNodes {
         if (options.omitExplicitTypeChecks || options.omitImplicitTypeChecks) {
           b.unreachable();
         } else {
-          throw "Conversion between non-reference types";
+          throw "Conversion between non-reference types (from $from to $to)";
         }
       }
     }
