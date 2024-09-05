@@ -2242,8 +2242,8 @@ class OutlineBuilder extends StackListenerImpl {
         returnType = null;
       }
     } else {
+      // Coverage-ignore-block(suite): Not run.
       if (isConst) {
-        // Coverage-ignore-block(suite): Not run.
         // TODO(danrubel): consider removing this
         // because it is an error to have a const method.
         modifiers &= ~constMask;

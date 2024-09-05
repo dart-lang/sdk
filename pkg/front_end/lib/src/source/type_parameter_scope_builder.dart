@@ -65,14 +65,6 @@ class TypeParameterScopeBuilder {
   /// with the name as the current declaration changes.
   int _charOffset;
 
-  List<NominalVariableBuilder>? _typeVariables;
-
-  /// The type of `this` in instance methods declared in extension declarations.
-  ///
-  /// Instance methods declared in extension declarations methods are extended
-  /// with a synthesized parameter of this type.
-  TypeBuilder? _extensionThisType;
-
   TypeParameterScopeBuilder(this._kind, this.members, this.setters,
       this.extensions, this._name, this._charOffset, this.parent);
 
@@ -101,8 +93,7 @@ class TypeParameterScopeBuilder {
 
   /// Registers that this builder is preparing for a class declaration with the
   /// given [name] and [typeVariables] located [charOffset].
-  void markAsClassDeclaration(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
+  void markAsClassDeclaration(String name, int charOffset) {
     assert(
         _kind == TypeParameterScopeKind.classOrNamedMixinApplication,
         // Coverage-ignore(suite): Not run.
@@ -110,13 +101,11 @@ class TypeParameterScopeBuilder {
     _kind = TypeParameterScopeKind.classDeclaration;
     _name = name;
     _charOffset = charOffset;
-    _typeVariables = typeVariables;
   }
 
   /// Registers that this builder is preparing for a named mixin application
   /// with the given [name] and [typeVariables] located [charOffset].
-  void markAsNamedMixinApplication(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
+  void markAsNamedMixinApplication(String name, int charOffset) {
     assert(
         _kind == TypeParameterScopeKind.classOrNamedMixinApplication,
         // Coverage-ignore(suite): Not run.
@@ -124,13 +113,11 @@ class TypeParameterScopeBuilder {
     _kind = TypeParameterScopeKind.namedMixinApplication;
     _name = name;
     _charOffset = charOffset;
-    _typeVariables = typeVariables;
   }
 
   /// Registers that this builder is preparing for a mixin declaration with the
   /// given [name] and [typeVariables] located [charOffset].
-  void markAsMixinDeclaration(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
+  void markAsMixinDeclaration(String name, int charOffset) {
     // TODO(johnniwinther): Avoid using 'classOrNamedMixinApplication' for mixin
     // declaration. These are syntactically distinct so we don't need the
     // transition.
@@ -141,13 +128,11 @@ class TypeParameterScopeBuilder {
     _kind = TypeParameterScopeKind.mixinDeclaration;
     _name = name;
     _charOffset = charOffset;
-    _typeVariables = typeVariables;
   }
 
   /// Registers that this builder is preparing for an extension declaration with
   /// the given [name] and [typeVariables] located [charOffset].
-  void markAsExtensionDeclaration(String? name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
+  void markAsExtensionDeclaration(String? name, int charOffset) {
     assert(
         _kind == TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
         // Coverage-ignore(suite): Not run.
@@ -155,13 +140,11 @@ class TypeParameterScopeBuilder {
     _kind = TypeParameterScopeKind.extensionDeclaration;
     _name = name ?? UnnamedExtensionName.unnamedExtensionSentinel;
     _charOffset = charOffset;
-    _typeVariables = typeVariables;
   }
 
   /// Registers that this builder is preparing for an extension type declaration
   /// with the given [name] and [typeVariables] located [charOffset].
-  void markAsExtensionTypeDeclaration(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
+  void markAsExtensionTypeDeclaration(String name, int charOffset) {
     assert(
         _kind == TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
         // Coverage-ignore(suite): Not run.
@@ -169,34 +152,17 @@ class TypeParameterScopeBuilder {
     _kind = TypeParameterScopeKind.extensionTypeDeclaration;
     _name = name;
     _charOffset = charOffset;
-    _typeVariables = typeVariables;
   }
 
   /// Registers that this builder is preparing for an enum declaration with
   /// the given [name] and [typeVariables] located [charOffset].
-  void markAsEnumDeclaration(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
+  void markAsEnumDeclaration(String name, int charOffset) {
     assert(
         _kind == TypeParameterScopeKind.enumDeclaration,
         // Coverage-ignore(suite): Not run.
         "Unexpected declaration kind: $_kind");
     _name = name;
     _charOffset = charOffset;
-    _typeVariables = typeVariables;
-  }
-
-  /// Registers the 'extension this type' of the extension declaration prepared
-  /// for by this builder.
-  ///
-  /// See [extensionThisType] for terminology.
-  void registerExtensionThisType(TypeBuilder type) {
-    assert(
-        _kind == TypeParameterScopeKind.extensionDeclaration,
-        // Coverage-ignore(suite): Not run.
-        "DeclarationBuilder.registerExtensionThisType is not supported $_kind");
-    assert(_extensionThisType == null,
-        "Extension this type has already been set.");
-    _extensionThisType = type;
   }
 
   /// Returns what kind of declaration this [TypeParameterScopeBuilder] is
@@ -214,32 +180,6 @@ class TypeParameterScopeBuilder {
   String get name => _name;
 
   int get charOffset => _charOffset;
-
-  List<NominalVariableBuilder>? get typeVariables => _typeVariables;
-
-  /// Returns the 'extension this type' of the extension declaration prepared
-  /// for by this builder.
-  ///
-  /// The 'extension this type' is the type mentioned in the on-clause of the
-  /// extension declaration. For instance `B` in this extension declaration:
-  ///
-  ///     extension A on B {
-  ///       B method() => this;
-  ///     }
-  ///
-  /// The 'extension this type' is the type if `this` expression in instance
-  /// methods declared in extension declarations.
-  TypeBuilder get extensionThisType {
-    assert(
-        kind == TypeParameterScopeKind.extensionDeclaration,
-        // Coverage-ignore(suite): Not run.
-        "DeclarationBuilder.extensionThisType not supported on $kind.");
-    assert(
-        _extensionThisType != null,
-        // Coverage-ignore(suite): Not run.
-        "DeclarationBuilder.extensionThisType has not been set on $this.");
-    return _extensionThisType!;
-  }
 
   NameSpace toNameSpace() {
     return new NameSpaceImpl(
@@ -311,7 +251,7 @@ enum DeclarationFragmentKind {
   extensionTypeDeclaration,
 }
 
-abstract class DeclarationFragment {
+sealed class DeclarationFragment {
   final int nameOffset;
   final LookupScope typeParameterScope;
   final DeclarationBuilderScope bodyScope = new DeclarationBuilderScope();
@@ -319,7 +259,10 @@ abstract class DeclarationFragment {
 
   List<SourceFieldBuilder>? primaryConstructorFields;
 
-  DeclarationFragment(this.nameOffset, this.typeParameterScope);
+  final List<NominalVariableBuilder>? typeParameters;
+
+  DeclarationFragment(
+      this.nameOffset, this.typeParameters, this.typeParameterScope);
 
   String get name;
 
@@ -353,7 +296,8 @@ class ClassFragment extends DeclarationFragment {
 
   final ClassName _className;
 
-  ClassFragment(this.name, super.nameOffset, super.typeParameterScope)
+  ClassFragment(this.name, super.nameOffset, super.typeParameters,
+      super.typeParameterScope)
       : _className = new ClassName(name);
 
   @override
@@ -373,7 +317,8 @@ class MixinFragment extends DeclarationFragment {
 
   final ClassName _className;
 
-  MixinFragment(this.name, super.nameOffset, super.typeParameterScope)
+  MixinFragment(this.name, super.nameOffset, super.typeParameters,
+      super.typeParameterScope)
       : _className = new ClassName(name);
 
   @override
@@ -393,7 +338,8 @@ class EnumFragment extends DeclarationFragment {
 
   final ClassName _className;
 
-  EnumFragment(this.name, super.nameOffset, super.typeParameterScope)
+  EnumFragment(this.name, super.nameOffset, super.typeParameters,
+      super.typeParameterScope)
       : _className = new ClassName(name);
 
   @override
@@ -410,7 +356,14 @@ class EnumFragment extends DeclarationFragment {
 class ExtensionFragment extends DeclarationFragment {
   final ExtensionName extensionName;
 
-  ExtensionFragment(String? name, super.nameOffset, super.typeParameterScope)
+  /// The type of `this` in instance methods declared in extension declarations.
+  ///
+  /// Instance methods declared in extension declarations methods are extended
+  /// with a synthesized parameter of this type.
+  TypeBuilder? _extensionThisType;
+
+  ExtensionFragment(String? name, super.nameOffset, super.typeParameters,
+      super.typeParameterScope)
       : extensionName = name != null
             ? new FixedExtensionName(name)
             : new UnnamedExtensionName();
@@ -428,6 +381,36 @@ class ExtensionFragment extends DeclarationFragment {
   // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind =>
       DeclarationFragmentKind.extensionDeclaration;
+
+  /// Registers the 'extension this type' of the extension declaration prepared
+  /// for by this builder.
+  ///
+  /// See [extensionThisType] for terminology.
+  void registerExtensionThisType(TypeBuilder type) {
+    assert(_extensionThisType == null,
+        "Extension this type has already been set.");
+    _extensionThisType = type;
+  }
+
+  /// Returns the 'extension this type' of the extension declaration prepared
+  /// for by this builder.
+  ///
+  /// The 'extension this type' is the type mentioned in the on-clause of the
+  /// extension declaration. For instance `B` in this extension declaration:
+  ///
+  ///     extension A on B {
+  ///       B method() => this;
+  ///     }
+  ///
+  /// The 'extension this type' is the type if `this` expression in instance
+  /// methods declared in extension declarations.
+  TypeBuilder get extensionThisType {
+    assert(
+        _extensionThisType != null,
+        // Coverage-ignore(suite): Not run.
+        "DeclarationBuilder.extensionThisType has not been set on $this.");
+    return _extensionThisType!;
+  }
 }
 
 class ExtensionTypeFragment extends DeclarationFragment {
@@ -436,7 +419,8 @@ class ExtensionTypeFragment extends DeclarationFragment {
 
   final ClassName _className;
 
-  ExtensionTypeFragment(this.name, super.nameOffset, super.typeParameterScope)
+  ExtensionTypeFragment(this.name, super.nameOffset, super.typeParameters,
+      super.typeParameterScope)
       : _className = new ClassName(name);
 
   @override
@@ -611,7 +595,6 @@ enum TypeScopeKind {
   extensionTypeDeclaration,
   memberTypeParameters,
   functionTypeParameters,
-
   unnamedMixinApplication,
 }
 

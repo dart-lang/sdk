@@ -209,10 +209,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginClassDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
-    _currentTypeParameterScopeBuilder.markAsClassDeclaration(
-        name, charOffset, typeVariables);
-    _declarationFragments.push(
-        new ClassFragment(name, charOffset, _typeScopes.current.lookupScope));
+    _currentTypeParameterScopeBuilder.markAsClassDeclaration(name, charOffset);
+    _declarationFragments.push(new ClassFragment(
+        name, charOffset, typeVariables, _typeScopes.current.lookupScope));
   }
 
   @override
@@ -281,10 +280,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginMixinDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
-    _currentTypeParameterScopeBuilder.markAsMixinDeclaration(
-        name, charOffset, typeVariables);
-    _declarationFragments.push(
-        new MixinFragment(name, charOffset, _typeScopes.current.lookupScope));
+    _currentTypeParameterScopeBuilder.markAsMixinDeclaration(name, charOffset);
+    _declarationFragments.push(new MixinFragment(
+        name, charOffset, typeVariables, _typeScopes.current.lookupScope));
   }
 
   @override
@@ -354,7 +352,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginNamedMixinApplication(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
     _currentTypeParameterScopeBuilder.markAsNamedMixinApplication(
-        name, charOffset, typeVariables);
+        name, charOffset);
   }
 
   @override
@@ -421,10 +419,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginEnumDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
-    _currentTypeParameterScopeBuilder.markAsEnumDeclaration(
-        name, charOffset, typeVariables);
-    _declarationFragments.push(
-        new EnumFragment(name, charOffset, _typeScopes.current.lookupScope));
+    _currentTypeParameterScopeBuilder.markAsEnumDeclaration(name, charOffset);
+    _declarationFragments.push(new EnumFragment(
+        name, charOffset, typeVariables, _typeScopes.current.lookupScope));
   }
 
   @override
@@ -512,18 +509,19 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginExtensionDeclaration(String? name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
     _currentTypeParameterScopeBuilder.markAsExtensionDeclaration(
-        name, charOffset, typeVariables);
+        name, charOffset);
     _declarationFragments.push(new ExtensionFragment(
-        name, charOffset, _typeScopes.current.lookupScope));
+        name, charOffset, typeVariables, _typeScopes.current.lookupScope));
   }
 
   @override
   void beginExtensionBody(TypeBuilder? extensionThisType) {
+    ExtensionFragment declarationFragment =
+        _declarationFragments.current as ExtensionFragment;
     _typeScopes.push(new TypeScope(TypeScopeKind.extensionDeclaration,
-        _declarationFragments.current.bodyScope, _typeScopes.current));
+        declarationFragment.bodyScope, _typeScopes.current));
     if (extensionThisType != null) {
-      _currentTypeParameterScopeBuilder
-          .registerExtensionThisType(extensionThisType);
+      declarationFragment.registerExtensionThisType(extensionThisType);
     }
   }
 
@@ -564,9 +562,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginExtensionTypeDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
     _currentTypeParameterScopeBuilder.markAsExtensionTypeDeclaration(
-        name, charOffset, typeVariables);
+        name, charOffset);
     _declarationFragments.push(new ExtensionTypeFragment(
-        name, charOffset, _typeScopes.current.lookupScope));
+        name, charOffset, typeVariables, _typeScopes.current.lookupScope));
   }
 
   @override
@@ -1974,6 +1972,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required AsyncMarker asyncModifier,
       required String? nativeMethodName,
       required ProcedureKind? kind}) {
+    DeclarationFragment declarationFragment = _declarationFragments.current;
+    // TODO(johnniwinther): Avoid discrepancy between [inConstructor] and
+    // [isConstructor]. The former is based on the enclosing declaration name
+    // and get/set keyword. The latter also takes initializers into account.
     if (inConstructor) {
       endConstructor();
     } else if (isStatic) {
@@ -1982,62 +1984,87 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       endInstanceMethod();
     }
 
-    String? constructorName;
     if (isConstructor) {
-      constructorName = computeAndValidateConstructorName(
-              _currentTypeParameterScopeBuilder, identifier) ??
-          name;
-    }
-    bool cloneTypeVariablesFromEnclosingDeclaration;
-    switch (_currentTypeParameterScopeBuilder.kind) {
-      case TypeParameterScopeKind.extensionDeclaration:
-      case TypeParameterScopeKind.extensionTypeDeclaration:
-        cloneTypeVariablesFromEnclosingDeclaration = !isStatic;
-      case TypeParameterScopeKind.library:
-      case TypeParameterScopeKind.classOrNamedMixinApplication:
-      case TypeParameterScopeKind.classDeclaration:
-      case TypeParameterScopeKind.mixinDeclaration:
-      case TypeParameterScopeKind.unnamedMixinApplication:
-      case TypeParameterScopeKind.namedMixinApplication:
-      case TypeParameterScopeKind.extensionOrExtensionTypeDeclaration:
-      case TypeParameterScopeKind.typedef:
-      case TypeParameterScopeKind.staticMethod:
-      case TypeParameterScopeKind.instanceMethod:
-      case TypeParameterScopeKind.constructor:
-      case TypeParameterScopeKind.topLevelMethod:
-      case TypeParameterScopeKind.factoryMethod:
-      case TypeParameterScopeKind.functionType:
-      case TypeParameterScopeKind.enumDeclaration:
-        cloneTypeVariablesFromEnclosingDeclaration = false;
-    }
-    if (cloneTypeVariablesFromEnclosingDeclaration) {
-      TypeParameterScopeBuilder declaration = _currentTypeParameterScopeBuilder;
-      NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
-          declaration.typeVariables,
-          kind: TypeVariableKind.extensionSynthesized,
-          instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
+      switch (declarationFragment) {
+        case ExtensionFragment():
+        case ExtensionTypeFragment():
+          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
+              declarationFragment.typeParameters,
+              kind: TypeVariableKind.extensionSynthesized,
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Allowed);
 
-      if (nominalVariableCopy != null) {
-        if (typeVariables != null) {
-          typeVariables = nominalVariableCopy.newVariableBuilders
-            ..addAll(typeVariables);
-        } else {
-          typeVariables = nominalVariableCopy.newVariableBuilders;
-        }
+          if (nominalVariableCopy != null) {
+            if (typeVariables != null) {
+              // Coverage-ignore-block(suite): Not run.
+              typeVariables = nominalVariableCopy.newVariableBuilders
+                ..addAll(typeVariables);
+            } else {
+              typeVariables = nominalVariableCopy.newVariableBuilders;
+            }
+          }
+        case ClassFragment():
+        case MixinFragment():
+        case EnumFragment():
       }
+    } else if (!isStatic) {
+      switch (declarationFragment) {
+        case ExtensionFragment():
+          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
+              declarationFragment.typeParameters,
+              kind: TypeVariableKind.extensionSynthesized,
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Allowed);
 
-      if (!isConstructor) {
-        List<FormalParameterBuilder> synthesizedFormals = [];
-        TypeBuilder thisType;
-        if (declaration.kind == TypeParameterScopeKind.extensionDeclaration) {
-          thisType = declaration.extensionThisType;
-        } else {
-          thisType = addNamedType(
-              new SyntheticTypeName(declaration.name, charOffset),
+          if (nominalVariableCopy != null) {
+            if (typeVariables != null) {
+              typeVariables = nominalVariableCopy.newVariableBuilders
+                ..addAll(typeVariables);
+            } else {
+              typeVariables = nominalVariableCopy.newVariableBuilders;
+            }
+          }
+
+          TypeBuilder thisType = declarationFragment.extensionThisType;
+          if (nominalVariableCopy != null) {
+            thisType = new SynthesizedTypeBuilder(
+                thisType,
+                nominalVariableCopy.newToOldVariableMap,
+                nominalVariableCopy.substitutionMap);
+          }
+          List<FormalParameterBuilder> synthesizedFormals = [
+            new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+                finalMask, thisType, syntheticThisName, null, charOffset,
+                fileUri: _compilationUnit.fileUri,
+                isExtensionThis: true,
+                hasImmediatelyDeclaredInitializer: false)
+          ];
+          if (formals != null) {
+            synthesizedFormals.addAll(formals);
+          }
+          formals = synthesizedFormals;
+        case ExtensionTypeFragment():
+          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
+              declarationFragment.typeParameters,
+              kind: TypeVariableKind.extensionSynthesized,
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Allowed);
+
+          if (nominalVariableCopy != null) {
+            if (typeVariables != null) {
+              typeVariables = nominalVariableCopy.newVariableBuilders
+                ..addAll(typeVariables);
+            } else {
+              typeVariables = nominalVariableCopy.newVariableBuilders;
+            }
+          }
+
+          TypeBuilder thisType = addNamedType(
+              new SyntheticTypeName(declarationFragment.name, charOffset),
               const NullabilityBuilder.omitted(),
-              declaration.typeVariables != null
+              declarationFragment.typeParameters != null
                   ? new List<TypeBuilder>.generate(
-                      declaration.typeVariables!.length,
+                      declarationFragment.typeParameters!.length,
                       (int index) =>
                           new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                               typeVariables![index],
@@ -2048,31 +2075,34 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
               charOffset,
               instanceTypeVariableAccess:
                   InstanceTypeVariableAccessState.Allowed);
-        }
-        if (nominalVariableCopy != null) {
-          thisType = new SynthesizedTypeBuilder(
-              thisType,
-              nominalVariableCopy.newToOldVariableMap,
-              nominalVariableCopy.substitutionMap);
-        }
-        synthesizedFormals.add(new FormalParameterBuilder(
-            FormalParameterKind.requiredPositional,
-            finalMask,
-            thisType,
-            syntheticThisName,
-            null,
-            charOffset,
-            fileUri: _compilationUnit.fileUri,
-            isExtensionThis: true,
-            hasImmediatelyDeclaredInitializer: false));
-        if (formals != null) {
-          synthesizedFormals.addAll(formals);
-        }
-        formals = synthesizedFormals;
+
+          if (nominalVariableCopy != null) {
+            thisType = new SynthesizedTypeBuilder(
+                thisType,
+                nominalVariableCopy.newToOldVariableMap,
+                nominalVariableCopy.substitutionMap);
+          }
+          List<FormalParameterBuilder> synthesizedFormals = [
+            new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+                finalMask, thisType, syntheticThisName, null, charOffset,
+                fileUri: _compilationUnit.fileUri,
+                isExtensionThis: true,
+                hasImmediatelyDeclaredInitializer: false)
+          ];
+          if (formals != null) {
+            synthesizedFormals.addAll(formals);
+          }
+          formals = synthesizedFormals;
+        case ClassFragment():
+        case MixinFragment():
+        case EnumFragment():
       }
     }
 
-    if (constructorName != null) {
+    if (isConstructor) {
+      String constructorName = computeAndValidateConstructorName(
+              _currentTypeParameterScopeBuilder, identifier) ??
+          name;
       addConstructor(
           offsetMap,
           metadata,
@@ -2154,7 +2184,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     beginConstructor();
     endConstructor();
     NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
-        _currentTypeParameterScopeBuilder.typeVariables,
+        _declarationFragments.current.typeParameters,
         kind: TypeVariableKind.extensionSynthesized,
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
     List<NominalVariableBuilder>? typeVariables =
@@ -2348,11 +2378,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       procedureName = identifier.name;
     }
 
-    DeclarationFragment? enclosingDeclaration =
-        _declarationFragments.currentOrNull;
-    ContainerType containerType =
-        enclosingDeclaration?.containerType ?? ContainerType.Library;
-    ContainerName? containerName = enclosingDeclaration?.containerName;
+    DeclarationFragment enclosingDeclaration = _declarationFragments.current;
+    ContainerType containerType = enclosingDeclaration.containerType;
+    ContainerName containerName = enclosingDeclaration.containerName;
 
     NameScheme procedureNameScheme = new NameScheme(
         containerName: containerName,
@@ -2397,7 +2425,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           staticMask | modifiers,
           returnType,
           procedureName,
-          typeVariables = copyTypeVariables(parentDeclaration.typeVariables,
+          typeVariables = copyTypeVariables(enclosingDeclaration.typeParameters,
                   kind: TypeVariableKind.function,
                   instanceTypeVariableAccess:
                       InstanceTypeVariableAccessState.Allowed)
@@ -2421,7 +2449,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           staticMask | modifiers,
           returnType,
           procedureName,
-          typeVariables = copyTypeVariables(parentDeclaration.typeVariables,
+          typeVariables = copyTypeVariables(enclosingDeclaration.typeParameters,
                   kind: TypeVariableKind.function,
                   instanceTypeVariableAccess:
                       InstanceTypeVariableAccessState.Allowed)
@@ -2492,10 +2520,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             suffix?.name,
             constructorNameOffset);
       } else {
+        // Coverage-ignore-block(suite): Not run.
         // For entries that consist of their name only, all of the elements
         // of the constructor reference should be null.
         if (typeArguments != null || suffix != null) {
-          // Coverage-ignore-block(suite): Not run.
           _compilationUnit.reportFeatureNotEnabled(
               libraryFeatures.enhancedEnums,
               _compilationUnit.fileUri,
