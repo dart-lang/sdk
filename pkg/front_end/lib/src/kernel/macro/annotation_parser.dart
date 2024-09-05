@@ -885,7 +885,8 @@ class _MacroListener implements Listener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
+      Token name,
+      String? enclosingDeclarationName) {
     _unexpected();
   }
 

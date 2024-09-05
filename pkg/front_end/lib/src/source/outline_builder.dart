@@ -1891,10 +1891,9 @@ class OutlineBuilder extends StackListenerImpl {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
-    inConstructor =
-        name.lexeme == _builderFactory.currentTypeParameterScopeBuilder.name &&
-            getOrSet == null;
+      Token name,
+      String? enclosingDeclarationName) {
+    inConstructor = name.lexeme == enclosingDeclarationName && getOrSet == null;
     DeclarationContext declarationContext;
     switch (declarationKind) {
       case DeclarationKind.TopLevel:

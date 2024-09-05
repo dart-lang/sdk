@@ -393,9 +393,18 @@ class ForwardingTestListener extends ForwardingListener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
-    super.beginMethod(declarationKind, augmentToken, externalToken, staticToken,
-        covariantToken, varFinalOrConst, getOrSet, name);
+      Token name,
+      String? enclosingDeclarationName) {
+    super.beginMethod(
+        declarationKind,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        varFinalOrConst,
+        getOrSet,
+        name,
+        enclosingDeclarationName);
     begin('Method');
   }
 

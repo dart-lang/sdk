@@ -1661,7 +1661,8 @@ class ParserTestListener implements Listener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
+      Token name,
+      String? enclosingDeclarationName) {
     seen(augmentToken);
     seen(externalToken);
     seen(staticToken);
@@ -1677,7 +1678,8 @@ class ParserTestListener implements Listener {
         '$covariantToken, '
         '$varFinalOrConst, '
         '$getOrSet, '
-        '$name)');
+        '$name, '
+        '$enclosingDeclarationName)');
     indent++;
   }
 

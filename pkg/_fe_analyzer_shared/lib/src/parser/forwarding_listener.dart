@@ -392,9 +392,18 @@ class ForwardingListener implements Listener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
-    listener?.beginMethod(declarationKind, augmentToken, externalToken,
-        staticToken, covariantToken, varFinalOrConst, getOrSet, name);
+      Token name,
+      String? enclosingDeclarationName) {
+    listener?.beginMethod(
+        declarationKind,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        varFinalOrConst,
+        getOrSet,
+        name,
+        enclosingDeclarationName);
   }
 
   @override

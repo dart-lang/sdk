@@ -76,12 +76,6 @@ abstract class BuilderFactoryResult {
 }
 
 abstract class BuilderFactory {
-  /// The current declaration that is being built. When we start parsing a
-  /// declaration (class, method, and so on), we don't have enough information
-  /// to create a builder and this object records its members and types until,
-  /// for example, [addClass] is called.
-  TypeParameterScopeBuilder get currentTypeParameterScopeBuilder;
-
   void beginClassOrNamedMixinApplicationHeader();
 
   /// Registers that this builder is preparing for a class declaration with the
