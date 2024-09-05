@@ -1984,6 +1984,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
           if (isReplacement) {
             insert(replace: existingImport);
+            break;
           } else if (isDart) {
             if (!isExistingDart || isNewBeforeExisting) {
               insert(
