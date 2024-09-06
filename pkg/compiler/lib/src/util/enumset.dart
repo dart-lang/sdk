@@ -9,13 +9,17 @@ import 'dart:collection';
 import 'package:meta/meta.dart';
 
 extension<E extends Enum> on E {
-  int get mask => 1 << index;
+  int get mask {
+    assert(index < 64);
+    return 1 << index;
+  }
 }
 
 int _fold<E extends Enum>(Iterable<E> values) =>
     values.fold(0, (acc, e) => acc | e.mask);
 
-/// A set of enum values based on a bit mask of the shifted enum indices.
+/// A set of enum values based on a bit mask of the shifted enum indices. The
+/// enum indices used must be less than 64.
 extension type const EnumSet<E extends Enum>(int mask) {
   /// Creates an empty set.
   const EnumSet.empty() : mask = 0;
