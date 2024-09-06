@@ -1,6 +1,3 @@
-# `package:record_use`
-
-
 > [!CAUTION]
 > This is an experimental package, and it's API can break at any time. Use at
 > your own discretion.
