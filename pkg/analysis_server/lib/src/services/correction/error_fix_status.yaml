@@ -221,12 +221,6 @@ CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME:
     We could rename the type parameter, this is purely local operation.
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION:
   status: noFix
-CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
-  status: needsFix
-  notes: |-
-    The fix is to add `import augment`.
-CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY:
-  status: noFix
 CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER:
   status: noFix
 CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER:
@@ -517,8 +511,6 @@ CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
 CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
   status: needsFix
   since: 2.15
-CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT:
-  status: hasFix
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
   status: noFix
   notes: |-
@@ -836,10 +828,6 @@ CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:
   status: hasFix
 CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY:
   status: hasFix
-CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION:
-  status: needsFix
-  notes: |-
-    Remove the import.
 CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES:
   status: noFix
 CompileTimeErrorCode.INCONSISTENT_INHERITANCE:
