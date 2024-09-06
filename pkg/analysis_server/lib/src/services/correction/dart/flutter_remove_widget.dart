@@ -37,29 +37,32 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var widgetCreation = node.findInstanceCreationExpression;
-    if (widgetCreation == null) {
+    if (widgetCreation == null || !widgetCreation.isWidgetCreation) {
       return;
     }
 
-    // Prepare the list of our children.
-    var childrenArgument = widgetCreation.childrenArgument;
-    if (childrenArgument != null) {
+    if (widgetCreation.childrenArgument case var childrenArgument?) {
       var childrenExpression = childrenArgument.expression;
       if (childrenExpression is ListLiteral &&
           childrenExpression.elements.isNotEmpty) {
         await _removeChildren(
             builder, widgetCreation, childrenExpression.elements);
       }
-    } else {
-      var childArgument = widgetCreation.childArgument;
-      if (childArgument != null) {
-        await _removeSingle(builder, widgetCreation, childArgument.expression);
-      } else {
-        var builderArgument = widgetCreation.builderArgument;
-        if (builderArgument != null) {
-          await _removeBuilder(builder, widgetCreation, builderArgument);
-        }
+    } else if (widgetCreation.childArgument case var childArgument?) {
+      await _removeSingle(builder, widgetCreation, childArgument.expression);
+    } else if (widgetCreation.builderArgument case var builderArgument?) {
+      await _removeBuilder(builder, widgetCreation, builderArgument);
+    } else if (widgetCreation.sliversArgument case var sliversArgument?) {
+      var sliversExpression = sliversArgument.expression;
+      if (sliversExpression is ListLiteral &&
+          sliversExpression.elements.isNotEmpty) {
+        await _removeChildren(
+            builder, widgetCreation, sliversExpression.elements);
       }
+    } else if (widgetCreation.sliverArgument case var sliverArgument?) {
+      await _removeSingle(builder, widgetCreation, sliverArgument.expression);
+    } else {
+      await _removeSingleWhenInList(builder, widgetCreation);
     }
   }
 
@@ -131,6 +134,23 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
         indentNew,
       );
       builder.addSimpleReplacement(range.node(widgetCreation), childText);
+    });
+  }
+
+  Future<void> _removeSingleWhenInList(
+    ChangeBuilder builder,
+    InstanceCreationExpression widgetCreation,
+  ) async {
+    // We can only remove the widget when this widget is in list.
+    var widgetParentNode = widgetCreation.parent;
+    if (widgetParentNode is! ListLiteral) {
+      return;
+    }
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addDeletion(
+        range.nodeInList(widgetParentNode.elements, widgetCreation),
+      );
     });
   }
 }

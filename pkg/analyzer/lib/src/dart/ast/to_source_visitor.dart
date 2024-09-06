@@ -82,14 +82,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    sink.write('import augment ');
-    _visitNode(node.uri);
-    sink.write(';');
-  }
-
-  @override
   void visitAugmentedExpression(AugmentedExpression node) {
     sink.write('augmented');
   }
@@ -821,15 +813,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitLabeledStatement(LabeledStatement node) {
     _visitNodeList(node.labels, separator: ' ', suffix: ' ');
     _visitNode(node.statement);
-  }
-
-  @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    sink.write('augment ');
-    sink.write('library ');
-    _visitNode(node.uri);
-    sink.write(';');
   }
 
   @override

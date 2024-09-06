@@ -36,8 +36,6 @@ class W extends StatelessWidget {
     await assertNoDiagnostics(r'''
 part of 'a.dart';
 
-import 'package:flutter/widgets.dart';
-
 augment class W {
   augment const W();
 }
@@ -96,13 +94,11 @@ class W extends StatelessWidget {
     await assertDiagnostics(r'''
 part of 'a.dart';
 
-import 'package:flutter/widgets.dart';
-
 augment class W {
   const W();
 }
 ''', [
-      lint(85, 1),
+      lint(45, 1),
     ]);
   }
 

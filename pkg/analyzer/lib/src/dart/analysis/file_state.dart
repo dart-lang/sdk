@@ -49,150 +49,6 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
-/// The file has a `library augment` directive.
-abstract class AugmentationFileKind<U extends DirectiveUri>
-    extends LibraryOrAugmentationFileKind {
-  final UnlinkedLibraryAugmentationDirective unlinked;
-  final U uri;
-
-  AugmentationFileKind({
-    required super.file,
-    required this.unlinked,
-    required this.uri,
-  });
-
-  @override
-  List<UnlinkedLibraryImportDirective> get _unlinkedDocImports {
-    return const [];
-  }
-
-  /// Returns `true` if the `library augment` directive confirms [container].
-  bool isAugmentationOf(FileKind container);
-}
-
-/// Information about a single `import augment` directive.
-final class AugmentationImportState<U extends DirectiveUri>
-    extends DirectiveState {
-  final UnlinkedAugmentationImportDirective unlinked;
-  final U uri;
-
-  AugmentationImportState({
-    required super.container,
-    required this.unlinked,
-    required this.uri,
-  });
-}
-
-/// [AugmentationImportWithUri] that has a valid URI that references a file.
-final class AugmentationImportWithFile
-    extends AugmentationImportWithUri<DirectiveUriWithFile> {
-  AugmentationImportWithFile({
-    required super.container,
-    required super.unlinked,
-    required super.uri,
-  }) {
-    importedFile.referencingFiles.add(container.file);
-  }
-
-  /// If [importedFile] is an [AugmentationFileKind], and it confirms that
-  /// it is an augmentation of the [container], returns the [importedFile].
-  AugmentationFileKind? get importedAugmentation {
-    var kind = importedFile.kind;
-    if (kind is AugmentationFileKind && kind.isAugmentationOf(container)) {
-      return kind;
-    }
-    return null;
-  }
-
-  FileState get importedFile => uri.file;
-
-  @override
-  void dispose() {
-    importedFile.referencingFiles.remove(container.file);
-  }
-}
-
-/// [AugmentationImportState] that has a valid URI.
-final class AugmentationImportWithUri<U extends DirectiveUriWithUri>
-    extends AugmentationImportWithUriStr<U> {
-  AugmentationImportWithUri({
-    required super.container,
-    required super.unlinked,
-    required super.uri,
-  });
-}
-
-/// [AugmentationImportState] that has a relative URI string.
-final class AugmentationImportWithUriStr<U extends DirectiveUriWithString>
-    extends AugmentationImportState<U> {
-  AugmentationImportWithUriStr({
-    required super.container,
-    required super.unlinked,
-    required super.uri,
-  });
-}
-
-/// The URI of the [unlinked] can be resolved.
-class AugmentationKnownFileKind
-    extends AugmentationFileKind<DirectiveUriWithFile> {
-  AugmentationKnownFileKind({
-    required super.file,
-    required super.unlinked,
-    required super.uri,
-  });
-
-  /// If the [uriFile] has `import augment` of this file, returns [uriFile].
-  /// Otherwise, this file is not a valid augmentation, returns `null`.
-  LibraryOrAugmentationFileKind? get augmented {
-    var uriKind = uriFile.kind;
-    if (uriKind is LibraryOrAugmentationFileKind) {
-      if (uriKind.hasAugmentation(this)) {
-        return uriKind;
-      }
-    }
-    return null;
-  }
-
-  @override
-  LibraryFileKind? get library {
-    var visited = Set<LibraryOrAugmentationFileKind>.identity();
-    var current = augmented;
-    while (current != null && visited.add(current)) {
-      if (current is LibraryFileKind) {
-        return current;
-      } else if (current is AugmentationKnownFileKind) {
-        current = current.augmented;
-      } else {
-        return null;
-      }
-    }
-    return null;
-  }
-
-  /// The file that is referenced by the [uri].
-  FileState get uriFile => uri.file;
-
-  @override
-  bool isAugmentationOf(FileKind container) {
-    return uriFile == container.file;
-  }
-}
-
-/// The URI of the [unlinked] can not be resolved.
-class AugmentationUnknownFileKind extends AugmentationFileKind<DirectiveUri> {
-  AugmentationUnknownFileKind({
-    required super.file,
-    required super.unlinked,
-    required super.uri,
-  });
-
-  @override
-  LibraryFileKind? get library => null;
-
-  @override
-  bool isAugmentationOf(FileKind container) => false;
-}
-
 /// Information about a directive that "includes" a file - `import`, `export`,
 /// or `part`. But not `part of` or `library augment` - these are modelled as
 /// kinds.
@@ -340,7 +196,6 @@ abstract class FileContentStrategy {
 
 abstract class FileKind {
   final FileState file;
-  List<AugmentationImportState>? _augmentationImports;
   List<LibraryExportState>? _libraryExports;
   List<LibraryImportState>? _libraryImports;
   List<PartIncludeState>? _partIncludes;
@@ -360,39 +215,6 @@ abstract class FileKind {
       name: null,
       recoveredFrom: this,
     );
-  }
-
-  List<AugmentationImportState> get augmentationImports {
-    return _augmentationImports ??=
-        file.unlinked2.augmentations.map<AugmentationImportState>((unlinked) {
-      var uri = file._buildDirectiveUri(unlinked.uri);
-      switch (uri) {
-        case DirectiveUriWithFile():
-          return AugmentationImportWithFile(
-            container: this,
-            unlinked: unlinked,
-            uri: uri,
-          );
-        case DirectiveUriWithUri():
-          return AugmentationImportWithUri(
-            container: this,
-            unlinked: unlinked,
-            uri: uri,
-          );
-        case DirectiveUriWithString():
-          return AugmentationImportWithUriStr(
-            container: this,
-            unlinked: unlinked,
-            uri: uri,
-          );
-        case DirectiveUriWithoutString():
-          return AugmentationImportState(
-            container: this,
-            unlinked: unlinked,
-            uri: uri,
-          );
-      }
-    }).toFixedList();
   }
 
   /// The import states of each `@docImport` on the library directive.
@@ -463,7 +285,7 @@ abstract class FileKind {
       ...unlinked.imports.map(_buildLibraryImportState),
     ];
 
-    if (this is AugmentationFileKind || this is LibraryFileKind) {
+    if (this is LibraryFileKind) {
       if (!unlinked.isDartCore && !unlinked.hasDartCoreImport) {
         result.add(
           _buildLibraryImportState(
@@ -528,11 +350,6 @@ abstract class FileKind {
   @mustCallSuper
   void collectTransitive(Set<FileState> files) {
     if (files.add(file)) {
-      for (var directive in augmentationImports) {
-        if (directive is AugmentationImportWithFile) {
-          directive.importedAugmentation?.collectTransitive(files);
-        }
-      }
       for (var directive in libraryExports) {
         if (directive is LibraryExportWithFile) {
           directive.exportedLibrary?.collectTransitive(files);
@@ -557,7 +374,6 @@ abstract class FileKind {
   /// are available. So, we need to discover all referenced files before
   /// we register available objects.
   void discoverReferencedFiles() {
-    augmentationImports;
     libraryExports;
     libraryImports;
     partIncludes;
@@ -568,7 +384,6 @@ abstract class FileKind {
   void dispose() {
     disposeLibraryCycle();
 
-    _augmentationImports?.disposeAll();
     _libraryExports?.disposeAll();
     _libraryImports?.disposeAll();
     _partIncludes?.disposeAll();
@@ -588,17 +403,6 @@ abstract class FileKind {
     }
   }
 
-  bool hasAugmentation(AugmentationFileKind augmentation) {
-    for (var import in augmentationImports) {
-      if (import is AugmentationImportWithFile) {
-        if (import.importedFile == augmentation.file) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   bool hasPart(PartFileKind partKind) {
     for (var directive in partIncludes) {
       if (directive is PartIncludeWithFile) {
@@ -610,14 +414,11 @@ abstract class FileKind {
     return false;
   }
 
-  /// Returns `true` if [file] is imported as a library, or an augmentation.
+  /// Returns `true` if [file] is imported as a library.
   bool importsFile(FileState file) {
-    return augmentationImports
-            .whereType<AugmentationImportWithFile>()
-            .any((import) => import.importedFile == file) ||
-        libraryImports
-            .whereType<LibraryImportWithFile>()
-            .any((import) => import.importedFile == file);
+    return libraryImports
+        .whereType<LibraryImportWithFile>()
+        .any((import) => import.importedFile == file);
   }
 
   /// Creates a [LibraryImportState] with the given unlinked [directive].
@@ -1169,27 +970,10 @@ class FileState {
   void _updateKind() {
     _kind?.dispose();
 
-    var libraryAugmentationDirective = unlinked2.libraryAugmentationDirective;
     var libraryDirective = unlinked2.libraryDirective;
     var partOfNameDirective = unlinked2.partOfNameDirective;
     var partOfUriDirective = unlinked2.partOfUriDirective;
-    if (libraryAugmentationDirective != null) {
-      var uri = _buildDirectiveUri(libraryAugmentationDirective.uri);
-      switch (uri) {
-        case DirectiveUriWithFile _:
-          _kind = AugmentationKnownFileKind(
-            file: this,
-            unlinked: libraryAugmentationDirective,
-            uri: uri,
-          );
-        default:
-          _kind = AugmentationUnknownFileKind(
-            file: this,
-            unlinked: libraryAugmentationDirective,
-            uri: uri,
-          );
-      }
-    } else if (libraryDirective != null) {
+    if (libraryDirective != null) {
       _kind = LibraryFileKind(
         file: this,
         name: libraryDirective.name,
@@ -1246,10 +1030,8 @@ class FileState {
     }
 
     UnlinkedLibraryDirective? libraryDirective;
-    UnlinkedLibraryAugmentationDirective? libraryAugmentationDirective;
     UnlinkedPartOfNameDirective? partOfNameDirective;
     UnlinkedPartOfUriDirective? partOfUriDirective;
-    var augmentations = <UnlinkedAugmentationImportDirective>[];
     var exports = <UnlinkedLibraryExportDirective>[];
     var imports = <UnlinkedLibraryImportDirective>[];
     var parts = <UnlinkedPartDirective>[];
@@ -1259,14 +1041,6 @@ class FileState {
       if (directive is ExportDirective) {
         var builder = _serializeExport(directive);
         exports.add(builder);
-      } else if (directive is AugmentationImportDirectiveImpl) {
-        augmentations.add(
-          UnlinkedAugmentationImportDirective(
-            augmentKeywordOffset: directive.augmentKeyword.offset,
-            importKeywordOffset: directive.importKeyword.offset,
-            uri: directive.uri.stringValue,
-          ),
-        );
       } else if (directive is ImportDirectiveImpl) {
         var builder = _serializeImport(
           node: directive,
@@ -1276,18 +1050,6 @@ class FileState {
         if (builder.uri == 'dart:core') {
           hasDartCoreImport = true;
         }
-      } else if (directive is LibraryAugmentationDirective) {
-        var uri = directive.uri;
-        var uriStr = uri.stringValue;
-        libraryAugmentationDirective = UnlinkedLibraryAugmentationDirective(
-          augmentKeywordOffset: directive.augmentKeyword.offset,
-          libraryKeywordOffset: directive.libraryKeyword.offset,
-          uri: uriStr,
-          uriRange: UnlinkedSourceRange(
-            offset: uri.offset,
-            length: uri.length,
-          ),
-        );
       } else if (directive is LibraryDirective) {
         libraryDirective = UnlinkedLibraryDirective(
           docImports: buildDocImports(directive),
@@ -1371,13 +1133,11 @@ class FileState {
 
     return UnlinkedUnit(
       apiSignature: apiSignature,
-      augmentations: augmentations.toFixedList(),
       exports: exports.toFixedList(),
       hasDartCoreImport: hasDartCoreImport,
       imports: imports.toFixedList(),
       informativeBytes: writeUnitInformative(unit),
       isDartCore: isDartCore,
-      libraryAugmentationDirective: libraryAugmentationDirective,
       libraryDirective: libraryDirective,
       lineStarts: Uint32List.fromList(unit.lineInfo.lineStarts),
       macroClasses: macroClasses.toFixedList(),
@@ -2154,28 +1914,6 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     return _apiSignature = builder.toByteList();
   }
 
-  /// All augmentations of this library, in the depth-first pre-order order.
-  List<AugmentationFileKind> get augmentations {
-    var result = <AugmentationFileKind>[];
-
-    void visitAugmentations(LibraryOrAugmentationFileKind kind) {
-      if (kind is AugmentationFileKind) {
-        result.add(kind);
-      }
-      for (var import in kind.augmentationImports) {
-        if (import is AugmentationImportWithFile) {
-          var augmentation = import.importedAugmentation;
-          if (augmentation != null) {
-            visitAugmentations(augmentation);
-          }
-        }
-      }
-    }
-
-    visitAugmentations(this);
-    return result;
-  }
-
   /// The list of files that this library consists of:
   /// - the library file itself;
   /// - the part files, in the depth-first pre-order order.
@@ -2195,7 +1933,6 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     }
 
     visitParts(this);
-    result.addAll(augmentations);
     return result;
   }
 

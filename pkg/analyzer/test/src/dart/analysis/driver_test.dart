@@ -2237,7 +2237,6 @@ void f(A a) {}
     flags: exists isLibrary
     errors
       25 +1 UNDEFINED_CLASS
-      7 +8 UNUSED_IMPORT
 [stream]
   ResolvedUnitResult #1
 [status] idle
@@ -2446,23 +2445,6 @@ class B {}
 ''');
   }
 
-  test_getLibraryByUri_notLibrary_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'package:test/b.dart';
-''');
-
-    var driver = driverFor(a);
-    var collector = DriverEventCollector(driver);
-
-    var uriStr = 'package:test/a.dart';
-    collector.getLibraryByUri('X', uriStr);
-
-    await assertEventsText(collector, r'''
-[future] getLibraryByUri X
-  NotLibraryButAugmentationResult
-''');
-  }
-
   test_getLibraryByUri_notLibrary_part() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'b.dart';
@@ -2539,19 +2521,6 @@ part of 'b.dart';
     expect(
       driver.getParsedLibraryByUri(uri),
       isA<CannotResolveUriResult>(),
-    );
-  }
-
-  test_getParsedLibraryByUri_notLibrary_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'package:test/b.dart';
-''');
-
-    var driver = driverFor(a);
-    var uri = Uri.parse('package:test/a.dart');
-    expect(
-      driver.getParsedLibraryByUri(uri),
-      isA<NotLibraryButAugmentationResult>(),
     );
   }
 
@@ -2680,24 +2649,6 @@ part of 'a.dart';
     var driver = driverFor(testFile);
     var result = await driver.getResolvedLibrary('not_absolute.dart');
     expect(result, isA<InvalidPathResult>());
-  }
-
-  test_getResolvedLibrary_notLibrary_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'package:test/b.dart';
-''');
-
-    var driver = driverFor(a);
-    var collector = DriverEventCollector(driver);
-
-    collector.getResolvedLibrary('X', a);
-
-    await assertEventsText(collector, r'''
-[status] working
-[future] getResolvedLibrary X
-  NotLibraryButAugmentationResult
-[status] idle
-''');
   }
 
   test_getResolvedLibrary_notLibrary_part() async {
@@ -2892,25 +2843,6 @@ part of 'a.dart';
       ResolvedUnitResult #1
 [stream]
   ResolvedUnitResult #1
-[status] idle
-''');
-  }
-
-  test_getResolvedLibraryByUri_notLibrary_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'package:test/b.dart';
-''');
-
-    var driver = driverFor(a);
-    var collector = DriverEventCollector(driver);
-
-    var uri = Uri.parse('package:test/a.dart');
-    collector.getResolvedLibraryByUri('X', uri);
-
-    await assertEventsText(collector, r'''
-[status] working
-[future] getResolvedLibraryByUri X
-  NotLibraryButAugmentationResult
 [status] idle
 ''');
   }

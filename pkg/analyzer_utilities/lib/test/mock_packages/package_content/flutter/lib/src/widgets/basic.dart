@@ -189,3 +189,41 @@ class Builder extends StatelessWidget {
 
   const Builder({Key? key, @required this.builder});
 }
+
+class ScrollView extends StatelessWidget {
+  const ScrollView({Key? key});
+}
+
+class CustomScrollView extends ScrollView {
+  CustomScrollView({List<Widget> slivers = const <Widget>[]});
+}
+
+class SliverPadding extends SingleChildRenderObjectWidget {
+  SliverPadding({
+    Key? key,
+    required EdgeInsetsGeometry padding,
+    Widget? sliver,
+  });
+}
+
+class DecoratedSliver extends SingleChildRenderObjectWidget {
+  DecoratedSliver({
+    Key? key,
+    required Decoration decoration,
+    Widget? sliver,
+  });
+}
+
+class SliverToBoxAdapter extends SingleChildRenderObjectWidget {
+  SliverToBoxAdapter({
+    Key? key,
+    Widget? child,
+  });
+}
+
+class SliverList extends StatelessWidget {
+  SliverList.list({
+    Key? key,
+    List<Widget> children,
+  });
+}

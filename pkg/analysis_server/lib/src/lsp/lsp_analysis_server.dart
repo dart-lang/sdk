@@ -27,6 +27,7 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
+import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/extensions/flutter.dart';
@@ -191,7 +192,8 @@ class LspAnalysisServer extends AnalysisServer {
     analysisDriverScheduler.start();
 
     _channelSubscription =
-        channel.listen(handleMessage, onDone: done, onError: socketError);
+        channel.listen(scheduleMessage, onDone: done, onError: socketError);
+
     if (AnalysisServer.supportsPlugins) {
       _pluginChangeSubscription =
           pluginManager.pluginsChanged.listen((_) => _onPluginsChanged());
@@ -755,6 +757,11 @@ class LspAnalysisServer extends AnalysisServer {
       _updateDriversAndPluginsPriorityFiles();
       await _refreshAnalysisRoots();
     }
+  }
+
+  void scheduleMessage(Message message) {
+    messageScheduler.add(LspMessage(message: message));
+    messageScheduler.notify();
   }
 
   void sendErrorResponse(Message message, ResponseError error) {

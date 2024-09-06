@@ -166,12 +166,16 @@ library
             f @101
               reference: <testLibraryFragment>::@mixin::M::@field::f
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              getter2: <testLibraryFragment>::@mixin::M::@getter::f
+              setter2: <testLibraryFragment>::@mixin::M::@setter::f
             g @-1
               reference: <testLibraryFragment>::@mixin::M::@field::g
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              getter2: <testLibraryFragment>::@mixin::M::@getter::g
             s @-1
               reference: <testLibraryFragment>::@mixin::M::@field::s
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              setter2: <testLibraryFragment>::@mixin::M::@setter::s
           getters
             get f @-1
               reference: <testLibraryFragment>::@mixin::M::@getter::f
@@ -237,16 +241,20 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::M
           type: T
           firstFragment: <testLibraryFragment>::@mixin::M::@field::f
+          getter: <none>
+          setter: <none>
         synthetic g
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::M
           type: U
           firstFragment: <testLibraryFragment>::@mixin::M::@field::g
+          getter: <none>
         synthetic s
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::M
           type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@field::s
+          setter: <none>
       getters
         synthetic get f
           reference: <none>
@@ -348,6 +356,7 @@ library
             x @18
               reference: <testLibraryFragment>::@mixin::M::@field::x
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              getter2: <testLibraryFragment>::@mixin::M::@getter::x
           getters
             get x @-1
               reference: <testLibraryFragment>::@mixin::M::@getter::x
@@ -365,6 +374,7 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::M
           type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@field::x
+          getter: <none>
       getters
         synthetic get x
           reference: <none>
@@ -428,6 +438,7 @@ library
             foo @-1
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             get foo @25
               reference: <testLibraryFragment>::@mixin::M::@getter::foo
@@ -445,6 +456,7 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::M
           type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          getter: <none>
       getters
         get foo
           reference: <none>
@@ -496,6 +508,7 @@ library
             foo @-1
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             get foo @25
               reference: <testLibraryFragment>::@mixin::M::@getter::foo
@@ -513,6 +526,7 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::M
           type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          getter: <none>
       getters
         get foo
           reference: <none>
@@ -564,6 +578,7 @@ library
             foo @-1
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             get foo @25
               reference: <testLibraryFragment>::@mixin::M::@getter::foo
@@ -581,6 +596,7 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::M
           type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          getter: <none>
       getters
         get foo
           reference: <none>
@@ -1688,6 +1704,7 @@ library
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
               enclosingFragment: <testLibraryFragment>::@extensionType::B
+              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
@@ -1704,6 +1721,24 @@ library
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+  extensionTypes
+    extension type B
+      reference: <testLibraryFragment>::@extensionType::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@extensionType::B
+      typeErasure: int
+      fields
+        final it
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extensionType::B
+          type: int
+          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          getter: <none>
+      getters
+        synthetic get it
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extensionType::B
+          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -1887,6 +1922,7 @@ library
             foo @-1
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              setter2: <testLibraryFragment>::@mixin::M::@setter::foo
           setters
             set foo= @21
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
@@ -1904,6 +1940,7 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::M
           type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          setter: <none>
       setters
         set foo=
           reference: <none>
@@ -1958,6 +1995,7 @@ library
             foo @-1
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              setter2: <testLibraryFragment>::@mixin::M::@setter::foo
           setters
             set foo= @21
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
@@ -1975,6 +2013,7 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::M
           type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          setter: <none>
       setters
         set foo=
           reference: <none>
@@ -2046,6 +2085,7 @@ library
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
               enclosingFragment: <testLibraryFragment>::@extensionType::B
+              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
@@ -2062,6 +2102,24 @@ library
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+  extensionTypes
+    extension type B
+      reference: <testLibraryFragment>::@extensionType::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@extensionType::B
+      typeErasure: int
+      fields
+        final it
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extensionType::B
+          type: int
+          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          getter: <none>
+      getters
+        synthetic get it
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@extensionType::B
+          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -2867,6 +2925,8 @@ library
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo
+              setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -2899,6 +2959,8 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
+          getter: <none>
+          setter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -3047,6 +3109,8 @@ library
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo
+              setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -3093,6 +3157,8 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
+          getter: <none>
+          setter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -3241,6 +3307,8 @@ library
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo
+              setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -3287,6 +3355,8 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
+          getter: <none>
+          setter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -3438,6 +3508,8 @@ library
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo
+              setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -3484,6 +3556,8 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
+          getter: <none>
+          setter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -3600,6 +3674,8 @@ library
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo
+              setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -3632,6 +3708,8 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
+          getter: <none>
+          setter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -3738,6 +3816,7 @@ library
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo
           getters
             get foo @35
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -3766,6 +3845,7 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
+          getter: <none>
       getters
         get foo
           reference: <none>
@@ -3895,6 +3975,8 @@ library
             foo1 @31
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
+              setter2: <testLibraryFragment>::@mixin::A::@setter::foo1
           getters
             get foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo1
@@ -3913,6 +3995,8 @@ library
             foo2 @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+              setter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
           getters
             get foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
@@ -3934,11 +4018,15 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo1
+          getter: <none>
+          setter: <none>
         foo2
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+          getter: <none>
+          setter: <none>
       getters
         synthetic get foo1
           reference: <none>
@@ -4091,6 +4179,8 @@ library
             foo1 @34
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
+              setter2: <testLibraryFragment>::@mixin::A::@setter::foo1
           getters
             get foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo1
@@ -4109,6 +4199,8 @@ library
             foo2 @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+              setter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
           getters
             get foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
@@ -4130,11 +4222,15 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: T1
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo1
+          getter: <none>
+          setter: <none>
         foo2
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: T2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+          getter: <none>
+          setter: <none>
       getters
         synthetic get foo1
           reference: <none>
@@ -4253,6 +4349,7 @@ library
             foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
           getters
             get foo1 @35
               reference: <testLibraryFragment>::@mixin::A::@getter::foo1
@@ -4267,6 +4364,7 @@ library
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
           getters
             get foo2 @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
@@ -4284,11 +4382,13 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo1
+          getter: <none>
         synthetic foo2
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+          getter: <none>
       getters
         get foo1
           reference: <none>
@@ -4408,6 +4508,7 @@ library
             foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
           getters
             get foo1 @38
               reference: <testLibraryFragment>::@mixin::A::@getter::foo1
@@ -4422,6 +4523,7 @@ library
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
           getters
             get foo2 @52
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
@@ -4439,11 +4541,13 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: T1
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo1
+          getter: <none>
         synthetic foo2
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: T2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+          getter: <none>
       getters
         abstract get foo1
           reference: <none>
@@ -4558,6 +4662,8 @@ library
             foo @31
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo
+              setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -4591,6 +4697,8 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
+          getter: <none>
+          setter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -4738,6 +4846,8 @@ library
             foo @46
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo
+              setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -4785,6 +4895,8 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
+          getter: <none>
+          setter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -4903,9 +5015,11 @@ library
             foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
             foo2 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo2
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo2
           getters
             get foo1 @35
               reference: <testLibraryFragment>::@mixin::A::@getter::foo1
@@ -4938,11 +5052,13 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo1
+          getter: <none>
         synthetic foo2
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo2
+          getter: <none>
       getters
         get foo2
           reference: <none>
@@ -5077,6 +5193,7 @@ library
             foo @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo
           getters
             get foo @50
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -5120,6 +5237,7 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
+          getter: <none>
       getters
         get foo
           reference: <none>
@@ -6240,6 +6358,7 @@ library
             foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              setter2: <testLibraryFragment>::@mixin::A::@setter::foo1
           setters
             set foo1= @31
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
@@ -6254,6 +6373,7 @@ library
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+              setter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
           setters
             set foo2= @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
@@ -6271,11 +6391,13 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo1
+          setter: <none>
         synthetic foo2
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+          setter: <none>
       setters
         set foo1=
           reference: <none>
@@ -6393,6 +6515,8 @@ library
             foo @31
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              getter2: <testLibraryFragment>::@mixin::A::@getter::foo
+              setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -6426,6 +6550,8 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
+          getter: <none>
+          setter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -6553,9 +6679,11 @@ library
             foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              setter2: <testLibraryFragment>::@mixin::A::@setter::foo1
             foo2 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo2
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              setter2: <testLibraryFragment>::@mixin::A::@setter::foo2
           setters
             set foo1= @31
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
@@ -6588,11 +6716,13 @@ library
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo1
+          setter: <none>
         synthetic foo2
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
           type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo2
+          setter: <none>
       setters
         set foo2=
           reference: <none>

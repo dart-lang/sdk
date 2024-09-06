@@ -86,6 +86,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Function determining which source files should have inference logging
 /// enabled.
@@ -133,6 +134,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// The element for the library containing the compilation unit being visited.
   final LibraryElementImpl definingLibrary;
+
+  /// The library fragment being visited.
+  final CompilationUnitElementImpl libraryFragment;
 
   /// The context shared between different units of the same library.
   final LibraryResolutionContext libraryResolutionContext;
@@ -304,39 +308,43 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   // TODO(paulberry): make [featureSet] a required parameter (this will be a
   // breaking change).
   ResolverVisitor(
-      InheritanceManager3 inheritanceManager,
-      LibraryElementImpl definingLibrary,
-      LibraryResolutionContext libraryResolutionContext,
-      Source source,
-      TypeProvider typeProvider,
-      AnalysisErrorListener errorListener,
-      {required FeatureSet featureSet,
-      required AnalysisOptionsImpl analysisOptions,
-      required FlowAnalysisHelper flowAnalysisHelper})
-      : this._(
-            inheritanceManager,
-            definingLibrary,
-            libraryResolutionContext,
-            source,
-            definingLibrary.typeSystem,
-            typeProvider as TypeProviderImpl,
-            errorListener,
-            featureSet,
-            analysisOptions,
-            flowAnalysisHelper);
+    InheritanceManager3 inheritanceManager,
+    LibraryElementImpl definingLibrary,
+    LibraryResolutionContext libraryResolutionContext,
+    Source source,
+    TypeProvider typeProvider,
+    AnalysisErrorListener errorListener, {
+    required CompilationUnitElementImpl libraryFragment,
+    required FeatureSet featureSet,
+    required AnalysisOptionsImpl analysisOptions,
+    required FlowAnalysisHelper flowAnalysisHelper,
+  }) : this._(
+          inheritanceManager,
+          definingLibrary,
+          libraryResolutionContext,
+          source,
+          definingLibrary.typeSystem,
+          typeProvider as TypeProviderImpl,
+          errorListener,
+          featureSet,
+          analysisOptions,
+          flowAnalysisHelper,
+          libraryFragment: libraryFragment,
+        );
 
   ResolverVisitor._(
-      this.inheritance,
-      this.definingLibrary,
-      this.libraryResolutionContext,
-      this.source,
-      this.typeSystem,
-      this.typeProvider,
-      AnalysisErrorListener errorListener,
-      FeatureSet featureSet,
-      this.analysisOptions,
-      this.flowAnalysis)
-      : errorReporter = ErrorReporter(errorListener, source),
+    this.inheritance,
+    this.definingLibrary,
+    this.libraryResolutionContext,
+    this.source,
+    this.typeSystem,
+    this.typeProvider,
+    AnalysisErrorListener errorListener,
+    FeatureSet featureSet,
+    this.analysisOptions,
+    this.flowAnalysis, {
+    required this.libraryFragment,
+  })  : errorReporter = ErrorReporter(errorListener, source),
         _featureSet = featureSet,
         genericMetadataIsEnabled =
             definingLibrary.featureSet.isEnabled(Feature.generic_metadata),
@@ -1923,14 +1931,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitAugmentationImportDirective(
-    covariant AugmentationImportDirectiveImpl node,
-  ) {
-    node.visitChildren(this);
-    elementResolver.visitAugmentationImportDirective(node);
-  }
-
-  @override
   void visitAugmentedExpression(covariant AugmentedExpressionImpl node,
       {DartType contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
@@ -3096,13 +3096,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     node.visitChildren(this);
     flowAnalysis.labeledStatement_exit(node);
     inferenceLogWriter?.exitStatement(node);
-  }
-
-  @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    checkUnreachableNode(node);
-    node.visitChildren(this);
-    elementResolver.visitLibraryAugmentationDirective(node);
   }
 
   @override
@@ -4984,6 +4977,17 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitHideCombinator(HideCombinator node) {
+    var scope = nameScope.ifTypeOrNull<LibraryFragmentScope>();
+    scope?.importsTrackingActive(false);
+    try {
+      super.visitHideCombinator(node);
+    } finally {
+      scope?.importsTrackingActive(true);
+    }
+  }
+
+  @override
   void visitIfElement(covariant IfElementImpl node) {
     _visitIf(node);
   }
@@ -5008,6 +5012,9 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.metadata.accept(this);
     _visitDocumentationComment(node.documentationComment);
   }
+
+  @override
+  void visitLibraryIdentifier(LibraryIdentifier node) {}
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
@@ -5102,6 +5109,17 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitShowCombinator(ShowCombinator node) {
+    var scope = nameScope.ifTypeOrNull<LibraryFragmentScope>();
+    scope?.importsTrackingActive(false);
+    try {
+      super.visitShowCombinator(node);
+    } finally {
+      scope?.importsTrackingActive(true);
+    }
+  }
+
+  @override
   void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
     // Ignore if already resolved - declaration or type.
     if (node.inDeclarationContext()) {
@@ -5109,6 +5127,12 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     }
     // Ignore if qualified.
     var parent = node.parent;
+    if (parent is ConstructorName && parent.name == node) {
+      return;
+    }
+    if (parent is Label && parent.parent is NamedExpression) {
+      return;
+    }
     var scopeLookupResult = nameScope.lookup(node.name);
     node.scopeLookupResult = scopeLookupResult;
     // Ignore if it cannot be a reference to a local variable.
@@ -5118,9 +5142,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       return;
     } else if (parent is ConstructorFieldInitializer &&
         parent.fieldName == node) {
-      return;
-    }
-    if (parent is ConstructorName) {
       return;
     }
     if (parent is Label) {

@@ -106,10 +106,6 @@ class ElementResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  void visitAugmentationImportDirective(AugmentationImportDirectiveImpl node) {
-    _resolveAnnotations(node.metadata);
-  }
-
   void visitClassDeclaration(ClassDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
@@ -253,10 +249,6 @@ class ElementResolver {
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
-  }
-
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    _resolveAnnotations(node.metadata);
   }
 
   void visitLibraryDirective(LibraryDirective node) {

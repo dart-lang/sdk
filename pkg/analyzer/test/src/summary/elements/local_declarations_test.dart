@@ -180,6 +180,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      topLevelVariables
+        synthetic g @-1
+          reference: <testLibraryFragment>::@topLevelVariable::g
+          enclosingFragment: <testLibraryFragment>
+          getter2: <testLibraryFragment>::@getter::g
+      getters
+        get g @4
+          reference: <testLibraryFragment>::@getter::g
+          enclosingFragment: <testLibraryFragment>
+  topLevelVariables
+    synthetic g
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: dynamic
+      firstFragment: <testLibraryFragment>::@topLevelVariable::g
+      getter: <none>
+  getters
+    static get g
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@getter::g
 ''');
   }
 

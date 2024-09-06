@@ -881,6 +881,8 @@ library
             x @16
               reference: <testLibraryFragment>::@class::C::@field::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              getter2: <testLibraryFragment>::@class::C::@getter::x
+              setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             positional @23
               reference: <testLibraryFragment>::@class::C::@constructor::positional
@@ -911,6 +913,8 @@ library
           enclosingElement: <testLibraryFragment>::@class::C
           type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@field::x
+          getter: <none>
+          setter: <none>
       constructors
         positional
           reference: <none>

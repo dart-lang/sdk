@@ -244,6 +244,28 @@ class B extends A {
     ]);
   }
 
+  test_wildcardInBase() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int _, int b, int c) {}
+}
+class B extends A {
+  void m(a, b, c) {}
+}
+''');
+  }
+
+  test_wildcardInBaseAndSub() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int _, int b, int c) {}
+}
+class B extends A {
+  void m(a, b, _) {}
+}
+''');
+  }
+
   test_zeroParameters() async {
     await assertNoDiagnostics(r'''
 class A {

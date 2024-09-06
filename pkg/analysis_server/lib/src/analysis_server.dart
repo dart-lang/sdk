@@ -26,6 +26,7 @@ import 'package:analysis_server/src/protocol_server.dart' as legacy
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
@@ -250,6 +251,10 @@ abstract class AnalysisServer {
   /// A completer for [lspUninitialized].
   final Completer<void> _lspUninitializedCompleter = Completer<void>();
 
+  /// A scheduler that keeps track of all incoming messages and schedules them
+  /// for processing.
+  final MessageScheduler messageScheduler;
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -269,7 +274,9 @@ abstract class AnalysisServer {
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']),
-        producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap() {
+        producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap(),
+        messageScheduler = MessageScheduler() {
+    messageScheduler.setServer(this);
     // Set the default URI converter. This uses the resource providers path
     // context (unlike the initialized value) which allows tests to override it.
     uriConverter = ClientUriConverter.noop(baseResourceProvider.pathContext);

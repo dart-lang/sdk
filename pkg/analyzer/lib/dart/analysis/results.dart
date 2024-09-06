@@ -160,17 +160,6 @@ class NotElementOfThisSessionResult
         SomeResolvedLibraryResult {}
 
 /// The type of [InvalidResult] returned when the given file is not a library,
-/// but an augmentation of a library.
-///
-/// Clients may not extend, implement or mix-in this class.
-class NotLibraryButAugmentationResult
-    implements
-        InvalidResult,
-        SomeLibraryElementResult,
-        SomeParsedLibraryResult,
-        SomeResolvedLibraryResult {}
-
-/// The type of [InvalidResult] returned when the given file is not a library,
 /// but a part of a library.
 ///
 /// Clients may not extend, implement or mix-in this class.

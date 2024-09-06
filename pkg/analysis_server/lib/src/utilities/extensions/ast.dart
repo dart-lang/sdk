@@ -295,9 +295,7 @@ extension DirectiveExtension on Directive {
   /// Returns the [DirectiveUri] from the element.
   DirectiveUri? get referencedUri {
     var self = this;
-    if (self is AugmentationImportDirective) {
-      return self.element?.uri;
-    } else if (self is ExportDirective) {
+    if (self is ExportDirective) {
       return self.element?.uri;
     } else if (self is ImportDirective) {
       return self.element?.uri;

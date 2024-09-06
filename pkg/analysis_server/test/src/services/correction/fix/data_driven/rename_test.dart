@@ -125,7 +125,7 @@ import '$importUri';
 void f() {
   New.c();
 }
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_constructor_unnamed_deprecated() async {
@@ -175,7 +175,7 @@ import '$importUri';
 void f() {
   New();
 }
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_constructor_unnamed_removed_prefixed() async {
@@ -234,7 +234,7 @@ class C extends Old {}
 import '$importUri';
 
 class C extends New {}
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_inImplements_deprecated() async {
@@ -270,7 +270,7 @@ class C implements Old {}
 import '$importUri';
 
 class C implements New {}
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_inOn_deprecated() async {
@@ -306,7 +306,7 @@ extension E on Old {}
 import '$importUri';
 
 extension E on New {}
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_inTypeAnnotation_deprecated() async {
@@ -342,7 +342,7 @@ void f(Old o) {}
 import '$importUri';
 
 void f(New o) {}
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_inTypeArgument_deprecated() async {
@@ -430,7 +430,7 @@ class C with Old {}
 import '$importUri';
 
 class C with New {}
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_staticField_deprecated() async {
@@ -472,7 +472,7 @@ var s = Old.empty;
 import '$importUri';
 
 var s = New.empty;
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 }
 
@@ -693,7 +693,7 @@ var l = Old('a').double;
 import '$importUri';
 
 var l = New('a').double;
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_staticField_deprecated() async {
@@ -735,7 +735,7 @@ var s = Old.empty;
 import '$importUri';
 
 var s = New.empty;
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_staticField_removed_prefixed() async {
@@ -1176,7 +1176,7 @@ import '$importUri';
 void f() {
   b;
 }
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_topLevel_reference_removed_prefixed() async {
@@ -1417,7 +1417,7 @@ class C with Old {}
 import '$importUri';
 
 class C with New {}
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_inWith_removed_prefixed() async {
@@ -1515,7 +1515,7 @@ import '$importUri';
 void f() {
   b();
 }
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_removed_prefixed() async {
@@ -1661,7 +1661,7 @@ void f(Old o) {}
 import '$importUri';
 
 void f(New o) {}
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_removed_prefixed() async {

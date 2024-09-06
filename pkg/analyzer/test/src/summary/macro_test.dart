@@ -3144,6 +3144,7 @@ library
             f @82
               reference: <testLibraryFragment>::@class::A::@field::f
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::f
           getters
             get f @-1
               reference: <testLibraryFragment>::@class::A::@getter::f
@@ -3171,6 +3172,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::f
+          getter: <none>
       constructors
         named
           reference: <none>
@@ -3482,6 +3484,8 @@ library
             foo @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+              setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
@@ -3501,6 +3505,8 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          getter: <none>
+          setter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -3606,6 +3612,7 @@ library
             foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
           getters
             get foo @63
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
@@ -3621,6 +3628,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          getter: <none>
       getters
         get foo
           reference: <none>
@@ -3824,6 +3832,7 @@ library
             foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
           setters
             set foo= @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
@@ -3839,6 +3848,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          setter: <none>
       setters
         set foo=
           reference: <none>
@@ -4053,6 +4063,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::B
           type: dynamic
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+          setter: <none>
       setters
         set foo=
           reference: <none>
@@ -4101,6 +4112,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::B
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::x
+          getter: <none>
       getters
         synthetic static get x
           reference: <none>
@@ -4151,6 +4163,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::B
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::x
+          getter: <none>
       getters
         synthetic get x
           reference: <none>
@@ -4199,6 +4212,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::B
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::x
+          getter: <none>
       getters
         synthetic get x
           reference: <none>
@@ -4247,6 +4261,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::B
           type: Type
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::x
+          getter: <none>
       getters
         synthetic static get x
           reference: <none>
@@ -4289,6 +4304,18 @@ library
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    const x
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: InvalidType
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+      getter: <none>
+  getters
+    synthetic static get x
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
 ''');
   }
 
@@ -4327,6 +4354,18 @@ library
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    const x
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: InvalidType
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+      getter: <none>
+  getters
+    synthetic static get x
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
 ''');
   }
 
@@ -4371,6 +4410,28 @@ library
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    const x
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: InvalidType
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+      getter: <none>
+    const y
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: InvalidType
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::y
+      getter: <none>
+  getters
+    synthetic static get x
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
+    synthetic static get y
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::y
 ''');
   }
 
@@ -4408,6 +4469,18 @@ library
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    const x
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: InvalidType
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+      getter: <none>
+  getters
+    synthetic static get x
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
 ''');
   }
 
@@ -4566,6 +4639,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::B
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+          getter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -4618,11 +4692,13 @@ library
           enclosingElement: <testLibraryFragment>::@class::B
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+          getter: <none>
         final bar
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::B
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::bar
+          getter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -4679,6 +4755,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::B
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+          getter: <none>
       getters
         get foo
           reference: <none>
@@ -4814,6 +4891,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::B
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+          setter: <none>
       setters
         set foo=
           reference: <none>
@@ -4957,6 +5035,37 @@ library
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    synthetic foo
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: int
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
+      getter: <none>
+  getters
+    static get foo
+      reference: <none>
+      enclosingElement: <testLibrary>
+      metadata
+        Annotation
+          atSign: @ @77
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: prefix0 @78
+              staticElement: <null>
+              staticType: null
+            period: . @85
+            identifier: SimpleIdentifier
+              token: A @86
+              staticElement: package:test/a.dart::<fragment>::@class::A
+              staticType: null
+            staticElement: package:test/a.dart::<fragment>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @87
+            rightParenthesis: ) @88
+          element: package:test/a.dart::<fragment>::@class::A
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
 ''');
   }
 
@@ -4998,6 +5107,37 @@ library
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    synthetic foo
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: int
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
+      setter: <none>
+  setters
+    static set foo=
+      reference: <none>
+      enclosingElement: <testLibrary>
+      metadata
+        Annotation
+          atSign: @ @77
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: prefix0 @78
+              staticElement: <null>
+              staticType: null
+            period: . @85
+            identifier: SimpleIdentifier
+              token: A @86
+              staticElement: package:test/a.dart::<fragment>::@class::A
+              staticType: null
+            staticElement: package:test/a.dart::<fragment>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @87
+            rightParenthesis: ) @88
+          element: package:test/a.dart::<fragment>::@class::A
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
 ''');
   }
 
@@ -5035,6 +5175,18 @@ library
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    synthetic foo
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: dynamic
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
+      setter: <none>
+  setters
+    static set foo=
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
 ''');
   }
 
@@ -5076,6 +5228,18 @@ library
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    final foo
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: int
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
+      getter: <none>
+  getters
+    synthetic static get foo
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
 ''');
   }
 
@@ -5117,6 +5281,28 @@ library
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    final foo
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: int
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
+      getter: <none>
+    final bar
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: int
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::bar
+      getter: <none>
+  getters
+    synthetic static get foo
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
+    synthetic static get bar
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::bar
 ''');
   }
 
@@ -5620,11 +5806,32 @@ library
           reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        final x @41
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+          enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart
+          getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
+      getters
+        get x @-1
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
+          enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+  topLevelVariables
+    final x
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: int
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+      getter: <none>
+  getters
+    synthetic static get x
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
   exportedReferences
     declared <testLibraryFragment>::@class::A
     declared <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
@@ -5934,6 +6141,8 @@ library
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+              setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
             foo @193
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
@@ -5957,6 +6166,8 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          getter: <none>
+          setter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -6109,6 +6320,7 @@ library
             foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
           getters
             get foo @180
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
@@ -6129,6 +6341,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          getter: <none>
       getters
         external get foo
           reference: <none>
@@ -6424,6 +6637,7 @@ library
             foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
           setters
             set foo= @173
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
@@ -6444,6 +6658,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          setter: <none>
       setters
         external set foo=
           reference: <none>
@@ -7530,6 +7745,7 @@ library
             foo @80
               reference: <testLibraryFragment>::@class::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
@@ -7545,6 +7761,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          getter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -8090,6 +8307,7 @@ library
             foo @102
               reference: <testLibraryFragment>::@class::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
@@ -8105,6 +8323,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          getter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -8611,6 +8830,7 @@ library
             foo @98
               reference: <testLibraryFragment>::@class::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
@@ -8626,6 +8846,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          getter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -8892,6 +9113,27 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      topLevelVariables
+        final foo @80
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          enclosingFragment: <testLibraryFragment>
+          getter2: <testLibraryFragment>::@getter::foo
+      getters
+        get foo @-1
+          reference: <testLibraryFragment>::@getter::foo
+          enclosingFragment: <testLibraryFragment>
+  topLevelVariables
+    final foo
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      getter: <none>
+  getters
+    synthetic static get foo
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@getter::foo
 ''');
   }
 
@@ -9317,6 +9559,7 @@ library
             foo @145
               reference: <testLibraryFragment>::@class::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
@@ -9332,6 +9575,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: (bool, {int a, String b})?
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          getter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -9416,6 +9660,7 @@ library
             foo @138
               reference: <testLibraryFragment>::@class::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
@@ -9431,6 +9676,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: (int, String)?
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          getter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -10018,6 +10264,8 @@ library
             foo @80
               reference: <testLibraryFragment>::@class::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
+              setter2: <testLibraryFragment>::@class::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
@@ -10037,6 +10285,8 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          getter: <none>
+          setter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -10930,6 +11180,11 @@ library
         foo
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
+  extensions
+    extension B
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@extension::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@extension::B
 ''');
   }
 
@@ -11624,9 +11879,11 @@ library
             enumConstant v @107
               reference: <testLibraryFragment>::@enum::B::@field::v
               enclosingFragment: <testLibraryFragment>::@enum::B
+              getter2: <testLibraryFragment>::@enum::B::@getter::v
             values @-1
               reference: <testLibraryFragment>::@enum::B::@field::values
               enclosingFragment: <testLibraryFragment>::@enum::B
+              getter2: <testLibraryFragment>::@enum::B::@getter::values
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::B::@getter::v
@@ -11655,11 +11912,13 @@ library
           enclosingElement: <testLibraryFragment>::@enum::B
           type: B
           firstFragment: <testLibraryFragment>::@enum::B::@field::v
+          getter: <none>
         synthetic static const values
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::B
           type: List<B>
           firstFragment: <testLibraryFragment>::@enum::B::@field::values
+          getter: <none>
       getters
         synthetic static get v
           reference: <none>
@@ -12387,9 +12646,11 @@ library
             foo @69
               reference: <testLibraryFragment>::@class::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
             bar @86
               reference: <testLibraryFragment>::@class::A::@field::bar
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::bar
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
@@ -12428,11 +12689,13 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          getter: <none>
         final bar
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::bar
+          getter: <none>
       getters
         synthetic get foo
           reference: <none>
@@ -12614,9 +12877,11 @@ library
             foo @76
               reference: <testLibraryFragment>::@class::A::@field::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
             bar @93
               reference: <testLibraryFragment>::@class::A::@field::bar
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::bar
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
@@ -12671,11 +12936,13 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          getter: <none>
         final bar
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::bar
+          getter: <none>
       constructors
         fromJson
           reference: <none>
@@ -19871,7 +20138,7 @@ extension on ElementTextConfiguration {
   void forCodeOptimizer() {
     filter = (obj) {
       if (obj is CompilationUnitElement) {
-        return obj.enclosingElement3 is LibraryAugmentationElement;
+        return false;
       }
       return true;
     };

@@ -90,34 +90,6 @@ class MacroClass {
   }
 }
 
-class UnlinkedAugmentationImportDirective {
-  final int augmentKeywordOffset;
-  final int importKeywordOffset;
-  final String? uri;
-
-  UnlinkedAugmentationImportDirective({
-    required this.augmentKeywordOffset,
-    required this.importKeywordOffset,
-    required this.uri,
-  });
-
-  factory UnlinkedAugmentationImportDirective.read(
-    SummaryDataReader reader,
-  ) {
-    return UnlinkedAugmentationImportDirective(
-      augmentKeywordOffset: reader.readUInt30(),
-      importKeywordOffset: reader.readUInt30(),
-      uri: reader.readOptionalStringUtf8(),
-    );
-  }
-
-  void write(BufferedSink sink) {
-    sink.writeUInt30(augmentKeywordOffset);
-    sink.writeUInt30(importKeywordOffset);
-    sink.writeOptionalStringUtf8(uri);
-  }
-}
-
 class UnlinkedCombinator {
   final int keywordOffset;
   final int endOffset;
@@ -156,38 +128,6 @@ abstract class UnlinkedConfigurableUriDirective {
     required this.configurations,
     required this.uri,
   });
-}
-
-class UnlinkedLibraryAugmentationDirective {
-  final int augmentKeywordOffset;
-  final int libraryKeywordOffset;
-  final String? uri;
-  final UnlinkedSourceRange uriRange;
-
-  UnlinkedLibraryAugmentationDirective({
-    required this.augmentKeywordOffset,
-    required this.libraryKeywordOffset,
-    required this.uri,
-    required this.uriRange,
-  });
-
-  factory UnlinkedLibraryAugmentationDirective.read(
-    SummaryDataReader reader,
-  ) {
-    return UnlinkedLibraryAugmentationDirective(
-      augmentKeywordOffset: reader.readUInt30(),
-      libraryKeywordOffset: reader.readUInt30(),
-      uri: reader.readOptionalStringUtf8(),
-      uriRange: UnlinkedSourceRange.read(reader),
-    );
-  }
-
-  void write(BufferedSink sink) {
-    sink.writeUInt30(augmentKeywordOffset);
-    sink.writeUInt30(libraryKeywordOffset);
-    sink.writeOptionalStringUtf8(uri);
-    uriRange.write(sink);
-  }
 }
 
 class UnlinkedLibraryDirective {
@@ -529,9 +469,6 @@ class UnlinkedUnit {
   // TODO(scheglov): Do we need it?
   final Uint8List apiSignature;
 
-  /// `import augmentation` directives.
-  final List<UnlinkedAugmentationImportDirective> augmentations;
-
   /// `export` directives.
   final List<UnlinkedLibraryExportDirective> exports;
 
@@ -546,9 +483,6 @@ class UnlinkedUnit {
 
   /// Whether this file is `dart:core` library.
   final bool isDartCore;
-
-  /// The `augment library 'uri';` directive.
-  final UnlinkedLibraryAugmentationDirective? libraryAugmentationDirective;
 
   /// The `library name;` directive.
   final UnlinkedLibraryDirective? libraryDirective;
@@ -573,13 +507,11 @@ class UnlinkedUnit {
 
   UnlinkedUnit({
     required this.apiSignature,
-    required this.augmentations,
     required this.exports,
     required this.hasDartCoreImport,
     required this.imports,
     required this.informativeBytes,
     required this.isDartCore,
-    required this.libraryAugmentationDirective,
     required this.libraryDirective,
     required this.lineStarts,
     required this.macroClasses,
@@ -592,9 +524,6 @@ class UnlinkedUnit {
   factory UnlinkedUnit.read(SummaryDataReader reader) {
     return UnlinkedUnit(
       apiSignature: reader.readUint8List(),
-      augmentations: reader.readTypedList(
-        () => UnlinkedAugmentationImportDirective.read(reader),
-      ),
       exports: reader.readTypedList(
         () => UnlinkedLibraryExportDirective.read(reader),
       ),
@@ -604,9 +533,6 @@ class UnlinkedUnit {
       ),
       informativeBytes: reader.readUint8List(),
       isDartCore: reader.readBool(),
-      libraryAugmentationDirective: reader.readOptionalObject(
-        UnlinkedLibraryAugmentationDirective.read,
-      ),
       libraryDirective: reader.readOptionalObject(
         UnlinkedLibraryDirective.read,
       ),
@@ -629,9 +555,6 @@ class UnlinkedUnit {
 
   void write(BufferedSink sink) {
     sink.writeUint8List(apiSignature);
-    sink.writeList<UnlinkedAugmentationImportDirective>(augmentations, (x) {
-      x.write(sink);
-    });
     sink.writeList<UnlinkedLibraryExportDirective>(exports, (x) {
       x.write(sink);
     });
@@ -641,10 +564,6 @@ class UnlinkedUnit {
     });
     sink.writeUint8List(informativeBytes);
     sink.writeBool(isDartCore);
-    sink.writeOptionalObject<UnlinkedLibraryAugmentationDirective>(
-      libraryAugmentationDirective,
-      (x) => x.write(sink),
-    );
     sink.writeOptionalObject<UnlinkedLibraryDirective>(
       libraryDirective,
       (x) => x.write(sink),

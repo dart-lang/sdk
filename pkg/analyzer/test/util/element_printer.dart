@@ -25,12 +25,6 @@ class ElementPrinter {
   void writeDirectiveUri(DirectiveUri? uri) {
     if (uri == null) {
       _sink.writeln('<null>');
-    } else if (uri is DirectiveUriWithAugmentation) {
-      _sink.writeln('DirectiveUriWithAugmentation');
-      _sink.withIndent(() {
-        var uriStr = _stringOfSource(uri.augmentation.source);
-        _sink.writelnWithIndent('uri: $uriStr');
-      });
     } else if (uri is DirectiveUriWithLibrary) {
       _sink.writeln('DirectiveUriWithLibrary');
       _sink.withIndent(() {
@@ -72,8 +66,6 @@ class ElementPrinter {
         _writeMember(element);
       case MultiplyDefinedElement():
         _sink.writeln('<null>');
-      case AugmentationImportElement():
-        _writeAugmentationImportElement(element);
       case LibraryExportElement():
         _writeLibraryExportElement(element);
       case LibraryImportElement():
@@ -226,14 +218,6 @@ class ElementPrinter {
 
   String _typeStr(DartType type) {
     return type.getDisplayString();
-  }
-
-  void _writeAugmentationImportElement(AugmentationImportElement element) {
-    _sink.writeln('AugmentationImportElement');
-    _sink.withIndent(() {
-      _sink.writeWithIndent('uri: ');
-      writeDirectiveUri(element.uri);
-    });
   }
 
   void _writeLibraryExportElement(LibraryExportElement element) {

@@ -244,14 +244,6 @@ class FileResolver {
     releaseAndClearRemovedIds();
   }
 
-  /// Collects all the cached artifacts and add all the cache id's for the
-  /// removed artifacts to [removedCacheKeys].
-  @Deprecated('Use dispose() instead')
-  void collectSharedDataIdentifiers() {
-    removedCacheKeys.addAll(fsState!.dispose());
-    removedCacheKeys.addAll(libraryContext!.dispose());
-  }
-
   /// Notifies this object that it is about to be discarded, so it should
   /// release any shared data.
   void dispose() {
@@ -356,7 +348,7 @@ class FileResolver {
         content: file.content,
         uri: file.uri,
         lineInfo: file.lineInfo,
-        isAugmentation: file.kind is AugmentationFileKind,
+        isAugmentation: false,
         isLibrary: file.kind is LibraryFileKind,
         isMacroAugmentation: file.isMacroPart,
         isPart: file.kind is PartFileKind,

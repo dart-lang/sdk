@@ -55,29 +55,6 @@ import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// A library augmentation import directive within a library.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class AugmentationImportElement implements _ExistingElement {
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  LibraryOrAugmentationElement get enclosingElement;
-
-  @override
-  LibraryOrAugmentationElement get enclosingElement3;
-
-  /// The [LibraryAugmentationElement], if [uri] is a
-  /// [DirectiveUriWithAugmentation].
-  LibraryAugmentationElement? get importedAugmentation;
-
-  /// The offset of the `import` keyword.
-  int get importKeywordOffset;
-
-  /// The interpretation of the URI specified in the directive.
-  DirectiveUri get uri;
-}
-
 /// The result of applying augmentations to a [ClassElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -533,14 +510,6 @@ abstract class DeferredImportElementPrefix implements ImportElementPrefix {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUri {}
-
-/// [DirectiveUriWithSource] that references a [LibraryAugmentationElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class DirectiveUriWithAugmentation extends DirectiveUriWithSource {
-  /// The library augmentation referenced by the [source].
-  LibraryAugmentationElement get augmentation;
-}
 
 /// [DirectiveUriWithSource] that references a [LibraryElement].
 ///
@@ -1212,8 +1181,6 @@ abstract class ElementLocation {
 /// * ThrowingElementVisitor which implements every visit method by throwing an
 ///   exception.
 abstract class ElementVisitor<R> {
-  R? visitAugmentationImportElement(AugmentationImportElement element);
-
   R? visitClassElement(ClassElement element);
 
   R? visitCompilationUnitElement(CompilationUnitElement element);
@@ -1235,8 +1202,6 @@ abstract class ElementVisitor<R> {
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element);
 
   R? visitLabelElement(LabelElement element);
-
-  R? visitLibraryAugmentationElement(LibraryAugmentationElement element);
 
   R? visitLibraryElement(LibraryElement element);
 
@@ -1923,16 +1888,6 @@ abstract class LabelElement implements Element {
   String get name;
 }
 
-/// A library augmentation.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class LibraryAugmentationElement
-    implements LibraryOrAugmentationElement, _ExistingElement {
-  /// The library that is augmented by this augmentation.
-  LibraryOrAugmentationElement get augmentationTarget;
-}
-
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -2088,10 +2043,6 @@ class LibraryLanguageVersion {
 abstract class LibraryOrAugmentationElement implements Element {
   /// The extension elements accessible within this library.
   List<ExtensionElement> get accessibleExtensions;
-
-  /// The augmentation imports specified in this library.
-  @experimental
-  List<AugmentationImportElement> get augmentationImports;
 
   /// The compilation unit that defines this library.
   CompilationUnitElement get definingCompilationUnit;

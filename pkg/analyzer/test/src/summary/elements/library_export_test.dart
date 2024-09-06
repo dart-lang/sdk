@@ -1946,6 +1946,38 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        a @25
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
+          enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
+          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::a
+      getters
+        get a @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+          enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
+      setters
+        set a= @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::a
+          enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
+  topLevelVariables
+    a
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: int
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get a
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+  setters
+    synthetic static set a=
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::a
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::a
@@ -2011,6 +2043,27 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        const a @27
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
+          enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
+          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+      getters
+        get a @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+          enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
+  topLevelVariables
+    const a
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: int
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
+      getter: <none>
+  getters
+    synthetic static get a
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::a
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a
   exportNamespace

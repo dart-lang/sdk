@@ -24,10 +24,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   final LibraryBuilder _libraryBuilder;
   final CompilationUnitElementImpl _unitElement;
 
-  // TODO(scheglov): We need it for now, but remove it later.
-  final List<AugmentationImportElementImpl> _augmentationImports;
-
-  var _augmentationDirectiveIndex = 0;
   var _exportDirectiveIndex = 0;
   var _importDirectiveIndex = 0;
   var _partDirectiveIndex = 0;
@@ -37,11 +33,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   ElementBuilder({
     required LibraryBuilder libraryBuilder,
-    required List<AugmentationImportElementImpl> augmentationImports,
     required Reference unitReference,
     required CompilationUnitElementImpl unitElement,
   })  : _libraryBuilder = libraryBuilder,
-        _augmentationImports = augmentationImports,
         _unitElement = unitElement,
         _enclosingContext = _EnclosingContext(unitReference, unitElement);
 
@@ -94,13 +88,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         libraryElement.metadata = firstDirectiveMetadata;
       }
     }
-  }
-
-  @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    var index = _augmentationDirectiveIndex++;
-    var element = _augmentationImports[index];
-    element.metadata = _buildAnnotations(node.metadata);
   }
 
   @override
@@ -958,9 +945,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     importElement.metadata = _buildAnnotations(node.metadata);
     node.element = importElement;
   }
-
-  @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {}
 
   @override
   void visitLibraryDirective(covariant LibraryDirectiveImpl node) {}

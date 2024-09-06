@@ -72,11 +72,6 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    _fromList(node.metadata);
-  }
-
-  @override
   void visitBlock(Block node) {
     _fromList(node.statements);
   }
@@ -224,11 +219,6 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   @override
   void visitLabeledStatement(LabeledStatement node) {
     _fromList(node.labels);
-  }
-
-  @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    _fromList(node.metadata);
   }
 
   @override

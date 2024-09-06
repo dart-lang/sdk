@@ -160,10 +160,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitExpression(node);
 
   @override
-  R? visitAugmentationImportDirective(AugmentationImportDirective node) =>
-      visitUriBasedDirective(node);
-
-  @override
   R? visitAugmentedExpression(AugmentedExpression node) =>
       visitExpression(node);
 
@@ -477,11 +473,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitLabeledStatement(LabeledStatement node) => visitStatement(node);
-
-  @override
-  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    return visitUriBasedDirective(node);
-  }
 
   @override
   R? visitLibraryDirective(LibraryDirective node) => visitDirective(node);
@@ -859,12 +850,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitAssignmentExpression(AssignmentExpression node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitAugmentationImportDirective(AugmentationImportDirective node) {
     node.visitChildren(this);
     return null;
   }
@@ -1357,12 +1342,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitLabeledStatement(LabeledStatement node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
     node.visitChildren(this);
     return null;
   }
@@ -1906,9 +1885,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitAssignmentExpression(AssignmentExpression node) => null;
 
   @override
-  R? visitAugmentationImportDirective(AugmentationImportDirective node) => null;
-
-  @override
   R? visitAugmentedExpression(AugmentedExpression node) => null;
 
   @override
@@ -2156,11 +2132,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitLabeledStatement(LabeledStatement node) => null;
-
-  @override
-  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    return null;
-  }
 
   @override
   R? visitLibraryDirective(LibraryDirective node) => null;
@@ -2463,10 +2434,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitAssignmentExpression(AssignmentExpression node) => _throw(node);
 
   @override
-  R? visitAugmentationImportDirective(AugmentationImportDirective node) =>
-      _throw(node);
-
-  @override
   R? visitAugmentedExpression(AugmentedExpression node) => _throw(node);
 
   @override
@@ -2720,11 +2687,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitLabeledStatement(LabeledStatement node) => _throw(node);
-
-  @override
-  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    _throw(node);
-  }
 
   @override
   R? visitLibraryDirective(LibraryDirective node) => _throw(node);
@@ -3078,14 +3040,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitAssignmentExpression(AssignmentExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitAssignmentExpression(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitAugmentationImportDirective(AugmentationImportDirective node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitAugmentationImportDirective(node);
     stopwatch.stop();
     return result;
   }
@@ -3742,14 +3696,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitLabeledStatement(LabeledStatement node) {
     stopwatch.start();
     T? result = _baseVisitor.visitLabeledStatement(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitLibraryAugmentationDirective(node);
     stopwatch.stop();
     return result;
   }
@@ -4463,10 +4409,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitAssignmentExpression(AssignmentExpression node) => visitNode(node);
 
   @override
-  R? visitAugmentationImportDirective(AugmentationImportDirective node) =>
-      visitNode(node);
-
-  @override
   R? visitAugmentedExpression(AugmentedExpression node) => visitNode(node);
 
   @override
@@ -4728,11 +4670,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitLabeledStatement(LabeledStatement node) => visitNode(node);
-
-  @override
-  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    return visitNode(node);
-  }
 
   @override
   R? visitLibraryDirective(LibraryDirective node) => visitNode(node);

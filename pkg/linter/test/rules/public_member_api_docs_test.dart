@@ -324,6 +324,20 @@ mixin M {
 }''');
   }
 
+  test_partFile() async {
+    newFile('$testPackageRootPath/test/a.dart', r'''
+part 'test.dart';
+''');
+
+    await assertDiagnostics(r'''
+part of 'a.dart';
+
+class A { }
+''', [
+      lint(25, 1),
+    ]);
+  }
+
   /// https://github.com/dart-lang/linter/issues/4526
   test_sealedConstructor() async {
     await assertDiagnostics(r'''

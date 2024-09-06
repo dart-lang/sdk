@@ -59,6 +59,7 @@ library
             x @32
               reference: <testLibraryFragment>::@class::A::@field::x
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -78,6 +79,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: (int, String)
           firstFragment: <testLibraryFragment>::@class::A::@field::x
+          getter: <none>
       constructors
         synthetic new
           reference: <none>
@@ -134,6 +136,7 @@ library
             x @18
               reference: <testLibraryFragment>::@class::A::@field::x
               enclosingFragment: <testLibraryFragment>::@class::A
+              getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -153,6 +156,7 @@ library
           enclosingElement: <testLibraryFragment>::@class::A
           type: (int, bool)
           firstFragment: <testLibraryFragment>::@class::A::@field::x
+          getter: <none>
       constructors
         synthetic new
           reference: <none>
@@ -355,6 +359,11 @@ library
       extensions
         extension IntStringExtension @10
           reference: <testLibraryFragment>::@extension::IntStringExtension
+  extensions
+    extension IntStringExtension
+      reference: <testLibraryFragment>::@extension::IntStringExtension
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@extension::IntStringExtension
 ''');
   }
 
@@ -660,6 +669,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      topLevelVariables
+        final x @20
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          enclosingFragment: <testLibraryFragment>
+          getter2: <testLibraryFragment>::@getter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          enclosingFragment: <testLibraryFragment>
+  topLevelVariables
+    final x
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: (int, String)
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      getter: <none>
+  getters
+    synthetic static get x
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
 
@@ -690,6 +720,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      topLevelVariables
+        final x @6
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          enclosingFragment: <testLibraryFragment>
+          getter2: <testLibraryFragment>::@getter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          enclosingFragment: <testLibraryFragment>
+  topLevelVariables
+    final x
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: (int, bool)
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      getter: <none>
+  getters
+    synthetic static get x
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
 
@@ -751,6 +802,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      topLevelVariables
+        const x @6
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          enclosingFragment: <testLibraryFragment>
+          getter2: <testLibraryFragment>::@getter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          enclosingFragment: <testLibraryFragment>
+  topLevelVariables
+    const x
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: Type
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      getter: <none>
+  getters
+    synthetic static get x
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
 
@@ -808,6 +880,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      topLevelVariables
+        const x @6
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          enclosingFragment: <testLibraryFragment>
+          getter2: <testLibraryFragment>::@getter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          enclosingFragment: <testLibraryFragment>
+  topLevelVariables
+    const x
+      reference: <none>
+      enclosingElement2: <testLibrary>
+      type: Type
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      getter: <none>
+  getters
+    synthetic static get x
+      reference: <none>
+      enclosingElement: <testLibrary>
+      firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
 }

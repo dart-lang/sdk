@@ -650,20 +650,6 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
-
-    for (var import in element.augmentationImports) {
-      import.metadata = reader._readAnnotationList(
-        // TODO(scheglov): Here and for parts, unit is not valid. Test and fix.
-        unitElement: unitElement,
-      );
-      var importedAugmentation = import.importedAugmentation;
-      if (importedAugmentation != null) {
-        var linkedData = importedAugmentation.linkedData!;
-        reader.setOffset(linkedData.offset);
-        _readLibraryOrAugmentation(importedAugmentation, reader);
-        linkedData.applyConstantOffsets?.perform();
-      }
-    }
   }
 }
 
@@ -778,56 +764,6 @@ class LibraryReader {
       _reference.getChild('dynamic').element = DynamicElementImpl.instance;
       _reference.getChild('Never').element = NeverElementImpl.instance;
     }
-  }
-
-  LibraryAugmentationElementImpl _readAugmentationElement({
-    required LibraryElementImpl libraryElement,
-    required LibraryOrAugmentationElementImpl augmentationTarget,
-    required Source unitSource,
-  }) {
-    var augmentation = LibraryAugmentationElementImpl(
-      augmentationTarget: augmentationTarget,
-      nameOffset: -1, // TODO(scheglov): implement, test
-    );
-
-    var definingUnit = _readUnitElement(
-      libraryElement: libraryElement,
-      containerLibrary: augmentation,
-      containerUnit: augmentationTarget.definingCompilationUnit,
-      unitSource: unitSource,
-    );
-    augmentation.definingCompilationUnit = definingUnit;
-    augmentation.reference =
-        _reference.getChild('@augmentation').getChild('${unitSource.uri}');
-
-    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    _readLibraryOrAugmentationElement(
-      libraryElement: libraryElement,
-      containerLibrary: augmentation,
-      containerUnit: definingUnit,
-    );
-
-    augmentation.linkedData = LibraryAugmentationElementLinkedData(
-      offset: resolutionOffset,
-    );
-
-    return augmentation;
-  }
-
-  AugmentationImportElementImpl _readAugmentationImportElement({
-    required LibraryElementImpl libraryElement,
-    required LibraryOrAugmentationElementImpl containerLibrary,
-    required CompilationUnitElementImpl containerUnit,
-  }) {
-    var uri = _readDirectiveUri(
-      libraryElement: libraryElement,
-      containerLibrary: containerLibrary,
-      containerUnit: containerUnit,
-    );
-    return AugmentationImportElementImpl(
-      importKeywordOffset: -1, // TODO(scheglov): implement, test
-      uri: uri,
-    );
   }
 
   ClassElementImpl _readClassElement(
@@ -966,19 +902,6 @@ class LibraryReader {
     var kindIndex = _reader.readByte();
     var kind = DirectiveUriKind.values[kindIndex];
     switch (kind) {
-      case DirectiveUriKind.withAugmentation:
-        var parent = readWithSource();
-        var augmentation = _readAugmentationElement(
-          libraryElement: libraryElement,
-          augmentationTarget: containerLibrary,
-          unitSource: parent.source,
-        );
-        return DirectiveUriWithAugmentationImpl(
-          relativeUriString: parent.relativeUriString,
-          relativeUri: parent.relativeUri,
-          source: parent.source,
-          augmentation: augmentation,
-        );
       case DirectiveUriKind.withLibrary:
         var parent = readWithSource();
         return DirectiveUriWithLibraryImpl.read(
@@ -1370,14 +1293,6 @@ class LibraryReader {
     required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl containerUnit,
   }) {
-    containerLibrary.augmentationImports = _reader.readTypedList(() {
-      return _readAugmentationImportElement(
-        libraryElement: libraryElement,
-        containerLibrary: containerLibrary,
-        containerUnit: containerUnit,
-      );
-    });
-
     for (var import in containerUnit.libraryImports_unresolved) {
       var prefixElement = import.prefix?.element;
       if (prefixElement is PrefixElementImpl) {

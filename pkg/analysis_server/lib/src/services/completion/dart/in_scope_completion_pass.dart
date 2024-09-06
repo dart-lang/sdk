@@ -3940,7 +3940,6 @@ extension on AstNode {
     return switch (this) {
       AdjacentStrings(:var strings) => strings.contains(child),
       ArgumentList(:var arguments) => arguments.contains(child),
-      AugmentationImportDirective(:var metadata) => metadata.contains(child),
       Block(:var statements) => statements.contains(child),
       CascadeExpression(:var cascadeSections) =>
         cascadeSections.contains(child),
@@ -3982,7 +3981,6 @@ extension on AstNode {
             configurations.contains(child) ||
             metadata.contains(child),
       LabeledStatement(:var labels) => labels.contains(child),
-      LibraryAugmentationDirective(:var metadata) => metadata.contains(child),
       LibraryDirective(:var metadata) => metadata.contains(child),
       LibraryIdentifier(:var components) => components.contains(child),
       ListLiteral(:var elements) => elements.contains(child),
