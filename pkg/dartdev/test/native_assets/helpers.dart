@@ -160,10 +160,11 @@ Future<void> nativeAssetsTest(
   bool skipPubGet = false,
 }) async {
   assert(const [
-    'dart_app',
-    'native_add',
-    'drop_dylib_link',
     'add_asset_link',
+    'dart_app',
+    'drop_dylib_link',
+    'native_add_duplicate',
+    'native_add',
   ].contains(packageUnderTest));
   return await inTempDir((tempUri) async {
     await copyTestProjects(tempUri, logger);

@@ -128,6 +128,28 @@ void main(List<String> args) {
     });
   });
 
+  test('dart build and link dylib conflict', timeout: longTimeout, () async {
+    await nativeAssetsTest('native_add_duplicate', (dartAppUri) async {
+      final result = await runDart(
+        arguments: [
+          '--enable-experiment=native-assets',
+          'build',
+          'bin/native_add_duplicate.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(
+        result.stderr,
+        contains(
+          'Duplicate dynamic library file name',
+        ),
+      );
+      expect(result.exitCode, 255);
+    });
+  });
+
   test('dart link assets', timeout: longTimeout, () async {
     await nativeAssetsTest('drop_dylib_link', (dartAppUri) async {
       final result = await runDart(

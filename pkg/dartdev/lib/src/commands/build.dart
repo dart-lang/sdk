@@ -212,6 +212,11 @@ class BuildCommand extends DartdevCommand {
 Use linkMode as dynamic library instead.""");
         return 255;
       }
+      final validateResult = validateNoDuplicateDylibs(allAssets);
+      if (validateResult.isNotEmpty) {
+        validateResult.forEach(stderr.writeln);
+        return 255;
+      }
       if (allAssets.isNotEmpty) {
         final targetMapping = _targetMapping(allAssets, target);
         assetsDartUri = await _writeAssetsYaml(
