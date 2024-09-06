@@ -1573,9 +1573,8 @@ class AnalysisDriver {
       content: file.content,
       lineInfo: file.lineInfo,
       uri: file.uri,
-      isAugmentation: false,
       isLibrary: file.kind is LibraryFileKind,
-      isMacroAugmentation: file.isMacroPart,
+      isMacroPart: file.isMacroPart,
       isPart: file.kind is PartFileKind,
       errors: errors,
       analysisOptions: file.analysisOptions,
@@ -1925,9 +1924,8 @@ class AnalysisDriver {
       content: file.content,
       lineInfo: file.lineInfo,
       uri: file.uri,
-      isAugmentation: false,
       isLibrary: file.kind is LibraryFileKind,
-      isMacroAugmentation: file.isMacroPart,
+      isMacroPart: file.isMacroPart,
       isPart: file.kind is PartFileKind,
       errors: [
         AnalysisError.tmp(

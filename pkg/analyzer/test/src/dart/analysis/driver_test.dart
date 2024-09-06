@@ -275,7 +275,7 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/a.dart';
@@ -935,7 +935,7 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/a.dart';
@@ -1015,7 +1015,7 @@ class B {}
   ResolvedUnitResult #1
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/b.dart';
@@ -1048,7 +1048,7 @@ class A2 {}
   ResolvedUnitResult #3
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/b.dart';
@@ -1125,7 +1125,7 @@ class B {}
   ResolvedUnitResult #1
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/b.dart';
@@ -1162,7 +1162,7 @@ class A2 {}
   ErrorsResult #3
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: isMacroAugmentation isPart
+    flags: isMacroPart isPart
     content
 ---
 part of 'package:test/b.dart';
@@ -1904,7 +1904,7 @@ class A {}
   ErrorsResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: isMacroAugmentation isPart
+    flags: isMacroPart isPart
     content
 ---
 part of 'package:test/a.dart';
@@ -1915,7 +1915,7 @@ class B {}
   ResolvedUnitResult #2
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/a.dart';
@@ -2377,7 +2377,7 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/a.dart';
@@ -2745,7 +2745,7 @@ class A {}
       ResolvedUnitResult #2
         path: /home/test/lib/a.macro.dart
         uri: package:test/a.macro.dart
-        flags: exists isMacroAugmentation isPart
+        flags: exists isMacroPart isPart
         content
 ---
 part of 'package:test/a.dart';
@@ -2935,7 +2935,7 @@ class A {}
       ResolvedUnitResult #2
         path: /home/test/lib/a.macro.dart
         uri: package:test/a.macro.dart
-        flags: exists isMacroAugmentation isPart
+        flags: exists isMacroPart isPart
         content
 ---
 part of 'package:test/a.dart';
@@ -3247,7 +3247,7 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/a.dart';
@@ -3739,7 +3739,7 @@ class A {}
 [future] getUnitElement AM1
   path: /home/test/lib/a.macro.dart
   uri: package:test/a.macro.dart
-  flags: isMacroAugmentation isPart
+  flags: isMacroPart isPart
   enclosing: package:test/a.dart::<fragment>
   selectedElements
     package:test/a.dart::@fragment::package:test/a.macro.dart::@class::B
@@ -6085,10 +6085,10 @@ extension on AnalysisDriver {
 extension on DriverEventsPrinterConfiguration {
   void withMacroFileContent() {
     errorsConfiguration.withContentPredicate = (result) {
-      return result.isMacroAugmentation;
+      return result.isMacroPart;
     };
     libraryConfiguration.unitConfiguration.withContentPredicate = (result) {
-      return result.isMacroAugmentation;
+      return result.isMacroPart;
     };
   }
 }

@@ -63,9 +63,8 @@ class DriverEventsPrinter {
           sink.writelnWithIndent('uri: ${result.uri}');
 
           sink.writeFlags({
-            'isAugmentation': result.isAugmentation,
             'isLibrary': result.isLibrary,
-            'isMacroAugmentation': result.isMacroAugmentation,
+            'isMacroPart': result.isMacroPart,
             'isPart': result.isPart,
           });
 
@@ -273,9 +272,8 @@ class DriverEventsPrinter {
     sink.writelnWithIndent('uri: ${result.uri}');
 
     sink.writeFlags({
-      'isAugmentation': result.isAugmentation,
       'isLibrary': result.isLibrary,
-      'isMacroAugmentation': result.isMacroAugmentation,
+      'isMacroPart': result.isMacroPart,
       'isPart': result.isPart,
     });
 
@@ -535,9 +533,8 @@ class ResolvedUnitResultPrinter {
 
       sink.writeFlags({
         'exists': result.exists,
-        'isAugmentation': result.isAugmentation,
         'isLibrary': result.isLibrary,
-        'isMacroAugmentation': result.isMacroAugmentation,
+        'isMacroPart': result.isMacroPart,
         'isPart': result.isPart,
       });
 
