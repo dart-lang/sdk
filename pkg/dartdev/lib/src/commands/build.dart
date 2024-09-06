@@ -96,6 +96,11 @@ class BuildCommand extends DartdevCommand {
       args.option(outputOptionName)?.normalizeCanonicalizePath().makeFolder() ??
           sourceUri.toFilePath().removeDotDart().makeFolder(),
     );
+    if (await File.fromUri(outputUri.resolve('pubspec.yaml')).exists()) {
+      stderr.writeln("'dart build' refuses to delete your project.");
+      stderr.writeln('Requested output directory: ${outputUri.toFilePath()}');
+      return 128;
+    }
 
     final format = Kind.values.byName(args.option(formatOptionName)!);
     final outputExeUri = outputUri.resolve(

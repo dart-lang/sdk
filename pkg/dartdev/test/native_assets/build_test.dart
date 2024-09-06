@@ -189,6 +189,28 @@ void main(List<String> args) {
       );
     });
   });
+
+  test('do not delete project', () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final result = await runDart(
+        arguments: [
+          '--enable-experiment=native-assets',
+          if (fromDartdevSource)
+            Platform.script.resolve('../../bin/dartdev.dart').toFilePath(),
+          'build',
+          'bin/dart_app.dart',
+          '.'
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(
+        result.exitCode,
+        isNot(0), // The dartdev error code.
+      );
+    });
+  });
 }
 
 Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {
