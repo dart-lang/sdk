@@ -187,13 +187,19 @@ library
             set f= @-1
               reference: <testLibraryFragment>::@mixin::M::@setter::f
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              parameters
+                _f @-1
             set s= @126
               reference: <testLibraryFragment>::@mixin::M::@setter::s
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              parameters
+                v @132
           methods
             m @144
               reference: <testLibraryFragment>::@mixin::M::@method::m
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              parameters
+                v @153
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -268,14 +274,26 @@ library
         synthetic set f=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::M
+          parameters
+            requiredPositional _f
+              reference: <none>
+              type: T
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::f
         set s=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::M
+          parameters
+            requiredPositional v
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::s
       methods
         m
           reference: <none>
+          parameters
+            requiredPositional v
+              reference: <none>
+              type: double
           firstFragment: <testLibraryFragment>::@mixin::M::@method::m
 ''');
   }
@@ -1927,6 +1945,8 @@ library
             set foo= @21
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              parameters
+                _ @29
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -1945,6 +1965,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::M
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
 ''');
   }
@@ -2000,6 +2024,8 @@ library
             set foo= @21
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              parameters
+                _ @29
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -2018,6 +2044,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::M
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
 ''');
   }
@@ -2935,6 +2965,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       mixins
@@ -2970,6 +3002,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
 ''');
   }
@@ -3119,6 +3155,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -3168,6 +3206,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
 ''');
   }
@@ -3318,6 +3360,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -3366,6 +3410,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
 ''');
   }
@@ -3518,6 +3566,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              parameters
+                _foo @-1
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -3531,6 +3581,8 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+              parameters
+                _ @61
               previousFragment: <testLibraryFragment>::@mixin::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
@@ -3567,6 +3619,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
 ''');
   }
@@ -3684,6 +3740,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       mixins
@@ -3719,6 +3777,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
 ''');
   }
@@ -3985,6 +4047,8 @@ library
             set foo1= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              parameters
+                _foo1 @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       mixins
@@ -4005,6 +4069,8 @@ library
             set foo2= @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+              parameters
+                _foo2 @-1
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
@@ -4040,10 +4106,18 @@ library
         synthetic set foo1=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _foo1
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo1
         synthetic set foo2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _foo2
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
 ''');
   }
@@ -4189,6 +4263,8 @@ library
             set foo1= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              parameters
+                _foo1 @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       mixins
@@ -4209,6 +4285,8 @@ library
             set foo2= @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+              parameters
+                _foo2 @-1
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
@@ -4244,10 +4322,18 @@ library
         synthetic set foo1=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _foo1
+              reference: <none>
+              type: T1
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo1
         synthetic set foo2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _foo2
+              reference: <none>
+              type: T2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
 ''');
   }
@@ -4673,6 +4759,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       mixins
@@ -4708,6 +4796,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
 ''');
   }
@@ -4857,6 +4949,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -4906,6 +5000,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
 ''');
   }
@@ -6363,6 +6461,8 @@ library
             set foo1= @31
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              parameters
+                _ @40
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       mixins
@@ -6378,6 +6478,8 @@ library
             set foo2= @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+              parameters
+                _ @54
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
@@ -6402,10 +6504,18 @@ library
         set foo1=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo1
         set foo2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
 ''');
   }
@@ -6525,6 +6635,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              parameters
+                _foo @-1
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -6536,6 +6648,8 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+              parameters
+                _ @61
               previousFragment: <testLibraryFragment>::@mixin::A::@setter::foo
   mixins
     mixin A
@@ -6561,6 +6675,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
 ''');
   }
@@ -6688,10 +6806,14 @@ library
             set foo1= @31
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              parameters
+                _ @40
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
             set foo2= @52
               reference: <testLibraryFragment>::@mixin::A::@setter::foo2
               enclosingFragment: <testLibraryFragment>::@mixin::A
+              parameters
+                _ @61
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       mixins
@@ -6702,6 +6824,8 @@ library
             augment set foo1= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+              parameters
+                _ @62
               previousFragment: <testLibraryFragment>::@mixin::A::@setter::foo1
   mixins
     mixin A
@@ -6727,10 +6851,18 @@ library
         set foo2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo2
         set foo1=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo1
 ''');
   }
@@ -7578,6 +7710,8 @@ library
             foo @41
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@method::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
+              parameters
+                a @45
   mixins
     mixin B
       reference: <testLibraryFragment>::@mixin::B
@@ -7588,6 +7722,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: String
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@method::foo
 ''');
   }
@@ -7678,6 +7816,8 @@ library
             foo @28
               reference: <testLibraryFragment>::@mixin::B::@method::foo
               enclosingFragment: <testLibraryFragment>::@mixin::B
+              parameters
+                a @32
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -7696,6 +7836,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: String
           firstFragment: <testLibraryFragment>::@mixin::B::@method::foo
 ''');
   }
@@ -7782,6 +7926,8 @@ library
             foo @28
               reference: <testLibraryFragment>::@mixin::B::@method::foo
               enclosingFragment: <testLibraryFragment>::@mixin::B
+              parameters
+                a @32
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -7800,6 +7946,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: String
           firstFragment: <testLibraryFragment>::@mixin::B::@method::foo
 ''');
   }
@@ -7905,6 +8055,8 @@ library
               reference: <testLibraryFragment>::@mixin::B::@method::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
               enclosingFragment: <testLibraryFragment>::@mixin::B
+              parameters
+                a @54
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       mixins
@@ -7916,6 +8068,8 @@ library
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
               previousFragment: <testLibraryFragment>::@mixin::B::@method::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
+              parameters
+                a @53
   mixins
     mixin B
       reference: <testLibraryFragment>::@mixin::B
@@ -7926,6 +8080,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: String
           firstFragment: <testLibraryFragment>::@mixin::B::@method::foo
 ''');
   }

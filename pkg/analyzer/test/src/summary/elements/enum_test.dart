@@ -410,6 +410,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: T
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get int
@@ -688,6 +692,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: T
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
@@ -1237,6 +1245,14 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: int Function(double)
+              parameters
+                requiredPositional a
+                  reference: <none>
+                  type: double
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
@@ -1417,6 +1433,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
@@ -1556,6 +1576,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
@@ -1722,6 +1746,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            optionalNamed final x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
@@ -1879,6 +1907,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
@@ -2036,6 +2068,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
@@ -2193,6 +2229,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
@@ -2340,6 +2380,10 @@ library
       constructors
         const named
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::named
       getters
         synthetic static get v
@@ -2474,6 +2518,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
@@ -2681,6 +2729,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: T?
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
@@ -3054,6 +3106,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
@@ -3994,6 +4050,9 @@ library
             foo @23
               reference: <testLibraryFragment>::@enum::E::@method::foo
               enclosingFragment: <testLibraryFragment>::@enum::E
+              parameters
+                t @32
+                u @37
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
@@ -4029,6 +4088,13 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional t
+              reference: <none>
+              type: T
+            requiredPositional u
+              reference: <none>
+              type: U
           firstFragment: <testLibraryFragment>::@enum::E::@method::foo
 ''');
   }
@@ -4762,6 +4828,8 @@ library
             set foo= @19
               reference: <testLibraryFragment>::@enum::E::@setter::foo
               enclosingFragment: <testLibraryFragment>::@enum::E
+              parameters
+                _ @27
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
@@ -4804,6 +4872,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::E
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@enum::E::@setter::foo
 ''');
   }
@@ -7274,6 +7346,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional final value
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get value
@@ -10727,6 +10803,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v1
@@ -11238,6 +11318,10 @@ library
       constructors
         const named
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: T2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
       getters
         synthetic static get v
@@ -11904,6 +11988,10 @@ library
       constructors
         const named
           reference: <none>
+          parameters
+            requiredPositional final f
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
       getters
         synthetic static get v
@@ -13038,6 +13126,8 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              parameters
+                _ @61
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
@@ -13095,6 +13185,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
 ''');
   }
@@ -14379,6 +14473,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional final foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
@@ -17624,6 +17722,8 @@ library
             foo @46
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              parameters
+                default x @55
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
@@ -17659,6 +17759,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            optionalPositional x
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
 ''');
   }
@@ -19452,6 +19556,8 @@ library
             set foo1= @35
               reference: <testLibraryFragment>::@enum::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@enum::A
+              parameters
+                _ @44
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -19467,6 +19573,8 @@ library
             set foo2= @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              parameters
+                _ @54
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
@@ -19515,10 +19623,18 @@ library
         set foo1=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@enum::A::@setter::foo1
         set foo2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2
 ''');
   }
@@ -19687,6 +19803,8 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              parameters
+                _ @61
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
@@ -19733,6 +19851,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
 ''');
   }
@@ -19877,6 +19999,8 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              parameters
+                _ @61
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
@@ -19913,6 +20037,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
 ''');
   }
@@ -20096,10 +20224,14 @@ library
             set foo1= @35
               reference: <testLibraryFragment>::@enum::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@enum::A
+              parameters
+                _ @44
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
             set foo2= @56
               reference: <testLibraryFragment>::@enum::A::@setter::foo2
               enclosingFragment: <testLibraryFragment>::@enum::A
+              parameters
+                _ @65
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -20110,6 +20242,8 @@ library
             augment set foo1= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              parameters
+                _ @62
               previousFragment: <testLibraryFragment>::@enum::A::@setter::foo1
   enums
     enum A
@@ -20159,10 +20293,18 @@ library
         set foo2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@enum::A::@setter::foo2
         set foo1=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@enum::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@enum::A::@setter::foo1
 ''');
   }
@@ -21245,6 +21387,8 @@ library
             foo @41
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
+              parameters
+                a @45
   enums
     enum B
       reference: <testLibraryFragment>::@enum::B
@@ -21280,6 +21424,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: String
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
 ''');
   }
@@ -21422,6 +21570,8 @@ library
             foo @32
               reference: <testLibraryFragment>::@enum::B::@method::foo
               enclosingFragment: <testLibraryFragment>::@enum::B
+              parameters
+                a @36
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -21465,6 +21615,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: String
           firstFragment: <testLibraryFragment>::@enum::B::@method::foo
 ''');
   }
@@ -21607,6 +21761,8 @@ library
             foo @32
               reference: <testLibraryFragment>::@enum::B::@method::foo
               enclosingFragment: <testLibraryFragment>::@enum::B
+              parameters
+                a @36
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -21650,6 +21806,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: String
           firstFragment: <testLibraryFragment>::@enum::B::@method::foo
 ''');
   }

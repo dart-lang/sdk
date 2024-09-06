@@ -3852,6 +3852,131 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
       visitor.visitFieldFormalParameterElement(this);
 }
 
+class FormalParameterElementImpl extends PromotableElementImpl2
+    with
+        FragmentedAnnotatableElementMixin<FormalParameterFragment>,
+        FragmentedElementMixin<FormalParameterFragment>
+    implements FormalParameterElement {
+  @override
+  final ParameterElementImpl firstFragment;
+
+  FormalParameterElementImpl(this.firstFragment) {
+    ParameterElementImpl? fragment = firstFragment;
+    while (fragment != null) {
+      fragment.element = this;
+      fragment = fragment.nextFragment as ParameterElementImpl?;
+    }
+  }
+
+  @override
+  FormalParameterElement get baseElement => this;
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  String? get defaultValueCode => firstFragment.defaultValueCode;
+
+  @override
+  Element2? get enclosingElement2 =>
+      (firstFragment._enclosingElement as Fragment).element;
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  bool get hasDefaultValue => firstFragment.hasDefaultValue;
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  bool get hasImplicitType => firstFragment.hasImplicitType;
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  bool get isConst => firstFragment.isConst;
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  bool get isCovariant => firstFragment.isCovariant;
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  bool get isFinal => firstFragment.isFinal;
+
+  @override
+  bool get isInitializingFormal => firstFragment.isInitializingFormal;
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  bool get isLate => firstFragment.isLate;
+
+  @override
+  bool get isNamed => firstFragment.isNamed;
+
+  @override
+  bool get isOptional => firstFragment.isOptional;
+
+  @override
+  bool get isOptionalNamed => firstFragment.isOptionalNamed;
+
+  @override
+  bool get isOptionalPositional => firstFragment.isOptionalPositional;
+
+  @override
+  bool get isPositional => firstFragment.isPositional;
+
+  @override
+  bool get isRequired => firstFragment.isRequired;
+
+  @override
+  bool get isRequiredNamed => firstFragment.isRequiredNamed;
+
+  @override
+  bool get isRequiredPositional => firstFragment.isRequiredPositional;
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  bool get isStatic => firstFragment.isStatic;
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  bool get isSuperFormal => firstFragment.isSuperFormal;
+
+  @override
+  ElementKind get kind => ElementKind.PARAMETER;
+
+  @override
+  LibraryElement2 get library2 =>
+      firstFragment.thisOrAncestorOfType<LibraryElementImpl>()
+          as LibraryElement2;
+
+  @override
+  String? get name => firstFragment.name;
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  List<FormalParameterElement> get parameters2 => firstFragment.parameters
+      .map((fragment) => (fragment as ParameterElementImpl).element)
+      .toList();
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  DartType get type => firstFragment.type;
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  List<TypeParameterElement2> get typeParameters2 => const [];
+
+  @override
+  void appendToWithoutDelimiters2(StringBuffer buffer) {
+    // TODO(augmentations): Implement the merge of formal parameters.
+    firstFragment.appendToWithoutDelimiters(buffer);
+  }
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  DartObject? computeConstantValue() => firstFragment.computeConstantValue();
+  // firstFragment.typeParameters
+  //     .map((fragment) => (fragment as TypeParameterElementImpl).element)
+  //     .toList();
+}
+
 mixin FragmentedAnnotatableElementMixin<E extends Fragment>
     implements FragmentedElementMixin<E> {
   String? get documentationComment {
@@ -4265,10 +4390,19 @@ mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
   // TODO(augmentations): This might be wrong. The parameters need to be a
   //  merge of the parameters of all of the fragments, but this probably doesn't
   //  account for missing data (such as the parameter types).
-  List<FormalParameterElement> get parameters2 =>
-      (firstFragment as FunctionTypedElementImpl)
-          .parameters
-          .cast<FormalParameterElement>();
+  List<FormalParameterElement> get parameters2 {
+    var fragment = firstFragment;
+    return switch (fragment) {
+      FunctionTypedElementImpl(:var parameters) =>
+        parameters.cast<FormalParameterElement>(),
+      ExecutableElementImpl(:var parameters) => parameters
+          .map((fragment) => (fragment as FormalParameterFragment).element
+              as FormalParameterElement)
+          .toList(),
+      _ => throw UnsupportedError(
+          'Cannot get parameters for ${fragment.runtimeType}'),
+    };
+  }
 
   DartType get returnType => type.returnType;
 
@@ -7526,7 +7660,7 @@ class NotAugmentedMixinElementImpl extends NotAugmentedInterfaceElementImpl
 /// A concrete implementation of a [ParameterElement].
 class ParameterElementImpl extends VariableElementImpl
     with ParameterElementMixin
-    implements ParameterElement {
+    implements ParameterElement, FormalParameterFragment {
   /// A list containing all of the parameters defined by this parameter element.
   /// There will only be parameters if this parameter is a function typed
   /// parameter.
@@ -7547,6 +7681,9 @@ class ParameterElementImpl extends VariableElementImpl
   /// when it overrides a method in a supertype that has a corresponding
   /// covariant parameter.
   bool inheritsCovariant = false;
+
+  /// The element corresponding to this fragment.
+  FormalParameterElement? _element;
 
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
@@ -7573,7 +7710,31 @@ class ParameterElementImpl extends VariableElementImpl
   List<Element> get children => parameters;
 
   @override
+  List<Fragment> get children3 => const [];
+
+  @override
   ParameterElement get declaration => this;
+
+  @override
+  FormalParameterElement get element {
+    if (_element != null) {
+      return _element!;
+    }
+    FormalParameterFragment firstFragment = this;
+    var previousFragment = firstFragment.previousFragment;
+    while (previousFragment != null) {
+      firstFragment = previousFragment;
+      previousFragment = firstFragment.previousFragment;
+    }
+    // As a side-effect of creating the element, all of the fragments in the
+    // chain will have their `_element` set to the newly created element.
+    return FormalParameterElementImpl(firstFragment as ParameterElementImpl);
+  }
+
+  set element(FormalParameterElement element) => _element = element;
+
+  @override
+  Fragment? get enclosingFragment => enclosingElement3 as Fragment?;
 
   @override
   bool get hasDefaultValue {
@@ -7612,6 +7773,14 @@ class ParameterElementImpl extends VariableElementImpl
   ElementKind get kind => ElementKind.PARAMETER;
 
   @override
+  LibraryFragment get libraryFragment =>
+      thisOrAncestorOfType<CompilationUnitElementImpl>() as LibraryFragment;
+
+  @override
+  // TODO(augmentations): Support chaining between the fragments.
+  FormalParameterFragment? get nextFragment => null;
+
+  @override
   List<ParameterElement> get parameters {
     return _parameters;
   }
@@ -7625,6 +7794,10 @@ class ParameterElementImpl extends VariableElementImpl
     }
     _parameters = parameters;
   }
+
+  @override
+  // TODO(augmentations): Support chaining between the fragments.
+  FormalParameterFragment? get previousFragment => null;
 
   @override
   List<TypeParameterElement> get typeParameters {
@@ -7885,6 +8058,9 @@ class PrefixElementImpl extends _ExistingElementImpl
     builder.writePrefixElement(this);
   }
 }
+
+abstract class PromotableElementImpl2 extends VariableElementImpl2
+    implements PromotableElement2 {}
 
 /// A concrete implementation of a [PropertyAccessorElement].
 class PropertyAccessorElementImpl extends ExecutableElementImpl

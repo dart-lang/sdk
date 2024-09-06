@@ -3176,6 +3176,10 @@ library
       constructors
         named
           reference: <none>
+          parameters
+            requiredPositional final f
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
       getters
         synthetic get f
@@ -3282,6 +3286,10 @@ library
       constructors
         named
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
 ''');
   }
@@ -3379,6 +3387,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
 ''');
   }
@@ -3494,6 +3506,8 @@ library
             set foo= @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              parameters
+                _foo @-1
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3516,6 +3530,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
 ''');
   }
@@ -3725,6 +3743,8 @@ library
             foo @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              parameters
+                a @70
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3733,6 +3753,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: double
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
 ''');
   }
@@ -3837,6 +3861,8 @@ library
             set foo= @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              parameters
+                a @67
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3853,6 +3879,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
 ''');
   }
@@ -3896,6 +3926,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            optionalPositional x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@constructor::new
 ''');
   }
@@ -3937,6 +3971,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            optionalPositional x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
 ''');
   }
@@ -3978,6 +4016,26 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            optionalPositional x
+              reference: <none>
+              type: dynamic
+              metadata
+                Annotation
+                  atSign: @ @107
+                  name: PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: prefix0 @108
+                      staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                      staticType: null
+                    period: . @115
+                    identifier: SimpleIdentifier
+                      token: a @116
+                      staticElement: package:test/a.dart::<fragment>::@getter::a
+                      staticType: null
+                    staticElement: package:test/a.dart::<fragment>::@getter::a
+                    staticType: null
+                  element: package:test/a.dart::<fragment>::@getter::a
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
 ''');
   }
@@ -4019,6 +4077,26 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: dynamic
+              metadata
+                Annotation
+                  atSign: @ @106
+                  name: PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: prefix0 @107
+                      staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                      staticType: null
+                    period: . @114
+                    identifier: SimpleIdentifier
+                      token: a @115
+                      staticElement: package:test/a.dart::<fragment>::@getter::a
+                      staticType: null
+                    staticElement: package:test/a.dart::<fragment>::@getter::a
+                    staticType: null
+                  element: package:test/a.dart::<fragment>::@getter::a
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
 ''');
   }
@@ -4068,6 +4146,26 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::B
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: dynamic
+              metadata
+                Annotation
+                  atSign: @ @105
+                  name: PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: prefix0 @106
+                      staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                      staticType: null
+                    period: . @113
+                    identifier: SimpleIdentifier
+                      token: a @114
+                      staticElement: package:test/a.dart::<fragment>::@getter::a
+                      staticType: null
+                    staticElement: package:test/a.dart::<fragment>::@getter::a
+                    staticType: null
+                  element: package:test/a.dart::<fragment>::@getter::a
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@setter::foo
 ''');
   }
@@ -4915,6 +5013,10 @@ library
                 leftParenthesis: ( @107
                 rightParenthesis: ) @108
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@setter::foo
 ''');
   }
@@ -5137,6 +5239,10 @@ library
             leftParenthesis: ( @87
             rightParenthesis: ) @88
           element: package:test/a.dart::<fragment>::@class::A
+      parameters
+        requiredPositional _
+          reference: <none>
+          type: int
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
 ''');
   }
@@ -5186,6 +5292,26 @@ library
     static set foo=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional x
+          reference: <none>
+          type: dynamic
+          metadata
+            Annotation
+              atSign: @ @85
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: prefix0 @86
+                  staticElement: <null>
+                  staticType: null
+                period: . @93
+                identifier: SimpleIdentifier
+                  token: a @94
+                  staticElement: <null>
+                  staticType: null
+                staticElement: <null>
+                staticType: null
+              element: <null>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
 ''');
   }
@@ -6155,6 +6281,8 @@ library
             set foo= @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              parameters
+                _foo @-1
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -6177,6 +6305,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
 ''');
   }
@@ -6642,10 +6774,14 @@ library
             set foo= @173
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              parameters
+                value @189
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
             augment set foo= @216
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              parameters
+                value @232
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
   classes
     class A
@@ -6663,6 +6799,10 @@ library
         external set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
 ''');
   }
@@ -9332,6 +9472,9 @@ library
             foo @116
               reference: <testLibraryFragment>::@class::A::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                a @124
+                b @134
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -9340,6 +9483,13 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+            requiredPositional b
+              reference: <none>
+              type: String
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -10274,6 +10424,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10296,6 +10448,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -12946,6 +13102,10 @@ library
       constructors
         fromJson
           reference: <none>
+          parameters
+            requiredPositional json
+              reference: <none>
+              type: Map<String, Object?>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
       getters
         synthetic get foo
@@ -18649,6 +18809,8 @@ library
             foo @100
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+              parameters
+                _ @114
   classes
     class X
       reference: <testLibraryFragment>::@class::X
@@ -18661,6 +18823,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: A
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo
 ''');
 

@@ -94,6 +94,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -194,6 +198,10 @@ library
       constructors
         named
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
       getters
         synthetic get it
@@ -293,9 +301,17 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: num
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
         named
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: num
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
       getters
         synthetic get it
@@ -395,9 +411,17 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: num
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
         named
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
       getters
         synthetic get it
@@ -518,9 +542,17 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: num
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
         const named
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
       getters
         synthetic get it
@@ -617,6 +649,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -704,6 +740,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -1106,6 +1146,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -1979,6 +2023,10 @@ library
         synthetic set _it=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::B
+          parameters
+            requiredPositional __it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::B::@setter::_it
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2121,6 +2169,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -2191,6 +2243,8 @@ library
             foo @34
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                a @42
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
@@ -2212,6 +2266,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
 ''');
   }
@@ -2282,6 +2340,9 @@ library
             foo @34
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                default a @43
+                  reference: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
@@ -2303,6 +2364,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            optionalNamed a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
 ''');
   }
@@ -2394,6 +2459,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final <empty>
+              reference: <none>
+              type: InvalidType
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get <empty>
@@ -2543,6 +2612,8 @@ library
             set foo= @33
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                _ @44
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
@@ -2571,6 +2642,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: double
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
 ''');
   }
@@ -3364,6 +3439,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: Map<T, U>
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -3521,6 +3600,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -3688,6 +3771,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
       getters
         synthetic get it
@@ -3831,6 +3918,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
         named
           reference: <none>
@@ -3981,9 +4072,17 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
         named
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: T2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
       getters
         synthetic get it
@@ -4120,6 +4219,10 @@ library
       constructors
         named
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
         new
           reference: <none>
@@ -4279,6 +4382,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -4313,6 +4418,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -4327,6 +4436,10 @@ library
         synthetic static set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
 ''');
   }
@@ -4510,6 +4623,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -4558,6 +4673,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -4572,6 +4691,10 @@ library
         synthetic static set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
 ''');
   }
@@ -4756,6 +4879,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -4803,6 +4928,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -4817,6 +4946,10 @@ library
         synthetic static set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
 ''');
   }
@@ -5003,6 +5136,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                _foo @-1
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -5016,6 +5151,8 @@ library
             augment set foo= @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              parameters
+                _ @85
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
@@ -5051,6 +5188,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -5065,6 +5206,10 @@ library
         synthetic static set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
 ''');
   }
@@ -5216,6 +5361,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -5250,6 +5397,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -5264,6 +5415,10 @@ library
         synthetic static set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
 ''');
   }
@@ -5433,6 +5588,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -5611,6 +5770,8 @@ library
             set foo1= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                _foo1 @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -5631,6 +5792,8 @@ library
             set foo2= @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              parameters
+                _foo2 @-1
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
@@ -5661,6 +5824,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -5679,10 +5846,18 @@ library
         synthetic static set foo1=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _foo1
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo1
         synthetic static set foo2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _foo2
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
 ''');
   }
@@ -5866,6 +6041,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -6072,6 +6251,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -6236,6 +6419,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -6270,6 +6455,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -6284,6 +6473,10 @@ library
         synthetic static set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
 ''');
   }
@@ -6467,6 +6660,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -6515,6 +6710,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -6529,6 +6728,10 @@ library
         synthetic static set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
 ''');
   }
@@ -6724,6 +6927,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -6950,6 +7157,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -7435,6 +7646,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -7456,6 +7671,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::I1::@constructor::new
       getters
         synthetic get it
@@ -7477,6 +7696,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
       getters
         synthetic get it
@@ -7498,6 +7721,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new
       getters
         synthetic get it
@@ -7715,6 +7942,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -7736,6 +7967,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::I1::@constructor::new
       getters
         synthetic get it
@@ -7757,6 +7992,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
       getters
         synthetic get it
@@ -7975,6 +8214,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -7996,6 +8239,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::I1::@constructor::new
       getters
         synthetic get it
@@ -8017,6 +8264,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
       getters
         synthetic get it
@@ -8163,6 +8414,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -8328,6 +8583,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -8528,6 +8787,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -8686,6 +8949,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -8850,6 +9117,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -9017,6 +9288,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -9176,6 +9451,8 @@ library
             set foo1= @48
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                _ @57
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -9191,6 +9468,8 @@ library
             set foo2= @62
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              parameters
+                _ @71
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
@@ -9219,6 +9498,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -9229,10 +9512,18 @@ library
         set foo1=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo1
         set foo2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
 ''');
   }
@@ -9386,6 +9677,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                _foo @-1
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -9397,6 +9690,8 @@ library
             augment set foo= @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              parameters
+                _ @85
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
   extensionTypes
     extension type A
@@ -9421,6 +9716,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -9435,6 +9734,10 @@ library
         synthetic static set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
 ''');
   }
@@ -9597,10 +9900,14 @@ library
             set foo1= @48
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                _ @57
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
             set foo2= @69
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo2
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+              parameters
+                _ @78
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -9611,6 +9918,8 @@ library
             augment set foo1= @70
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              parameters
+                _ @79
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo1
   extensionTypes
     extension type A
@@ -9640,6 +9949,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
       getters
         synthetic get it
@@ -9650,10 +9963,18 @@ library
         set foo2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo2
         set foo1=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extensionType::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo1
 ''');
   }

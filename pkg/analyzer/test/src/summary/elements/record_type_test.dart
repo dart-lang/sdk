@@ -214,6 +214,8 @@ library
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                a @35
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -226,6 +228,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: (int, String)
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }

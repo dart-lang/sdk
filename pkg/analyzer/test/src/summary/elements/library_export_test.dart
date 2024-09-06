@@ -1960,6 +1960,8 @@ library
         set a= @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::a
           enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
+          parameters
+            _a @-1
   topLevelVariables
     a
       reference: <none>
@@ -1977,6 +1979,10 @@ library
     synthetic static set a=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _a
+          reference: <none>
+          type: int
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::a
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a

@@ -1713,18 +1713,28 @@ library
             set withInit= @-1
               reference: <testLibraryFragment>::@class::C::@setter::withInit
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _withInit @-1
             set withoutInit= @-1
               reference: <testLibraryFragment>::@class::C::@setter::withoutInit
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _withoutInit @-1
             set multiWithInit= @-1
               reference: <testLibraryFragment>::@class::C::@setter::multiWithInit
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _multiWithInit @-1
             set multiWithoutInit= @-1
               reference: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _multiWithoutInit @-1
             set multiWithInit2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::multiWithInit2
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _multiWithInit2 @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1797,22 +1807,42 @@ library
         synthetic set withInit=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _withInit
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::withInit
         synthetic set withoutInit=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _withoutInit
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::withoutInit
         synthetic set multiWithInit=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _multiWithInit
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::multiWithInit
         synthetic set multiWithoutInit=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _multiWithoutInit
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
         synthetic set multiWithInit2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _multiWithInit2
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::multiWithInit2
 ''');
   }
@@ -2227,33 +2257,53 @@ library
             set hasDocComment= @-1
               reference: <testLibraryFragment>::@class::C::@setter::hasDocComment
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _hasDocComment @-1
             set hasDocComment2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::hasDocComment2
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _hasDocComment2 @-1
             set hasAnnotation= @-1
               reference: <testLibraryFragment>::@class::C::@setter::hasAnnotation
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _hasAnnotation @-1
             set hasAnnotation2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _hasAnnotation2 @-1
             set annotationThenComment= @-1
               reference: <testLibraryFragment>::@class::C::@setter::annotationThenComment
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _annotationThenComment @-1
             set annotationThenComment2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _annotationThenComment2 @-1
             set commentThenAnnotation= @-1
               reference: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _commentThenAnnotation @-1
             set commentThenAnnotation2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _commentThenAnnotation2 @-1
             set commentAroundAnnotation= @-1
               reference: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _commentAroundAnnotation @-1
             set commentAroundAnnotation2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _commentAroundAnnotation2 @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2381,42 +2431,82 @@ library
         synthetic set hasDocComment=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _hasDocComment
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::hasDocComment
         synthetic set hasDocComment2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _hasDocComment2
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::hasDocComment2
         synthetic set hasAnnotation=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _hasAnnotation
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::hasAnnotation
         synthetic set hasAnnotation2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _hasAnnotation2
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
         synthetic set annotationThenComment=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _annotationThenComment
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::annotationThenComment
         synthetic set annotationThenComment2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _annotationThenComment2
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
         synthetic set commentThenAnnotation=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _commentThenAnnotation
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
         synthetic set commentThenAnnotation2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _commentThenAnnotation2
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
         synthetic set commentAroundAnnotation=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _commentAroundAnnotation
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
         synthetic set commentAroundAnnotation2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _commentAroundAnnotation2
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
 ''');
   }
@@ -3121,18 +3211,28 @@ library
         set withInit= @-1
           reference: <testLibraryFragment>::@setter::withInit
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _withInit @-1
         set withoutInit= @-1
           reference: <testLibraryFragment>::@setter::withoutInit
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _withoutInit @-1
         set multiWithInit= @-1
           reference: <testLibraryFragment>::@setter::multiWithInit
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _multiWithInit @-1
         set multiWithoutInit= @-1
           reference: <testLibraryFragment>::@setter::multiWithoutInit
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _multiWithoutInit @-1
         set multiWithInit2= @-1
           reference: <testLibraryFragment>::@setter::multiWithInit2
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _multiWithInit2 @-1
   topLevelVariables
     withInit
       reference: <none>
@@ -3194,22 +3294,42 @@ library
     synthetic static set withInit=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _withInit
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::withInit
     synthetic static set withoutInit=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _withoutInit
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::withoutInit
     synthetic static set multiWithInit=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _multiWithInit
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::multiWithInit
     synthetic static set multiWithoutInit=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _multiWithoutInit
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::multiWithoutInit
     synthetic static set multiWithInit2=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _multiWithInit2
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::multiWithInit2
 ''');
   }
@@ -3701,33 +3821,53 @@ library
         set hasDocComment= @-1
           reference: <testLibraryFragment>::@setter::hasDocComment
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _hasDocComment @-1
         set hasDocComment2= @-1
           reference: <testLibraryFragment>::@setter::hasDocComment2
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _hasDocComment2 @-1
         set hasAnnotation= @-1
           reference: <testLibraryFragment>::@setter::hasAnnotation
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _hasAnnotation @-1
         set hasAnnotation2= @-1
           reference: <testLibraryFragment>::@setter::hasAnnotation2
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _hasAnnotation2 @-1
         set annotationThenComment= @-1
           reference: <testLibraryFragment>::@setter::annotationThenComment
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _annotationThenComment @-1
         set annotationThenComment2= @-1
           reference: <testLibraryFragment>::@setter::annotationThenComment2
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _annotationThenComment2 @-1
         set commentThenAnnotation= @-1
           reference: <testLibraryFragment>::@setter::commentThenAnnotation
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _commentThenAnnotation @-1
         set commentThenAnnotation2= @-1
           reference: <testLibraryFragment>::@setter::commentThenAnnotation2
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _commentThenAnnotation2 @-1
         set commentAroundAnnotation= @-1
           reference: <testLibraryFragment>::@setter::commentAroundAnnotation
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _commentAroundAnnotation @-1
         set commentAroundAnnotation2= @-1
           reference: <testLibraryFragment>::@setter::commentAroundAnnotation2
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _commentAroundAnnotation2 @-1
   topLevelVariables
     hasDocComment
       reference: <none>
@@ -3844,42 +3984,82 @@ library
     synthetic static set hasDocComment=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _hasDocComment
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::hasDocComment
     synthetic static set hasDocComment2=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _hasDocComment2
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::hasDocComment2
     synthetic static set hasAnnotation=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _hasAnnotation
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::hasAnnotation
     synthetic static set hasAnnotation2=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _hasAnnotation2
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::hasAnnotation2
     synthetic static set annotationThenComment=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _annotationThenComment
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::annotationThenComment
     synthetic static set annotationThenComment2=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _annotationThenComment2
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::annotationThenComment2
     synthetic static set commentThenAnnotation=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _commentThenAnnotation
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::commentThenAnnotation
     synthetic static set commentThenAnnotation2=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _commentThenAnnotation2
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::commentThenAnnotation2
     synthetic static set commentAroundAnnotation=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _commentAroundAnnotation
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::commentAroundAnnotation
     synthetic static set commentAroundAnnotation2=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _commentAroundAnnotation2
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::commentAroundAnnotation2
 ''');
   }
@@ -4054,6 +4234,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
@@ -4123,6 +4307,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4149,6 +4335,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -4277,6 +4467,8 @@ library
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                a @28
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4289,6 +4481,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -4348,6 +4544,8 @@ library
             set foo= @16
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                x @24
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4368,6 +4566,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }

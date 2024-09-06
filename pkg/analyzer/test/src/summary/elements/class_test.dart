@@ -514,6 +514,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -530,6 +532,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -540,6 +546,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -608,6 +618,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -624,6 +636,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -634,6 +650,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -702,6 +722,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -718,6 +740,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -728,6 +754,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -804,6 +834,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -820,6 +852,14 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: dynamic Function(double)
+              parameters
+                requiredPositional b
+                  reference: <none>
+                  type: double
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -830,6 +870,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -906,6 +950,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -922,6 +968,14 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: int Function(double)
+              parameters
+                requiredPositional b
+                  reference: <none>
+                  type: double
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -932,6 +986,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -1011,6 +1069,8 @@ library
             set f= @-1
               reference: <testLibraryFragment>::@class::C::@setter::f
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _f @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1027,6 +1087,14 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final f
+              reference: <none>
+              type: List<U> Function<T, U>(T)
+              parameters
+                requiredPositional t
+                  reference: <none>
+                  type: T
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get f
@@ -1037,6 +1105,10 @@ library
         synthetic set f=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _f
+              reference: <none>
+              type: dynamic Function()
           firstFragment: <testLibraryFragment>::@class::C::@setter::f
 ''');
   }
@@ -1130,9 +1202,13 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x::@def::0
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x::@def::1
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1156,6 +1232,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -1170,10 +1250,18 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x::@def::0
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: String
           firstFragment: <testLibraryFragment>::@class::C::@setter::x::@def::1
 ''');
   }
@@ -1220,6 +1308,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
@@ -1288,6 +1380,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1304,6 +1398,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -1314,6 +1412,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: num
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -1382,6 +1484,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1398,6 +1502,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -1408,6 +1516,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: num
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -1476,6 +1588,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1492,6 +1606,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: num
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -1502,6 +1620,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: num
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -1570,6 +1692,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1586,6 +1710,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -1596,6 +1724,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -1664,6 +1796,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1680,6 +1814,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -1690,6 +1828,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -1758,6 +1900,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1774,6 +1918,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -1784,6 +1932,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -1853,6 +2005,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1869,6 +2023,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            optionalNamed final x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -1879,6 +2037,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -1952,6 +2114,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1968,6 +2132,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            optionalNamed final x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -1978,6 +2146,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -2046,6 +2218,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2062,6 +2236,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            optionalPositional final x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -2072,6 +2250,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -2144,6 +2326,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2160,6 +2344,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            optionalPositional final x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -2170,6 +2358,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -2298,6 +2490,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
@@ -2386,6 +2582,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
@@ -2702,6 +2902,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            optionalPositional f
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _f
@@ -2820,6 +3024,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -2938,6 +3146,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional p
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -3102,6 +3314,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
         const f
           reference: <none>
@@ -3199,6 +3415,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional values
+              reference: <none>
+              type: List<String>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -3312,6 +3532,10 @@ library
       constructors
         const aaa
           reference: <none>
+          parameters
+            requiredPositional p
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::aaa
     class C
       reference: <testLibraryFragment>::@class::C
@@ -3550,6 +3774,13 @@ library
       constructors
         const aaa
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: dynamic
+            optionalNamed b
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::aaa
     class C
       reference: <testLibraryFragment>::@class::C
@@ -3653,6 +3884,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional p
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class C
       reference: <testLibraryFragment>::@class::C
@@ -3750,6 +3985,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional values
+              reference: <none>
+              type: List<String>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
         const empty
           reference: <none>
@@ -3857,6 +4096,13 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
         const named
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+            requiredPositional b
+              reference: <none>
+              type: String
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
 ''');
   }
@@ -3977,6 +4223,13 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
         const named
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: dynamic
+            optionalNamed b
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
 ''');
   }
@@ -4070,6 +4323,13 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
         const new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+            requiredPositional b
+              reference: <none>
+              type: String
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
@@ -4148,6 +4408,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: Object?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -4157,6 +4421,14 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final a
+              reference: <none>
+              type: int Function<T extends num>(T)?
+              parameters
+                requiredPositional d
+                  reference: <none>
+                  type: T
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -4230,6 +4502,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: num
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -4239,6 +4515,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final a
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -4312,6 +4592,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: num?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -4321,6 +4605,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final a
+              reference: <none>
+              type: int?
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -4437,6 +4725,13 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredNamed a
+              reference: <none>
+              type: int
+            requiredNamed b
+              reference: <none>
+              type: double
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -4446,6 +4741,19 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            optionalNamed o1
+              reference: <none>
+              type: String
+            optionalNamed final a
+              reference: <none>
+              type: int
+            optionalNamed o2
+              reference: <none>
+              type: String
+            optionalNamed final b
+              reference: <none>
+              type: double
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -4526,6 +4834,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            optionalNamed a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -4535,6 +4847,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            optionalNamed final a
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -4610,6 +4926,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredNamed a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -4619,6 +4939,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            optionalNamed final b
+              reference: <none>
+              type: dynamic
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -4693,6 +5017,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -4702,6 +5030,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            optionalNamed final a
+              reference: <none>
+              type: dynamic
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -4784,6 +5116,13 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+            requiredPositional b
+              reference: <none>
+              type: double
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -4793,6 +5132,19 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            optionalPositional o1
+              reference: <none>
+              type: String
+            optionalPositional final a
+              reference: <none>
+              type: int
+            optionalPositional o2
+              reference: <none>
+              type: String
+            optionalPositional final b
+              reference: <none>
+              type: double
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -4886,6 +5238,13 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredNamed a
+              reference: <none>
+              type: int
+            requiredNamed b
+              reference: <none>
+              type: double
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -4895,6 +5254,19 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredNamed o1
+              reference: <none>
+              type: String
+            requiredNamed final a
+              reference: <none>
+              type: int
+            requiredNamed o2
+              reference: <none>
+              type: String
+            requiredNamed final b
+              reference: <none>
+              type: double
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -4975,6 +5347,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            optionalNamed a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -4984,6 +5360,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredNamed final a
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -5066,6 +5446,13 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+            requiredPositional b
+              reference: <none>
+              type: double
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -5075,6 +5462,19 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional o1
+              reference: <none>
+              type: String
+            requiredPositional final a
+              reference: <none>
+              type: int
+            requiredPositional o2
+              reference: <none>
+              type: String
+            requiredPositional final b
+              reference: <none>
+              type: double
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -5174,6 +5574,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class C
       reference: <testLibraryFragment>::@class::C
@@ -5183,6 +5587,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final a
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class B
@@ -5193,6 +5601,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final a
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -5301,6 +5713,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class C
       reference: <testLibraryFragment>::@class::C
@@ -5310,6 +5726,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final a
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class B
@@ -5320,6 +5740,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final a
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -5397,6 +5821,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final a
+              reference: <none>
+              type: dynamic
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -5471,6 +5899,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredNamed a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -5480,6 +5912,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final a
+              reference: <none>
+              type: dynamic
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
@@ -5527,6 +5963,13 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: dynamic
+            requiredPositional y
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
@@ -7858,6 +8301,10 @@ library
       constructors
         named
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: T
           firstFragment: <testLibraryFragment>::@class::A::@constructor::named
     class B
       reference: <testLibraryFragment>::@class::B
@@ -9472,6 +9919,8 @@ library
             set i= @-1
               reference: <testLibraryFragment>::@class::C::@setter::i
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _i @-1
   classes
     abstract class C
       reference: <testLibraryFragment>::@class::C
@@ -9498,6 +9947,10 @@ library
         synthetic abstract set i=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _i
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::i
 ''');
   }
@@ -9720,6 +10173,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -9746,6 +10201,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional covariant _x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -9817,6 +10276,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -9843,6 +10304,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -9940,6 +10405,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::C::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _foo @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -9976,6 +10443,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::foo
 ''');
   }
@@ -10073,9 +10544,13 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::C::@setter::foo::@def::0
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _foo @-1
             set foo= @31
               reference: <testLibraryFragment>::@class::C::@setter::foo::@def::1
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _ @39
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -10108,10 +10583,18 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::foo::@def::0
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::foo::@def::1
 ''');
   }
@@ -10180,6 +10663,8 @@ library
             set i= @-1
               reference: <testLibraryFragment>::@class::C::@setter::i
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _i @-1
   classes
     abstract class C
       reference: <testLibraryFragment>::@class::C
@@ -10206,6 +10691,10 @@ library
         synthetic set i=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _i
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::i
 ''');
   }
@@ -10596,6 +11085,8 @@ library
             set foo= @48
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                newValue @56
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10612,6 +11103,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get foo
@@ -10622,6 +11117,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional newValue
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -10711,6 +11210,8 @@ library
             set v= @-1
               reference: <testLibraryFragment>::@class::C::@setter::v
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _v @-1
         class D @55
           reference: <testLibraryFragment>::@class::D
           fields
@@ -10743,6 +11244,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final v
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
@@ -10754,6 +11259,10 @@ library
         synthetic set v=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _v
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::v
     abstract class D
       reference: <testLibraryFragment>::@class::D
@@ -10838,6 +11347,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -10864,6 +11375,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -10928,6 +11443,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -10954,6 +11471,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -11019,6 +11540,8 @@ library
             set v= @-1
               reference: <testLibraryFragment>::@class::C::@setter::v
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _v @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -11045,6 +11568,10 @@ library
         synthetic set v=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _v
+              reference: <none>
+              type: num
           firstFragment: <testLibraryFragment>::@class::C::@setter::v
 ''');
   }
@@ -11110,6 +11637,8 @@ library
             set v= @-1
               reference: <testLibraryFragment>::@class::C::@setter::v
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _v @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -11136,6 +11665,10 @@ library
         synthetic set v=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _v
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::v
 ''');
   }
@@ -11221,6 +11754,8 @@ library
             set v= @-1
               reference: <testLibraryFragment>::@class::C::@setter::v
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _v @-1
         class D @44
           reference: <testLibraryFragment>::@class::D
           fields
@@ -11264,6 +11799,10 @@ library
         synthetic set v=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _v
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::v
     abstract class D
       reference: <testLibraryFragment>::@class::D
@@ -11535,6 +12074,8 @@ library
             set v= @-1
               reference: <testLibraryFragment>::@class::C::@setter::v
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _v @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -11561,6 +12102,10 @@ library
         synthetic static set v=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _v
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::v
 ''');
   }
@@ -11769,6 +12314,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -11859,6 +12408,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -11959,6 +12512,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -12049,6 +12606,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -12139,6 +12700,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -12170,6 +12735,10 @@ library
         synthetic set _foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::B
+          parameters
+            requiredPositional __foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::B::@setter::_foo
   fieldNameNonPromotabilityInfo
     _foo
@@ -12235,6 +12804,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -12266,6 +12839,10 @@ library
         synthetic static set _foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::B
+          parameters
+            requiredPositional __foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::B::@setter::_foo
 ''');
   }
@@ -12327,6 +12904,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -12352,6 +12933,10 @@ library
         set _field=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::B
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::B::@setter::_field
 ''');
   }
@@ -12410,6 +12995,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -12485,6 +13074,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -12523,6 +13116,10 @@ library
       methods
         noSuchMethod
           reference: <none>
+          parameters
+            requiredPositional invocation
+              reference: <none>
+              type: Invocation
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
   fieldNameNonPromotabilityInfo
     _foo
@@ -12636,6 +13233,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -12675,6 +13276,10 @@ library
       methods
         noSuchMethod
           reference: <none>
+          parameters
+            requiredPositional invocation
+              reference: <none>
+              type: Invocation
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
   mixins
     mixin M
@@ -12782,6 +13387,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -12842,6 +13451,10 @@ library
       methods
         noSuchMethod
           reference: <none>
+          parameters
+            requiredPositional invocation
+              reference: <none>
+              type: Invocation
           firstFragment: <testLibraryFragment>::@class::D::@method::noSuchMethod
 ''');
   }
@@ -12914,6 +13527,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -12960,6 +13577,10 @@ library
       methods
         noSuchMethod
           reference: <none>
+          parameters
+            requiredPositional invocation
+              reference: <none>
+              type: Invocation
           firstFragment: <testLibraryFragment>::@mixin::M::@method::noSuchMethod
   fieldNameNonPromotabilityInfo
     _foo
@@ -13053,6 +13674,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -13115,6 +13740,10 @@ library
       methods
         noSuchMethod
           reference: <none>
+          parameters
+            requiredPositional invocation
+              reference: <none>
+              type: Invocation
           firstFragment: <testLibraryFragment>::@enum::E::@method::noSuchMethod
   fieldNameNonPromotabilityInfo
     _foo
@@ -13189,6 +13818,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -13227,6 +13860,10 @@ library
       methods
         noSuchMethod
           reference: <none>
+          parameters
+            requiredPositional invocation
+              reference: <none>
+              type: Invocation
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
   fieldNameNonPromotabilityInfo
     _foo
@@ -13315,6 +13952,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -13333,6 +13974,10 @@ library
       methods
         noSuchMethod
           reference: <none>
+          parameters
+            requiredPositional invocation
+              reference: <none>
+              type: Invocation
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
 ''');
   }
@@ -13403,6 +14048,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -13422,6 +14071,10 @@ library
       methods
         abstract A
           reference: <none>
+          parameters
+            requiredPositional final value
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::B::@method::A
     class C
       reference: <testLibraryFragment>::@class::C
@@ -13435,6 +14088,10 @@ library
       methods
         noSuchMethod
           reference: <none>
+          parameters
+            requiredPositional invocation
+              reference: <none>
+              type: Invocation
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
   fieldNameNonPromotabilityInfo
     _foo
@@ -13534,6 +14191,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -13561,6 +14222,10 @@ library
       methods
         noSuchMethod
           reference: <none>
+          parameters
+            requiredPositional invocation
+              reference: <none>
+              type: Invocation
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
   mixins
     mixin M
@@ -13651,6 +14316,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -13667,6 +14336,10 @@ library
       methods
         noSuchMethod
           reference: <none>
+          parameters
+            requiredPositional invocation
+              reference: <none>
+              type: Invocation
           firstFragment: <testLibraryFragment>::@mixin::M::@method::noSuchMethod
 ''');
   }
@@ -13739,6 +14412,10 @@ library
         synthetic set _foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional __foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@setter::_foo
   fieldNameNonPromotabilityInfo
     _foo
@@ -13811,6 +14488,10 @@ library
         synthetic set field=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _field
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@setter::field
 ''');
   }
@@ -13885,6 +14566,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final _foo
+              reference: <none>
+              type: int?
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get _foo
@@ -14406,6 +15091,8 @@ library
             set i= @-1
               reference: <testLibraryFragment>::@class::C::@setter::i
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _i @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -14432,6 +15119,10 @@ library
         synthetic static set i=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _i
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::i
 ''');
   }
@@ -14647,6 +15338,8 @@ library
             set i= @-1
               reference: <testLibraryFragment>::@class::C::@setter::i
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _i @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -14673,6 +15366,10 @@ library
         synthetic static set i=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _i
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::i
 ''');
   }
@@ -14743,6 +15440,8 @@ library
             set a= @-1
               reference: <testLibraryFragment>::@class::C::@setter::a
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _a @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -14769,6 +15468,10 @@ library
         synthetic set a=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::a
 ''');
   }
@@ -14839,6 +15542,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::C::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _foo @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -14865,6 +15570,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::foo
 ''');
   }
@@ -15074,6 +15783,8 @@ library
             set a= @-1
               reference: <testLibraryFragment>::@class::C::@setter::a
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _a @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -15100,6 +15811,10 @@ library
         synthetic set a=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _a
+              reference: <none>
+              type: Never
           firstFragment: <testLibraryFragment>::@class::C::@setter::a
 ''');
   }
@@ -15165,6 +15880,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -15191,6 +15908,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -15256,6 +15977,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -15282,6 +16005,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -15369,9 +16096,13 @@ library
             set i= @-1
               reference: <testLibraryFragment>::@class::C::@setter::i
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _i @-1
             set j= @-1
               reference: <testLibraryFragment>::@class::C::@setter::j
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _j @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -15409,10 +16140,18 @@ library
         synthetic set i=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _i
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::i
         synthetic set j=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _j
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::j
 ''');
   }
@@ -15481,6 +16220,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::C::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _foo @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -15507,6 +16248,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::foo
 ''');
   }
@@ -15575,6 +16320,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::C::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _foo @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -15601,6 +16348,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::foo
 ''');
   }
@@ -15776,6 +16527,8 @@ library
             set f= @-1
               reference: <testLibraryFragment>::@class::B::@setter::f
               enclosingFragment: <testLibraryFragment>::@class::B
+              parameters
+                _f @-1
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -15816,6 +16569,10 @@ library
         synthetic set f=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::B
+          parameters
+            requiredPositional _f
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::B::@setter::f
 ''');
   }
@@ -15924,6 +16681,8 @@ library
             set f= @-1
               reference: <testLibraryFragment>::@class::B::@setter::f
               enclosingFragment: <testLibraryFragment>::@class::B
+              parameters
+                _f @-1
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -15972,6 +16731,10 @@ library
         synthetic set f=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::B
+          parameters
+            requiredPositional _f
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::B::@setter::f
 ''');
   }
@@ -16778,6 +17541,8 @@ library
             set x= @39
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @45
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -16804,6 +17569,10 @@ library
         set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -16873,6 +17642,8 @@ library
             set x= @21
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @27
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -16899,6 +17670,10 @@ library
         set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -17705,6 +18480,8 @@ library
             f @25
               reference: <testLibraryFragment>::@class::C::@method::f
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @27
         class D @54
           reference: <testLibraryFragment>::@class::D
           constructors
@@ -17715,6 +18492,8 @@ library
             f @63
               reference: <testLibraryFragment>::@class::D::@method::f
               enclosingFragment: <testLibraryFragment>::@class::D
+              parameters
+                value @69
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -17729,6 +18508,10 @@ library
       methods
         f
           reference: <none>
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@method::f
     abstract class D
       reference: <testLibraryFragment>::@class::D
@@ -17741,6 +18524,10 @@ library
       methods
         abstract f
           reference: <none>
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::D::@method::f
 ''');
   }
@@ -18091,6 +18878,9 @@ library
             f @10
               reference: <testLibraryFragment>::@class::C::@method::f
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                x @12
+                y @15
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -18103,6 +18893,13 @@ library
       methods
         f
           reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: dynamic
+            requiredPositional y
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -18267,6 +19064,8 @@ library
             f @12
               reference: <testLibraryFragment>::@class::C::@method::f
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                u @22
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -18279,6 +19078,10 @@ library
       methods
         f
           reference: <none>
+          parameters
+            requiredPositional u
+              reference: <none>
+              type: U
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -18342,6 +19145,10 @@ library
             f @20
               reference: <testLibraryFragment>::@class::C::@method::f
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                t @30
+                u @35
+                w @40
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -18354,6 +19161,16 @@ library
       methods
         f
           reference: <none>
+          parameters
+            requiredPositional t
+              reference: <none>
+              type: T
+            requiredPositional u
+              reference: <none>
+              type: U
+            requiredPositional w
+              reference: <none>
+              type: W
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -18407,6 +19224,8 @@ library
             f @15
               reference: <testLibraryFragment>::@class::C::@method::f
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                x @25
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -18419,6 +19238,14 @@ library
       methods
         f
           reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: T Function(U)
+              parameters
+                requiredPositional u
+                  reference: <none>
+                  type: U
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -20136,6 +20963,8 @@ library
             + @20
               reference: <testLibraryFragment>::@class::C::@method::+
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                other @24
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -20148,6 +20977,10 @@ library
       methods
         +
           reference: <none>
+          parameters
+            requiredPositional other
+              reference: <none>
+              type: C
           firstFragment: <testLibraryFragment>::@class::C::@method::+
 ''');
   }
@@ -20197,6 +21030,8 @@ library
             == @25
               reference: <testLibraryFragment>::@class::C::@method::==
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                other @35
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -20209,6 +21044,10 @@ library
       methods
         ==
           reference: <none>
+          parameters
+            requiredPositional other
+              reference: <none>
+              type: Object
           firstFragment: <testLibraryFragment>::@class::C::@method::==
 ''');
   }
@@ -20255,6 +21094,8 @@ library
             + @29
               reference: <testLibraryFragment>::@class::C::@method::+
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                other @33
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -20267,6 +21108,10 @@ library
       methods
         +
           reference: <none>
+          parameters
+            requiredPositional other
+              reference: <none>
+              type: C
           firstFragment: <testLibraryFragment>::@class::C::@method::+
 ''');
   }
@@ -20316,6 +21161,8 @@ library
             >= @25
               reference: <testLibraryFragment>::@class::C::@method::>=
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                other @30
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -20328,6 +21175,10 @@ library
       methods
         >=
           reference: <none>
+          parameters
+            requiredPositional other
+              reference: <none>
+              type: C
           firstFragment: <testLibraryFragment>::@class::C::@method::>=
 ''');
   }
@@ -20374,6 +21225,8 @@ library
             [] @23
               reference: <testLibraryFragment>::@class::C::@method::[]
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                i @30
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -20386,6 +21239,10 @@ library
       methods
         []
           reference: <none>
+          parameters
+            requiredPositional i
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@method::[]
 ''');
   }
@@ -20437,6 +21294,9 @@ library
             []= @25
               reference: <testLibraryFragment>::@class::C::@method::[]=
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                i @33
+                v @41
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -20449,6 +21309,13 @@ library
       methods
         []=
           reference: <none>
+          parameters
+            requiredPositional i
+              reference: <none>
+              type: int
+            requiredPositional v
+              reference: <none>
+              type: bool
           firstFragment: <testLibraryFragment>::@class::C::@method::[]=
 ''');
   }
@@ -20498,6 +21365,8 @@ library
             <= @25
               reference: <testLibraryFragment>::@class::C::@method::<=
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                other @30
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -20510,6 +21379,10 @@ library
       methods
         <=
           reference: <none>
+          parameters
+            requiredPositional other
+              reference: <none>
+              type: C
           firstFragment: <testLibraryFragment>::@class::C::@method::<=
 ''');
   }
@@ -20577,6 +21450,8 @@ library
         set c= @-1
           reference: <testLibraryFragment>::@setter::c
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _c @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -20603,6 +21478,10 @@ library
     synthetic static set c=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _c
+          reference: <none>
+          type: C
       firstFragment: <testLibraryFragment>::@setter::c
 ''');
   }
@@ -20670,6 +21549,8 @@ library
         set c= @-1
           reference: <testLibraryFragment>::@setter::c
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _c @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -20696,6 +21577,10 @@ library
     synthetic static set c=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _c
+          reference: <none>
+          type: C?
       firstFragment: <testLibraryFragment>::@setter::c
 ''');
   }
@@ -21286,6 +22171,8 @@ library
             set x= @28
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @34
   classes
     abstract class C
       reference: <testLibraryFragment>::@class::C
@@ -21306,6 +22193,10 @@ library
         abstract set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -21362,6 +22253,8 @@ library
             set x= @19
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @35
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -21382,6 +22275,10 @@ library
         abstract set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional covariant value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -21438,6 +22335,8 @@ library
             set x= @28
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @34
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -21458,6 +22357,10 @@ library
         external set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -21513,6 +22416,8 @@ library
             set x= @19
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @21
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -21533,6 +22438,10 @@ library
         set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -21588,6 +22497,8 @@ library
             set x= @14
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @20
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -21608,6 +22519,10 @@ library
         set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -21743,6 +22658,8 @@ library
             set t= @-1
               reference: <testLibraryFragment>::@class::A::@setter::t
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _t @-1
         class B @27
           reference: <testLibraryFragment>::@class::B
           fields
@@ -21764,6 +22681,8 @@ library
             set t= @-1
               reference: <testLibraryFragment>::@class::B::@setter::t
               enclosingFragment: <testLibraryFragment>::@class::B
+              parameters
+                _t @-1
         class C @61
           reference: <testLibraryFragment>::@class::C
           constructors
@@ -21787,6 +22706,8 @@ library
             set t= @121
               reference: <testLibraryFragment>::@class::D::@setter::t
               enclosingFragment: <testLibraryFragment>::@class::D
+              parameters
+                p @123
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -21813,6 +22734,10 @@ library
         synthetic set t=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _t
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::t
     class B
       reference: <testLibraryFragment>::@class::B
@@ -21841,6 +22766,10 @@ library
         synthetic set t=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::B
+          parameters
+            requiredPositional _t
+              reference: <none>
+              type: double
           firstFragment: <testLibraryFragment>::@class::B::@setter::t
     class C
       reference: <testLibraryFragment>::@class::C
@@ -21873,6 +22802,10 @@ library
         set t=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::D
+          parameters
+            requiredPositional p
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::D::@setter::t
 ''');
   }
@@ -21953,6 +22886,8 @@ library
             set f= @29
               reference: <testLibraryFragment>::@class::C::@setter::f
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @31
         class D @58
           reference: <testLibraryFragment>::@class::D
           fields
@@ -21968,6 +22903,8 @@ library
             set f= @71
               reference: <testLibraryFragment>::@class::D::@setter::f
               enclosingFragment: <testLibraryFragment>::@class::D
+              parameters
+                value @77
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -21990,6 +22927,10 @@ library
         set f=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::f
     abstract class D
       reference: <testLibraryFragment>::@class::D
@@ -22010,6 +22951,10 @@ library
         abstract set f=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::D
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::D::@setter::f
 ''');
   }
@@ -22069,6 +23014,8 @@ library
             set f= @23
               reference: <testLibraryFragment>::@class::C::@setter::f
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @29
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -22089,6 +23036,10 @@ library
         static set f=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::f
 ''');
   }
@@ -22145,6 +23096,9 @@ library
             set x= @19
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                default a @22
+                  reference: <testLibraryFragment>::@class::C::@setter::x::@parameter::a
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -22165,6 +23119,10 @@ library
         set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            optionalNamed a
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -22292,6 +23250,8 @@ library
             set x= @19
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                default a @22
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -22312,6 +23272,10 @@ library
         set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            optionalPositional a
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -22369,6 +23333,9 @@ library
             set x= @19
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                a @21
+                b @24
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -22389,6 +23356,13 @@ library
         set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: dynamic
+            requiredPositional b
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -22450,6 +23424,8 @@ library
             set foo= @16
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _ @24
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -22470,6 +23446,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -22531,6 +23511,8 @@ library
             set foo= @16
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _ @24
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -22551,6 +23533,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -22610,6 +23596,8 @@ library
             set x= @21
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @27
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -22630,6 +23618,10 @@ library
         external set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -22686,6 +23678,8 @@ library
             set x= @26
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @32
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -22706,6 +23700,10 @@ library
         static set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -22781,9 +23779,13 @@ library
             set x= @21
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @27
             set y= @43
               reference: <testLibraryFragment>::@class::C::@setter::y
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @45
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -22810,10 +23812,18 @@ library
         set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
         set y=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::y
 ''');
   }
@@ -25048,6 +26058,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional i
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     mixin class M1
       reference: <testLibraryFragment>::@class::M1
@@ -25073,6 +26087,10 @@ library
       constructors
         synthetic new
           reference: <none>
+          parameters
+            requiredPositional i
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::C2::@constructor::new
     class alias C1
@@ -25083,6 +26101,10 @@ library
       constructors
         synthetic new
           reference: <none>
+          parameters
+            requiredPositional i
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::C1::@constructor::new
 ''');
@@ -25391,12 +26413,36 @@ library
       constructors
         c1
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::c1
         c2
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+            optionalPositional b
+              reference: <none>
+              type: int?
+            optionalPositional c
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::c2
         c3
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+            optionalNamed b
+              reference: <none>
+              type: int?
+            optionalNamed c
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::c3
     class alias C
       reference: <testLibraryFragment>::@class::C
@@ -25406,14 +26452,38 @@ library
       constructors
         synthetic c1
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::c1
         synthetic c2
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+            optionalPositional b
+              reference: <none>
+              type: int?
+            optionalPositional c
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::c2
         synthetic c3
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+            optionalNamed b
+              reference: <none>
+              type: int?
+            optionalNamed c
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::c3
   mixins
@@ -25552,6 +26622,13 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: T
+            requiredPositional y
+              reference: <none>
+              type: T
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class alias B
       reference: <testLibraryFragment>::@class::B
@@ -25561,6 +26638,13 @@ library
       constructors
         synthetic new
           reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: E
+            requiredPositional y
+              reference: <none>
+              type: E
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
   mixins
@@ -27398,22 +28482,42 @@ library
           firstFragment: <testLibraryFragment>::@class::MixinApp::@constructor::noArgs
         synthetic requiredArg
           reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: dynamic
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::MixinApp::@constructor::requiredArg
         synthetic positionalArg
           reference: <none>
+          parameters
+            optionalPositional x
+              reference: <none>
+              type: bool
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg
         synthetic positionalArg2
           reference: <none>
+          parameters
+            optionalPositional final x
+              reference: <none>
+              type: bool
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2
         synthetic namedArg
           reference: <none>
+          parameters
+            optionalNamed x
+              reference: <none>
+              type: int
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg
         synthetic namedArg2
           reference: <none>
+          parameters
+            optionalNamed final x
+              reference: <none>
+              type: bool
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2
 ''');
@@ -27556,6 +28660,13 @@ library
       constructors
         ctor
           reference: <none>
+          parameters
+            requiredPositional t
+              reference: <none>
+              type: T
+            requiredPositional l
+              reference: <none>
+              type: List<T>
           firstFragment: <testLibraryFragment>::@class::Base::@constructor::ctor
     class M
       reference: <testLibraryFragment>::@class::M
@@ -27573,6 +28684,13 @@ library
       constructors
         synthetic ctor
           reference: <none>
+          parameters
+            requiredPositional t
+              reference: <none>
+              type: dynamic
+            requiredPositional l
+              reference: <none>
+              type: List<dynamic>
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::MixinApp::@constructor::ctor
 ''');
@@ -27718,6 +28836,13 @@ library
       constructors
         ctor
           reference: <none>
+          parameters
+            requiredPositional t
+              reference: <none>
+              type: T
+            requiredPositional l
+              reference: <none>
+              type: List<T>
           firstFragment: <testLibraryFragment>::@class::Base::@constructor::ctor
     class M
       reference: <testLibraryFragment>::@class::M
@@ -27735,6 +28860,13 @@ library
       constructors
         synthetic ctor
           reference: <none>
+          parameters
+            requiredPositional t
+              reference: <none>
+              type: List<U>
+            requiredPositional l
+              reference: <none>
+              type: List<List<U>>
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::MixinApp::@constructor::ctor
 ''');
@@ -27888,9 +29020,13 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::E::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::E
+              parameters
+                _x @-1
             set b= @73
               reference: <testLibraryFragment>::@class::E::@setter::b
               enclosingFragment: <testLibraryFragment>::@class::E
+              parameters
+                i @79
           methods
             f @92
               reference: <testLibraryFragment>::@class::E::@method::f
@@ -27955,10 +29091,18 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::E
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::E::@setter::x
         set b=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::E
+          parameters
+            requiredPositional i
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::E::@setter::b
       methods
         f
@@ -28147,6 +29291,10 @@ library
       constructors
         const named
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: Object
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
       getters
         synthetic get x
@@ -28249,9 +29397,13 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::C::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _foo @-1
             set bar= @32
               reference: <testLibraryFragment>::@class::C::@setter::bar
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                this.foo @41
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -28284,10 +29436,18 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::foo
         set bar=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional final foo
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::bar
 ''');
   }
@@ -28348,6 +29508,8 @@ library
             set x= @16
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                this.x @23
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -28368,6 +29530,10 @@ library
         set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -28474,9 +29640,13 @@ library
         set c= @-1
           reference: <testLibraryFragment>::@setter::c
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _c @-1
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _v @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -28518,10 +29688,18 @@ library
     synthetic static set c=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _c
+          reference: <none>
+          type: C<int>
       firstFragment: <testLibraryFragment>::@setter::c
     synthetic static set v=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _v
+          reference: <none>
+          type: void Function()
       firstFragment: <testLibraryFragment>::@setter::v
 ''');
   }
@@ -29747,6 +30925,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -29785,6 +30965,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -30102,6 +31286,8 @@ library
             set foo= @31
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _ @39
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -30134,6 +31320,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -30313,6 +31503,10 @@ library
       constructors
         named
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: T2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
 ''');
   }
@@ -30709,6 +31903,10 @@ library
       constructors
         named
           reference: <none>
+          parameters
+            requiredPositional final f
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
       getters
         synthetic get f
@@ -31085,6 +32283,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -31122,6 +32322,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -31277,6 +32481,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -31328,6 +32534,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -31484,6 +32694,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -31534,6 +32746,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -31692,6 +32908,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -31705,6 +32923,8 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              parameters
+                _ @61
               previousFragment: <testLibraryFragment>::@class::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
@@ -31743,6 +32963,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -32011,6 +33235,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -32048,6 +33274,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -32566,6 +33796,8 @@ library
             set foo= @31
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _ @39
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -32597,6 +33829,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -32738,6 +33974,8 @@ library
             set foo1= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo1 @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -32758,6 +33996,8 @@ library
             set foo2= @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              parameters
+                _foo2 @-1
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -32795,10 +34035,18 @@ library
         synthetic set foo1=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo1
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo1
         synthetic set foo2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo2
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
 ''');
   }
@@ -32950,6 +34198,8 @@ library
             set foo1= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo1 @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -32970,6 +34220,8 @@ library
             set foo2= @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              parameters
+                _foo2 @-1
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -33007,10 +34259,18 @@ library
         synthetic set foo1=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo1
+              reference: <none>
+              type: T1
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo1
         synthetic set foo2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo2
+              reference: <none>
+              type: T2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
 ''');
   }
@@ -33127,6 +34387,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get foo
@@ -33600,6 +34864,8 @@ library
             set foo= @31
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _ @39
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -33635,6 +34901,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -34082,6 +35352,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -34119,6 +35391,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -34274,6 +35550,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -34325,6 +35603,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -35719,6 +37001,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -35755,6 +37039,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
       methods
         foo
@@ -35994,6 +37282,8 @@ library
             set foo= @31
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _ @39
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -36024,6 +37314,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
       methods
         foo
@@ -36228,6 +37522,8 @@ library
             foo @46
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              parameters
+                default x @55
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -36240,6 +37536,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            optionalPositional x
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo
 ''');
   }
@@ -37443,6 +38743,8 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              parameters
+                _ @61
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -37456,6 +38758,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
 ''');
   }
@@ -37574,6 +38880,8 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              parameters
+                _ @61
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -37599,6 +38907,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
 ''');
   }
@@ -37702,6 +39014,8 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              parameters
+                _ @61
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -37715,6 +39029,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
       methods
         foo
@@ -37837,6 +39155,8 @@ library
             set foo1= @31
               reference: <testLibraryFragment>::@class::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _ @40
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -37852,6 +39172,8 @@ library
             set foo2= @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              parameters
+                _ @54
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -37878,10 +39200,18 @@ library
         set foo1=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo1
         set foo2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
 ''');
   }
@@ -38007,6 +39337,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -38018,6 +39350,8 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              parameters
+                _ @61
               previousFragment: <testLibraryFragment>::@class::A::@setter::foo
   classes
     class A
@@ -38045,6 +39379,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
@@ -38126,6 +39464,8 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              parameters
+                _ @61
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -38135,6 +39475,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
 ''');
   }
@@ -38268,10 +39612,14 @@ library
             set foo1= @31
               reference: <testLibraryFragment>::@class::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _ @40
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
             set foo2= @52
               reference: <testLibraryFragment>::@class::A::@setter::foo2
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _ @61
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -38282,6 +39630,8 @@ library
             augment set foo1= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              parameters
+                _ @62
               previousFragment: <testLibraryFragment>::@class::A::@setter::foo1
   classes
     class A
@@ -38309,10 +39659,18 @@ library
         set foo2=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo2
         set foo1=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo1
 ''');
   }
@@ -39000,6 +40358,8 @@ library
             foo @41
               reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@method::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
+              parameters
+                a @45
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -39014,6 +40374,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: String
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@method::foo
 ''');
   }
@@ -39110,6 +40474,8 @@ library
             foo @28
               reference: <testLibraryFragment>::@class::B::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::B
+              parameters
+                a @32
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -39130,6 +40496,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: String
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
 ''');
   }
@@ -39226,6 +40596,8 @@ library
             foo @28
               reference: <testLibraryFragment>::@class::B::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::B
+              parameters
+                a @32
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -39247,6 +40619,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: String
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
 ''');
   }
@@ -39361,6 +40737,8 @@ library
               reference: <testLibraryFragment>::@class::B::@method::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
               enclosingFragment: <testLibraryFragment>::@class::B
+              parameters
+                a @59
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -39372,6 +40750,8 @@ library
               reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
               previousFragment: <testLibraryFragment>::@class::B::@method::foo
               enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
+              parameters
+                a @53
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -39386,6 +40766,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: String
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
 ''');
   }

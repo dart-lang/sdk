@@ -643,6 +643,8 @@ library
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _f @-1
   topLevelVariables
     f
       reference: <none>
@@ -660,6 +662,10 @@ library
     synthetic static set f=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _f
+          reference: <none>
+          type: Future<dynamic>
       firstFragment: <testLibraryFragment>::@setter::f
 ''');
   }
@@ -808,6 +814,8 @@ library
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _f @-1
   topLevelVariables
     f
       reference: <none>
@@ -825,6 +833,10 @@ library
     synthetic static set f=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _f
+          reference: <none>
+          type: Future<dynamic>
       firstFragment: <testLibraryFragment>::@setter::f
 ''');
   }
@@ -902,6 +914,8 @@ library
         set c= @-1
           reference: <testLibraryFragment>::@setter::c
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _c @-1
   topLevelVariables
     c
       reference: <none>
@@ -919,6 +933,10 @@ library
     synthetic static set c=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _c
+          reference: <none>
+          type: C
       firstFragment: <testLibraryFragment>::@setter::c
 ''');
   }
@@ -1107,9 +1125,13 @@ library
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _f @-1
         set s= @-1
           reference: <testLibraryFragment>::@setter::s
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _s @-1
   topLevelVariables
     f
       reference: <none>
@@ -1138,10 +1160,18 @@ library
     synthetic static set f=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _f
+          reference: <none>
+          type: Future<dynamic>
       firstFragment: <testLibraryFragment>::@setter::f
     synthetic static set s=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _s
+          reference: <none>
+          type: Stream<dynamic>
       firstFragment: <testLibraryFragment>::@setter::s
 ''');
   }
@@ -1253,9 +1283,13 @@ library
         set c= @-1
           reference: <testLibraryFragment>::@setter::c
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _c @-1
         set d= @-1
           reference: <testLibraryFragment>::@setter::d
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _d @-1
   topLevelVariables
     c
       reference: <none>
@@ -1284,10 +1318,18 @@ library
     synthetic static set c=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _c
+          reference: <none>
+          type: C
       firstFragment: <testLibraryFragment>::@setter::c
     synthetic static set d=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _d
+          reference: <none>
+          type: D
       firstFragment: <testLibraryFragment>::@setter::d
 ''');
   }
@@ -1811,6 +1853,8 @@ library
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _v @-1
   topLevelVariables
     v
       reference: <none>
@@ -1828,6 +1872,10 @@ library
     synthetic static set v=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _v
+          reference: <none>
+          type: A
       firstFragment: <testLibraryFragment>::@setter::v
 ''');
   }
