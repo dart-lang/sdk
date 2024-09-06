@@ -142,7 +142,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
     DiagnosticReporter reporter,
     ir.Annotatable node,
     List<PragmaAnnotationData> pragmaAnnotationData) {
-  EnumSet<PragmaAnnotation> annotations = EnumSet<PragmaAnnotation>();
+  EnumSet<PragmaAnnotation> annotations = EnumSet<PragmaAnnotation>.empty();
 
   ir.Library library = _enclosingLibrary(node);
   Uri uri = library.importUri;
@@ -154,7 +154,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
     String suffix = data.suffix;
     final annotation = PragmaAnnotation.lookupMap[suffix];
     if (annotation != null) {
-      annotations.add(annotation);
+      annotations += annotation;
 
       if (data.hasOptions) {
         reporter.reportErrorMessage(
@@ -210,7 +210,9 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
             'text': "@pragma('dart2js:${annotation.name}') must not be used "
                 "with @pragma('dart2js:${other.name}')."
           });
-          (reportedExclusions[annotation] ??= EnumSet()).add(other);
+          reportedExclusions.update(
+              annotation, (exclusions) => exclusions + other,
+              ifAbsent: () => EnumSet.fromValue(other));
         }
       }
     }
@@ -371,9 +373,8 @@ class AnnotationsDataImpl implements AnnotationsData {
   factory AnnotationsDataImpl.readFromDataSource(CompilerOptions options,
       DiagnosticReporter reporter, DataSourceReader source) {
     source.begin(tag);
-    Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations =
-        source.readMemberMap(
-            (MemberEntity member) => EnumSet.fromValue(source.readInt()));
+    Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations = source
+        .readMemberMap((MemberEntity member) => EnumSet(source.readInt()));
     source.end(tag);
     return AnnotationsDataImpl(options, reporter, pragmaAnnotations);
   }
@@ -383,7 +384,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     sink.begin(tag);
     sink.writeMemberMap(pragmaAnnotations,
         (MemberEntity member, EnumSet<PragmaAnnotation> set) {
-      sink.writeInt(set.value);
+      sink.writeInt(set.mask);
     });
     sink.end(tag);
   }
@@ -520,7 +521,7 @@ class AnnotationsDataImpl implements AnnotationsData {
 
   CheckPolicy _getLateVariableCheckPolicyAt(DirectivesContext? context) {
     while (context != null) {
-      EnumSet<PragmaAnnotation>? annotations = context.annotations;
+      EnumSet<PragmaAnnotation> annotations = context.annotations;
       if (annotations.contains(PragmaAnnotation.lateTrust)) {
         return CheckPolicy.trusted;
       } else if (annotations.contains(PragmaAnnotation.lateCheck)) {
@@ -552,7 +553,7 @@ class AnnotationsDataImpl implements AnnotationsData {
 
   LoadLibraryPriority? _getLoadLibraryPriorityAt(DirectivesContext? context) {
     while (context != null) {
-      EnumSet<PragmaAnnotation>? annotations = context.annotations;
+      EnumSet<PragmaAnnotation> annotations = context.annotations;
       if (annotations.contains(PragmaAnnotation.loadLibraryPriorityHigh)) {
         return LoadLibraryPriority.high;
       } else if (annotations
@@ -648,7 +649,7 @@ class DirectivesContext {
 
   DirectivesContext._(this.parent, this.annotations);
 
-  DirectivesContext.root() : this._(null, EnumSet<PragmaAnnotation>());
+  DirectivesContext.root() : this._(null, EnumSet<PragmaAnnotation>.empty());
 
   DirectivesContext extend(EnumSet<PragmaAnnotation> annotations) {
     // Shorten chains of equivalent sets of annotations.
