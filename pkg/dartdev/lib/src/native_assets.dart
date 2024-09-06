@@ -28,7 +28,16 @@ Future<(bool success, List<AssetImpl> assets)> compileNativeAssetsJit({
   if (!await File.fromUri(
           workingDirectory.resolve('.dart_tool/package_config.json'))
       .exists()) {
-    return (true, <AssetImpl>[]);
+    if (await File.fromUri(workingDirectory.resolve('pubspec.yaml')).exists()) {
+      // Silently run `pub get`, this is what would happen in
+      // `getExecutableForCommand` later.
+      final result = await Process.run(sdk.dart, ['pub', 'get']);
+      if (result.exitCode != 0) {
+        return (true, <AssetImpl>[]);
+      }
+    } else {
+      return (true, <AssetImpl>[]);
+    }
   }
   final nativeAssetsBuildRunner = NativeAssetsBuildRunner(
     // This always runs in JIT mode.
