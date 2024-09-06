@@ -821,13 +821,10 @@ class SourceCompilationUnitImpl
         }
 
         if (!haveErroneousBounds) {
-          List<NamedTypeBuilder> unboundTypes = [];
           List<StructuralVariableBuilder> unboundTypeVariables = [];
           List<TypeBuilder> calculatedBounds = calculateBounds(
               variables, dynamicType, bottomType,
-              unboundTypes: unboundTypes,
               unboundTypeVariables: unboundTypeVariables);
-          _builderFactoryResult.registerUnresolvedNamedTypes(unboundTypes);
           _builderFactoryResult
               .registerUnresolvedStructuralVariables(unboundTypeVariables);
 

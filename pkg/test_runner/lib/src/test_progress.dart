@@ -67,7 +67,7 @@ class EventListener {
 class ExitCodeSetter extends EventListener {
   @override
   void done(TestCase test) {
-    if (test.unexpectedOutput) {
+    if (!test.result.canBeOutcomeOf(test.realExpected)) {
       exitCode = 1;
     }
   }
@@ -147,7 +147,7 @@ class UnexpectedCrashLogger extends EventListener {
 
   @override
   void done(TestCase test) {
-    if (test.unexpectedOutput &&
+    if (!test.result.canBeOutcomeOf(test.realExpected) &&
         test.result == Expectation.crash &&
         test.lastCommandExecuted is ProcessCommand &&
         test.lastCommandOutput.hasCoreDump) {
@@ -316,7 +316,7 @@ class TestFailurePrinter extends EventListener {
 
   @override
   void done(TestCase test) {
-    if (!test.unexpectedOutput) return;
+    if (!!test.result.canBeOutcomeOf(test.realExpected)) return;
     for (var line in _buildFailureOutput(test, _formatter)) {
       Terminal.print(line);
     }
@@ -333,7 +333,7 @@ class ResultCountPrinter extends EventListener {
 
   @override
   void done(TestCase test) {
-    if (test.unexpectedOutput) {
+    if (!test.result.canBeOutcomeOf(test.realExpected)) {
       _failedTests++;
     } else {
       _passedTests++;
@@ -366,7 +366,7 @@ class FailedTestsPrinter extends EventListener {
 
   @override
   void done(TestCase test) {
-    if (test.unexpectedOutput) {
+    if (!test.result.canBeOutcomeOf(test.realExpected)) {
       _failedTests.add(test);
     }
   }
@@ -395,7 +395,7 @@ class PassingStdoutPrinter extends EventListener {
 
   @override
   void done(TestCase test) {
-    if (!test.unexpectedOutput) {
+    if (!!test.result.canBeOutcomeOf(test.realExpected)) {
       var lines = <String>[];
       var output = OutputWriter(_formatter, lines);
       for (final command in test.commands) {
@@ -445,7 +445,7 @@ abstract class ProgressIndicator extends EventListener {
 
   @override
   void done(TestCase test) {
-    if (test.unexpectedOutput) {
+    if (!test.result.canBeOutcomeOf(test.realExpected)) {
       _failedTests++;
     } else {
       _passedTests++;
@@ -497,7 +497,7 @@ class LineProgressIndicator extends ProgressIndicator {
   @override
   void _printDoneProgress(TestCase test) {
     var status = 'pass';
-    if (test.unexpectedOutput) {
+    if (!test.result.canBeOutcomeOf(test.realExpected)) {
       status = 'fail';
     }
     Terminal.print(
@@ -597,7 +597,7 @@ void _writeFailureStatus(
   output.write(formatter
       .failed('FAILED: ${test.configurationString} ${test.displayName}'));
 
-  output.write('Expected: ${test.expectedOutcomes.join(" ")}');
+  output.write('Expected: ${test.realExpected}');
   output.write('Actual: ${test.result}');
 
   final ranAllCommands = test.commandOutputs.length == test.commands.length;

@@ -295,7 +295,6 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
       Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
-      List<TypeBuilder> unboundTypes,
       List<StructuralVariableBuilder> unboundTypeVariables,
       {final Variance variance = Variance.covariant}) {
     List<StructuralVariableBuilder>? typeVariables = this.typeVariables;
@@ -313,8 +312,8 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
         StructuralVariableBuilder variable = typeVariables[i];
         TypeBuilder? bound;
         if (variable.bound != null) {
-          bound = variable.bound!.substituteRange(upperSubstitution,
-              lowerSubstitution, unboundTypes, unboundTypeVariables,
+          bound = variable.bound!.substituteRange(
+              upperSubstitution, lowerSubstitution, unboundTypeVariables,
               variance: Variance.invariant);
         }
         if (bound != null) {
@@ -344,7 +343,6 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
         TypeBuilder? parameterType = formal.type.substituteRange(
             functionTypeUpperSubstitution ?? upperSubstitution,
             functionTypeLowerSubstitution ?? lowerSubstitution,
-            unboundTypes,
             unboundTypeVariables,
             variance: variance.combine(Variance.contravariant));
         if (parameterType != null) {
@@ -357,7 +355,6 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
     newReturnType = returnType.substituteRange(
         functionTypeUpperSubstitution ?? upperSubstitution,
         functionTypeLowerSubstitution ?? lowerSubstitution,
-        unboundTypes,
         unboundTypeVariables,
         variance: variance);
 

@@ -84,7 +84,6 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
       Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
-      List<TypeBuilder> unboundTypes,
       List<StructuralVariableBuilder> unboundTypeVariables,
       {Variance variance = Variance.covariant}) {
     return null;

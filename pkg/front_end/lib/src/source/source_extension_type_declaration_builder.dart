@@ -598,7 +598,7 @@ class SourceExtensionTypeDeclarationBuilder
         return combineNullabilitiesForSubstitution(
             inner: _computeNullabilityFromType(
                 declaration.unalias(typeBuilder.typeArguments,
-                    unboundTypes: [], unboundTypeVariables: [])!,
+                    unboundTypeVariables: [])!,
                 traversalState: traversalState),
             outer: nullability);
       case ExtensionTypeDeclarationBuilder():

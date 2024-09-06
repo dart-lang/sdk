@@ -112,12 +112,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables}) {
     _breakCyclicDependency();
     return super.unalias(typeArguments,
         usedTypeAliasBuilders: usedTypeAliasBuilders,
-        unboundTypes: unboundTypes,
         unboundTypeVariables: unboundTypeVariables);
   }
 

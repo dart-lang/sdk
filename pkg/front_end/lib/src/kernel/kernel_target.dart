@@ -479,12 +479,6 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.outline_computeMacroApplications);
-      MacroApplications? macroApplications =
-          await loader.computeMacroApplications();
-
-      benchmarker
-          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_setupTopAndBottomTypes);
       setupTopAndBottomTypes();
 
@@ -492,6 +486,12 @@ class KernelTarget {
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_resolveTypes);
       loader.resolveTypes(loader.sourceLibraryBuilders);
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeMacroApplications);
+      MacroApplications? macroApplications =
+          await loader.computeMacroApplications();
 
       benchmarker
           // Coverage-ignore(suite): Not run.

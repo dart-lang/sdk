@@ -2878,14 +2878,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       _libraryNameSpaceBuilder.prefixBuilders;
 
   @override
-  void registerUnresolvedNamedTypes(List<NamedTypeBuilder> unboundTypes) {
-    for (NamedTypeBuilder unboundType in unboundTypes) {
-      // Coverage-ignore-block(suite): Not run.
-      _registerUnresolvedNamedType(unboundType);
-    }
-  }
-
-  @override
   void registerUnresolvedStructuralVariables(
       List<StructuralVariableBuilder> unboundTypeVariables) {
     this._unboundStructuralVariables.addAll(unboundTypeVariables);

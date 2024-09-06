@@ -310,7 +310,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       _benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.incremental_rewriteEntryPointsIfPart);
-      _rewriteEntryPointsIfPart(entryPoints, reusedResult);
+      _rewriteEntryPointsIfPart(
+          entryPoints, reusedResult, experimentalInvalidation != null);
 
       _benchmarker
           // Coverage-ignore(suite): Not run.
@@ -561,16 +562,22 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     });
   }
 
-  void _rewriteEntryPointsIfPart(
-      List<Uri> entryPoints, ReusageResult reusedResult) {
+  void _rewriteEntryPointsIfPart(List<Uri> entryPoints,
+      ReusageResult reusedResult, bool doingAdvancedInvalidation) {
     for (int i = 0; i < entryPoints.length; i++) {
       Uri entryPoint = entryPoints[i];
       LibraryBuilder? parent = reusedResult.partUriToParent[entryPoint];
       if (parent == null) continue;
-      // TODO(jensj): .contains on a list is O(n).
-      // It will only be done for each entry point that's a part though, i.e.
-      // most likely very rarely.
-      if (reusedResult.reusedLibraries.contains(parent)) {
+
+      // Only do the translation if we're doing advanced invalidation
+      // (i.e. no outline change, i.e. if it was a part with a specific parent
+      // it still is) or we reuse the parent (i.e. that library and its parts
+      // were not changed).
+      if (doingAdvancedInvalidation ||
+          // TODO(jensj): .contains on a list is O(n).
+          // It will only be done for each entry point that's a part though,
+          // i.e. most likely very rarely.
+          reusedResult.reusedLibraries.contains(parent)) {
         entryPoints[i] = parent.importUri;
       }
     }

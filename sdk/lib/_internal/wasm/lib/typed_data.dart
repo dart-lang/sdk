@@ -64,12 +64,12 @@ void _offsetAlignmentCheck(int offset, int alignment) {
 }
 
 final class _TypedListIterator<E> implements Iterator<E> {
-  final List<E> _array;
+  final TypedDataList<E> _array;
   final int _length;
   int _position;
   E? _current;
 
-  _TypedListIterator(List<E> array)
+  _TypedListIterator(TypedDataList<E> array)
       : _array = array,
         _length = array.length,
         _position = -1;
@@ -82,7 +82,6 @@ final class _TypedListIterator<E> implements Iterator<E> {
       _position = nextPosition;
       return true;
     }
-    _position = _length;
     _current = null;
     return false;
   }
@@ -2303,7 +2302,7 @@ abstract class _WasmI8ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements;
 
-  ByteBuffer get buffer => _I8ByteBuffer(_data);
+  _I8ByteBuffer get buffer => _I8ByteBuffer(_data);
 }
 
 abstract class _WasmI16ArrayBase extends WasmTypedDataBase {
@@ -2321,7 +2320,7 @@ abstract class _WasmI16ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 2;
 
-  ByteBuffer get buffer => _I16ByteBuffer(_data);
+  _I16ByteBuffer get buffer => _I16ByteBuffer(_data);
 }
 
 abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
@@ -2339,7 +2338,7 @@ abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 4;
 
-  ByteBuffer get buffer => _I32ByteBuffer(_data);
+  _I32ByteBuffer get buffer => _I32ByteBuffer(_data);
 }
 
 abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
@@ -2357,7 +2356,7 @@ abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 8;
 
-  ByteBuffer get buffer => _I64ByteBuffer(_data);
+  _I64ByteBuffer get buffer => _I64ByteBuffer(_data);
 }
 
 abstract class _WasmF32ArrayBase extends WasmTypedDataBase {
@@ -2375,7 +2374,7 @@ abstract class _WasmF32ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 4;
 
-  ByteBuffer get buffer => _F32ByteBuffer(_data);
+  _F32ByteBuffer get buffer => _F32ByteBuffer(_data);
 }
 
 abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
@@ -2393,7 +2392,7 @@ abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 8;
 
-  ByteBuffer get buffer => _F64ByteBuffer(_data);
+  _F64ByteBuffer get buffer => _F64ByteBuffer(_data);
 }
 
 extension WasmI8ArrayBaseExt on _WasmI8ArrayBase {
