@@ -305,6 +305,10 @@ abstract class ExecutableMember extends Member
   }
 
   @override
+  List<TypeParameterFragment> get typeParameters2 =>
+      (declaration as ExecutableElementImpl).typeParameters2;
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(this, displayName);
   }

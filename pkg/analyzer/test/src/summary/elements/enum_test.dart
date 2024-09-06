@@ -355,6 +355,8 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
           fields
             enumConstant int @14
               reference: <testLibraryFragment>::@enum::E::@field::int
@@ -386,6 +388,8 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -650,6 +654,8 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
           fields
             enumConstant v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -674,6 +680,8 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -2649,6 +2657,8 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
           fields
             enumConstant v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -2705,6 +2715,8 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -3689,6 +3701,8 @@ library
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
+          typeParameters
+            T @8
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::I::@constructor::new
@@ -3696,6 +3710,8 @@ library
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            U @21
           fields
             enumConstant v @44
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -3720,6 +3736,8 @@ library
     class I
       reference: <testLibraryFragment>::@class::I
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::I
       constructors
         synthetic new
@@ -3729,6 +3747,8 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        U
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -4026,6 +4046,8 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
           fields
             enumConstant v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -4050,6 +4072,8 @@ library
             foo @23
               reference: <testLibraryFragment>::@enum::E::@method::foo
               enclosingFragment: <testLibraryFragment>::@enum::E
+              typeParameters
+                U @27
               parameters
                 t @32
                 u @37
@@ -4057,6 +4081,8 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -4088,6 +4114,8 @@ library
       methods
         foo
           reference: <none>
+          typeParameters
+            U
           parameters
             requiredPositional t
               reference: <none>
@@ -4667,8 +4695,12 @@ library
       mixins
         mixin M1 @6
           reference: <testLibraryFragment>::@mixin::M1
+          typeParameters
+            T @9
         mixin M2 @21
           reference: <testLibraryFragment>::@mixin::M2
+          typeParameters
+            T @24
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
@@ -4705,12 +4737,16 @@ library
     mixin M1
       reference: <testLibraryFragment>::@mixin::M1
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::M1
       superclassConstraints
         Object
     mixin M2
       reference: <testLibraryFragment>::@mixin::M2
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::M2
       superclassConstraints
         M1<T>
@@ -4956,6 +4992,8 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
           fields
             enumConstant v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -4980,6 +5018,8 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -5091,6 +5131,9 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
+            U @22
           fields
             enumConstant v @39
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -5115,6 +5158,11 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          bound: num
+        U
+          bound: T
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -5193,6 +5241,8 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
           fields
             values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -5210,6 +5260,9 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          bound: dynamic
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -5284,6 +5337,10 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
+            U @20
+            V @35
           fields
             values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -5301,6 +5358,13 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          bound: dynamic
+        U
+          bound: num
+        V
+          bound: dynamic
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -5369,6 +5433,8 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
           fields
             values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -5386,6 +5452,9 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          bound: void Function(E<dynamic>)
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -5453,6 +5522,8 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @10
           fields
             values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -5470,6 +5541,8 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -5537,6 +5610,8 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @11
           fields
             values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -5554,6 +5629,8 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -5621,6 +5698,8 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @13
           fields
             values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -5638,6 +5717,8 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -5709,6 +5790,10 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @13
+            U @19
+            V @26
           fields
             values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -5726,6 +5811,10 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+        U
+        V
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -8076,6 +8165,16 @@ library
       enums
         enum E @26
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @33
+              metadata
+                Annotation
+                  atSign: @ @28
+                  name: SimpleIdentifier
+                    token: foo @29
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
           fields
             enumConstant v @40
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -8128,6 +8227,16 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @28
+              name: SimpleIdentifier
+                token: foo @29
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -8293,6 +8402,16 @@ library
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @24
+              metadata
+                Annotation
+                  atSign: @ @21
+                  name: SimpleIdentifier
+                    token: a @22
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
           fields
             enumConstant v @31
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -8326,6 +8445,16 @@ library
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: a @22
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -10966,6 +11095,8 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T @36
           fields
             enumConstant v @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
@@ -11268,6 +11399,8 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T1 @22
           fields
             enumConstant v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
@@ -11290,6 +11423,8 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
           constructors
             const named @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
@@ -11300,6 +11435,8 @@ library
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T1
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
@@ -14207,6 +14344,8 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T1 @22
           fields
             enumConstant v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
@@ -14240,6 +14379,8 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
           fields
             foo2 @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
@@ -14253,6 +14394,8 @@ library
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T1
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
@@ -15063,6 +15206,8 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T1 @22
           fields
             enumConstant v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
@@ -15096,6 +15241,8 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
           fields
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
@@ -15109,6 +15256,8 @@ library
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T1
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
@@ -17090,6 +17239,8 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T @22
           fields
             enumConstant v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
@@ -17115,6 +17266,8 @@ library
       classes
         class I2 @67
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          typeParameters
+            E @70
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
@@ -17123,6 +17276,8 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
   classes
     class I1
       reference: <testLibraryFragment>::@class::I1
@@ -17135,6 +17290,8 @@ library
     class I2
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enclosingElement2: <testLibrary>
+      typeParameters
+        E
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       constructors
         synthetic new
@@ -17144,6 +17301,8 @@ library
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
@@ -17304,6 +17463,8 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T @22
           fields
             enumConstant v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
@@ -17329,6 +17490,8 @@ library
       classes
         class I2 @71
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          typeParameters
+            E @74
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
@@ -17337,6 +17500,9 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
+            T3 @40
   classes
     class I1
       reference: <testLibraryFragment>::@class::I1
@@ -17349,6 +17515,8 @@ library
     class I2
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enclosingElement2: <testLibrary>
+      typeParameters
+        E
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       constructors
         synthetic new
@@ -17358,6 +17526,8 @@ library
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
@@ -18687,6 +18857,8 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T @22
           fields
             enumConstant v @29
               reference: <testLibraryFragment>::@enum::A::@field::v
@@ -18717,6 +18889,8 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
           methods
             bar @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
@@ -18725,6 +18899,8 @@ library
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
@@ -18875,6 +19051,8 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T @22
           fields
             enumConstant v @29
               reference: <testLibraryFragment>::@enum::A::@field::v
@@ -18906,6 +19084,8 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
           methods
             augment foo @56
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
@@ -18915,6 +19095,8 @@ library
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
@@ -19295,6 +19477,8 @@ library
         enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T1 @37
           fields
             enumConstant v @57
               reference: <testLibraryFragment>::@enum::A::@field::v
@@ -19318,6 +19502,8 @@ library
       mixins
         mixin M1 @74
           reference: <testLibraryFragment>::@mixin::M1
+          typeParameters
+            U1 @77
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -19326,22 +19512,32 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          typeParameters
+            T2 @36
       mixins
         mixin M2 @57
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
+          typeParameters
+            U2 @60
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T3 @36
       mixins
         mixin M3 @57
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
+          typeParameters
+            U3 @60
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T1
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
@@ -19374,18 +19570,24 @@ library
     mixin M1
       reference: <testLibraryFragment>::@mixin::M1
       enclosingElement2: <testLibrary>
+      typeParameters
+        U1
       firstFragment: <testLibraryFragment>::@mixin::M1
       superclassConstraints
         Object
     mixin M2
       reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
       enclosingElement2: <testLibrary>
+      typeParameters
+        U2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
       superclassConstraints
         M1<U2>
     mixin M3
       reference: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
       enclosingElement2: <testLibrary>
+      typeParameters
+        U3
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
       superclassConstraints
         M2<U3>
@@ -21925,6 +22127,8 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T @22
           fields
             enumConstant v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
@@ -21951,6 +22155,8 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T @36
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -21964,6 +22170,9 @@ library
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          bound: B
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields

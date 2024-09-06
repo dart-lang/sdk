@@ -309,6 +309,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -321,6 +323,8 @@ library
                 t @34
         class B @48
           reference: <testLibraryFragment>::@class::B
+          typeParameters
+            T @50
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -338,6 +342,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -354,6 +360,8 @@ library
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<T>
       constructors
@@ -610,6 +618,9 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            A @8
+            B @11
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -624,6 +635,9 @@ library
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        A
+        B
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new

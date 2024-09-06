@@ -637,6 +637,16 @@ library
       classes
         class C @27
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            T @34
+              metadata
+                Annotation
+                  atSign: @ @29
+                  name: SimpleIdentifier
+                    token: foo @30
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
           fields
             foo @54
               reference: <testLibraryFragment>::@class::C::@field::foo
@@ -675,6 +685,16 @@ library
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: foo @30
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
       firstFragment: <testLibraryFragment>::@class::C
       fields
         static const foo
@@ -1173,6 +1193,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             const named @23
               reference: <testLibraryFragment>::@class::A::@constructor::named
@@ -1189,6 +1211,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const named
@@ -1281,6 +1305,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             const named @23
               reference: <testLibraryFragment>::@class::A::@constructor::named
@@ -1297,6 +1323,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const named
@@ -1385,6 +1413,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             const named @23
               reference: <testLibraryFragment>::@class::A::@constructor::named
@@ -1401,6 +1431,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const named
@@ -1842,6 +1874,8 @@ library
               nameEnd: 25
         class C @50
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            T @52
           constructors
             synthetic const named @-1
               reference: <testLibraryFragment>::@class::C::@constructor::named
@@ -1880,6 +1914,8 @@ library
     class alias C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::C
       supertype: A
       constructors
@@ -2057,6 +2093,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -2071,6 +2109,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -2154,6 +2194,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -2168,6 +2210,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -2562,6 +2606,8 @@ library
               enclosingFragment: <testLibraryFragment>::@class::A
         class C @44
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            T @46
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2595,6 +2641,8 @@ library
     class alias C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::C
       supertype: A
       constructors
@@ -5225,6 +5273,16 @@ library
       mixins
         mixin M @27
           reference: <testLibraryFragment>::@mixin::M
+          typeParameters
+            T @34
+              metadata
+                Annotation
+                  atSign: @ @29
+                  name: SimpleIdentifier
+                    token: foo @30
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
           fields
             foo @54
               reference: <testLibraryFragment>::@mixin::M::@field::foo
@@ -5259,6 +5317,16 @@ library
     mixin M
       reference: <testLibraryFragment>::@mixin::M
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: foo @30
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -5484,6 +5552,16 @@ library
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @34
+              metadata
+                Annotation
+                  atSign: @ @29
+                  name: SimpleIdentifier
+                    token: foo @30
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -5501,6 +5579,16 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: foo @30
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -5889,6 +5977,16 @@ library
                     staticElement: <testLibraryFragment>::@getter::foo
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+              typeParameters
+                T @52
+                  metadata
+                    Annotation
+                      atSign: @ @47
+                      name: SimpleIdentifier
+                        token: foo @48
+                        staticElement: <testLibraryFragment>::@getter::foo
+                        staticType: null
+                      element: <testLibraryFragment>::@getter::foo
               parameters
                 a @64
                   metadata
@@ -5928,6 +6026,16 @@ library
                 staticElement: <testLibraryFragment>::@getter::foo
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+          typeParameters
+            T
+              metadata
+                Annotation
+                  atSign: @ @47
+                  name: SimpleIdentifier
+                    token: foo @48
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
           parameters
             requiredPositional a
               reference: <none>
@@ -6225,6 +6333,16 @@ library
               enclosingFragment: <testLibraryFragment>::@class::A
         class B @50
           reference: <testLibraryFragment>::@class::B
+          typeParameters
+            T @57
+              metadata
+                Annotation
+                  atSign: @ @52
+                  name: SimpleIdentifier
+                    token: foo @53
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -6261,6 +6379,16 @@ library
     class alias B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @52
+              name: SimpleIdentifier
+                token: foo @53
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
@@ -6626,6 +6754,16 @@ library
       extensions
         extension E @31
           reference: <testLibraryFragment>::@extension::E
+          typeParameters
+            T @38
+              metadata
+                Annotation
+                  atSign: @ @33
+                  name: SimpleIdentifier
+                    token: foo @34
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -6639,6 +6777,16 @@ library
     extension E
       reference: <testLibraryFragment>::@extension::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @33
+              name: SimpleIdentifier
+                token: foo @34
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
       firstFragment: <testLibraryFragment>::@extension::E
   topLevelVariables
     const foo
@@ -7045,6 +7193,16 @@ library
       mixins
         mixin A @27
           reference: <testLibraryFragment>::@mixin::A
+          typeParameters
+            T @34
+              metadata
+                Annotation
+                  atSign: @ @29
+                  name: SimpleIdentifier
+                    token: foo @30
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -7058,6 +7216,16 @@ library
     mixin A
       reference: <testLibraryFragment>::@mixin::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: foo @30
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
@@ -9036,6 +9204,16 @@ library
       classes
         class C @22
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            T @27
+              metadata
+                Annotation
+                  atSign: @ @24
+                  name: SimpleIdentifier
+                    token: a @25
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -9053,6 +9231,16 @@ library
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @24
+              name: SimpleIdentifier
+                token: a @25
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -9153,6 +9341,16 @@ library
       classes
         class C @22
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            T @27
+              metadata
+                Annotation
+                  atSign: @ @24
+                  name: SimpleIdentifier
+                    token: a @25
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -9190,6 +9388,16 @@ library
     class alias C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @24
+              name: SimpleIdentifier
+                token: a @25
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
       firstFragment: <testLibraryFragment>::@class::C
       supertype: D
       constructors

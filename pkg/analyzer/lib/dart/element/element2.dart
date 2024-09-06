@@ -1659,9 +1659,6 @@ abstract class TypeDefiningElement2
     implements Element2, _Annotatable, _Fragmented {
   // TODO(brianwilkerson): Evaluate to see whether this type is actually needed
   //  after converting clients to the new API.
-
-  @override
-  LibraryElement2 get library2;
 }
 
 /// The portion of a [TypeDefiningElement2] contributed by a single declaration.
@@ -1697,7 +1694,13 @@ abstract class TypeParameterElement2 implements TypeDefiningElement2 {
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterFragment implements TypeDefiningFragment {}
+abstract class TypeParameterFragment implements TypeDefiningFragment {
+  @override
+  TypeParameterFragment? get nextFragment;
+
+  @override
+  TypeParameterFragment? get previousFragment;
+}
 
 /// An element that has type parameters, such as a class, typedef, or method.
 ///
@@ -1721,7 +1724,13 @@ abstract class TypeParameterizedElement2 implements Element2, _Annotatable {
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterizedFragment implements Fragment, _Annotatable {}
+abstract class TypeParameterizedFragment implements Fragment, _Annotatable {
+  /// The type parameters declared by this fragment directly.
+  ///
+  /// This does not include type parameters that are declared by any enclosing
+  /// fragments.
+  List<TypeParameterFragment> get typeParameters2;
+}
 
 /// A pseudo-element that represents names that are undefined.
 ///

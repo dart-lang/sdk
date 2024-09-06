@@ -162,6 +162,9 @@ library
       mixins
         mixin M @51
           reference: <testLibraryFragment>::@mixin::M
+          typeParameters
+            T @53
+            U @68
           fields
             f @101
               reference: <testLibraryFragment>::@mixin::M::@field::f
@@ -237,6 +240,10 @@ library
     mixin M
       reference: <testLibraryFragment>::@mixin::M
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          bound: num
+        U
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         A
@@ -712,6 +719,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -728,10 +737,14 @@ library
       mixins
         mixin M @20
           reference: <testLibraryFragment>::@mixin::M
+          typeParameters
+            U @22
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -751,6 +764,8 @@ library
     mixin M
       reference: <testLibraryFragment>::@mixin::M
       enclosingElement2: <testLibrary>
+      typeParameters
+        U
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         A<U>
@@ -833,12 +848,16 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
         class B @20
           reference: <testLibraryFragment>::@class::B
+          typeParameters
+            T @22
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -870,6 +889,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -878,6 +899,8 @@ library
     class alias B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::B
       supertype: Object
       constructors
@@ -994,18 +1017,24 @@ library
       classes
         class A1 @6
           reference: <testLibraryFragment>::@class::A1
+          typeParameters
+            T @9
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A1::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A1
         class A2 @21
           reference: <testLibraryFragment>::@class::A2
+          typeParameters
+            T @24
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A2::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A2
         class B @36
           reference: <testLibraryFragment>::@class::B
+          typeParameters
+            T @38
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -1041,6 +1070,8 @@ library
     class A1
       reference: <testLibraryFragment>::@class::A1
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A1
       constructors
         synthetic new
@@ -1049,6 +1080,8 @@ library
     class A2
       reference: <testLibraryFragment>::@class::A2
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A2
       constructors
         synthetic new
@@ -1057,6 +1090,8 @@ library
     class alias B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::B
       supertype: Object
       constructors
@@ -1140,6 +1175,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1156,10 +1193,15 @@ library
       mixins
         mixin M @20
           reference: <testLibraryFragment>::@mixin::M
+          typeParameters
+            T @22
+            U @25
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -1179,6 +1221,9 @@ library
     mixin M
       reference: <testLibraryFragment>::@mixin::M
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+        U
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         A<T Function(U)>
@@ -1239,6 +1284,8 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @17
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1255,10 +1302,14 @@ library
       mixins
         mixin M @29
           reference: <testLibraryFragment>::@mixin::M
+          typeParameters
+            T @31
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -1278,6 +1329,8 @@ library
     mixin M
       reference: <testLibraryFragment>::@mixin::M
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         A<List<T>>
@@ -1356,6 +1409,8 @@ library
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
+          typeParameters
+            X @8
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::I::@constructor::new
@@ -1379,12 +1434,18 @@ library
       mixins
         mixin M1 @20
           reference: <testLibraryFragment>::@mixin::M1
+          typeParameters
+            T @23
         mixin M2 @43
           reference: <testLibraryFragment>::@mixin::M2
+          typeParameters
+            T @46
   classes
     class I
       reference: <testLibraryFragment>::@class::I
       enclosingElement2: <testLibrary>
+      typeParameters
+        X
       firstFragment: <testLibraryFragment>::@class::I
       constructors
         synthetic new
@@ -1404,12 +1465,16 @@ library
     mixin M1
       reference: <testLibraryFragment>::@mixin::M1
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::M1
       superclassConstraints
         I<T>
     mixin M2
       reference: <testLibraryFragment>::@mixin::M2
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::M2
       superclassConstraints
         I<T>
@@ -1486,6 +1551,8 @@ library
       classes
         class S @62
           reference: <testLibraryFragment>::@class::S
+          typeParameters
+            T3 @64
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::S::@constructor::new
@@ -1502,10 +1569,15 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          typeParameters
+            T @8
+            U @11
   classes
     class S
       reference: <testLibraryFragment>::@class::S
       enclosingElement2: <testLibrary>
+      typeParameters
+        T3
       firstFragment: <testLibraryFragment>::@class::S
       constructors
         synthetic new
@@ -1525,6 +1597,9 @@ library
     mixin M
       reference: <testLibraryFragment>::@mixin::M
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+        U
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         S<T>
@@ -1612,6 +1687,8 @@ library
       classes
         class S @88
           reference: <testLibraryFragment>::@class::S
+          typeParameters
+            T4 @90
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::S::@constructor::new
@@ -1628,10 +1705,15 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          typeParameters
+            T @8
+            U @11
   classes
     class S
       reference: <testLibraryFragment>::@class::S
       enclosingElement2: <testLibrary>
+      typeParameters
+        T4
       firstFragment: <testLibraryFragment>::@class::S
       constructors
         synthetic new
@@ -1651,6 +1733,9 @@ library
     mixin M
       reference: <testLibraryFragment>::@mixin::M
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+        U
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         S<T>
@@ -2187,10 +2272,14 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          typeParameters
+            T @11
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -2223,10 +2312,14 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          typeParameters
+            T @12
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -2259,10 +2352,14 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          typeParameters
+            T @14
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -2299,10 +2396,18 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          typeParameters
+            T @14
+            U @20
+            V @27
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+        U
+        V
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -4249,6 +4354,8 @@ library
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          typeParameters
+            T1 @23
           fields
             foo1 @34
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
@@ -4271,6 +4378,8 @@ library
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           previousFragment: <testLibraryFragment>::@mixin::A
+          typeParameters
+            T2 @37
           fields
             foo2 @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
@@ -4291,6 +4400,8 @@ library
     mixin A
       reference: <testLibraryFragment>::@mixin::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T1
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
@@ -4590,6 +4701,8 @@ library
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          typeParameters
+            T1 @23
           fields
             foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
@@ -4605,6 +4718,8 @@ library
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           previousFragment: <testLibraryFragment>::@mixin::A
+          typeParameters
+            T2 @37
           fields
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
@@ -4618,6 +4733,8 @@ library
     mixin A
       reference: <testLibraryFragment>::@mixin::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T1
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
@@ -6093,6 +6210,8 @@ library
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          typeParameters
+            T @23
           methods
             foo @32
               reference: <testLibraryFragment>::@mixin::A::@method::foo
@@ -6103,6 +6222,8 @@ library
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           previousFragment: <testLibraryFragment>::@mixin::A
+          typeParameters
+            T2 @37
           methods
             bar @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@method::bar
@@ -6111,6 +6232,8 @@ library
     mixin A
       reference: <testLibraryFragment>::@mixin::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
@@ -6204,6 +6327,8 @@ library
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          typeParameters
+            T @23
           methods
             foo @32
               reference: <testLibraryFragment>::@mixin::A::@method::foo
@@ -6215,6 +6340,8 @@ library
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           previousFragment: <testLibraryFragment>::@mixin::A
+          typeParameters
+            T2 @37
           methods
             augment foo @56
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
@@ -6224,6 +6351,8 @@ library
     mixin A
       reference: <testLibraryFragment>::@mixin::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
@@ -6331,6 +6460,8 @@ library
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           previousFragment: <testLibraryFragment>::@mixin::A
+          typeParameters
+            T @37
           methods
             augment foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
@@ -7356,11 +7487,15 @@ library
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          typeParameters
+            T @23
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
         class I2 @60
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          typeParameters
+            E @63
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
@@ -7369,6 +7504,8 @@ library
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           previousFragment: <testLibraryFragment>::@mixin::A
+          typeParameters
+            T2 @37
   classes
     class I1
       reference: <testLibraryFragment>::@class::I1
@@ -7381,6 +7518,8 @@ library
     class I2
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enclosingElement2: <testLibrary>
+      typeParameters
+        E
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       constructors
         synthetic new
@@ -7390,6 +7529,8 @@ library
     mixin A
       reference: <testLibraryFragment>::@mixin::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         I1
@@ -8356,16 +8497,23 @@ library
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          typeParameters
+            T @23
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           previousFragment: <testLibraryFragment>::@mixin::A
+          typeParameters
+            T @37
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          bound: A<dynamic>
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object

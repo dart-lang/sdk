@@ -4113,6 +4113,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -4123,6 +4125,10 @@ library
       enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 13
+      typeParameters
+        T
+          codeOffset: 8
+          codeLength: 1
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -4467,6 +4473,8 @@ library
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              typeParameters
+                T @21
               parameters
                 a @28
   classes
@@ -4481,6 +4489,8 @@ library
       methods
         foo
           reference: <none>
+          typeParameters
+            T
           parameters
             requiredPositional a
               reference: <none>
@@ -4604,6 +4614,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -4612,6 +4624,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -4647,10 +4661,14 @@ library
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E
+          typeParameters
+            T @12
   extensions
     extension E
       reference: <testLibraryFragment>::@extension::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@extension::E
 ''');
   }
@@ -4831,10 +4849,14 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          typeParameters
+            T @8
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
