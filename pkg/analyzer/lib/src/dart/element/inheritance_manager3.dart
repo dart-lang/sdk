@@ -145,24 +145,6 @@ class InheritanceManager3 {
     return getInheritedMap2(element)[name];
   }
 
-  /// Return signatures of all concrete members that the given [type] inherits
-  /// from the superclasses and mixins.
-  @Deprecated('Use getInheritedConcreteMap2')
-  Map<Name, ExecutableElement> getInheritedConcreteMap(InterfaceType type) {
-    var result = <Name, ExecutableElement>{};
-
-    var substitution = Substitution.fromInterfaceType(type);
-    var rawMap = getInheritedConcreteMap2(type.element);
-    for (var rawEntry in rawMap.entries) {
-      result[rawEntry.key] = ExecutableMember.from2(
-        rawEntry.value,
-        substitution,
-      );
-    }
-
-    return result;
-  }
-
   /// Return signatures of all concrete members that the given [element] inherits
   /// from the superclasses and mixins.
   Map<Name, ExecutableElement> getInheritedConcreteMap2(
@@ -173,26 +155,6 @@ class InheritanceManager3 {
 
     var interface = getInterface(element);
     return interface.superImplemented.last;
-  }
-
-  /// Return the mapping from names to most specific signatures of members
-  /// inherited from the super-interfaces (superclasses, mixins, and
-  /// interfaces).  If there is no most specific signature for a name, the
-  /// corresponding name will not be included.
-  @Deprecated('Use getInheritedMap2')
-  Map<Name, ExecutableElement> getInheritedMap(InterfaceType type) {
-    var result = <Name, ExecutableElement>{};
-
-    var substitution = Substitution.fromInterfaceType(type);
-    var rawMap = getInheritedMap2(type.element);
-    for (var rawEntry in rawMap.entries) {
-      result[rawEntry.key] = ExecutableMember.from2(
-        rawEntry.value,
-        substitution,
-      );
-    }
-
-    return result;
   }
 
   /// Return the mapping from names to most specific signatures of members
@@ -310,14 +272,6 @@ class InheritanceManager3 {
       return interface.implemented[name];
     }
     return interface.map[name];
-  }
-
-  /// Return all members of mixins, superclasses, and interfaces that a member
-  /// with the given [name], defined in the [type], would override; or `null`
-  /// if no members would be overridden.
-  @Deprecated('Use getOverridden2')
-  List<ExecutableElement>? getOverridden(InterfaceType type, Name name) {
-    return getOverridden2(type.element, name);
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member
