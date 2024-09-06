@@ -31,6 +31,7 @@ import '../source/outline_builder.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
+import '../source/type_parameter_scope_builder.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
 import 'member_builder.dart';
@@ -166,7 +167,8 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   void includeParts(SourceLibraryBuilder libraryBuilder,
       List<SourceCompilationUnit> includedParts, Set<Uri> usedParts);
 
-  void validatePart(SourceLibraryBuilder library, Set<Uri>? usedParts);
+  void validatePart(SourceLibraryBuilder library,
+      LibraryNameSpaceBuilder libraryNameSpaceBuilder, Set<Uri>? usedParts);
 
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.

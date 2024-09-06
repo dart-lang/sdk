@@ -505,10 +505,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  Builder addBuilder(String name, Builder declaration, int charOffset) {
-    return compilationUnit.addBuilder(name, declaration, charOffset);
-  }
-
   /// Checks [nameSpace] for conflicts between setters and non-setters and
   /// reports them in [sourceLibraryBuilder].
   ///
@@ -978,11 +974,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // Coverage-ignore(suite): Not run.
   void becomeCoreLibrary() {
     if (nameSpace.lookupLocalMember("dynamic", setter: false) == null) {
-      addBuilder("dynamic",
+      compilationUnit.addBuilder("dynamic",
           new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1), -1);
     }
     if (nameSpace.lookupLocalMember("Never", setter: false) == null) {
-      addBuilder(
+      compilationUnit.addBuilder(
           "Never",
           new NeverTypeDeclarationBuilder(
               const NeverType.nonNullable(), this, -1),

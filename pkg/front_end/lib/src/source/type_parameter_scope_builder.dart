@@ -155,6 +155,68 @@ class LibraryNameSpaceBuilder {
     return members[name] = declaration;
   }
 
+  void includeBuilders(
+      SourceLibraryBuilder _parent,
+      ProblemReporting _problemReporting,
+      Uri fileUri,
+      LibraryNameSpaceBuilder other) {
+    List<(String, Builder)> builders = [];
+    for (MapEntry<String, Builder> entry in other._members.entries) {
+      builders.add((entry.key, entry.value));
+    }
+    for (MapEntry<String, Builder> entry in other._setters.entries) {
+      builders.add((entry.key, entry.value));
+    }
+    for (Builder builder in other._extensions) {
+      if (builder is SourceExtensionBuilder && builder.isUnnamedExtension) {
+        // The name is bogus and not used by [addBuilder].
+        builders.add((builder.name, builder));
+      }
+    }
+    for (var (String name, Builder declaration) in builders) {
+      if (declaration.next != null) {
+        List<Builder> duplicated = <Builder>[];
+        while (declaration.next != null) {
+          duplicated.add(declaration);
+          declaration = declaration.next!;
+        }
+        duplicated.add(declaration);
+        // Handle duplicated declarations in the part.
+        //
+        // Duplicated declarations are handled by creating a linked list
+        // using the `next` field. This is preferred over making all scope
+        // entries be a `List<Declaration>`.
+        //
+        // We maintain the linked list so that the last entry is easy to
+        // recognize (it's `next` field is null). This means that it is
+        // reversed with respect to source code order. Since kernel doesn't
+        // allow duplicated declarations, we ensure that we only add the
+        // first declaration to the kernel tree.
+        //
+        // Since the duplicated declarations are stored in reverse order, we
+        // iterate over them in reverse order as this is simpler and
+        // normally not a problem. However, in this case we need to call
+        // [addBuilder] in source order as it would otherwise create cycles.
+        //
+        // We also need to be careful preserving the order of the links. The
+        // part library still keeps these declarations in its scope so that
+        // DietListener can find them.
+        for (int i = duplicated.length - 1; i >= 0; i--) {
+          Builder declaration = duplicated[i];
+          // No reference: There should be no duplicates when using
+          // references.
+          addBuilder(_parent, _problemReporting, name, declaration, fileUri,
+              declaration.charOffset);
+        }
+      } else {
+        // No reference: The part is in the same loader so the reference
+        // - if needed - was already added.
+        addBuilder(_parent, _problemReporting, name, declaration, fileUri,
+            declaration.charOffset);
+      }
+    }
+  }
+
   List<PrefixBuilder>? get prefixBuilders => _prefixBuilders;
 
   NameSpace toNameSpace() => _nameSpace;
