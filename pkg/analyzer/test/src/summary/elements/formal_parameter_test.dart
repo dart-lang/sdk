@@ -87,6 +87,9 @@ library
             m @17
               reference: <testLibraryFragment>::@class::A::@method::m
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                default a @32
+                  reference: <testLibraryFragment>::@class::A::@method::m::@parameter::a
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -99,6 +102,10 @@ library
       methods
         m
           reference: <none>
+          parameters
+            optionalNamed covariant a
+              reference: <none>
+              type: A
           firstFragment: <testLibraryFragment>::@class::A::@method::m
 ''');
   }
@@ -148,6 +155,8 @@ library
             m @17
               reference: <testLibraryFragment>::@class::A::@method::m
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                default a @32
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -160,6 +169,10 @@ library
       methods
         m
           reference: <none>
+          parameters
+            optionalPositional covariant a
+              reference: <none>
+              type: A
           firstFragment: <testLibraryFragment>::@class::A::@method::m
 ''');
   }
@@ -209,6 +222,8 @@ library
             m @17
               reference: <testLibraryFragment>::@class::A::@method::m
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                a @31
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -221,6 +236,10 @@ library
       methods
         m
           reference: <none>
+          parameters
+            requiredPositional covariant a
+              reference: <none>
+              type: A
           firstFragment: <testLibraryFragment>::@class::A::@method::m
 ''');
   }
@@ -298,6 +317,8 @@ library
             f @20
               reference: <testLibraryFragment>::@class::A::@method::f
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                t @34
         class B @48
           reference: <testLibraryFragment>::@class::B
           constructors
@@ -311,6 +332,8 @@ library
             f @75
               reference: <testLibraryFragment>::@class::B::@method::f
               enclosingFragment: <testLibraryFragment>::@class::B
+              parameters
+                t @79
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -323,6 +346,10 @@ library
       methods
         f
           reference: <none>
+          parameters
+            requiredPositional covariant t
+              reference: <none>
+              type: T
           firstFragment: <testLibraryFragment>::@class::A::@method::f
     class B
       reference: <testLibraryFragment>::@class::B
@@ -337,6 +364,10 @@ library
       methods
         f
           reference: <none>
+          parameters
+            requiredPositional covariant t
+              reference: <none>
+              type: T
           firstFragment: <testLibraryFragment>::@class::B::@method::f
 ''');
   }
@@ -408,6 +439,9 @@ library
             m @17
               reference: <testLibraryFragment>::@class::A::@method::m
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                default a @32
+                  reference: <testLibraryFragment>::@class::A::@method::m::@parameter::a
         class B @47
           reference: <testLibraryFragment>::@class::B
           constructors
@@ -419,6 +453,9 @@ library
             m @68
               reference: <testLibraryFragment>::@class::B::@method::m
               enclosingFragment: <testLibraryFragment>::@class::B
+              parameters
+                default a @73
+                  reference: <testLibraryFragment>::@class::B::@method::m::@parameter::a
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -431,6 +468,10 @@ library
       methods
         m
           reference: <none>
+          parameters
+            optionalNamed covariant a
+              reference: <none>
+              type: A
           firstFragment: <testLibraryFragment>::@class::A::@method::m
     class B
       reference: <testLibraryFragment>::@class::B
@@ -445,6 +486,10 @@ library
       methods
         m
           reference: <none>
+          parameters
+            optionalNamed covariant a
+              reference: <none>
+              type: B
           firstFragment: <testLibraryFragment>::@class::B::@method::m
 ''');
   }
@@ -495,6 +540,8 @@ library
             f @10
               reference: <testLibraryFragment>::@class::C::@method::f
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                g @12
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -507,6 +554,17 @@ library
       methods
         f
           reference: <none>
+          parameters
+            requiredPositional g
+              reference: <none>
+              type: dynamic Function(dynamic, dynamic)
+              parameters
+                requiredPositional x
+                  reference: <none>
+                  type: dynamic
+                requiredPositional y
+                  reference: <none>
+                  type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -560,6 +618,8 @@ library
             f @16
               reference: <testLibraryFragment>::@class::C::@method::f
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                g @20
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -572,6 +632,14 @@ library
       methods
         f
           reference: <none>
+          parameters
+            requiredPositional g
+              reference: <none>
+              type: A Function(B)
+              parameters
+                requiredPositional x
+                  reference: <none>
+                  type: B
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -617,6 +685,8 @@ library
             f @10
               reference: <testLibraryFragment>::@class::C::@method::f
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                g @16
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -629,6 +699,10 @@ library
       methods
         f
           reference: <none>
+          parameters
+            requiredPositional g
+              reference: <none>
+              type: int Function()
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -674,6 +748,8 @@ library
             f @10
               reference: <testLibraryFragment>::@class::C::@method::f
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                g @17
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -686,6 +762,10 @@ library
       methods
         f
           reference: <none>
+          parameters
+            requiredPositional g
+              reference: <none>
+              type: void Function()
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -796,9 +876,17 @@ library
       constructors
         positional
           reference: <none>
+          parameters
+            optionalPositional x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::positional
         named
           reference: <none>
+          parameters
+            optionalNamed x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
 ''');
   }
@@ -902,6 +990,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -918,9 +1008,17 @@ library
       constructors
         positional
           reference: <none>
+          parameters
+            optionalPositional final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::positional
         named
           reference: <none>
+          parameters
+            optionalNamed final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
       getters
         synthetic get x
@@ -931,6 +1029,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
@@ -999,9 +1101,14 @@ library
             positional @24
               reference: <testLibraryFragment>::@class::C::@method::positional
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                default x @36
             named @61
               reference: <testLibraryFragment>::@class::C::@method::named
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                default x @68
+                  reference: <testLibraryFragment>::@class::C::@method::named::@parameter::x
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1014,9 +1121,17 @@ library
       methods
         static positional
           reference: <none>
+          parameters
+            optionalPositional x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@method::positional
         static named
           reference: <none>
+          parameters
+            optionalNamed x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@method::named
 ''');
   }

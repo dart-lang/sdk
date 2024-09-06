@@ -140,6 +140,116 @@ class C {
     );
   }
 
+  Future<void> test_annotation_parameter() async {
+    var content = '''
+class MyAnnotation {
+  const MyAnnotation();
+}
+
+class A {
+  A([!@MyAnnotation() String a!]);
+}
+''';
+
+    var expected = [
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('MyAnnotation', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('String', SemanticTokenTypes.class_),
+      _Token('a', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_annotation_parameter_super() async {
+    var content = '''
+class MyAnnotation {
+  const MyAnnotation();
+}
+
+class A {
+  A(String a);
+}
+
+class B extends A {
+  B([!@MyAnnotation() super.a!]);
+}
+''';
+
+    var expected = [
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('MyAnnotation', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('super', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_annotation_parameter_super_fieldFormal() async {
+    var content = '''
+class MyAnnotation {
+  const MyAnnotation();
+}
+
+class A {
+  String a;
+  A(this.a);
+}
+
+class B extends A {
+  B([!@MyAnnotation() super.a!]);
+}
+''';
+
+    var expected = [
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('MyAnnotation', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('super', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_annotation_parameter_this() async {
+    var content = '''
+class MyAnnotation {
+  const MyAnnotation();
+}
+
+class A {
+  String a;
+  A([!@MyAnnotation() this.a!]);
+}
+''';
+
+    var expected = [
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('MyAnnotation', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('this', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.variable,
+          [CustomSemanticTokenModifiers.instance]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
   Future<void> test_augmentations() async {
     var mainContent = '''
 part 'main_augmentation.dart';
@@ -345,7 +455,7 @@ void f() {
       _Token('/// field docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('myField', SemanticTokenTypes.property, [
+      _Token('myField', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
         CustomSemanticTokenModifiers.instance
       ]),
@@ -354,7 +464,7 @@ void f() {
           [SemanticTokenModifiers.documentation]),
       _Token('static', SemanticTokenTypes.keyword),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('myStaticField', SemanticTokenTypes.property,
+      _Token('myStaticField', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token("'StaticFieldVal'", SemanticTokenTypes.string),
       _Token(
@@ -608,7 +718,7 @@ class A {
         SemanticTokenModifiers.declaration,
       ]),
       _Token('this', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.property, [
+      _Token('a', SemanticTokenTypes.variable, [
         CustomSemanticTokenModifiers.instance,
       ]),
       _Token('A', SemanticTokenTypes.class_, [
@@ -658,7 +768,7 @@ int double(int bbb) => bbb * 2;
       _Token('MyClass', SemanticTokenTypes.class_,
           [SemanticTokenModifiers.declaration]),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('aaa', SemanticTokenTypes.property, [
+      _Token('aaa', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
         CustomSemanticTokenModifiers.instance
       ]),
@@ -759,7 +869,7 @@ extension type E(int i) {}
       _Token(
           'E', SemanticTokenTypes.class_, [SemanticTokenModifiers.declaration]),
       _Token('int', SemanticTokenTypes.class_),
-      _Token('i', SemanticTokenTypes.property,
+      _Token('i', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration])
     ];
 
@@ -826,6 +936,30 @@ extension type E(int i) {}
       _Token('Bbbbb', SemanticTokenTypes.class_,
           [SemanticTokenModifiers.declaration])
     ]);
+  }
+
+  Future<void> test_initializer() async {
+    var content = '''
+class A {
+  final String a;
+  [!A(String a) : a = a!];
+}
+''';
+
+    var expected = [
+      _Token('A', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration
+      ]),
+      _Token('String', SemanticTokenTypes.class_),
+      _Token('a', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.variable,
+          [CustomSemanticTokenModifiers.instance]),
+      _Token('a', SemanticTokenTypes.parameter),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
   }
 
   Future<void> test_invalidSyntax() async {
@@ -1104,7 +1238,7 @@ bool test6 = false;
         _Token('/// test', SemanticTokenTypes.comment,
             [SemanticTokenModifiers.documentation]),
         _Token('bool', SemanticTokenTypes.class_),
-        _Token('test$i', SemanticTokenTypes.property, [
+        _Token('test$i', SemanticTokenTypes.variable, [
           SemanticTokenModifiers.declaration,
           CustomSemanticTokenModifiers.instance
         ]),
@@ -1243,6 +1377,151 @@ Never? g() => throw '';
     ];
 
     await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_parameter_fieldFormal() async {
+    var content = '''
+class A {
+  final String a;
+  A([!this.a!]);
+}
+''';
+
+    var expected = [
+      _Token('this', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.variable,
+          [CustomSemanticTokenModifiers.instance]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_parameter_super() async {
+    var content = '''
+class A {
+  A({String? a, String? b});
+}
+
+class B extends A {
+  [!B({super.a}) : super(b: a)!];
+}
+''';
+
+    var expected = [
+      _Token('B', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration
+      ]),
+      _Token('super', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+      _Token('super', SemanticTokenTypes.keyword),
+      _Token('b', SemanticTokenTypes.parameter,
+          [CustomSemanticTokenModifiers.label]),
+      _Token('a', SemanticTokenTypes.parameter),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_parameter_super_fieldFormal() async {
+    var content = '''
+class A {
+  String a;
+  A(this.a);
+}
+
+class B extends A {
+  B([!super.a!]);
+}
+''';
+
+    var expected = [
+      _Token('super', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_parameter_super_fieldFormal_unresolved() async {
+    failTestOnErrorDiagnostic = false;
+
+    var content = '''
+class A {
+  A(this.a);
+}
+
+class B extends A {
+  B([!super.a!]);
+}
+''';
+
+    var expected = [
+      _Token('super', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_parameter_super_unresolved() async {
+    failTestOnErrorDiagnostic = false;
+
+    var content = '''
+class A {
+  A();
+}
+
+class B extends A {
+  B([!super.a!]);
+}
+''';
+
+    var expected = [
+      _Token('super', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_parameter_this() async {
+    var content = '''
+class A {
+  String a;
+  A([!this.a!]);
+}
+''';
+
+    var expected = [
+      _Token('this', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.variable,
+          [CustomSemanticTokenModifiers.instance]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_parameter_this_unresolved() async {
+    failTestOnErrorDiagnostic = false;
+
+    var content = '''
+class A {
+  A([!this.a!]);
+}
+''';
+
+    var expected = [
+      _Token('this', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.variable,
+          [CustomSemanticTokenModifiers.instance]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
   }
 
   Future<void> test_patterns_assignment() async {

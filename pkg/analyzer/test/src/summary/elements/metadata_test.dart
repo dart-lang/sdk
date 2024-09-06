@@ -116,6 +116,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional o
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
@@ -207,6 +211,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional o
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
@@ -476,6 +484,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -511,6 +521,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
   topLevelVariables
     const a
@@ -1067,6 +1081,10 @@ library
       constructors
         const named
           reference: <none>
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::named
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1175,6 +1193,10 @@ library
       constructors
         const named
           reference: <none>
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: T
           firstFragment: <testLibraryFragment>::@class::A::@constructor::named
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1957,6 +1979,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2049,6 +2075,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: T
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2659,6 +2689,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class C
       reference: <testLibraryFragment>::@class::C
@@ -3055,6 +3089,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -3090,6 +3126,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
   topLevelVariables
     const a
@@ -3199,6 +3239,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -3224,6 +3266,18 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: dynamic
+              metadata
+                Annotation
+                  atSign: @ @39
+                  name: SimpleIdentifier
+                    token: a @40
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -3234,6 +3288,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
   topLevelVariables
     const a
@@ -3342,6 +3400,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _x @-1
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -3367,6 +3427,18 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            optionalPositional final x
+              reference: <none>
+              type: dynamic
+              metadata
+                Annotation
+                  atSign: @ @36
+                  name: SimpleIdentifier
+                    token: a @37
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -3377,6 +3449,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
   topLevelVariables
     const a
@@ -3638,6 +3714,8 @@ library
                 staticElement: <testLibraryFragment>::@getter::a
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+          parameters
+            value @25
   topLevelVariables
     const a
       reference: <none>
@@ -3668,6 +3746,10 @@ library
             staticElement: <testLibraryFragment>::@getter::a
             staticType: null
           element: <testLibraryFragment>::@getter::a
+      parameters
+        requiredPositional value
+          reference: <none>
+          type: dynamic
       firstFragment: <testLibraryFragment>::@setter::f
 ''');
   }
@@ -4990,6 +5072,8 @@ library
                     staticElement: <testLibraryFragment>::@getter::a
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+              parameters
+                value @39
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -5027,6 +5111,10 @@ library
                 staticElement: <testLibraryFragment>::@getter::a
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@setter::m
   topLevelVariables
     const a
@@ -5536,6 +5624,18 @@ library
                 staticElement: <testLibraryFragment>::@getter::foo
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+              metadata
+                Annotation
+                  atSign: @ @37
+                  name: SimpleIdentifier
+                    token: foo @38
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
     const foo
@@ -5789,6 +5889,16 @@ library
                     staticElement: <testLibraryFragment>::@getter::foo
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+              parameters
+                a @64
+                  metadata
+                    Annotation
+                      atSign: @ @55
+                      name: SimpleIdentifier
+                        token: foo @56
+                        staticElement: <testLibraryFragment>::@getter::foo
+                        staticType: null
+                      element: <testLibraryFragment>::@getter::foo
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -5818,6 +5928,18 @@ library
                 staticElement: <testLibraryFragment>::@getter::foo
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+              metadata
+                Annotation
+                  atSign: @ @55
+                  name: SimpleIdentifier
+                    token: foo @56
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::method
   topLevelVariables
     const foo
@@ -5931,6 +6053,16 @@ library
                     staticElement: <testLibraryFragment>::@getter::foo
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+              parameters
+                a @55
+                  metadata
+                    Annotation
+                      atSign: @ @46
+                      name: SimpleIdentifier
+                        token: foo @47
+                        staticElement: <testLibraryFragment>::@getter::foo
+                        staticType: null
+                      element: <testLibraryFragment>::@getter::foo
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -5968,6 +6100,18 @@ library
                 staticElement: <testLibraryFragment>::@getter::foo
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+              metadata
+                Annotation
+                  atSign: @ @46
+                  name: SimpleIdentifier
+                    token: foo @47
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
           firstFragment: <testLibraryFragment>::@class::A::@setter::setter
   topLevelVariables
     const foo
@@ -6668,9 +6812,13 @@ library
             set isStatic= @-1
               reference: <testLibraryFragment>::@class::A::@setter::isStatic
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _isStatic @-1
             set isInstance= @-1
               reference: <testLibraryFragment>::@class::A::@setter::isInstance
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _isInstance @-1
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -6727,10 +6875,18 @@ library
         synthetic static set isStatic=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _isStatic
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::isStatic
         synthetic set isInstance=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _isInstance
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::isInstance
   topLevelVariables
     const foo
@@ -7525,6 +7681,16 @@ library
                 staticElement: <testLibraryFragment>::@getter::foo
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+          parameters
+            a @41
+              metadata
+                Annotation
+                  atSign: @ @32
+                  name: SimpleIdentifier
+                    token: foo @33
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
   topLevelVariables
     const foo
       reference: <none>
@@ -7555,6 +7721,18 @@ library
             staticElement: <testLibraryFragment>::@getter::foo
             staticType: null
           element: <testLibraryFragment>::@getter::foo
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: int
+          metadata
+            Annotation
+              atSign: @ @32
+              name: SimpleIdentifier
+                token: foo @33
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
       firstFragment: <testLibraryFragment>::@setter::setter
 ''');
   }
@@ -7685,6 +7863,8 @@ library
         set isNotConst= @-1
           reference: <testLibraryFragment>::@setter::isNotConst
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _isNotConst @-1
   topLevelVariables
     const foo
       reference: <none>
@@ -7722,6 +7902,10 @@ library
     synthetic static set isNotConst=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _isNotConst
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::isNotConst
 ''');
   }
@@ -8290,6 +8474,16 @@ library
             m @29
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                x @34
+                  metadata
+                    Annotation
+                      atSign: @ @31
+                      name: SimpleIdentifier
+                        token: a @32
+                        staticElement: <testLibraryFragment>::@getter::a
+                        staticType: null
+                      element: <testLibraryFragment>::@getter::a
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -8311,6 +8505,18 @@ library
       methods
         m
           reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: dynamic
+              metadata
+                Annotation
+                  atSign: @ @31
+                  name: SimpleIdentifier
+                    token: a @32
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
           firstFragment: <testLibraryFragment>::@class::C::@method::m
   topLevelVariables
     const a
@@ -8396,6 +8602,16 @@ library
         set foo= @21
           reference: <testLibraryFragment>::@setter::foo
           enclosingFragment: <testLibraryFragment>
+          parameters
+            x @32
+              metadata
+                Annotation
+                  atSign: @ @25
+                  name: SimpleIdentifier
+                    token: a @26
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
   topLevelVariables
     const a
       reference: <none>
@@ -8418,6 +8634,18 @@ library
     static set foo=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional x
+          reference: <none>
+          type: int
+          metadata
+            Annotation
+              atSign: @ @25
+              name: SimpleIdentifier
+                token: a @26
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
       firstFragment: <testLibraryFragment>::@setter::foo
 ''');
   }
@@ -8597,6 +8825,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -8606,6 +8838,18 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final x
+              reference: <none>
+              type: int
+              metadata
+                Annotation
+                  atSign: @ @66
+                  name: SimpleIdentifier
+                    token: a @67
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
   topLevelVariables
@@ -8704,6 +8948,8 @@ library
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _v @-1
   topLevelVariables
     const a
       reference: <none>
@@ -8731,6 +8977,10 @@ library
     synthetic static set v=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _v
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::v
 ''');
   }
@@ -9208,6 +9458,8 @@ library
         set x= @-1
           reference: <testLibraryFragment>::@setter::x
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _x @-1
   topLevelVariables
     const a
       reference: <none>
@@ -9235,6 +9487,10 @@ library
     synthetic static set x=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _x
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::x
 ''');
   }
@@ -9890,6 +10146,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class C
       reference: <testLibraryFragment>::@class::C
@@ -9977,6 +10237,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class C
       reference: <testLibraryFragment>::@class::C

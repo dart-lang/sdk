@@ -483,9 +483,13 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo::@def::0
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo::@def::1
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _foo @-1
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -523,10 +527,18 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo::@def::0
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: double
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo::@def::1
 ''');
   }
@@ -1213,6 +1225,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@extension::E::@def::1::@setter::x
               enclosingFragment: <testLibraryFragment>::@extension::E::@def::1
+              parameters
+                _x @-1
         extension E @71
           reference: <testLibraryFragment>::@extension::E::@def::2
           fields
@@ -1229,6 +1243,8 @@ library
             set y= @-1
               reference: <testLibraryFragment>::@extension::E::@def::2::@setter::y
               enclosingFragment: <testLibraryFragment>::@extension::E::@def::2
+              parameters
+                _y @-1
   extensions
     extension E
       reference: <testLibraryFragment>::@extension::E::@def::0
@@ -1255,6 +1271,10 @@ library
         synthetic static set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extension::E::@def::1
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@extension::E::@def::1::@setter::x
     extension E
       reference: <testLibraryFragment>::@extension::E::@def::2
@@ -1277,6 +1297,10 @@ library
         synthetic static set y=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@extension::E::@def::2
+          parameters
+            requiredPositional _y
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extension::E::@def::2::@setter::y
 ''');
   }
@@ -1395,6 +1419,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new
       getters
         synthetic get it
@@ -1416,6 +1444,10 @@ library
       constructors
         new
           reference: <none>
+          parameters
+            requiredPositional final it
+              reference: <none>
+              type: double
           firstFragment: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new
       getters
         synthetic get it
@@ -1639,6 +1671,8 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@mixin::A::@def::1::@setter::x
               enclosingFragment: <testLibraryFragment>::@mixin::A::@def::1
+              parameters
+                _x @-1
         mixin A @38
           reference: <testLibraryFragment>::@mixin::A::@def::2
           fields
@@ -1655,6 +1689,8 @@ library
             set y= @-1
               reference: <testLibraryFragment>::@mixin::A::@def::2::@setter::y
               enclosingFragment: <testLibraryFragment>::@mixin::A::@def::2
+              parameters
+                _y @-1
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A::@def::0
@@ -1685,6 +1721,10 @@ library
         synthetic set x=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A::@def::1
+          parameters
+            requiredPositional _x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@mixin::A::@def::1::@setter::x
     mixin A
       reference: <testLibraryFragment>::@mixin::A::@def::2
@@ -1709,6 +1749,10 @@ library
         synthetic set y=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::A::@def::2
+          parameters
+            requiredPositional _y
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::A::@def::2::@setter::y
 ''');
   }
@@ -1852,12 +1896,18 @@ library
         set x= @-1
           reference: <testLibraryFragment>::@setter::x::@def::0
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _x @-1
         set x= @-1
           reference: <testLibraryFragment>::@setter::x::@def::1
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _x @-1
         set x= @-1
           reference: <testLibraryFragment>::@setter::x::@def::2
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _x @-1
   topLevelVariables
     x
       reference: <none>
@@ -1907,14 +1957,26 @@ library
     synthetic static set x=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _x
+          reference: <none>
+          type: bool
       firstFragment: <testLibraryFragment>::@setter::x::@def::0
     synthetic static set x=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _x
+          reference: <none>
+          type: dynamic
       firstFragment: <testLibraryFragment>::@setter::x::@def::1
     synthetic static set x=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _x
+          reference: <none>
+          type: double
       firstFragment: <testLibraryFragment>::@setter::x::@def::2
 ''');
   }
@@ -2041,9 +2103,13 @@ library
         set foo= @4
           reference: <testLibraryFragment>::@setter::foo::@def::0
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _ @12
         set foo= @22
           reference: <testLibraryFragment>::@setter::foo::@def::1
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _ @33
   topLevelVariables
     synthetic foo
       reference: <none>
@@ -2055,10 +2121,18 @@ library
     static set foo=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::foo::@def::0
     static set foo=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _
+          reference: <none>
+          type: double
       firstFragment: <testLibraryFragment>::@setter::foo::@def::1
 ''');
   }

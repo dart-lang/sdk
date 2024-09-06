@@ -71,6 +71,9 @@ library
             X @21
               reference: <testLibraryFragment>::@class::A::@method::X
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                default a @32
+                  reference: <testLibraryFragment>::@class::A::@method::X::@parameter::a
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -83,6 +86,10 @@ library
       methods
         abstract X
           reference: <none>
+          parameters
+            optionalNamed a
+              reference: <none>
+              type: List<T>
           firstFragment: <testLibraryFragment>::@class::A::@method::X
 ''');
   }
@@ -208,6 +215,13 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            optionalNamed final f
+              reference: <none>
+              type: void Function(dynamic)
+                alias: <testLibraryFragment>::@typeAlias::F
+                  typeArguments
+                    dynamic
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
       getters
         synthetic get f
@@ -311,6 +325,9 @@ library
             foo @45
               reference: <testLibraryFragment>::@class::B::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::B
+              parameters
+                default a @50
+                  reference: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -331,6 +348,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            optionalNamed a
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
 ''');
   }
@@ -665,6 +686,8 @@ library
             g @65
               reference: <testLibraryFragment>::@extension::E::@method::g
               enclosingFragment: <testLibraryFragment>::@extension::E
+              parameters
+                default p @75
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -685,6 +708,10 @@ library
           firstFragment: <testLibraryFragment>::@extension::E::@method::f
         static g
           reference: <none>
+          parameters
+            optionalPositional p
+              reference: <none>
+              type: Object
           firstFragment: <testLibraryFragment>::@extension::E::@method::g
 ''');
   }
@@ -770,6 +797,8 @@ library
             foo @50
               reference: <testLibraryFragment>::@class::C::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                default b @70
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -790,6 +819,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            optionalPositional b
+              reference: <none>
+              type: B<int, double>
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
 ''');
   }
@@ -883,6 +916,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            optionalPositional b
+              reference: <none>
+              type: B<T>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
@@ -1005,6 +1042,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            optionalPositional a
+              reference: <none>
+              type: A<T>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
@@ -1166,6 +1207,8 @@ library
             foo @45
               reference: <testLibraryFragment>::@class::C::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                default b @58
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -1186,6 +1229,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            optionalPositional b
+              reference: <none>
+              type: B<T>
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
 ''');
   }
@@ -1277,6 +1324,8 @@ library
             foo @54
               reference: <testLibraryFragment>::@class::C::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                default b @73
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -1297,6 +1346,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            optionalPositional b
+              reference: <none>
+              type: B<E1, E2>
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
 ''');
   }
@@ -1383,6 +1436,8 @@ library
             foo @48
               reference: <testLibraryFragment>::@class::C::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                default b @58
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -1403,6 +1458,10 @@ library
       methods
         foo
           reference: <none>
+          parameters
+            optionalPositional b
+              reference: <none>
+              type: B<T>
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
 ''');
   }

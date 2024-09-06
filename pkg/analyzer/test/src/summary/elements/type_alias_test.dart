@@ -1808,6 +1808,8 @@ library
             set f= @-1
               reference: <testLibraryFragment>::@class::A::@setter::f
               enclosingFragment: <testLibraryFragment>::@class::A
+              parameters
+                _f @-1
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1837,6 +1839,13 @@ library
         synthetic set f=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::A
+          parameters
+            requiredPositional _f
+              reference: <none>
+              type: int Function<T>(T)
+                alias: <testLibraryFragment>::@typeAlias::Foo
+                  typeArguments
+                    int
           firstFragment: <testLibraryFragment>::@class::A::@setter::f
 ''');
   }
@@ -5210,6 +5219,8 @@ library
         set A= @19
           reference: <testLibraryFragment>::@setter::A
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _ @25
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
   topLevelVariables
@@ -5223,6 +5234,10 @@ library
     static set A=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::A
 ''');
   }

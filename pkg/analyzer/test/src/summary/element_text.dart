@@ -334,7 +334,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeSinceSdkVersion(e.sinceSdkVersion);
       // _writeDisplayName(e);
 
-      // _writeParameterElements(e.parameters2);
+      _writeElements('parameters', e.parameters2, _writeFormalParameterElement);
 
       // _writeElements(
       //   'constantInitializers',
@@ -646,6 +646,108 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
+  void _writeFormalParameterElement(FormalParameterElement e) {
+    // if (e.isNamed && e.enclosingElement2 is ExecutableElement) {
+    //   expect(e.reference, isNotNull);
+    // } else {
+    //   expect(e.reference, isNull);
+    // }
+
+    _sink.writeIndentedLine(() {
+      if (e.isRequiredPositional) {
+        _sink.write('requiredPositional ');
+      } else if (e.isOptionalPositional) {
+        _sink.write('optionalPositional ');
+      } else if (e.isRequiredNamed) {
+        _sink.write('requiredNamed ');
+      } else if (e.isOptionalNamed) {
+        _sink.write('optionalNamed ');
+      }
+
+      if (e is ConstVariableElement) {
+        _sink.write('default ');
+      }
+
+      _sink.writeIf(e.isConst, 'const ');
+      _sink.writeIf(e.isCovariant, 'covariant ');
+      _sink.writeIf(e.isFinal, 'final ');
+
+      if (e is FieldFormalParameterElement) {
+        _sink.write('this.');
+      } else if (e is SuperFormalParameterElement) {
+        _sink.writeIf(e.hasDefaultValue, 'hasDefaultValue ');
+        _sink.write('super.');
+      }
+
+      _writeElementName(e);
+    });
+
+    _sink.withIndent(() {
+      _writeElementReference(e);
+      _writeType('type', e.type);
+      _writeMetadata(e.metadata);
+      _writeSinceSdkVersion(e.sinceSdkVersion);
+      // _writeCodeRange(e);
+      // _writeTypeParameterElements(e.typeParameters2);
+      _writeElements('parameters', e.parameters2, _writeFormalParameterElement);
+      // _writeConstantInitializer(e);
+      // _writeNonSyntheticElement(e);
+      // _writeFieldFormalParameterField(e);
+      // _writeSuperConstructorParameter(e);
+    });
+  }
+
+  void _writeFormalParameterFragment(FormalParameterFragment f) {
+    // if (f.isNamed && f.enclosingFragment is ExecutableFragment) {
+    //   expect(f.reference, isNotNull);
+    // } else {
+    //   expect(f.reference, isNull);
+    // }
+
+    _sink.writeIndentedLine(() {
+      // if (f.isRequiredPositional) {
+      //   _sink.write('requiredPositional ');
+      // } else if (f.isOptionalPositional) {
+      //   _sink.write('optionalPositional ');
+      // } else if (f.isRequiredNamed) {
+      //   _sink.write('requiredNamed ');
+      // } else if (f.isOptionalNamed) {
+      //   _sink.write('optionalNamed ');
+      // }
+
+      if (f is ConstVariableElement) {
+        _sink.write('default ');
+      }
+
+      // _sink.writeIf(f.isConst, 'const ');
+      // _sink.writeIf(f.isCovariant, 'covariant ');
+      // _sink.writeIf(f.isFinal, 'final ');
+
+      if (f is FieldFormalParameterElement) {
+        _sink.write('this.');
+      } else if (f is SuperFormalParameterElement) {
+        // _sink.writeIf(f.hasDefaultValue, 'hasDefaultValue ');
+        _sink.write('super.');
+      }
+
+      _writeFragmentName(f);
+    });
+
+    _sink.withIndent(() {
+      _writeFragmentReference(f);
+      // _writeType('type', f.type);
+      _writeMetadata(f.metadata);
+      _writeSinceSdkVersion(f.sinceSdkVersion);
+      // _writeCodeRange(f);
+      // _writeTypeParameterElements(e.typeParameters);
+      // _writeElements('parameters', e.parameters, _writeFormalParameterFragments);
+      // _writeConstantInitializer(e);
+      // _writeNonSyntheticElement(e);
+      // _writeFieldFormalParameterField(e);
+      // _writeSuperConstructorParameter(e);
+    });
+  }
+
   void _writeFragentBodyModifiers(ExecutableFragment f) {
     if (f.isAsynchronous) {
       expect(f.isSynchronous, isFalse);
@@ -801,7 +903,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeSinceSdkVersion(e.sinceSdkVersion);
 
       expect(e.typeParameters2, isEmpty);
-      // _writeParameterElements(e.parameters2);
+      _writeElements('parameters', e.parameters2, _writeFormalParameterElement);
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       // writeLinking();
@@ -864,7 +966,8 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeCodeRange(f);
 
       // expect(f.typeParameters2, isEmpty);
-      // _writeParameterElements(f.parameters2);
+      _writeElements(
+          'parameters', f.parameters2, _writeFormalParameterFragment);
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // writeLinking();
@@ -1403,7 +1506,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeTypeInferenceError(e);
 
       // _writeTypeParameterElements(e.typeParameters2);
-      // _writeParameterElements(e.parameters2);
+      _writeElements('parameters', e.parameters2, _writeFormalParameterElement);
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       _writeMacroDiagnostics(e);
@@ -1442,7 +1545,8 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeTypeInferenceError(f);
 
       // _writeTypeParameterElements(f.typeParameters);
-      // _writeParameterElements(f.parameters);
+      _writeElements(
+          'parameters', f.parameters2, _writeFormalParameterFragment);
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // _writeMacroDiagnostics(f);
@@ -1509,7 +1613,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeSinceSdkVersion(e.sinceSdkVersion);
 
       expect(e.typeParameters2, isEmpty);
-      // _writeParameterElements(e.parameters2);
+      _writeElements('parameters', e.parameters2, _writeFormalParameterElement);
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       // writeLinking();
@@ -1571,7 +1675,8 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeCodeRange(f);
 
       // expect(f.typeParameters2, isEmpty);
-      // _writeParameterElements(f.parameters2);
+      _writeElements(
+          'parameters', f.parameters2, _writeFormalParameterFragment);
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // writeLinking();
@@ -1709,7 +1814,7 @@ class _Element2Writer extends _AbstractElementWriter {
     //     _sink.withIndent(() {
     //       // TODO(brianwilkerson): We need to define `parameters2` to return
     //       //  `List<ParmaeterElement2>`.
-    //       _writeParameterElements(type.parameters);
+    //       _writeElements('parameters',  type.parameters2, _writeFormalParameterFragment);
     //     });
     //   }
     // }

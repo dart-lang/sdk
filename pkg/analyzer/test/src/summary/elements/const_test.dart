@@ -624,9 +624,17 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional final t
+              reference: <none>
+              type: T
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
         const named
           reference: <none>
+          parameters
+            requiredPositional final t
+              reference: <none>
+              type: T
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
       getters
         synthetic get t
@@ -1954,6 +1962,13 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: Object
+            requiredPositional b
+              reference: <none>
+              type: Object
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
         const named
           reference: <none>
@@ -2057,6 +2072,13 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: Object
+            requiredPositional b
+              reference: <none>
+              type: Object
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
@@ -2549,6 +2571,13 @@ library
       constructors
         const named
           reference: <none>
+          parameters
+            requiredPositional k
+              reference: <none>
+              type: K
+            requiredPositional v
+              reference: <none>
+              type: V
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
   topLevelVariables
     const V
@@ -3009,6 +3038,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            requiredPositional final t
+              reference: <none>
+              type: T
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get t
@@ -3471,6 +3504,22 @@ library
       constructors
         const named
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: bool
+            requiredPositional b
+              reference: <none>
+              type: int
+            requiredPositional c
+              reference: <none>
+              type: int
+            optionalNamed d
+              reference: <none>
+              type: String
+            optionalNamed e
+              reference: <none>
+              type: double
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
   topLevelVariables
     const V
@@ -6468,6 +6517,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            optionalNamed final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -6562,6 +6615,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            optionalNamed final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -6655,6 +6712,10 @@ library
       constructors
         const new
           reference: <none>
+          parameters
+            optionalPositional final x
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get x
@@ -6806,15 +6867,25 @@ library
             methodPositional @81
               reference: <testLibraryFragment>::@class::C::@method::methodPositional
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                default p @99
             methodPositionalWithoutDefault @121
               reference: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                default p @153
             methodNamed @167
               reference: <testLibraryFragment>::@class::C::@method::methodNamed
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                default p @180
+                  reference: <testLibraryFragment>::@class::C::@method::methodNamed::@parameter::p
             methodNamedWithoutDefault @201
               reference: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                default p @228
+                  reference: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault::@parameter::p
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -6823,22 +6894,46 @@ library
       constructors
         const positional
           reference: <none>
+          parameters
+            optionalPositional p
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::positional
         const named
           reference: <none>
+          parameters
+            optionalNamed p
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
       methods
         methodPositional
           reference: <none>
+          parameters
+            optionalPositional p
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@method::methodPositional
         methodPositionalWithoutDefault
           reference: <none>
+          parameters
+            optionalPositional p
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault
         methodNamed
           reference: <none>
+          parameters
+            optionalNamed p
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@method::methodNamed
         methodNamedWithoutDefault
           reference: <none>
+          parameters
+            optionalNamed p
+              reference: <none>
+              type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault
 ''');
   }
@@ -7878,6 +7973,9 @@ library
             m @23
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                a @29
+                b @39
       topLevelVariables
         const V @57
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -7899,6 +7997,13 @@ library
       methods
         static m
           reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+            requiredPositional b
+              reference: <none>
+              type: String
           firstFragment: <testLibraryFragment>::@class::C::@method::m
   topLevelVariables
     const V

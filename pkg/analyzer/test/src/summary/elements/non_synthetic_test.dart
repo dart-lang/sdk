@@ -87,6 +87,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::C::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                _foo @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -113,6 +115,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::foo
 ''');
   }
@@ -257,6 +263,8 @@ library
             set foo= @16
               reference: <testLibraryFragment>::@class::C::@setter::foo
               enclosingFragment: <testLibraryFragment>::@class::C
+              parameters
+                value @24
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -277,6 +285,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@class::C
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@class::C::@setter::foo
 ''');
   }
@@ -521,6 +533,8 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              parameters
+                _foo @-1
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -545,6 +559,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::M
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
 ''');
   }
@@ -673,6 +691,8 @@ library
             set foo= @16
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
               enclosingFragment: <testLibraryFragment>::@mixin::M
+              parameters
+                value @24
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -691,6 +711,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: <testLibraryFragment>::@mixin::M
+          parameters
+            requiredPositional value
+              reference: <none>
+              type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
 ''');
   }
@@ -801,6 +825,8 @@ library
         set foo= @22
           reference: <testLibraryFragment>::@setter::foo
           enclosingFragment: <testLibraryFragment>
+          parameters
+            value @30
   topLevelVariables
     synthetic foo
       reference: <none>
@@ -818,6 +844,10 @@ library
     static set foo=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional value
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::foo
 ''');
   }
@@ -864,6 +894,8 @@ library
         set foo= @4
           reference: <testLibraryFragment>::@setter::foo
           enclosingFragment: <testLibraryFragment>
+          parameters
+            value @12
   topLevelVariables
     synthetic foo
       reference: <none>
@@ -875,6 +907,10 @@ library
     static set foo=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional value
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::foo
 ''');
   }
@@ -932,6 +968,8 @@ library
         set foo= @-1
           reference: <testLibraryFragment>::@setter::foo
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _foo @-1
   topLevelVariables
     foo
       reference: <none>
@@ -949,6 +987,10 @@ library
     synthetic static set foo=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _foo
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::foo
 ''');
   }

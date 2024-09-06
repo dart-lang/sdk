@@ -651,7 +651,13 @@ abstract class FormalParameterElement
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class FormalParameterFragment
-    implements PromotableFragment, _Annotatable {}
+    implements PromotableFragment, _Annotatable {
+  @override
+  FormalParameterFragment? get nextFragment;
+
+  @override
+  FormalParameterFragment? get previousFragment;
+}
 
 /// A fragment that wholly or partially defines an element.
 ///

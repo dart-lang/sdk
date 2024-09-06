@@ -63,6 +63,8 @@ library
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _f @-1
   topLevelVariables
     f
       reference: <none>
@@ -80,6 +82,10 @@ library
     synthetic static set f=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _f
+          reference: <none>
+          type: void Function()
       firstFragment: <testLibraryFragment>::@setter::f
 ''');
   }
@@ -131,6 +137,8 @@ library
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _f @-1
   topLevelVariables
     f
       reference: <none>
@@ -148,6 +156,10 @@ library
     synthetic static set f=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _f
+          reference: <none>
+          type: void Function()?
       firstFragment: <testLibraryFragment>::@setter::f
 ''');
   }
@@ -366,6 +378,8 @@ library
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _v @-1
   topLevelVariables
     v
       reference: <none>
@@ -383,6 +397,10 @@ library
     synthetic static set v=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _v
+          reference: <none>
+          type: int Function(int, String)
       firstFragment: <testLibraryFragment>::@setter::v
 ''');
   }
@@ -656,6 +674,8 @@ library
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
           enclosingFragment: <testLibraryFragment>
+          parameters
+            _v @-1
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -682,6 +702,10 @@ library
     synthetic static set v=
       reference: <none>
       enclosingElement: <testLibrary>
+      parameters
+        requiredPositional _v
+          reference: <none>
+          type: int
       firstFragment: <testLibraryFragment>::@setter::v
 ''');
   }

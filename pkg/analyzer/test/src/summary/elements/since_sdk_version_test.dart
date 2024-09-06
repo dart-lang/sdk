@@ -178,6 +178,8 @@ library
               reference: dart:foo::<fragment>::@class::A::@setter::foo
               enclosingFragment: dart:foo::<fragment>::@class::A
               sinceSdkVersion: 2.15.0
+              parameters
+                _foo @-1
   classes
     class A
       reference: dart:foo::<fragment>::@class::A
@@ -201,6 +203,10 @@ library
         synthetic set foo=
           reference: <none>
           enclosingElement: dart:foo::<fragment>::@class::A
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
           firstFragment: dart:foo::<fragment>::@class::A::@setter::foo
 ''');
   }
@@ -495,6 +501,8 @@ library
               reference: dart:foo::<fragment>::@class::A::@setter::foo
               enclosingFragment: dart:foo::<fragment>::@class::A
               sinceSdkVersion: 2.15.0
+              parameters
+                _ @65
   classes
     class A
       reference: dart:foo::<fragment>::@class::A
@@ -512,6 +520,10 @@ library
         set foo=
           reference: <none>
           enclosingElement: dart:foo::<fragment>::@class::A
+          parameters
+            requiredPositional _
+              reference: <none>
+              type: int
           firstFragment: dart:foo::<fragment>::@class::A::@setter::foo
 ''');
   }
