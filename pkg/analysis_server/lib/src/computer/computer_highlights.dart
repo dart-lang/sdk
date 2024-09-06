@@ -307,7 +307,7 @@ class DartUnitHighlightsComputer {
       var staticType = parent.realTarget.staticType;
       if (staticType is RecordType) {
         type = staticType.fieldByName(nameToken.lexeme) != null
-            ? HighlightRegionType.INSTANCE_FIELD_REFERENCE
+            ? HighlightRegionType.INSTANCE_GETTER_REFERENCE
             : HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE;
       }
     }
@@ -962,16 +962,10 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       HighlightRegionType.KEYWORD,
     );
 
-    var element = node.declaredElement;
-    if (element is FieldFormalParameterElement) {
-      var field = element.field;
-      if (field != null) {
-        computer._addRegion_token(
-          node.name,
-          HighlightRegionType.INSTANCE_FIELD_REFERENCE,
-        );
-      }
-    }
+    computer._addRegion_token(
+      node.name,
+      HighlightRegionType.INSTANCE_FIELD_REFERENCE,
+    );
 
     super.visitFieldFormalParameter(node);
   }
@@ -1482,12 +1476,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     computer._addRegion_token(
       node.name,
-      HighlightRegionType.PARAMETER_DECLARATION,
+      node.declaredElement!.type is DynamicType
+          ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
+          : HighlightRegionType.PARAMETER_DECLARATION,
     );
 
-    node.type?.accept(this);
-    node.typeParameters?.accept(this);
-    node.parameters?.accept(this);
+    super.visitSuperFormalParameter(node);
   }
 
   @override
