@@ -12,10 +12,9 @@ import "package:test_runner/src/options.dart";
 import "package:test_runner/src/process_queue.dart";
 import "package:test_runner/src/repository.dart";
 import "package:test_runner/src/test_case.dart";
+import "package:test_runner/src/test_file.dart";
 import "package:test_runner/src/test_progress.dart" as progress;
 import "package:test_runner/src/test_suite.dart";
-
-import "utils.dart";
 
 final defaultTimeout = 30;
 
@@ -25,26 +24,39 @@ class TestController {
 
   // Used as TestCase.completedCallback.
   static processCompletedTest(TestCase testCase) {
+    final passed = testCase.result.canBeOutcomeOf(testCase.realExpected);
     numCompletedTests++;
+
+    // This test is expected to pass but actually fails
     if (testCase.displayName == "fail-unexpected") {
-      if (!testCase.unexpectedOutput) {
-        var stdout = String.fromCharCodes(testCase.lastCommandOutput.stdout);
-        var stderr = String.fromCharCodes(testCase.lastCommandOutput.stderr);
-        print("stdout = [$stdout]");
-        print("stderr = [$stderr]");
-        throw "Test case ${testCase.displayName} passed unexpectedly, "
-            "result == ${testCase.result}";
-      }
-    } else {
-      if (testCase.unexpectedOutput) {
-        var stdout = String.fromCharCodes(testCase.lastCommandOutput.stdout);
-        var stderr = String.fromCharCodes(testCase.lastCommandOutput.stderr);
-        print("stdout = [$stdout]");
-        print("stderr = [$stderr]");
-        throw "Test case ${testCase.displayName} failed, "
-            "result == ${testCase.result}";
-      }
+      if (passed) _fail(testCase, 'passed unexpectedly');
+      return;
     }
+
+    // This test is expected to pass but actually times out
+    if (testCase.displayName == "timeout") {
+      if (passed || testCase.result != Expectation.timeout) {
+        _fail(testCase, 'did not timeout');
+      }
+      return;
+    }
+
+    // Other tests are either
+    // * expected to pass and actually pass
+    // * expected to fail and actually fail
+    // * expected to <X> and actually <X>
+    if (!passed) _fail(testCase, 'did not pass');
+  }
+
+  static Never _fail(TestCase testCase, String message) {
+    var stdout = String.fromCharCodes(testCase.lastCommandOutput.stdout);
+    var stderr = String.fromCharCodes(testCase.lastCommandOutput.stderr);
+    print("stdout = [$stdout]");
+    print("stderr = [$stderr]");
+    throw "Test case '${testCase.displayName}' $message\n"
+        "  Actual: ${testCase.result}\n"
+        "  Expected: ${testCase.realExpected} "
+        "(${testCase.expectedOutcomes.join(', ')}))";
   }
 
   static void finished() {
@@ -71,7 +83,7 @@ class CustomTestSuite extends TestSuite {
     var testCasePass =
         _makeTestCase("pass", defaultTimeout, [Expectation.pass]);
     var testCaseFail =
-        _makeTestCase("fail", defaultTimeout, [Expectation.fail]);
+        _makeTestCase("fail", defaultTimeout, [Expectation.runtimeError]);
     var testCaseTimeout = _makeTestCase("timeout", 5, [Expectation.timeout]);
     var testCaseFailUnexpected =
         _makeTestCase("fail-unexpected", defaultTimeout, [Expectation.pass]);
@@ -92,13 +104,15 @@ class CustomTestSuite extends TestSuite {
       Platform.script.toFilePath(),
       name,
     ];
-    final command = ProcessCommand('custom', Platform.executable, args, {});
-    return TestCase(
-        name,
-        [command],
-        configuration,
-        Set<Expectation>.from(expectations),
-        createTestFile(source: '', suite: 'suite', path: '/dummy_test.dart'));
+    final command = VMCommand(Platform.executable, args, {});
+    final testFile = TestFile.vmUnitTest('suite/dummy_test',
+        hasCompileError: expectations
+            .any((e) => e.canBeOutcomeOf(Expectation.compileTimeError)),
+        hasRuntimeError:
+            expectations.any((e) => e.canBeOutcomeOf(Expectation.runtimeError)),
+        hasCrash: expectations.any((e) => e.canBeOutcomeOf(Expectation.crash)));
+    return TestCase(name, [command], configuration,
+        Set<Expectation>.from(expectations), testFile);
   }
 }
 
