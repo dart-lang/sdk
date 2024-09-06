@@ -186,10 +186,15 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       _ExplicitNamedTypeBuilder.forInvalidType;
 
   @override
-  TypeDeclarationBuilder? get declaration => _declaration;
+  TypeDeclarationBuilder get declaration {
+    assert(
+        _declaration != null, // Coverage-ignore(suite): Not run.
+        "Declaration has not been resolved on $this.");
+    return _declaration!;
+  }
 
   @override
-  bool get isVoidType => declaration is VoidTypeDeclarationBuilder;
+  bool get isVoidType => _declaration is VoidTypeDeclarationBuilder;
 
   @override
   void bind(
@@ -271,11 +276,11 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         //  additional errors?
         _declaration = buildInvalidTypeDeclarationBuilder(
             message.withLocation(fileUri!, nameOffset, nameLength));
-      } else if (typeArguments!.length != declaration!.typeVariablesCount) {
+      } else if (typeArguments!.length != declaration.typeVariablesCount) {
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
         Message message = templateTypeArgumentMismatch
-            .withArguments(declaration!.typeVariablesCount);
+            .withArguments(declaration.typeVariablesCount);
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         _declaration = buildInvalidTypeDeclarationBuilder(
             message.withLocation(fileUri!, nameOffset, nameLength));
@@ -361,7 +366,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
   Supertype? _handleInvalidSupertype(LibraryBuilder library) {
     Template<Message Function(String name)> template =
-        declaration!.isTypeVariable
+        declaration.isTypeVariable
             ? templateSupertypeIsTypeVariable
             : templateSupertypeIsIllegal;
     library.addProblem(template.withArguments(fullNameForErrors), charOffset!,
@@ -376,7 +381,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     if (type is InvalidType) return null;
 
     Message message;
-    if (declaration!.isTypeVariable) {
+    if (declaration.isTypeVariable) {
       // Coverage-ignore-block(suite): Not run.
       message =
           templateSupertypeIsTypeVariable.withArguments(fullNameForErrors);
@@ -495,13 +500,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
       List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables}) {
-    assert(
-        declaration != null, // Coverage-ignore(suite): Not run.
-        "Declaration has not been resolved on $this.");
     if (declaration is TypeAliasBuilder) {
       return (declaration as TypeAliasBuilder).unalias(typeArguments,
           usedTypeAliasBuilders: usedTypeAliasBuilders,
-          unboundTypes: unboundTypes,
           unboundTypeVariables: unboundTypeVariables);
     }
     return this;
@@ -531,10 +532,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
   DartType _buildAliasedInternal(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
-    assert(
-        declaration != null, // Coverage-ignore(suite): Not run.
-        "Declaration has not been resolved on $this.");
-    return declaration!.buildAliasedType(
+    return declaration.buildAliasedType(
         library,
         nullabilityBuilder,
         typeArguments,
@@ -547,7 +545,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
   @override
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
-    TypeDeclarationBuilder declaration = this.declaration!;
+    TypeDeclarationBuilder declaration = this.declaration;
     switch (declaration) {
       case ClassBuilder():
         if (declaration.isNullClass) {
@@ -643,7 +641,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
   @override
   Supertype? buildMixedInType(LibraryBuilder libraryBuilder) {
-    TypeDeclarationBuilder declaration = this.declaration!;
+    TypeDeclarationBuilder declaration = this.declaration;
     switch (declaration) {
       case ClassBuilder():
         if (libraryBuilder is SourceLibraryBuilder) {
@@ -682,7 +680,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   NamedTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
     return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        declaration!, nullabilityBuilder,
+        declaration, nullabilityBuilder,
         arguments: typeArguments,
         fileUri: fileUri,
         charOffset: charOffset,
@@ -715,7 +713,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       {required Map<TypeVariableBuilder, TraversalState>
           typeVariablesTraversalState}) {
     return combineNullabilitiesForSubstitution(
-        inner: declaration!.computeNullabilityWithArguments(typeArguments,
+        inner: declaration.computeNullabilityWithArguments(typeArguments,
             typeVariablesTraversalState: typeVariablesTraversalState),
         outer: nullabilityBuilder.build());
   }
@@ -724,9 +722,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   VarianceCalculationValue computeTypeVariableBuilderVariance(
       NominalVariableBuilder variable,
       {required SourceLoader sourceLoader}) {
-    TypeDeclarationBuilder? declaration = this.declaration;
+    TypeDeclarationBuilder declaration = this.declaration;
     List<TypeBuilder>? arguments = this.typeArguments;
-    assert(declaration != null);
     switch (declaration) {
       case ClassBuilder():
         Variance result = Variance.unrelated;
@@ -818,7 +815,6 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       // Coverage-ignore(suite): Not run.
       // TODO(johnniwinther): How should we handle this case?
       case OmittedTypeDeclarationBuilder():
-      case null:
     }
     return VarianceCalculationValue.calculatedUnrelated;
   }
@@ -839,7 +835,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   @override
   void collectReferencesFrom(Map<TypeVariableBuilder, int> variableIndices,
       List<List<int>> edges, int index) {
-    TypeDeclarationBuilder? declaration = this.declaration;
+    TypeDeclarationBuilder declaration = this.declaration;
     List<TypeBuilder>? arguments = this.typeArguments;
     if (declaration is NominalVariableBuilder &&
         variableIndices.containsKey(declaration)) {
@@ -856,10 +852,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
       Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
-      List<TypeBuilder> unboundTypes,
       List<StructuralVariableBuilder> unboundTypeVariables,
       {final Variance variance = Variance.covariant}) {
-    TypeDeclarationBuilder? declaration = this.declaration;
+    TypeDeclarationBuilder declaration = this.declaration;
     List<TypeBuilder>? arguments = this.typeArguments;
 
     if (declaration is TypeVariableBuilder) {
@@ -887,31 +882,10 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
     List<TypeBuilder>? newArguments;
     switch (declaration) {
-      // Coverage-ignore(suite): Not run.
-      case null:
-        assert(
-            identical(upperSubstitution, lowerSubstitution),
-            "Can only handle unbound named type builders identical "
-            "`upperSubstitution` and `lowerSubstitution`.");
-        for (int i = 0; i < arguments.length; ++i) {
-          TypeBuilder? substitutedArgument = arguments[i].substituteRange(
-              upperSubstitution,
-              lowerSubstitution,
-              unboundTypes,
-              unboundTypeVariables,
-              variance: variance);
-          if (substitutedArgument != null) {
-            newArguments ??= arguments.toList();
-            newArguments[i] = substitutedArgument;
-          }
-        }
       case ClassBuilder():
         for (int i = 0; i < arguments.length; ++i) {
           TypeBuilder? substitutedArgument = arguments[i].substituteRange(
-              upperSubstitution,
-              lowerSubstitution,
-              unboundTypes,
-              unboundTypeVariables,
+              upperSubstitution, lowerSubstitution, unboundTypeVariables,
               variance: variance);
           if (substitutedArgument != null) {
             newArguments ??= arguments.toList();
@@ -921,10 +895,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       case ExtensionTypeDeclarationBuilder():
         for (int i = 0; i < arguments.length; ++i) {
           TypeBuilder? substitutedArgument = arguments[i].substituteRange(
-              upperSubstitution,
-              lowerSubstitution,
-              unboundTypes,
-              unboundTypeVariables,
+              upperSubstitution, lowerSubstitution, unboundTypeVariables,
               variance: variance);
           if (substitutedArgument != null) {
             newArguments ??= arguments.toList();
@@ -935,10 +906,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         for (int i = 0; i < arguments.length; ++i) {
           NominalVariableBuilder variable = declaration.typeVariables![i];
           TypeBuilder? substitutedArgument = arguments[i].substituteRange(
-              upperSubstitution,
-              lowerSubstitution,
-              unboundTypes,
-              unboundTypeVariables,
+              upperSubstitution, lowerSubstitution, unboundTypeVariables,
               variance: variance.combine(variable.variance));
           if (substitutedArgument != null) {
             newArguments ??= arguments.toList();
@@ -966,19 +934,14 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             false, "Unexpected named type builder declaration: $declaration.");
     }
     if (newArguments != null) {
-      NamedTypeBuilder newTypeBuilder = this.withTypeArguments(newArguments);
-      if (declaration == null) {
-        // Coverage-ignore-block(suite): Not run.
-        unboundTypes.add(newTypeBuilder);
-      }
-      return newTypeBuilder;
+      return withTypeArguments(newArguments);
     }
     return null;
   }
 
   @override
   TypeBuilder? unaliasAndErase() {
-    TypeDeclarationBuilder? declaration = this.declaration;
+    TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is TypeAliasBuilder) {
       // We pass empty lists as [unboundTypes] and [unboundTypeVariables]
       // because new builders can be generated during unaliasing. We ignore
@@ -987,8 +950,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       //
       // We also don't instantiate-to-bound raw types because it won't affect
       // the dependency cycle analysis.
-      return declaration.unalias(typeArguments,
-          unboundTypes: [], unboundTypeVariables: [])?.unaliasAndErase();
+      return declaration
+          .unalias(typeArguments, unboundTypeVariables: [])?.unaliasAndErase();
     } else if (declaration is ExtensionTypeDeclarationBuilder) {
       TypeBuilder? representationType =
           declaration.declaredRepresentationTypeBuilder;
@@ -1028,7 +991,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   @override
   List<TypeWithInBoundReferences> findRawTypesWithInboundReferences() {
     List<TypeWithInBoundReferences> typesAndDependencies = [];
-    TypeDeclarationBuilder? declaration = this.declaration;
+    TypeDeclarationBuilder declaration = this.declaration;
     List<TypeBuilder>? arguments = this.typeArguments;
     if (arguments == null) {
       switch (declaration) {
@@ -1111,7 +1074,6 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         // Coverage-ignore(suite): Not run.
         // TODO(johnniwinther): How should we handle this case?
         case OmittedTypeDeclarationBuilder():
-        case null:
       }
     } else {
       for (TypeBuilder argument in arguments) {

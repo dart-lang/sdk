@@ -8891,16 +8891,12 @@ class BodyBuilder extends StackListenerImpl
         peek() as List<TypeVariableBuilder>;
     libraryBuilder.checkTypeVariableDependencies(typeVariables);
 
-    List<TypeBuilder> unboundTypes = [];
     List<StructuralVariableBuilder> unboundTypeVariables = [];
     List<TypeBuilder> calculatedBounds = calculateBounds(
         typeVariables,
         libraryBuilder.loader.target.dynamicType,
         libraryBuilder.loader.target.nullType,
-        unboundTypes: unboundTypes,
         unboundTypeVariables: unboundTypeVariables);
-    assert(unboundTypes.isEmpty,
-        "Found a type not bound to a declaration in BodyBuilder.");
     for (int i = 0; i < typeVariables.length; ++i) {
       typeVariables[i].defaultType = calculatedBounds[i];
       typeVariables[i].finish(

@@ -355,22 +355,16 @@ sealed class TypeBuilder {
   // [TypeParameterScopeBuilder] should resolve it, so that we cannot create
   // [NamedTypeBuilder]s that are orphaned.
   TypeBuilder subst(Map<NominalVariableBuilder, TypeBuilder> substitution,
-      {List<TypeBuilder>? unboundTypes,
-      List<StructuralVariableBuilder>? unboundTypeVariables}) {
+      {List<StructuralVariableBuilder>? unboundTypeVariables}) {
     if (substitution.isEmpty) {
       return this;
     }
-    List<TypeBuilder> unboundTypesInternal = unboundTypes ?? [];
     List<StructuralVariableBuilder> unboundTypeVariablesInternal =
         unboundTypeVariables ?? [];
-    TypeBuilder result = substituteRange(substitution, substitution,
-            unboundTypesInternal, unboundTypeVariablesInternal,
+    TypeBuilder result = substituteRange(
+            substitution, substitution, unboundTypeVariablesInternal,
             variance: Variance.covariant) ??
         this;
-    assert(
-        unboundTypes != null || unboundTypesInternal.isEmpty,
-        // Coverage-ignore(suite): Not run.
-        "Non-empty unbound types: $unboundTypesInternal.");
     assert(
         unboundTypeVariables != null || unboundTypeVariablesInternal.isEmpty,
         // Coverage-ignore(suite): Not run.
@@ -381,10 +375,9 @@ sealed class TypeBuilder {
   // Coverage-ignore(suite): Not run.
   TypeBuilder substitute(
       TypeBuilder type, Map<NominalVariableBuilder, TypeBuilder> substitution,
-      {required List<TypeBuilder> unboundTypes,
-      required List<StructuralVariableBuilder> unboundTypeVariables}) {
+      {required List<StructuralVariableBuilder> unboundTypeVariables}) {
     return type.substituteRange(
-            substitution, substitution, unboundTypes, unboundTypeVariables,
+            substitution, substitution, unboundTypeVariables,
             variance: Variance.covariant) ??
         type;
   }
@@ -468,7 +461,6 @@ sealed class TypeBuilder {
   /// not part of the generated AST.
   TypeBuilder? unalias(
           {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-          List<TypeBuilder>? unboundTypes,
           List<StructuralVariableBuilder>? unboundTypeVariables}) =>
       this;
 
@@ -499,7 +491,6 @@ sealed class TypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
       Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
-      List<TypeBuilder> unboundTypes,
       List<StructuralVariableBuilder> unboundTypeVariables,
       {final Variance variance = Variance.covariant});
 

@@ -198,7 +198,6 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
       Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
-      List<TypeBuilder> unboundTypes,
       List<StructuralVariableBuilder> unboundTypeVariables,
       {Variance variance = Variance.covariant}) {
     Map<TypeVariableBuilder, TypeBuilder> oldUpperSubstitution = {};
@@ -218,8 +217,8 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
             entry.value;
       }
     }
-    return _applySubstitution(_typeBuilder.substituteRange(oldUpperSubstitution,
-        oldLowerSubstitution, unboundTypes, unboundTypeVariables));
+    return _applySubstitution(_typeBuilder.substituteRange(
+        oldUpperSubstitution, oldLowerSubstitution, unboundTypeVariables));
   }
 
   @override

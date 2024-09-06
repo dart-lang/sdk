@@ -61,8 +61,6 @@ abstract class BuilderFactoryResult {
 
   int finishNativeMethods();
 
-  void registerUnresolvedNamedTypes(List<NamedTypeBuilder> unboundTypes);
-
   void registerUnresolvedStructuralVariables(
       List<StructuralVariableBuilder> unboundTypeVariables);
 
