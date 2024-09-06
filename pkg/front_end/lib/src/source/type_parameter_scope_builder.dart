@@ -39,14 +39,6 @@ class LibraryNameSpaceBuilder {
         getables: _members, setables: _setters, extensions: _extensions);
   }
 
-  Iterable<Builder> get builders => [
-        ..._members.values,
-        ..._setters.values,
-        for (Builder builder in _extensions)
-          if (builder is SourceExtensionBuilder && builder.isUnnamedExtension)
-            builder
-      ];
-
   Builder addBuilder(
       SourceLibraryBuilder _parent,
       ProblemReporting _problemReporting,

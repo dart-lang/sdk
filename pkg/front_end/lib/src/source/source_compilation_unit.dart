@@ -1009,8 +1009,9 @@ class SourceCompilationUnitImpl
       }
     }
 
-    for (Builder declaration in _builderFactoryResult.builders) {
-      computeDefaultValuesForDeclaration(declaration);
+    Iterator<Builder> iterator = _sourceLibraryBuilder.localMembersIterator;
+    while (iterator.moveNext()) {
+      computeDefaultValuesForDeclaration(iterator.current);
     }
     return count;
   }
@@ -1110,7 +1111,9 @@ class SourceCompilationUnitImpl
   int computeVariances() {
     int count = 0;
 
-    for (Builder? declaration in _builderFactoryResult.builders) {
+    Iterator<Builder> iterator = _sourceLibraryBuilder.localMembersIterator;
+    while (iterator.moveNext()) {
+      Builder? declaration = iterator.current;
       while (declaration != null) {
         if (declaration is TypeAliasBuilder &&
             declaration.typeVariablesCount > 0) {
