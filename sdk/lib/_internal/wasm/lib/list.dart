@@ -116,6 +116,14 @@ abstract class _ModifiableList<E> extends WasmListBase<E> {
     }
     Lists.copy(iterableAsList, 0, this, index, length);
   }
+
+  @override
+  void fillRange(int start, int end, [E? fill]) {
+    // Check for nulls the same way as `ListBase.fillRange`.
+    final E value = fill as E;
+    RangeError.checkValidRange(start, end, this.length);
+    _data.fill(start, value, end - start);
+  }
 }
 
 @pragma("wasm:entry-point")
