@@ -66,8 +66,6 @@ abstract class BuilderFactoryResult {
   void registerUnresolvedStructuralVariables(
       List<StructuralVariableBuilder> unboundTypeVariables);
 
-  Iterable<Builder> get builders;
-
   List<LibraryPart> get libraryParts;
 }
 

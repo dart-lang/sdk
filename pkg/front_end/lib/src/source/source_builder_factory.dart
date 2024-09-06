@@ -2862,9 +2862,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   List<MetadataBuilder>? get metadata => _metadata;
 
   @override
-  Iterable<Builder> get builders => _libraryNameSpaceBuilder.builders;
-
-  @override
   bool get isPart => _partOfName != null || _partOfUri != null;
 
   @override
