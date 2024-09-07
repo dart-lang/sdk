@@ -4425,7 +4425,10 @@ mixin FragmentedTypeParameterizedElementMixin<
   List<TypeParameterElement2> get typeParameters2 {
     var fragment = firstFragment;
     if (fragment is TypeParameterizedElementMixin) {
-      return fragment.typeParameters.cast<TypeParameterElement2>();
+      return fragment.typeParameters
+          .map((fragment) => (fragment as TypeParameterFragment).element
+              as TypeParameterElement2)
+          .toList();
     }
     return const [];
   }
@@ -6540,8 +6543,10 @@ mixin MaybeAugmentedInstanceElementMixin
   Version? get sinceSdkVersion => declaration.sinceSdkVersion;
 
   @override
-  List<TypeParameterElement2> get typeParameters2 =>
-      declaration.typeParameters.cast<TypeParameterElement2>();
+  List<TypeParameterElement2> get typeParameters2 => declaration.typeParameters
+      .map((fragment) =>
+          (fragment as TypeParameterFragment).element as TypeParameterElement2)
+      .toList();
 
   @override
   String displayString2(
@@ -9065,9 +9070,12 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   }
 }
 
+abstract class TypeDefiningElementImpl2 extends ElementImpl2
+    implements TypeDefiningElement2 {}
+
 /// A concrete implementation of a [TypeParameterElement].
 class TypeParameterElementImpl extends ElementImpl
-    implements TypeParameterElement {
+    implements TypeParameterElement, TypeParameterFragment {
   /// The default value of the type parameter. It is used to provide the
   /// corresponding missing type argument in type annotations and as the
   /// fall-back type value in type inference.
@@ -9080,6 +9088,9 @@ class TypeParameterElementImpl extends ElementImpl
   /// The value representing the variance modifier keyword, or `null` if
   /// there is no explicit variance modifier, meaning legacy covariance.
   shared.Variance? _variance;
+
+  /// The element corresponding to this fragment.
+  TypeParameterElement2? _element;
 
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
@@ -9101,10 +9112,34 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   @override
+  List<Fragment> get children3 => const [];
+
+  @override
   TypeParameterElement get declaration => this;
 
   @override
   String get displayName => name;
+
+  @override
+  TypeParameterElement2 get element {
+    if (_element != null) {
+      return _element!;
+    }
+    TypeParameterFragment firstFragment = this;
+    var previousFragment = firstFragment.previousFragment;
+    while (previousFragment != null) {
+      firstFragment = previousFragment;
+      previousFragment = firstFragment.previousFragment;
+    }
+    // As a side-effect of creating the element, all of the fragments in the
+    // chain will have their `_element` set to the newly created element.
+    return TypeParameterElementImpl2(firstFragment as TypeParameterElementImpl);
+  }
+
+  set element(TypeParameterElement2 element) => _element = element;
+
+  @override
+  Fragment? get enclosingFragment => enclosingElement3 as Fragment?;
 
   bool get isLegacyCovariant {
     return _variance == null;
@@ -9114,9 +9149,21 @@ class TypeParameterElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
   @override
+  LibraryFragment get libraryFragment =>
+      thisOrAncestorOfType<CompilationUnitElementImpl>() as LibraryFragment;
+
+  @override
   String get name {
     return super.name!;
   }
+
+  @override
+  // TODO(augmentations): Support chaining between the fragments.
+  TypeParameterFragment? get nextFragment => null;
+
+  @override
+  // TODO(augmentations): Support chaining between the fragments.
+  TypeParameterFragment? get previousFragment => null;
 
   shared.Variance get variance {
     return _variance ?? shared.Variance.covariant;
@@ -9206,6 +9253,47 @@ class TypeParameterElementImpl extends ElementImpl
   }
 }
 
+class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
+    with
+        FragmentedAnnotatableElementMixin<TypeParameterFragment>,
+        FragmentedElementMixin<TypeParameterFragment>
+    implements TypeParameterElement2 {
+  @override
+  final TypeParameterElementImpl firstFragment;
+
+  TypeParameterElementImpl2(this.firstFragment) {
+    TypeParameterElementImpl? fragment = firstFragment;
+    while (fragment != null) {
+      fragment.element = this;
+      fragment = fragment.nextFragment as TypeParameterElementImpl?;
+    }
+  }
+
+  @override
+  TypeParameterElement2 get baseElement => this;
+
+  @override
+  DartType? get bound => firstFragment.bound;
+
+  @override
+  Element2? get enclosingElement2 =>
+      (firstFragment._enclosingElement as Fragment).element;
+
+  @override
+  ElementKind get kind => ElementKind.TYPE_PARAMETER;
+
+  @override
+  LibraryElement2 get library2 => super.library2!;
+
+  @override
+  String? get name => firstFragment.name;
+
+  @override
+  TypeParameterType instantiate(
+          {required NullabilitySuffix nullabilitySuffix}) =>
+      firstFragment.instantiate(nullabilitySuffix: nullabilitySuffix);
+}
+
 abstract class TypeParameterizedElementImpl2 extends ElementImpl2
     implements TypeParameterizedElement2 {}
 
@@ -9241,6 +9329,10 @@ mixin TypeParameterizedElementMixin on ElementImpl
     }
     _typeParameters = typeParameters;
   }
+
+  @override
+  List<TypeParameterFragment> get typeParameters2 =>
+      typeParameters.cast<TypeParameterFragment>();
 
   List<TypeParameterElement> get typeParameters_unresolved {
     return _typeParameters;

@@ -489,6 +489,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -503,6 +505,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -614,6 +618,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -680,6 +686,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -804,6 +812,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -821,6 +831,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -935,6 +947,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -952,6 +966,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -1066,6 +1082,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1083,6 +1101,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -1191,6 +1211,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1208,6 +1230,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -1257,10 +1281,15 @@ library
       mixins
         mixin B @6
           reference: <testLibraryFragment>::@mixin::B
+          typeParameters
+            X @8
   mixins
     mixin B
       reference: <testLibraryFragment>::@mixin::B
       enclosingElement2: <testLibrary>
+      typeParameters
+        X
+          bound: void Function()
       firstFragment: <testLibraryFragment>::@mixin::B
       superclassConstraints
         Object
@@ -1325,6 +1354,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1352,6 +1383,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new

@@ -25,6 +25,7 @@ import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../serialization/serialization.dart';
 import '../js_model/closure.dart' show JContextField;
+import '../util/enumset.dart';
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
@@ -170,17 +171,19 @@ enum StaticUseKind {
   WEAK_STATIC_TEAR_OFF,
 }
 
+enum _StaticUseFlag {
+  type,
+  callStructure,
+  deferredImport,
+  constant,
+  typeArguments,
+}
+
 /// Statically known use of an [Entity].
 // TODO(johnniwinther): Create backend-specific implementations with better
 // invariants.
 class StaticUse {
   static const String tag = 'static-use';
-
-  static const _typeFlag = 1;
-  static const _callStructureFlag = 2;
-  static const _deferredImportFlag = 4;
-  static const _constantFlag = 8;
-  static const _typeArgumentsFlag = 16;
 
   final Entity element;
   final StaticUseKind kind;
@@ -223,26 +226,26 @@ class StaticUse {
     source.begin(tag);
     MemberEntity element = source.readMember();
     StaticUseKind kind = source.readEnum(StaticUseKind.values);
-    final bitMask = source.readInt();
+    final bitMask = EnumSet<_StaticUseFlag>(source.readInt());
     InterfaceType? type;
     CallStructure? callStructure;
     ImportEntity? deferredImport;
     ConstantValue? constant;
     List<DartType>? typeArguments;
 
-    if (bitMask & _typeFlag != 0) {
+    if (bitMask.contains(_StaticUseFlag.type)) {
       type = source.readDartType() as InterfaceType;
     }
-    if (bitMask & _callStructureFlag != 0) {
+    if (bitMask.contains(_StaticUseFlag.callStructure)) {
       callStructure = CallStructure.readFromDataSource(source);
     }
-    if (bitMask & _deferredImportFlag != 0) {
+    if (bitMask.contains(_StaticUseFlag.deferredImport)) {
       deferredImport = source.readImport();
     }
-    if (bitMask & _constantFlag != 0) {
+    if (bitMask.contains(_StaticUseFlag.constant)) {
       constant = source.readConstant();
     }
-    if (bitMask & _typeArgumentsFlag != 0) {
+    if (bitMask.contains(_StaticUseFlag.typeArguments)) {
       typeArguments = source.readDartTypes();
     }
     source.end(tag);
@@ -258,23 +261,14 @@ class StaticUse {
     sink.begin(tag);
     sink.writeMember(element as MemberEntity);
     sink.writeEnum(kind);
-    int bitMask = 0;
-    if (type != null) {
-      bitMask |= _typeFlag;
-    }
-    if (callStructure != null) {
-      bitMask |= _callStructureFlag;
-    }
-    if (deferredImport != null) {
-      bitMask |= _deferredImportFlag;
-    }
-    if (constant != null) {
-      bitMask |= _constantFlag;
-    }
-    if (typeArguments != null) {
-      bitMask |= _typeArgumentsFlag;
-    }
-    sink.writeInt(bitMask);
+    final bitMask = EnumSet<_StaticUseFlag>.fromValues([
+      if (type != null) _StaticUseFlag.type,
+      if (callStructure != null) _StaticUseFlag.callStructure,
+      if (deferredImport != null) _StaticUseFlag.deferredImport,
+      if (constant != null) _StaticUseFlag.constant,
+      if (typeArguments != null) _StaticUseFlag.typeArguments,
+    ]);
+    sink.writeInt(bitMask.mask);
     if (type != null) {
       sink.writeDartType(type!);
     }

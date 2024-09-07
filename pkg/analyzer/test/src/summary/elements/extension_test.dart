@@ -151,10 +151,15 @@ library
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E
+          typeParameters
+            T @12
   extensions
     extension E
       reference: <testLibraryFragment>::@extension::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          bound: num
       firstFragment: <testLibraryFragment>::@extension::E
 ''');
   }
@@ -186,10 +191,14 @@ library
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E
+          typeParameters
+            T @12
   extensions
     extension E
       reference: <testLibraryFragment>::@extension::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@extension::E
 ''');
   }
@@ -287,6 +296,16 @@ library
       extensions
         extension E @31
           reference: <testLibraryFragment>::@extension::E
+          typeParameters
+            T @38
+              metadata
+                Annotation
+                  atSign: @ @33
+                  name: SimpleIdentifier
+                    token: foo @34
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
           fields
             foo @65
               reference: <testLibraryFragment>::@extension::E::@field::foo
@@ -321,6 +340,16 @@ library
     extension E
       reference: <testLibraryFragment>::@extension::E
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @33
+              name: SimpleIdentifier
+                token: foo @34
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
       firstFragment: <testLibraryFragment>::@extension::E
       fields
         static const foo
@@ -2318,6 +2347,8 @@ library
         extension A @25
           reference: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          typeParameters
+            T1 @27
           fields
             foo1 @-1
               reference: <testLibraryFragment>::@extension::A::@field::foo1
@@ -2333,6 +2364,8 @@ library
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           previousFragment: <testLibraryFragment>::@extension::A
+          typeParameters
+            T2 @41
           fields
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
@@ -2346,6 +2379,8 @@ library
     extension A
       reference: <testLibraryFragment>::@extension::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T1
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         synthetic foo1
@@ -3473,6 +3508,8 @@ library
         extension A @25
           reference: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          typeParameters
+            T @27
           methods
             foo @43
               reference: <testLibraryFragment>::@extension::A::@method::foo
@@ -3483,6 +3520,8 @@ library
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           previousFragment: <testLibraryFragment>::@extension::A
+          typeParameters
+            T2 @41
           methods
             bar @52
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
@@ -3491,6 +3530,8 @@ library
     extension A
       reference: <testLibraryFragment>::@extension::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@extension::A
       methods
         foo
@@ -3579,6 +3620,8 @@ library
         extension A @25
           reference: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          typeParameters
+            T @27
           methods
             foo @43
               reference: <testLibraryFragment>::@extension::A::@method::foo
@@ -3590,6 +3633,8 @@ library
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           previousFragment: <testLibraryFragment>::@extension::A
+          typeParameters
+            T2 @41
           methods
             augment foo @60
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
@@ -3599,6 +3644,8 @@ library
     extension A
       reference: <testLibraryFragment>::@extension::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@extension::A
       methods
         foo
@@ -3701,6 +3748,8 @@ library
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           previousFragment: <testLibraryFragment>::@extension::A
+          typeParameters
+            T @41
           methods
             augment foo @61
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo

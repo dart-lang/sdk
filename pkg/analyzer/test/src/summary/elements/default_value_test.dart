@@ -63,6 +63,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -78,6 +80,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -311,6 +315,8 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -332,6 +338,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -783,6 +791,9 @@ library
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
+          typeParameters
+            T1 @8
+            T2 @12
           constructors
             const new @26
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -803,6 +814,9 @@ library
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
+      typeParameters
+        T1
+        T2
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
@@ -890,12 +904,16 @@ library
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
+          typeParameters
+            T @8
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
         class C @34
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            T @36
           constructors
             const new @49
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -904,6 +922,8 @@ library
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
@@ -912,6 +932,8 @@ library
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         const new
@@ -1002,18 +1024,24 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @17
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
         class B @29
           reference: <testLibraryFragment>::@class::B
+          typeParameters
+            T @31
           constructors
             const new @60
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
         class C @73
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            T @75
           constructors
             const new @114
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1022,6 +1050,8 @@ library
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -1030,6 +1060,8 @@ library
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
@@ -1038,6 +1070,8 @@ library
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         const new
@@ -1109,6 +1143,8 @@ library
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
+          typeParameters
+            T @8
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -1117,6 +1153,8 @@ library
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
@@ -1193,6 +1231,8 @@ library
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
+          typeParameters
+            T @8
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -1207,12 +1247,16 @@ library
             foo @45
               reference: <testLibraryFragment>::@class::C::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::C
+              typeParameters
+                T @49
               parameters
                 default b @58
   classes
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
@@ -1229,6 +1273,8 @@ library
       methods
         foo
           reference: <none>
+          typeParameters
+            T
           parameters
             optionalPositional b
               reference: <none>
@@ -1310,12 +1356,17 @@ library
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
+          typeParameters
+            T1 @8
+            T2 @12
           constructors
             const new @26
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
         class C @39
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            E1 @41
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1324,12 +1375,17 @@ library
             foo @54
               reference: <testLibraryFragment>::@class::C::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::C
+              typeParameters
+                E2 @58
               parameters
                 default b @73
   classes
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
+      typeParameters
+        T1
+        T2
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
@@ -1338,6 +1394,8 @@ library
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        E1
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -1346,6 +1404,8 @@ library
       methods
         foo
           reference: <none>
+          typeParameters
+            E2
           parameters
             optionalPositional b
               reference: <none>
@@ -1422,12 +1482,16 @@ library
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
+          typeParameters
+            T @8
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
         class C @34
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            T @36
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1442,6 +1506,8 @@ library
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
@@ -1450,6 +1516,8 @@ library
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new

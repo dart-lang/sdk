@@ -1170,14 +1170,6 @@ CompileTimeErrorCode:
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
     hasPublishedDocs: false
-  AUGMENTATION_WITHOUT_IMPORT:
-    problemMessage: The library does not import this augmentation.
-    correctionMessage: Try updating the augmented library to import this augmentation.
-    hasPublishedDocs: false
-  AUGMENTATION_WITHOUT_LIBRARY:
-    problemMessage: The URI does not resolve to a library.
-    correctionMessage: Try updating the URI to reference the augmented library.
-    hasPublishedDocs: false
   AUGMENTED_EXPRESSION_IS_NOT_SETTER:
     problemMessage: The augmented declaration is not a setter, it can't be used to write a value.
     correctionMessage: Try assigning a value to a setter.
@@ -3838,13 +3830,6 @@ CompileTimeErrorCode:
         print(i);
       }
       ```
-  DUPLICATE_AUGMENTATION_IMPORT:
-    problemMessage: "The library already contains an augmentation with the URI '{0}'."
-    correctionMessage: Try removing all except one of the duplicated augmentation directives.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the URI of the duplicate augmentation
   DUPLICATE_CONSTRUCTOR_NAME:
     sharedName: DUPLICATE_CONSTRUCTOR
     problemMessage: "The constructor with name '{0}' is already defined."
@@ -7431,13 +7416,6 @@ CompileTimeErrorCode:
 
       Import the library that contains the [part file][] rather than the
       [part file][] itself.
-  IMPORT_OF_NOT_AUGMENTATION:
-    problemMessage: "The imported file '{0}' isn't an augmentation of this library."
-    correctionMessage: Try adding an 'augment library' directive referencing this library to the imported file.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the URI of the imported file
   INCONSISTENT_CASE_EXPRESSION_TYPES:
     problemMessage: "Case expressions must have the same types, '{0}' isn't a '{1}'."
     hasPublishedDocs: false

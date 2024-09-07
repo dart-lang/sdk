@@ -300,6 +300,8 @@ class _Element2Writer extends _AbstractElementWriter {
     if (configuration.withCodeRanges && !e.isSynthetic) {
       if (e is MaybeAugmentedInstanceElementMixin) {
         e = e.declaration;
+      } else if (e is TypeParameterElementImpl2) {
+        e = e.firstFragment;
       }
       if (e is ElementImpl) {
         _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
@@ -829,33 +831,6 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  // void _writeTypeParameterElement(TypeParameterElement2 e) {
-  //   e as TypeParameterElementImpl;
-
-  //   _sink.writeIndentedLine(() {
-  //     _sink.write('${(e as TypeParameterElementImpl).variance.name} ');
-  //     _writeElementName(e);
-  //   });
-
-  //   _sink.withIndent(() {
-  //     _writeCodeRange(e);
-
-  //     var bound = e.bound;
-  //     if (bound != null) {
-  //       _writeType('bound', bound);
-  //     }
-
-  //     // var defaultType = e.defaultType;
-  //     // if (defaultType != null) {
-  //     //   _writeType('defaultType', defaultType);
-  //     // }
-
-  //     _writeMetadata(e.metadata);
-  //   });
-
-  //   _assertNonSyntheticElementSelf(e);
-  // }
-
   void _writeGetterElement(GetterElement e) {
     var variable = e.variable3;
     if (variable != null) {
@@ -1023,7 +998,8 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
       _writeCodeRange(e);
-      // _writeElements('typeParameters', e.typeParameters2, _writeTypeParameterElement);
+      _writeElements(
+          'typeParameters', e.typeParameters2, _writeTypeParameterElement);
       _writeMacroDiagnostics(e);
       _writeFragmentReference(e.firstFragment, label: 'firstFragment');
 
@@ -1129,6 +1105,8 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference(f.previousFragment, label: 'previousFragment');
       _writeFragmentReference(f.nextFragment, label: 'nextFragment');
 
+      _writeElements(
+          'typeParameters', f.typeParameters2, _writeTypeParameterFragment);
       _writeElements('fields', f.fields2, _writeFieldFragment);
       if (f is InterfaceFragment) {
         var constructors = f.constructors2;
@@ -1505,7 +1483,8 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeSinceSdkVersion(e.sinceSdkVersion);
       // _writeTypeInferenceError(e);
 
-      // _writeTypeParameterElements(e.typeParameters2);
+      _writeElements(
+          'typeParameters', e.typeParameters2, _writeTypeParameterElement);
       _writeElements('parameters', e.parameters2, _writeFormalParameterElement);
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
@@ -1544,7 +1523,8 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentCodeRange(f);
       // _writeTypeInferenceError(f);
 
-      // _writeTypeParameterElements(f.typeParameters);
+      _writeElements(
+          'typeParameters', f.typeParameters2, _writeTypeParameterFragment);
       _writeElements(
           'parameters', f.parameters2, _writeFormalParameterFragment);
       // _writeReturnType(f.returnType);
@@ -1818,6 +1798,56 @@ class _Element2Writer extends _AbstractElementWriter {
     //     });
     //   }
     // }
+  }
+
+  void _writeTypeParameterElement(TypeParameterElement2 e) {
+    _sink.writeIndentedLine(() {
+      // _sink.write('${e.variance.name} ');
+      _writeElementName(e);
+    });
+
+    _sink.withIndent(() {
+      _writeCodeRange(e);
+
+      var bound = e.bound;
+      if (bound != null) {
+        _writeType('bound', bound);
+      }
+
+      // var defaultType = e.defaultType;
+      // if (defaultType != null) {
+      //   _writeType('defaultType', defaultType);
+      // }
+
+      _writeMetadata(e.metadata);
+    });
+
+    _assertNonSyntheticElementSelf(e);
+  }
+
+  void _writeTypeParameterFragment(TypeParameterFragment f) {
+    _sink.writeIndentedLine(() {
+      // _sink.write('${e.variance.name} ');
+      _writeFragmentName(f);
+    });
+
+    _sink.withIndent(() {
+      // _writeCodeRange(e);
+
+      // var bound = e.bound;
+      // if (bound != null) {
+      //   _writeType('bound', bound);
+      // }
+
+      // var defaultType = e.defaultType;
+      // if (defaultType != null) {
+      //   _writeType('defaultType', defaultType);
+      // }
+
+      _writeMetadata(f.metadata);
+    });
+
+    // _assertNonSyntheticElementSelf(f);
   }
 }
 

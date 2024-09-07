@@ -1,8 +1,8 @@
 name: record_use
 description: >
   The serialization logic and API for the usage recording SDK feature.
-version: 0.1.0
-repository: https://github.com/dart-lang/native/tree/main/pkgs/record_use
+version: 0.1.1
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/record_use
 
 environment:
   sdk: ^3.4.0

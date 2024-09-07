@@ -331,11 +331,10 @@ class CodegenWorldBuilder extends WorldBuilder {
 
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     MemberEntity element = staticUse.element as MemberEntity;
-    EnumSet<MemberUse> useSet = EnumSet();
-    MemberUsage usage = _getMemberUsage(element, useSet);
+    var (usage, useSet) = _getMemberUsage(element);
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:
-        useSet.addAll(usage.read(Accesses.staticAccess));
+        useSet = useSet.union(usage.read(Accesses.staticAccess));
         break;
       case StaticUseKind.INSTANCE_FIELD_GET:
       case StaticUseKind.INSTANCE_FIELD_SET:
@@ -347,49 +346,49 @@ class CodegenWorldBuilder extends WorldBuilder {
         break;
       case StaticUseKind.SUPER_INVOKE:
         registerStaticInvocation(staticUse);
-        useSet.addAll(
+        useSet = useSet.union(
             usage.invoke(Accesses.superAccess, staticUse.callStructure!));
         break;
       case StaticUseKind.STATIC_INVOKE:
         registerStaticInvocation(staticUse);
-        useSet.addAll(
+        useSet = useSet.union(
             usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
         break;
       case StaticUseKind.SUPER_FIELD_SET:
-        useSet.addAll(usage.write(Accesses.superAccess));
+        useSet = useSet.union(usage.write(Accesses.superAccess));
         break;
       case StaticUseKind.SUPER_SETTER_SET:
-        useSet.addAll(usage.write(Accesses.superAccess));
+        useSet = useSet.union(usage.write(Accesses.superAccess));
         break;
       case StaticUseKind.STATIC_SET:
-        useSet.addAll(usage.write(Accesses.staticAccess));
+        useSet = useSet.union(usage.write(Accesses.staticAccess));
         break;
       case StaticUseKind.SUPER_TEAR_OFF:
-        useSet.addAll(usage.read(Accesses.superAccess));
+        useSet = useSet.union(usage.read(Accesses.superAccess));
         break;
       case StaticUseKind.SUPER_GET:
-        useSet.addAll(usage.read(Accesses.superAccess));
+        useSet = useSet.union(usage.read(Accesses.superAccess));
         break;
       case StaticUseKind.STATIC_GET:
-        useSet.addAll(usage.read(Accesses.staticAccess));
+        useSet = useSet.union(usage.read(Accesses.staticAccess));
         break;
       case StaticUseKind.FIELD_INIT:
-        useSet.addAll(usage.init());
+        useSet = useSet.union(usage.init());
         break;
       case StaticUseKind.FIELD_CONSTANT_INIT:
-        useSet.addAll(usage.constantInit(staticUse.constant!));
+        useSet = useSet.union(usage.constantInit(staticUse.constant!));
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
         // We don't track parameters in the codegen world builder, so we
         // pass `null` instead of the concrete call structure.
-        useSet.addAll(
+        useSet = useSet.union(
             usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
         break;
       case StaticUseKind.DIRECT_INVOKE:
         // We don't track parameters in the codegen world builder, so we
         // pass `null` instead of the concrete call structure.
-        useSet.addAll(
+        useSet = useSet.union(
             usage.invoke(Accesses.staticAccess, staticUse.callStructure!));
         if (staticUse.typeArguments?.isNotEmpty ?? false) {
           registerDynamicInvocation(
@@ -424,8 +423,7 @@ class CodegenWorldBuilder extends WorldBuilder {
       ClassEntity cls, MemberEntity member, MemberUsedCallback memberUsed,
       {bool checkEnqueuerConsistency = false}) {
     if (!member.isInstanceMember) return;
-    EnumSet<MemberUse> useSet = EnumSet();
-    MemberUsage usage = _getMemberUsage(member, useSet);
+    var (usage, useSet) = _getMemberUsage(member);
     if (useSet.isNotEmpty) {
       if (checkEnqueuerConsistency) {
         throw SpannableAssertionFailure(member,
@@ -436,8 +434,9 @@ class CodegenWorldBuilder extends WorldBuilder {
     }
   }
 
-  MemberUsage _getMemberUsage(MemberEntity member, EnumSet<MemberUse> useSet,
+  (MemberUsage, EnumSet<MemberUse>) _getMemberUsage(MemberEntity member,
       {bool checkEnqueuerConsistency = false}) {
+    EnumSet<MemberUse> useSet = EnumSet.empty();
     // TODO(johnniwinther): Change [TypeMask] to not apply to a superclass
     // member unless the class has been instantiated. Similar to
     // [StrongModeConstraint].
@@ -450,27 +449,28 @@ class CodegenWorldBuilder extends WorldBuilder {
         bool isNative = _nativeBasicData.isNativeClass(cls);
         usage = MemberUsage(member, potentialAccess: potentialAccess);
         if (member is FieldEntity && !isNative) {
-          useSet.addAll(usage.init());
+          useSet = useSet.union(usage.init());
         }
         if (member is JSignatureMethod) {
           // We mark signature methods as "always used" to prevent them from
           // being optimized away.
           // TODO(johnniwinther): Make this a part of the regular enqueueing.
-          useSet.addAll(
+          useSet = useSet.union(
               usage.invoke(Accesses.dynamicAccess, CallStructure.NO_ARGS));
         }
 
         if (usage.hasPendingDynamicRead && _hasInvokedGetter(member)) {
-          useSet.addAll(usage.read(Accesses.dynamicAccess));
+          useSet = useSet.union(usage.read(Accesses.dynamicAccess));
         }
         if (usage.hasPendingDynamicWrite && _hasInvokedSetter(member)) {
-          useSet.addAll(usage.write(Accesses.dynamicAccess));
+          useSet = useSet.union(usage.write(Accesses.dynamicAccess));
         }
         if (usage.hasPendingDynamicInvoke) {
           Iterable<CallStructure> callStructures =
               _getInvocationCallStructures(member);
           for (CallStructure callStructure in callStructures) {
-            useSet.addAll(usage.invoke(Accesses.dynamicAccess, callStructure));
+            useSet = useSet
+                .union(usage.invoke(Accesses.dynamicAccess, callStructure));
             if (!usage.hasPendingDynamicInvoke) {
               break;
             }
@@ -497,7 +497,7 @@ class CodegenWorldBuilder extends WorldBuilder {
       } else {
         usage = MemberUsage(member, potentialAccess: potentialAccess);
         if (member is FieldEntity) {
-          useSet.addAll(usage.init());
+          useSet = useSet.union(usage.init());
         }
       }
       if (!checkEnqueuerConsistency) {
@@ -508,7 +508,7 @@ class CodegenWorldBuilder extends WorldBuilder {
         usage = usage.clone();
       }
     }
-    return usage;
+    return (usage, useSet);
   }
 
   void _processSet(Map<String, Set<MemberUsage>> map, String memberName,

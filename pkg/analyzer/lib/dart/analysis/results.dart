@@ -95,20 +95,25 @@ abstract class FileResult implements SomeFileResult, AnalysisResult {
   /// The file resource.
   File get file;
 
-  /// Whether the file is a library augmentation.
-  /// When `true`, [isLibrary] and [isPart] are `false`.
-  bool get isAugmentation;
-
   /// Whether the file is a library.
-  /// When `true`, [isAugmentation] and [isPart] are `false`.
+  ///
+  /// A file can't be both a library and a part, so when this getter returns
+  /// `true`, the getters [isPart] and [isMacroPart] return `false`.
   bool get isLibrary;
 
-  /// Whether the file is a macro augmentation.
-  /// When `true`, [isAugmentation] is also `true`.
-  bool get isMacroAugmentation;
+  /// Whether the file is a macro part.
+  ///
+  /// A macro part is a part, so when this getter returns `true`, [isPart]
+  /// also results `true`.
+  ///
+  /// A file can't be both a library and a part, so when this getter returns
+  /// `true`, the getter [isLibrary] returns `false`.
+  bool get isMacroPart;
 
   /// Whether the file is a part.
-  /// When `true`, [isAugmentation] and [isLibrary] are `false`.
+  ///
+  /// A file can't be both a library and a part, so when this getter returns
+  /// `true`, the getter [isLibrary] returns `false`.
   bool get isPart;
 
   /// Information about lines in the content.

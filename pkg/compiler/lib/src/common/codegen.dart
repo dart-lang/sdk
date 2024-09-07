@@ -75,7 +75,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   Set<String>? _constSymbols;
   List<Set<ClassEntity>>? _specializedGetInterceptors;
   bool _usesInterceptor = false;
-  EnumSet<AsyncMarker>? _asyncMarkers;
+  EnumSet<AsyncMarker> _asyncMarkers = EnumSet.empty();
   Set<GenericInstantiation>? _genericInstantiations;
   List<NativeBehavior>? _nativeBehaviors;
   Set<FunctionEntity>? _nativeMethods;
@@ -123,10 +123,8 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
       return source.readClasses().toSet();
     });
     bool usesInterceptor = source.readBool();
-    final asyncMarkersValue = source.readIntOrNull();
-    final asyncMarkers = asyncMarkersValue != null
-        ? EnumSet<AsyncMarker>.fromValue(asyncMarkersValue)
-        : null;
+    final asyncMarkersValue = source.readInt();
+    final asyncMarkers = EnumSet<AsyncMarker>(asyncMarkersValue);
     final genericInstantiations = source
         .readListOrNull(() => GenericInstantiation.readFromDataSource(source))
         ?.toSet();
@@ -171,7 +169,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     sink.writeStringsOrNull(_constSymbols);
     sink.writeListOrNull(_specializedGetInterceptors, sink.writeClasses);
     sink.writeBool(_usesInterceptor);
-    sink.writeIntOrNull(_asyncMarkers?.value);
+    sink.writeInt(_asyncMarkers.mask);
     sink.writeListOrNull(
         _genericInstantiations,
         (GenericInstantiation instantiation) =>
@@ -221,14 +219,14 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   bool get usesInterceptor => _usesInterceptor;
 
   void registerAsyncMarker(AsyncMarker asyncMarker) {
-    (_asyncMarkers ??= EnumSet()).add(asyncMarker);
+    _asyncMarkers += asyncMarker;
   }
 
   @override
   Iterable<AsyncMarker> get asyncMarkers {
-    return _asyncMarkers == null
+    return _asyncMarkers.isEmpty
         ? const []
-        : _asyncMarkers!.iterable(AsyncMarker.values);
+        : _asyncMarkers.iterable(AsyncMarker.values);
   }
 
   void registerGenericInstantiation(GenericInstantiation instantiation) {

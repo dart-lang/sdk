@@ -985,9 +985,6 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveDefaultValue.new,
     RemoveRequired.new,
   ],
-  CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT: [
-    RemoveUnusedImport.new,
-  ],
   CompileTimeErrorCode.EMPTY_MAP_PATTERN: [
     ReplaceEmptyMapPattern.any,
     ReplaceEmptyMapPattern.empty,

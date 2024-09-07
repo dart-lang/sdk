@@ -96,6 +96,11 @@ class BuildCommand extends DartdevCommand {
       args.option(outputOptionName)?.normalizeCanonicalizePath().makeFolder() ??
           sourceUri.toFilePath().removeDotDart().makeFolder(),
     );
+    if (await File.fromUri(outputUri.resolve('pubspec.yaml')).exists()) {
+      stderr.writeln("'dart build' refuses to delete your project.");
+      stderr.writeln('Requested output directory: ${outputUri.toFilePath()}');
+      return 128;
+    }
 
     final format = Kind.values.byName(args.option(formatOptionName)!);
     final outputExeUri = outputUri.resolve(
@@ -205,6 +210,11 @@ class BuildCommand extends DartdevCommand {
         stderr.write(
             """'dart build' does not yet support NativeCodeAssets with static linking.
 Use linkMode as dynamic library instead.""");
+        return 255;
+      }
+      final validateResult = validateNoDuplicateDylibs(allAssets);
+      if (validateResult.isNotEmpty) {
+        validateResult.forEach(stderr.writeln);
         return 255;
       }
       if (allAssets.isNotEmpty) {

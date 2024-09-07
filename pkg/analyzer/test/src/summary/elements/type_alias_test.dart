@@ -1893,6 +1893,8 @@ library
       classes
         class C @38
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            T @40
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1901,6 +1903,9 @@ library
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          bound: C<T>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -1952,6 +1957,8 @@ library
       classes
         class C @36
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            T @38
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1960,6 +1967,9 @@ library
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          bound: C<T>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -2008,6 +2018,8 @@ library
       classes
         class C @32
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            T @34
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2016,6 +2028,9 @@ library
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          bound: C<T>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -2129,6 +2144,8 @@ library
       classes
         class C @27
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            T @29
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2137,6 +2154,9 @@ library
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          bound: C<T>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -2185,6 +2205,8 @@ library
       classes
         class C @21
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            T @23
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2193,6 +2215,9 @@ library
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+          bound: C<T>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -3102,6 +3127,9 @@ library
       classes
         class A @32
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @34
+            U @37
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -3116,6 +3144,9 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+        U
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -3197,6 +3228,8 @@ library
       classes
         class A @28
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @30
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -3223,6 +3256,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -3324,6 +3359,8 @@ library
       classes
         class A @28
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @30
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -3350,6 +3387,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -3547,6 +3586,8 @@ library
               enclosingFragment: <testLibraryFragment>::@class::B
         class C @46
           reference: <testLibraryFragment>::@class::C
+          typeParameters
+            U @48
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -3571,6 +3612,8 @@ library
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
+      typeParameters
+        U
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -3721,6 +3764,8 @@ library
       classes
         class A @26
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @28
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -3735,6 +3780,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -3812,6 +3859,8 @@ library
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @29
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -3831,6 +3880,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -3923,6 +3974,8 @@ library
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @29
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -3942,6 +3995,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -4068,6 +4123,8 @@ library
       classes
         class A @26
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @28
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -4085,6 +4142,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -4157,6 +4216,8 @@ library
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @26
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -4174,6 +4235,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -4286,6 +4349,8 @@ library
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @29
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -4300,6 +4365,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -4364,6 +4431,8 @@ library
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @29
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -4381,6 +4450,8 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new

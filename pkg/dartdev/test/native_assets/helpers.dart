@@ -156,18 +156,22 @@ final dartExecutable = Uri.file(Platform.resolvedExecutable);
 
 Future<void> nativeAssetsTest(
   String packageUnderTest,
-  Future<void> Function(Uri) fun,
-) async {
+  Future<void> Function(Uri) fun, {
+  bool skipPubGet = false,
+}) async {
   assert(const [
-    'dart_app',
-    'native_add',
-    'drop_dylib_link',
     'add_asset_link',
+    'dart_app',
+    'drop_dylib_link',
+    'native_add_duplicate',
+    'native_add',
   ].contains(packageUnderTest));
   return await inTempDir((tempUri) async {
     await copyTestProjects(tempUri, logger);
     final packageUri = tempUri.resolve('$packageUnderTest/');
-    await runPubGet(workingDirectory: packageUri, logger: logger);
+    if (!skipPubGet) {
+      await runPubGet(workingDirectory: packageUri, logger: logger);
+    }
     return await fun(packageUri);
   });
 }

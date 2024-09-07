@@ -7653,6 +7653,8 @@ library
             foo @97
               reference: <testLibraryFragment>::@class::A::@method::foo
               enclosingFragment: <testLibraryFragment>::@class::A
+              typeParameters
+                T @101
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -7661,6 +7663,8 @@ library
       methods
         foo
           reference: <none>
+          typeParameters
+            T
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -7726,10 +7730,18 @@ library
       classes
         class A @80
           reference: <testLibraryFragment>::@class::A
+          typeParameters
+            T @82
+            U @85
+            V @88
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
+        U
+        V
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -8168,10 +8180,14 @@ library
       mixins
         mixin A @80
           reference: <testLibraryFragment>::@mixin::A
+          typeParameters
+            T @82
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
       enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
