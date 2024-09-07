@@ -329,7 +329,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeElementReference(e);
+      _writeElementReference('reference', e);
       // _writeEnclosingElement(e);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
@@ -349,19 +349,18 @@ class _Element2Writer extends _AbstractElementWriter {
         var enclosingElement = superConstructor.enclosingElement2;
         if (enclosingElement is ClassElement2 &&
             !enclosingElement.isDartCoreObject) {
-          _writeElementReference(superConstructor, label: 'superConstructor');
+          _writeElementReference('superConstructor', superConstructor);
         }
       }
 
       var redirectedConstructor = e.redirectedConstructor2;
       if (redirectedConstructor != null) {
-        _writeElementReference(redirectedConstructor,
-            label: 'redirectedConstructor');
+        _writeElementReference('redirectedConstructor', redirectedConstructor);
       }
 
       // _writeNonSyntheticElement(e);
       _writeMacroDiagnostics(e);
-      _writeFragmentReference(e.firstFragment, label: 'firstFragment');
+      _writeFragmentReference('firstFragment', e.firstFragment);
     });
 
     // if (e.isSynthetic) {
@@ -390,8 +389,8 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeFragmentReference(f);
-      _writeFragmentReference(f.enclosingFragment, label: 'enclosingFragment');
+      _writeFragmentReference('reference', f);
+      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -435,8 +434,8 @@ class _Element2Writer extends _AbstractElementWriter {
 
       // _writeNonSyntheticElement(f);
       _writeMacroDiagnostics(f);
-      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
-      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
+      _writeFragmentReference('nextFragment', f.nextFragment);
+      _writeFragmentReference('previousFragment', f.previousFragment);
     });
 
     expect(f.isAsynchronous, isFalse);
@@ -463,7 +462,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.write(_elementName(e));
   }
 
-  void _writeElementReference(Element2? e, {String? label}) {
+  void _writeElementReference(String name, Element2? e) {
     if (e == null) {
       return;
     }
@@ -473,7 +472,7 @@ class _Element2Writer extends _AbstractElementWriter {
     if (e is ElementImpl) {
       if (e.reference case var reference?) {
         _sink.writeIndentedLine(() {
-          _sink.write(label ?? 'reference');
+          _sink.write(name);
           _sink.write(': ');
           _elementPrinter.writeReference(reference);
         });
@@ -487,7 +486,7 @@ class _Element2Writer extends _AbstractElementWriter {
       //   }
     } else {
       _sink.writeIndentedLine(() {
-        _sink.write(label ?? 'reference');
+        _sink.write(name);
         _sink.write(': ');
         _sink.write('<none>');
       });
@@ -558,8 +557,8 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeElementReference(e);
-      _writeElementReference(e.enclosingElement2!, label: 'enclosingElement');
+      _writeElementReference('reference', e);
+      _writeElementReference('enclosingElement', e.enclosingElement2!);
       // _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
       // _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -571,9 +570,9 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(e);
       // writeLinking();
       _writeMacroDiagnostics(e);
-      _writeFragmentReference(e.firstFragment, label: 'firstFragment');
-      _writeElementReference(e.getter, label: 'getter');
-      _writeElementReference(e.setter, label: 'setter');
+      _writeFragmentReference('firstFragment', e.firstFragment);
+      _writeElementReference('getter', e.getter);
+      _writeElementReference('setter', e.setter);
     });
   }
 
@@ -628,8 +627,8 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeFragmentReference(f);
-      _writeFragmentReference(f.enclosingFragment, label: 'enclosingFragment');
+      _writeFragmentReference('reference', f);
+      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       // _writeDocumentation(f.documentationComment);
       // _writeMetadata(f.metadata);
       // _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -641,10 +640,10 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(f);
       // writeLinking();
       // _writeMacroDiagnostics(f);
-      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
-      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
-      _writeFragmentReference(f.getter2, label: 'getter2');
-      _writeFragmentReference(f.setter2, label: 'setter2');
+      _writeFragmentReference('previousFragment', f.previousFragment);
+      _writeFragmentReference('nextFragment', f.nextFragment);
+      _writeFragmentReference('getter2', f.getter2);
+      _writeFragmentReference('setter2', f.setter2);
     });
   }
 
@@ -685,7 +684,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeElementReference(e);
+      _writeElementReference('reference', e);
       _writeType('type', e.type);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -736,7 +735,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeFragmentReference(f);
+      _writeFragmentReference('reference', f);
       // _writeType('type', f.type);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -790,13 +789,13 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeFragmentReference(Fragment? f, {String? label}) {
+  void _writeFragmentReference(String name, Fragment? f) {
     if (f == null) {
       return;
     }
     if (f is CompilationUnitElementImpl) {
       _sink.writeIndentedLine(() {
-        _sink.write(label ?? 'reference');
+        _sink.write(name);
         _sink.write(': ');
         _elementPrinter.writeReference(f.reference!);
       });
@@ -817,14 +816,14 @@ class _Element2Writer extends _AbstractElementWriter {
     }
     if (element is! ElementImpl) {
       _sink.writeIndentedLine(() {
-        _sink.write(label ?? 'reference');
+        _sink.write(name);
         _sink.write(': <none>');
       });
       return;
     }
     if (element.reference case var reference?) {
       _sink.writeIndentedLine(() {
-        _sink.write(label ?? 'reference');
+        _sink.write(name);
         _sink.write(': ');
         _elementPrinter.writeReference(reference);
       });
@@ -871,8 +870,8 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeElementReference(e);
-      _writeElementReference(e.enclosingElement2, label: 'enclosingElement');
+      _writeElementReference('reference', e);
+      _writeElementReference('enclosingElement', e.enclosingElement2);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -883,7 +882,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(e);
       // writeLinking();
       _writeMacroDiagnostics(e);
-      _writeFragmentReference(e.firstFragment, label: 'firstFragment');
+      _writeFragmentReference('firstFragment', e.firstFragment);
     });
   }
 
@@ -933,8 +932,8 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeFragmentReference(f);
-      _writeFragmentReference(f.enclosingFragment, label: 'enclosingFragment');
+      _writeFragmentReference('reference', f);
+      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -947,8 +946,8 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(f);
       // writeLinking();
       // _writeMacroDiagnostics(f);
-      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
-      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
+      _writeFragmentReference('previousFragment', f.previousFragment);
+      _writeFragmentReference('nextFragment', f.nextFragment);
     });
   }
 
@@ -992,7 +991,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeElementReference(e);
+      _writeElementReference('reference', e);
       _writeEnclosingElement(e);
       _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
@@ -1001,7 +1000,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElements(
           'typeParameters', e.typeParameters2, _writeTypeParameterElement);
       _writeMacroDiagnostics(e);
-      _writeFragmentReference(e.firstFragment, label: 'firstFragment');
+      _writeFragmentReference('firstFragment', e.firstFragment);
 
       if (e is InterfaceElement2) {
         var supertype = e.supertype;
@@ -1101,9 +1100,9 @@ class _Element2Writer extends _AbstractElementWriter {
       }
     });
     _sink.withIndent(() {
-      _writeFragmentReference(f);
-      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
-      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
+      _writeFragmentReference('reference', f);
+      _writeFragmentReference('previousFragment', f.previousFragment);
+      _writeFragmentReference('nextFragment', f.nextFragment);
 
       _writeElements(
           'typeParameters', f.typeParameters2, _writeTypeParameterFragment);
@@ -1130,8 +1129,8 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
-      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
+      _writeFragmentReference('previousFragment', f.previousFragment);
+      _writeFragmentReference('nextFragment', f.nextFragment);
 
       _writeMetadata(f.metadata);
 
@@ -1190,7 +1189,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeElementReference(e);
+      _writeElementReference('reference', e);
       // _writeEnclosingElement(e);
       _writeMetadata(e.metadata);
       // _writeNamespaceCombinators(e.combinators);
@@ -1476,7 +1475,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeElementReference(e);
+      _writeElementReference('reference', e);
       // _writeElementReference(e.enclosingElement2, label: 'enclosingElement2');
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
@@ -1489,7 +1488,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       _writeMacroDiagnostics(e);
-      _writeFragmentReference(e.firstFragment, label: 'firstFragment');
+      _writeFragmentReference('firstFragment', e.firstFragment);
     });
 
     // if (e.isSynthetic && e.enclosingElement2 is EnumElementImpl) {
@@ -1513,10 +1512,10 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeFragmentReference(f);
-      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
-      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
-      _writeFragmentReference(f.enclosingFragment, label: 'enclosingFragment');
+      _writeFragmentReference('reference', f);
+      _writeFragmentReference('previousFragment', f.previousFragment);
+      _writeFragmentReference('nextFragment', f.nextFragment);
+      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -1541,7 +1540,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeElementReference(e);
+      _writeElementReference('reference', e);
       // _writeEnclosingElement(e);
     });
   }
@@ -1586,8 +1585,8 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeElementReference(e);
-      _writeElementReference(e.enclosingElement2, label: 'enclosingElement');
+      _writeElementReference('reference', e);
+      _writeElementReference('enclosingElement', e.enclosingElement2);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -1598,7 +1597,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(e);
       // writeLinking();
       _writeMacroDiagnostics(e);
-      _writeFragmentReference(e.firstFragment, label: 'firstFragment');
+      _writeFragmentReference('firstFragment', e.firstFragment);
     });
   }
 
@@ -1647,8 +1646,8 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeFragmentReference(f);
-      _writeFragmentReference(f.enclosingFragment, label: 'enclosingFragment');
+      _writeFragmentReference('reference', f);
+      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -1661,8 +1660,8 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(f);
       // writeLinking();
       // _writeMacroDiagnostics(f);
-      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
-      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
+      _writeFragmentReference('previousFragment', f.previousFragment);
+      _writeFragmentReference('nextFragment', f.nextFragment);
     });
   }
 
@@ -1707,7 +1706,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeElementReference(e);
+      _writeElementReference('reference', e);
       _writeEnclosingElement(e);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
@@ -1719,9 +1718,9 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(e);
       // writeLinking();
       _writeMacroDiagnostics(e);
-      _writeFragmentReference(e.firstFragment, label: 'firstFragment');
-      _writeElementReference(e.getter, label: 'getter');
-      _writeElementReference(e.setter, label: 'setter');
+      _writeFragmentReference('firstFragment', e.firstFragment);
+      _writeElementReference('getter', e.getter);
+      _writeElementReference('setter', e.setter);
     });
   }
 
@@ -1766,8 +1765,8 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeFragmentReference(f);
-      _writeFragmentReference(f.enclosingFragment, label: 'enclosingFragment');
+      _writeFragmentReference('reference', f);
+      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -1779,10 +1778,10 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(f);
       // writeLinking();
       // _writeMacroDiagnostics(f);
-      _writeFragmentReference(f.previousFragment, label: 'previousFragment');
-      _writeFragmentReference(f.nextFragment, label: 'nextFragment');
-      _writeFragmentReference(f.getter2, label: 'getter2');
-      _writeFragmentReference(f.setter2, label: 'setter2');
+      _writeFragmentReference('previousFragment', f.previousFragment);
+      _writeFragmentReference('nextFragment', f.nextFragment);
+      _writeFragmentReference('getter2', f.getter2);
+      _writeFragmentReference('setter2', f.setter2);
     });
   }
 
