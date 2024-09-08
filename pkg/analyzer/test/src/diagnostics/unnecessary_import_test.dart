@@ -415,4 +415,18 @@ f(FutureOr<int> a, Completer<int> b) {}
       error(HintCode.UNNECESSARY_IMPORT, 28, 12),
     ]);
   }
+
+  test_uriDoesNotExist() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+import 'b.dart';
+void f(A _) {}
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 24, 8),
+    ]);
+  }
 }

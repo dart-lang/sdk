@@ -313,7 +313,6 @@ class LibraryAnalyzer {
     _libraryVerificationContext.constructorFieldsVerifier.report();
 
     if (_analysisOptions.warning) {
-      var usedImportedElements = <UsedImportedElements>[];
       var usedLocalElements = <UsedLocalElements>[];
       for (var fileAnalysis in _libraryFiles.values) {
         {
@@ -321,17 +320,11 @@ class LibraryAnalyzer {
           fileAnalysis.unit.accept(visitor);
           usedLocalElements.add(visitor.usedElements);
         }
-        {
-          var visitor = GatherUsedImportedElementsVisitor(_libraryElement);
-          fileAnalysis.unit.accept(visitor);
-          usedImportedElements.add(visitor.usedElements);
-        }
       }
       var usedElements = UsedLocalElements.merge(usedLocalElements);
       for (var fileAnalysis in _libraryFiles.values) {
         _computeWarnings(
           fileAnalysis,
-          usedImportedElements: usedImportedElements,
           usedElements: usedElements,
         );
       }
@@ -465,7 +458,6 @@ class LibraryAnalyzer {
 
   void _computeWarnings(
     FileAnalysis fileAnalysis, {
-    required List<UsedImportedElements> usedImportedElements,
     required UsedLocalElements usedElements,
   }) {
     var errorReporter = fileAnalysis.errorReporter;
@@ -509,14 +501,12 @@ class LibraryAnalyzer {
         fileAnalysis: fileAnalysis,
       );
       verifier.addImports(unit);
-      usedImportedElements.forEach(verifier.removeUsedElements);
       verifier.generateDuplicateExportWarnings(errorReporter);
       verifier.generateDuplicateImportWarnings(errorReporter);
       verifier.generateDuplicateShownHiddenNameWarnings(errorReporter);
       verifier.generateUnusedImportHints(errorReporter);
       verifier.generateUnusedShownNameHints(errorReporter);
-      verifier.generateUnnecessaryImportHints(
-          errorReporter, usedImportedElements);
+      verifier.generateUnnecessaryImportHints(errorReporter);
     }
 
     // Unused local elements.
