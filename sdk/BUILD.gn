@@ -255,7 +255,7 @@ foreach(library, _full_sdk_libraries) {
     ]
     source = "lib/$library"
     dest = "$root_out_dir/$dart_sdk_output/lib/$library"
-    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
+    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.git*,*.gni.*.gn"
   }
 }
 
