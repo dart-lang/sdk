@@ -12,6 +12,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:async/async.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,6 +25,12 @@ void main() async {
 
 @reflectiveTest
 class PluginServerTest extends PluginServerTestBase {
+  protocol.ContextRoot get contextRoot => protocol.ContextRoot(packagePath, []);
+
+  String get filePath => join(packagePath, 'lib', 'test.dart');
+
+  String get packagePath => convertPath('/package1');
+
   @override
   Future<void> setUp() async {
     await super.setUp();
@@ -34,35 +41,20 @@ class PluginServerTest extends PluginServerTestBase {
   }
 
   Future<void> test_handleAnalysisSetContextRoots() async {
-    var packagePath = convertPath('/package1');
-    var filePath = join(packagePath, 'lib', 'test.dart');
     newFile(filePath, 'bool b = false;');
-    var contextRoot = protocol.ContextRoot(packagePath, []);
-    await pluginServer.handleAnalysisSetContextRoots(
-        protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
     var notification = await channel.notifications.first;
     var params = protocol.AnalysisErrorsParams.fromNotification(notification);
     expect(params.file, convertPath('/package1/lib/test.dart'));
     expect(params.errors, hasLength(1));
-
-    expect(
-      params.errors.single,
-      isA<protocol.AnalysisError>()
-          .having((e) => e.severity, 'severity',
-              protocol.AnalysisErrorSeverity.INFO)
-          .having(
-              (e) => e.type, 'type', protocol.AnalysisErrorType.STATIC_WARNING)
-          .having((e) => e.message, 'message', 'No bools message'),
-    );
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
   }
 
   Future<void> test_handleEditGetFixes() async {
-    var packagePath = convertPath('/package1');
-    var filePath = join(packagePath, 'lib', 'test.dart');
     newFile(filePath, 'bool b = false;');
-    var contextRoot = protocol.ContextRoot(packagePath, []);
-    await pluginServer.handleAnalysisSetContextRoots(
-        protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
 
     var result = await pluginServer.handleEditGetFixes(
         protocol.EditGetFixesParams(filePath, 'bool b = '.length));
@@ -72,6 +64,101 @@ class PluginServerTest extends PluginServerTestBase {
     // TODO(srawlins): Investigate whether they should be.
     expect(fixes, hasLength(1));
     expect(fixes[0].fixes, hasLength(1));
+  }
+
+  Future<void> test_updateContent_addOverlay() async {
+    newFile(filePath, 'int b = 7;');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+
+    var notifications = StreamQueue(channel.notifications);
+    var notification = await notifications.next;
+    var params = protocol.AnalysisErrorsParams.fromNotification(notification);
+    expect(params.file, convertPath('/package1/lib/test.dart'));
+    expect(params.errors, isEmpty);
+
+    await channel.sendRequest(protocol.AnalysisUpdateContentParams(
+        {filePath: protocol.AddContentOverlay('bool b = false;')}));
+
+    notification = await notifications.next;
+    params = protocol.AnalysisErrorsParams.fromNotification(notification);
+    expect(params.file, convertPath('/package1/lib/test.dart'));
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
+  }
+
+  Future<void> test_updateContent_changeOverlay() async {
+    newFile(filePath, 'int b = 7;');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+
+    var notifications = StreamQueue(channel.notifications);
+    var notification = await notifications.next;
+    var params = protocol.AnalysisErrorsParams.fromNotification(notification);
+    expect(params.file, convertPath('/package1/lib/test.dart'));
+    expect(params.errors, isEmpty);
+
+    await channel.sendRequest(protocol.AnalysisUpdateContentParams(
+        {filePath: protocol.AddContentOverlay('int b = 0;')}));
+
+    notification = await notifications.next;
+    params = protocol.AnalysisErrorsParams.fromNotification(notification);
+    expect(params.file, convertPath('/package1/lib/test.dart'));
+    expect(params.errors, isEmpty);
+
+    await channel.sendRequest(protocol.AnalysisUpdateContentParams({
+      filePath: protocol.ChangeContentOverlay(
+          [protocol.SourceEdit(0, 9, 'bool b = false')])
+    }));
+
+    notification = await notifications.next;
+    params = protocol.AnalysisErrorsParams.fromNotification(notification);
+    expect(params.file, convertPath('/package1/lib/test.dart'));
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
+  }
+
+  Future<void> test_updateContent_removeOverlay() async {
+    newFile(filePath, 'bool b = false;');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+
+    var notifications = StreamQueue(channel.notifications);
+    var notification = await notifications.next;
+    var params = protocol.AnalysisErrorsParams.fromNotification(notification);
+    expect(params.file, convertPath('/package1/lib/test.dart'));
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
+
+    await channel.sendRequest(protocol.AnalysisUpdateContentParams(
+        {filePath: protocol.AddContentOverlay('int b = 7;')}));
+
+    notification = await notifications.next;
+    params = protocol.AnalysisErrorsParams.fromNotification(notification);
+    expect(params.file, convertPath('/package1/lib/test.dart'));
+    expect(params.errors, isEmpty);
+
+    await channel.sendRequest(protocol.AnalysisUpdateContentParams(
+        {filePath: protocol.RemoveContentOverlay()}));
+
+    notification = await notifications.next;
+    params = protocol.AnalysisErrorsParams.fromNotification(notification);
+    expect(params.file, convertPath('/package1/lib/test.dart'));
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
+  }
+
+  void _expectAnalysisError(protocol.AnalysisError error,
+      {required String message}) {
+    expect(
+      error,
+      isA<protocol.AnalysisError>()
+          .having((e) => e.severity, 'severity',
+              protocol.AnalysisErrorSeverity.INFO)
+          .having(
+              (e) => e.type, 'type', protocol.AnalysisErrorType.STATIC_WARNING)
+          .having((e) => e.message, 'message', message),
+    );
   }
 }
 
