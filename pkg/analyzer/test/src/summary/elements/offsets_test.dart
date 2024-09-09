@@ -164,41 +164,34 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::Raw::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::Raw
         class HasDocComment @50
           reference: <testLibraryFragment>::@class::HasDocComment
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::HasDocComment::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::HasDocComment
         class HasAnnotation @84
           reference: <testLibraryFragment>::@class::HasAnnotation
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::HasAnnotation
         class AnnotationThenComment @148
           reference: <testLibraryFragment>::@class::AnnotationThenComment
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::AnnotationThenComment
         class CommentThenAnnotation @220
           reference: <testLibraryFragment>::@class::CommentThenAnnotation
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::CommentThenAnnotation
         class CommentAroundAnnotation @292
           reference: <testLibraryFragment>::@class::CommentAroundAnnotation
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::CommentAroundAnnotation
   classes
     class Raw
       reference: <testLibraryFragment>::@class::Raw
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 12
       firstFragment: <testLibraryFragment>::@class::Raw
@@ -208,7 +201,6 @@ library
           firstFragment: <testLibraryFragment>::@class::Raw::@constructor::new
     class HasDocComment
       reference: <testLibraryFragment>::@class::HasDocComment
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 14
       codeLength: 52
@@ -219,7 +211,6 @@ library
           firstFragment: <testLibraryFragment>::@class::HasDocComment::@constructor::new
     class HasAnnotation
       reference: <testLibraryFragment>::@class::HasAnnotation
-      enclosingElement2: <testLibrary>
       codeOffset: 68
       codeLength: 32
       firstFragment: <testLibraryFragment>::@class::HasAnnotation
@@ -229,7 +220,6 @@ library
           firstFragment: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
     class AnnotationThenComment
       reference: <testLibraryFragment>::@class::AnnotationThenComment
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 102
       codeLength: 70
@@ -240,7 +230,6 @@ library
           firstFragment: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
     class CommentThenAnnotation
       reference: <testLibraryFragment>::@class::CommentThenAnnotation
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 174
       codeLength: 70
@@ -251,7 +240,6 @@ library
           firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
     class CommentAroundAnnotation
       reference: <testLibraryFragment>::@class::CommentAroundAnnotation
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 2.
       codeOffset: 261
       codeLength: 57
@@ -499,19 +487,16 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
         class B @18
           reference: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::B
         class Raw @30
           reference: <testLibraryFragment>::@class::Raw
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::Raw::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::Raw
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -524,7 +509,6 @@ library
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::HasDocComment::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::HasDocComment
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -537,7 +521,6 @@ library
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::HasAnnotation
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -550,7 +533,6 @@ library
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::AnnotationThenComment
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -563,7 +545,6 @@ library
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::CommentThenAnnotation
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -576,7 +557,6 @@ library
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::CommentAroundAnnotation
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -587,7 +567,6 @@ library
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 10
       firstFragment: <testLibraryFragment>::@class::A
@@ -597,7 +576,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       codeOffset: 12
       codeLength: 10
       firstFragment: <testLibraryFragment>::@class::B
@@ -607,7 +585,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class alias Raw
       reference: <testLibraryFragment>::@class::Raw
-      enclosingElement2: <testLibrary>
       codeOffset: 24
       codeLength: 29
       firstFragment: <testLibraryFragment>::@class::Raw
@@ -618,7 +595,6 @@ library
           firstFragment: <testLibraryFragment>::@class::Raw::@constructor::new
     class alias HasDocComment
       reference: <testLibraryFragment>::@class::HasDocComment
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 55
       codeLength: 69
@@ -630,7 +606,6 @@ library
           firstFragment: <testLibraryFragment>::@class::HasDocComment::@constructor::new
     class alias HasAnnotation
       reference: <testLibraryFragment>::@class::HasAnnotation
-      enclosingElement2: <testLibrary>
       codeOffset: 126
       codeLength: 49
       firstFragment: <testLibraryFragment>::@class::HasAnnotation
@@ -641,7 +616,6 @@ library
           firstFragment: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
     class alias AnnotationThenComment
       reference: <testLibraryFragment>::@class::AnnotationThenComment
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 177
       codeLength: 87
@@ -653,7 +627,6 @@ library
           firstFragment: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
     class alias CommentThenAnnotation
       reference: <testLibraryFragment>::@class::CommentThenAnnotation
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 266
       codeLength: 87
@@ -665,7 +638,6 @@ library
           firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
     class alias CommentAroundAnnotation
       reference: <testLibraryFragment>::@class::CommentAroundAnnotation
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 2.
       codeOffset: 370
       codeLength: 74
@@ -829,19 +801,16 @@ library
           constructors
             new @12
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
               codeOffset: 12
               codeLength: 4
             raw @22
               reference: <testLibraryFragment>::@class::C::@constructor::raw
-              enclosingFragment: <testLibraryFragment>::@class::C
               codeOffset: 20
               codeLength: 10
               periodOffset: 21
               nameEnd: 25
             hasDocComment @70
               reference: <testLibraryFragment>::@class::C::@constructor::hasDocComment
-              enclosingFragment: <testLibraryFragment>::@class::C
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 34
               codeLength: 54
@@ -849,7 +818,6 @@ library
               nameEnd: 83
             hasAnnotation @106
               reference: <testLibraryFragment>::@class::C::@constructor::hasAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               metadata
                 Annotation
                   atSign: @ @92
@@ -867,7 +835,6 @@ library
               nameEnd: 119
             annotationThenComment @176
               reference: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
-              enclosingFragment: <testLibraryFragment>::@class::C
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -886,7 +853,6 @@ library
               nameEnd: 197
             commentThenAnnotation @254
               reference: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -905,7 +871,6 @@ library
               nameEnd: 275
             commentAroundAnnotation @332
               reference: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               documentationComment: /// Comment 2.
               metadata
                 Annotation
@@ -925,7 +890,6 @@ library
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 362
       firstFragment: <testLibraryFragment>::@class::C
@@ -1153,19 +1117,16 @@ library
           constructors
             factory new @20
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
               codeOffset: 12
               codeLength: 23
             factory raw @49
               reference: <testLibraryFragment>::@class::C::@constructor::raw
-              enclosingFragment: <testLibraryFragment>::@class::C
               codeOffset: 39
               codeLength: 27
               periodOffset: 48
               nameEnd: 52
             factory hasDocComment @114
               reference: <testLibraryFragment>::@class::C::@constructor::hasDocComment
-              enclosingFragment: <testLibraryFragment>::@class::C
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 70
               codeLength: 71
@@ -1173,7 +1134,6 @@ library
               nameEnd: 127
             factory hasAnnotation @167
               reference: <testLibraryFragment>::@class::C::@constructor::hasAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               metadata
                 Annotation
                   atSign: @ @145
@@ -1191,7 +1151,6 @@ library
               nameEnd: 180
             factory annotationThenComment @254
               reference: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
-              enclosingFragment: <testLibraryFragment>::@class::C
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -1210,7 +1169,6 @@ library
               nameEnd: 275
             factory commentThenAnnotation @349
               reference: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -1229,7 +1187,6 @@ library
               nameEnd: 370
             factory commentAroundAnnotation @444
               reference: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               documentationComment: /// Comment 2.
               metadata
                 Annotation
@@ -1249,7 +1206,6 @@ library
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 483
       firstFragment: <testLibraryFragment>::@class::C
@@ -1468,7 +1424,6 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
       extensions
         extension Raw @22
           reference: <testLibraryFragment>::@extension::Raw
@@ -1485,7 +1440,6 @@ library
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 10
       firstFragment: <testLibraryFragment>::@class::A
@@ -1496,40 +1450,34 @@ library
   extensions
     extension Raw
       reference: <testLibraryFragment>::@extension::Raw
-      enclosingElement2: <testLibrary>
       codeOffset: 12
       codeLength: 21
       firstFragment: <testLibraryFragment>::@extension::Raw
     extension HasDocComment
       reference: <testLibraryFragment>::@extension::HasDocComment
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 35
       codeLength: 61
       firstFragment: <testLibraryFragment>::@extension::HasDocComment
     extension HasAnnotation
       reference: <testLibraryFragment>::@extension::HasAnnotation
-      enclosingElement2: <testLibrary>
       codeOffset: 98
       codeLength: 41
       firstFragment: <testLibraryFragment>::@extension::HasAnnotation
     extension AnnotationThenComment
       reference: <testLibraryFragment>::@extension::AnnotationThenComment
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 141
       codeLength: 79
       firstFragment: <testLibraryFragment>::@extension::AnnotationThenComment
     extension CommentThenAnnotation
       reference: <testLibraryFragment>::@extension::CommentThenAnnotation
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 222
       codeLength: 79
       firstFragment: <testLibraryFragment>::@extension::CommentThenAnnotation
     extension CommentAroundAnnotation
       reference: <testLibraryFragment>::@extension::CommentAroundAnnotation
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 2.
       codeOffset: 318
       codeLength: 66
@@ -1666,114 +1614,92 @@ library
           fields
             withInit @16
               reference: <testLibraryFragment>::@class::C::@field::withInit
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::withInit
               setter2: <testLibraryFragment>::@class::C::@setter::withInit
             withoutInit @37
               reference: <testLibraryFragment>::@class::C::@field::withoutInit
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::withoutInit
               setter2: <testLibraryFragment>::@class::C::@setter::withoutInit
             multiWithInit @57
               reference: <testLibraryFragment>::@class::C::@field::multiWithInit
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithInit
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithInit
             multiWithoutInit @76
               reference: <testLibraryFragment>::@class::C::@field::multiWithoutInit
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithoutInit
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
             multiWithInit2 @94
               reference: <testLibraryFragment>::@class::C::@field::multiWithInit2
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithInit2
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithInit2
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           getters
             get withInit @-1
               reference: <testLibraryFragment>::@class::C::@getter::withInit
-              enclosingFragment: <testLibraryFragment>::@class::C
             get withoutInit @-1
               reference: <testLibraryFragment>::@class::C::@getter::withoutInit
-              enclosingFragment: <testLibraryFragment>::@class::C
             get multiWithInit @-1
               reference: <testLibraryFragment>::@class::C::@getter::multiWithInit
-              enclosingFragment: <testLibraryFragment>::@class::C
             get multiWithoutInit @-1
               reference: <testLibraryFragment>::@class::C::@getter::multiWithoutInit
-              enclosingFragment: <testLibraryFragment>::@class::C
             get multiWithInit2 @-1
               reference: <testLibraryFragment>::@class::C::@getter::multiWithInit2
-              enclosingFragment: <testLibraryFragment>::@class::C
           setters
             set withInit= @-1
               reference: <testLibraryFragment>::@class::C::@setter::withInit
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _withInit @-1
             set withoutInit= @-1
               reference: <testLibraryFragment>::@class::C::@setter::withoutInit
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _withoutInit @-1
             set multiWithInit= @-1
               reference: <testLibraryFragment>::@class::C::@setter::multiWithInit
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _multiWithInit @-1
             set multiWithoutInit= @-1
               reference: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _multiWithoutInit @-1
             set multiWithInit2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::multiWithInit2
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _multiWithInit2 @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 115
       firstFragment: <testLibraryFragment>::@class::C
       fields
         withInit
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::withInit
           getter: <none>
           setter: <none>
         withoutInit
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::withoutInit
           getter: <none>
           setter: <none>
         multiWithInit
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::multiWithInit
           getter: <none>
           setter: <none>
         multiWithoutInit
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::multiWithoutInit
           getter: <none>
           setter: <none>
         multiWithInit2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::multiWithInit2
           getter: <none>
@@ -1785,28 +1711,22 @@ library
       getters
         synthetic get withInit
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::withInit
         synthetic get withoutInit
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::withoutInit
         synthetic get multiWithInit
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::multiWithInit
         synthetic get multiWithoutInit
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::multiWithoutInit
         synthetic get multiWithInit2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::multiWithInit2
       setters
         synthetic set withInit=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _withInit
               reference: <none>
@@ -1814,7 +1734,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@setter::withInit
         synthetic set withoutInit=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _withoutInit
               reference: <none>
@@ -1822,7 +1741,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@setter::withoutInit
         synthetic set multiWithInit=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _multiWithInit
               reference: <none>
@@ -1830,7 +1748,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@setter::multiWithInit
         synthetic set multiWithoutInit=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _multiWithoutInit
               reference: <none>
@@ -1838,7 +1755,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
         synthetic set multiWithInit2=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _multiWithInit2
               reference: <none>
@@ -2170,214 +2086,172 @@ library
           fields
             hasDocComment @50
               reference: <testLibraryFragment>::@class::C::@field::hasDocComment
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::hasDocComment
               setter2: <testLibraryFragment>::@class::C::@setter::hasDocComment
             hasDocComment2 @65
               reference: <testLibraryFragment>::@class::C::@field::hasDocComment2
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::hasDocComment2
               setter2: <testLibraryFragment>::@class::C::@setter::hasDocComment2
             hasAnnotation @100
               reference: <testLibraryFragment>::@class::C::@field::hasAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::hasAnnotation
               setter2: <testLibraryFragment>::@class::C::@setter::hasAnnotation
             hasAnnotation2 @115
               reference: <testLibraryFragment>::@class::C::@field::hasAnnotation2
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::hasAnnotation2
               setter2: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
             annotationThenComment @184
               reference: <testLibraryFragment>::@class::C::@field::annotationThenComment
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::annotationThenComment
               setter2: <testLibraryFragment>::@class::C::@setter::annotationThenComment
             annotationThenComment2 @207
               reference: <testLibraryFragment>::@class::C::@field::annotationThenComment2
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::annotationThenComment2
               setter2: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
             commentThenAnnotation @284
               reference: <testLibraryFragment>::@class::C::@field::commentThenAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation
               setter2: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
             commentThenAnnotation2 @307
               reference: <testLibraryFragment>::@class::C::@field::commentThenAnnotation2
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation2
               setter2: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
             commentAroundAnnotation @384
               reference: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation
               setter2: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
             commentAroundAnnotation2 @409
               reference: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation2
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2
               setter2: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           getters
             get hasDocComment @-1
               reference: <testLibraryFragment>::@class::C::@getter::hasDocComment
-              enclosingFragment: <testLibraryFragment>::@class::C
             get hasDocComment2 @-1
               reference: <testLibraryFragment>::@class::C::@getter::hasDocComment2
-              enclosingFragment: <testLibraryFragment>::@class::C
             get hasAnnotation @-1
               reference: <testLibraryFragment>::@class::C::@getter::hasAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
             get hasAnnotation2 @-1
               reference: <testLibraryFragment>::@class::C::@getter::hasAnnotation2
-              enclosingFragment: <testLibraryFragment>::@class::C
             get annotationThenComment @-1
               reference: <testLibraryFragment>::@class::C::@getter::annotationThenComment
-              enclosingFragment: <testLibraryFragment>::@class::C
             get annotationThenComment2 @-1
               reference: <testLibraryFragment>::@class::C::@getter::annotationThenComment2
-              enclosingFragment: <testLibraryFragment>::@class::C
             get commentThenAnnotation @-1
               reference: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
             get commentThenAnnotation2 @-1
               reference: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation2
-              enclosingFragment: <testLibraryFragment>::@class::C
             get commentAroundAnnotation @-1
               reference: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
             get commentAroundAnnotation2 @-1
               reference: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2
-              enclosingFragment: <testLibraryFragment>::@class::C
           setters
             set hasDocComment= @-1
               reference: <testLibraryFragment>::@class::C::@setter::hasDocComment
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _hasDocComment @-1
             set hasDocComment2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::hasDocComment2
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _hasDocComment2 @-1
             set hasAnnotation= @-1
               reference: <testLibraryFragment>::@class::C::@setter::hasAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _hasAnnotation @-1
             set hasAnnotation2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _hasAnnotation2 @-1
             set annotationThenComment= @-1
               reference: <testLibraryFragment>::@class::C::@setter::annotationThenComment
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _annotationThenComment @-1
             set annotationThenComment2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _annotationThenComment2 @-1
             set commentThenAnnotation= @-1
               reference: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _commentThenAnnotation @-1
             set commentThenAnnotation2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _commentThenAnnotation2 @-1
             set commentAroundAnnotation= @-1
               reference: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _commentAroundAnnotation @-1
             set commentAroundAnnotation2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _commentAroundAnnotation2 @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 436
       firstFragment: <testLibraryFragment>::@class::C
       fields
         hasDocComment
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::hasDocComment
           getter: <none>
           setter: <none>
         hasDocComment2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::hasDocComment2
           getter: <none>
           setter: <none>
         hasAnnotation
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::hasAnnotation
           getter: <none>
           setter: <none>
         hasAnnotation2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::hasAnnotation2
           getter: <none>
           setter: <none>
         annotationThenComment
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::annotationThenComment
           getter: <none>
           setter: <none>
         annotationThenComment2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::annotationThenComment2
           getter: <none>
           setter: <none>
         commentThenAnnotation
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::commentThenAnnotation
           getter: <none>
           setter: <none>
         commentThenAnnotation2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::commentThenAnnotation2
           getter: <none>
           setter: <none>
         commentAroundAnnotation
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation
           getter: <none>
           setter: <none>
         commentAroundAnnotation2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation2
           getter: <none>
@@ -2389,48 +2263,37 @@ library
       getters
         synthetic get hasDocComment
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::hasDocComment
         synthetic get hasDocComment2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::hasDocComment2
         synthetic get hasAnnotation
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::hasAnnotation
         synthetic get hasAnnotation2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::hasAnnotation2
         synthetic get annotationThenComment
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::annotationThenComment
         synthetic get annotationThenComment2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::annotationThenComment2
         synthetic get commentThenAnnotation
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation
         synthetic get commentThenAnnotation2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation2
         synthetic get commentAroundAnnotation
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation
         synthetic get commentAroundAnnotation2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2
       setters
         synthetic set hasDocComment=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _hasDocComment
               reference: <none>
@@ -2438,7 +2301,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@setter::hasDocComment
         synthetic set hasDocComment2=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _hasDocComment2
               reference: <none>
@@ -2446,7 +2308,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@setter::hasDocComment2
         synthetic set hasAnnotation=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _hasAnnotation
               reference: <none>
@@ -2454,7 +2315,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@setter::hasAnnotation
         synthetic set hasAnnotation2=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _hasAnnotation2
               reference: <none>
@@ -2462,7 +2322,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
         synthetic set annotationThenComment=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _annotationThenComment
               reference: <none>
@@ -2470,7 +2329,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@setter::annotationThenComment
         synthetic set annotationThenComment2=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _annotationThenComment2
               reference: <none>
@@ -2478,7 +2336,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
         synthetic set commentThenAnnotation=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _commentThenAnnotation
               reference: <none>
@@ -2486,7 +2343,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
         synthetic set commentThenAnnotation2=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _commentThenAnnotation2
               reference: <none>
@@ -2494,7 +2350,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
         synthetic set commentAroundAnnotation=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _commentAroundAnnotation
               reference: <none>
@@ -2502,7 +2357,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
         synthetic set commentAroundAnnotation2=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _commentAroundAnnotation2
               reference: <none>
@@ -2780,22 +2634,18 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           methods
             raw @17
               reference: <testLibraryFragment>::@class::C::@method::raw
-              enclosingFragment: <testLibraryFragment>::@class::C
               codeOffset: 12
               codeLength: 13
             hasDocComment @68
               reference: <testLibraryFragment>::@class::C::@method::hasDocComment
-              enclosingFragment: <testLibraryFragment>::@class::C
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 29
               codeLength: 57
             hasAnnotation @107
               reference: <testLibraryFragment>::@class::C::@method::hasAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               metadata
                 Annotation
                   atSign: @ @90
@@ -2811,7 +2661,6 @@ library
               codeLength: 35
             annotationThenComment @180
               reference: <testLibraryFragment>::@class::C::@method::annotationThenComment
-              enclosingFragment: <testLibraryFragment>::@class::C
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -2828,7 +2677,6 @@ library
               codeLength: 77
             commentThenAnnotation @261
               reference: <testLibraryFragment>::@class::C::@method::commentThenAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -2845,7 +2693,6 @@ library
               codeLength: 77
             commentAroundAnnotation @342
               reference: <testLibraryFragment>::@class::C::@method::commentAroundAnnotation
-              enclosingFragment: <testLibraryFragment>::@class::C
               documentationComment: /// Comment 2.
               metadata
                 Annotation
@@ -2863,7 +2710,6 @@ library
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 372
       firstFragment: <testLibraryFragment>::@class::C
@@ -3168,103 +3014,83 @@ library
       topLevelVariables
         withInit @4
           reference: <testLibraryFragment>::@topLevelVariable::withInit
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::withInit
           setter2: <testLibraryFragment>::@setter::withInit
         withoutInit @31
           reference: <testLibraryFragment>::@topLevelVariable::withoutInit
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::withoutInit
           setter2: <testLibraryFragment>::@setter::withoutInit
         multiWithInit @49
           reference: <testLibraryFragment>::@topLevelVariable::multiWithInit
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::multiWithInit
           setter2: <testLibraryFragment>::@setter::multiWithInit
         multiWithoutInit @68
           reference: <testLibraryFragment>::@topLevelVariable::multiWithoutInit
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::multiWithoutInit
           setter2: <testLibraryFragment>::@setter::multiWithoutInit
         multiWithInit2 @86
           reference: <testLibraryFragment>::@topLevelVariable::multiWithInit2
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::multiWithInit2
           setter2: <testLibraryFragment>::@setter::multiWithInit2
       getters
         get withInit @-1
           reference: <testLibraryFragment>::@getter::withInit
-          enclosingFragment: <testLibraryFragment>
         get withoutInit @-1
           reference: <testLibraryFragment>::@getter::withoutInit
-          enclosingFragment: <testLibraryFragment>
         get multiWithInit @-1
           reference: <testLibraryFragment>::@getter::multiWithInit
-          enclosingFragment: <testLibraryFragment>
         get multiWithoutInit @-1
           reference: <testLibraryFragment>::@getter::multiWithoutInit
-          enclosingFragment: <testLibraryFragment>
         get multiWithInit2 @-1
           reference: <testLibraryFragment>::@getter::multiWithInit2
-          enclosingFragment: <testLibraryFragment>
       setters
         set withInit= @-1
           reference: <testLibraryFragment>::@setter::withInit
-          enclosingFragment: <testLibraryFragment>
           parameters
             _withInit @-1
         set withoutInit= @-1
           reference: <testLibraryFragment>::@setter::withoutInit
-          enclosingFragment: <testLibraryFragment>
           parameters
             _withoutInit @-1
         set multiWithInit= @-1
           reference: <testLibraryFragment>::@setter::multiWithInit
-          enclosingFragment: <testLibraryFragment>
           parameters
             _multiWithInit @-1
         set multiWithoutInit= @-1
           reference: <testLibraryFragment>::@setter::multiWithoutInit
-          enclosingFragment: <testLibraryFragment>
           parameters
             _multiWithoutInit @-1
         set multiWithInit2= @-1
           reference: <testLibraryFragment>::@setter::multiWithInit2
-          enclosingFragment: <testLibraryFragment>
           parameters
             _multiWithInit2 @-1
   topLevelVariables
     withInit
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::withInit
       getter: <none>
       setter: <none>
     withoutInit
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::withoutInit
       getter: <none>
       setter: <none>
     multiWithInit
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::multiWithInit
       getter: <none>
       setter: <none>
     multiWithoutInit
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::multiWithoutInit
       getter: <none>
       setter: <none>
     multiWithInit2
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::multiWithInit2
       getter: <none>
@@ -3272,28 +3098,22 @@ library
   getters
     synthetic static get withInit
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::withInit
     synthetic static get withoutInit
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::withoutInit
     synthetic static get multiWithInit
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::multiWithInit
     synthetic static get multiWithoutInit
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::multiWithoutInit
     synthetic static get multiWithInit2
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::multiWithInit2
   setters
     synthetic static set withInit=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _withInit
           reference: <none>
@@ -3301,7 +3121,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::withInit
     synthetic static set withoutInit=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _withoutInit
           reference: <none>
@@ -3309,7 +3128,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::withoutInit
     synthetic static set multiWithInit=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _multiWithInit
           reference: <none>
@@ -3317,7 +3135,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::multiWithInit
     synthetic static set multiWithoutInit=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _multiWithoutInit
           reference: <none>
@@ -3325,7 +3142,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::multiWithoutInit
     synthetic static set multiWithInit2=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _multiWithInit2
           reference: <none>
@@ -3642,19 +3458,16 @@ library
       topLevelVariables
         hasDocComment @34
           reference: <testLibraryFragment>::@topLevelVariable::hasDocComment
-          enclosingFragment: <testLibraryFragment>
           documentationComment: /// Comment 1.\n/// Comment 2.
           getter2: <testLibraryFragment>::@getter::hasDocComment
           setter2: <testLibraryFragment>::@setter::hasDocComment
         hasDocComment2 @49
           reference: <testLibraryFragment>::@topLevelVariable::hasDocComment2
-          enclosingFragment: <testLibraryFragment>
           documentationComment: /// Comment 1.\n/// Comment 2.
           getter2: <testLibraryFragment>::@getter::hasDocComment2
           setter2: <testLibraryFragment>::@setter::hasDocComment2
         hasAnnotation @80
           reference: <testLibraryFragment>::@topLevelVariable::hasAnnotation
-          enclosingFragment: <testLibraryFragment>
           metadata
             Annotation
               atSign: @ @66
@@ -3670,7 +3483,6 @@ library
           setter2: <testLibraryFragment>::@setter::hasAnnotation
         hasAnnotation2 @95
           reference: <testLibraryFragment>::@topLevelVariable::hasAnnotation2
-          enclosingFragment: <testLibraryFragment>
           metadata
             Annotation
               atSign: @ @66
@@ -3686,7 +3498,6 @@ library
           setter2: <testLibraryFragment>::@setter::hasAnnotation2
         annotationThenComment @156
           reference: <testLibraryFragment>::@topLevelVariable::annotationThenComment
-          enclosingFragment: <testLibraryFragment>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -3703,7 +3514,6 @@ library
           setter2: <testLibraryFragment>::@setter::annotationThenComment
         annotationThenComment2 @179
           reference: <testLibraryFragment>::@topLevelVariable::annotationThenComment2
-          enclosingFragment: <testLibraryFragment>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -3720,7 +3530,6 @@ library
           setter2: <testLibraryFragment>::@setter::annotationThenComment2
         commentThenAnnotation @248
           reference: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation
-          enclosingFragment: <testLibraryFragment>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -3737,7 +3546,6 @@ library
           setter2: <testLibraryFragment>::@setter::commentThenAnnotation
         commentThenAnnotation2 @271
           reference: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation2
-          enclosingFragment: <testLibraryFragment>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -3754,7 +3562,6 @@ library
           setter2: <testLibraryFragment>::@setter::commentThenAnnotation2
         commentAroundAnnotation @340
           reference: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation
-          enclosingFragment: <testLibraryFragment>
           documentationComment: /// Comment 2.
           metadata
             Annotation
@@ -3771,7 +3578,6 @@ library
           setter2: <testLibraryFragment>::@setter::commentAroundAnnotation
         commentAroundAnnotation2 @365
           reference: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation2
-          enclosingFragment: <testLibraryFragment>
           documentationComment: /// Comment 2.
           metadata
             Annotation
@@ -3789,152 +3595,122 @@ library
       getters
         get hasDocComment @-1
           reference: <testLibraryFragment>::@getter::hasDocComment
-          enclosingFragment: <testLibraryFragment>
         get hasDocComment2 @-1
           reference: <testLibraryFragment>::@getter::hasDocComment2
-          enclosingFragment: <testLibraryFragment>
         get hasAnnotation @-1
           reference: <testLibraryFragment>::@getter::hasAnnotation
-          enclosingFragment: <testLibraryFragment>
         get hasAnnotation2 @-1
           reference: <testLibraryFragment>::@getter::hasAnnotation2
-          enclosingFragment: <testLibraryFragment>
         get annotationThenComment @-1
           reference: <testLibraryFragment>::@getter::annotationThenComment
-          enclosingFragment: <testLibraryFragment>
         get annotationThenComment2 @-1
           reference: <testLibraryFragment>::@getter::annotationThenComment2
-          enclosingFragment: <testLibraryFragment>
         get commentThenAnnotation @-1
           reference: <testLibraryFragment>::@getter::commentThenAnnotation
-          enclosingFragment: <testLibraryFragment>
         get commentThenAnnotation2 @-1
           reference: <testLibraryFragment>::@getter::commentThenAnnotation2
-          enclosingFragment: <testLibraryFragment>
         get commentAroundAnnotation @-1
           reference: <testLibraryFragment>::@getter::commentAroundAnnotation
-          enclosingFragment: <testLibraryFragment>
         get commentAroundAnnotation2 @-1
           reference: <testLibraryFragment>::@getter::commentAroundAnnotation2
-          enclosingFragment: <testLibraryFragment>
       setters
         set hasDocComment= @-1
           reference: <testLibraryFragment>::@setter::hasDocComment
-          enclosingFragment: <testLibraryFragment>
           parameters
             _hasDocComment @-1
         set hasDocComment2= @-1
           reference: <testLibraryFragment>::@setter::hasDocComment2
-          enclosingFragment: <testLibraryFragment>
           parameters
             _hasDocComment2 @-1
         set hasAnnotation= @-1
           reference: <testLibraryFragment>::@setter::hasAnnotation
-          enclosingFragment: <testLibraryFragment>
           parameters
             _hasAnnotation @-1
         set hasAnnotation2= @-1
           reference: <testLibraryFragment>::@setter::hasAnnotation2
-          enclosingFragment: <testLibraryFragment>
           parameters
             _hasAnnotation2 @-1
         set annotationThenComment= @-1
           reference: <testLibraryFragment>::@setter::annotationThenComment
-          enclosingFragment: <testLibraryFragment>
           parameters
             _annotationThenComment @-1
         set annotationThenComment2= @-1
           reference: <testLibraryFragment>::@setter::annotationThenComment2
-          enclosingFragment: <testLibraryFragment>
           parameters
             _annotationThenComment2 @-1
         set commentThenAnnotation= @-1
           reference: <testLibraryFragment>::@setter::commentThenAnnotation
-          enclosingFragment: <testLibraryFragment>
           parameters
             _commentThenAnnotation @-1
         set commentThenAnnotation2= @-1
           reference: <testLibraryFragment>::@setter::commentThenAnnotation2
-          enclosingFragment: <testLibraryFragment>
           parameters
             _commentThenAnnotation2 @-1
         set commentAroundAnnotation= @-1
           reference: <testLibraryFragment>::@setter::commentAroundAnnotation
-          enclosingFragment: <testLibraryFragment>
           parameters
             _commentAroundAnnotation @-1
         set commentAroundAnnotation2= @-1
           reference: <testLibraryFragment>::@setter::commentAroundAnnotation2
-          enclosingFragment: <testLibraryFragment>
           parameters
             _commentAroundAnnotation2 @-1
   topLevelVariables
     hasDocComment
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::hasDocComment
       getter: <none>
       setter: <none>
     hasDocComment2
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::hasDocComment2
       getter: <none>
       setter: <none>
     hasAnnotation
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::hasAnnotation
       getter: <none>
       setter: <none>
     hasAnnotation2
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::hasAnnotation2
       getter: <none>
       setter: <none>
     annotationThenComment
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::annotationThenComment
       getter: <none>
       setter: <none>
     annotationThenComment2
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::annotationThenComment2
       getter: <none>
       setter: <none>
     commentThenAnnotation
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation
       getter: <none>
       setter: <none>
     commentThenAnnotation2
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation2
       getter: <none>
       setter: <none>
     commentAroundAnnotation
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation
       getter: <none>
       setter: <none>
     commentAroundAnnotation2
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation2
       getter: <none>
@@ -3942,48 +3718,37 @@ library
   getters
     synthetic static get hasDocComment
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::hasDocComment
     synthetic static get hasDocComment2
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::hasDocComment2
     synthetic static get hasAnnotation
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::hasAnnotation
     synthetic static get hasAnnotation2
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::hasAnnotation2
     synthetic static get annotationThenComment
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::annotationThenComment
     synthetic static get annotationThenComment2
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::annotationThenComment2
     synthetic static get commentThenAnnotation
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::commentThenAnnotation
     synthetic static get commentThenAnnotation2
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::commentThenAnnotation2
     synthetic static get commentAroundAnnotation
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::commentAroundAnnotation
     synthetic static get commentAroundAnnotation2
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::commentAroundAnnotation2
   setters
     synthetic static set hasDocComment=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _hasDocComment
           reference: <none>
@@ -3991,7 +3756,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::hasDocComment
     synthetic static set hasDocComment2=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _hasDocComment2
           reference: <none>
@@ -3999,7 +3763,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::hasDocComment2
     synthetic static set hasAnnotation=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _hasAnnotation
           reference: <none>
@@ -4007,7 +3770,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::hasAnnotation
     synthetic static set hasAnnotation2=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _hasAnnotation2
           reference: <none>
@@ -4015,7 +3777,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::hasAnnotation2
     synthetic static set annotationThenComment=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _annotationThenComment
           reference: <none>
@@ -4023,7 +3784,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::annotationThenComment
     synthetic static set annotationThenComment2=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _annotationThenComment2
           reference: <none>
@@ -4031,7 +3791,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::annotationThenComment2
     synthetic static set commentThenAnnotation=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _commentThenAnnotation
           reference: <none>
@@ -4039,7 +3798,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::commentThenAnnotation
     synthetic static set commentThenAnnotation2=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _commentThenAnnotation2
           reference: <none>
@@ -4047,7 +3805,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::commentThenAnnotation2
     synthetic static set commentAroundAnnotation=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _commentAroundAnnotation
           reference: <none>
@@ -4055,7 +3812,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::commentAroundAnnotation
     synthetic static set commentAroundAnnotation2=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _commentAroundAnnotation2
           reference: <none>
@@ -4118,11 +3874,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 13
       typeParameters
@@ -4175,16 +3929,13 @@ library
           constructors
             new @12
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
             named @21
               reference: <testLibraryFragment>::@class::A::@constructor::named
-              enclosingFragment: <testLibraryFragment>::@class::A
               periodOffset: 20
               nameEnd: 26
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         new
@@ -4231,11 +3982,9 @@ library
           constructors
             new @12
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         new
@@ -4298,32 +4047,26 @@ library
           fields
             foo @16
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
               getter2: <testLibraryFragment>::@class::A::@getter::foo
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
               parameters
                 _foo @-1
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
           getter: <none>
@@ -4335,12 +4078,10 @@ library
       getters
         synthetic get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
       setters
         synthetic set foo=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           parameters
             requiredPositional _foo
               reference: <none>
@@ -4391,25 +4132,20 @@ library
           fields
             foo @-1
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           getters
             get foo @20
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         synthetic foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
           getter: <none>
@@ -4420,7 +4156,6 @@ library
       getters
         get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
 ''');
   }
@@ -4468,11 +4203,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           methods
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
               typeParameters
                 T @21
               parameters
@@ -4480,7 +4213,6 @@ library
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -4544,27 +4276,22 @@ library
           fields
             foo @-1
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           setters
             set foo= @16
               reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
               parameters
                 x @24
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         synthetic foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
           setter: <none>
@@ -4575,7 +4302,6 @@ library
       setters
         set foo=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           parameters
             requiredPositional x
               reference: <none>
@@ -4619,11 +4345,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T
       firstFragment: <testLibraryFragment>::@class::A
@@ -4666,7 +4390,6 @@ library
   extensions
     extension E
       reference: <testLibraryFragment>::@extension::E
-      enclosingElement2: <testLibrary>
       typeParameters
         T
       firstFragment: <testLibraryFragment>::@extension::E
@@ -4854,7 +4577,6 @@ library
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
-      enclosingElement2: <testLibrary>
       typeParameters
         T
       firstFragment: <testLibraryFragment>::@mixin::M
@@ -4892,23 +4614,19 @@ library
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::foo
       getters
         get foo @8
           reference: <testLibraryFragment>::@getter::foo
-          enclosingFragment: <testLibraryFragment>
   topLevelVariables
     synthetic foo
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       getter: <none>
   getters
     static get foo
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::foo
 ''');
   }

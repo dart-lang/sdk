@@ -68,26 +68,21 @@ library
           fields
             it @27
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             const new @21
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -102,7 +97,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -166,12 +160,10 @@ library
           fields
             it @27
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             named @17
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               codeOffset: 16
               codeLength: 14
               periodOffset: 16
@@ -179,11 +171,9 @@ library
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 33
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -191,7 +181,6 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -206,7 +195,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -270,31 +258,25 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             named @31
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               periodOffset: 30
               nameEnd: 36
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: num
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: num
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -316,7 +298,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -380,31 +361,25 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             named @31
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               periodOffset: 30
               nameEnd: 36
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: num
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: num
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -426,7 +401,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -500,15 +474,12 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             const named @37
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               periodOffset: 36
               nameEnd: 42
               constantInitializers
@@ -525,17 +496,14 @@ library
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: num
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: num
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -557,7 +525,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -619,22 +586,18 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               codeOffset: 16
               codeLength: 8
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 27
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -642,7 +605,6 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -657,7 +619,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -713,27 +674,22 @@ library
           fields
             it @30
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @24
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       documentationComment: /// Docs
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -748,7 +704,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -809,46 +764,37 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @46
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         static const foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         synthetic static get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
 ''');
   }
@@ -909,46 +855,37 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @42
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         static const foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         synthetic static get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
 ''');
   }
@@ -1005,46 +942,37 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @35
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         final foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         synthetic get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
 ''');
   }
@@ -1120,26 +1048,21 @@ library
           fields
             it @43
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @32
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -1154,7 +1077,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -1210,46 +1132,37 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @37
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         synthetic foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
 ''');
   }
@@ -1321,42 +1234,34 @@ library
           fields
             it @68
               reference: <testLibraryFragment>::@extensionType::X::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::X
               getter2: <testLibraryFragment>::@extensionType::X::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::X::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
   extensionTypes
     extension type X
       reference: <testLibraryFragment>::@extensionType::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::X
       typeErasure: C
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::X
           type: C
           firstFragment: <testLibraryFragment>::@extensionType::X::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::X
           firstFragment: <testLibraryFragment>::@extensionType::X::@getter::it
 ''');
   }
@@ -1423,57 +1328,47 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @56
           reference: <testLibraryFragment>::@extensionType::B
           fields
             it @62
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
       reference: <testLibraryFragment>::@extensionType::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
 ''');
   }
@@ -1521,29 +1416,24 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -1608,57 +1498,47 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @43
           reference: <testLibraryFragment>::@extensionType::B
           fields
             it @49
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: num
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: num
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
       reference: <testLibraryFragment>::@extensionType::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
 ''');
   }
@@ -1706,29 +1586,24 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -1774,29 +1649,24 @@ library
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::X::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::X
               getter2: <testLibraryFragment>::@extensionType::X::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::X::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::X
   extensionTypes
     extension type X
       reference: <testLibraryFragment>::@extensionType::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::X
       typeErasure: int?
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::X
           type: int?
           firstFragment: <testLibraryFragment>::@extensionType::X::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::X
           firstFragment: <testLibraryFragment>::@extensionType::X::@getter::it
 ''');
   }
@@ -1847,16 +1717,13 @@ library
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -1864,14 +1731,12 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: T
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -1924,29 +1789,24 @@ library
           fields
             it @39
               reference: <testLibraryFragment>::@extensionType::X::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::X
               getter2: <testLibraryFragment>::@extensionType::X::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::X::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::X
   extensionTypes
     extension type X
       reference: <testLibraryFragment>::@extensionType::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::X
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::X
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::X::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::X
           firstFragment: <testLibraryFragment>::@extensionType::X::@getter::it
 ''');
   }
@@ -2003,17 +1863,14 @@ library
           fields
             promotable _it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::_it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::_it
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       fields
         _it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           type: int
           firstFragment: <testLibraryFragment>::@class::B::@field::_it
           getter: <none>
@@ -2021,12 +1878,10 @@ library
       getters
         synthetic get _it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           firstFragment: <testLibraryFragment>::@class::B::@getter::_it
       setters
         synthetic set _it=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           parameters
             requiredPositional __it
               reference: <none>
@@ -2034,37 +1889,31 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@setter::_it
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       fields
         synthetic _it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::_it
           getter: <none>
       getters
         get _it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::_it
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int?
       fields
         final _it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int?
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::_it
           getter: <none>
       getters
         synthetic get _it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::_it
   fieldNameNonPromotabilityInfo
     _it
@@ -2147,26 +1996,21 @@ library
           fields
             it @43
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @37
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -2181,7 +2025,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -2237,35 +2080,29 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @34
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 a @42
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
@@ -2334,36 +2171,30 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @34
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 default a @43
                   reference: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
@@ -2433,22 +2264,18 @@ library
           fields
             <empty> @17
               reference: <testLibraryFragment>::@extensionType::A::@field::<empty>
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::<empty>
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               codeOffset: 16
               codeLength: 2
           getters
             get <empty> @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::<empty>
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 21
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2456,7 +2283,6 @@ library
       fields
         final <empty>
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: InvalidType
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::<empty>
           getter: <none>
@@ -2471,7 +2297,6 @@ library
       getters
         synthetic get <empty>
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::<empty>
 ''');
   }
@@ -2523,16 +2348,13 @@ library
           fields
             it @34
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T
           bound: A<dynamic>
@@ -2541,14 +2363,12 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -2607,50 +2427,41 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           setters
             set foo= @33
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 _ @44
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         synthetic foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: double
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           setter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       setters
         set foo=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _
               reference: <none>
@@ -2718,57 +2529,47 @@ library
           fields
             it @19
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @42
           reference: <testLibraryFragment>::@extensionType::B
           fields
             it @46
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: InvalidType
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: InvalidType
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
       reference: <testLibraryFragment>::@extensionType::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: InvalidType
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           type: InvalidType
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
 ''');
   }
@@ -2832,57 +2633,47 @@ library
           fields
             it @19
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @42
           reference: <testLibraryFragment>::@extensionType::B
           fields
             it @52
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: InvalidType
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: B
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
       reference: <testLibraryFragment>::@extensionType::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: InvalidType
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           type: InvalidType
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
 ''');
   }
@@ -2928,29 +2719,24 @@ library
           fields
             it @19
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: InvalidType
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: InvalidType
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -3014,57 +2800,47 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @44
           reference: <testLibraryFragment>::@extensionType::B
           fields
             it @62
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
       reference: <testLibraryFragment>::@extensionType::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: int Function(int)
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           type: A Function(A)
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
 ''');
   }
@@ -3133,27 +2909,22 @@ library
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @45
           reference: <testLibraryFragment>::@extensionType::B
           fields
             it @57
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -3161,31 +2932,26 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: T
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
       reference: <testLibraryFragment>::@extensionType::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: double
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           type: A<double>
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
 ''');
   }
@@ -3249,57 +3015,47 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @44
           reference: <testLibraryFragment>::@extensionType::B
           fields
             it @54
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::B
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
       reference: <testLibraryFragment>::@extensionType::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: List<int>
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           type: List<A>
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::B
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
 ''');
   }
@@ -3345,29 +3101,24 @@ library
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -3429,20 +3180,16 @@ library
           fields
             it @45
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T
           bound: num
@@ -3452,7 +3199,6 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: Map<T, U>
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -3467,7 +3213,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -3580,16 +3325,13 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -3607,13 +3349,11 @@ library
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -3628,7 +3368,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
   exportedReferences
     declared <testLibraryFragment>::@extensionType::A
@@ -3751,20 +3490,16 @@ library
           fields
             it @65
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
           constructors
             augment new @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           methods
             foo1 @78
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::foo1
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
@@ -3774,17 +3509,14 @@ library
           methods
             foo2 @60
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@method::foo2
-              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
   extensionTypes
     extension type A
       reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
           getter: <none>
@@ -3799,7 +3531,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
       methods
         foo1
@@ -3900,16 +3631,13 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -3919,19 +3647,16 @@ library
           constructors
             named @60
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               periodOffset: 59
               nameEnd: 65
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -3949,7 +3674,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -4056,16 +3780,13 @@ library
           fields
             it @40
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -4077,13 +3798,11 @@ library
           constructors
             named @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               periodOffset: 63
               nameEnd: 69
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T1
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -4091,7 +3810,6 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -4113,7 +3831,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -4207,18 +3924,15 @@ library
           fields
             it @42
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             named @32
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               periodOffset: 31
               nameEnd: 37
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -4228,17 +3942,14 @@ library
           constructors
             new @58
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -4256,7 +3967,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -4385,29 +4095,23 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
@@ -4419,24 +4123,20 @@ library
           fields
             foo @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         static foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
@@ -4452,16 +4152,13 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         synthetic static get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
       setters
         synthetic static set foo=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _foo
               reference: <none>
@@ -4626,29 +4323,23 @@ library
           fields
             it @51
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @70
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
@@ -4662,7 +4353,6 @@ library
           fields
             foo @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
@@ -4674,24 +4364,20 @@ library
           fields
             foo @77
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         static foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
@@ -4707,16 +4393,13 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         synthetic static get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
       setters
         synthetic static set foo=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _foo
               reference: <none>
@@ -4881,30 +4564,24 @@ library
           fields
             it @51
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @70
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
@@ -4918,7 +4595,6 @@ library
           getters
             augment get foo @81
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
@@ -4929,24 +4605,20 @@ library
           fields
             foo @77
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         static foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
@@ -4962,16 +4634,13 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         synthetic static get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
       setters
         synthetic static set foo=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _foo
               reference: <none>
@@ -5139,29 +4808,23 @@ library
           fields
             it @51
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @70
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 _foo @-1
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
@@ -5176,7 +4839,6 @@ library
           setters
             augment set foo= @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               parameters
                 _ @85
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
@@ -5189,24 +4851,20 @@ library
           fields
             foo @77
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         static foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
@@ -5222,16 +4880,13 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         synthetic static get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
       setters
         synthetic static set foo=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _foo
               reference: <none>
@@ -5364,29 +5019,23 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
@@ -5398,24 +5047,20 @@ library
           fields
             foo @80
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         static foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
@@ -5431,16 +5076,13 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         synthetic static get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
       setters
         synthetic static set foo=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _foo
               reference: <none>
@@ -5563,24 +5205,19 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @59
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -5590,24 +5227,20 @@ library
           fields
             foo @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         synthetic static foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
@@ -5622,11 +5255,9 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         static get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
 ''');
   }
@@ -5774,28 +5405,22 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo1 @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo1
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo1
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo1 @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           setters
             set foo1= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 _foo1 @-1
     <testLibrary>::@fragment::package:test/a.dart
@@ -5807,42 +5432,35 @@ library
           fields
             foo2 @69
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
               setter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
           getters
             get foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           setters
             set foo2= @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               parameters
                 _foo2 @-1
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         static foo1
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo1
           getter: <none>
           setter: <none>
         static foo2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
           getter: <none>
@@ -5858,20 +5476,16 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         synthetic static get foo1
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo1
         synthetic static get foo2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
       setters
         synthetic static set foo1=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _foo1
               reference: <none>
@@ -5879,7 +5493,6 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo1
         synthetic static set foo2=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _foo2
               reference: <none>
@@ -6007,23 +5620,18 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo1 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo1
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo1 @52
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -6033,34 +5641,28 @@ library
           fields
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
           getters
             get foo2 @66
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         synthetic foo1
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo1
           getter: <none>
         synthetic foo2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
           getter: <none>
@@ -6075,15 +5677,12 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         get foo1
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo1
         get foo2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
 ''');
   }
@@ -6219,23 +5818,18 @@ library
           fields
             it @40
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo1 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo1
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo1 @55
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -6247,16 +5841,13 @@ library
           fields
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
           getters
             get foo2 @69
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T1
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -6264,19 +5855,16 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         synthetic foo1
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: T1
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo1
           getter: <none>
         synthetic foo2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: T2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
           getter: <none>
@@ -6291,15 +5879,12 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         abstract get foo1
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo1
         abstract get foo2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
 ''');
   }
@@ -6428,29 +6013,23 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
@@ -6462,24 +6041,20 @@ library
           getters
             augment get foo @81
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         static foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
@@ -6495,16 +6070,13 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         synthetic static get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
       setters
         synthetic static set foo=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _foo
               reference: <none>
@@ -6669,29 +6241,23 @@ library
           fields
             it @51
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @70
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
@@ -6705,7 +6271,6 @@ library
           getters
             augment get foo @81
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
@@ -6717,24 +6282,20 @@ library
           getters
             augment get foo @81
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         static foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
@@ -6750,16 +6311,13 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         synthetic static get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
       setters
         synthetic static set foo=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _foo
               reference: <none>
@@ -6895,31 +6453,24 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo1 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo1
             foo2 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo2
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo2
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo1 @52
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo1
             get foo2 @73
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo2
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -6929,30 +6480,25 @@ library
           getters
             augment get foo1 @74
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo1
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo1
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         synthetic foo1
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo1
           getter: <none>
         synthetic foo2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo2
           getter: <none>
@@ -6967,15 +6513,12 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         get foo2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo2
         get foo1
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo1
 ''');
   }
@@ -7124,23 +6667,18 @@ library
           fields
             it @51
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @67
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -7153,7 +6691,6 @@ library
           getters
             augment get foo @74
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
@@ -7165,24 +6702,20 @@ library
           getters
             augment get foo @74
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         synthetic foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
@@ -7197,11 +6730,9 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
 ''');
   }
@@ -7318,23 +6849,19 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type I1 @72
           reference: <testLibraryFragment>::@extensionType::I1
           fields
             it @79
               reference: <testLibraryFragment>::@extensionType::I1::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::I1
               getter2: <testLibraryFragment>::@extensionType::I1::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::I1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -7346,63 +6873,52 @@ library
           fields
             it @93
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type I1
       reference: <testLibraryFragment>::@extensionType::I1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::I1
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::I1
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::I1::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::I1
           firstFragment: <testLibraryFragment>::@extensionType::I1::@getter::it
     extension type I2
       reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
 ''');
   }
@@ -7593,31 +7109,25 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type I1 @72
           reference: <testLibraryFragment>::@extensionType::I1
           fields
             it @79
               reference: <testLibraryFragment>::@extensionType::I1::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::I1
               getter2: <testLibraryFragment>::@extensionType::I1::@getter::it
           constructors
             new @72
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::I1
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::I1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -7631,16 +7141,13 @@ library
           fields
             it @108
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
           constructors
             new @101
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
@@ -7652,26 +7159,21 @@ library
           fields
             it @90
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@field::it
-              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
               getter2: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@getter::it
           constructors
             new @83
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@getter::it
-              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -7686,17 +7188,14 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type I1
       reference: <testLibraryFragment>::@extensionType::I1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::I1
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::I1
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::I1::@field::it
           getter: <none>
@@ -7711,17 +7210,14 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::I1
           firstFragment: <testLibraryFragment>::@extensionType::I1::@getter::it
     extension type I2
       reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
           getter: <none>
@@ -7736,17 +7232,14 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
     extension type I3
       reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@field::it
           getter: <none>
@@ -7761,7 +7254,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@getter::it
 ''');
   }
@@ -7914,31 +7406,25 @@ library
           fields
             it @39
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type I1 @75
           reference: <testLibraryFragment>::@extensionType::I1
           fields
             it @82
               reference: <testLibraryFragment>::@extensionType::I1::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::I1
               getter2: <testLibraryFragment>::@extensionType::I1::@getter::it
           constructors
             new @75
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::I1
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::I1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -7954,20 +7440,16 @@ library
           fields
             it @104
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
           constructors
             new @94
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -7975,7 +7457,6 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -7990,17 +7471,14 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type I1
       reference: <testLibraryFragment>::@extensionType::I1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::I1
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::I1
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::I1::@field::it
           getter: <none>
@@ -8015,11 +7493,9 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::I1
           firstFragment: <testLibraryFragment>::@extensionType::I1::@getter::it
     extension type I2
       reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
-      enclosingElement2: <testLibrary>
       typeParameters
         E
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
@@ -8027,7 +7503,6 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
           getter: <none>
@@ -8042,7 +7517,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
 ''');
   }
@@ -8196,31 +7670,25 @@ library
           fields
             it @39
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type I1 @75
           reference: <testLibraryFragment>::@extensionType::I1
           fields
             it @82
               reference: <testLibraryFragment>::@extensionType::I1::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::I1
               getter2: <testLibraryFragment>::@extensionType::I1::@getter::it
           constructors
             new @75
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::I1
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::I1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -8237,20 +7705,16 @@ library
           fields
             it @108
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
           constructors
             new @98
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -8258,7 +7722,6 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -8273,17 +7736,14 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type I1
       reference: <testLibraryFragment>::@extensionType::I1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::I1
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::I1
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::I1::@field::it
           getter: <none>
@@ -8298,11 +7758,9 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::I1
           firstFragment: <testLibraryFragment>::@extensionType::I1::@getter::it
     extension type I2
       reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
-      enclosingElement2: <testLibrary>
       typeParameters
         E
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
@@ -8310,7 +7768,6 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
           getter: <none>
@@ -8325,7 +7782,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
 ''');
   }
@@ -8427,20 +7883,16 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @49
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -8450,17 +7902,14 @@ library
           methods
             bar @63
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -8475,7 +7924,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
@@ -8591,24 +8039,19 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo1 @49
               reference: <testLibraryFragment>::@extensionType::A::@method::foo1
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             foo2 @66
               reference: <testLibraryFragment>::@extensionType::A::@method::foo2
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -8619,17 +8062,14 @@ library
             augment foo1 @71
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo1
               previousFragment: <testLibraryFragment>::@extensionType::A::@method::foo1
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -8644,7 +8084,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo2
@@ -8784,21 +8223,17 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @49
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -8812,7 +8247,6 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
               previousFragment: <testLibraryFragment>::@extensionType::A::@method::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
@@ -8823,17 +8257,14 @@ library
             augment foo @68
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -8848,7 +8279,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
@@ -8964,20 +8394,16 @@ library
           fields
             it @39
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @49
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -8989,11 +8415,9 @@ library
           methods
             bar @65
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -9001,7 +8425,6 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -9016,7 +8439,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
@@ -9136,21 +8558,17 @@ library
           fields
             it @39
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @49
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -9163,11 +8581,9 @@ library
             augment foo @73
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
               previousFragment: <testLibraryFragment>::@extensionType::A::@method::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -9175,7 +8591,6 @@ library
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -9190,7 +8605,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
@@ -9308,24 +8722,19 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @49
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             bar @65
               reference: <testLibraryFragment>::@extensionType::A::@method::bar
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -9338,17 +8747,14 @@ library
             augment foo @74
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
               previousFragment: <testLibraryFragment>::@extensionType::A::@method::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
@@ -9363,7 +8769,6 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         bar
@@ -9500,24 +8905,19 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo1 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo1
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           setters
             set foo1= @48
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 _ @57
     <testLibrary>::@fragment::package:test/a.dart
@@ -9529,36 +8929,30 @@ library
           fields
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               setter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
           setters
             set foo2= @62
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               parameters
                 _ @71
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         synthetic foo1
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo1
           setter: <none>
         synthetic foo2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
           setter: <none>
@@ -9573,12 +8967,10 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       setters
         set foo1=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _
               reference: <none>
@@ -9586,7 +8978,6 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo1
         set foo2=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _
               reference: <none>
@@ -9722,28 +9113,22 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 _foo @-1
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
@@ -9756,26 +9141,22 @@ library
           setters
             augment set foo= @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               parameters
                 _ @85
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         static foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           getter: <none>
@@ -9791,16 +9172,13 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
         synthetic static get foo
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
       setters
         synthetic static set foo=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _foo
               reference: <none>
@@ -9945,34 +9323,27 @@ library
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo1 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo1
             foo2 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo2
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo2
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
           setters
             set foo1= @48
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 _ @57
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
             set foo2= @69
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo2
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               parameters
                 _ @78
     <testLibrary>::@fragment::package:test/a.dart
@@ -9984,32 +9355,27 @@ library
           setters
             augment set foo1= @70
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               parameters
                 _ @79
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo1
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
         synthetic foo1
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo1
           setter: <none>
         synthetic foo2
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo2
           setter: <none>
@@ -10024,12 +9390,10 @@ library
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       setters
         set foo2=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _
               reference: <none>
@@ -10037,7 +9401,6 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo2
         set foo1=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           parameters
             requiredPositional _
               reference: <none>
@@ -10133,12 +9496,10 @@ library
           fields
             it @52
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -10153,29 +9514,24 @@ library
   classes
     class A
       reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     class A
       reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }
@@ -10274,12 +9630,10 @@ library
           fields
             it @52
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -10295,25 +9649,21 @@ library
   classes
     class A
       reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
   extensionTypes
     extension type A
       reference: <testLibraryFragment>::@extensionType::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
         final it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           type: int
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           getter: <none>
       getters
         synthetic get it
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@extensionType::A
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
 ''');
   }

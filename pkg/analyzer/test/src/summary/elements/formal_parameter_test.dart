@@ -82,18 +82,15 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           methods
             m @17
               reference: <testLibraryFragment>::@class::A::@method::m
-              enclosingFragment: <testLibraryFragment>::@class::A
               parameters
                 default a @32
                   reference: <testLibraryFragment>::@class::A::@method::m::@parameter::a
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -150,17 +147,14 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           methods
             m @17
               reference: <testLibraryFragment>::@class::A::@method::m
-              enclosingFragment: <testLibraryFragment>::@class::A
               parameters
                 default a @32
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -217,17 +211,14 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           methods
             m @17
               reference: <testLibraryFragment>::@class::A::@method::m
-              enclosingFragment: <testLibraryFragment>::@class::A
               parameters
                 a @31
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -314,11 +305,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           methods
             f @20
               reference: <testLibraryFragment>::@class::A::@method::f
-              enclosingFragment: <testLibraryFragment>::@class::A
               parameters
                 t @34
         class B @48
@@ -328,20 +317,17 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::B
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: T}
           methods
             f @75
               reference: <testLibraryFragment>::@class::B::@method::f
-              enclosingFragment: <testLibraryFragment>::@class::B
               parameters
                 t @79
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T
       firstFragment: <testLibraryFragment>::@class::A
@@ -359,7 +345,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@method::f
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       typeParameters
         T
       firstFragment: <testLibraryFragment>::@class::B
@@ -442,11 +427,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           methods
             m @17
               reference: <testLibraryFragment>::@class::A::@method::m
-              enclosingFragment: <testLibraryFragment>::@class::A
               parameters
                 default a @32
                   reference: <testLibraryFragment>::@class::A::@method::m::@parameter::a
@@ -455,19 +438,16 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::B
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @68
               reference: <testLibraryFragment>::@class::B::@method::m
-              enclosingFragment: <testLibraryFragment>::@class::B
               parameters
                 default a @73
                   reference: <testLibraryFragment>::@class::B::@method::m::@parameter::a
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -483,7 +463,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@method::m
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
@@ -543,17 +522,14 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           methods
             f @10
               reference: <testLibraryFragment>::@class::C::@method::f
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 g @12
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -624,17 +600,14 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           methods
             f @16
               reference: <testLibraryFragment>::@class::C::@method::f
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 g @20
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       typeParameters
         A
         B
@@ -694,17 +667,14 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           methods
             f @10
               reference: <testLibraryFragment>::@class::C::@method::f
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 g @16
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -757,17 +727,14 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           methods
             f @10
               reference: <testLibraryFragment>::@class::C::@method::f
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 g @17
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -874,18 +841,15 @@ library
           constructors
             positional @14
               reference: <testLibraryFragment>::@class::C::@constructor::positional
-              enclosingFragment: <testLibraryFragment>::@class::C
               periodOffset: 13
               nameEnd: 24
             named @39
               reference: <testLibraryFragment>::@class::C::@constructor::named
-              enclosingFragment: <testLibraryFragment>::@class::C
               periodOffset: 38
               nameEnd: 44
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         positional
@@ -982,39 +946,32 @@ library
           fields
             x @16
               reference: <testLibraryFragment>::@class::C::@field::x
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
             positional @23
               reference: <testLibraryFragment>::@class::C::@constructor::positional
-              enclosingFragment: <testLibraryFragment>::@class::C
               periodOffset: 22
               nameEnd: 33
             named @53
               reference: <testLibraryFragment>::@class::C::@constructor::named
-              enclosingFragment: <testLibraryFragment>::@class::C
               periodOffset: 52
               nameEnd: 58
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
-              enclosingFragment: <testLibraryFragment>::@class::C
           setters
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _x @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       fields
         x
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@field::x
           getter: <none>
@@ -1037,12 +994,10 @@ library
       getters
         synthetic get x
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
       setters
         synthetic set x=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _x
               reference: <none>
@@ -1110,23 +1065,19 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           methods
             positional @24
               reference: <testLibraryFragment>::@class::C::@method::positional
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 default x @36
             named @61
               reference: <testLibraryFragment>::@class::C::@method::named
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 default x @68
                   reference: <testLibraryFragment>::@class::C::@method::named::@parameter::x
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new

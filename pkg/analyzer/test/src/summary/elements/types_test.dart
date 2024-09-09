@@ -128,23 +128,19 @@ library
       topLevelVariables
         x @35
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingFragment: <testLibraryFragment>
       setters
         set x= @-1
           reference: <testLibraryFragment>::@setter::x
-          enclosingFragment: <testLibraryFragment>
           parameters
             _x @-1
   topLevelVariables
     x
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: FutureOr<int>
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       getter: <none>
@@ -152,12 +148,10 @@ library
   getters
     synthetic static get x
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::x
   setters
     synthetic static set x=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _x
           reference: <none>
@@ -213,23 +207,19 @@ library
       topLevelVariables
         const x @27
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::x
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingFragment: <testLibraryFragment>
   topLevelVariables
     const x
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: Type
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       getter: <none>
   getters
     synthetic static get x
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::x
 ''');
     var variables = library.definingCompilationUnit.topLevelVariables;
@@ -310,43 +300,35 @@ library
       topLevelVariables
         x @52
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
         y @65
           reference: <testLibraryFragment>::@topLevelVariable::y
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::y
           setter2: <testLibraryFragment>::@setter::y
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingFragment: <testLibraryFragment>
         get y @-1
           reference: <testLibraryFragment>::@getter::y
-          enclosingFragment: <testLibraryFragment>
       setters
         set x= @-1
           reference: <testLibraryFragment>::@setter::x
-          enclosingFragment: <testLibraryFragment>
           parameters
             _x @-1
         set y= @-1
           reference: <testLibraryFragment>::@setter::y
-          enclosingFragment: <testLibraryFragment>
           parameters
             _y @-1
   topLevelVariables
     x
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: FutureOr<int>
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       getter: <none>
       setter: <none>
     y
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: InvalidType
       firstFragment: <testLibraryFragment>::@topLevelVariable::y
       getter: <none>
@@ -354,16 +336,13 @@ library
   getters
     synthetic static get x
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::x
     synthetic static get y
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::y
   setters
     synthetic static set x=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _x
           reference: <none>
@@ -371,7 +350,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::x
     synthetic static set y=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _y
           reference: <none>
@@ -446,11 +424,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           methods
             m @30
               reference: <testLibraryFragment>::@class::C::@method::m
-              enclosingFragment: <testLibraryFragment>::@class::C
               typeParameters
                 V @32
                 W @35
@@ -460,7 +436,6 @@ library
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       typeParameters
         T
         U
@@ -568,17 +543,14 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           methods
             call @17
               reference: <testLibraryFragment>::@class::C::@method::call
-              enclosingFragment: <testLibraryFragment>::@class::C
         class D @36
           reference: <testLibraryFragment>::@class::D
           constructors
             const new @48
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::D
               constantInitializers
                 RedirectingConstructorInvocation
                   thisKeyword: this @57
@@ -602,13 +574,11 @@ library
               redirectedConstructor: <testLibraryFragment>::@class::D::@constructor::named
             const named @83
               reference: <testLibraryFragment>::@class::D::@constructor::named
-              enclosingFragment: <testLibraryFragment>::@class::D
               periodOffset: 82
               nameEnd: 88
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -620,7 +590,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@method::call
     class D
       reference: <testLibraryFragment>::@class::D
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
       constructors
         const new
@@ -676,23 +645,19 @@ library
       topLevelVariables
         v @4
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingFragment: <testLibraryFragment>
       setters
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          enclosingFragment: <testLibraryFragment>
           parameters
             _v @-1
   topLevelVariables
     v
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int Function()
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       getter: <none>
@@ -700,12 +665,10 @@ library
   getters
     synthetic static get v
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::v
   setters
     synthetic static set v=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _v
           reference: <none>
@@ -749,23 +712,19 @@ library
       topLevelVariables
         v @4
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingFragment: <testLibraryFragment>
       setters
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          enclosingFragment: <testLibraryFragment>
           parameters
             _v @-1
   topLevelVariables
     v
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: Future<dynamic> Function(dynamic)
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       getter: <none>
@@ -773,12 +732,10 @@ library
   getters
     synthetic static get v
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::v
   setters
     synthetic static set v=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _v
           reference: <none>
@@ -836,23 +793,19 @@ library
       topLevelVariables
         v @25
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingFragment: <testLibraryFragment>
       setters
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          enclosingFragment: <testLibraryFragment>
           parameters
             _v @-1
   topLevelVariables
     v
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: Future<int> Function(Future<Future<Future<int>>>)
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       getter: <none>
@@ -860,12 +813,10 @@ library
   getters
     synthetic static get v
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::v
   setters
     synthetic static set v=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _v
           reference: <none>
@@ -922,23 +873,19 @@ library
       topLevelVariables
         v @25
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingFragment: <testLibraryFragment>
       setters
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          enclosingFragment: <testLibraryFragment>
           parameters
             _v @-1
   topLevelVariables
     v
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: Future<int> Function(Future<int>)
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       getter: <none>
@@ -946,12 +893,10 @@ library
   getters
     synthetic static get v
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::v
   setters
     synthetic static set v=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _v
           reference: <none>
@@ -1008,23 +953,19 @@ library
       topLevelVariables
         v @25
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingFragment: <testLibraryFragment>
       setters
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          enclosingFragment: <testLibraryFragment>
           parameters
             _v @-1
   topLevelVariables
     v
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: Future<dynamic> Function(Future<dynamic>)
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       getter: <none>
@@ -1032,12 +973,10 @@ library
   getters
     synthetic static get v
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::v
   setters
     synthetic static set v=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _v
           reference: <none>
@@ -1096,32 +1035,26 @@ library
           fields
             v @16
               reference: <testLibraryFragment>::@class::C::@field::v
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           getters
             get v @-1
               reference: <testLibraryFragment>::@class::C::@getter::v
-              enclosingFragment: <testLibraryFragment>::@class::C
           setters
             set v= @-1
               reference: <testLibraryFragment>::@class::C::@setter::v
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _v @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       fields
         v
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int Function()
           firstFragment: <testLibraryFragment>::@class::C::@field::v
           getter: <none>
@@ -1133,12 +1066,10 @@ library
       getters
         synthetic get v
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::v
       setters
         synthetic set v=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _v
               reference: <none>
@@ -1278,12 +1209,10 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X1::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X1
               superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeDefault::@constructor::new
           methods
             == @74
               reference: <testLibraryFragment>::@class::X1::@method::==
-              enclosingFragment: <testLibraryFragment>::@class::X1
               parameters
                 other @77
         class X2 @102
@@ -1291,12 +1220,10 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X2::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X2
               superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeObject::@constructor::new
           methods
             == @145
               reference: <testLibraryFragment>::@class::X2::@method::==
-              enclosingFragment: <testLibraryFragment>::@class::X2
               parameters
                 other @148
         class X3 @173
@@ -1304,18 +1231,15 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X3::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X3
               superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeInt::@constructor::new
           methods
             == @213
               reference: <testLibraryFragment>::@class::X3::@method::==
-              enclosingFragment: <testLibraryFragment>::@class::X3
               parameters
                 other @216
   classes
     class X1
       reference: <testLibraryFragment>::@class::X1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X1
       supertype: NullSafeDefault
       constructors
@@ -1333,7 +1257,6 @@ library
           firstFragment: <testLibraryFragment>::@class::X1::@method::==
     class X2
       reference: <testLibraryFragment>::@class::X2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X2
       supertype: NullSafeObject
       constructors
@@ -1351,7 +1274,6 @@ library
           firstFragment: <testLibraryFragment>::@class::X2::@method::==
     class X3
       reference: <testLibraryFragment>::@class::X3
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X3
       supertype: NullSafeInt
       constructors
@@ -1428,27 +1350,22 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
       topLevelVariables
         c @47
           reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
         get c @-1
           reference: <testLibraryFragment>::@getter::c
-          enclosingFragment: <testLibraryFragment>
       setters
         set c= @-1
           reference: <testLibraryFragment>::@setter::c
-          enclosingFragment: <testLibraryFragment>
           parameters
             _c @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       typeParameters
         S
           bound: num
@@ -1462,7 +1379,6 @@ library
   topLevelVariables
     c
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: C<num, C<num, dynamic>>
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       getter: <none>
@@ -1470,12 +1386,10 @@ library
   getters
     synthetic static get c
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::c
   setters
     synthetic static set c=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _c
           reference: <none>
@@ -1583,62 +1497,50 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
         class B @56
           reference: <testLibraryFragment>::@class::B
           fields
             c3 @66
               reference: <testLibraryFragment>::@class::B::@field::c3
-              enclosingFragment: <testLibraryFragment>::@class::B
               getter2: <testLibraryFragment>::@class::B::@getter::c3
               setter2: <testLibraryFragment>::@class::B::@setter::c3
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::B
           getters
             get c3 @-1
               reference: <testLibraryFragment>::@class::B::@getter::c3
-              enclosingFragment: <testLibraryFragment>::@class::B
           setters
             set c3= @-1
               reference: <testLibraryFragment>::@class::B::@setter::c3
-              enclosingFragment: <testLibraryFragment>::@class::B
               parameters
                 _c3 @-1
       topLevelVariables
         c @29
           reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         c2 @36
           reference: <testLibraryFragment>::@topLevelVariable::c2
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::c2
           setter2: <testLibraryFragment>::@setter::c2
       getters
         get c @-1
           reference: <testLibraryFragment>::@getter::c
-          enclosingFragment: <testLibraryFragment>
         get c2 @-1
           reference: <testLibraryFragment>::@getter::c2
-          enclosingFragment: <testLibraryFragment>
       setters
         set c= @-1
           reference: <testLibraryFragment>::@setter::c
-          enclosingFragment: <testLibraryFragment>
           parameters
             _c @-1
         set c2= @-1
           reference: <testLibraryFragment>::@setter::c2
-          enclosingFragment: <testLibraryFragment>
           parameters
             _c2 @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       typeParameters
         T
           bound: C<T>
@@ -1649,12 +1551,10 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       fields
         c3
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           type: C<C<Object?>>
           firstFragment: <testLibraryFragment>::@class::B::@field::c3
           getter: <none>
@@ -1666,12 +1566,10 @@ library
       getters
         synthetic get c3
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           firstFragment: <testLibraryFragment>::@class::B::@getter::c3
       setters
         synthetic set c3=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           parameters
             requiredPositional _c3
               reference: <none>
@@ -1680,14 +1578,12 @@ library
   topLevelVariables
     c
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: C<C<dynamic>>
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       getter: <none>
       setter: <none>
     c2
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: C<C<Object?>>
       firstFragment: <testLibraryFragment>::@topLevelVariable::c2
       getter: <none>
@@ -1695,16 +1591,13 @@ library
   getters
     synthetic static get c
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::c
     synthetic static get c2
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::c2
   setters
     synthetic static set c=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _c
           reference: <none>
@@ -1712,7 +1605,6 @@ library
       firstFragment: <testLibraryFragment>::@setter::c
     synthetic static set c2=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _c2
           reference: <none>
@@ -1779,27 +1671,22 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
       topLevelVariables
         c @47
           reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
         get c @-1
           reference: <testLibraryFragment>::@getter::c
-          enclosingFragment: <testLibraryFragment>
       setters
         set c= @-1
           reference: <testLibraryFragment>::@setter::c
-          enclosingFragment: <testLibraryFragment>
           parameters
             _c @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       typeParameters
         T
           bound: C<T, U>
@@ -1813,7 +1700,6 @@ library
   topLevelVariables
     c
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: C<C<dynamic, num>, num>
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       getter: <none>
@@ -1821,12 +1707,10 @@ library
   getters
     synthetic static get c
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::c
   setters
     synthetic static set c=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _c
           reference: <none>
@@ -1893,15 +1777,12 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           methods
             f @31
               reference: <testLibraryFragment>::@class::C::@method::f
-              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -1973,23 +1854,19 @@ library
       topLevelVariables
         f @33
           reference: <testLibraryFragment>::@topLevelVariable::f
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
         get f @-1
           reference: <testLibraryFragment>::@getter::f
-          enclosingFragment: <testLibraryFragment>
       setters
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
-          enclosingFragment: <testLibraryFragment>
           parameters
             _f @-1
   topLevelVariables
     f
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: dynamic Function(num)
         alias: <testLibraryFragment>::@typeAlias::F
           typeArguments
@@ -2000,12 +1877,10 @@ library
   getters
     synthetic static get f
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::f
   setters
     synthetic static set f=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _f
           reference: <none>
@@ -2085,7 +1960,6 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
         class B @20
           reference: <testLibraryFragment>::@class::B
           typeParameters
@@ -2094,27 +1968,22 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::B
       topLevelVariables
         b @69
           reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::b
           setter2: <testLibraryFragment>::@setter::b
       getters
         get b @-1
           reference: <testLibraryFragment>::@getter::b
-          enclosingFragment: <testLibraryFragment>
       setters
         set b= @-1
           reference: <testLibraryFragment>::@setter::b
-          enclosingFragment: <testLibraryFragment>
           parameters
             _b @-1
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T
       firstFragment: <testLibraryFragment>::@class::A
@@ -2124,7 +1993,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       typeParameters
         T
           bound: int Function()
@@ -2138,7 +2006,6 @@ library
   topLevelVariables
     b
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: B<int Function(), A<int Function()>>
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       getter: <none>
@@ -2146,12 +2013,10 @@ library
   getters
     synthetic static get b
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::b
   setters
     synthetic static set b=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _b
           reference: <none>
@@ -2221,23 +2086,19 @@ library
       topLevelVariables
         f @49
           reference: <testLibraryFragment>::@topLevelVariable::f
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
         get f @-1
           reference: <testLibraryFragment>::@getter::f
-          enclosingFragment: <testLibraryFragment>
       setters
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
-          enclosingFragment: <testLibraryFragment>
           parameters
             _f @-1
   topLevelVariables
     f
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: S Function<S>(num)
         alias: <testLibraryFragment>::@typeAlias::F
           typeArguments
@@ -2248,12 +2109,10 @@ library
   getters
     synthetic static get f
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::f
   setters
     synthetic static set f=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _f
           reference: <none>
@@ -2326,16 +2185,13 @@ library
           fields
             values @31
               reference: <testLibraryFragment>::@class::A::@field::values
-              enclosingFragment: <testLibraryFragment>::@class::A
               getter2: <testLibraryFragment>::@class::A::@getter::values
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           getters
             get values @-1
               reference: <testLibraryFragment>::@class::A::@getter::values
-              enclosingFragment: <testLibraryFragment>::@class::A
         class B @55
           reference: <testLibraryFragment>::@class::B
           typeParameters
@@ -2343,11 +2199,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       typeParameters
         R
           bound: B<num>
@@ -2355,7 +2209,6 @@ library
       fields
         final values
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           type: List<B<num>>
           firstFragment: <testLibraryFragment>::@class::A::@field::values
           getter: <none>
@@ -2366,11 +2219,9 @@ library
       getters
         synthetic get values
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::values
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       typeParameters
         T
           bound: num
@@ -2436,27 +2287,22 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
       topLevelVariables
         c @28
           reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
         get c @-1
           reference: <testLibraryFragment>::@getter::c
-          enclosingFragment: <testLibraryFragment>
       setters
         set c= @-1
           reference: <testLibraryFragment>::@setter::c
-          enclosingFragment: <testLibraryFragment>
           parameters
             _c @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       typeParameters
         T
           bound: num
@@ -2468,7 +2314,6 @@ library
   topLevelVariables
     c
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: C<num>
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       getter: <none>
@@ -2476,12 +2321,10 @@ library
   getters
     synthetic static get c
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::c
   setters
     synthetic static set c=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _c
           reference: <none>
@@ -2563,32 +2406,26 @@ library
           fields
             v @50
               reference: <testLibraryFragment>::@class::C::@field::v
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           getters
             get v @-1
               reference: <testLibraryFragment>::@class::C::@getter::v
-              enclosingFragment: <testLibraryFragment>::@class::C
           setters
             set v= @-1
               reference: <testLibraryFragment>::@class::C::@setter::v
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _v @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       fields
         v
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: List<dynamic>
           firstFragment: <testLibraryFragment>::@class::C::@field::v
           getter: <none>
@@ -2600,12 +2437,10 @@ library
       getters
         synthetic get v
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::v
       setters
         synthetic set v=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _v
               reference: <none>
@@ -2771,23 +2606,19 @@ library
       topLevelVariables
         V @27
           reference: <testLibraryFragment>::@topLevelVariable::V
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::V
           setter2: <testLibraryFragment>::@setter::V
       getters
         get V @-1
           reference: <testLibraryFragment>::@getter::V
-          enclosingFragment: <testLibraryFragment>
       setters
         set V= @-1
           reference: <testLibraryFragment>::@setter::V
-          enclosingFragment: <testLibraryFragment>
           parameters
             _V @-1
   topLevelVariables
     V
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: dynamic
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       getter: <none>
@@ -2795,12 +2626,10 @@ library
   getters
     synthetic static get V
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::V
   setters
     synthetic static set V=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _V
           reference: <none>
@@ -2862,23 +2691,19 @@ library
       topLevelVariables
         v @19
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingFragment: <testLibraryFragment>
       setters
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          enclosingFragment: <testLibraryFragment>
           parameters
             _v @-1
   topLevelVariables
     v
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: C
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       getter: <none>
@@ -2886,12 +2711,10 @@ library
   getters
     synthetic static get v
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::v
   setters
     synthetic static set v=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _v
           reference: <none>
@@ -2954,23 +2777,19 @@ library
       topLevelVariables
         v @19
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingFragment: <testLibraryFragment>
       setters
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          enclosingFragment: <testLibraryFragment>
           parameters
             _v @-1
   topLevelVariables
     v
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: C
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       getter: <none>
@@ -2978,12 +2797,10 @@ library
   getters
     synthetic static get v
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::v
   setters
     synthetic static set v=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _v
           reference: <none>
@@ -3050,23 +2867,19 @@ library
       topLevelVariables
         v @19
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingFragment: <testLibraryFragment>
       setters
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          enclosingFragment: <testLibraryFragment>
           parameters
             _v @-1
   topLevelVariables
     v
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: C
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       getter: <none>
@@ -3074,12 +2887,10 @@ library
   getters
     synthetic static get v
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::v
   setters
     synthetic static set v=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _v
           reference: <none>
@@ -3141,18 +2952,15 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           methods
             g @23
               reference: <testLibraryFragment>::@class::C::@method::g
-              enclosingFragment: <testLibraryFragment>::@class::C
               typeParameters
                 V @25
                 W @28
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       typeParameters
         T
         U
@@ -3230,18 +3038,15 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           methods
             g @23
               reference: <testLibraryFragment>::@class::C::@method::g
-              enclosingFragment: <testLibraryFragment>::@class::C
               typeParameters
                 V @25
                 W @28
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       typeParameters
         T
         U
@@ -3397,23 +3202,19 @@ library
       topLevelVariables
         final v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingFragment: <testLibraryFragment>
   topLevelVariables
     final v
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int Function<T>(T)
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       getter: <none>
   getters
     synthetic static get v
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::v
 ''');
   }
@@ -3516,27 +3317,22 @@ library
           fields
             v @22
               reference: <testLibraryFragment>::@class::C::@field::v
-              enclosingFragment: <testLibraryFragment>::@class::C
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
           getters
             get v @-1
               reference: <testLibraryFragment>::@class::C::@getter::v
-              enclosingFragment: <testLibraryFragment>::@class::C
           setters
             set v= @-1
               reference: <testLibraryFragment>::@class::C::@setter::v
-              enclosingFragment: <testLibraryFragment>::@class::C
               parameters
                 _v @-1
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       typeParameters
         T
         U
@@ -3544,7 +3340,6 @@ library
       fields
         v
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           type: int Function(T, U)
           firstFragment: <testLibraryFragment>::@class::C::@field::v
           getter: <none>
@@ -3556,12 +3351,10 @@ library
       getters
         synthetic get v
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           firstFragment: <testLibraryFragment>::@class::C::@getter::v
       setters
         synthetic set v=
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::C
           parameters
             requiredPositional _v
               reference: <none>
@@ -3640,23 +3433,19 @@ library
       topLevelVariables
         final v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingFragment: <testLibraryFragment>
   topLevelVariables
     final v
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int Function()
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       getter: <none>
   getters
     synthetic static get v
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::v
 ''');
   }
@@ -3697,23 +3486,19 @@ library
       topLevelVariables
         final v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingFragment: <testLibraryFragment>
   topLevelVariables
     final v
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int Function(int, String)
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       getter: <none>
   getters
     synthetic static get v
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::v
 ''');
   }
@@ -3752,23 +3537,19 @@ library
       topLevelVariables
         m @22
           reference: <testLibraryFragment>::@topLevelVariable::m
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::m
           setter2: <testLibraryFragment>::@setter::m
       getters
         get m @-1
           reference: <testLibraryFragment>::@getter::m
-          enclosingFragment: <testLibraryFragment>
       setters
         set m= @-1
           reference: <testLibraryFragment>::@setter::m
-          enclosingFragment: <testLibraryFragment>
           parameters
             _m @-1
   topLevelVariables
     m
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: Map<dynamic, dynamic>
       firstFragment: <testLibraryFragment>::@topLevelVariable::m
       getter: <none>
@@ -3776,12 +3557,10 @@ library
   getters
     synthetic static get m
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::m
   setters
     synthetic static set m=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _m
           reference: <none>
@@ -3824,23 +3603,19 @@ library
       topLevelVariables
         m @18
           reference: <testLibraryFragment>::@topLevelVariable::m
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::m
           setter2: <testLibraryFragment>::@setter::m
       getters
         get m @-1
           reference: <testLibraryFragment>::@getter::m
-          enclosingFragment: <testLibraryFragment>
       setters
         set m= @-1
           reference: <testLibraryFragment>::@setter::m
-          enclosingFragment: <testLibraryFragment>
           parameters
             _m @-1
   topLevelVariables
     m
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: Map<dynamic, int>
       firstFragment: <testLibraryFragment>::@topLevelVariable::m
       getter: <none>
@@ -3848,12 +3623,10 @@ library
   getters
     synthetic static get m
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::m
   setters
     synthetic static set m=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _m
           reference: <none>
@@ -3896,23 +3669,19 @@ library
       topLevelVariables
         m @21
           reference: <testLibraryFragment>::@topLevelVariable::m
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::m
           setter2: <testLibraryFragment>::@setter::m
       getters
         get m @-1
           reference: <testLibraryFragment>::@getter::m
-          enclosingFragment: <testLibraryFragment>
       setters
         set m= @-1
           reference: <testLibraryFragment>::@setter::m
-          enclosingFragment: <testLibraryFragment>
           parameters
             _m @-1
   topLevelVariables
     m
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: Map<String, dynamic>
       firstFragment: <testLibraryFragment>::@topLevelVariable::m
       getter: <none>
@@ -3920,12 +3689,10 @@ library
   getters
     synthetic static get m
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::m
   setters
     synthetic static set m=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _m
           reference: <none>
@@ -3968,23 +3735,19 @@ library
       topLevelVariables
         m @17
           reference: <testLibraryFragment>::@topLevelVariable::m
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::m
           setter2: <testLibraryFragment>::@setter::m
       getters
         get m @-1
           reference: <testLibraryFragment>::@getter::m
-          enclosingFragment: <testLibraryFragment>
       setters
         set m= @-1
           reference: <testLibraryFragment>::@setter::m
-          enclosingFragment: <testLibraryFragment>
           parameters
             _m @-1
   topLevelVariables
     m
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: Map<String, int>
       firstFragment: <testLibraryFragment>::@topLevelVariable::m
       getter: <none>
@@ -3992,12 +3755,10 @@ library
   getters
     synthetic static get m
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::m
   setters
     synthetic static set m=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _m
           reference: <none>
@@ -4040,23 +3801,19 @@ library
       topLevelVariables
         m @4
           reference: <testLibraryFragment>::@topLevelVariable::m
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::m
           setter2: <testLibraryFragment>::@setter::m
       getters
         get m @-1
           reference: <testLibraryFragment>::@getter::m
-          enclosingFragment: <testLibraryFragment>
       setters
         set m= @-1
           reference: <testLibraryFragment>::@setter::m
-          enclosingFragment: <testLibraryFragment>
           parameters
             _m @-1
   topLevelVariables
     m
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: Map<dynamic, dynamic>
       firstFragment: <testLibraryFragment>::@topLevelVariable::m
       getter: <none>
@@ -4064,12 +3821,10 @@ library
   getters
     synthetic static get m
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::m
   setters
     synthetic static set m=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _m
           reference: <none>
@@ -4112,23 +3867,19 @@ library
       topLevelVariables
         d @8
           reference: <testLibraryFragment>::@topLevelVariable::d
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::d
           setter2: <testLibraryFragment>::@setter::d
       getters
         get d @-1
           reference: <testLibraryFragment>::@getter::d
-          enclosingFragment: <testLibraryFragment>
       setters
         set d= @-1
           reference: <testLibraryFragment>::@setter::d
-          enclosingFragment: <testLibraryFragment>
           parameters
             _d @-1
   topLevelVariables
     d
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: dynamic
       firstFragment: <testLibraryFragment>::@topLevelVariable::d
       getter: <none>
@@ -4136,12 +3887,10 @@ library
   getters
     synthetic static get d
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::d
   setters
     synthetic static set d=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _d
           reference: <none>
@@ -4184,23 +3933,19 @@ library
       topLevelVariables
         c @2
           reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
         get c @-1
           reference: <testLibraryFragment>::@getter::c
-          enclosingFragment: <testLibraryFragment>
       setters
         set c= @-1
           reference: <testLibraryFragment>::@setter::c
-          enclosingFragment: <testLibraryFragment>
           parameters
             _c @-1
   topLevelVariables
     c
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: InvalidType
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       getter: <none>
@@ -4208,12 +3953,10 @@ library
   getters
     synthetic static get c
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::c
   setters
     synthetic static set c=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _c
           reference: <none>
@@ -4279,23 +4022,19 @@ library
       topLevelVariables
         c @35
           reference: <testLibraryFragment>::@topLevelVariable::c
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
         get c @-1
           reference: <testLibraryFragment>::@getter::c
-          enclosingFragment: <testLibraryFragment>
       setters
         set c= @-1
           reference: <testLibraryFragment>::@setter::c
-          enclosingFragment: <testLibraryFragment>
           parameters
             _c @-1
   topLevelVariables
     c
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: InvalidType
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       getter: <none>
@@ -4303,12 +4042,10 @@ library
   getters
     synthetic static get c
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::c
   setters
     synthetic static set c=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _c
           reference: <none>

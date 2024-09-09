@@ -121,22 +121,6 @@ abstract class _AbstractElementWriter {
     }
   }
 
-  void _writeElements<T extends Object>(
-    String name,
-    List<T> elements,
-    void Function(T) write,
-  ) {
-    var filtered = elements.where(configuration.filter).toList();
-    if (filtered.isNotEmpty) {
-      _sink.writelnWithIndent(name);
-      _sink.withIndent(() {
-        for (var element in filtered) {
-          write(element);
-        }
-      });
-    }
-  }
-
   void _writeExportedReferences(LibraryElementImpl e) {
     var exportedReferences = e.exportedReferences.toList();
     exportedReferences.sortBy((e) => e.reference.toString());
@@ -223,7 +207,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
 
-      // _writeElements(
+      // _writeList(
       //   'libraryExports',
       //   e.libraryExports,
       //   _writeLibraryExportElement,
@@ -239,18 +223,19 @@ class _Element2Writer extends _AbstractElementWriter {
         expect(fragment.element, same(e));
       }
 
-      _writeElements('fragments', fragments, _writeLibraryFragment);
+      _writeFragmentList('fragments', null, fragments, _writeLibraryFragment);
 
-      _writeElements('classes', e.classes, _writeInstanceElement);
-      _writeElements('enums', e.enums, _writeInstanceElement);
-      _writeElements('extensions', e.extensions, _writeInstanceElement);
-      _writeElements('extensionTypes', e.extensionTypes, _writeInstanceElement);
-      _writeElements('mixins', e.mixins, _writeInstanceElement);
+      _writeElementList('classes', e, e.classes, _writeInstanceElement);
+      _writeElementList('enums', e, e.enums, _writeInstanceElement);
+      _writeElementList('extensions', e, e.extensions, _writeInstanceElement);
+      _writeElementList(
+          'extensionTypes', e, e.extensionTypes, _writeInstanceElement);
+      _writeElementList('mixins', e, e.mixins, _writeInstanceElement);
 
-      _writeElements('topLevelVariables', e.topLevelVariables,
+      _writeElementList('topLevelVariables', e, e.topLevelVariables,
           _writeTopLevelVariableElement);
-      _writeElements('getters', e.getters, _writeGetterElement);
-      _writeElements('setters', e.setters, _writeSetterElement);
+      _writeElementList('getters', e, e.getters, _writeGetterElement);
+      _writeElementList('setters', e, e.setters, _writeSetterElement);
 
       if (configuration.withExportScope) {
         _sink.writelnWithIndent('exportedReferences');
@@ -330,15 +315,15 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('reference', e);
-      // _writeEnclosingElement(e);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
       // _writeDisplayName(e);
 
-      _writeElements('parameters', e.parameters2, _writeFormalParameterElement);
+      _writeElementList(
+          'parameters', e, e.parameters2, _writeFormalParameterElement);
 
-      // _writeElements(
+      // _writeList(
       //   'constantInitializers',
       //   e.constantInitializers,
       //   _writeNode,
@@ -390,7 +375,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
-      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -406,7 +390,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       // _writeParameterElements(f.parameters);
 
-      _writeElements(
+      _writeList(
         'constantInitializers',
         f.constantInitializers,
         _writeNode,
@@ -458,6 +442,33 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
+  void _writeElementList<E extends Element2>(
+    String name,
+    Element2 expectedEnclosingElement,
+    List<E> elements,
+    void Function(E) write,
+  ) {
+    var filtered = elements.where(configuration.filter).toList();
+    if (filtered.isNotEmpty) {
+      _sink.writelnWithIndent(name);
+      _sink.withIndent(() {
+        for (var element in filtered) {
+          if (element is LibraryImport || element is LibraryExport) {
+            // These are only accidentally subtypes of `Element2` and don't have
+            // an enclosing element.
+          } else if (element is PrefixElement2) {
+            // Asking a `PrefixElement2` for it's enclosing element currently
+            // throws an exception (because it doesn't have an enclosing
+            // element, only an enclosing fragment).
+          } else {
+            expect(element.enclosingElement2, expectedEnclosingElement);
+          }
+          write(element);
+        }
+      });
+    }
+  }
+
   void _writeElementName(Element2 e) {
     _sink.write(_elementName(e));
   }
@@ -491,13 +502,6 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.write('<none>');
       });
     }
-  }
-
-  void _writeEnclosingElement(Element2 e) {
-    _elementPrinter.writeNamedElement(
-      'enclosingElement2',
-      e.enclosingElement2 as Element?,
-    );
   }
 
   void _writeExportNamespace(LibraryElement2 e) {
@@ -558,7 +562,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('reference', e);
-      _writeElementReference('enclosingElement', e.enclosingElement2!);
       // _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
       // _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -628,7 +631,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
-      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       // _writeDocumentation(f.documentationComment);
       // _writeMetadata(f.metadata);
       // _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -690,7 +692,8 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeSinceSdkVersion(e.sinceSdkVersion);
       // _writeCodeRange(e);
       // _writeTypeParameterElements(e.typeParameters2);
-      _writeElements('parameters', e.parameters2, _writeFormalParameterElement);
+      _writeElementList(
+          'parameters', e, e.parameters2, _writeFormalParameterElement);
       // _writeConstantInitializer(e);
       // _writeNonSyntheticElement(e);
       // _writeFieldFormalParameterField(e);
@@ -741,7 +744,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeSinceSdkVersion(f.sinceSdkVersion);
       // _writeCodeRange(f);
       // _writeTypeParameterElements(e.typeParameters);
-      // _writeElements('parameters', e.parameters, _writeFormalParameterFragments);
+      // _writeFragmentList('parameters', e, e.parameters, _writeFormalParameterFragments);
       // _writeConstantInitializer(e);
       // _writeNonSyntheticElement(e);
       // _writeFieldFormalParameterField(e);
@@ -776,6 +779,26 @@ class _Element2Writer extends _AbstractElementWriter {
           _sink.writelnWithIndent('codeLength: ${e.codeLength}');
         }
       }
+    }
+  }
+
+  void _writeFragmentList<E extends Fragment>(
+    String name,
+    Fragment? expectedEnclosingFragment,
+    List<E> elements,
+    void Function(E) write,
+  ) {
+    var filtered = elements.where(configuration.filter).toList();
+    if (filtered.isNotEmpty) {
+      _sink.writelnWithIndent(name);
+      _sink.withIndent(() {
+        for (var element in filtered) {
+          expect(element.enclosingFragment, expectedEnclosingFragment);
+          // TODO(brianwilkerson): Explicitly check the next/previous fragment
+          //  attributes and stop writing them to the dump.
+          write(element);
+        }
+      });
     }
   }
 
@@ -871,13 +894,13 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('reference', e);
-      _writeElementReference('enclosingElement', e.enclosingElement2);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
 
       expect(e.typeParameters2, isEmpty);
-      _writeElements('parameters', e.parameters2, _writeFormalParameterElement);
+      _writeElementList(
+          'parameters', e, e.parameters2, _writeFormalParameterElement);
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       // writeLinking();
@@ -933,15 +956,14 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
-      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
       // _writeCodeRange(f);
 
       // expect(f.typeParameters2, isEmpty);
-      _writeElements(
-          'parameters', f.parameters2, _writeFormalParameterFragment);
+      _writeFragmentList(
+          'parameters', f, f.parameters2, _writeFormalParameterFragment);
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // writeLinking();
@@ -992,13 +1014,12 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('reference', e);
-      _writeEnclosingElement(e);
       _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
       _writeCodeRange(e);
-      _writeElements(
-          'typeParameters', e.typeParameters2, _writeTypeParameterElement);
+      _writeElementList(
+          'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
       _writeMacroDiagnostics(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
 
@@ -1034,19 +1055,19 @@ class _Element2Writer extends _AbstractElementWriter {
         _elementPrinter.writeTypeList('allSupertypes', sorted);
       }
 
-      _writeElements('fields', e.fields2, _writeFieldElement);
+      _writeElementList('fields', e, e.fields2, _writeFieldElement);
       if (e is InterfaceElement2) {
         var constructors = e.constructors2;
         if (e is MixinElement2) {
           expect(constructors, isEmpty);
         } else if (configuration.withConstructors) {
-          _writeElements(
-              'constructors', constructors, _writeConstructorElement);
+          _writeElementList(
+              'constructors', e, constructors, _writeConstructorElement);
         }
       }
-      _writeElements('getters', e.getters2, _writeGetterElement);
-      _writeElements('setters', e.setters2, _writeSetterElement);
-      _writeElements('methods', e.methods2, _writeMethodElement);
+      _writeElementList('getters', e, e.getters2, _writeGetterElement);
+      _writeElementList('setters', e, e.setters2, _writeSetterElement);
+      _writeElementList('methods', e, e.methods2, _writeMethodElement);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -1104,21 +1125,21 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
 
-      _writeElements(
-          'typeParameters', f.typeParameters2, _writeTypeParameterFragment);
-      _writeElements('fields', f.fields2, _writeFieldFragment);
+      _writeFragmentList(
+          'typeParameters', f, f.typeParameters2, _writeTypeParameterFragment);
+      _writeFragmentList('fields', f, f.fields2, _writeFieldFragment);
       if (f is InterfaceFragment) {
         var constructors = f.constructors2;
         if (f is MixinElement2) {
           expect(constructors, isEmpty);
         } else if (configuration.withConstructors) {
-          _writeElements(
-              'constructors', constructors, _writeConstructorFragment);
+          _writeFragmentList(
+              'constructors', f, constructors, _writeConstructorFragment);
         }
       }
-      _writeElements('getters', f.getters, _writeGetterFragment);
-      _writeElements('setters', f.setters, _writeSetterFragment);
-      _writeElements('methods', f.methods2, _writeMethodFragment);
+      _writeFragmentList('getters', f, f.getters, _writeGetterFragment);
+      _writeFragmentList('setters', f, f.setters, _writeSetterFragment);
+      _writeFragmentList('methods', f, f.methods2, _writeMethodFragment);
     });
   }
 
@@ -1139,43 +1160,48 @@ class _Element2Writer extends _AbstractElementWriter {
           return configuration.withSyntheticDartCoreImport ||
               !import.isSynthetic;
         }).toList();
-        _writeElements(
+        _writeList(
           'libraryImports',
           imports,
           _writeLibraryImport,
         );
       }
-      _writeElements('prefixes', f.prefixes, _writePrefixElement);
-      // _writeElements(
+      _writeElementList('prefixes', f, f.prefixes, _writePrefixElement);
+      // _writeList(
       //     'libraryExports', f.libraryExports, _writeLibraryExportElement);
-      // _writeElements('parts', f.parts, _writePartElement);
+      // _writeList('parts', f.parts, _writePartElement);
 
-      _writeElements('classes', f.classes2, _writeInstanceFragment);
-      _writeElements('enums', f.enums2, _writeInstanceFragment);
-      _writeElements('extensions', f.extensions2, _writeInstanceFragment);
-      _writeElements(
+      _writeFragmentList('classes', f, f.classes2, _writeInstanceFragment);
+      _writeFragmentList('enums', f, f.enums2, _writeInstanceFragment);
+      _writeFragmentList(
+          'extensions', f, f.extensions2, _writeInstanceFragment);
+      _writeFragmentList(
         'extensionTypes',
+        f,
         f.extensionTypes2,
         _writeInstanceFragment,
       );
-      _writeElements('mixins', f.mixins2, _writeInstanceFragment);
-      // _writeElements('typeAliases', f.typeAliases, _writeTypeAliasElement);
-      _writeElements(
+      _writeFragmentList('mixins', f, f.mixins2, _writeInstanceFragment);
+      // _writeFragmentList('typeAliases', f, f.typeAliases, _writeTypeAliasElement);
+      _writeFragmentList(
         'topLevelVariables',
+        f,
         f.topLevelVariables2,
         _writeTopLevelVariableFragment,
       );
-      _writeElements(
+      _writeFragmentList(
         'getters',
+        f,
         f.getters,
         _writeGetterFragment,
       );
-      _writeElements(
+      _writeFragmentList(
         'setters',
+        f,
         f.setters,
         _writeSetterFragment,
       );
-      // _writeElements('functions', f.functions, _writeFunctionElement);
+      // _writeElementList('functions', f, f.functions, _writeFunctionElement);
     });
   }
 
@@ -1190,10 +1216,25 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('reference', e);
-      // _writeEnclosingElement(e);
       _writeMetadata(e.metadata);
       // _writeNamespaceCombinators(e.combinators);
     });
+  }
+
+  void _writeList<E extends Object>(
+    String name,
+    List<E> elements,
+    void Function(E) write,
+  ) {
+    var filtered = elements.where(configuration.filter).toList();
+    if (filtered.isNotEmpty) {
+      _sink.writelnWithIndent(name);
+      _sink.withIndent(() {
+        for (var element in filtered) {
+          write(element);
+        }
+      });
+    }
   }
 
   void _writeMacroDiagnostics(Element2 e) {
@@ -1482,9 +1523,10 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeSinceSdkVersion(e.sinceSdkVersion);
       // _writeTypeInferenceError(e);
 
-      _writeElements(
-          'typeParameters', e.typeParameters2, _writeTypeParameterElement);
-      _writeElements('parameters', e.parameters2, _writeFormalParameterElement);
+      _writeElementList(
+          'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
+      _writeElementList(
+          'parameters', e, e.parameters2, _writeFormalParameterElement);
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       _writeMacroDiagnostics(e);
@@ -1515,17 +1557,16 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
-      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
       _writeFragmentCodeRange(f);
       // _writeTypeInferenceError(f);
 
-      _writeElements(
-          'typeParameters', f.typeParameters2, _writeTypeParameterFragment);
-      _writeElements(
-          'parameters', f.parameters2, _writeFormalParameterFragment);
+      _writeFragmentList(
+          'typeParameters', f, f.typeParameters2, _writeTypeParameterFragment);
+      _writeFragmentList(
+          'parameters', f, f.parameters2, _writeFormalParameterFragment);
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // _writeMacroDiagnostics(f);
@@ -1541,7 +1582,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('reference', e);
-      // _writeEnclosingElement(e);
     });
   }
 
@@ -1586,13 +1626,13 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('reference', e);
-      _writeElementReference('enclosingElement', e.enclosingElement2);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
 
       expect(e.typeParameters2, isEmpty);
-      _writeElements('parameters', e.parameters2, _writeFormalParameterElement);
+      _writeElementList(
+          'parameters', e, e.parameters2, _writeFormalParameterElement);
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       // writeLinking();
@@ -1647,15 +1687,14 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
-      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
       // _writeCodeRange(f);
 
       // expect(f.typeParameters2, isEmpty);
-      _writeElements(
-          'parameters', f.parameters2, _writeFormalParameterFragment);
+      _writeFragmentList(
+          'parameters', f, f.parameters2, _writeFormalParameterFragment);
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // writeLinking();
@@ -1707,7 +1746,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('reference', e);
-      _writeEnclosingElement(e);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -1766,7 +1804,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
-      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -1793,7 +1830,7 @@ class _Element2Writer extends _AbstractElementWriter {
     //     _sink.withIndent(() {
     //       // TODO(brianwilkerson): We need to define `parameters2` to return
     //       //  `List<ParmaeterElement2>`.
-    //       _writeElements('parameters',  type.parameters2, _writeFormalParameterFragment);
+    //       _writeElements('parameters',  type, type.parameters2, _writeFormalParameterFragment);
     //     });
     //   }
     // }
@@ -2184,6 +2221,22 @@ class _ElementWriter extends _AbstractElementWriter {
       str = str.replaceAll('\n', r'\n');
       str = str.replaceAll('\r', r'\r');
       _sink.writelnWithIndent('documentationComment: $str');
+    }
+  }
+
+  void _writeElements<T extends Object>(
+    String name,
+    List<T> elements,
+    void Function(T) write,
+  ) {
+    var filtered = elements.where(configuration.filter).toList();
+    if (filtered.isNotEmpty) {
+      _sink.writelnWithIndent(name);
+      _sink.withIndent(() {
+        for (var element in filtered) {
+          write(element);
+        }
+      });
     }
   }
 

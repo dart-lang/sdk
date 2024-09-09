@@ -58,25 +58,20 @@ library
           fields
             x @32
               reference: <testLibraryFragment>::@class::A::@field::x
-              enclosingFragment: <testLibraryFragment>::@class::A
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::A::@getter::x
-              enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final x
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           type: (int, String)
           firstFragment: <testLibraryFragment>::@class::A::@field::x
           getter: <none>
@@ -87,7 +82,6 @@ library
       getters
         synthetic get x
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
 ''');
   }
@@ -135,25 +129,20 @@ library
           fields
             x @18
               reference: <testLibraryFragment>::@class::A::@field::x
-              enclosingFragment: <testLibraryFragment>::@class::A
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::A::@getter::x
-              enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final x
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           type: (int, bool)
           firstFragment: <testLibraryFragment>::@class::A::@field::x
           getter: <none>
@@ -164,7 +153,6 @@ library
       getters
         synthetic get x
           reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
 ''');
   }
@@ -209,17 +197,14 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           methods
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
               parameters
                 a @35
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -273,15 +258,12 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
           methods
             foo @26
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -330,11 +312,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       typeParameters
         T
           bound: (int, String)
@@ -373,7 +353,6 @@ library
   extensions
     extension IntStringExtension
       reference: <testLibraryFragment>::@extension::IntStringExtension
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@extension::IntStringExtension
 ''');
   }
@@ -683,23 +662,19 @@ library
       topLevelVariables
         final x @20
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::x
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingFragment: <testLibraryFragment>
   topLevelVariables
     final x
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: (int, String)
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       getter: <none>
   getters
     synthetic static get x
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
@@ -734,23 +709,19 @@ library
       topLevelVariables
         final x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::x
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingFragment: <testLibraryFragment>
   topLevelVariables
     final x
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: (int, bool)
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       getter: <none>
   getters
     synthetic static get x
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
@@ -816,23 +787,19 @@ library
       topLevelVariables
         const x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::x
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingFragment: <testLibraryFragment>
   topLevelVariables
     const x
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: Type
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       getter: <none>
   getters
     synthetic static get x
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
@@ -894,23 +861,19 @@ library
       topLevelVariables
         const x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingFragment: <testLibraryFragment>
           getter2: <testLibraryFragment>::@getter::x
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingFragment: <testLibraryFragment>
   topLevelVariables
     const x
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: Type
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       getter: <none>
   getters
     synthetic static get x
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
