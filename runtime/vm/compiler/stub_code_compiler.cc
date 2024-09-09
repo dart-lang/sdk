@@ -2354,6 +2354,16 @@ void StubCodeCompiler::GenerateResumeStub() {
   static_assert((kStackTrace != CODE_REG) && (kStackTrace != PP),
                 "should not interfere");
 
+#if defined(DART_DYNAMIC_MODULES)
+  Label resume_interpreter;
+  __ CompareWithMemoryValue(
+      kResumePc,
+      compiler::Address(THR,
+                        compiler::target::Thread::
+                            resume_interpreter_adjusted_entry_point_offset()));
+  __ BranchIf(EQUAL, &resume_interpreter);
+#endif  // defined(DART_DYNAMIC_MODULES)
+
   // Set return address as if suspended Dart function called
   // stub with kResumePc as a return address.
   __ SetReturnAddress(kResumePc);
@@ -2378,6 +2388,25 @@ void StubCodeCompiler::GenerateResumeStub() {
     // Lazy deoptimize.
     __ Ret();
   }
+
+#if defined(DART_DYNAMIC_MODULES)
+  __ Comment("Resume interpreter with exception");
+  __ Bind(&resume_interpreter);
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  // This case is used when Dart frame is still on the stack.
+  SPILLS_LR_TO_FRAME({});
+#endif
+
+  __ PushObject(NullObject());  // Make room for result.
+  __ PushObject(NullObject());  // Return value.
+  __ PushRegistersInOrder({kException, kStackTrace});
+  __ CallRuntime(kResumeInterpreterRuntimeEntry, /*argument_count=*/3);
+  __ Drop(3);                                      // Drop arguments.
+  __ PopRegister(CallingConventions::kReturnReg);  // Get result.
+  __ LeaveDartFrame();
+  __ Ret();
+#endif  // defined(DART_DYNAMIC_MODULES)
 }
 
 void StubCodeCompiler::GenerateReturnStub(
@@ -2592,10 +2621,12 @@ void StubCodeCompiler::GenerateResumeInterpreterStub() {
   SPILLS_LR_TO_FRAME({});  // Simulate entering the caller (Dart) frame.
 #endif
 
-  __ PushObject(NullObject());  // Make room for result.
-  __ PushRegister(CallingConventions::kReturnReg);
-  __ CallRuntime(kResumeInterpreterRuntimeEntry, /*argument_count=*/1);
-  __ Drop(1);                                      // Drop argument.
+  __ PushObject(NullObject());                      // Make room for result.
+  __ PushRegister(CallingConventions::kReturnReg);  // Return value.
+  __ PushObject(NullObject());                      // Exception.
+  __ PushObject(NullObject());                      // Stack trace.
+  __ CallRuntime(kResumeInterpreterRuntimeEntry, /*argument_count=*/3);
+  __ Drop(3);                                      // Drop arguments.
   __ PopRegister(CallingConventions::kReturnReg);  // Get result.
   __ LeaveDartFrame();
   __ Ret();

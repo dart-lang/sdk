@@ -245,6 +245,10 @@ class Thread;
   V(uword, jump_to_frame_entry_point_, StubCode::JumpToFrame().EntryPoint(),   \
     0)                                                                         \
   V(uword, slow_type_test_entry_point_, StubCode::SlowTypeTest().EntryPoint(), \
+    0)                                                                         \
+  V(uword, resume_interpreter_adjusted_entry_point_,                           \
+    StubCode::ResumeInterpreter().EntryPoint() +                               \
+        SuspendStubABI::kResumePcDistance,                                     \
     0)
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
