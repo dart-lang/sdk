@@ -2078,8 +2078,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         _elementMap.getImport(loadLibrary.import));
 
     final priority =
-        closedWorld.annotationsData.getLoadLibraryPriorityAt(loadLibrary);
-    final flag = priority.index;
+        closedWorld.annotationsData.getLoadLibraryPriority(loadLibrary);
 
     final sourceInformation =
         _sourceInformationBuilder.buildCall(loadLibrary, loadLibrary);
@@ -2088,7 +2087,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         _commonElements.loadDeferredLibrary,
         [
           graph.addConstantString(loadId, closedWorld),
-          graph.addConstantInt(flag, closedWorld)
+          graph.addConstantString(priority, closedWorld)
         ],
         _abstractValueDomain.nonNullType,
         const <DartType>[],
