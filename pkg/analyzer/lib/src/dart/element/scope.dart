@@ -137,7 +137,10 @@ class ImportsTracking {
 
 class ImportsTrackingOfPrefix {
   final PrefixScope scope;
-  final Map<Element, List<LibraryImportElementImpl>> elementImports;
+
+  /// Key: an element.
+  /// Value: the imports that provide the element.
+  final Map<Element, List<LibraryImportElementImpl>> _elementImports = {};
 
   /// Key: an import.
   /// Value: used elements imported from the import.
@@ -159,8 +162,9 @@ class ImportsTrackingOfPrefix {
 
   ImportsTrackingOfPrefix({
     required this.scope,
-    required this.elementImports,
-  });
+  }) {
+    _buildElementToImportsMap();
+  }
 
   /// The elements that are used from [import].
   Set<Element> elementsOf(LibraryImportElementImpl import) {
@@ -218,14 +222,14 @@ class ImportsTrackingOfPrefix {
     }
 
     // SAFETY: if we have `element`, it is from a local import.
-    var imports = elementImports[element]!;
+    var imports = _elementImports[element]!;
     for (var import in imports) {
       (importToUsedElements[import] ??= {}).add(element);
     }
   }
 
   void notifyExtensionUsed(ExtensionElement element) {
-    var imports = elementImports[element];
+    var imports = _elementImports[element];
     if (imports != null) {
       for (var import in imports) {
         (importToUsedElements[import] ??= {}).add(element);
@@ -241,6 +245,21 @@ class ImportsTrackingOfPrefix {
 
   void notifyPrefixUsedInCommentReference() {
     hasPrefixUsedInCommentReference = true;
+  }
+
+  void _buildElementToImportsMap() {
+    for (var import in scope._importElements) {
+      var importedLibrary = import.importedLibrary!;
+      var elementFactory = importedLibrary.session.elementFactory;
+      var combinators = import.combinators.build();
+      for (var exportedReference in importedLibrary.exportedReferences) {
+        var reference = exportedReference.reference;
+        if (combinators.allows(reference.name)) {
+          var element = elementFactory.elementOfReference(reference)!;
+          (_elementImports[element] ??= []).add(import);
+        }
+      }
+    }
   }
 }
 
@@ -482,7 +501,6 @@ class PrefixScope implements Scope {
   final PrefixScope? parent;
 
   final List<LibraryImportElementImpl> _importElements = [];
-  final Map<Element, List<LibraryImportElementImpl>> _elementImports = {};
 
   final Map<String, Element> _getters = {};
   final Map<String, Element> _setters = {};
@@ -512,7 +530,6 @@ class PrefixScope implements Scope {
           if (combinators.allows(reference.name)) {
             var element = elementFactory.elementOfReference(reference)!;
             if (_shouldAdd(importedLibrary, element)) {
-              (_elementImports[element] ??= []).add(import);
               _add(
                 element,
                 importedLibrary.isFromDeprecatedExport(exportedReference),
@@ -534,7 +551,6 @@ class PrefixScope implements Scope {
   ImportsTrackingOfPrefix importsTrackingInit() {
     return _importsTracking = ImportsTrackingOfPrefix(
       scope: this,
-      elementImports: _elementImports,
     );
   }
 
