@@ -231,7 +231,7 @@ class Server {
   final bool _authCodesDisabled;
   final bool _enableServicePortFallback;
   final String? _serviceInfoFilename;
-  HttpServer? _server;
+  HttpServer? _httpServer;
 
   bool get running => _running;
   bool _running = false;
@@ -251,7 +251,7 @@ class Server {
     if (_service.ddsUri != null) {
       return _service.ddsUri;
     }
-    final server = _server;
+    final server = _httpServer;
     if (server != null) {
       final ip = server.address.address;
       final port = server.port;
@@ -273,6 +273,139 @@ class Server {
       this._enableServicePortFallback)
       : _authCodesDisabled = (authCodesDisabled || Platform.isFuchsia);
 
+  Future<void> startup() async {
+    if (running) {
+      // Already running.
+      return;
+    }
+
+    {
+      final startingCompleter = _startingCompleter;
+      if (startingCompleter != null) {
+        if (!startingCompleter.isCompleted) {
+          await startingCompleter.future;
+        }
+        return;
+      }
+    }
+
+    final startingCompleter = Completer<bool>();
+    _startingCompleter = startingCompleter;
+    // Startup HTTP server.
+    Future<bool> startServer() async {
+      try {
+        var address;
+        var addresses = await InternetAddress.lookup(_ip);
+        // Prefer IPv4 addresses.
+        for (int i = 0; i < addresses.length; i++) {
+          address = addresses[i];
+          if (address.type == InternetAddressType.IPv4) break;
+        }
+        _httpServer = await HttpServer.bind(address, _port);
+      } catch (e, st) {
+        if (_port != 0 && _enableServicePortFallback) {
+          serverPrint(
+              'Failed to bind Dart VM service HTTP server to port $_port. '
+              'Falling back to automatic port selection');
+          _port = 0;
+          return await startServer();
+        } else {
+          serverPrint('Could not start Dart VM service HTTP server:\n'
+              '$e\n$st');
+          _notifyServerState('');
+          onServerAddressChange(null);
+          return false;
+        }
+      }
+      return true;
+    }
+
+    if (!(await startServer())) {
+      startingCompleter.complete(true);
+      return;
+    }
+    if (_service.isExiting) {
+      serverPrint('Dart VM service HTTP server exiting before listening as '
+          'vm service has received exit request\n');
+      startingCompleter.complete(true);
+      await shutdown(true);
+      return;
+    }
+    final server = _httpServer!;
+    server.listen(_requestHandler, cancelOnError: true);
+
+    if (_waitForDdsToAdvertiseService) {
+      _ddsInstance = _DebuggingSession();
+      await _ddsInstance!.start(
+        serverAddress!,
+        _ddsIP,
+        _ddsPort.toString(),
+        _authCodesDisabled,
+        _serveDevtools,
+      );
+    } else {
+      await outputConnectionInformation();
+    }
+    // Server is up and running.
+    _running = true;
+    _notifyServerState(serverAddress.toString());
+    onServerAddressChange('$serverAddress');
+    startingCompleter.complete(true);
+  }
+
+  Future<void> shutdown(bool forced) async {
+    // If start is pending, wait for it to complete.
+    if (_startingCompleter != null) {
+      if (!_startingCompleter!.isCompleted) {
+        await _startingCompleter!.future;
+      }
+    }
+
+    final server = _httpServer;
+    if (server == null) {
+      // Not started.
+      return;
+    }
+
+    if (Platform.isFuchsia) {
+      _cleanupFuchsiaState(server.port);
+    }
+
+    final address = serverAddress!;
+
+    try {
+      // Shutdown HTTP server and subscription.
+      await server.close(force: forced);
+      if (!_service.isExiting) {
+        // Only print this message if the service has been toggled off, not
+        // when the VM is exiting.
+        serverPrint('Dart VM service no longer listening on $address');
+      }
+    } catch (e, st) {
+      serverPrint('Could not shutdown Dart VM service HTTP server:\n$e\n$st\n');
+    } finally {
+      _ddsInstance?.shutdown();
+      _ddsInstance = null;
+      _httpServer = null;
+      _startingCompleter = null;
+      _running = false;
+      _notifyServerState('');
+      onServerAddressChange(null);
+    }
+  }
+
+  Future<void> outputConnectionInformation() async {
+    serverPrint('The Dart VM service is listening on $serverAddress');
+    if (Platform.isFuchsia) {
+      _writeFuchsiaState(_httpServer!.port);
+    }
+    final serviceInfoFilenameLocal = _serviceInfoFilename;
+    if (serviceInfoFilenameLocal != null &&
+        serviceInfoFilenameLocal.isNotEmpty) {
+      await _dumpServiceInfoToFile(serviceInfoFilenameLocal);
+    }
+  }
+
   bool _isAllowedOrigin(String origin) {
     Uri uri;
     try {
@@ -289,7 +422,7 @@ class Server {
       return true;
     }
 
-    final server = _server!;
+    final server = _httpServer!;
     if ((uri.port == server.port) &&
         ((uri.host == server.address.address) ||
             (uri.host == server.address.host))) {
@@ -358,6 +491,100 @@ class Server {
         : '/${requestPathSegments.sublist(1).join('/')}';
   }
 
+  Future<void> _processDevFSRequest(HttpRequest request) async {
+    String? fsName;
+    String? fsPath;
+    Uri? fsUri;
+
+    try {
+      // Extract the fs name and fs path from the request headers.
+      fsName = request.headers['dev_fs_name']![0];
+
+      // Prefer Uri encoding first, then fallback to path encoding.
+      if (request.headers['dev_fs_uri_b64'] case [String base64Uri]) {
+        fsUri = Uri.parse(utf8.decode(base64.decode(base64Uri)));
+      } else if (request.headers['dev_fs_path_b64'] case [String base64Uri]) {
+        fsPath = utf8.decode(base64.decode(base64Uri));
+      } else if (request.headers['dev_fs_path'] case [String path]) {
+        fsPath = path;
+      }
+    } catch (_) {
+      /* ignore */
+    }
+
+    try {
+      final result = await _service.devfs.handlePutStream(
+        fsName,
+        fsPath,
+        fsUri,
+        request.cast<List<int>>().transform(gzip.decoder),
+      );
+
+      request.response.headers.contentType = HttpRequestClient.jsonContentType;
+      request.response.write(result);
+    } catch (e, st) {
+      request.response.statusCode = HttpStatus.internalServerError;
+      request.response.write(e);
+    } finally {
+      request.response.close();
+    }
+  }
+
+  void _handleWebSocketRequest(HttpRequest request) {
+    final subprotocols = request.headers['sec-websocket-protocol'];
+    if (acceptNewWebSocketConnections) {
+      WebSocketTransformer.upgrade(
+        request,
+        protocolSelector:
+            subprotocols == null ? null : (_) => 'implicit-redirect',
+        compression: CompressionOptions.compressionOff,
+      ).then((WebSocket webSocket) {
+        WebSocketClient(webSocket, _service);
+      });
+    } else {
+      // Attempt to redirect client to the DDS instance.
+      request.response.redirect(_service.ddsUri!);
+    }
+  }
+
+  Future<void> _redirectToDevTools(HttpRequest request) async {
+    final ddsUri = _service.ddsUri;
+    if (ddsUri == null) {
+      request.response.headers.contentType = ContentType.text;
+      request.response.write('This VM does not have a registered Dart '
+          'Development Service (DDS) instance and is not currently serving '
+          'Dart DevTools.');
+      request.response.close();
+      return;
+    }
+    // We build this path manually rather than manipulating ddsUri directly
+    // as the resulting path requires an unencoded '#'. The Uri class will
+    // always encode '#' as '%23' in paths to avoid conflicts with fragments,
+    // which will result in the redirect failing.
+    final path = StringBuffer();
+    // Add authentication code to the path.
+    if (ddsUri.pathSegments.length > 1) {
+      path.writeAll([
+        ddsUri.pathSegments
+            .sublist(0, ddsUri.pathSegments.length - 1)
+            .join('/'),
+        '/',
+      ]);
+    }
+    final queryComponent = Uri.encodeQueryComponent(
+      ddsUri.replace(scheme: 'ws', path: '${path}ws').toString(),
+    );
+    path.writeAll([
+      'devtools/',
+      '?uri=$queryComponent',
+    ]);
+    final redirectUri = Uri.parse(
+      'http://${ddsUri.host}:${ddsUri.port}/$path',
+    );
+    request.response.redirect(redirectUri);
+    return;
+  }
+
   Future<void> _requestHandler(HttpRequest request) async {
     if (!_originCheck(request)) {
       // This is a cross origin attempt to connect
@@ -368,54 +595,7 @@ class Server {
     }
     if (request.method == 'PUT') {
       // PUT requests are forwarded to DevFS for processing.
-
-      List<String> fsNameList;
-      List<String>? fsPathList;
-      List<String>? fsPathBase64List;
-      List<String>? fsUriBase64List;
-      Object? fsName;
-      Object? fsPath;
-      Uri? fsUri;
-
-      try {
-        // Extract the fs name and fs path from the request headers.
-        fsNameList = request.headers['dev_fs_name']!;
-        fsName = fsNameList[0];
-
-        // Prefer Uri encoding first.
-        fsUriBase64List = request.headers['dev_fs_uri_b64'];
-        if ((fsUriBase64List != null) && (fsUriBase64List.length > 0)) {
-          final decodedFsUri = utf8.decode(base64.decode(fsUriBase64List[0]));
-          fsUri = Uri.parse(decodedFsUri);
-        }
-
-        // Fallback to path encoding.
-        if (fsUri == null) {
-          fsPathList = request.headers['dev_fs_path'];
-          fsPathBase64List = request.headers['dev_fs_path_b64'];
-          // If the 'dev_fs_path_b64' header field was sent, use that instead.
-          if ((fsPathBase64List != null) && fsPathBase64List.isNotEmpty) {
-            fsPath = utf8.decode(base64.decode(fsPathBase64List[0]));
-          } else if (fsPathList != null && fsPathList.isNotEmpty) {
-            fsPath = fsPathList[0];
-          }
-        }
-      } catch (e) {/* ignore */}
-
-      String result;
-      try {
-        result = await _service.devfs.handlePutStream(fsName, fsPath, fsUri,
-            request.cast<List<int>>().transform(gzip.decoder));
-      } catch (e) {
-        request.response.statusCode = HttpStatus.internalServerError;
-        request.response.write(e);
-        request.response.close();
-        return;
-      }
-
-      request.response.headers.contentType = HttpRequestClient.jsonContentType;
-      request.response.write(result);
-      request.response.close();
+      await _processDevFSRequest(request);
       return;
     }
     if (request.method != 'GET') {
@@ -444,58 +624,13 @@ class Server {
 
     final String path = result;
     if (path == WEBSOCKET_PATH) {
-      final subprotocols = request.headers['sec-websocket-protocol'];
-      if (acceptNewWebSocketConnections) {
-        WebSocketTransformer.upgrade(request,
-                protocolSelector:
-                    subprotocols == null ? null : (_) => 'implicit-redirect',
-                compression: CompressionOptions.compressionOff)
-            .then((WebSocket webSocket) {
-          WebSocketClient(webSocket, _service);
-        });
-      } else {
-        // Attempt to redirect client to the DDS instance.
-        request.response.redirect(_service.ddsUri!);
-      }
+      _handleWebSocketRequest(request);
       return;
     }
     // Don't redirect HTTP VM service requests, just requests for Observatory
     // assets.
-    if (!_serveObservatory && path == '/index.html') {
-      final ddsUri = _service.ddsUri;
-      if (ddsUri == null) {
-        request.response.headers.contentType = ContentType.text;
-        request.response.write('This VM does not have a registered Dart '
-            'Development Service (DDS) instance and is not currently serving '
-            'Dart DevTools.');
-        request.response.close();
-        return;
-      }
-      // We build this path manually rather than manipulating ddsUri directly
-      // as the resulting path requires an unencoded '#'. The Uri class will
-      // always encode '#' as '%23' in paths to avoid conflicts with fragments,
-      // which will result in the redirect failing.
-      final path = StringBuffer();
-      // Add authentication code to the path.
-      if (ddsUri.pathSegments.length > 1) {
-        path.writeAll([
-          ddsUri.pathSegments
-              .sublist(0, ddsUri.pathSegments.length - 1)
-              .join('/'),
-          '/',
-        ]);
-      }
-      final queryComponent = Uri.encodeQueryComponent(
-        ddsUri.replace(scheme: 'ws', path: '${path}ws').toString(),
-      );
-      path.writeAll([
-        'devtools/',
-        '?uri=$queryComponent',
-      ]);
-      final redirectUri = Uri.parse(
-        'http://${ddsUri.host}:${ddsUri.port}/$path',
-      );
-      request.response.redirect(redirectUri);
+    if (!_serveObservatory && path == ROOT_REDIRECT_PATH) {
+      await _redirectToDevTools(request);
       return;
     }
     if (assets == null) {
@@ -515,7 +650,9 @@ class Server {
     // HTTP based service request.
     final client = HttpRequestClient(request, _service);
     final message = Message.fromUri(
-        client, Uri(path: path, queryParameters: request.uri.queryParameters));
+      client,
+      Uri(path: path, queryParameters: request.uri.queryParameters),
+    );
     client.onRequest(message); // exception free, no need to try catch
   }
 
@@ -535,100 +672,12 @@ class Server {
     return file.writeAsString(json.encode(serviceInfo));
   }
 
-  Future<void> startup() async {
-    if (running) {
-      // Already running.
-      return;
-    }
-
-    {
-      final startingCompleter = _startingCompleter;
-      if (startingCompleter != null) {
-        if (!startingCompleter.isCompleted) {
-          await startingCompleter.future;
-        }
-        return;
-      }
-    }
-
-    final startingCompleter = Completer<bool>();
-    _startingCompleter = startingCompleter;
-    // Startup HTTP server.
-    Future<bool> startServer() async {
-      try {
-        var address;
-        var addresses = await InternetAddress.lookup(_ip);
-        // Prefer IPv4 addresses.
-        for (int i = 0; i < addresses.length; i++) {
-          address = addresses[i];
-          if (address.type == InternetAddressType.IPv4) break;
-        }
-        _server = await HttpServer.bind(address, _port);
-      } catch (e, st) {
-        if (_port != 0 && _enableServicePortFallback) {
-          serverPrint(
-              'Failed to bind Dart VM service HTTP server to port $_port. '
-              'Falling back to automatic port selection');
-          _port = 0;
-          return await startServer();
-        } else {
-          serverPrint('Could not start Dart VM service HTTP server:\n'
-              '$e\n$st');
-          _notifyServerState('');
-          onServerAddressChange(null);
-          return false;
-        }
-      }
-      return true;
-    }
-
-    if (!(await startServer())) {
-      startingCompleter.complete(true);
-      return;
-    }
-    if (_service.isExiting) {
-      serverPrint('Dart VM service HTTP server exiting before listening as '
-          'vm service has received exit request\n');
-      startingCompleter.complete(true);
-      await shutdown(true);
-      return;
-    }
-    final server = _server!;
-    server.listen(_requestHandler, cancelOnError: true);
-
-    if (_waitForDdsToAdvertiseService) {
-      _ddsInstance = _DebuggingSession();
-      await _ddsInstance!.start(
-        serverAddress!,
-        _ddsIP,
-        _ddsPort.toString(),
-        _authCodesDisabled,
-        _serveDevtools,
-      );
-    } else {
-      await outputConnectionInformation();
-    }
-    // Server is up and running.
-    _running = true;
-    _notifyServerState(serverAddress.toString());
-    onServerAddressChange('$serverAddress');
-    startingCompleter.complete(true);
-  }
-
-  Future<void> outputConnectionInformation() async {
-    serverPrint('The Dart VM service is listening on $serverAddress');
-    if (Platform.isFuchsia) {
-      // Create a file with the port number.
-      final tmp = Directory.systemTemp.path;
-      final path = '$tmp/dart.services/${_server!.port}';
-      serverPrint('Creating $path');
-      File(path)..createSync(recursive: true);
-    }
-    final serviceInfoFilenameLocal = _serviceInfoFilename;
-    if (serviceInfoFilenameLocal != null &&
-        serviceInfoFilenameLocal.isNotEmpty) {
-      await _dumpServiceInfoToFile(serviceInfoFilenameLocal);
-    }
+  void _writeFuchsiaState(int port) {
+    // Create a file with the port number.
+    final tmp = Directory.systemTemp.path;
+    final path = '$tmp/dart.services/${port}';
+    serverPrint('Creating $path');
+    File(path).createSync(recursive: true);
   }
 
   void _cleanupFuchsiaState(int port) {
@@ -637,47 +686,6 @@ class Server {
     final path = '$tmp/dart.services/$port';
     serverPrint('Deleting $path');
     File(path).deleteSync();
-  }
-
-  Future<void> shutdown(bool forced) async {
-    // If start is pending, wait for it to complete.
-    if (_startingCompleter != null) {
-      if (!_startingCompleter!.isCompleted) {
-        await _startingCompleter!.future;
-      }
-    }
-
-    final server = _server;
-    if (server == null) {
-      // Not started.
-      return;
-    }
-
-    if (Platform.isFuchsia) {
-      _cleanupFuchsiaState(server.port);
-    }
-
-    final address = serverAddress!;
-
-    try {
-      // Shutdown HTTP server and subscription.
-      await server.close(force: forced);
-      if (!_service.isExiting) {
-        // Only print this message if the service has been toggled off, not
-        // when the VM is exiting.
-        serverPrint('Dart VM service no longer listening on $address');
-      }
-    } catch (e, st) {
-      serverPrint('Could not shutdown Dart VM service HTTP server:\n$e\n$st\n');
-    } finally {
-      _ddsInstance?.shutdown();
-      _ddsInstance = null;
-      _server = null;
-      _startingCompleter = null;
-      _running = false;
-      _notifyServerState('');
-      onServerAddressChange(null);
-    }
   }
 }
 
