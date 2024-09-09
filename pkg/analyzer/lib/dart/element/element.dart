@@ -364,6 +364,9 @@ abstract class ClassMemberElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class CompilationUnitElement implements UriReferencedElement {
+  /// The extension elements accessible within this unit.
+  List<ExtensionElement> get accessibleExtensions;
+
   /// The top-level accessors (getters and setters) declared in this
   /// compilation unit.
   List<PropertyAccessorElement> get accessors;
@@ -2042,6 +2045,7 @@ class LibraryLanguageVersion {
 @experimental
 abstract class LibraryOrAugmentationElement implements Element {
   /// The extension elements accessible within this library.
+  @Deprecated('Use CompilationUnitElement.accessibleExtensions instead')
   List<ExtensionElement> get accessibleExtensions;
 
   /// The compilation unit that defines this library.

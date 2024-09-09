@@ -754,6 +754,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }) : super(null, -1);
 
   @override
+  List<ExtensionElement> get accessibleExtensions {
+    return scope.accessibleExtensions;
+  }
+
+  @override
+  List<ExtensionElement2> get accessibleExtensions2 {
+    return scope.accessibleExtensions
+        .map((element) => element.augmentation as ExtensionElement2)
+        .toList();
+  }
+
+  @override
   List<PropertyAccessorElementImpl> get accessors {
     return _accessors;
   }
@@ -5454,16 +5466,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
       : linkedData = null,
         super(name: name, nameOffset: offset);
 
+  @Deprecated('Use CompilationUnitElement.accessibleExtensions instead')
   @override
   List<ExtensionElement> get accessibleExtensions {
     return scope.accessibleExtensions;
-  }
-
-  @override
-  List<ExtensionElement2> get accessibleExtensions2 {
-    return scope.accessibleExtensions
-        .map((element) => element.augmentation as ExtensionElement2)
-        .toList();
   }
 
   @override
