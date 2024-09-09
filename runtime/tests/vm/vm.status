@@ -12,6 +12,7 @@ cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fail
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
 cc/TTS_STC_ManyAsserts: Pass, Slow # Generates 10k classes that are put into an STC via assert checks.
+cc/TypeArguments_Cache_ManyInstantiations: Pass, Slow
 dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart/async_igoto_threshold_flag_test: Pass, Slow
 dart/boxmint_test: Pass, Slow # Uses slow path
