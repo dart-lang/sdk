@@ -132,6 +132,11 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
     required List<Statement> statements,
     required String blockIndent,
   }) {
+    // Exclude trailing break: unnecessary for `switch`, and wrong for `if`.
+    if (statements.lastOrNull case BreakStatement()) {
+      statements = statements.sublist(0, statements.length - 1);
+    }
+
     var first = statements.firstOrNull;
     if (first == null) {
       return;
