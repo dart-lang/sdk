@@ -14,11 +14,12 @@ final class Coordinate extends ffi::Struct {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::Coordinate
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
     ;
+  @#C8
   constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::Coordinate
     : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
   static factory •({core::double? x = #C4, core::double? y = #C4}) → self::Coordinate {
-    final self::Coordinate result = new self::Coordinate::#fromTypedDataBase(typ::Uint8List::•(self::Coordinate::#sizeOf), #C7);
+    final self::Coordinate result = new self::Coordinate::#fromTypedDataBase(typ::Uint8List::•(self::Coordinate::#sizeOf), #C9);
     if(!(x == null))
       result.{self::Coordinate::x} = x{core::double};
     if(!(y == null))
@@ -26,27 +27,31 @@ final class Coordinate extends ffi::Struct {
     return result;
   }
   static factory fromTypedList(typ::TypedData typedList) → self::Coordinate {
-    return new self::Coordinate::#fromTypedData(typedList, #C7, self::Coordinate::#sizeOf);
+    return new self::Coordinate::#fromTypedData(typedList, #C9, self::Coordinate::#sizeOf);
   }
+  @#C10
   @#C8
   get x() → core::double
     return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  @#C10
   @#C8
   set x(synthesized core::double #externalFieldValue) → void
     return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
+  @#C10
   @#C8
   get y() → core::double
     return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  @#C10
   @#C8
   set y(synthesized core::double #externalFieldValue) → void
     return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
-  @#C10
+  @#C8
   static get x#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C10
+  @#C8
   static get y#offsetOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C10
+  @#C8
   static get #sizeOf() → core::int
     return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
@@ -80,11 +85,11 @@ constants  {
   #C4 = null
   #C5 = ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}
   #C6 = core::pragma {name:#C1, options:#C5}
-  #C7 = 0
-  #C8 = ffi::Double {}
-  #C9 = "vm:prefer-inline"
-  #C10 = core::pragma {name:#C9, options:#C4}
-  #C11 = <core::int>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
+  #C7 = "vm:prefer-inline"
+  #C8 = core::pragma {name:#C7, options:#C4}
+  #C9 = 0
+  #C10 = ffi::Double {}
+  #C11 = <core::int>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
   #C12 = 8
   #C13 = <core::int>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
   #C14 = 16

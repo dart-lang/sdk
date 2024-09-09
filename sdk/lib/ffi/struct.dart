@@ -23,6 +23,7 @@ final class _Compound implements NativeType {
 
   external _Compound._();
 
+  @pragma('vm:prefer-inline')
   _Compound._fromTypedDataBase(
     this._typedDataBase,
     this._offsetInBytes,
@@ -31,6 +32,7 @@ final class _Compound implements NativeType {
   /// Constructs a view on [typedData].
   ///
   /// The length in bytes of [typedData] must at least be [sizeInBytes].
+  @pragma('vm:prefer-inline')
   _Compound._fromTypedData(
     TypedData typedData,
     int offset,
@@ -158,6 +160,7 @@ abstract base class Struct extends _Compound implements SizedNativeType {
   /// Creates a view on a [TypedData] or [Pointer].
   ///
   /// Used in [StructPointer.ref], FFI calls, and FFI callbacks.
+  @pragma('vm:prefer-inline')
   Struct._fromTypedDataBase(
     super._typedDataBase,
     super._offsetInBytes,
@@ -168,6 +171,7 @@ abstract base class Struct extends _Compound implements SizedNativeType {
   /// The length in bytes of [typedData] must at least be [sizeInBytes].
   ///
   /// Used in the `external` public constructor of [Struct].
+  @pragma('vm:prefer-inline')
   Struct._fromTypedData(
     super.typedData,
     super.offset,
