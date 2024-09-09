@@ -24,7 +24,6 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/lint/lint_rule_timers.dart';
@@ -81,9 +80,6 @@ class PluginServer {
   }
 
   /// Handles an 'analysis.setContextRoots' request.
-  ///
-  /// Throws a [RequestFailure] if the request could not be handled.
-  // TODO(srawlins): Unnecessary??
   Future<protocol.AnalysisSetContextRootsResult> handleAnalysisSetContextRoots(
       protocol.AnalysisSetContextRootsParams parameters) async {
     var currentContextCollection = _contextCollection;
@@ -111,7 +107,6 @@ class PluginServer {
   /// Throws a [RequestFailure] if the request could not be handled.
   Future<protocol.EditGetFixesResult> handleEditGetFixes(
       protocol.EditGetFixesParams parameters) async {
-    // TODO(srawlins): Run this all in `runZonedGuarded`.
     var path = parameters.file;
     var offset = parameters.offset;
 
@@ -171,8 +166,6 @@ class PluginServer {
   }
 
   /// Handles a 'plugin.versionCheck' request.
-  ///
-  /// Throws a [RequestFailure] if the request could not be handled.
   Future<protocol.PluginVersionCheckResult> handlePluginVersionCheck(
       protocol.PluginVersionCheckParams parameters) async {
     // TODO(srawlins): It seems improper for _this_ method to be the point where
@@ -191,7 +184,7 @@ class PluginServer {
   /// Starts this plugin by listening to the given communication [channel].
   void start(PluginCommunicationChannel channel) {
     _channel = channel;
-    _channel.listen(_handleRequest,
+    _channel.listen(_handleRequestZoned,
         // TODO(srawlins): Implement.
         onError: () {},
         // TODO(srawlins): Implement.
@@ -214,21 +207,6 @@ class PluginServer {
     });
   }
 
-  /// Analyzes the file at the given [path].
-  Future<void> _analyzeFile(
-      {required AnalysisContext analysisContext, required String path}) async {
-    // TODO(srawlins): Run this all in `runZonedGuarded`.
-    var file = _resourceProvider.getFile(path);
-    var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
-    var lints = await _computeLints(
-      analysisContext,
-      path,
-      analysisOptions: analysisOptions as AnalysisOptionsImpl,
-    );
-    _channel.sendNotification(
-        protocol.AnalysisErrorsParams(path, lints).toNotification());
-  }
-
   /// Analyzes the files at the given [paths].
   Future<void> _analyzeFiles({
     required AnalysisContext analysisContext,
@@ -237,10 +215,15 @@ class PluginServer {
     // TODO(srawlins): Implement "priority files" and analyze them first.
     // TODO(srawlins): Analyze libraries instead of files, for efficiency.
     for (var path in paths.toSet()) {
-      await _analyzeFile(
-        analysisContext: analysisContext,
-        path: path,
+      var file = _resourceProvider.getFile(path);
+      var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
+      var lints = await _computeLints(
+        analysisContext,
+        path,
+        analysisOptions: analysisOptions as AnalysisOptionsImpl,
       );
+      _channel.sendNotification(
+          protocol.AnalysisErrorsParams(path, lints).toNotification());
     }
   }
 
@@ -290,6 +273,7 @@ class PluginServer {
       // TODO(srawlins): Support 'package' parameter.
       null,
     );
+
     // TODO(srawlins): Distinguish between registered rules and enabled rules.
     for (var rule in _registry.registeredRules) {
       rule.reporter = errorReporter;
@@ -299,10 +283,7 @@ class PluginServer {
       timer?.stop();
     }
 
-    var exceptionHandler = LinterExceptionHandler(
-            propagateExceptions: analysisOptions.propagateLinterExceptions)
-        .logException;
-    currentUnit.unit.accept(LinterVisitor(nodeRegistry, exceptionHandler));
+    currentUnit.unit.accept(LinterVisitor(nodeRegistry));
     // The list of the `AnalysisError`s and their associated
     // `protocol.AnalysisError`s.
     var errorsAndProtocolErrors = [
@@ -394,6 +375,17 @@ class PluginServer {
     if (response != null) {
       _channel.sendResponse(response);
     }
+  }
+
+  Future<void> _handleRequestZoned(Request request) async {
+    await runZonedGuarded(
+      () => _handleRequest(request),
+      (error, stackTrace) {
+        _channel.sendNotification(protocol.PluginErrorParams(
+                false /* isFatal */, error.toString(), stackTrace.toString())
+            .toNotification());
+      },
+    );
   }
 
   static protocol.Location _locationFor(
