@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonConstantIdentifierNamesTest);
-    defineReflectiveTests(NonConstantIdentifierNamesRecordsTest);
     defineReflectiveTests(NonConstantIdentifierNamesPatternsTest);
+    defineReflectiveTests(NonConstantIdentifierNamesRecordsTest);
+    defineReflectiveTests(NonConstantIdentifierNamesTest);
   });
 }
 
@@ -220,7 +221,24 @@ const BB = (x: 1);
 @reflectiveTest
 class NonConstantIdentifierNamesTest extends LintRuleTest {
   @override
+  List<AnalyzerErrorCode> get ignoredErrorCodes => [
+        WarningCode.UNUSED_LOCAL_VARIABLE,
+        WarningCode.UNUSED_FIELD,
+        WarningCode.UNUSED_ELEMENT,
+      ];
+
+  @override
   String get lintRule => 'non_constant_identifier_names';
+
+  test_42() async {
+    // Generic function syntax is OK (#805).
+    await assertNoDiagnostics(r'''
+T scope<T>(T Function() run) {
+  /* ... */
+  return run();
+}
+''');
+  }
 
   test_augmentedConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -439,22 +457,119 @@ f() {
 ''');
   }
 
-  test_constructor_underscores() async {
+  test_catchVariable_allCaps() async {
     await assertDiagnostics(r'''
+void f() {
+  try {} catch (ZZZ) {}
+}
+''', [
+      lint(27, 3),
+    ]);
+  }
+
+  test_constructor_camelCase() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C.namedBar();
+}
+''');
+  }
+
+  test_constructor_factory() async {
+    await assertDiagnostics(r'''
+class C {
+  C();
+  factory C.Named() = C;
+}
+''', [
+      lint(29, 5),
+    ]);
+  }
+
+  test_constructor_multipleUnderscores() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C.__();
+}
+''');
+  }
+
+  test_constructor_private_lower() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C._named();
+}
+''');
+  }
+
+  test_constructor_private_title() async {
+    await assertDiagnostics(r'''
+class C {
+  C._Named();
+}
+''', [
+      lint(14, 6),
+    ]);
+  }
+
+  test_constructor_private_upper() async {
+    await assertDiagnostics(r'''
+class C {
+  C._N();
+}
+''', [
+      lint(14, 2),
+    ]);
+  }
+
+  test_constructor_singleUnderscore() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C._();
+}
+''');
+  }
+
+  test_constructor_snakeCase() async {
+    await assertDiagnostics(r'''
+class C {
+  C.named_bar(); //LINT
+}
+''', [
+      lint(14, 9),
+    ]);
+  }
+
+  test_constructor_startsWithDollar() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C.$Named();
+}
+''');
+  }
+
+  test_constructor_title() async {
+    await assertDiagnostics(r'''
+class C {
+  C.Named();
+}
+''', [
+      lint(14, 5),
+    ]);
+  }
+
+  test_constructor_underscores() async {
+    await assertNoDiagnostics(r'''
 class A {
   A._();
   A.__();
   A.___();
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 14, 1),
-      error(WarningCode.UNUSED_ELEMENT, 23, 2),
-      error(WarningCode.UNUSED_ELEMENT, 33, 3),
-    ]);
+''');
   }
 
   test_constructor_underscores_preWildcards() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
@@ -463,10 +578,68 @@ class A {
   A.__();
   A.___();
 }
+''');
+  }
+
+  test_constructor_upper() async {
+    await assertDiagnostics(r'''
+class C {
+  C.ZZZ();
+}
 ''', [
-      error(WarningCode.UNUSED_ELEMENT, 58, 1),
-      error(WarningCode.UNUSED_ELEMENT, 67, 2),
-      error(WarningCode.UNUSED_ELEMENT, 77, 3),
+      lint(14, 3),
+    ]);
+  }
+
+  test_field_private_lower() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int? _x;
+}
+''');
+  }
+
+  test_field_private_underscoreLower() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int? __x;
+}
+''');
+  }
+
+  test_field_staticConst_upper() async {
+    await assertNoDiagnostics(r'''
+class C {
+  static const ZZZ = 3;
+}
+''');
+  }
+
+  test_field_upper() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int? X; //OK
+}
+''');
+  }
+
+  test_forEachVariable() async {
+    await assertDiagnostics(r'''
+void f() {
+  for (var ZZZ in []) {}
+}
+''', [
+      lint(22, 3),
+    ]);
+  }
+
+  test_forLoopVariable() async {
+    await assertDiagnostics(r'''
+void f() {
+  for (var ZZZ = 0; ZZZ < 7; ++ZZZ) {}
+}
+''', [
+      lint(22, 3),
     ]);
   }
 
@@ -485,7 +658,7 @@ f(int _, int __) {}
 ''');
   }
 
-  ///https://github.com/dart-lang/linter/issues/193
+  /// https://github.com/dart-lang/linter/issues/193
   test_ignoreSyntheticNodes() async {
     await assertDiagnostics(r'''
 class C <E>{ }
@@ -495,6 +668,152 @@ C<int>;
       error(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 15, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 15, 1),
       error(ParserErrorCode.MISSING_FUNCTION_BODY, 21, 1),
+    ]);
+  }
+
+  test_localVariable_const_allCaps() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  const ZZZ = 3;
+}
+''');
+  }
+
+  test_localVariable_multiple_upper() async {
+    await assertDiagnostics(r'''
+void f() {
+  var ZZZ = 1,
+      zzz = 1;
+}
+''', [
+      lint(17, 3),
+    ]);
+  }
+
+  test_localVariable_upper() async {
+    await assertDiagnostics(r'''
+void f() {
+  var ZZZ = 1;
+}
+''', [
+      lint(17, 3),
+    ]);
+  }
+
+  test_method_instance_private_lower() async {
+    await assertNoDiagnostics(r'''
+class _F {
+  void _m() {}
+}
+''');
+  }
+
+  test_method_snakeCase() async {
+    await assertDiagnostics(r'''
+class C {
+  int foo_bar() => 7;
+}
+''', [
+      lint(16, 7),
+    ]);
+  }
+
+  test_method_static() async {
+    await assertDiagnostics(r'''
+class C {
+  static Foo() {}
+}
+''', [
+      lint(19, 3),
+    ]);
+  }
+
+  test_parameter_fieldFormal_snakeCase() async {
+    await assertDiagnostics(r'''
+class C {
+  final int bar_bar;
+  C(this.bar_bar);
+}
+''', [
+      lint(22, 7),
+    ]);
+  }
+
+  test_parameter_named() async {
+    await assertDiagnostics(r'''
+class C {
+  m({int? Foo}) {}
+}
+''', [
+      lint(20, 3),
+    ]);
+  }
+
+  test_parameter_optionalPositional() async {
+    await assertDiagnostics(r'''
+class C {
+  m([int? Foo]) {}
+}
+''', [
+      lint(20, 3),
+    ]);
+  }
+
+  test_parameter_var() async {
+    await assertDiagnostics(r'''
+ class C {
+  m(var Foo) {}
+}
+''', [
+      lint(19, 3),
+    ]);
+  }
+
+  test_topLevelFunction() async {
+    await assertDiagnostics(r'''
+void Main() {}
+''', [
+      lint(5, 4),
+    ]);
+  }
+
+  test_topLevelFunction_private_camelCase() async {
+    await assertNoDiagnostics(r'''
+void _funBar() {}
+''');
+  }
+
+  test_topLevelFunction_private_lower() async {
+    await assertNoDiagnostics(r'''
+void _fun() {} //OK
+''');
+  }
+
+  test_topLevelFunction_private_snakeCase() async {
+    await assertDiagnostics(r'''
+void _fun_bar() {}
+''', [
+      lint(5, 8),
+    ]);
+  }
+
+  test_topLevelVariable_constant_upper() async {
+    await assertNoDiagnostics(r'''
+const ZZZ = 4;
+''');
+  }
+
+  test_topLevelVariable_snakeCase_withNumbers() async {
+    await assertNoDiagnostics(r'''
+var cell_0_0 = 7;
+''');
+  }
+
+  test_topLevelVariable_upper() async {
+    await assertDiagnostics(r'''
+String ZZZ = '';
+''', [
+      lint(7, 3),
     ]);
   }
 }
