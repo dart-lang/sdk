@@ -871,9 +871,10 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   }
 
   if (library.url() == Symbols::vm_ffi_native_assets().ptr()) {
-    const auto& native_assets_library =
-        Library::Handle(IG->object_store()->native_assets_library());
-    ASSERT(native_assets_library.IsNull());
+    // Hot reload replaces an old native assets library.
+    // TODO(https://github.com/dart-lang/sdk/issues/55519): If we start
+    // supporting caching of asset lookup, we should empty the caches derived
+    // from the native assets library.
     IG->object_store()->set_native_assets_library(library);
   }
 
