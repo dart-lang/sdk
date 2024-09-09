@@ -12756,6 +12756,7 @@ class SuspendState : public Instance {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SuspendState, Instance);
   friend class Class;
+  friend class Interpreter;
 };
 
 class RegExpFlags {

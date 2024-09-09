@@ -31,8 +31,6 @@ vm/type_cast_vm_test: SkipByDesign # Relies on symbol names
 switch/case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
 [ $compiler == dart2bytecode ]
-async_star/error_test: Crash
-await/exceptions_test: Crash
 class_modifiers/trans_legacy/legacy_superdeclaration_test: Crash
 const/inference_test: Crash
 constructor/external_constructor_test: Crash

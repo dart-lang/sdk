@@ -10,6 +10,7 @@ import 'location/test_all.dart' as location;
 import 'relevance/test_all.dart' as relevance_tests;
 import 'shadowing_test.dart' as shadowing_test;
 import 'text_expectations.dart';
+import 'visibility/test_all.dart' as visibility;
 
 void main() {
   defineReflectiveSuite(() {
@@ -18,6 +19,7 @@ void main() {
     location.main();
     relevance_tests.main();
     shadowing_test.main();
+    visibility.main();
     defineReflectiveTests(UpdateTextExpectations);
   }, name: 'dart');
 }

@@ -3958,6 +3958,7 @@ DEFINE_RUNTIME_ENTRY(ResumeFrame, 2) {
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame->IsDartFrame());
+  ASSERT(!frame->is_interpreted());
   ASSERT(Function::Handle(zone, frame->LookupDartFunction())
              .IsSuspendableFunction());
   const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
@@ -4217,7 +4218,7 @@ extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
   ObjectPtr result =
       interpreter->Call(function, argdesc, argc, argv, Array::null(), thread);
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
-  if (IsErrorClassId(result->GetClassId())) {
+  if (UNLIKELY(IsErrorClassId(result->GetClassId()))) {
     // Must not leak handles in the caller's zone.
     HANDLESCOPE(thread);
     // Protect the result in a handle before transitioning, which may trigger
@@ -4247,10 +4248,22 @@ uword RuntimeEntry::InterpretCallEntry() {
 
 // Restore suspended interpreter frame and resume execution.
 //
-// Arg0: result of the suspension
-DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 1) {
+// Arg0: return value (result of the suspension)
+// Arg1: exception
+// Arg2: stack trace
+DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 3) {
 #if defined(DART_DYNAMIC_MODULES)
   const Instance& value = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Instance& exception = Instance::CheckedHandle(zone, arguments.ArgAt(1));
+  const Instance& stack_trace =
+      Instance::CheckedHandle(zone, arguments.ArgAt(2));
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const auto& resume_stub = Code::Handle(
+      zone, thread->isolate_group()->object_store()->resume_stub());
+#else
+  const auto& resume_stub = StubCode::Resume();
+#endif
 
   StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
                               StackFrameIterator::kNoCrossThreadIteration);
@@ -4258,14 +4271,15 @@ DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 1) {
   ASSERT(frame != nullptr);
   while (frame->IsExitFrame() ||
          (frame->IsStubFrame() &&
-          !StubCode::ResumeInterpreter().ContainsInstructionAt(frame->pc()))) {
+          !StubCode::ResumeInterpreter().ContainsInstructionAt(frame->pc()) &&
+          !resume_stub.ContainsInstructionAt(frame->pc()))) {
     frame = iterator.NextFrame();
     ASSERT(frame != nullptr);
   }
   RELEASE_ASSERT(frame->IsStubFrame());
 
-  uword fp = frame->fp();
-  uword sp = arguments.GetCallerSP();
+  const uword fp = frame->fp();
+  const uword sp = arguments.GetCallerSP();
   ASSERT((fp > sp) && (sp > frame->sp()));
   MSAN_UNPOISON(reinterpret_cast<uint8_t*>(sp), fp - sp);
 
@@ -4274,9 +4288,12 @@ DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 1) {
 
   {
     TransitionVMToGenerated transition(thread);
-    result = interpreter->Resume(thread, fp, sp, value.ptr());
+    result = interpreter->Resume(thread, fp, sp, value.ptr(), exception.ptr(),
+                                 stack_trace.ptr());
   }
-
+  if (UNLIKELY(IsErrorClassId(result.GetClassId()))) {
+    Exceptions::PropagateError(Error::Cast(result));
+  }
   arguments.SetReturn(result);
 #else
   UNREACHABLE();

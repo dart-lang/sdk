@@ -315,6 +315,7 @@
   FIELD(Thread, return_async_stub_offset)                                      \
   FIELD(Thread, object_null_offset)                                            \
   FIELD(Thread, predefined_symbols_address_offset)                             \
+  FIELD(Thread, resume_interpreter_adjusted_entry_point_offset)                \
   FIELD(Thread, resume_pc_offset)                                              \
   FIELD(Thread, saved_shadow_call_stack_offset)                                \
   FIELD(Thread, safepoint_state_offset)                                        \

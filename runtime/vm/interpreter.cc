@@ -624,7 +624,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   // (in the case of an unhandled exception) or it must be returned to the
   // caller of the interpreter to be propagated.
   const intptr_t result_cid = result->GetClassId();
-  if (result_cid == kUnhandledExceptionCid) {
+  if (UNLIKELY(result_cid == kUnhandledExceptionCid)) {
     (*SP)[0] = UnhandledException::RawCast(result)->untag()->exception();
     (*SP)[1] = UnhandledException::RawCast(result)->untag()->stacktrace();
     (*SP)[2] = 0;  // Do not bypass debugger.
@@ -636,7 +636,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
     }
     UNREACHABLE();
   }
-  if (IsErrorClassId(result_cid)) {
+  if (UNLIKELY(IsErrorClassId(result_cid))) {
     // Unwind to entry frame.
     fp_ = *FP;
     pc_ = SavedCallerPC(fp_);
@@ -1627,13 +1627,15 @@ ObjectPtr Interpreter::Call(FunctionPtr function,
   pp_ = bytecode->untag()->object_pool();
   fp_ = FP;
 
-  return Run(thread, FP - 1);
+  return Run(thread, FP - 1, /*rethrow_exception=*/false);
 }
 
 ObjectPtr Interpreter::Resume(Thread* thread,
                               uword resumed_frame_fp,
                               uword resumed_frame_sp,
-                              ObjectPtr value) {
+                              ObjectPtr value,
+                              ObjectPtr exception,
+                              ObjectPtr stack_trace) {
   const intptr_t suspend_state_index_from_fp =
       runtime_frame_layout.FrameSlotForVariableIndex(
           SuspendState::kSuspendStateVarIndex);
@@ -1685,7 +1687,14 @@ ObjectPtr Interpreter::Resume(Thread* thread,
       resumed_frame_fp + suspend_state_index_from_fp * kWordSize);
 
   ObjectPtr* SP = FP + (interp_frame_size >> kWordSizeLog2);
-  SP[0] = value;
+
+  const bool rethrow_exception = (exception != Object::null());
+  if (rethrow_exception) {
+    SP[0] = exception;
+    *++SP = stack_trace;
+  } else {
+    SP[0] = value;
+  }
 
   argdesc_ = Array::null();
   pc_ = reinterpret_cast<const KBCInstr*>(bytecode->untag()->instructions_ +
@@ -1693,10 +1702,24 @@ ObjectPtr Interpreter::Resume(Thread* thread,
   pp_ = bytecode->untag()->object_pool();
   fp_ = FP;
 
-  return Run(thread, SP);
+  return Run(thread, SP, rethrow_exception);
 }
 
-ObjectPtr Interpreter::Run(Thread* thread, ObjectPtr* sp) {
+BytecodePtr Interpreter::GetSuspendedLocation(const SuspendState& suspend_state,
+                                              uword* pc_offset) {
+  ASSERT(suspend_state.pc() == StubCode::ResumeInterpreter().EntryPoint());
+  ASSERT(suspend_state.frame_size() > kKBCSuspendedFrameFixedSlots);
+  ObjectPtr* sp = reinterpret_cast<ObjectPtr*>(suspend_state.payload());
+  *pc_offset = static_cast<uword>(
+      Smi::Value(Smi::RawCast(sp[kKBCPcOffsetSlotInSuspendedFrame])));
+  FunctionPtr function =
+      Function::RawCast(sp[kKBCFunctionSlotInSuspendedFrame]);
+  return Function::GetBytecode(function);
+}
+
+ObjectPtr Interpreter::Run(Thread* thread,
+                           ObjectPtr* sp,
+                           bool rethrow_exception) {
   // Interpreter state (see constants_kbc.h for high-level overview).
   const KBCInstr* pc =
       pc_;              // Program Counter: points to the next op to execute.
@@ -1719,6 +1742,10 @@ ObjectPtr Interpreter::Run(Thread* thread, ObjectPtr* sp) {
   BoolPtr true_value = Bool::True().ptr();
   BoolPtr false_value = Bool::False().ptr();
   ObjectPtr null_value = Object::null();
+
+  if (rethrow_exception) {
+    goto RethrowException;
+  }
 
 #ifdef DART_HAS_COMPUTED_GOTO
   static const void* dispatch[] = {
@@ -1889,7 +1916,8 @@ SwitchDispatch:
         SP[1] = 0;    // Space for result.
         Exit(thread, FP, SP + 2, pc);
         INVOKE_RUNTIME(DRT_Throw, NativeArguments(thread, 1, SP, SP + 1));
-      } else {      // ReThrow
+      } else {  // ReThrow
+      RethrowException:
         SP[1] = 0;  // Do not bypass debugger.
         SP[2] = 0;  // Space for result.
         Exit(thread, FP, SP + 3, pc);

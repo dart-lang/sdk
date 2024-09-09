@@ -120,6 +120,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   Map<SwitchCase, Label>? switchCases;
   Map<TryCatch, TryBlock>? tryCatches;
   Map<TryFinally, List<FinallyBlock>>? finallyBlocks;
+  TryBlock? asyncTryBlock;
   Map<TreeNode, int>? contextLevels;
   List<ClosureDeclaration>? closures;
   Set<Field> initializedFields = const {};
@@ -994,6 +995,9 @@ class BytecodeGenerator extends RecursiveVisitor {
   late Procedure returnAsyncStar = libraryIndex.getProcedure(
       'dart:async', '_SuspendState', '_returnAsyncStar');
 
+  late Procedure handleException = libraryIndex.getProcedure(
+      'dart:async', '_SuspendState', '_handleException');
+
   late Procedure asyncStarStreamControllerAdd = libraryIndex.getProcedure(
       'dart:async', '_AsyncStarStreamController', 'add');
 
@@ -1603,6 +1607,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     switchCases = null;
     tryCatches = null;
     finallyBlocks = null;
+    asyncTryBlock = null;
     contextLevels = null;
     closures = null;
     initializedFields = const {}; // Tracked for constructors only.
@@ -1702,12 +1707,60 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.emitCloneContext(locals.currentContextId, locals.currentContextSize);
       asm.emitPopLocal(locals.contextVarIndexInFrame);
     }
+
+    if (function.dartAsyncMarker == AsyncMarker.Async ||
+        function.dartAsyncMarker == AsyncMarker.AsyncStar) {
+      final asyncTryBlock =
+          this.asyncTryBlock = asm.exceptionsTable.enterTryBlock(asm.offset);
+      asyncTryBlock.isSynthetic = true;
+      asyncTryBlock.needsStackTrace = true;
+      asyncTryBlock.types.add(cp.addType(const DynamicType()));
+    }
+  }
+
+  void _endSuspendableFunction(FunctionNode? function) {
+    if (!locals.isSuspendableFunction) {
+      return;
+    }
+    if (function!.dartAsyncMarker == AsyncMarker.Async ||
+        function.dartAsyncMarker == AsyncMarker.AsyncStar) {
+      final asyncTryBlock = this.asyncTryBlock!;
+      asyncTryBlock.endPC = asm.offset;
+      asyncTryBlock.handlerPC = asm.offset;
+
+      // Exception handlers are reachable although there are no labels or jumps.
+      asm.isUnreachable = false;
+
+      asm.emitSetFrame(locals.frameSize);
+
+      final rethrowException = Label();
+      asm.emitPush(locals.suspendStateVarIndexInFrame);
+      asm.emitJumpIfNull(rethrowException);
+
+      asm.emitPush(locals.suspendStateVarIndexInFrame);
+      final int temp = locals.suspendStateVarIndexInFrame;
+      asm.emitMoveSpecial(SpecialIndex.exception, temp);
+      asm.emitPush(temp);
+      asm.emitMoveSpecial(SpecialIndex.stackTrace, temp);
+      asm.emitPush(temp);
+      _genDirectCall(handleException, objectTable.getArgDescHandle(3), 3);
+      asm.emitReturnTOS();
+
+      asm.bind(rethrowException);
+      asm.emitMoveSpecial(SpecialIndex.exception, temp);
+      asm.emitPush(temp);
+      asm.emitMoveSpecial(SpecialIndex.stackTrace, temp);
+      asm.emitPush(temp);
+      asm.emitThrow(1);
+    }
   }
 
   void end(Member node, bool hasCode) {
     if (!hasErrors) {
       Code? code;
       if (hasCode) {
+        _endSuspendableFunction(node.function);
+
         if (options.emitLocalVarInfo) {
           // Leave the scopes which were entered in _genPrologue and
           // _setupInitialContext.
@@ -1773,6 +1826,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     switchCases = null;
     tryCatches = null;
     finallyBlocks = null;
+    asyncTryBlock = null;
     contextLevels = null;
     closures = null;
     initializedFields = const {};
@@ -2316,6 +2370,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     enclosingFunction = function;
     final savedLoopDepth = currentLoopDepth;
     currentLoopDepth = 0;
+    final savedAsyncTryBlock = asyncTryBlock;
+    asyncTryBlock = null;
 
     if (function.typeParameters.isNotEmpty) {
       final functionTypeParameters =
@@ -2347,6 +2403,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitPushNull();
     _genReturnTOS();
 
+    _endSuspendableFunction(function);
+
     if (options.emitLocalVarInfo) {
       // Leave the scopes which were entered in _genPrologue and
       // _setupInitialContext.
@@ -2364,6 +2422,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     parentFunction = savedParentFunction;
     isClosure = savedIsClosure;
     currentLoopDepth = savedLoopDepth;
+    asyncTryBlock = savedAsyncTryBlock;
 
     locals.leaveScope();
 
@@ -4337,22 +4396,29 @@ class BytecodeGenerator extends RecursiveVisitor {
           : asyncStarStreamControllerAdd;
       _genDirectCall(addMethod, objectTable.getArgDescHandle(2), 2);
 
-      Label ret = Label(allowsBackwardJumps: true);
-      asm.emitJumpIfTrue(ret);
+      Label normalReturn = Label(allowsBackwardJumps: true);
+      asm.emitJumpIfTrue(normalReturn);
 
       Label resume = Label();
       asm.emitSuspend(resume);
       asm.emitPush(locals.suspendStateVarIndexInFrame);
       asm.emitPushNull();
       _genDirectCall(yieldAsyncStar, objectTable.getArgDescHandle(2), 2);
-      asm.emitDrop1();
-
-      asm.bind(ret);
-      asm.emitPushNull();
       asm.emitReturnTOS();
 
+      asm.bind(normalReturn);
+      final List<TryFinally> tryFinallyBlocks =
+          _getEnclosingTryFinallyBlocks(node, null);
+      _addFinallyBlocks(tryFinallyBlocks, () {
+        asm.emitPush(locals.suspendStateVarIndexInFrame);
+        asm.emitPushNull();
+        asm.emitStoreLocal(locals.suspendStateVarIndexInFrame);
+        _genDirectCall(returnAsyncStar, objectTable.getArgDescHandle(2), 2);
+        asm.emitReturnTOS();
+      });
+
       asm.bind(resume);
-      asm.emitJumpIfTrue(ret);
+      asm.emitJumpIfTrue(normalReturn);
     } else if (enclosingFunction!.dartAsyncMarker == AsyncMarker.SyncStar) {
       Field field = node.isYieldStar
           ? syncStarIteratorYieldStarIterable
