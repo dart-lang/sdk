@@ -4,12 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'edit/test_all.dart' as edit;
-import 'src/test_all.dart' as src;
+import 'plugin_server_error_test.dart' as plugin_server_error_test;
+import 'plugin_server_test.dart' as plugin_server_test;
 
 void main() {
   defineReflectiveSuite(() {
-    edit.main();
-    src.main();
-  });
+    plugin_server_error_test.main();
+    plugin_server_test.main();
+  }, name: 'src');
 }

@@ -88,7 +88,7 @@ Future<void> main(List<String> args) async {
   final packageConfigUri = sdkRoot.resolve('.dart_tool/package_config.json');
   final allTestsUri = sdkRoot.resolve('tests/hot_reload/');
   final soundStableDartSdkJsUri =
-      buildRootUri.resolve('gen/utils/ddc/stable/sdk/ddc/dart_sdk.js');
+      buildRootUri.resolve('gen/utils/ddc/canary/sdk/ddc/dart_sdk.js');
   final ddcModuleLoaderJsUri =
       sdkRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
 
@@ -139,6 +139,7 @@ Future<void> main(List<String> args) async {
       final fesArgs = [
         ...commonArgs,
         '--dartdevc-module-format=ddc',
+        '--dartdevc-canary',
         '--platform=$ddcPlatformDillFromSdkRoot',
         '--target=dartdevc',
       ];
@@ -857,7 +858,7 @@ class D8SuiteRunner implements HotReloadSuiteRunner {
   factory D8SuiteRunner({
     required ddc_helpers.D8Configuration config,
     required Uri bootstrapJsUri,
-    String entrypointModuleName = 'main.dart',
+    String entrypointModuleName = 'hot-reload-test:///main.dart',
     String entrypointLibraryExportName = 'main',
     required Uri dartSdkJsUri,
     required Uri ddcModuleLoaderJsUri,
@@ -954,7 +955,7 @@ class ChromeSuiteRunner implements HotReloadSuiteRunner {
     required Uri mainEntrypointJsUri,
     required Uri bootstrapJsUri,
     required Uri bootstrapHtmlUri,
-    String entrypointModuleName = 'main.dart',
+    String entrypointModuleName = 'hot-reload-test:///main.dart',
     String entrypointLibraryExportName = 'main',
     required Uri dartSdkJsUri,
     required Uri ddcModuleLoaderJsUri,

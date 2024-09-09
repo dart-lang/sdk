@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dev_compiler/src/kernel/compiler.dart' show ProgramCompiler;
+import 'package:dev_compiler/dev_compiler.dart' show Compiler;
 import 'package:frontend_server/src/javascript_bundle.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -188,8 +188,7 @@ void main() {
         final _MemorySink symbolsSink = new _MemorySink();
         final CoreTypes coreTypes = new CoreTypes(testComponent);
 
-        final Map<String, ProgramCompiler> compilers =
-            await javaScriptBundler.compile(
+        final Map<String, Compiler> compilers = await javaScriptBundler.compile(
           new ClassHierarchy(testComponent, coreTypes),
           coreTypes,
           packageConfig,

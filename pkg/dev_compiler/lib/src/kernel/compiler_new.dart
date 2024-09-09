@@ -90,6 +90,7 @@ class LibraryBundleCompiler implements old.Compiler {
   final CoreTypes _coreTypes;
   final Ticker? _ticker;
   final _symbolData = SymbolData();
+  final _libraryCompilers = <Library, LibraryCompiler>{};
 
   LibraryBundleCompiler(
     Component component,
@@ -118,10 +119,8 @@ class LibraryBundleCompiler implements old.Compiler {
   js_ast.Program emitModule(Component component) {
     _ticker?.logMs('Emitting library bundle');
     var compiledLibraries = <js_ast.Program>[];
-
     for (var library in component.libraries) {
-      // TODO(nshahan) Capture compiler state for each library here?
-      compiledLibraries.add(LibraryCompiler(
+      var compiler = LibraryCompiler(
         component,
         _hierarchy,
         _options,
@@ -130,10 +129,19 @@ class LibraryBundleCompiler implements old.Compiler {
         coreTypes: _coreTypes,
         ticker: _ticker,
         symbolData: _symbolData,
-      ).emitLibrary(library));
+      );
+      _libraryCompilers[library] = compiler;
+      compiledLibraries.add(compiler.emitLibrary(library));
     }
     return js_ast.LibraryBundle(compiledLibraries,
         header: _generateCompilationHeader());
+  }
+
+  @override
+  js_ast.Fun emitFunctionIncremental(List<js_ast.ModuleItem> items,
+      Library library, Class? cls, FunctionNode functionNode, String name) {
+    return _libraryCompilers[library]!
+        ._emitFunctionIncremental(items, library, cls, functionNode, name);
   }
 
   /// Creates header comments with helpful compilation information.
@@ -3607,7 +3615,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// by the debugger.
   /// Triggers incremental mode, which only emits symbols, types, constants,
   /// libraries, and uris referenced in the expression compilation result.
-  js_ast.Fun emitFunctionIncremental(List<ModuleItem> items, Library library,
+  js_ast.Fun _emitFunctionIncremental(List<ModuleItem> items, Library library,
       Class? cls, FunctionNode functionNode, String name) {
     // Setup context.
     _currentLibrary = library;

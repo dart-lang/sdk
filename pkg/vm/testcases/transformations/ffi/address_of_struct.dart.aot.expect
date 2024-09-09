@@ -14,18 +14,19 @@ final class MyStruct extends ffi::Struct {
 
   [@vm.inferred-return-type.metadata=dart.ffi::Array<dart.ffi::Int8>]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  @#C10
   get a() → ffi::Array<ffi::Int8>
-    return new ffi::Array::_<ffi::Int8>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::MyStruct::a#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C9);
+    return new ffi::Array::_<ffi::Int8>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::MyStruct::a#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C11);
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C11
+  @#C10
   static get a#offsetOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 10)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C11
+  @#C10
   static get #sizeOf() → core::int
     return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
@@ -37,7 +38,7 @@ final class MyUnion extends ffi::Union {
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 1)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C11
+  @#C10
   static get #sizeOf() → core::int
     return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
@@ -68,9 +69,9 @@ constants  {
   #C6 = null
   #C7 = ffi::_FfiStructLayout {fieldTypes:#C5, packing:#C6}
   #C8 = core::pragma {name:#C1, options:#C7}
-  #C9 = <core::int>[]
-  #C10 = "vm:prefer-inline"
-  #C11 = core::pragma {name:#C10, options:#C6}
+  #C9 = "vm:prefer-inline"
+  #C10 = core::pragma {name:#C9, options:#C6}
+  #C11 = <core::int>[]
   #C12 = 0
   #C13 = <core::int>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
   #C14 = <core::int>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]

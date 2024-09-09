@@ -92,13 +92,11 @@ library
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo.dart::@class::A
     class A
       reference: <testLibrary>::@fragment::package:test/foo.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo.dart::@class::A
 ''');
   }
@@ -180,13 +178,11 @@ library
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
     class A
       reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
 ''');
   }
@@ -268,13 +264,11 @@ library
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
     class A
       reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
 ''');
   }
@@ -356,13 +350,11 @@ library
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
     class A
       reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
 ''');
   }
@@ -444,13 +436,11 @@ library
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
     class A
       reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
 ''');
   }
@@ -674,27 +664,21 @@ library
   classes
     class Z
       reference: <testLibraryFragment>::@class::Z
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::Z
     class A
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
     class A11
       reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
     class A12
       reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
     class B11
       reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
     class B12
       reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
 ''');
   }
@@ -784,7 +768,6 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -793,11 +776,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -805,7 +786,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
       constructors
         synthetic new
@@ -869,7 +849,6 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -878,11 +857,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -890,7 +867,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
       constructors
         synthetic new
@@ -1255,27 +1231,21 @@ library
   classes
     class Z
       reference: <testLibraryFragment>::@class::Z
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::Z
     class A
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
     class A11
       reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
     class A12
       reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
     class B11
       reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
     class B12
       reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
 ''');
   }

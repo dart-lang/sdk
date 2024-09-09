@@ -346,6 +346,7 @@ final class Array<T extends NativeType> extends _Compound {
 
   static const _variableLengthLength = 0;
 
+  @pragma('vm:prefer-inline')
   void _checkIndex(int index) {
     if (_size == _variableLengthLength) {
       return;
@@ -395,154 +396,179 @@ external void _memCopy(Object target, int targetOffsetInBytes, Object source,
     int sourceOffsetInBytes, int lengthInBytes);
 
 // The following functions are implemented in the method recognizer.
-//
-// TODO(38172): Since these are not inlined (force optimize), they force
-// allocating a Pointer with in elementAt/offsetBy. Allocating these pointers
-// and GCing new spaces takes a lot of the benchmark time. The next speedup is
-// getting rid of these allocations by inlining these functions.
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external int _loadInt8(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external int _loadInt16(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external int _loadInt32(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external int _loadInt64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external int _loadUint8(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external int _loadUint16(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external int _loadUint32(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external int _loadUint64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external int _loadAbiSpecificInt<T extends AbiSpecificInteger>(
     Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external int _loadAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
     Object typedDataBase, int offsetInBytes, int index);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external double _loadFloat(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external double _loadDouble(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external double _loadFloatUnaligned(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external double _loadDoubleUnaligned(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external Pointer<S> _loadPointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external void _storeInt8(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external void _storeInt16(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external void _storeInt32(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external void _storeInt64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external void _storeUint8(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external void _storeUint16(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external void _storeUint32(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external void _storeUint64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external int _storeAbiSpecificInt<T extends AbiSpecificInteger>(
     Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external int _storeAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
     Object typedDataBase, int offsetInBytes, int index, int value);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external void _storeFloat(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external void _storeDouble(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external void _storeFloatUnaligned(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external void _storeDoubleUnaligned(
     Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:prefer-inline")
 external void _storePointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes, Pointer<S> value);
 
@@ -970,6 +996,7 @@ extension BoolPointer on Pointer<Bool> {
 @patch
 extension Int8Array on Array<Int8> {
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
     return _loadInt8(
@@ -979,6 +1006,7 @@ extension Int8Array on Array<Int8> {
   }
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
     return _storeInt8(
@@ -992,6 +1020,7 @@ extension Int8Array on Array<Int8> {
 @patch
 extension Int16Array on Array<Int16> {
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
     return _loadInt16(
@@ -1001,6 +1030,7 @@ extension Int16Array on Array<Int16> {
   }
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
     return _storeInt16(
@@ -1014,6 +1044,7 @@ extension Int16Array on Array<Int16> {
 @patch
 extension Int32Array on Array<Int32> {
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
     return _loadInt32(
@@ -1023,6 +1054,7 @@ extension Int32Array on Array<Int32> {
   }
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
     return _storeInt32(
@@ -1036,6 +1068,7 @@ extension Int32Array on Array<Int32> {
 @patch
 extension Int64Array on Array<Int64> {
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
     return _loadInt64(
@@ -1045,6 +1078,7 @@ extension Int64Array on Array<Int64> {
   }
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
     return _storeInt64(
@@ -1058,6 +1092,7 @@ extension Int64Array on Array<Int64> {
 @patch
 extension Uint8Array on Array<Uint8> {
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
     return _loadUint8(
@@ -1067,6 +1102,7 @@ extension Uint8Array on Array<Uint8> {
   }
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
     return _storeUint8(
@@ -1080,6 +1116,7 @@ extension Uint8Array on Array<Uint8> {
 @patch
 extension Uint16Array on Array<Uint16> {
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
     return _loadUint16(
@@ -1089,6 +1126,7 @@ extension Uint16Array on Array<Uint16> {
   }
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
     return _storeUint16(
@@ -1102,6 +1140,7 @@ extension Uint16Array on Array<Uint16> {
 @patch
 extension Uint32Array on Array<Uint32> {
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
     return _loadUint32(
@@ -1111,6 +1150,7 @@ extension Uint32Array on Array<Uint32> {
   }
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
     return _storeUint32(
@@ -1124,6 +1164,7 @@ extension Uint32Array on Array<Uint32> {
 @patch
 extension Uint64Array on Array<Uint64> {
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
     return _loadUint64(
@@ -1133,6 +1174,7 @@ extension Uint64Array on Array<Uint64> {
   }
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
     return _storeUint64(
@@ -1146,6 +1188,7 @@ extension Uint64Array on Array<Uint64> {
 @patch
 extension FloatArray on Array<Float> {
   @patch
+  @pragma("vm:prefer-inline")
   double operator [](int index) {
     _checkIndex(index);
     return _loadFloat(
@@ -1155,6 +1198,7 @@ extension FloatArray on Array<Float> {
   }
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, double value) {
     _checkIndex(index);
     return _storeFloat(
@@ -1168,6 +1212,7 @@ extension FloatArray on Array<Float> {
 @patch
 extension DoubleArray on Array<Double> {
   @patch
+  @pragma("vm:prefer-inline")
   double operator [](int index) {
     _checkIndex(index);
     return _loadDouble(
@@ -1177,6 +1222,7 @@ extension DoubleArray on Array<Double> {
   }
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, double value) {
     _checkIndex(index);
     return _storeDouble(
@@ -1190,6 +1236,7 @@ extension DoubleArray on Array<Double> {
 @patch
 extension BoolArray on Array<Bool> {
   @patch
+  @pragma("vm:prefer-inline")
   bool operator [](int index) {
     _checkIndex(index);
     return _loadBool(
@@ -1199,6 +1246,7 @@ extension BoolArray on Array<Bool> {
   }
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, bool value) {
     _checkIndex(index);
     return _storeBool(

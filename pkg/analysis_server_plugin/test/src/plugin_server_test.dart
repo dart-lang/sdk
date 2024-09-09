@@ -7,17 +7,7 @@ import 'dart:async';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
-import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/src/plugin_server.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer_plugin/channel/channel.dart';
-import 'package:analyzer_plugin/protocol/protocol.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -25,40 +15,23 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'lint_rules.dart';
+import 'plugin_server_test_base.dart';
+
 void main() async {
   defineReflectiveTests(PluginServerTest);
 }
 
 @reflectiveTest
-class PluginServerTest with ResourceProviderMixin {
-  final channel = _FakeChannel();
-
-  late final PluginServer pluginServer;
-
-  Folder get byteStoreRoot => getFolder('/byteStore');
-
-  Folder get sdkRoot => getFolder('/sdk');
-
+class PluginServerTest extends PluginServerTestBase {
+  @override
   Future<void> setUp() async {
-    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
+    await super.setUp();
 
     pluginServer = PluginServer(
-      resourceProvider: resourceProvider,
-      plugins: [_NoBoolsPlugin()],
-    );
-    await pluginServer.initialize();
-    pluginServer.start(channel);
-
-    await pluginServer.handlePluginVersionCheck(
-      protocol.PluginVersionCheckParams(
-        byteStoreRoot.path,
-        sdkRoot.path,
-        '0.0.1',
-      ),
-    );
+        resourceProvider: resourceProvider, plugins: [_NoBoolsPlugin()]);
+    await startPlugin();
   }
-
-  void tearDown() => registeredFixGenerators.clearLintProducers();
 
   Future<void> test_handleAnalysisSetContextRoots() async {
     var packagePath = convertPath('/package1');
@@ -102,76 +75,11 @@ class PluginServerTest with ResourceProviderMixin {
   }
 }
 
-class _FakeChannel implements PluginCommunicationChannel {
-  final _completers = <String, Completer<protocol.Response>>{};
-
-  final StreamController<protocol.Notification> _notificationsController =
-      StreamController();
-
-  Stream<protocol.Notification> get notifications =>
-      _notificationsController.stream;
-
-  @override
-  void close() {}
-
-  @override
-  void listen(void Function(protocol.Request request)? onRequest,
-      {void Function()? onDone, Function? onError, Function? onNotification}) {}
-
-  @override
-  void sendNotification(protocol.Notification notification) {
-    _notificationsController.add(notification);
-  }
-
-  @override
-  void sendResponse(protocol.Response response) {
-    var completer = _completers.remove(response.id);
-    completer?.complete(response);
-  }
-}
-
 class _NoBoolsPlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
-    registry.registerRule(_NoBoolsRule());
-    registry.registerFixForRule(_NoBoolsRule.code, _WrapInQuotes.new);
-  }
-}
-
-class _NoBoolsRule extends LintRule {
-  static const LintCode code = LintCode(
-    'no_bools',
-    'No bools message',
-    correctionMessage: 'No bools correction',
-  );
-
-  _NoBoolsRule()
-      : super(
-          name: 'no_bools',
-          description: 'No bools desc',
-          details: 'No bools details',
-          categories: {LintRuleCategory.errorProne},
-        );
-
-  @override
-  LintCode get lintCode => code;
-
-  @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
-    var visitor = _NoBoolsVisitor(this);
-    registry.addBooleanLiteral(this, visitor);
-  }
-}
-
-class _NoBoolsVisitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
-
-  _NoBoolsVisitor(this.rule);
-
-  @override
-  void visitBooleanLiteral(BooleanLiteral node) {
-    rule.reportLint(node);
+    registry.registerRule(NoBoolsRule());
+    registry.registerFixForRule(NoBoolsRule.code, _WrapInQuotes.new);
   }
 }
 
@@ -179,20 +87,14 @@ class _WrapInQuotes extends ResolvedCorrectionProducer {
   static const _wrapInQuotesKind =
       FixKind('dart.fix.wrapInQuotes', 50, 'Wrap in quotes');
 
-  static const _wrapInQuotesMultiKind = FixKind(
-      'dart.fix.wrapInQuotes.multi', 40, 'Wrap in quotes everywhere in file');
+  _WrapInQuotes({required super.context});
 
   @override
-  final CorrectionApplicability applicability;
-
-  _WrapInQuotes({required super.context})
-      : applicability = CorrectionApplicability.acrossFiles;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.acrossFiles;
 
   @override
   FixKind get fixKind => _wrapInQuotesKind;
-
-  @override
-  FixKind get multiFixKind => _wrapInQuotesMultiKind;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

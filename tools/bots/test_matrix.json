@@ -1879,16 +1879,6 @@
           ]
         },
         {
-          "name": "ddc hot reload tests",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "testRunner": true,
-          "arguments": [
-            "pkg/dev_compiler/test/hot_reload_suite.dart",
-            "-nddc-${system}-chrome",
-            "--verbose"
-          ]
-        },
-        {
           "name": "ddc sourcemap tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
@@ -2114,6 +2104,16 @@
           "script": "tools/build.py",
           "arguments": [
             "ddc_canary_test"
+          ]
+        },
+        {
+          "name": "ddc hot reload tests in d8",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/hot_reload_suite.dart",
+            "-nddc-canary-linux-chrome",
+            "--verbose"
           ]
         },
         {

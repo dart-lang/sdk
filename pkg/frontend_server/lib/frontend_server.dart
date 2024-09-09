@@ -18,11 +18,7 @@ import 'dart:typed_data' show BytesBuilder;
 
 import 'package:args/args.dart';
 import 'package:dev_compiler/dev_compiler.dart'
-    show
-        DevCompilerTarget,
-        ExpressionCompiler,
-        parseModuleFormat,
-        ProgramCompiler;
+    show Compiler, DevCompilerTarget, ExpressionCompiler, parseModuleFormat;
 import 'package:front_end/src/api_prototype/macros.dart' as macros
     show isMacroLibraryUri;
 import 'package:front_end/src/api_unstable/ddc.dart' as ddc
@@ -875,16 +871,15 @@ class FrontendCompiler implements CompilerInterface {
         emitDebugMetadata ? metadataFile.openWrite() : null;
     final IOSink? symbolsFileSink =
         emitDebugSymbols ? symbolsFile.openWrite() : null;
-    final Map<String, ProgramCompiler> kernel2JsCompilers =
-        await bundler.compile(
-            results.classHierarchy!,
-            results.coreTypes!,
-            packageConfig,
-            sourceFileSink,
-            manifestFileSink,
-            sourceMapsFileSink,
-            metadataFileSink,
-            symbolsFileSink);
+    final Map<String, Compiler> kernel2JsCompilers = await bundler.compile(
+        results.classHierarchy!,
+        results.coreTypes!,
+        packageConfig,
+        sourceFileSink,
+        manifestFileSink,
+        sourceMapsFileSink,
+        metadataFileSink,
+        symbolsFileSink);
     cachedProgramCompilers.addAll(kernel2JsCompilers);
     await Future.wait([
       sourceFileSink.close(),
@@ -1106,7 +1101,7 @@ class FrontendCompiler implements CompilerInterface {
   ///
   /// Produced during initial compilation of the module to JavaScript,
   /// cached to be used for expression compilation in [compileExpressionToJs].
-  final Map<String, ProgramCompiler> cachedProgramCompilers = {};
+  final Map<String, Compiler> cachedProgramCompilers = {};
 
   @override
   Future<void> compileExpressionToJs(
@@ -1136,8 +1131,7 @@ class FrontendCompiler implements CompilerInterface {
     _processedOptions.ticker
         .logMs('Compiling expression to JavaScript in $moduleName');
 
-    final ProgramCompiler kernel2jsCompiler =
-        cachedProgramCompilers[moduleName]!;
+    final Compiler kernel2jsCompiler = cachedProgramCompilers[moduleName]!;
     IncrementalCompilerResult compilerResult = _generator.lastKnownGoodResult!;
     Component component = compilerResult.component;
     component.computeCanonicalNames();

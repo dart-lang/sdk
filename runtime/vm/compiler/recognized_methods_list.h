@@ -116,39 +116,39 @@ namespace dart {
     FfiNativeAsyncCallbackFunction, 0xbdd1a333)                                \
   V(FfiLibrary, ::, _nativeIsolateLocalCallbackFunction,                       \
     FfiNativeIsolateLocalCallbackFunction, 0x21b66eba)                         \
-  V(FfiLibrary, ::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x6abf6ce5)    \
+  V(FfiLibrary, ::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x6abf70a6)    \
   V(FfiLibrary, ::, _loadAbiSpecificIntAtIndex, FfiLoadAbiSpecificIntAtIndex,  \
-    0xc188d9b4)                                                                \
-  V(FfiLibrary, ::, _loadInt8, FfiLoadInt8, 0xe4acf678)                        \
-  V(FfiLibrary, ::, _loadInt16, FfiLoadInt16, 0xefe482c4)                      \
-  V(FfiLibrary, ::, _loadInt32, FfiLoadInt32, 0xea00adeb)                      \
-  V(FfiLibrary, ::, _loadInt64, FfiLoadInt64, 0xef97e83a)                      \
-  V(FfiLibrary, ::, _loadUint8, FfiLoadUint8, 0x07c41993)                      \
-  V(FfiLibrary, ::, _loadUint16, FfiLoadUint16, 0x0608f9f3)                    \
-  V(FfiLibrary, ::, _loadUint32, FfiLoadUint32, 0x0b7025a8)                    \
-  V(FfiLibrary, ::, _loadUint64, FfiLoadUint64, 0x0d0d244e)                    \
-  V(FfiLibrary, ::, _loadFloat, FfiLoadFloat, 0xd16bbb37)                      \
-  V(FfiLibrary, ::, _loadFloatUnaligned, FfiLoadFloatUnaligned, 0xee4990db)    \
-  V(FfiLibrary, ::, _loadDouble, FfiLoadDouble, 0xeaad7aeb)                    \
-  V(FfiLibrary, ::, _loadDoubleUnaligned, FfiLoadDoubleUnaligned, 0xf5f51fa2)  \
-  V(FfiLibrary, ::, _loadPointer, FfiLoadPointer, 0x8a1cfd98)                  \
-  V(FfiLibrary, ::, _storeAbiSpecificInt, FfiStoreAbiSpecificInt, 0xaa7301ed)  \
+    0xc188dd75)                                                                \
+  V(FfiLibrary, ::, _loadInt8, FfiLoadInt8, 0xe4acfa39)                        \
+  V(FfiLibrary, ::, _loadInt16, FfiLoadInt16, 0xefe48685)                      \
+  V(FfiLibrary, ::, _loadInt32, FfiLoadInt32, 0xea00b1ac)                      \
+  V(FfiLibrary, ::, _loadInt64, FfiLoadInt64, 0xef97ebfb)                      \
+  V(FfiLibrary, ::, _loadUint8, FfiLoadUint8, 0x07c41d54)                      \
+  V(FfiLibrary, ::, _loadUint16, FfiLoadUint16, 0x0608fdb4)                    \
+  V(FfiLibrary, ::, _loadUint32, FfiLoadUint32, 0x0b702969)                    \
+  V(FfiLibrary, ::, _loadUint64, FfiLoadUint64, 0x0d0d280f)                    \
+  V(FfiLibrary, ::, _loadFloat, FfiLoadFloat, 0xd16bbef8)                      \
+  V(FfiLibrary, ::, _loadFloatUnaligned, FfiLoadFloatUnaligned, 0xee49949c)    \
+  V(FfiLibrary, ::, _loadDouble, FfiLoadDouble, 0xeaad7eac)                    \
+  V(FfiLibrary, ::, _loadDoubleUnaligned, FfiLoadDoubleUnaligned, 0xf5f52363)  \
+  V(FfiLibrary, ::, _loadPointer, FfiLoadPointer, 0x8a1d0159)                  \
+  V(FfiLibrary, ::, _storeAbiSpecificInt, FfiStoreAbiSpecificInt, 0xaa7305ae)  \
   V(FfiLibrary, ::, _storeAbiSpecificIntAtIndex,                               \
-    FfiStoreAbiSpecificIntAtIndex, 0x258c60d4)                                 \
-  V(FfiLibrary, ::, _storeInt8, FfiStoreInt8, 0xeea23e04)                      \
-  V(FfiLibrary, ::, _storeInt16, FfiStoreInt16, 0xdb5cf1d3)                    \
-  V(FfiLibrary, ::, _storeInt32, FfiStoreInt32, 0xd4dab0b0)                    \
-  V(FfiLibrary, ::, _storeInt64, FfiStoreInt64, 0x05d6cb79)                    \
-  V(FfiLibrary, ::, _storeUint8, FfiStoreUint8, 0x01c04301)                    \
-  V(FfiLibrary, ::, _storeUint16, FfiStoreUint16, 0x130c90a5)                  \
-  V(FfiLibrary, ::, _storeUint32, FfiStoreUint32, 0x1009830c)                  \
-  V(FfiLibrary, ::, _storeUint64, FfiStoreUint64, 0x097ed239)                  \
-  V(FfiLibrary, ::, _storeFloat, FfiStoreFloat, 0x546dec6e)                    \
-  V(FfiLibrary, ::, _storeFloatUnaligned, FfiStoreFloatUnaligned, 0x502339d2)  \
-  V(FfiLibrary, ::, _storeDouble, FfiStoreDouble, 0x4e77b771)                  \
+    FfiStoreAbiSpecificIntAtIndex, 0x258c6495)                                 \
+  V(FfiLibrary, ::, _storeInt8, FfiStoreInt8, 0xeea241c5)                      \
+  V(FfiLibrary, ::, _storeInt16, FfiStoreInt16, 0xdb5cf594)                    \
+  V(FfiLibrary, ::, _storeInt32, FfiStoreInt32, 0xd4dab471)                    \
+  V(FfiLibrary, ::, _storeInt64, FfiStoreInt64, 0x05d6cf3a)                    \
+  V(FfiLibrary, ::, _storeUint8, FfiStoreUint8, 0x01c046c2)                    \
+  V(FfiLibrary, ::, _storeUint16, FfiStoreUint16, 0x130c9466)                  \
+  V(FfiLibrary, ::, _storeUint32, FfiStoreUint32, 0x100986cd)                  \
+  V(FfiLibrary, ::, _storeUint64, FfiStoreUint64, 0x097ed5fa)                  \
+  V(FfiLibrary, ::, _storeFloat, FfiStoreFloat, 0x546df02f)                    \
+  V(FfiLibrary, ::, _storeFloatUnaligned, FfiStoreFloatUnaligned, 0x50233d93)  \
+  V(FfiLibrary, ::, _storeDouble, FfiStoreDouble, 0x4e77bb32)                  \
   V(FfiLibrary, ::, _storeDoubleUnaligned, FfiStoreDoubleUnaligned,            \
-    0x49ce588e)                                                                \
-  V(FfiLibrary, ::, _storePointer, FfiStorePointer, 0xa08094f1)                \
+    0x49ce5c4f)                                                                \
+  V(FfiLibrary, ::, _storePointer, FfiStorePointer, 0xa08098b2)                \
   V(FfiLibrary, ::, _fromAddress, FfiFromAddress, 0x941575ee)                  \
   V(FfiLibrary, Pointer, get:address, FfiGetAddress, 0x7cc16ffe)               \
   V(FfiLibrary, Native, _addressOf, FfiNativeAddressOf, 0x7f8597d3)            \

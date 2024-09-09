@@ -283,11 +283,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X
   classes
     class X
       reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
@@ -533,11 +531,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X
   classes
     class X
       reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
@@ -894,12 +890,10 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::B
               superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
@@ -967,12 +961,10 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::B
               superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
@@ -1040,12 +1032,10 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::B
               superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
@@ -1170,7 +1160,6 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
@@ -1182,11 +1171,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -1194,7 +1181,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
       constructors
         synthetic new
@@ -1311,7 +1297,6 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/d.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/e.dart
@@ -1320,7 +1305,6 @@ library
   classes
     class X
       reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
@@ -1412,13 +1396,11 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
   classes
     class X
       reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
@@ -1505,13 +1487,11 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
   classes
     class X
       reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
@@ -1606,13 +1586,11 @@ library
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
     mixin B
       reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
       superclassConstraints
         Object
@@ -1714,7 +1692,6 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -1724,7 +1701,6 @@ library
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
@@ -1733,11 +1709,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/b.dart::@class::B::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@class::B
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -1745,7 +1719,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class A
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
       constructors
         synthetic new
@@ -1753,7 +1726,6 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
     class B
       reference: <testLibrary>::@fragment::package:test/b.dart::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::B
       constructors
         synthetic new
@@ -1859,7 +1831,6 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/c.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/d.dart
@@ -1868,7 +1839,6 @@ library
   classes
     class X
       reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
@@ -1949,23 +1919,19 @@ library
       topLevelVariables
         a @25
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
-          enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
           setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::a
       getters
         get a @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
-          enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
       setters
         set a= @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::a
-          enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
           parameters
             _a @-1
   topLevelVariables
     a
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
       getter: <none>
@@ -1973,12 +1939,10 @@ library
   getters
     synthetic static get a
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::a
   setters
     synthetic static set a=
       reference: <none>
-      enclosingElement: <testLibrary>
       parameters
         requiredPositional _a
           reference: <none>
@@ -2052,23 +2016,19 @@ library
       topLevelVariables
         const a @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
-          enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
       getters
         get a @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
-          enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
   topLevelVariables
     const a
       reference: <none>
-      enclosingElement2: <testLibrary>
       type: int
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
       getter: <none>
   getters
     synthetic static get a
       reference: <none>
-      enclosingElement: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::a
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a
