@@ -1058,12 +1058,6 @@ if (!self.dart_library) {
     hotReload() {
       this.hotReloadGeneration += 1;
     }
-
-    // Initiates a hot restart.
-    hotRestart() {
-      this.intendedHotRestartGeneration += 1;
-      self.dart_library.reload();
-    }
   };
 
   let policy = {
@@ -1286,8 +1280,22 @@ if (!self.deferred_loader) {
     // These are the result of calling a library's initialization function.
     libraries = Object.create(null);
 
+    // The current hot restart generation.
+    //
+    // 0-indexed and increases by 1 on every successful hot restart.
+    // This value is read to determine the 'current' hot restart generation
+    // in our hot restart tests. This closely tracks but is not the same as
+    // `hotRestartIteration` in DDC's runtime.
+    // TODO(nshahan): This value should become shared across the embedder and
+    // the runtime.
+    hotRestartGeneration = 0;
+
     // TODO(nshahan): Set to true at the start of the hot reload process.
     hotReloadInProgress = false;
+
+    // The name of the entrypoint module. Set when the application starts for
+    // the first time and used during a hot restart.
+    savedEntryPointLibraryName = null;
 
     createEmptyLibrary() {
       return Object.create(null);
@@ -1367,18 +1375,30 @@ if (!self.deferred_loader) {
 
     // See docs on `DartDevEmbedder.runMain`.
     runMain(entryPointLibraryName, dartSdkRuntimeOptions) {
-      console.log('Setting Dart SDK runtime options.');
-      let dartRuntimeLibrary = this.initializeAndLinkLibrary('dart:_runtime');
-
-      // TODO(nshahan) Use a single method in the Dart SDK to set all options.
-      dartRuntimeLibrary.weakNullSafetyErrors(dartSdkRuntimeOptions.weakNullSafetyErrors);
-      dartRuntimeLibrary.nonNullAsserts(dartSdkRuntimeOptions.nonNullAsserts);
-      dartRuntimeLibrary.nativeNonNullAsserts(dartSdkRuntimeOptions.nativeNonNullAsserts);
-      dartRuntimeLibrary.jsInteropNonNullAsserts(dartSdkRuntimeOptions.jsInteropNonNullAsserts);
+      this.setDartSDKRuntimeOptions(dartSdkRuntimeOptions);
 
       console.log('Starting application from main method in: ' + entryPointLibraryName + '.');
       let entryPointLibrary = this.initializeAndLinkLibrary(entryPointLibraryName);
+      this.savedEntryPointLibraryName = entryPointLibraryName;
       entryPointLibrary.main();
+    }
+
+    setDartSDKRuntimeOptions(options) {
+      let dartRuntimeLibrary = this.importLibrary('dart:_runtime');
+      // TODO(nshahan) Use a single method in the Dart SDK to set all options?
+      // Or assign the single JS object and read it from the SDK?
+      if (options.weakNullSafetyErrors != null) {
+        dartRuntimeLibrary.weakNullSafetyErrors(options.weakNullSafetyErrors);
+      }
+      if (options.nonNullAsserts != null) {
+        dartRuntimeLibrary.nonNullAsserts(options.nonNullAsserts);
+      }
+      if (options.nativeNonNullAsserts != null) {
+        dartRuntimeLibrary.nativeNonNullAsserts(options.nativeNonNullAsserts);
+      }
+      if (options.jsInteropNonNullAsserts != null) {
+        dartRuntimeLibrary.jsInteropNonNullAsserts(options.jsInteropNonNullAsserts);
+      }
     }
 
     /**
@@ -1394,6 +1414,25 @@ if (!self.deferred_loader) {
      */
     hotReloadEnd(librariesToReload) {
       // TODO(nshahan): Initialize and link all the newly compiled libraries.
+    }
+
+    /**
+     * Completes a hot restart operation.
+     */
+    hotRestart() {
+      if (!this.savedEntryPointLibraryName) {
+        throw "Error: Hot restart requested before application started.";
+      }
+      console.log('Hot restarting...');
+      // TODO(nshahan): Stop calling hotRestart in the SDK when the libraries
+      // have real initialization functions.
+      let dart = this.importLibrary('dart:_runtime');
+      dart.hotRestart();
+      // Clear all libraries.
+      this.libraries = Object.create(null);
+      let entryPointLibrary = this.initializeAndLinkLibrary(this.savedEntryPointLibraryName);
+      this.hotRestartGeneration += 1;
+      entryPointLibrary.main();
     }
   }
 
@@ -1455,6 +1494,24 @@ if (!self.deferred_loader) {
      */
     importLibrary(libraryName, installFn) {
       return libraryManager.importLibrary(libraryName, installFn);
+    }
+
+    /**
+     * Immediately triggers a hot restart of the application losing all state
+     * and running the main method again.
+     */
+    hotRestart() {
+      self.$dartReloadModifiedModules(
+        libraryManager.savedEntryPointLibraryName,
+        () => { libraryManager.hotRestart(); });
+    }
+
+    /**
+     * @return {Number} The current hot restart generation of the running
+     *  application.
+     */
+    get hotRestartGeneration() {
+      return libraryManager.hotRestartGeneration;
     }
   }
 

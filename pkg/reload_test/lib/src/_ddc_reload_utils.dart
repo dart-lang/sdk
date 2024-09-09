@@ -18,16 +18,28 @@ extension type _DDCLoader(JSObject _) implements JSObject {
   external void hotRestart();
   external int get hotReloadGeneration;
   external int get hotRestartGeneration;
+  external int intendedHotRestartGeneration;
 }
+
+extension type _DartDevEmbedder(JSObject _) implements JSObject {
+  external void hotRestart();
+  external JSNumber get hotRestartGeneration;
+}
+
+@JS('dartDevEmbedder')
+external _DartDevEmbedder get _dartDevEmbedder;
 
 @JS('\$dartLoader')
 external _DartLoader get _dartLoader;
 
 final _ddcLoader = _dartLoader.loader;
 
-int get hotRestartGeneration => _ddcLoader.hotRestartGeneration;
+int get hotRestartGeneration => _dartDevEmbedder.hotRestartGeneration.toDartInt;
 
-void hotRestart() => _ddcLoader.hotRestart();
+void hotRestart() {
+  _ddcLoader.intendedHotRestartGeneration++;
+  _dartDevEmbedder.hotRestart();
+}
 
 int get hotReloadGeneration => _ddcLoader.hotReloadGeneration;
 

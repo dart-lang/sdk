@@ -95,7 +95,6 @@ var prerequisiteScripts = [
   }
 ];
 
-let sdk = dart_library.import('dart_sdk');
 let scripts = ${_encoder.convert(scriptDescriptors)};
 
 let loadConfig = new self.\$dartLoader.LoadConfiguration();
@@ -139,11 +138,6 @@ self.\$dartReloadModifiedModules = function(subAppName, callback) {
   }
   previousGenerations.add(nextGeneration);
 
-  // Increment the hot restart generation before loading files or running main
-  // This lets us treat the value in `hotRestartGeneration` as the 'current'
-  // generation until local state is updated.
-  self.\$dartLoader.loader.hotRestartGeneration += 1;
-
   let modifiedFilePaths = modifiedFilesPerGeneration[nextGeneration];
   // Stop if the next generation does not exist.
   if (modifiedFilePaths == void 0) {
@@ -163,7 +157,7 @@ self.\$dartReloadModifiedModules = function(subAppName, callback) {
 // D8 does not support the core Timer API methods beside `setTimeout` so our
 // D8 preambles provide a custom implementation.
 //
-// Timers in this implementatiom are simulated, so they all complete before
+// Timers in this implementation are simulated, so they all complete before
 // native JS `await` boundaries. If this boundary occurs before our runtime's
 // `hotRestartIteration` counter increments, we can observe Futures not being
 // cancelled in D8 when they might otherwise have been in Chrome.
@@ -195,12 +189,7 @@ loader.nextAttempt();
 // Invoke main through the d8 preamble to ensure the code is running
 // within the fake event loop.
 self.dartMainRunner(function () {
-  dart_library.start("$entrypointModuleName",
-    "$uuid",
-    "$entrypointModuleName",
-    "$entrypointLibraryExportName",
-    false
-  );
+  dartDevEmbedder.runMain("$entrypointModuleName", {});
 });
 ''';
   return d8BootstrapJS;
@@ -258,16 +247,7 @@ String generateChromeMainEntrypoint({
 
   let child = {};
   child.main = function() {
-    let dart = self.dart_library.import('dart_sdk', appName).dart;
-    dart.nonNullAsserts($nullAssertions);
-    dart.nativeNonNullAsserts($nativeNullAssertions);
-    dart_library.start(
-      appName,
-      "$uuid",
-      moduleName,
-      "$entrypointLibraryExportName",
-      false
-    );
+    dartDevEmbedder.runMain("$entrypointModuleName", {});
   }
 
   child.main();
@@ -452,11 +432,6 @@ let _scriptUrls = {
         throw Error('Fatal error: Previous generations are being re-run.');
       }
       previousGenerations.add(nextGeneration);
-
-      // Increment the hot restart generation before loading files or running main
-      // This lets us treat the value in `hotRestartGeneration` as the 'current'
-      // generation until local state is updated.
-      self.\$dartLoader.loader.hotRestartGeneration += 1;
 
       let modifiedFilePaths = modifiedFilesPerGeneration[nextGeneration];
       // Stop if the next generation does not exist.

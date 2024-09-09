@@ -53,6 +53,8 @@ abstract class Compiler {
   Map<Member, String> get memberNames;
   Map<Procedure, js_ast.Identifier> get procedureIdentifiers;
   Map<VariableDeclaration, js_ast.Identifier> get variableIdentifiers;
+  js_ast.Fun emitFunctionIncremental(List<ModuleItem> items, Library library,
+      Class? cls, FunctionNode functionNode, String name);
 }
 
 class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
@@ -3531,6 +3533,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// by the debugger.
   /// Triggers incremental mode, which only emits symbols, types, constants,
   /// libraries, and uris referenced in the expression compilation result.
+  @override
   js_ast.Fun emitFunctionIncremental(List<ModuleItem> items, Library library,
       Class? cls, FunctionNode functionNode, String name) {
     // Setup context.
