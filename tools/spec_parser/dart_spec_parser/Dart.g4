@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.47 Rename `libraryDefinition` to `libraryDeclaration`, as in the
+// language specification. Add support for libraries with imports.
+//
 // v0.46 Update rule about augmenting extension type declaration to omit
 // the primary constructor.
 //
@@ -265,11 +268,11 @@ bool _asyncEtcPredicate() {
 // ---------------------------------------- Grammar rules.
 
 startSymbol
-    :    libraryDefinition
+    :    libraryDeclaration
     |    partDeclaration
     ;
 
-libraryDefinition
+libraryDeclaration
     :    FEFF? SCRIPT_TAG?
          libraryName?
          importOrExport*
@@ -1458,7 +1461,11 @@ partHeader
     ;
 
 partDeclaration
-    :    FEFF? partHeader (metadata topLevelDefinition)* EOF
+    :    FEFF? partHeader
+         importOrExport*
+         partDirective*
+         (metadata topLevelDefinition)*
+         EOF
     ;
 
 uri
