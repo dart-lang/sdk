@@ -6,11 +6,19 @@
 /// provide information to the test harness.
 library;
 
+import 'package:dynamic_modules/dynamic_modules.dart';
+
 /// Load a module and invoke it's entrypoint.
 ///
 /// The module is identified by the name of its entrypoint file within the
 /// `modules/` subfolder.
-Future<Object?> load(String moduleName) => throw "unimplemented";
+Future<Object?> load(String moduleName) {
+  if (const bool.fromEnvironment('dart.library.html')) {
+    // DDC implementation
+    return loadModuleFromUri(Uri(scheme: '', path: moduleName));
+  }
+  throw "load is not implemented for the VM or dart2wasm";
+}
 
 /// Notify the test harness that the test has run to completion.
 void done() {

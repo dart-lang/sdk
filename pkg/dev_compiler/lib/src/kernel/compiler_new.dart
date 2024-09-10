@@ -503,6 +503,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// classes.
   final _afterClassDefItems = <js_ast.ModuleItem>[];
 
+  /// The entrypoint method of a dynamic module, if any.
+  Procedure? _dynamicEntrypoint;
+
   final Class _jsArrayClass;
   final Class _privateSymbolClass;
   final Class _linkedHashMapImplClass;
@@ -3360,6 +3363,25 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     _currentUri = savedUri;
     _staticTypeContext.leaveMember(p);
+
+    if (_options.dynamicModule &&
+        p.annotations.any((a) => _isEntrypointPragma(a, _coreTypes))) {
+      if (_dynamicEntrypoint == null) {
+        if (p.function.requiredParameterCount > 0) {
+          // TODO(sigmund): this error should be caught by a kernel checker that
+          // runs prior to DDC.
+          throw StateError('Entrypoint ${p.name.text} must accept being called '
+              'with 0 arguments.');
+        } else {
+          _dynamicEntrypoint = p;
+        }
+      } else {
+        // TODO(sigmund): this error should be caught by a kernel checker that
+        // runs prior to DDC.
+        throw StateError('A module should define a single entrypoint.');
+      }
+    }
+
     return js_ast.Statement.from(body);
   }
 
@@ -8235,6 +8257,21 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // full library uri if we wanted to save space.
       var libraryName = js.escapedString(_jsLibraryDebuggerName(library));
       properties.add(js_ast.Property(libraryName, value));
+
+      // Dynamic modules shouldn't define a library that was previously defined.
+      // We leverage that we track which libraries have been defined via
+      // `trackedLibraries` to query whether a library already exists.
+      // TODO(sigmund): enable when `trackLibraries()` is added again.
+      //if (_options.dynamicModule) {
+      //  _moduleItems.add(js.statement('''if (# != null) {
+      //          throw Error(
+      //              "Dynamic module provides second definition for " + #);
+      //      }''', [
+      //    _runtimeCall('getLibrary(#)', [libraryName]),
+      //    libraryName
+      //  ]));
+      //}
+
       var partNames = _jsPartDebuggerNames(library);
       if (partNames.isNotEmpty) {
         parts.add(js_ast.Property(libraryName, js.stringArray(partNames)));
@@ -8246,7 +8283,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // var partMap = js_ast.ObjectInitializer(parts, multiline: true);
 
     // Track the module name for each library in the module.
-    // This data is consumed by the debugger and by the stack trace mapper.
+    // This data is mainly consumed by the debugger and by the stack trace
+    // mapper. It is also used for the experimental dynamic modules feature
+    // to validate that a dynamic module doesn't reintroduce an existing
+    // library.
     //
     // See also the implementation of this API in the SDK.
     //   _moduleItems.add(_runtimeStatement(
@@ -8298,6 +8338,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Emit all top-level JS symbol containers.
     items.addAll(_symbolContainer.emit());
+
+    if (_dynamicEntrypoint != null) {
+      // Expose the entrypoint of the dynamic module under a reserved name.
+      // TODO(sigmund): this could use a reserved symbol from dartx.
+      var name = _emitTopLevelName(_dynamicEntrypoint!);
+      _moduleItems.add(js_ast.ExportDeclaration(
+          js('var __dynamic_module_entrypoint__ = #', [name])));
+    }
 
     // Add the module's code (produced by visiting compilation units, above)
     _copyAndFlattenBlocks(items, _moduleItems);
@@ -8414,4 +8462,18 @@ class _SwitchLabelState {
   js_ast.Identifier variable;
 
   _SwitchLabelState(this.label, this.variable);
+}
+
+/// Whether [expression] is a constant of the form
+/// `const pragma('dyn-module:entrypoint')`.
+///
+/// Used to denote the entrypoint method of a dynamic module.
+bool _isEntrypointPragma(Expression expression, CoreTypes coreTypes) {
+  if (expression is! ConstantExpression) return false;
+  final value = expression.constant;
+  if (value is! InstanceConstant) return false;
+  if (value.classReference != coreTypes.pragmaClass.reference) return false;
+  final name = value.fieldValues[coreTypes.pragmaName.fieldReference];
+  if (name is! StringConstant) return false;
+  return name.value == 'dyn-module:entrypoint';
 }

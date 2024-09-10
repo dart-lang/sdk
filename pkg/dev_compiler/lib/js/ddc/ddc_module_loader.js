@@ -360,6 +360,14 @@ if (!self.dart_library) {
     // Map from module name to corresponding app to proxy library map.
     let _proxyLibs = new Map();
 
+    /**
+     * Returns an instantiated module given its module name.
+     *
+     * Note: this method is not meant to be used outside DDC generated code,
+     * however it is currently being used in many places becase DDC lacks an
+     * Embedding API. This API will be removed in the future once the Embedding
+     * API is established.
+     */
     function import_(name, appName) {
       // For backward compatibility.
       if (!appName && _lastStartedSubapp) {
@@ -609,8 +617,25 @@ if (!self.dart_library) {
     let _firstStartedAppName;
     let _lastStartedSubapp;
 
-    /// Starts a subapp that is identified with `uuid`, `moduleName`, and
-    /// `libraryName` inside a parent app that is identified by `appName`.
+    /**
+     * Runs a Dart program's main method.
+     *
+     * Intended to be invoked by the bootstrapping code where the application
+     * is being embedded.
+     *
+     * Because multiple programs can be part of a single application on a page
+     * at once, we identify the entrypoint using multiple keys: `appName`
+     * denotes the parent application, this program within that application
+     * (aka. the subapp) is identified by an `uuid`. Finally the entrypoint
+     * method is located from the `moduleName` and `libraryName`.
+     *
+     * Often, when a page contains a single app, the uuid is a fixed trivial
+     * value like '00000000-0000-0000-0000-000000000000'.
+     *
+     * This is one of the current public Embedding APIs exposed by DDC.
+     * Note: this API will be replaced by `dartDevEmbedder.runMain` in the
+     * future.
+     */
     function start(appName, uuid, moduleName, libraryName, isReload) {
       console.info(
         `DDC: Subapp Module [${appName}:${moduleName}:${uuid}] is starting`);
@@ -676,6 +701,75 @@ if (!self.dart_library) {
       library.main([]);
     }
     dart_library.start = start;
+
+
+    /**
+     * Configure the DDC runtime.
+     *
+     * Must be called before invoking [start].
+     *
+     * The configuration parameter is an object that may provide any of the
+     * following keys:
+     *
+     *   - weakNullSafetyErrors: throw errors when types violate sound null
+     *        safety (deprecated).
+     *
+     *   - nonNullAsserts: insert non-null assertions no non-nullable method
+     *        parameters (deprecated, was used to aid in null safety
+     *        migrations).
+     *
+     *   - nativeNonNullAsserts: inject non-null assertions checks to validate
+     *        that browser APIs are sound. This is helpful because browser APIs
+     *        are generated from IDLs and cannot be proven to be correct
+     *        statically.
+     *
+     *   - jsInteropNonNullAsserts: inject non-null assertiosn to check
+     *        nullability of `package:js` JS-interop APIs. The new
+     *        `dart:js_interop` always includes non-null assertions.
+     *
+     *   - dynamicModuleLoader: provide the implementation of dynamic module
+     *        loading. Dynamic modules is an experimental feature.
+     *        The DDC runtime delegates to the embedder how code for dynamic
+     *        modules is downloaded. This entry in the configuration must be a
+     *        function with the signature:
+     *            `function(String, onLoad)`
+     *        It accepts a `String` containing a Uri that denotes the module to
+     *        be loaded. When the load completes, the loader must invoke
+     *        `onLoad` and provide the module name of the dynamic module to it.
+     *
+     *        Note: eventually we may want to make the loader return a promise.
+     *        We avoided that for now because it interfereres with our testing
+     *        in d8.
+     */
+    dart_library.configure = function configure(appName, configuration) {
+      let runtimeLibrary = dart_library.import("dart_sdk", appName).dart;
+      if (!!configuration.weakNullSafetyErrors) {
+        runtimeLibrary.weakNullSafetyErrors(configuration.weakNullSafetyErrors);
+      }
+      if (!!configuration.nonNullAsserts) {
+        runtimeLibrary.nonNullAsserts(configuration.nonNullAsserts);
+      }
+      if (!!configuration.nativeNonNullAsserts) {
+        runtimeLibrary.nativeNonNullAsserts(configuration.nativeNonNullAsserts);
+      }
+      if (!!configuration.jsInteropNonNullAsserts) {
+        runtimeLibrary.jsInteropNonNullAsserts(
+           configuration.jsInteropNonNullAsserts);
+      }
+      if (!!configuration.dynamicModuleLoader) {
+        let loader = configuration.dynamicModuleLoader;
+        runtimeLibrary.setDynamicModuleLoader(loader, (moduleName) => {
+          //  As mentioned in the docs above, loader will not invoke the
+          //  entrypoint, but just return the moduleName to find where to call
+          //  it.  By using the module name, we don't need to expose the
+          //  `import` as part of the embedding API.
+          //  In the future module system, this will change to a library name,
+          //  rather than a module name.
+          return import_(moduleName, appName).__dynamic_module_entrypoint__();
+        });
+      }
+    }
+
   })(dart_library);
 }
 
