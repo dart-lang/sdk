@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -58,6 +59,10 @@ class CompletionState {
 
   /// The element of the library containing the completion location.
   LibraryElement get libraryElement => request.libraryElement;
+
+  /// The type of quotes preferred for [String]s as specified in [CodeStyleOptions].
+  String get preferredQuoteForStrings => request
+      .fileState.analysisOptions.codeStyleOptions.preferredQuoteForStrings;
 
   /// The type of `this` at the completion location, or `null` if the completion
   /// location doesn't allow `this` to be used.

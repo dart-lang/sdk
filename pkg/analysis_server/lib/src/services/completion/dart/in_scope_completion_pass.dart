@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/completion/dart/not_imported_comple
 import 'package:analysis_server/src/services/completion/dart/override_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_helper.dart';
+import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
@@ -368,12 +369,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         for (var parameter in availableNamedParameters) {
           var matcherScore = state.matcher.score(parameter.displayName);
           if (matcherScore != -1) {
+            var isWidget = isFlutterWidgetParameter(parameter);
             collector.addSuggestion(NamedArgumentSuggestion(
               parameter: parameter,
               appendColon: true,
               appendComma: appendComma,
               replacementLength: replacementLength,
               matcherScore: matcherScore,
+              preferredQuoteForStrings: state.preferredQuoteForStrings,
+              isWidget: isWidget,
             ));
           }
         }
@@ -1972,11 +1976,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
                 if (!usedNames.contains(parameter.name)) {
                   var matcherScore = state.matcher.score(parameter.displayName);
                   if (matcherScore != -1) {
+                    var isWidget = isFlutterWidgetParameter(parameter);
                     collector.addSuggestion(NamedArgumentSuggestion(
                         parameter: parameter,
                         matcherScore: matcherScore,
                         appendColon: appendColon,
-                        appendComma: false));
+                        appendComma: false,
+                        isWidget: isWidget,
+                        preferredQuoteForStrings:
+                            state.preferredQuoteForStrings));
                   }
                 }
               }
