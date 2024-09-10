@@ -396,6 +396,7 @@ class LibraryFragmentScope implements Scope {
     for (var prefixElement in _prefixElements.values) {
       prefixElement.scope.importsTrackingDestroy();
     }
+    _importsTracking = null;
   }
 
   ImportsTracking importsTrackingInit() {
