@@ -336,7 +336,7 @@ String dart2wasmHtml(String title, String wasmPath, String mjsPath) {
     const appInstance = await compiledApp.instantiate({}, {
       loadDeferredWasm: (moduleName) => {
         const moduleFile = '$wasmPath'.replace('.wasm', `_\${moduleName}.wasm`);
-        return mjs.compileStreaming(fetch(moduleFile));
+        return fetch(moduleFile);
       }
     });
     dartMainRunner(() => {
