@@ -306,6 +306,47 @@ class A {}
         otherFileContent: otherFileContent);
   }
 
+  /// Test that if the destination file gets both relative and package imports,
+  /// they are added in the correct order.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/56657
+  Future<void> test_imports_ordering() async {
+    var libFilePath = join(projectFolderPath, 'lib', 'mixin.dart');
+
+    // Put the file in tool/ so we can use a package: import for the file
+    // above but get a relative import back to src.
+    mainFilePath = join(projectFolderPath, 'tool', 'main.dart');
+    // TODO(dantup): Make these URIs getters to avoid setting these twice in
+    //  each test.
+    mainFileUri = pathContext.toUri(mainFilePath);
+
+    newFile(libFilePath, 'mixin PackageMixin {};');
+    var originalSource = '''
+import 'package:test/mixin.dart';
+
+class Staying {}
+class Mov^ing extends Staying with PackageMixin {}
+''';
+    var declarationName = 'Moving';
+
+    var expected = '''
+>>>>>>>>>> tool/main.dart
+import 'package:test/mixin.dart';
+
+class Staying {}
+>>>>>>>>>> tool/moving.dart created
+import 'package:test/mixin.dart';
+import 'main.dart';
+
+class Moving extends Staying with PackageMixin {}
+''';
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
+  }
+
   Future<void> test_imports_prefix_cascade() async {
     var otherFileDeclarations = '''
 final list = <int>[];

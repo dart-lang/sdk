@@ -2639,6 +2639,34 @@ class B {}
             "import 'package:test/test_a.dart' show A, Other; A"));
   }
 
+  Future<void> test_importLibrary_sorted() async {
+    var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(resolvedUnit.path, (builder) {
+      builder.importLibrary(Uri.parse('z.dart'));
+      builder.importLibrary(Uri.parse('a.dart'));
+      builder.importLibrary(Uri.parse('../z.dart'));
+      builder.importLibrary(Uri.parse('../a.dart'));
+      builder.importLibrary(Uri.parse('package:foo/x.dart'));
+      builder.importLibrary(Uri.parse('package:foo/a.dart'));
+      builder.importLibrary(Uri.parse('dart:x'));
+      builder.importLibrary(Uri.parse('dart:a'));
+    });
+
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(edits[0].replacement, equalsIgnoringWhitespace('''
+import 'dart:a';
+import 'dart:x';
+import 'package:foo/a.dart';
+import 'package:foo/x.dart';
+import '../a.dart';
+import '../z.dart';
+import 'a.dart';
+import 'z.dart';
+'''));
+  }
+
   Future<void> test_multipleEdits_concurrently() async {
     var initialCode = '00';
     var path = convertPath('/home/test/lib/test.dart');
