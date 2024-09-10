@@ -238,6 +238,14 @@ base class SubListIterable<E> extends ListIterable<E> {
   /** If null, represents the length of the iterable. */
   final int? _endOrLength;
 
+  /// Returns `_iterable` for for internal code.
+  static Iterable<E> iterableOf<E>(SubListIterable<E> subListIterable) =>
+      subListIterable._iterable;
+
+  /// Returns `_start` for for internal code.
+  static int startOf<E>(SubListIterable<E> subListIterable) =>
+      subListIterable._start;
+
   SubListIterable(this._iterable, this._start, this._endOrLength) {
     RangeError.checkNotNegative(_start, "start");
     int? endOrLength = _endOrLength;

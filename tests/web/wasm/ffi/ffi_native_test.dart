@@ -5,6 +5,9 @@
 // dart2wasmOptions=--extra-compiler-option=--enable-experimental-ffi
 // SharedObjects=ffi_native_test_module
 
+// Build target `ffi_native_test_wasm_module` for the FFI module used in this
+// test.
+
 import 'dart:ffi';
 import 'dart:nativewrappers';
 
@@ -46,8 +49,11 @@ external bool boolReturn(int b);
 @Native<Void Function()>()
 external void toggleBool();
 
+@Native<Float Function(Float)>()
+external double sqrtFloat(double d);
+
 @Native<Double Function(Double)>()
-external double sqrt(double d);
+external double sqrtDouble(double d);
 
 @Native<Char Function(Char)>()
 external int incrementChar(int a);
@@ -173,6 +179,9 @@ void main() {
   Expect.equals(incrementUintPtr(25), 26);
   Expect.equals(incrementSize(27), 28);
   Expect.equals(incrementWchar(29), 30);
+
+  Expect.equals(sqrtDouble(1e300), 1e150);
+  Expect.equals(sqrtFloat(1e10), 1e5);
 }
 
 // Don't crash on an unused `Native.addressOf`.

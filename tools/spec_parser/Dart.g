@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.46 Rename `libraryDefinition` to `libraryDeclaration`, as in the
+// language specification. Add support for libraries with imports.
+//
 // v0.45 Update rule about augmenting extension type declaration to omit
 // the primary constructor.
 //
@@ -259,11 +262,11 @@ import java.util.Stack;
 // ---------------------------------------- Grammar rules.
 
 startSymbol
-    :    libraryDefinition
+    :    libraryDeclaration
     |    partDeclaration
     ;
 
-libraryDefinition
+libraryDeclaration
     :    FEFF? SCRIPT_TAG?
          libraryName?
          importOrExport*
@@ -1452,7 +1455,11 @@ partHeader
     ;
 
 partDeclaration
-    :    FEFF? partHeader (metadata topLevelDefinition)* EOF
+    :    FEFF? partHeader
+         importOrExport*
+         partDirective*
+         (metadata topLevelDefinition)*
+         EOF
     ;
 
 uri

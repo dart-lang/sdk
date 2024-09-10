@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:collection";
 
-test(List<int> list, int index, Iterable<int> iterable) {
+import "package:expect/expect.dart";
+
+void test(List<int> list, int index, Iterable<int> iterable) {
   List copy = list.toList();
   list.setAll(index, iterable);
   Expect.equals(copy.length, list.length);
@@ -22,7 +23,7 @@ test(List<int> list, int index, Iterable<int> iterable) {
 }
 
 class MyList<T> extends ListBase<T> {
-  List list;
+  final List<T> list;
   MyList(this.list);
   get length => list.length;
   set length(value) {
@@ -37,61 +38,55 @@ class MyList<T> extends ListBase<T> {
   toString() => list.toString();
 }
 
-main() {
-  test([1, 2, 3], 0, [4, 5]);
-  test([1, 2, 3], 1, [4, 5]);
-  test([1, 2, 3], 2, [4]);
-  test([1, 2, 3], 3, []);
-  test([1, 2, 3], 0, [4, 5].map((x) => x));
-  test([1, 2, 3], 1, [4, 5].map((x) => x));
-  test([1, 2, 3], 2, [4].map((x) => x));
-  test([1, 2, 3], 3, [].map((x) => x));
-  test([1, 2, 3], 0, const [4, 5]);
-  test([1, 2, 3], 1, const [4, 5]);
-  test([1, 2, 3], 2, const [4]);
-  test([1, 2, 3], 3, const []);
-  test([1, 2, 3], 0, new Iterable.generate(2, (x) => x + 4));
-  test([1, 2, 3], 1, new Iterable.generate(2, (x) => x + 4));
-  test([1, 2, 3], 2, new Iterable.generate(1, (x) => x + 4));
-  test([1, 2, 3], 3, new Iterable.generate(0, (x) => x + 4));
-  test([1, 2, 3].toList(growable: false), 0, [4, 5]);
-  test([1, 2, 3].toList(growable: false), 1, [4, 5]);
-  test([1, 2, 3].toList(growable: false), 2, [4]);
-  test([1, 2, 3].toList(growable: false), 3, []);
-  test([1, 2, 3].toList(growable: false), 0, [4, 5].map((x) => x));
-  test([1, 2, 3].toList(growable: false), 1, [4, 5].map((x) => x));
-  test([1, 2, 3].toList(growable: false), 2, [4].map((x) => x));
-  test([1, 2, 3].toList(growable: false), 3, [].map((x) => x));
-  test([1, 2, 3].toList(growable: false), 0, const [4, 5]);
-  test([1, 2, 3].toList(growable: false), 1, const [4, 5]);
-  test([1, 2, 3].toList(growable: false), 2, const [4]);
-  test([1, 2, 3].toList(growable: false), 3, const []);
-  test([1, 2, 3].toList(growable: false), 0,
-      new Iterable.generate(2, (x) => x + 4));
-  test([1, 2, 3].toList(growable: false), 1,
-      new Iterable.generate(2, (x) => x + 4));
-  test([1, 2, 3].toList(growable: false), 2,
-      new Iterable.generate(1, (x) => x + 4));
-  test([1, 2, 3].toList(growable: false), 3,
-      new Iterable.generate(0, (x) => x + 4));
-  test(new MyList([1, 2, 3]), 0, [4, 5]);
-  test(new MyList([1, 2, 3]), 1, [4, 5]);
-  test(new MyList([1, 2, 3]), 2, [4]);
-  test(new MyList([1, 2, 3]), 3, []);
-  test(new MyList([1, 2, 3]), 0, [4, 5].map((x) => x));
-  test(new MyList([1, 2, 3]), 1, [4, 5].map((x) => x));
-  test(new MyList([1, 2, 3]), 2, [4].map((x) => x));
-  test(new MyList([1, 2, 3]), 3, [].map((x) => x));
+void main() {
+  for (var makeIterable in iterableMakers) {
+    test([1, 2, 3], 0, makeIterable([4, 5]));
+    test([1, 2, 3], 1, makeIterable([4, 5]));
+    test([1, 2, 3], 2, makeIterable([4]));
+    test([1, 2, 3], 3, makeIterable([]));
+    test([1, 2, 3], 0, makeIterable(const [4, 5]));
+    test([1, 2, 3], 1, makeIterable(const [4, 5]));
+    test([1, 2, 3], 2, makeIterable(const [4]));
+    test([1, 2, 3], 3, makeIterable(const []));
+    test([1, 2, 3].toList(growable: false), 0, makeIterable([4, 5]));
+    test([1, 2, 3].toList(growable: false), 1, makeIterable([4, 5]));
+    test([1, 2, 3].toList(growable: false), 2, makeIterable([4]));
+    test([1, 2, 3].toList(growable: false), 3, makeIterable([]));
+    test([1, 2, 3].toList(growable: false), 0, makeIterable(const [4, 5]));
+    test([1, 2, 3].toList(growable: false), 1, makeIterable(const [4, 5]));
+    test([1, 2, 3].toList(growable: false), 2, makeIterable(const [4]));
+    test([1, 2, 3].toList(growable: false), 3, makeIterable(const []));
+    test(MyList([1, 2, 3]), 0, makeIterable([4, 5]));
+    test(MyList([1, 2, 3]), 1, makeIterable([4, 5]));
+    test(MyList([1, 2, 3]), 2, makeIterable([4]));
+    test(MyList([1, 2, 3]), 3, makeIterable([]));
 
-  Expect.throwsRangeError(() => test([1, 2, 3], -1, [4, 5]));
-  Expect.throwsRangeError(
-      () => test([1, 2, 3].toList(growable: false), -1, [4, 5]));
-  Expect.throwsRangeError(() => test([1, 2, 3], 1, [4, 5, 6]));
-  Expect.throwsRangeError(
-      () => test([1, 2, 3].toList(growable: false), 1, [4, 5, 6]));
-  Expect.throwsRangeError(() => test(new MyList([1, 2, 3]), -1, [4, 5]));
-  Expect.throwsRangeError(() => test(new MyList([1, 2, 3]), 1, [4, 5, 6]));
-  Expect.throwsUnsupportedError(() => test(const [1, 2, 3], 0, [4, 5]));
-  Expect.throwsUnsupportedError(() => test(const [1, 2, 3], -1, [4, 5]));
-  Expect.throwsUnsupportedError(() => test(const [1, 2, 3], 1, [4, 5, 6]));
+    Expect.throwsRangeError(() => test([1, 2, 3], -1, makeIterable([4, 5])));
+    Expect.throwsRangeError(() =>
+        test([1, 2, 3].toList(growable: false), -1, makeIterable([4, 5])));
+    Expect.throwsRangeError(() => test([1, 2, 3], 1, makeIterable([4, 5, 6])));
+    Expect.throwsRangeError(() =>
+        test([1, 2, 3].toList(growable: false), 1, makeIterable([4, 5, 6])));
+    Expect.throwsRangeError(
+        () => test(MyList([1, 2, 3]), -1, makeIterable([4, 5])));
+    Expect.throwsRangeError(
+        () => test(MyList([1, 2, 3]), 1, makeIterable([4, 5, 6])));
+    Expect.throwsUnsupportedError(
+        () => test(const [1, 2, 3], 0, makeIterable([4, 5])));
+    Expect.throwsUnsupportedError(
+        () => test(const [1, 2, 3], -1, makeIterable([4, 5])));
+    Expect.throwsUnsupportedError(
+        () => test(const [1, 2, 3], 1, makeIterable([4, 5, 6])));
+  }
 }
+
+// `setAll` implementations can have type tests and special cases to handle
+// different types of iterables differently, so we test with a few different
+// types of iterables.
+List<Iterable<int> Function(List<int>)> iterableMakers = [
+  (list) => list,
+  MyList.new,
+  (list) => list.where((x) => true),
+  (list) => list.map((x) => x),
+  (list) => list.getRange(0, list.length),
+];
