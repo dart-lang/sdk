@@ -4,33 +4,6 @@
 
 import 'bytecode_serialization.dart' show BufferedWriter, BufferedReader;
 
-/*
-
-In kernel binary, try blocks are encoded in the following way
-(using notation from pkg/kernel/binary.md):
-
-// Offset of a bytecode instruction.
-type BytecodeOffset = UInt;
-
-type TryBlock {
-  UInt outerTryIndexPlus1;
-  BytecodeOffset startPC; // Inclusive.
-  BytecodeOffset endPC; // Exclusive.
-  BytecodeOffset handlerPC;
-  Byte flags (needsStackTrace, isSynthetic);
-  List<ConstantIndex> types;
-}
-
-type ExceptionsTable {
-  // Ordered by startPC, then by nesting (outer precedes inner).
-  // Try blocks are properly nested. It means there are no partially
-  // overlapping try blocks - each pair of try block regions either
-  // has no intersection or one try block region encloses another.
-  List<TryBlock> tryBlocks;
-}
-
-*/
-
 class TryBlock {
   static const int flagNeedsStackTrace = 1 << 0;
   static const int flagIsSynthetic = 1 << 1;
