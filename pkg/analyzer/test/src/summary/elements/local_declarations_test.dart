@@ -42,6 +42,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 
@@ -332,6 +339,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        main @0
+          reference: <testLibraryFragment>::@function::main
+  functions
+    main
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 }

@@ -43,6 +43,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 
@@ -81,6 +88,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+      functions
+        main @18
+          reference: <testLibraryFragment>::@function::main
+          parameters
+            f @25
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function(int)
+  functions
+    main
+      reference: <none>
+      parameters
+        requiredPositional f
+          reference: <none>
+          type: dynamic Function(int)
+            alias: <testLibraryFragment>::@typeAlias::F
+      returnType: dynamic
 ''');
   }
 
@@ -320,6 +348,9 @@ library
           reference: <testLibraryFragment>::@setter::y
           parameters
             _y @-1
+      functions
+        f @35
+          reference: <testLibraryFragment>::@function::f
   topLevelVariables
     x
       reference: <none>
@@ -355,6 +386,10 @@ library
           reference: <none>
           type: InvalidType
       firstFragment: <testLibraryFragment>::@setter::y
+  functions
+    f
+      reference: <none>
+      returnType: FutureOr<int>
 ''');
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(2));
@@ -1102,6 +1137,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -1851,6 +1893,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
       topLevelVariables
         f @33
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -1864,6 +1911,13 @@ library
           reference: <testLibraryFragment>::@setter::f
           parameters
             _f @-1
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+          bound: num
+      aliasedType: dynamic Function(T)
   topLevelVariables
     f
       reference: <none>
@@ -2083,6 +2137,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
       topLevelVariables
         f @49
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -2096,6 +2155,13 @@ library
           reference: <testLibraryFragment>::@setter::f
           parameters
             _f @-1
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+          bound: num
+      aliasedType: S Function<S>(T)
   topLevelVariables
     f
       reference: <none>
@@ -2499,6 +2565,19 @@ library
       libraryImports
         package:test/a.dart
         package:test/b.dart
+      functions
+        foo @34
+          reference: <testLibraryFragment>::@function::foo
+          parameters
+            default p @39
+  functions
+    foo
+      reference: <none>
+      parameters
+        optionalPositional p
+          reference: <none>
+          type: dynamic
+      returnType: dynamic
 ''');
   }
 
@@ -2548,6 +2627,19 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/c.dart
+      functions
+        foo @17
+          reference: <testLibraryFragment>::@function::foo
+          parameters
+            default p @22
+  functions
+    foo
+      reference: <none>
+      parameters
+        optionalPositional p
+          reference: <none>
+          type: dynamic
+      returnType: dynamic
 ''');
   }
 
@@ -2616,6 +2708,13 @@ library
           reference: <testLibraryFragment>::@setter::V
           parameters
             _V @-1
+      functions
+        foo @0
+          reference: <testLibraryFragment>::@function::foo
+          parameters
+            default p @5
+        V @16
+          reference: <testLibraryFragment>::@function::V
   topLevelVariables
     V
       reference: <none>
@@ -2635,6 +2734,17 @@ library
           reference: <none>
           type: dynamic
       firstFragment: <testLibraryFragment>::@setter::V
+  functions
+    foo
+      reference: <none>
+      parameters
+        optionalPositional p
+          reference: <none>
+          type: dynamic
+      returnType: dynamic
+    V
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 
@@ -3096,6 +3206,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @7
+            U @10
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+        U
+      returnType: void
 ''');
   }
 
@@ -3136,6 +3259,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @7
+            U @10
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+        U
+      returnType: void
 ''');
   }
 
@@ -3163,6 +3299,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -3206,6 +3349,9 @@ library
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
+      functions
+        f @52
+          reference: <testLibraryFragment>::@function::f
   topLevelVariables
     final v
       reference: <none>
@@ -3216,6 +3362,10 @@ library
     synthetic static get v
       reference: <none>
       firstFragment: <testLibraryFragment>::@getter::v
+  functions
+    f
+      reference: <none>
+      returnType: bool
 ''');
   }
 
@@ -3250,6 +3400,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @7
+            U @10
+          parameters
+            b @18
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+        U
+      parameters
+        requiredPositional b
+          reference: <none>
+          type: bool
+      returnType: void
 ''');
   }
 
@@ -3330,6 +3499,9 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::v
               parameters
                 _v @-1
+      functions
+        f @74
+          reference: <testLibraryFragment>::@function::f
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -3360,6 +3532,10 @@ library
               reference: <none>
               type: int Function(T, U)
           firstFragment: <testLibraryFragment>::@class::C::@setter::v
+  functions
+    f
+      reference: <none>
+      returnType: bool
 ''');
   }
 
@@ -3394,6 +3570,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @7
+            U @10
+          parameters
+            b @18
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+        U
+      parameters
+        requiredPositional b
+          reference: <none>
+          type: bool
+      returnType: void
 ''');
   }
 
@@ -3437,6 +3632,9 @@ library
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
+      functions
+        f @40
+          reference: <testLibraryFragment>::@function::f
   topLevelVariables
     final v
       reference: <none>
@@ -3447,6 +3645,10 @@ library
     synthetic static get v
       reference: <none>
       firstFragment: <testLibraryFragment>::@getter::v
+  functions
+    f
+      reference: <none>
+      returnType: bool
 ''');
   }
 
@@ -3490,6 +3692,9 @@ library
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
+      functions
+        f @70
+          reference: <testLibraryFragment>::@function::f
   topLevelVariables
     final v
       reference: <none>
@@ -3500,6 +3705,10 @@ library
     synthetic static get v
       reference: <none>
       firstFragment: <testLibraryFragment>::@getter::v
+  functions
+    f
+      reference: <none>
+      returnType: bool
 ''');
   }
 

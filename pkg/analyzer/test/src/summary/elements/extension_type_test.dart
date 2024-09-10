@@ -1793,6 +1793,9 @@ library
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::X::@getter::it
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
   extensionTypes
     extension type X
       reference: <testLibraryFragment>::@extensionType::X
@@ -1808,6 +1811,10 @@ library
         synthetic get it
           reference: <none>
           firstFragment: <testLibraryFragment>::@extensionType::X::@getter::it
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: void
 ''');
   }
 

@@ -51,6 +51,13 @@ library
     <testLibraryFragment>
       libraryImports
         dart:async
+      functions
+        f @28
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: Future<dynamic>
 ''');
   }
 
@@ -86,6 +93,13 @@ library
     <testLibraryFragment>
       libraryImports
         dart:async
+      functions
+        f @28
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: Stream<dynamic>
 ''');
   }
 
@@ -114,6 +128,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @60
+          reference: <testLibraryFragment>::@function::f
+          documentationComment: /**\n * Docs\n */
+  functions
+    f
+      reference: <none>
+      documentationComment: /**\n * Docs\n */
+      returnType: dynamic
 ''');
   }
 
@@ -136,6 +159,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        main @0
+          reference: <testLibraryFragment>::@function::main
+  functions
+    main
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 
@@ -232,6 +262,13 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      functions
+        main @16
+          reference: <testLibrary>::@fragment::package:test/a.dart::@function::main
+  functions
+    main
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 
@@ -254,6 +291,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @9
+          reference: <testLibraryFragment>::@function::f
+  functions
+    external f
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 
@@ -297,6 +341,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            x @13
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional x
+          reference: <none>
+          type: dynamic
+      returnType: void
 ''');
   }
 
@@ -325,6 +382,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            this.a @16
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional final a
+          reference: <none>
+          type: int
+      returnType: void
 ''');
   }
 
@@ -358,6 +428,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            default this.a @17
+              reference: <testLibraryFragment>::@function::f::@parameter::a
+  functions
+    f
+      reference: <none>
+      parameters
+        optionalNamed final a
+          reference: <none>
+          type: int
+      returnType: void
 ''');
   }
 
@@ -389,6 +473,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            this.a @16
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional final a
+          reference: <none>
+          type: int Function(int)
+          parameters
+            requiredPositional b
+              reference: <none>
+              type: int
+      returnType: void
 ''');
   }
 
@@ -414,6 +515,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            x @8
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional final x
+          reference: <none>
+          type: dynamic
+      returnType: dynamic
 ''');
   }
 
@@ -440,6 +554,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            default x @3
+              reference: <testLibraryFragment>::@function::f::@parameter::x
+  functions
+    f
+      reference: <none>
+      parameters
+        optionalNamed x
+          reference: <none>
+          type: dynamic
+      returnType: dynamic
 ''');
   }
 
@@ -465,6 +593,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            default x @3
+  functions
+    f
+      reference: <none>
+      parameters
+        optionalPositional x
+          reference: <none>
+          type: dynamic
+      returnType: dynamic
 ''');
   }
 
@@ -490,6 +631,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            x @2
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional x
+          reference: <none>
+          type: dynamic
+      returnType: dynamic
 ''');
   }
 
@@ -520,6 +674,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            g @2
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional g
+          reference: <none>
+          type: dynamic Function(dynamic, dynamic)
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: dynamic
+            requiredPositional y
+              reference: <none>
+              type: dynamic
+      returnType: dynamic
 ''');
   }
 
@@ -545,6 +719,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            g @6
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional g
+          reference: <none>
+          type: int Function()
+      returnType: dynamic
 ''');
   }
 
@@ -570,6 +757,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            g @7
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional g
+          reference: <none>
+          type: void Function()
+      returnType: dynamic
 ''');
   }
 
@@ -595,6 +795,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            i @6
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional i
+          reference: <none>
+          type: int
+      returnType: dynamic
 ''');
   }
 
@@ -625,6 +838,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @7
+          parameters
+            a @12
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: T
+      returnType: void
 ''');
   }
 
@@ -652,6 +882,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @9
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: InvalidType
+      returnType: void
 ''');
   }
 
@@ -679,6 +922,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            x @2
+            y @5
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional x
+          reference: <none>
+          type: dynamic
+        requiredPositional y
+          reference: <none>
+          type: dynamic
+      returnType: dynamic
 ''');
   }
 
@@ -701,6 +961,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 
@@ -725,6 +992,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @2
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: InvalidType
 ''');
   }
 
@@ -747,6 +1021,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -771,6 +1052,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @4
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: int
 ''');
   }
 
@@ -798,6 +1086,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @2
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @4
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+      returnType: T
 ''');
   }
 
@@ -831,6 +1130,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @7
+            U @10
+          parameters
+            x @15
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+        U
+      parameters
+        requiredPositional x
+          reference: <none>
+          type: T Function(U)
+          parameters
+            requiredPositional u
+              reference: <none>
+              type: U
+      returnType: void
 ''');
   }
 
@@ -867,6 +1189,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @7
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+          bound: num
+      returnType: void
 ''');
   }
 
@@ -894,6 +1228,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @7
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+      returnType: void
 ''');
   }
 
@@ -920,6 +1265,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+        g @7
+          reference: <testLibraryFragment>::@function::g
+  functions
+    f
+      reference: <none>
+      returnType: dynamic
+    g
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 
@@ -1204,6 +1561,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        main @8
+          reference: <testLibraryFragment>::@typeAlias::main
+  typeAliases
+    main
+      reference: <none>
+      aliasedType: dynamic Function()
 ''');
   }
 
@@ -1483,23 +1847,66 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a1.dart
+      functions
+        foo @37
+          reference: <testLibraryFragment>::@function::foo
     <testLibrary>::@fragment::package:test/a1.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
+      functions
+        foo @68
+          reference: <testLibrary>::@fragment::package:test/a1.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a11.dart
       previousFragment: <testLibrary>::@fragment::package:test/a1.dart
       nextFragment: <testLibrary>::@fragment::package:test/a12.dart
+      functions
+        foo @32
+          reference: <testLibrary>::@fragment::package:test/a11.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a12.dart
       previousFragment: <testLibrary>::@fragment::package:test/a11.dart
       nextFragment: <testLibrary>::@fragment::package:test/a2.dart
+      functions
+        foo @32
+          reference: <testLibrary>::@fragment::package:test/a12.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a2.dart
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/a21.dart
+      functions
+        foo @68
+          reference: <testLibrary>::@fragment::package:test/a2.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a21.dart
       previousFragment: <testLibrary>::@fragment::package:test/a2.dart
       nextFragment: <testLibrary>::@fragment::package:test/a22.dart
+      functions
+        foo @32
+          reference: <testLibrary>::@fragment::package:test/a21.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a22.dart
       previousFragment: <testLibrary>::@fragment::package:test/a21.dart
+      functions
+        foo @32
+          reference: <testLibrary>::@fragment::package:test/a22.dart::@functionAugmentation::foo
+  functions
+    foo
+      reference: <none>
+      returnType: void
+    foo
+      reference: <none>
+      returnType: void
+    foo
+      reference: <none>
+      returnType: void
+    foo
+      reference: <none>
+      returnType: void
+    foo
+      reference: <none>
+      returnType: void
+    foo
+      reference: <none>
+      returnType: void
+    foo
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -1562,6 +1969,9 @@ library
               reference: <testLibraryFragment>::@class::foo::@constructor::new
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      functions
+        foo @35
+          reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
   classes
     class foo
       reference: <testLibraryFragment>::@class::foo
@@ -1570,6 +1980,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::foo::@constructor::new
+  functions
+    foo
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -1625,8 +2039,21 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      functions
+        foo @20
+          reference: <testLibraryFragment>::@function::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      functions
+        foo @34
+          reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
+  functions
+    foo
+      reference: <none>
+      returnType: void
+    foo
+      reference: <none>
+      returnType: void
   exportedReferences
     declared <testLibraryFragment>::@function::foo
   exportNamespace
@@ -1687,6 +2114,18 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      functions
+        foo @26
+          reference: <testLibrary>::@fragment::package:test/a.dart::@function::foo
+        foo @48
+          reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
+  functions
+    foo
+      reference: <none>
+      returnType: void
+    foo
+      reference: <none>
+      returnType: void
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@function::foo
   exportNamespace
@@ -1756,6 +2195,9 @@ library
           reference: <testLibraryFragment>::@getter::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      functions
+        foo @35
+          reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
   topLevelVariables
     synthetic foo
       reference: <none>
@@ -1766,6 +2208,10 @@ library
     static get foo
       reference: <none>
       firstFragment: <testLibraryFragment>::@getter::foo
+  functions
+    foo
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -1836,6 +2282,9 @@ library
             _ @28
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      functions
+        foo @35
+          reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
   topLevelVariables
     synthetic foo
       reference: <none>
@@ -1850,6 +2299,10 @@ library
           reference: <none>
           type: int
       firstFragment: <testLibraryFragment>::@setter::foo
+  functions
+    foo
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -1929,6 +2382,9 @@ library
             _foo @-1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      functions
+        foo @35
+          reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
   topLevelVariables
     foo
       reference: <none>
@@ -1948,6 +2404,10 @@ library
           reference: <none>
           type: int
       firstFragment: <testLibraryFragment>::@setter::foo
+  functions
+    foo
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -2085,6 +2545,9 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      functions
+        foo @20
+          reference: <testLibraryFragment>::@function::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       getters
@@ -2094,6 +2557,10 @@ library
     static get foo
       reference: <none>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
+  functions
+    foo
+      reference: <none>
+      returnType: void
   exportedReferences
     declared <testLibraryFragment>::@function::foo
   exportNamespace

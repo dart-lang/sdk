@@ -151,6 +151,134 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        Raw @8
+          reference: <testLibraryFragment>::@typeAlias::Raw
+        HasDocComment @54
+          reference: <testLibraryFragment>::@typeAlias::HasDocComment
+          documentationComment: /// Comment 1.\n/// Comment 2.
+        HasAnnotation @90
+          reference: <testLibraryFragment>::@typeAlias::HasAnnotation
+          metadata
+            Annotation
+              atSign: @ @72
+              name: SimpleIdentifier
+                token: Object @73
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @79
+                rightParenthesis: ) @80
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        AnnotationThenComment @156
+          reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @108
+              name: SimpleIdentifier
+                token: Object @109
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @115
+                rightParenthesis: ) @116
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        CommentThenAnnotation @230
+          reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @212
+              name: SimpleIdentifier
+                token: Object @213
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @219
+                rightParenthesis: ) @220
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        CommentAroundAnnotation @304
+          reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
+          documentationComment: /// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @271
+              name: SimpleIdentifier
+                token: Object @272
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @278
+                rightParenthesis: ) @279
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+  typeAliases
+    Raw
+      reference: <none>
+      aliasedType: dynamic Function()
+    HasDocComment
+      reference: <none>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      aliasedType: dynamic Function()
+    HasAnnotation
+      reference: <none>
+      metadata
+        Annotation
+          atSign: @ @72
+          name: SimpleIdentifier
+            token: Object @73
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @79
+            rightParenthesis: ) @80
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      aliasedType: dynamic Function()
+    AnnotationThenComment
+      reference: <none>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      metadata
+        Annotation
+          atSign: @ @108
+          name: SimpleIdentifier
+            token: Object @109
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @115
+            rightParenthesis: ) @116
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      aliasedType: dynamic Function()
+    CommentThenAnnotation
+      reference: <none>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      metadata
+        Annotation
+          atSign: @ @212
+          name: SimpleIdentifier
+            token: Object @213
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @219
+            rightParenthesis: ) @220
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      aliasedType: dynamic Function()
+    CommentAroundAnnotation
+      reference: <none>
+      documentationComment: /// Comment 2.
+      metadata
+        Annotation
+          atSign: @ @271
+          name: SimpleIdentifier
+            token: Object @272
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @278
+            rightParenthesis: ) @279
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      aliasedType: dynamic Function()
 ''');
   }
 
@@ -284,6 +412,134 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        Raw @8
+          reference: <testLibraryFragment>::@typeAlias::Raw
+        HasDocComment @65
+          reference: <testLibraryFragment>::@typeAlias::HasDocComment
+          documentationComment: /// Comment 1.\n/// Comment 2.
+        HasAnnotation @112
+          reference: <testLibraryFragment>::@typeAlias::HasAnnotation
+          metadata
+            Annotation
+              atSign: @ @94
+              name: SimpleIdentifier
+                token: Object @95
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @101
+                rightParenthesis: ) @102
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        AnnotationThenComment @189
+          reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @141
+              name: SimpleIdentifier
+                token: Object @142
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @148
+                rightParenthesis: ) @149
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        CommentThenAnnotation @274
+          reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @256
+              name: SimpleIdentifier
+                token: Object @257
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @263
+                rightParenthesis: ) @264
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        CommentAroundAnnotation @359
+          reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
+          documentationComment: /// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @326
+              name: SimpleIdentifier
+                token: Object @327
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @333
+                rightParenthesis: ) @334
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+  typeAliases
+    Raw
+      reference: <none>
+      aliasedType: dynamic Function()
+    HasDocComment
+      reference: <none>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      aliasedType: dynamic Function()
+    HasAnnotation
+      reference: <none>
+      metadata
+        Annotation
+          atSign: @ @94
+          name: SimpleIdentifier
+            token: Object @95
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @101
+            rightParenthesis: ) @102
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      aliasedType: dynamic Function()
+    AnnotationThenComment
+      reference: <none>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      metadata
+        Annotation
+          atSign: @ @141
+          name: SimpleIdentifier
+            token: Object @142
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @148
+            rightParenthesis: ) @149
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      aliasedType: dynamic Function()
+    CommentThenAnnotation
+      reference: <none>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      metadata
+        Annotation
+          atSign: @ @256
+          name: SimpleIdentifier
+            token: Object @257
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @263
+            rightParenthesis: ) @264
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      aliasedType: dynamic Function()
+    CommentAroundAnnotation
+      reference: <none>
+      documentationComment: /// Comment 2.
+      metadata
+        Annotation
+          atSign: @ @326
+          name: SimpleIdentifier
+            token: Object @327
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @333
+            rightParenthesis: ) @334
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      aliasedType: dynamic Function()
 ''');
   }
 
@@ -348,6 +604,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @15
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(T)
 ''');
   }
 
@@ -391,6 +658,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F1 @13
+          reference: <testLibraryFragment>::@typeAlias::F1
+          typeParameters
+            T @16
+        F2 @39
+          reference: <testLibraryFragment>::@typeAlias::F2
+          typeParameters
+            T @42
+  typeAliases
+    F1
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(T)
+    F2
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(T) Function()
 ''');
   }
 
@@ -434,6 +721,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F2 @14
+          reference: <testLibraryFragment>::@typeAlias::F2
+          typeParameters
+            T @17
+        F1 @36
+          reference: <testLibraryFragment>::@typeAlias::F1
+          typeParameters
+            T @39
+  typeAliases
+    F2
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(T) Function()
+    F1
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(T)
 ''');
   }
 
@@ -462,6 +769,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @10
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @12
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T Function()
 ''');
   }
 
@@ -490,6 +808,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @16
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @18
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: List<T> Function()
 ''');
   }
 
@@ -530,6 +859,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F1 @10
+          reference: <testLibraryFragment>::@typeAlias::F1
+          typeParameters
+            T @13
+        F2 @33
+          reference: <testLibraryFragment>::@typeAlias::F2
+          typeParameters
+            T @36
+  typeAliases
+    F1
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T Function()
+    F2
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T Function() Function()
 ''');
   }
 
@@ -576,6 +925,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F1 @13
+          reference: <testLibraryFragment>::@typeAlias::F1
+          typeParameters
+            T @16
+        F2 @38
+          reference: <testLibraryFragment>::@typeAlias::F2
+          typeParameters
+            T @41
+  typeAliases
+    F1
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(T)
+    F2
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(void Function(T))
 ''');
   }
 
@@ -607,6 +976,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @10
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @12
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T Function(T)
 ''');
   }
 
@@ -650,6 +1030,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F1 @10
+          reference: <testLibraryFragment>::@typeAlias::F1
+          typeParameters
+            T @13
+        F2 @33
+          reference: <testLibraryFragment>::@typeAlias::F2
+          typeParameters
+            T @36
+  typeAliases
+    F1
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T Function()
+    F2
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T Function() Function(T)
 ''');
   }
 
@@ -681,6 +1081,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @15
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(int)
 ''');
   }
 
@@ -738,6 +1149,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            X @10
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      typeParameters
+        X
+          bound: dynamic
+      aliasedType: dynamic Function(dynamic)
 ''');
   }
 
@@ -769,6 +1192,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+        G @34
+          reference: <testLibraryFragment>::@typeAlias::G
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      aliasedType: dynamic Function()
+    notSimplyBounded G
+      reference: <none>
+      aliasedType: dynamic Function()
 ''');
   }
 
@@ -794,6 +1229,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      aliasedType: List<dynamic> Function()
 ''');
   }
 
@@ -823,6 +1265,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      typeParameters
+        T
+          bound: dynamic
+      aliasedType: void Function()
 ''');
   }
 
@@ -851,6 +1305,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function()
 ''');
   }
 
@@ -876,6 +1341,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: void Function()
 ''');
   }
 
@@ -903,6 +1375,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      typeParameters
+        T
+          bound: dynamic
+      aliasedType: List<int>
 ''');
   }
 
@@ -926,6 +1410,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      aliasedType: List<dynamic>
 ''');
   }
 
@@ -972,6 +1463,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+      functions
+        f @42
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @46
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: void Function({int p})
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: void Function({int p})
+            alias: <testLibraryFragment>::@typeAlias::A
+      returnType: void
 ''');
   }
 
@@ -1006,6 +1518,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: void Function(T Function<T, U>(U))
 ''');
   }
 
@@ -1037,6 +1556,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(T)
 ''');
   }
 
@@ -1080,6 +1610,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F1 @8
+          reference: <testLibraryFragment>::@typeAlias::F1
+          typeParameters
+            T @11
+        F2 @42
+          reference: <testLibraryFragment>::@typeAlias::F2
+          typeParameters
+            T @45
+  typeAliases
+    F1
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(T)
+    F2
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(T) Function()
 ''');
   }
 
@@ -1108,6 +1658,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T Function()
 ''');
   }
 
@@ -1136,6 +1697,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: List<T> Function()
 ''');
   }
 
@@ -1176,6 +1748,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F1 @8
+          reference: <testLibraryFragment>::@typeAlias::F1
+          typeParameters
+            T @11
+        F2 @38
+          reference: <testLibraryFragment>::@typeAlias::F2
+          typeParameters
+            T @41
+  typeAliases
+    F1
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T Function()
+    F2
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T Function() Function()
 ''');
   }
 
@@ -1222,6 +1814,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F1 @8
+          reference: <testLibraryFragment>::@typeAlias::F1
+          typeParameters
+            T @11
+        F2 @42
+          reference: <testLibraryFragment>::@typeAlias::F2
+          typeParameters
+            T @45
+  typeAliases
+    F1
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(T)
+    F2
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(void Function(T))
 ''');
   }
 
@@ -1268,6 +1880,11 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+      typeAliases
+        F @19
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @21
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1276,6 +1893,12 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(A)
 ''');
   }
 
@@ -1314,6 +1937,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+        G @37
+          reference: <testLibraryFragment>::@typeAlias::G
+          typeParameters
+            T @39
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: void Function()
+    G
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(void Function())
 ''');
   }
 
@@ -1345,6 +1984,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T Function(T)
 ''');
   }
 
@@ -1388,6 +2038,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F1 @8
+          reference: <testLibraryFragment>::@typeAlias::F1
+          typeParameters
+            T @11
+        F2 @38
+          reference: <testLibraryFragment>::@typeAlias::F2
+          typeParameters
+            T @41
+  typeAliases
+    F1
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T Function()
+    F2
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T Function() Function(T)
 ''');
   }
 
@@ -1419,6 +2089,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(int)
 ''');
   }
 
@@ -1445,6 +2126,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: List<void Function(T)>
 ''');
   }
 
@@ -1483,6 +2175,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+        B @41
+          reference: <testLibraryFragment>::@typeAlias::B
+          typeParameters
+            T @43
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(T)
+    B
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: List<void Function(T)>
 ''');
   }
 
@@ -1509,6 +2221,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: List<T>
 ''');
   }
 
@@ -1542,6 +2265,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+        B @36
+          reference: <testLibraryFragment>::@typeAlias::B
+          typeParameters
+            T @38
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: Map<int, T>
+    B
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: List<Map<int, T>>
 ''');
   }
 
@@ -1568,6 +2311,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: (void Function(T), int)
 ''');
   }
 
@@ -1601,6 +2355,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+        B @48
+          reference: <testLibraryFragment>::@typeAlias::B
+          typeParameters
+            T @50
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: (void Function(T), int)
+    B
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: List<(void Function(T), int)>
 ''');
   }
 
@@ -1627,6 +2401,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: (T, int)
 ''');
   }
 
@@ -1653,6 +2438,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: (T Function(T), int)
 ''');
   }
 
@@ -1679,6 +2475,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: (int, String)
 ''');
   }
 
@@ -1715,6 +2522,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: int Function<S>(List<S>, num Function<A>(A), T)
 ''');
   }
 
@@ -1804,6 +2622,11 @@ library
               reference: <testLibraryFragment>::@class::A::@setter::f
               parameters
                 _f @-1
+      typeAliases
+        Foo @8
+          reference: <testLibraryFragment>::@typeAlias::Foo
+          typeParameters
+            S @12
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1837,6 +2660,12 @@ library
                   typeArguments
                     int
           firstFragment: <testLibraryFragment>::@class::A::@setter::f
+  typeAliases
+    Foo
+      reference: <none>
+      typeParameters
+        S
+      aliasedType: S Function<T>(T)
 ''');
   }
 
@@ -1888,6 +2717,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1899,6 +2731,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      aliasedType: void Function(C<C<dynamic>>)
 ''');
   }
 
@@ -1950,6 +2786,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -1961,6 +2800,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      aliasedType: void Function(C<C<dynamic>>)
 ''');
   }
 
@@ -2009,6 +2852,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2020,6 +2866,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      aliasedType: C<C<dynamic>> Function()
 ''');
   }
 
@@ -2053,6 +2903,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
+            U @23
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      typeParameters
+        T
+          bound: U
+        U
+      aliasedType: U Function(T)
 ''');
   }
 
@@ -2082,6 +2946,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @68
+          reference: <testLibraryFragment>::@typeAlias::F
+          documentationComment: /**\n * Docs\n */
+  typeAliases
+    F
+      reference: <none>
+      documentationComment: /**\n * Docs\n */
+      aliasedType: dynamic Function()
 ''');
   }
 
@@ -2133,6 +3006,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2144,6 +3020,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      aliasedType: void Function(C<C<dynamic>>)
 ''');
   }
 
@@ -2192,6 +3072,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+      typeAliases
+        F @10
+          reference: <testLibraryFragment>::@typeAlias::F
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2203,6 +3086,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      aliasedType: C<C<dynamic>> Function()
 ''');
   }
 
@@ -2232,6 +3119,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @15
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      typeParameters
+        T
+          bound: dynamic
+      aliasedType: void Function()
 ''');
   }
 
@@ -2257,6 +3156,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: void Function()
 ''');
   }
 
@@ -2283,6 +3189,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @15
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function()
 ''');
   }
 
@@ -2327,6 +3244,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function(dynamic Function(dynamic, dynamic))
 ''');
   }
 
@@ -2361,6 +3285,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            A @10
+            B @13
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        A
+        B
+      aliasedType: dynamic Function(A Function(B))
 ''');
   }
 
@@ -2387,6 +3324,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function(int Function())
 ''');
   }
 
@@ -2413,6 +3357,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function(int)
 ''');
   }
 
@@ -2442,6 +3393,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: dynamic Function(T)
 ''');
   }
 
@@ -2470,6 +3432,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function(dynamic, dynamic)
 ''');
   }
 
@@ -2500,6 +3469,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function({dynamic x, dynamic y, dynamic z})
 ''');
   }
 
@@ -2523,6 +3499,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @12
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: int Function()
 ''');
   }
 
@@ -2549,6 +3532,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @10
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @12
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T Function()
 ''');
   }
 
@@ -2572,6 +3566,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function()
 ''');
   }
 
@@ -2595,6 +3596,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: void Function()
 ''');
   }
 
@@ -2626,6 +3634,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @10
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @12
+            U @15
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+        U
+      aliasedType: U Function(T)
 ''');
   }
 
@@ -2674,6 +3695,12 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+      typeAliases
+        F @10
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @12
+            U @30
   classes
     class D
       reference: <testLibraryFragment>::@class::D
@@ -2682,6 +3709,15 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+          bound: Object
+        U
+          bound: D
+      aliasedType: U Function(T)
 ''');
   }
 
@@ -2710,6 +3746,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @15
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      typeParameters
+        T
+          bound: dynamic
+      aliasedType: void Function()
 ''');
   }
 
@@ -2738,6 +3786,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @15
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      typeParameters
+        T
+          bound: List<dynamic>
+      aliasedType: void Function()
 ''');
   }
 
@@ -2770,6 +3830,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @10
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @12
+            U @31
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      typeParameters
+        T
+          bound: List<U>
+        U
+      aliasedType: U Function(T)
 ''');
   }
 
@@ -2802,6 +3876,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @10
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @12
+            U @25
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      typeParameters
+        T
+          bound: U
+        U
+      aliasedType: U Function(T)
 ''');
   }
 
@@ -2874,6 +3962,50 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A1 @8
+          reference: <testLibraryFragment>::@typeAlias::A1
+        A2 @38
+          reference: <testLibraryFragment>::@typeAlias::A2
+          typeParameters
+            R @41
+      functions
+        f1 @65
+          reference: <testLibraryFragment>::@function::f1
+          parameters
+            a @71
+        f2 @82
+          reference: <testLibraryFragment>::@function::f2
+          parameters
+            a @93
+  typeAliases
+    A1
+      reference: <none>
+      aliasedType: void Function()
+    A2
+      reference: <none>
+      typeParameters
+        R
+      aliasedType: R Function()
+  functions
+    f1
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: void Function()
+            alias: <testLibraryFragment>::@typeAlias::A1
+      returnType: void
+    f2
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: int Function()
+            alias: <testLibraryFragment>::@typeAlias::A2
+              typeArguments
+                int
+      returnType: void
 ''');
   }
 
@@ -2929,6 +4061,53 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A1 @8
+          reference: <testLibraryFragment>::@typeAlias::A1
+        A2 @32
+          reference: <testLibraryFragment>::@typeAlias::A2
+          typeParameters
+            T @35
+            U @38
+      functions
+        f1 @59
+          reference: <testLibraryFragment>::@function::f1
+          parameters
+            a @65
+        f2 @76
+          reference: <testLibraryFragment>::@function::f2
+          parameters
+            a @95
+  typeAliases
+    A1
+      reference: <none>
+      aliasedType: List<int>
+    A2
+      reference: <none>
+      typeParameters
+        T
+        U
+      aliasedType: Map<T, U>
+  functions
+    f1
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: List<int>
+            alias: <testLibraryFragment>::@typeAlias::A1
+      returnType: void
+    f2
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: Map<int, String>
+            alias: <testLibraryFragment>::@typeAlias::A2
+              typeArguments
+                int
+                String
+      returnType: void
 ''');
   }
 
@@ -2991,6 +4170,36 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+            U @13
+      functions
+        f @31
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @48
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+        U
+      aliasedType: (T, U)
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: (int, String)
+            alias: <testLibraryFragment>::@typeAlias::A
+              typeArguments
+                int
+                String
+      returnType: void
 ''');
   }
 
@@ -3033,6 +4242,37 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+      functions
+        f @23
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            U @25
+          parameters
+            a @33
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T
+  functions
+    f
+      reference: <none>
+      typeParameters
+        U
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: U
+            alias: <testLibraryFragment>::@typeAlias::A
+              typeArguments
+                U
+      returnType: void
 ''');
   }
 
@@ -3116,6 +4356,11 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
+          typeParameters
+            T @10
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3134,6 +4379,12 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: A<int, T>
 ''');
   }
 
@@ -3222,6 +4473,11 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
+          typeParameters
+            T @10
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3253,6 +4509,12 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: A<T>?
 ''');
   }
 
@@ -3345,6 +4607,11 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
+          typeParameters
+            T @10
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3376,6 +4643,12 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: A<T?>
 ''');
   }
 
@@ -3414,6 +4687,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3422,6 +4698,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      aliasedType: Never
 ''');
   }
 
@@ -3460,6 +4740,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3468,6 +4751,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      aliasedType: Null
 ''');
   }
 
@@ -3543,6 +4830,11 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
+          typeParameters
+            T @10
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3567,6 +4859,12 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T
 ''');
   }
 
@@ -3634,6 +4932,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3656,6 +4957,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      aliasedType: void
 ''');
   }
 
@@ -3716,6 +5021,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3734,6 +5042,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      aliasedType: A<int>
 ''');
   }
 
@@ -3812,6 +5124,9 @@ library
           reference: <testLibraryFragment>::@mixin::M1
         mixin M2 @53
           reference: <testLibraryFragment>::@mixin::M2
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3841,6 +5156,10 @@ library
       firstFragment: <testLibraryFragment>::@mixin::M2
       superclassConstraints
         Object
+  typeAliases
+    X
+      reference: <none>
+      aliasedType: A<int>?
 ''');
   }
 
@@ -3921,6 +5240,9 @@ library
           reference: <testLibraryFragment>::@mixin::M1
         mixin M2 @53
           reference: <testLibraryFragment>::@mixin::M2
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3950,6 +5272,10 @@ library
       firstFragment: <testLibraryFragment>::@mixin::M2
       superclassConstraints
         Object
+  typeAliases
+    X
+      reference: <none>
+      aliasedType: A<int?>
 ''');
   }
 
@@ -3988,6 +5314,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3996,6 +5325,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      aliasedType: Never
 ''');
   }
 
@@ -4060,6 +5393,9 @@ library
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int}
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4080,6 +5416,10 @@ library
           reference: <none>
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      aliasedType: A<int>
 ''');
   }
 
@@ -4149,6 +5489,11 @@ library
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int}
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
+          typeParameters
+            T @10
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4171,6 +5516,12 @@ library
           reference: <none>
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T
 ''');
   }
 
@@ -4209,6 +5560,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4217,6 +5571,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      aliasedType: Null
 ''');
   }
 
@@ -4273,6 +5631,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4290,6 +5651,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      aliasedType: A<int>?
 ''');
   }
 
@@ -4354,6 +5719,9 @@ library
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int?}
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4374,6 +5742,10 @@ library
           reference: <none>
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      aliasedType: A<int?>
 ''');
   }
 
@@ -4412,6 +5784,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4420,6 +5795,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      aliasedType: Never
 ''');
   }
 
@@ -4458,6 +5837,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+      typeAliases
+        X @8
+          reference: <testLibraryFragment>::@typeAlias::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4466,6 +5848,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  typeAliases
+    X
+      reference: <none>
+      aliasedType: Null
 ''');
   }
 
@@ -4498,6 +5884,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+      functions
+        f @26
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @30
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: dynamic
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: dynamic
+      returnType: void
 ''');
   }
 
@@ -4536,6 +5942,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @24
+          reference: <testLibraryFragment>::@typeAlias::A
+      functions
+        f @38
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @42
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: dynamic Function()
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: dynamic Function()
+            alias: <testLibraryFragment>::@typeAlias::A
+      returnType: void
 ''');
   }
 
@@ -4569,6 +5996,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+      functions
+        f @22
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @26
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: int
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: int
+            alias: <testLibraryFragment>::@typeAlias::A
+      returnType: void
 ''');
   }
 
@@ -4602,6 +6050,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+      functions
+        f @23
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @27
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: int?
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: int?
+            alias: <testLibraryFragment>::@typeAlias::A
+      returnType: void
 ''');
   }
 
@@ -4640,6 +6109,33 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+      functions
+        f @33
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @45
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: Map<int, T>
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: Map<int, String>
+            alias: <testLibraryFragment>::@typeAlias::A
+              typeArguments
+                String
+      returnType: void
 ''');
   }
 
@@ -4672,6 +6168,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+      functions
+        f @24
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @28
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: Never
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: Never
+      returnType: void
 ''');
   }
 
@@ -4704,6 +6220,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+      functions
+        f @25
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @29
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: Never?
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: Never?
+      returnType: void
 ''');
   }
 
@@ -4750,6 +6286,44 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+      functions
+        f1 @23
+          reference: <testLibraryFragment>::@function::f1
+          parameters
+            a @28
+        f2 @39
+          reference: <testLibraryFragment>::@function::f2
+          parameters
+            a @49
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T
+  functions
+    f1
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: dynamic
+      returnType: void
+    f2
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: int
+            alias: <testLibraryFragment>::@typeAlias::A
+              typeArguments
+                int
+      returnType: void
 ''');
   }
 
@@ -4796,6 +6370,44 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @10
+      functions
+        f1 @24
+          reference: <testLibraryFragment>::@function::f1
+          parameters
+            a @29
+        f2 @40
+          reference: <testLibraryFragment>::@function::f2
+          parameters
+            a @50
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: T?
+  functions
+    f1
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: dynamic
+      returnType: void
+    f2
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: int?
+            alias: <testLibraryFragment>::@typeAlias::A
+              typeArguments
+                int
+      returnType: void
 ''');
   }
 
@@ -4828,6 +6440,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @8
+          reference: <testLibraryFragment>::@typeAlias::A
+      functions
+        f @23
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @27
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: void
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: void
+      returnType: void
 ''');
   }
 
@@ -4854,6 +6486,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    notSimplyBounded F
+      reference: <none>
+      aliasedType: (dynamic, int) Function()
 ''');
   }
 
@@ -4880,6 +6519,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+        g @7
+          reference: <testLibraryFragment>::@function::g
+  functions
+    f
+      reference: <none>
+      returnType: dynamic
+    g
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 
@@ -4948,10 +6599,17 @@ library
           reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      typeAliases
+        A @37
+          reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: int
 ''');
   }
 
@@ -5000,8 +6658,22 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      functions
+        A @20
+          reference: <testLibraryFragment>::@function::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      typeAliases
+        A @37
+          reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: int
+  functions
+    A
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -5064,6 +6736,13 @@ library
           reference: <testLibraryFragment>::@getter::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      typeAliases
+        A @37
+          reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: int
   topLevelVariables
     synthetic A
       reference: <none>
@@ -5120,6 +6799,13 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      typeAliases
+        A @37
+          reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: int
   exportedReferences
   exportNamespace
 ''');
@@ -5189,6 +6875,13 @@ library
             _ @25
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      typeAliases
+        A @37
+          reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: int
   topLevelVariables
     synthetic A
       reference: <none>
@@ -5256,8 +6949,21 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      typeAliases
+        A @23
+          reference: <testLibraryFragment>::@typeAlias::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      typeAliases
+        A @37
+          reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: int
+    A
+      reference: <none>
+      aliasedType: int
   exportedReferences
     declared <testLibraryFragment>::@typeAlias::A
   exportNamespace

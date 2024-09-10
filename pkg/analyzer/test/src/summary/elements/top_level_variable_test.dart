@@ -3662,6 +3662,9 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      functions
+        foo @20
+          reference: <testLibraryFragment>::@function::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       topLevelVariables
@@ -3696,6 +3699,10 @@ library
           reference: <none>
           type: int
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+  functions
+    foo
+      reference: <none>
+      returnType: void
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo

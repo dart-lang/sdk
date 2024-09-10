@@ -329,6 +329,11 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
       topLevelVariables
         const x @118
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -336,6 +341,11 @@ library
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x
+      functions
+        f @96
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            U @98
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -363,6 +373,12 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: D<T, U> Function<U>()
   topLevelVariables
     const x
       reference: <none>
@@ -373,6 +389,12 @@ library
     synthetic static get x
       reference: <none>
       firstFragment: <testLibraryFragment>::@getter::x
+  functions
+    f
+      reference: <none>
+      typeParameters
+        U
+      returnType: D<int, U>
 ''');
   }
 
@@ -478,6 +500,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
       topLevelVariables
         const x @101
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -485,6 +510,11 @@ library
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x
+      functions
+        f @79
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @81
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -507,6 +537,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: D<T> Function<T>()
   topLevelVariables
     const x
       reference: <none>
@@ -517,6 +551,12 @@ library
     synthetic static get x
       reference: <none>
       firstFragment: <testLibraryFragment>::@getter::x
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+      returnType: D<T>
 ''');
   }
 
@@ -1353,6 +1393,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            U @2
+            V @5
+  functions
+    f
+      reference: <none>
+      typeParameters
+        U
+        V
+      returnType: dynamic
 ''');
   }
 
@@ -1723,6 +1776,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @2
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+      returnType: dynamic
 ''');
   }
 
@@ -1754,6 +1818,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @2
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+      returnType: dynamic
 ''');
   }
 
@@ -2050,6 +2125,11 @@ library
           reference: <testLibraryFragment>::@setter::x
           parameters
             _x @-1
+      functions
+        m @4
+          reference: <testLibraryFragment>::@function::m
+          typeParameters
+            T @6
   topLevelVariables
     x
       reference: <none>
@@ -2069,6 +2149,12 @@ library
           reference: <none>
           type: int
       firstFragment: <testLibraryFragment>::@setter::x
+  functions
+    m
+      reference: <none>
+      typeParameters
+        T
+      returnType: int
 ''');
   }
 
@@ -2627,6 +2713,9 @@ library
           getters
             get v @79
               reference: <testLibraryFragment>::@class::D::@getter::v
+      typeAliases
+        F @12
+          reference: <testLibraryFragment>::@typeAlias::F
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2676,6 +2765,10 @@ library
         abstract get v
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::D::@getter::v
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: int Function(String)
 ''');
   }
 
@@ -3228,6 +3321,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
       topLevelVariables
         v @53
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -3241,6 +3337,15 @@ library
           reference: <testLibraryFragment>::@setter::v
           parameters
             _v @-1
+      functions
+        h @33
+          reference: <testLibraryFragment>::@function::h
+          parameters
+            f @37
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: void Function(int Function(String))
   topLevelVariables
     v
       reference: <none>
@@ -3260,6 +3365,15 @@ library
           reference: <none>
           type: dynamic
       firstFragment: <testLibraryFragment>::@setter::v
+  functions
+    h
+      reference: <none>
+      parameters
+        requiredPositional f
+          reference: <none>
+          type: void Function(int Function(String))
+            alias: <testLibraryFragment>::@typeAlias::F
+      returnType: dynamic
 ''');
   }
 
@@ -3700,6 +3814,11 @@ library
           reference: <testLibraryFragment>::@setter::v
           parameters
             _v @-1
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            g @7
   topLevelVariables
     v
       reference: <none>
@@ -3719,6 +3838,21 @@ library
           reference: <none>
           type: dynamic
       firstFragment: <testLibraryFragment>::@setter::v
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional g
+          reference: <none>
+          type: void Function(int, void Function())
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: int
+            requiredPositional h
+              reference: <none>
+              type: void Function()
+      returnType: dynamic
 ''');
   }
 
@@ -3784,6 +3918,12 @@ library
           reference: <testLibraryFragment>::@setter::v
           parameters
             _v @-1
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            default g @8
+              reference: <testLibraryFragment>::@function::f::@parameter::g
   topLevelVariables
     v
       reference: <none>
@@ -3803,6 +3943,21 @@ library
           reference: <none>
           type: dynamic
       firstFragment: <testLibraryFragment>::@setter::v
+  functions
+    f
+      reference: <none>
+      parameters
+        optionalNamed g
+          reference: <none>
+          type: void Function(int, void Function())
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: int
+            requiredPositional h
+              reference: <none>
+              type: void Function()
+      returnType: dynamic
 ''');
   }
 
@@ -4406,6 +4561,15 @@ library
           reference: <testLibraryFragment>::@setter::v
           parameters
             _v @-1
+      functions
+        f @4
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            x @10
+        g @39
+          reference: <testLibraryFragment>::@function::g
+          parameters
+            x @45
   topLevelVariables
     v
       reference: <none>
@@ -4425,6 +4589,29 @@ library
           reference: <none>
           type: List<Object Function(int Function(String))>
       firstFragment: <testLibraryFragment>::@setter::v
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional x
+          reference: <none>
+          type: int Function(String)
+          parameters
+            requiredPositional y
+              reference: <none>
+              type: String
+      returnType: int
+    g
+      reference: <none>
+      parameters
+        requiredPositional x
+          reference: <none>
+          type: int Function(String)
+          parameters
+            requiredPositional y
+              reference: <none>
+              type: String
+      returnType: String
 ''');
   }
 
@@ -7225,6 +7412,9 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+      typeAliases
+        F @34
+          reference: <testLibraryFragment>::@typeAlias::F
       topLevelVariables
         V2 @56
           reference: <testLibraryFragment>::@topLevelVariable::V2
@@ -7248,6 +7438,11 @@ library
           reference: <testLibraryFragment>::@setter::V
           parameters
             _V @-1
+      functions
+        f @44
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            p @48
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -7259,6 +7454,10 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function(dynamic)
   topLevelVariables
     V2
       reference: <none>
@@ -7294,6 +7493,14 @@ library
           reference: <none>
           type: int
       firstFragment: <testLibraryFragment>::@setter::V
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional p
+          reference: <none>
+          type: dynamic
+      returnType: dynamic
 ''');
   }
 
@@ -7968,6 +8175,9 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::v
             get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
+      typeAliases
+        F @32
+          reference: <testLibraryFragment>::@typeAlias::F
       topLevelVariables
         c @39
           reference: <testLibraryFragment>::@topLevelVariable::c
@@ -8036,6 +8246,10 @@ library
         synthetic static get values
           reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function()
   topLevelVariables
     c
       reference: <none>
@@ -8297,6 +8511,9 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
             get values @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
+      typeAliases
+        F @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
   classes
     class C
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
@@ -8332,6 +8549,10 @@ library
         synthetic static get values
           reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function()
   topLevelVariables
     c
       reference: <none>
@@ -8557,6 +8778,9 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::v
             get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
+      typeAliases
+        F @58
+          reference: <testLibraryFragment>::@typeAlias::F
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       topLevelVariables
@@ -8627,6 +8851,10 @@ library
         synthetic static get values
           reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function()
   topLevelVariables
     c
       reference: <none>
@@ -8866,6 +9094,9 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
             get values @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
+      typeAliases
+        F @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
@@ -8936,6 +9167,10 @@ library
         synthetic static get values
           reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function()
   topLevelVariables
     c
       reference: <none>
@@ -9163,6 +9398,9 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
             get values @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
+      typeAliases
+        F @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
       topLevelVariables
         c @50
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::c
@@ -9231,6 +9469,10 @@ library
         synthetic static get values
           reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function()
   topLevelVariables
     c
       reference: <none>
@@ -11223,6 +11465,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
       topLevelVariables
         f @15
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -11236,6 +11481,10 @@ library
           reference: <testLibraryFragment>::@setter::f
           parameters
             _f @-1
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: dynamic Function()
   topLevelVariables
     f
       reference: <none>
@@ -11318,6 +11567,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @10
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @12
+            U @15
       topLevelVariables
         f @39
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -11331,6 +11586,13 @@ library
           reference: <testLibraryFragment>::@setter::f
           parameters
             _f @-1
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+        U
+      aliasedType: U Function(T)
   topLevelVariables
     f
       reference: <none>
@@ -11418,6 +11680,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @10
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @12
+            U @15
       topLevelVariables
         f @26
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -11431,6 +11699,13 @@ library
           reference: <testLibraryFragment>::@setter::f
           parameters
             _f @-1
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+        U
+      aliasedType: U Function(T)
   topLevelVariables
     f
       reference: <none>

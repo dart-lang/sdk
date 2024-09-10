@@ -1487,6 +1487,11 @@ library
           typeParameters
             T @8
             U @11
+      typeAliases
+        M2 @34
+          reference: <testLibraryFragment>::@typeAlias::M2
+          typeParameters
+            T2 @37
   classes
     class S
       reference: <testLibraryFragment>::@class::S
@@ -1515,6 +1520,12 @@ library
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         S<T>
+  typeAliases
+    M2
+      reference: <none>
+      typeParameters
+        T2
+      aliasedType: M<T2, int>
 ''');
   }
 
@@ -1618,6 +1629,15 @@ library
           typeParameters
             T @8
             U @11
+      typeAliases
+        M2 @34
+          reference: <testLibraryFragment>::@typeAlias::M2
+          typeParameters
+            T2 @37
+        M3 @64
+          reference: <testLibraryFragment>::@typeAlias::M3
+          typeParameters
+            T3 @67
   classes
     class S
       reference: <testLibraryFragment>::@class::S
@@ -1646,6 +1666,20 @@ library
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         S<T>
+  typeAliases
+    M2
+      reference: <none>
+      typeParameters
+        T2
+      aliasedType: M<T2, int>
+    M3
+      reference: <none>
+      typeParameters
+        T3
+      aliasedType: M<T3, int>
+        alias: <testLibraryFragment>::@typeAlias::M2
+          typeArguments
+            T3
 ''');
   }
 

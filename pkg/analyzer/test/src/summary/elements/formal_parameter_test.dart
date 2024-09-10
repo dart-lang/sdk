@@ -38,6 +38,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        main @5
+          reference: <testLibraryFragment>::@function::main
+          parameters
+            p @14
+  functions
+    main
+      reference: <none>
+      parameters
+        requiredPositional p
+          reference: <none>
+          type: int
+      returnType: void
 ''');
   }
 
@@ -781,6 +794,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @9
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: T Function<T, U>(U)
+          parameters
+            requiredPositional u
+              reference: <none>
+              type: U
+      returnType: void
 ''');
   }
 
@@ -1145,6 +1175,31 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        positional @5
+          reference: <testLibraryFragment>::@function::positional
+          parameters
+            default x @17
+        named @33
+          reference: <testLibraryFragment>::@function::named
+          parameters
+            default x @40
+              reference: <testLibraryFragment>::@function::named::@parameter::x
+  functions
+    positional
+      reference: <none>
+      parameters
+        optionalPositional x
+          reference: <none>
+          type: dynamic
+      returnType: void
+    named
+      reference: <none>
+      parameters
+        optionalNamed x
+          reference: <none>
+          type: dynamic
+      returnType: void
 ''');
   }
 }

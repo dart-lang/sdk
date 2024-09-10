@@ -3405,6 +3405,17 @@ library
       getters
         get a @-1
           reference: <testLibraryFragment>::@getter::a
+      functions
+        f @19
+          reference: <testLibraryFragment>::@function::f
+          metadata
+            Annotation
+              atSign: @ @16
+              name: SimpleIdentifier
+                token: a @17
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
   topLevelVariables
     const a
       reference: <none>
@@ -3415,6 +3426,18 @@ library
     synthetic static get a
       reference: <none>
       firstFragment: <testLibraryFragment>::@getter::a
+  functions
+    f
+      reference: <none>
+      metadata
+        Annotation
+          atSign: @ @16
+          name: SimpleIdentifier
+            token: a @17
+            staticElement: <testLibraryFragment>::@getter::a
+            staticType: null
+          element: <testLibraryFragment>::@getter::a
+      returnType: dynamic
 ''');
   }
 
@@ -3660,6 +3683,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @27
+          reference: <testLibraryFragment>::@typeAlias::F
+          metadata
+            Annotation
+              atSign: @ @16
+              name: SimpleIdentifier
+                token: a @17
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -3667,6 +3701,18 @@ library
       getters
         get a @-1
           reference: <testLibraryFragment>::@getter::a
+  typeAliases
+    F
+      reference: <none>
+      metadata
+        Annotation
+          atSign: @ @16
+          name: SimpleIdentifier
+            token: a @17
+            staticElement: <testLibraryFragment>::@getter::a
+            staticType: null
+          element: <testLibraryFragment>::@getter::a
+      aliasedType: dynamic Function()
   topLevelVariables
     const a
       reference: <none>
@@ -3732,6 +3778,19 @@ library
       getters
         get a @-1
           reference: <testLibraryFragment>::@getter::a
+      functions
+        f @16
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            g @21
+              metadata
+                Annotation
+                  atSign: @ @18
+                  name: SimpleIdentifier
+                    token: a @19
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
   topLevelVariables
     const a
       reference: <none>
@@ -3742,6 +3801,22 @@ library
     synthetic static get a
       reference: <none>
       firstFragment: <testLibraryFragment>::@getter::a
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional g
+          reference: <none>
+          type: dynamic Function()
+          metadata
+            Annotation
+              atSign: @ @18
+              name: SimpleIdentifier
+                token: a @19
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
+      returnType: dynamic
 ''');
   }
 
@@ -3801,6 +3876,19 @@ library
       getters
         get a @-1
           reference: <testLibraryFragment>::@getter::a
+      functions
+        f @16
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            default g @22
+              metadata
+                Annotation
+                  atSign: @ @19
+                  name: SimpleIdentifier
+                    token: a @20
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
   topLevelVariables
     const a
       reference: <none>
@@ -3811,6 +3899,22 @@ library
     synthetic static get a
       reference: <none>
       firstFragment: <testLibraryFragment>::@getter::a
+  functions
+    f
+      reference: <none>
+      parameters
+        optionalPositional g
+          reference: <none>
+          type: dynamic Function()
+          metadata
+            Annotation
+              atSign: @ @19
+              name: SimpleIdentifier
+                token: a @20
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
+      returnType: dynamic
 ''');
   }
 
@@ -3882,6 +3986,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @46
+          reference: <testLibraryFragment>::@typeAlias::F
+          metadata
+            Annotation
+              atSign: @ @32
+              name: SimpleIdentifier
+                token: a @33
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
+            Annotation
+              atSign: @ @35
+              name: SimpleIdentifier
+                token: b @36
+                staticElement: <testLibraryFragment>::@getter::b
+                staticType: null
+              element: <testLibraryFragment>::@getter::b
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -3894,6 +4016,25 @@ library
           reference: <testLibraryFragment>::@getter::a
         get b @-1
           reference: <testLibraryFragment>::@getter::b
+  typeAliases
+    F
+      reference: <none>
+      metadata
+        Annotation
+          atSign: @ @32
+          name: SimpleIdentifier
+            token: a @33
+            staticElement: <testLibraryFragment>::@getter::a
+            staticType: null
+          element: <testLibraryFragment>::@getter::a
+        Annotation
+          atSign: @ @35
+          name: SimpleIdentifier
+            token: b @36
+            staticElement: <testLibraryFragment>::@getter::b
+            staticType: null
+          element: <testLibraryFragment>::@getter::b
+      aliasedType: void Function()
   topLevelVariables
     const a
       reference: <none>
@@ -3964,6 +4105,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @22
+          reference: <testLibraryFragment>::@typeAlias::F
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -3971,6 +4115,10 @@ library
       getters
         get a @-1
           reference: <testLibraryFragment>::@getter::a
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: void Function(int)
   topLevelVariables
     const a
       reference: <none>
@@ -4036,6 +4184,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @22
+          reference: <testLibraryFragment>::@typeAlias::F
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -4043,6 +4194,10 @@ library
       getters
         get a @-1
           reference: <testLibraryFragment>::@getter::a
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: void Function(int Function(int))
   topLevelVariables
     const a
       reference: <none>
@@ -4107,6 +4262,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @22
+          reference: <testLibraryFragment>::@typeAlias::F
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -4114,6 +4272,10 @@ library
       getters
         get a @-1
           reference: <testLibraryFragment>::@getter::a
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: void Function<T>(int)
   topLevelVariables
     const a
       reference: <none>
@@ -4178,6 +4340,11 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            _ @2
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -4186,6 +4353,14 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional _
+          reference: <none>
+          type: dynamic
+      returnType: dynamic
 ''');
   }
 
@@ -6925,6 +7100,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @34
+          reference: <testLibraryFragment>::@typeAlias::F
+          metadata
+            Annotation
+              atSign: @ @16
+              name: SimpleIdentifier
+                token: foo @17
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
+          typeParameters
+            T @41
+              metadata
+                Annotation
+                  atSign: @ @36
+                  name: SimpleIdentifier
+                    token: foo @37
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -6932,6 +7128,28 @@ library
       getters
         get foo @-1
           reference: <testLibraryFragment>::@getter::foo
+  typeAliases
+    F
+      reference: <none>
+      metadata
+        Annotation
+          atSign: @ @16
+          name: SimpleIdentifier
+            token: foo @17
+            staticElement: <testLibraryFragment>::@getter::foo
+            staticType: null
+          element: <testLibraryFragment>::@getter::foo
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @36
+              name: SimpleIdentifier
+                token: foo @37
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
+      aliasedType: void Function(int)
   topLevelVariables
     const foo
       reference: <none>
@@ -7025,6 +7243,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        A @29
+          reference: <testLibraryFragment>::@typeAlias::A
+          metadata
+            Annotation
+              atSign: @ @16
+              name: SimpleIdentifier
+                token: foo @17
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
+          typeParameters
+            T @36
+              metadata
+                Annotation
+                  atSign: @ @31
+                  name: SimpleIdentifier
+                    token: foo @32
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -7032,6 +7271,28 @@ library
       getters
         get foo @-1
           reference: <testLibraryFragment>::@getter::foo
+  typeAliases
+    A
+      reference: <none>
+      metadata
+        Annotation
+          atSign: @ @16
+          name: SimpleIdentifier
+            token: foo @17
+            staticElement: <testLibraryFragment>::@getter::foo
+            staticType: null
+          element: <testLibraryFragment>::@getter::foo
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @31
+              name: SimpleIdentifier
+                token: foo @32
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
+      aliasedType: void Function<U>(int)
   topLevelVariables
     const foo
       reference: <none>
@@ -7238,6 +7499,38 @@ library
       getters
         get foo @-1
           reference: <testLibraryFragment>::@getter::foo
+      functions
+        f @26
+          reference: <testLibraryFragment>::@function::f
+          metadata
+            Annotation
+              atSign: @ @16
+              name: SimpleIdentifier
+                token: foo @17
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
+          typeParameters
+            T @33
+              metadata
+                Annotation
+                  atSign: @ @28
+                  name: SimpleIdentifier
+                    token: foo @29
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
+          parameters
+            default a @47
+              reference: <testLibraryFragment>::@function::f::@parameter::a
+              metadata
+                Annotation
+                  atSign: @ @37
+                  name: SimpleIdentifier
+                    token: foo @38
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
   topLevelVariables
     const foo
       reference: <none>
@@ -7248,6 +7541,40 @@ library
     synthetic static get foo
       reference: <none>
       firstFragment: <testLibraryFragment>::@getter::foo
+  functions
+    f
+      reference: <none>
+      metadata
+        Annotation
+          atSign: @ @16
+          name: SimpleIdentifier
+            token: foo @17
+            staticElement: <testLibraryFragment>::@getter::foo
+            staticType: null
+          element: <testLibraryFragment>::@getter::foo
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @28
+              name: SimpleIdentifier
+                token: foo @29
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
+      parameters
+        optionalNamed a
+          reference: <none>
+          type: int?
+          metadata
+            Annotation
+              atSign: @ @37
+              name: SimpleIdentifier
+                token: foo @38
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
+      returnType: void
 ''');
   }
 
@@ -8112,6 +8439,19 @@ library
       getters
         get a @-1
           reference: <testLibraryFragment>::@getter::a
+      functions
+        f @16
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            x @21
+              metadata
+                Annotation
+                  atSign: @ @18
+                  name: SimpleIdentifier
+                    token: a @19
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
   topLevelVariables
     const a
       reference: <none>
@@ -8122,6 +8462,22 @@ library
     synthetic static get a
       reference: <none>
       firstFragment: <testLibraryFragment>::@getter::a
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional x
+          reference: <none>
+          type: dynamic
+          metadata
+            Annotation
+              atSign: @ @18
+              name: SimpleIdentifier
+                token: a @19
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
+      returnType: dynamic
 ''');
   }
 
@@ -8412,6 +8768,19 @@ library
       getters
         get a @-1
           reference: <testLibraryFragment>::@getter::a
+      functions
+        f @16
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            default x @22
+              metadata
+                Annotation
+                  atSign: @ @19
+                  name: SimpleIdentifier
+                    token: a @20
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
   topLevelVariables
     const a
       reference: <none>
@@ -8422,6 +8791,22 @@ library
     synthetic static get a
       reference: <none>
       firstFragment: <testLibraryFragment>::@getter::a
+  functions
+    f
+      reference: <none>
+      parameters
+        optionalPositional x
+          reference: <none>
+          type: dynamic
+          metadata
+            Annotation
+              atSign: @ @19
+              name: SimpleIdentifier
+                token: a @20
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
+      returnType: dynamic
 ''');
   }
 
@@ -8988,6 +9373,19 @@ library
       getters
         get a @-1
           reference: <testLibraryFragment>::@getter::a
+      functions
+        f @16
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @21
+              metadata
+                Annotation
+                  atSign: @ @18
+                  name: SimpleIdentifier
+                    token: a @19
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
   topLevelVariables
     const a
       reference: <none>
@@ -8998,6 +9396,20 @@ library
     synthetic static get a
       reference: <none>
       firstFragment: <testLibraryFragment>::@getter::a
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @18
+              name: SimpleIdentifier
+                token: a @19
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
+      returnType: dynamic
 ''');
   }
 
@@ -9047,6 +9459,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @24
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @29
+              metadata
+                Annotation
+                  atSign: @ @26
+                  name: SimpleIdentifier
+                    token: a @27
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -9054,6 +9479,20 @@ library
       getters
         get a @-1
           reference: <testLibraryFragment>::@getter::a
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @26
+              name: SimpleIdentifier
+                token: a @27
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
+      aliasedType: dynamic Function()
   topLevelVariables
     const a
       reference: <none>

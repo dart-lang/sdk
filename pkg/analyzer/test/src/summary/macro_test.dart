@@ -4965,6 +4965,29 @@ library
     class B
       reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+  functions
+    foo
+      reference: <none>
+      metadata
+        Annotation
+          atSign: @ @77
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: prefix0 @78
+              staticElement: <null>
+              staticType: null
+            period: . @85
+            identifier: SimpleIdentifier
+              token: A @86
+              staticElement: package:test/a.dart::<fragment>::@class::A
+              staticType: null
+            staticElement: package:test/a.dart::<fragment>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @87
+            rightParenthesis: ) @88
+          element: package:test/a.dart::<fragment>::@class::A
+      returnType: void
 ''');
   }
 
@@ -5001,6 +5024,14 @@ library
     class B
       reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+  functions
+    foo
+      reference: <none>
+      parameters
+        optionalPositional x
+          reference: <none>
+          type: dynamic
+      returnType: void
 ''');
   }
 
@@ -5496,6 +5527,17 @@ library
     class A
       reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
+  functions
+    foo
+      reference: <none>
+      parameters
+        requiredPositional x1
+          reference: <none>
+          type: X
+        requiredPositional x2
+          reference: <none>
+          type: X
+      returnType: void
 ''');
   }
 
@@ -5537,6 +5579,14 @@ library
     class X
       reference: <testLibraryFragment>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
+  functions
+    foo
+      reference: <none>
+      parameters
+        requiredPositional x
+          reference: <none>
+          type: X
+      returnType: void
 ''');
   }
 
@@ -5713,10 +5763,17 @@ library
           reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
+      functions
+        foo @40
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
+  functions
+    foo
+      reference: <none>
+      returnType: void
   exportedReferences
     declared <testLibraryFragment>::@class::A
     declared <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
@@ -6470,7 +6527,7 @@ library
       reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
-        foo
+        external foo
           reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
 ''');
@@ -7157,6 +7214,13 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        f @59
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -7803,6 +7867,17 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @79
+          reference: <testLibraryFragment>::@function::foo
+          typeParameters
+            T @83
+  functions
+    foo
+      reference: <none>
+      typeParameters
+        T
+      returnType: void
 ''');
   }
 
@@ -8070,6 +8145,17 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      typeAliases
+        A @82
+          reference: <testLibraryFragment>::@typeAlias::A
+          typeParameters
+            T @84
+  typeAliases
+    A
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: List<T>
 ''');
   }
 
@@ -8367,6 +8453,29 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @93
+          reference: <testLibraryFragment>::@function::foo
+          parameters
+            a @101
+            default b @113
+              reference: <testLibraryFragment>::@function::foo::@parameter::b
+            default c @122
+              reference: <testLibraryFragment>::@function::foo::@parameter::c
+  functions
+    foo
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: int
+        optionalNamed b
+          reference: <none>
+          type: String?
+        optionalNamed c
+          reference: <none>
+          type: bool?
+      returnType: void
 ''');
   }
 
@@ -8431,6 +8540,23 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @98
+          reference: <testLibraryFragment>::@function::foo
+          parameters
+            a @106
+            b @116
+  functions
+    foo
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: int
+        requiredPositional b
+          reference: <none>
+          type: String
+      returnType: void
 ''');
   }
 
@@ -8488,6 +8614,13 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @76
+          reference: <testLibraryFragment>::@function::foo
+  functions
+    foo
+      reference: <none>
+      returnType: int
 ''');
   }
 
@@ -8548,6 +8681,13 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @144
+          reference: <testLibraryFragment>::@function::foo
+  functions
+    foo
+      reference: <none>
+      returnType: int Function(bool, {int b, String c})
 ''');
   }
 
@@ -8608,6 +8748,13 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @139
+          reference: <testLibraryFragment>::@function::foo
+  functions
+    foo
+      reference: <none>
+      returnType: int Function(int, String)
 ''');
   }
 
@@ -8667,6 +8814,13 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @103
+          reference: <testLibraryFragment>::@function::foo
+  functions
+    foo
+      reference: <none>
+      returnType: int Function()
 ''');
   }
 
@@ -8724,6 +8878,13 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @88
+          reference: <testLibraryFragment>::@function::foo
+  functions
+    foo
+      reference: <none>
+      returnType: void Function()
 ''');
   }
 
@@ -8879,6 +9040,19 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @98
+          reference: <testLibraryFragment>::@function::foo
+          parameters
+            a @102
+  functions
+    foo
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: dynamic
+      returnType: void
 ''');
   }
 
@@ -8936,6 +9110,13 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @72
+          reference: <testLibraryFragment>::@function::foo
+  functions
+    foo
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 
@@ -9150,6 +9331,13 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @86
+          reference: <testLibraryFragment>::@function::foo
+  functions
+    foo
+      reference: <none>
+      returnType: (int, String)
 ''');
   }
 
@@ -9214,6 +9402,21 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      typeAliases
+        A @35
+          reference: <testLibraryFragment>::@typeAlias::A
+      functions
+        foo @98
+          reference: <testLibraryFragment>::@function::foo
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: List<int>
+  functions
+    foo
+      reference: <none>
+      returnType: List<int>
+        alias: <testLibraryFragment>::@typeAlias::A
 ''');
   }
 
@@ -9445,6 +9648,13 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @114
+          reference: <testLibraryFragment>::@function::foo
+  functions
+    foo
+      reference: <none>
+      returnType: Map<int, String>
 ''');
   }
 
@@ -9693,6 +9903,13 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      typeAliases
+        A @81
+          reference: <testLibraryFragment>::@typeAlias::A
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: List<int>
 ''');
   }
 
@@ -12804,7 +13021,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::bar
           getter: <none>
       constructors
-        fromJson
+        external fromJson
           reference: <none>
           parameters
             requiredPositional json
@@ -12819,7 +13036,7 @@ library
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@getter::bar
       methods
-        toJson
+        external toJson
           reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
 ''');

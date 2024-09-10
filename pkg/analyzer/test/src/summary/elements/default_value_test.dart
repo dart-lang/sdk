@@ -195,6 +195,18 @@ library
           getters
             get f @-1
               reference: <testLibraryFragment>::@class::X::@getter::f
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @15
+      functions
+        defaultF @30
+          reference: <testLibraryFragment>::@function::defaultF
+          typeParameters
+            T @39
+          parameters
+            v @44
   classes
     class X
       reference: <testLibraryFragment>::@class::X
@@ -223,6 +235,22 @@ library
         synthetic get f
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@getter::f
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function(T)
+  functions
+    defaultF
+      reference: <none>
+      typeParameters
+        T
+      parameters
+        requiredPositional v
+          reference: <none>
+          type: T
+      returnType: void
 ''');
   }
 
@@ -377,6 +405,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            g @8
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional g
+          reference: <none>
+          type: dynamic Function({dynamic a})
+          parameters
+            optionalNamed a
+              reference: <none>
+              type: dynamic
+      returnType: void
 ''');
   }
 
@@ -420,6 +465,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            default compare @22
+  functions
+    f
+      reference: <none>
+      parameters
+        optionalPositional compare
+          reference: <none>
+          type: int Function(InvalidType, InvalidType)
+            alias: dart:core::<fragment>::@typeAlias::Comparator
+              typeArguments
+                InvalidType
+      returnType: void
 ''');
   }
 
@@ -474,6 +535,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            default x @28
+              reference: <testLibraryFragment>::@function::f::@parameter::x
+  functions
+    f
+      reference: <none>
+      parameters
+        optionalNamed x
+          reference: <none>
+          type: ({int f1, bool f2})
+      returnType: void
 ''');
   }
 
@@ -529,6 +604,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            default x @28
+              reference: <testLibraryFragment>::@function::f::@parameter::x
+  functions
+    f
+      reference: <none>
+      parameters
+        optionalNamed x
+          reference: <none>
+          type: ({int f1, bool f2})
+      returnType: void
 ''');
   }
 
@@ -569,6 +658,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            default x @20
+              reference: <testLibraryFragment>::@function::f::@parameter::x
+  functions
+    f
+      reference: <none>
+      parameters
+        optionalNamed x
+          reference: <none>
+          type: (int, bool)
+      returnType: void
 ''');
   }
 
@@ -610,6 +713,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            default x @20
+              reference: <testLibraryFragment>::@function::f::@parameter::x
+  functions
+    f
+      reference: <none>
+      parameters
+        optionalNamed x
+          reference: <none>
+          type: (int, bool)
+      returnType: void
 ''');
   }
 
@@ -1114,6 +1231,13 @@ library
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::B::@constructor::new
+      functions
+        foo @33
+          reference: <testLibraryFragment>::@function::foo
+          typeParameters
+            T @37
+          parameters
+            default b @46
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -1124,6 +1248,16 @@ library
         const new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+  functions
+    foo
+      reference: <none>
+      typeParameters
+        T
+      parameters
+        optionalPositional b
+          reference: <none>
+          type: B<T>
+      returnType: void
 ''');
   }
 
