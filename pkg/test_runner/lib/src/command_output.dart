@@ -339,7 +339,7 @@ class BrowserCommandOutput extends CommandOutput
   @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
     if (_jsonResult != null) {
-      _describeEvents(progress, output);
+      _describeEvents(progress, output, _jsonResult);
     } else {
       // We couldn't parse the events, so fallback to showing the last message.
       output.section("Last message");
@@ -359,7 +359,8 @@ class BrowserCommandOutput extends CommandOutput
     }
   }
 
-  void _describeEvents(Progress progress, OutputWriter output) {
+  void _describeEvents(Progress progress, OutputWriter output,
+      BrowserTestJsonResult jsonResult) {
     // Always show the error events since those are most useful.
     var errorShown = false;
 
@@ -374,19 +375,19 @@ class BrowserCommandOutput extends CommandOutput
 
       // Skip deobfuscation if there is no indication that there is a stack
       // trace in the string value.
-      if (!value!.contains(RegExp('\\.js:'))) return;
+      if (!value!.contains('.js:')) return;
       var stringStack = value
           // Convert `http:` URIs to relative `file:` URIs.
-          .replaceAll(RegExp('http://[^/]*/root_build/'), '$_buildDirectory/')
-          .replaceAll(RegExp('http://[^/]*/root_dart/'), '')
+          .replaceAll(RegExp(r'http://[^/]*/root_build/'), '$_buildDirectory/')
+          .replaceAll(RegExp(r'http://[^/]*/root_dart/'), '')
           // Remove query parameters (seen in .html URIs).
-          .replaceAll(RegExp('\\?[^:\n]*:'), ':');
+          .replaceAll(RegExp(r'\?[^:\n]*:'), ':');
       // TODO(sigmund): change internal deobfuscation code to avoid spurious
       // error messages when files do not have a corresponding source-map.
       _deobfuscateAndWriteStack(stringStack, output);
     }
 
-    for (var event in _jsonResult!.events) {
+    for (var event in jsonResult.events) {
       if (event["type"] == "sync_exception") {
         showError("Runtime error", event);
       } else if (event["type"] == "window_onerror") {
@@ -401,7 +402,7 @@ class BrowserCommandOutput extends CommandOutput
     }
 
     output.subsection("Events");
-    for (var event in _jsonResult!.events) {
+    for (var event in jsonResult.events) {
       switch (event["type"] as String?) {
         case "debug":
           output.write('- debug "${event["value"]}"');

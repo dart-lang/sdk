@@ -92,7 +92,7 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
   var lineSeparator =
       (firstNewline == 0 || contents[firstNewline - 1] != '\r') ? '\n' : '\r\n';
   var lines = contents.split(lineSeparator);
-  if (lines.last == '') lines.removeLast();
+  if (lines.last.isEmpty) lines.removeLast();
 
   // Create the set of multitests, which will have a new test added each
   // time we see a multitest line with a new key.
@@ -108,16 +108,16 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
     var annotation = Annotation.tryParse(line);
     if (annotation != null) {
       testsAsLines.putIfAbsent(
-          annotation.key, () => List<String>.from(testsAsLines["none"]!));
+          annotation.key, () => List<String>.of(testsAsLines["none"]!));
       // Add line to test with annotation.key as key, empty line to the rest.
       for (var entry in testsAsLines.entries) {
         entry.value.add(annotation.key == entry.key ? line : "");
       }
-      outcomes.putIfAbsent(annotation.key, () => <String>{});
+      var outcome = outcomes.putIfAbsent(annotation.key, () => <String>{});
       if (annotation.rest != 'continued') {
         for (var nextOutcome in annotation.outcomes) {
           if (_multitestOutcomes.contains(nextOutcome)) {
-            outcomes[annotation.key]!.add(nextOutcome);
+            outcome.add(nextOutcome);
           } else {
             DebugLogger.warning(
                 "${filePath.toNativePath()}: Invalid expectation "
@@ -277,20 +277,20 @@ class Annotation {
 Set<String> _findAllRelativeImports(Path topLibrary) {
   var found = <String>{};
   var libraryDir = topLibrary.directoryPath;
-  var relativeImportRegExp = RegExp(
-      '^(?:@.*\\s+)?' // Allow for a meta-data annotation.
-      '(import|part)'
-      '\\s+["\']'
-      '(?!(dart:|dart-ext:|data:|package:|/))' // Look-ahead: not in package.
-      '([^"\']*)' // The path to the imported file.
-      '["\']');
+  var relativeImportRegExp =
+      RegExp(r'^(?:@.*\s+)?' // Allow for a meta-data annotation.
+          r'(?:import|part)\s+'
+          r'''["']'''
+          r'(?!dart:|dart-ext:|data:|package:|/)' // Look-ahead: not in package.
+          r'([^]*?)' // The path to the imported file.
+          r'''["']''');
 
   processFile(Path filePath) {
     var file = File(filePath.toNativePath());
     for (var line in file.readAsLinesSync()) {
       var match = relativeImportRegExp.firstMatch(line);
       if (match == null) continue;
-      var relativePath = match.group(3)!;
+      var relativePath = match[1]!;
 
       // If a multitest deliberately imports a nonexistent file, don't try to
       // include it.
