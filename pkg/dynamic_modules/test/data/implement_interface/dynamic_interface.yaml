@@ -4,7 +4,16 @@
 extendable:
   - library: 'shared/shared.dart'
     class: 'Base'
+    # TODO(sigmund): This should be included by default
+  - library: 'dart:core'
+    class: 'Object'
 
-can-be-overriden:
+callable:
+    # TODO(sigmund): This should be included by default
+  - library: 'dart:core'
+    class: 'Object'
+    member: ''
+
+can-be-overridden:
   - library: 'shared/shared.dart'
     class: 'Base'

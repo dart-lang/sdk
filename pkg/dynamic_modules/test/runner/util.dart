@@ -57,6 +57,15 @@ Uri ddcSealNativeObjectJs = repoRoot.resolve(
 Uri ddcModuleLoaderJs =
     repoRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
 
+Uri genKernelSnapshot =
+    _dartBin.resolve('snapshots/gen_kernel_aot.dart.snapshot');
+Uri dart2bytecodeSnapshot =
+    _dartBin.resolve('snapshots/dart2bytecode.dart.snapshot');
+Uri aotRuntimeBin =
+    Uri.parse(Platform.resolvedExecutable).resolve('dartaotruntime');
+Uri vmPlatformDill =
+    _dartBin.resolve('../lib/_internal/vm_platform_strong_product.dill');
+
 // Encodes test results in the format expected by Dart's CI infrastructure.
 class TestResultOutcome {
   // This encoder must generate each output element on its own line.

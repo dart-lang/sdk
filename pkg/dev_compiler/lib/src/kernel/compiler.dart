@@ -8449,7 +8449,7 @@ class _SwitchLabelState {
 }
 
 /// Whether [expression] is a constant of the form
-/// `const pragma('dyn-module:entrypoint')`.
+/// `const pragma('dyn-module:entry-point')`.
 ///
 /// Used to denote the entrypoint method of a dynamic module.
 // TODO(sigmund): move to package:kernel.
@@ -8460,5 +8460,5 @@ bool _isEntrypointPragma(Expression expression, CoreTypes coreTypes) {
   if (value.classReference != coreTypes.pragmaClass.reference) return false;
   final name = value.fieldValues[coreTypes.pragmaName.fieldReference];
   if (name is! StringConstant) return false;
-  return name.value == 'dyn-module:entrypoint';
+  return name.value == 'dyn-module:entry-point';
 }

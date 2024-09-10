@@ -16,7 +16,9 @@ import 'pragma.dart'
 
 void annotateComponent(String dynamicInterfaceSpecification, Uri baseUri,
     Component component, CoreTypes coreTypes) {
-  final spec = loadYamlNode(dynamicInterfaceSpecification) as YamlMap;
+  final spec = loadYamlNode(dynamicInterfaceSpecification);
+  // If the spec is empty, the result is a scalar and not a map.
+  if (spec is! YamlMap) return;
   verifyKeys(spec, const {'extendable', 'can-be-overridden', 'callable'});
   final LibraryIndex libraryIndex = LibraryIndex.all(component);
 
