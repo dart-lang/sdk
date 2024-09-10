@@ -483,21 +483,19 @@ class Translator with KernelNodes {
     final namedParameters = List.of(staticType.namedParameters);
     assert(namedParameters.length == method.function.namedParameters.length);
 
-    if (!options.omitImplicitTypeChecks) {
-      for (int i = 0; i < positionalParameters.length; i++) {
-        final param = method.function.positionalParameters[i];
-        if (param.isCovariantByDeclaration || param.isCovariantByClass) {
-          positionalParameters[i] = coreTypes.objectNullableRawType;
-        }
+    for (int i = 0; i < positionalParameters.length; i++) {
+      final param = method.function.positionalParameters[i];
+      if (param.isCovariantByDeclaration || param.isCovariantByClass) {
+        positionalParameters[i] = coreTypes.objectNullableRawType;
       }
+    }
 
-      for (int i = 0; i < namedParameters.length; i++) {
-        final param = method.function.namedParameters[i];
-        if (param.isCovariantByDeclaration || param.isCovariantByClass) {
-          namedParameters[i] = NamedType(
-              namedParameters[i].name, coreTypes.objectNullableRawType,
-              isRequired: namedParameters[i].isRequired);
-        }
+    for (int i = 0; i < namedParameters.length; i++) {
+      final param = method.function.namedParameters[i];
+      if (param.isCovariantByDeclaration || param.isCovariantByClass) {
+        namedParameters[i] = NamedType(
+            namedParameters[i].name, coreTypes.objectNullableRawType,
+            isRequired: namedParameters[i].isRequired);
       }
     }
 
