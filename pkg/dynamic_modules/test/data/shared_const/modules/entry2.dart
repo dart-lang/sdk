@@ -6,7 +6,3 @@ import '../main.dart';
 
 @pragma('dyn-module:entry-point')
 Object? dynamicModuleEntrypoint() => const B(1);
-
-// TODO(sigmund): remove or reconcile. W/O a main dart2bytecode produces
-// a compile-time error.
-main() {}
