@@ -190,6 +190,7 @@ _nightly_builder(
 _vm_builder(
     "vm-aot-linux-release-x64",
     category = "vm|aot|r",
+    on_cq = True,
 )
 _vm_builder(
     "vm-aot-linux-debug-simarm_x64",
