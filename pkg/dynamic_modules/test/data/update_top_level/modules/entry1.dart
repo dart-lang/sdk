@@ -4,7 +4,11 @@
 
 import '../shared/shared.dart';
 
-@pragma('dyn-module:entrypoint')
+@pragma('dyn-module:entry-point')
 void dynamicModuleEntrypoint() {
   topLevel = 'updated';
 }
+
+// TODO(sigmund): remove or reconcile. W/O a main dart2bytecode produces
+// a compile-time error.
+main() {}

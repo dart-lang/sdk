@@ -5,7 +5,7 @@ extendable:
   - library: 'shared/shared.dart'
     class: 'Base'
 
-can-be-overriden:
+can-be-overridden:
   - library: 'shared/shared.dart'
     class: 'Base'
     member: 'method2'

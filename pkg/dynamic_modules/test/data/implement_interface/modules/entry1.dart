@@ -12,5 +12,9 @@ class Child implements Base {
   int method2() => 4;
 }
 
-@pragma('dyn-module:entrypoint')
+@pragma('dyn-module:entry-point')
 Object? dynamicModuleEntrypoint() => Child();
+
+// TODO(sigmund): remove or reconcile. W/O a main dart2bytecode produces
+// a compile-time error.
+main() {}

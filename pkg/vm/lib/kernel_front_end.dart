@@ -601,8 +601,9 @@ Future runGlobalTransformations(Target target, Component component,
 
   final dynamicInterface = args.dynamicInterface;
   if (dynamicInterface != null) {
+    final fileUri = await asFileUri(args.options!.fileSystem, dynamicInterface);
     dynamic_interface_annotator.annotateComponent(
-        File(dynamicInterface.toFilePath()).readAsStringSync(),
+        File(fileUri.toFilePath()).readAsStringSync(),
         dynamicInterface,
         component,
         coreTypes);
