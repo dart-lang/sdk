@@ -582,7 +582,7 @@
         "use-sdk": true
       }
     },
-    "ddc-mac-chrome": {
+    "ddc-mac-(chrome|safari)": {
       "options": {
         "architecture": "arm64",
         "checked": true,
@@ -2017,6 +2017,49 @@
             "-nweb-dev-unittest-asserts-mac",
             "pkg//dev_compiler/"
           ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "ddc-mac-safari"
+      ],
+      "meta": {
+        "description": "DDC running in Safari on Mac."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=arm64",
+            "dart2js_bot",
+            "ddc_stable_test"
+          ]
+        },
+        {
+          "name": "ddc sdk tests",
+          "arguments": [
+            "-nddc-mac-safari",
+            "--arch=arm64",
+            "corelib",
+            "dartdevc",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 6,
+          "fileset": "js_platform"
+        },
+        {
+          "name": "ddc co19 tests",
+          "arguments": [
+            "-nddc-mac-safari",
+            "--arch=arm64",
+            "co19"
+          ],
+          "shards": 6,
+          "fileset": "js_platform"
         }
       ]
     },
