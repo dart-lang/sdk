@@ -204,6 +204,7 @@ class Translator with KernelNodes {
     boxedBoolClass: w.NumType.i32,
     boxedIntClass: w.NumType.i64,
     boxedDoubleClass: w.NumType.f64,
+    ffiPointerClass: w.NumType.i32,
     wasmI8Class: w.PackedType.i8,
     wasmI16Class: w.PackedType.i16,
     wasmI32Class: w.NumType.i32,
@@ -875,20 +876,8 @@ class Translator with KernelNodes {
         }
       } else if (to is w.RefType) {
         // Boxing
-        Class cls = boxedClasses[from]!;
-        ClassInfo info = classInfo[cls]!;
+        ClassInfo info = classInfo[boxedClasses[from]!]!;
         assert(info.struct.isSubtypeOf(to.heapType));
-
-        if (cls == boxedBoolClass) {
-          final constantType = w.RefType(info.struct, nullable: false);
-          b.if_([], [constantType]);
-          constants.instantiateConstant(b, BoolConstant(true), constantType);
-          b.else_();
-          constants.instantiateConstant(b, BoolConstant(false), constantType);
-          b.end();
-          return;
-        }
-
         w.Local temp = b.addLocal(from);
         b.local_set(temp);
         b.i32_const(info.classId);
@@ -906,7 +895,7 @@ class Translator with KernelNodes {
         if (options.omitExplicitTypeChecks || options.omitImplicitTypeChecks) {
           b.unreachable();
         } else {
-          throw "Conversion between non-reference types (from $from to $to)";
+          throw "Conversion between non-reference types";
         }
       }
     }

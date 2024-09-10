@@ -4,60 +4,24 @@
 
 import 'dart:collection' deferred as normal show HashSet;
 
-@pragma('dart2js:load-priority:high')
+@pragma('dart2js:load-priority', 'someArg1')
 import 'dart:math' deferred as high;
 
-test1() async {
-  await normal. /*spec.invoke: normal*/ loadLibrary();
-  await high. /*spec.invoke: high*/ loadLibrary();
+test() async {
+  await normal. /*spec.invoke: */ loadLibrary();
+  await high. /*spec.invoke: someArg1*/ loadLibrary();
 
-  @pragma('dart2js:load-priority:normal')
-  final _1 = await normal. /*spec.invoke: normal*/ loadLibrary();
-  @pragma('dart2js:load-priority:normal')
-  final _2 = await normal. /*spec.invoke: normal*/ loadLibrary();
+  @pragma('dart2js:load-priority', 'someArg2')
+  final _1 = await normal. /*spec.invoke: someArg2*/ loadLibrary();
+  @pragma('dart2js:load-priority', 'someArg3')
+  final _2 = await normal. /*spec.invoke: someArg3*/ loadLibrary();
 
-  @pragma('dart2js:load-priority:high')
-  final _3 = await normal. /*spec.invoke: high*/ loadLibrary();
-  @pragma('dart2js:load-priority:high')
-  final _4 = await normal. /*spec.invoke: high*/ loadLibrary();
-}
-
-@pragma('dart2js:load-priority:high')
-/*spec.member: testHigh:load-priority:high*/
-testHigh() async {
-  await normal. /*spec.invoke: high*/ loadLibrary();
-  await high. /*spec.invoke: high*/ loadLibrary();
-
-  @pragma('dart2js:load-priority:normal')
-  final _1 = await normal. /*spec.invoke: normal*/ loadLibrary();
-  @pragma('dart2js:load-priority:normal')
-  final _2 = await normal. /*spec.invoke: normal*/ loadLibrary();
-
-  @pragma('dart2js:load-priority:high')
-  final _3 = await normal. /*spec.invoke: high*/ loadLibrary();
-  @pragma('dart2js:load-priority:high')
-  final _4 = await normal. /*spec.invoke: high*/ loadLibrary();
-}
-
-@pragma('dart2js:load-priority:normal')
-/*spec.member: testNormal:load-priority:normal*/
-testNormal() async {
-  await normal. /*spec.invoke: normal*/ loadLibrary();
-  await high. /*spec.invoke: normal*/ loadLibrary();
-
-  @pragma('dart2js:load-priority:normal')
-  final _1 = await normal. /*spec.invoke: normal*/ loadLibrary();
-  @pragma('dart2js:load-priority:normal')
-  final _2 = await normal. /*spec.invoke: normal*/ loadLibrary();
-
-  @pragma('dart2js:load-priority:high')
-  final _3 = await normal. /*spec.invoke: high*/ loadLibrary();
-  @pragma('dart2js:load-priority:high')
-  final _4 = await normal. /*spec.invoke: high*/ loadLibrary();
+  @pragma('dart2js:load-priority', 'someArg4')
+  final _3 = await normal. /*spec.invoke: someArg4*/ loadLibrary();
+  @pragma('dart2js:load-priority', 'someArg5')
+  final _4 = await normal. /*spec.invoke: someArg5*/ loadLibrary();
 }
 
 main() async {
-  await test1();
-  await testHigh();
-  await testNormal();
+  await test();
 }

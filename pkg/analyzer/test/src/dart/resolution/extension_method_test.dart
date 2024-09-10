@@ -1363,6 +1363,47 @@ MethodInvocation
 ''');
   }
 
+  test_instance_method_fromInstance_importInPart() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+extension E on int {
+  void foo() {}
+}
+''');
+
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import 'x.dart';
+void f() {
+  0.foo();
+}
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([]);
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: package:test/x.dart::<fragment>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
   test_instance_method_fromInstance_Never() async {
     await assertErrorsInCode('''
 extension E on Never {

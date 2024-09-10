@@ -84,7 +84,7 @@ class ExtensionMemberResolver {
   /// returns [ResolutionResult.ambiguous].
   ResolutionResult findExtension(
       DartType type, SyntacticEntity nameEntity, Name name) {
-    var extensions = _resolver.definingLibrary.accessibleExtensions
+    var extensions = _resolver.libraryFragment.scope.accessibleExtensions
         .havingMemberWithBaseName(name)
         .applicableTo(
           targetLibrary: _resolver.definingLibrary,
