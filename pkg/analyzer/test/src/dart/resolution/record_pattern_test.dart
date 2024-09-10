@@ -498,6 +498,7 @@ void f(() x) {
 }
 ''', [
       error(WarningCode.DEAD_CODE, 60, 7),
+      error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 60, 7),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''

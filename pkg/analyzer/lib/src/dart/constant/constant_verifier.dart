@@ -896,7 +896,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
     var caseNodesWithSpace = <AstNode>[];
     var caseSpaces = <Space>[];
-    var hasDefault = false;
+    SwitchDefault? defaultNode;
 
     var patternConverter = PatternConverter(
       languageVersion: _currentLibrary.languageVersion.effective,
@@ -913,7 +913,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (caseNode is SwitchCase) {
         // Should not happen, ignore.
       } else if (caseNode is SwitchDefault) {
-        hasDefault = true;
+        defaultNode = caseNode;
       } else if (caseNode is SwitchExpressionCase) {
         guardedPattern = caseNode.guardedPattern;
       } else if (caseNode is SwitchPatternCase) {
@@ -930,20 +930,20 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         caseSpaces.add(space);
       }
     }
+    var reportNonExhaustive = mustBeExhaustive && defaultNode == null;
 
     // Prepare for recording data for testing.
     var exhaustivenessDataForTesting = this.exhaustivenessDataForTesting;
 
     // Compute and report errors.
-    var errors = patternConverter.hasInvalidType
-        ? const <ExhaustivenessError>[]
-        : reportErrors(_exhaustivenessCache, scrutineeTypeEx, caseSpaces,
-            computeUnreachable: true);
-
-    var reportNonExhaustive = mustBeExhaustive && !hasDefault;
-    for (var error in errors) {
-      if (error is UnreachableCaseError) {
-        var caseNode = caseNodesWithSpace[error.index];
+    List<CaseUnreachability> caseUnreachabilities = [];
+    NonExhaustiveness? nonExhaustiveness;
+    if (!patternConverter.hasInvalidType) {
+      nonExhaustiveness = computeExhaustiveness(
+          _exhaustivenessCache, scrutineeTypeEx, caseSpaces,
+          caseUnreachabilities: caseUnreachabilities);
+      for (var caseUnreachability in caseUnreachabilities) {
+        var caseNode = caseNodesWithSpace[caseUnreachability.index];
         Token errorToken;
         if (caseNode is SwitchExpressionCase) {
           errorToken = caseNode.arrow;
@@ -956,32 +956,45 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           errorToken,
           WarningCode.UNREACHABLE_SWITCH_CASE,
         );
-      } else if (error is NonExhaustiveError && reportNonExhaustive) {
-        var errorBuffer = SimpleDartBuffer();
-        error.witnesses.first.toDart(errorBuffer, forCorrection: false);
-        var correctionTextBuffer = SimpleDartBuffer();
-        error.witnesses.first.toDart(correctionTextBuffer, forCorrection: true);
+      }
+      if (nonExhaustiveness != null) {
+        if (reportNonExhaustive) {
+          var errorBuffer = SimpleDartBuffer();
+          nonExhaustiveness.witnesses.first
+              .toDart(errorBuffer, forCorrection: false);
+          var correctionTextBuffer = SimpleDartBuffer();
+          nonExhaustiveness.witnesses.first
+              .toDart(correctionTextBuffer, forCorrection: true);
 
-        var correctionData = <List<MissingPatternPart>>[];
-        for (var witness in error.witnesses) {
-          var correctionDataBuffer = AnalyzerDartTemplateBuffer();
-          witness.toDart(correctionDataBuffer, forCorrection: true);
-          if (correctionDataBuffer.isComplete) {
-            correctionData.add(correctionDataBuffer.parts);
+          var correctionData = <List<MissingPatternPart>>[];
+          for (var witness in nonExhaustiveness.witnesses) {
+            var correctionDataBuffer = AnalyzerDartTemplateBuffer();
+            witness.toDart(correctionDataBuffer, forCorrection: true);
+            if (correctionDataBuffer.isComplete) {
+              correctionData.add(correctionDataBuffer.parts);
+            }
           }
+          _errorReporter.atToken(
+            switchKeyword,
+            isSwitchExpression
+                ? CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+                : CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
+            arguments: [
+              scrutineeType,
+              errorBuffer.toString(),
+              correctionTextBuffer.toString(),
+            ],
+            data: correctionData.isNotEmpty ? correctionData : null,
+          );
         }
-        _errorReporter.atToken(
-          switchKeyword,
-          isSwitchExpression
-              ? CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION
-              : CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
-          arguments: [
-            scrutineeType,
-            errorBuffer.toString(),
-            correctionTextBuffer.toString(),
-          ],
-          data: correctionData.isNotEmpty ? correctionData : null,
-        );
+      } else {
+        if (defaultNode != null && mustBeExhaustive) {
+          // Default node is unreachable
+          _errorReporter.atToken(
+            defaultNode.keyword,
+            WarningCode.UNREACHABLE_SWITCH_DEFAULT,
+          );
+        }
       }
     }
 
@@ -993,13 +1006,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       }
       exhaustivenessDataForTesting.switchScrutineeType[node] = scrutineeTypeEx;
       exhaustivenessDataForTesting.switchCases[node] = caseSpaces;
-      for (var error in errors) {
-        if (error is UnreachableCaseError) {
-          exhaustivenessDataForTesting.errors[caseNodesWithSpace[error.index]] =
-              error;
-        } else if (reportNonExhaustive) {
-          exhaustivenessDataForTesting.errors[node] = error;
-        }
+      for (var caseUnreachability in caseUnreachabilities) {
+        exhaustivenessDataForTesting.caseUnreachabilities[
+            caseNodesWithSpace[caseUnreachability.index]] = caseUnreachability;
+      }
+      if (nonExhaustiveness != null && reportNonExhaustive) {
+        exhaustivenessDataForTesting.nonExhaustivenesses[node] =
+            nonExhaustiveness;
       }
     }
   }

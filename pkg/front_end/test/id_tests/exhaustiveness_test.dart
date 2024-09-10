@@ -101,20 +101,16 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
         features[Tags.scrutineeFields] = fieldsToText(result.scrutineeType,
             _exhaustivenessData.objectFieldLookup!, fieldsOfInterest);
       }
-      for (ExhaustivenessError error in result.errors) {
-        if (error is NonExhaustiveError) {
-          features[Tags.error] = errorToText(error);
-        }
+      if (result.nonExhaustiveness case NonExhaustiveness nonExhaustiveness) {
+        features[Tags.error] = nonExhaustivenessToText(nonExhaustiveness);
       }
       Uri uri = node.location!.file;
       for (int i = 0; i < result.caseSpaces.length; i++) {
         int offset = result.caseOffsets[i];
         Features caseFeatures = new Features();
         caseFeatures[Tags.space] = spacesToText(result.caseSpaces[i]);
-        for (ExhaustivenessError error in result.errors) {
-          if (error is UnreachableCaseError && error.index == i) {
-            caseFeatures[Tags.error] = errorToText(error);
-          }
+        if (result.unreachableCases.contains(i)) {
+          caseFeatures[Tags.error] = 'unreachable';
         }
         registerValue(
             uri, offset, new NodeId(offset, IdKind.node), caseFeatures, node);

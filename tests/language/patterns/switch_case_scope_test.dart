@@ -23,7 +23,7 @@ void switchStatementBodyScope() {
       // Not a collision:
       var x = 'local';
       Expect.equals('local', x);
-    default:
+    default: // ignore: unreachable_switch_default
       Expect.fail('Should not reach this.');
   }
 }
@@ -44,7 +44,7 @@ void unsharedPatternVariableShadows() {
 
       // Assign to pattern variable.
       local = 'assigned';
-    default:
+    default: // ignore: unreachable_switch_default
       Expect.fail('Should not reach this.');
   }
 

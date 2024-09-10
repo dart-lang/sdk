@@ -208,3 +208,25 @@ void unreachableCase3(A? r) {
       break;
   }
 }
+
+void unreachableDefault(A r) {
+  switch (r) /* Ok */ {
+    case A(a: Enum.a, b: false):
+      print('A(a, false)');
+      break;
+    case A(a: Enum.b, b: false):
+      print('A(b, false)');
+      break;
+    case A(a: Enum.a, b: true):
+      print('A(a, true)');
+      break;
+    case A(a: Enum.b, b: true):
+      print('A(b, true)');
+      break;
+    default: // Unreachable
+//  ^^^^^^^
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
+      print('default');
+      break;
+  }
+}

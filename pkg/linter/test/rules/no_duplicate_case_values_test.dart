@@ -65,6 +65,7 @@ void switchEnum() {
 ''', [
       // No lint.
       error(WarningCode.UNREACHABLE_SWITCH_CASE, 139, 4),
+      error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 155, 7),
     ]);
   }
 

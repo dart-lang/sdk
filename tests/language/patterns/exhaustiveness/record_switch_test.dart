@@ -201,3 +201,25 @@ void unreachableCase3((Enum, bool)? r) {
       break;
   }
 }
+
+void unreachableDefault((Enum, bool) r) {
+  switch (r) /* Ok */ {
+    case r0:
+      print('(a, false)');
+      break;
+    case r1:
+      print('(b, false)');
+      break;
+    case r2:
+      print('(a, true)');
+      break;
+    case r3:
+      print('(b, true)');
+      break;
+    default: // Unreachable
+//  ^^^^^^^
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
+      print('default');
+      break;
+  }
+}

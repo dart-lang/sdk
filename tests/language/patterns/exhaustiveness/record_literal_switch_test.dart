@@ -197,3 +197,49 @@ void unreachableCase3((Enum, bool)? r) {
       break;
   }
 }
+
+void unreachableDefault((Enum, bool) r) {
+  switch (r) /* Ok */ {
+    case (Enum.a, false):
+      print('(a, false)');
+      break;
+    case (Enum.b, false):
+      print('(b, false)');
+      break;
+    case (Enum.a, true):
+      print('(a, true)');
+      break;
+    case (Enum.b, true):
+      print('(b, true)');
+      break;
+    default: // Unreachable
+//  ^^^^^^^
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
+      print('default');
+      break;
+  }
+}
+
+void unreachableDefaultNotAlwaysExhaustive((Enum, int) r) {
+  // If the type being switched on isn't "always exhaustive", no
+  // `UNREACHABLE_SWITCH_DEFAULT` warning is reported, because flow analysis
+  // might not understand that the switch cases fully exhaust the switch, so
+  // removing the default clause might result in spurious errors.
+  switch (r) /* Ok */ {
+    case (Enum.a, 0):
+      print('(a, 0)');
+      break;
+    case (Enum.b, 0):
+      print('(b, 0)');
+      break;
+    case (Enum.a, _):
+      print('(a, nonzero)');
+      break;
+    case (Enum.b, _):
+      print('(b, nonzero)');
+      break;
+    default: // Unreachable
+      print('default');
+      break;
+  }
+}
