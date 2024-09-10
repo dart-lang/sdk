@@ -552,16 +552,18 @@ final class ProcessResult {
   /// value.
   final int exitCode;
 
-  /// Standard output from the process. The value used for the
-  /// `stdoutEncoding` argument to `Process.run` determines the type. If
-  /// `null` was used, this value is of type `List<int>` otherwise it is
-  /// of type `String`.
+  /// Standard output from the process.
+  ///
+  /// The value used for the `stdoutEncoding` argument to [Process.run]
+  /// determines the type. If `null` was used, this value is of type
+  /// [Uint8List] otherwise it is of type `String`.
   final stdout;
 
-  /// Standard error from the process. The value used for the
-  /// `stderrEncoding` argument to `Process.run` determines the type. If
-  /// `null` was used, this value is of type `List<int>`
-  /// otherwise it is of type `String`.
+  /// Standard error from the process.
+  ///
+  /// The value used for the `stderrEncoding` argument to [Process.run]
+  /// determines the type. If `null` was used, this value is of type
+  /// [Uint8List] otherwise it is of type [String].
   final stderr;
 
   /// Process id of the process.

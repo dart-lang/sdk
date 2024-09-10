@@ -20,6 +20,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/src/utilities/charcodes.dart';
+import 'package:analyzer_plugin/src/utilities/directive_sort.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
 import 'package:analyzer_plugin/src/utilities/library.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
@@ -1793,9 +1794,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
     }
 
-    // Sort imports by URIs.
-    var importList = imports.toList();
-    importList.sort((a, b) => a.uriText.compareTo(b.uriText));
+    // Sort the new imports so dart, package, and relative imports appear in the
+    // correct order.
+    var importList = imports.toList()..sort();
     var sortCombinators = resolvedUnit.session.analysisContext
         .getAnalysisOptionsForFile(resolvedUnit.file)
         .isLintEnabled('combinators_ordering');
@@ -2523,8 +2524,10 @@ class _InsertionPreparer {
 }
 
 /// Information about a library import.
-class _LibraryImport {
+class _LibraryImport implements Comparable<_LibraryImport> {
   final String uriText;
+
+  late final DirectiveSortPriority sortPriority;
 
   /// Prefixes that this library is/will be imported using.
   ///
@@ -2545,6 +2548,7 @@ class _LibraryImport {
     List<List<String>>? hiddenNames,
   })  : shownNames = shownNames ?? [],
         hiddenNames = hiddenNames ?? [] {
+    sortPriority = DirectiveSortPriority(uriText, DirectiveSortKind.import);
     prefixes.add(prefix);
   }
 
@@ -2567,6 +2571,14 @@ class _LibraryImport {
     return other is _LibraryImport &&
         other.uriText == uriText &&
         !const SetEquality().equals(other.prefixes, prefixes);
+  }
+
+  @override
+  int compareTo(_LibraryImport other) {
+    if (sortPriority == other.sortPriority) {
+      return compareDirectiveUri(uriText, other.uriText);
+    }
+    return sortPriority.ordinal - other.sortPriority.ordinal;
   }
 
   /// Ensures [name] is visible for this import.

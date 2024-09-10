@@ -176,6 +176,7 @@ Future<int> runCompiler(ArgResults options) async {
   final results = await compileToKernel(KernelCompilationArguments(
       source: mainUri,
       options: compilerOptions,
+      requireMain: false,
       includePlatform: false,
       environmentDefines: environmentDefines,
       enableAsserts: enableAsserts));

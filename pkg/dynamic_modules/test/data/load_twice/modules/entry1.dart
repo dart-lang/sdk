@@ -6,7 +6,3 @@ class A {}
 
 @pragma('dyn-module:entry-point')
 Object? dynamicModuleEntrypoint() => A();
-
-// TODO(sigmund): remove or reconcile. W/O a main dart2bytecode produces
-// a compile-time error.
-main() {}
