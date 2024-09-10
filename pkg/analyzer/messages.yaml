@@ -2,6 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# Run
+#
+#     dart run analyzer/tool/messages/generate.dart
+#
+# to regenerate messages after having edited this file.
+
 # This file is organized as a two level map, where the outer key corresponds to
 # the name of an analyzer error class (e.g. CompileTimeErrorCode), and the inner
 # key corresponds to the name of a static variable in that class, describing a
