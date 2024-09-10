@@ -704,8 +704,10 @@ class DeclarationHelper {
     required bool includeSetters,
   }) {
     var libraryElement = request.libraryElement;
+    var libraryFragment = request.libraryFragment;
 
-    var applicableExtensions = libraryElement.accessibleExtensions.applicableTo(
+    var accessibleExtensions = libraryFragment.accessibleExtensions;
+    var applicableExtensions = accessibleExtensions.applicableTo(
       targetLibrary: libraryElement,
       // Ignore nullability, consistent with non-extension members.
       targetType: type.isDartCoreNull

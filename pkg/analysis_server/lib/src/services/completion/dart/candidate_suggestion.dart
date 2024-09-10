@@ -325,7 +325,7 @@ final class FieldSuggestion extends CandidateSuggestion with MemberSuggestion {
       required this.referencingInterface});
 
   @override
-  String get completion => element.name;
+  String get completion => element.displayName;
 }
 
 /// The information about a candidate suggestion based on a formal parameter.
@@ -661,16 +661,73 @@ final class NamedArgumentSuggestion extends CandidateSuggestion {
   /// doesn't need to be overridden.
   final int? replacementLength;
 
-  NamedArgumentSuggestion(
-      {required this.parameter,
-      required this.appendColon,
-      required this.appendComma,
-      this.replacementLength,
-      required super.matcherScore});
+  final bool isWidget;
+
+  String preferredQuoteForStrings;
+
+  late String _completion;
+
+  // Indicates whether _completion and _selectionOffset have been initialized.
+  bool _initialized = false;
+
+  late int _selectionOffset;
+
+  NamedArgumentSuggestion({
+    required this.parameter,
+    required this.appendColon,
+    required this.appendComma,
+    this.replacementLength,
+    required super.matcherScore,
+    required this.preferredQuoteForStrings,
+    this.isWidget = false,
+  });
 
   @override
-  String get completion =>
-      '${parameter.name}${appendColon ? ': ' : ''}${appendComma ? ',' : ''}';
+  String get completion {
+    _init();
+    return _completion;
+  }
+
+  /// The offset, from the beginning of the inserted text, where the cursor
+  /// should be positioned.
+  int get selectionOffset {
+    _init();
+    return _selectionOffset;
+  }
+
+  void _init() {
+    if (_initialized) {
+      return;
+    }
+    var completion = parameter.name;
+    if (appendColon) {
+      completion += ': ';
+    }
+    var selectionOffset = completion.length;
+
+    // Optionally add Flutter child widget details.
+    // TODO(pq): revisit this special casing; likely it can be generalized away.
+    if (isWidget && appendColon) {
+      var defaultValue =
+          getDefaultStringParameterValue(parameter, preferredQuoteForStrings);
+      // TODO(devoncarew): Should we remove the check here? We would then
+      // suggest values for param types like closures.
+      if (defaultValue != null && defaultValue.text == '[]') {
+        var completionLength = completion.length;
+        completion += defaultValue.text;
+        var cursorPosition = defaultValue.cursorPosition;
+        if (cursorPosition != null) {
+          selectionOffset = completionLength + cursorPosition;
+        }
+      }
+    }
+    if (appendComma) {
+      completion += ',';
+    }
+    _completion = completion;
+    _selectionOffset = selectionOffset;
+    _initialized = true;
+  }
 }
 
 /// The information about a candidate suggestion based on a getter or setter.
@@ -1163,6 +1220,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
             appendColon: suggestion.appendColon,
             appendComma: suggestion.appendComma,
             replacementLength: suggestion.replacementLength,
+            completion: suggestion.completion,
+            selectionOffset: suggestion.selectionOffset,
             relevance: relevance);
       case NameSuggestion():
         suggestName(suggestion.name);

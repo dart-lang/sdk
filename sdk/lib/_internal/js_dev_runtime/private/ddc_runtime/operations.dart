@@ -1037,6 +1037,17 @@ void checkDeferredIsLoaded(
   }
 }
 
+/// Provides the experimental functionality for dynamic modules.
+Object? dynamicModuleLoader;
+Object? dynamicEntrypointHelper;
+void setDynamicModuleLoader(Object loaderFunction, Object entrypointHelper) {
+  if (dynamicModuleLoader != null) {
+    throw StateError('Dynamic module loader already configured.');
+  }
+  dynamicModuleLoader = loaderFunction;
+  dynamicEntrypointHelper = entrypointHelper;
+}
+
 /// Defines lazy statics.
 ///
 /// TODO: Remove useOldSemantics when non-null-safe late static field behavior is

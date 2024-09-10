@@ -203,9 +203,12 @@ getModulePartMap(String name) => JS('', '#.get(#)', _loadedPartMaps, name);
 /// * To convert JS stack traces to Dart: the
 ///   stack trace mapper companion program will request source maps via
 ///   [getSourceMap].
+/// * To validate a library is only defined by one dynamic module: the compiler
+///   generates calls to [getLibrary] when compiling the experimental dynamic
+///   modules feature.
 ///
 /// Note: calls to [getLibrary], [getLibraryMetadata], [getSourceMap], among
-/// others don't originate from code in the SDK repo. For example, the
+/// others don't always originate from code in the SDK repo. For example, the
 /// debugger calls are initiated by DWDS, whereas the [getSourceMap] call is
 /// done from bootstapping scripts that set up the stack trace mapper.
 // TODO(39630): move these public facing APIs to a dedicated public interface.

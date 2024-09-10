@@ -20,6 +20,47 @@ class ConvertIfStatementToSwitchStatementTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
 
+  Future<void> test_chain_case2_blockEmpty() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int()) {
+  } else if (x case double()) {
+    1;
+  }
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case int():
+      break;
+    case double():
+      1;
+  }
+}
+''');
+  }
+
+  Future<void> test_chain_case2_blockEmpty_last() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int()) {
+    0;
+  } else if (x case double()) {
+  }
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case int():
+      0;
+    case double():
+  }
+}
+''');
+  }
+
   Future<void> test_chain_case2_differentIdentifier() async {
     await resolveTestCode('''
 void f(Object? x, Object? y) {

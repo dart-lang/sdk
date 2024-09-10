@@ -975,9 +975,6 @@ abstract class LabelElement2 implements Element2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryElement2 implements Element2, _Annotatable, _Fragmented {
-  /// The extension elements accessible within this library.
-  List<ExtensionElement2> get accessibleExtensions2;
-
   /// The classes defined in this library.
   ///
   /// There is no guarantee of the order in which the classes will be returned.
@@ -1122,6 +1119,9 @@ abstract class LibraryExport {
 
 /// The portion of a [LibraryElement2] coming from a single compilation unit.
 abstract class LibraryFragment implements Fragment, _Annotatable {
+  /// The extension elements accessible within this fragment.
+  List<ExtensionElement2> get accessibleExtensions2;
+
   /// The fragments of the classes declared in this fragment.
   List<ClassFragment> get classes2;
 

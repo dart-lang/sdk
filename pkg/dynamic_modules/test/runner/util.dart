@@ -7,6 +7,7 @@ library;
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ffi' show Abi;
 
 /// Locate the root of the SDK repository.
 ///
@@ -22,6 +23,39 @@ Uri repoRoot = (() {
   }
   return script.resolve("../" * (segments.length - index - 1));
 })();
+
+String _outFolder = Platform.isMacOS ? 'xcodebuild' : 'out';
+String configuration =
+    Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
+String buildFolder = '$_outFolder/$configuration/';
+String arch = Abi.current().toString().split('_')[1];
+String _d8Path = (() {
+  if (Platform.isWindows) {
+    return 'third_party/d8/windows/$arch/d8.exe';
+  } else if (Platform.isLinux) {
+    return 'third_party/d8/linux/$arch/d8';
+  } else if (Platform.isMacOS) {
+    return 'third_party/d8/macos/$arch/d8';
+  } else {
+    throw UnsupportedError('Unsupported platform for running d8: '
+        '${Platform.operatingSystem}');
+  }
+})();
+
+Uri d8Uri = repoRoot.resolve(_d8Path);
+Uri _dartBin = Uri.file(Platform.resolvedExecutable);
+Uri ddcSnapshot = _dartBin.resolve('snapshots/dartdevc.dart.snapshot');
+Uri kernelWOrkerSnapshot =
+    _dartBin.resolve('snapshots/kernel_worker.dart.snapshot');
+Uri buildRootUri = repoRoot.resolve(buildFolder);
+Uri ddcSdkOutline = buildRootUri.resolve('ddc_outline.dill');
+Uri ddcSdkJs = buildRootUri.resolve('gen/utils/ddc/stable/sdk/ddc/dart_sdk.js');
+Uri ddcPreamblesJs = repoRoot
+    .resolve('sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js');
+Uri ddcSealNativeObjectJs = repoRoot.resolve(
+    'sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js');
+Uri ddcModuleLoaderJs =
+    repoRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
 
 // Encodes test results in the format expected by Dart's CI infrastructure.
 class TestResultOutcome {

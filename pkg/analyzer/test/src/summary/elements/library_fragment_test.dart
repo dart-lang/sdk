@@ -1327,7 +1327,7 @@ package:test/a.dart
         if (withAccessibleExtensions) {
           elementPrinter.writeElementList(
             'accessibleExtensions',
-            fragment.scope.accessibleExtensions.sortedBy((e) => e.name ?? ''),
+            fragment.accessibleExtensions.sortedBy((e) => e.name ?? ''),
           );
         }
       });

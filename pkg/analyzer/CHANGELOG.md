@@ -1,3 +1,7 @@
+## 6.10.0-dev
+* Deprecated `LibraryElement.accessibleExtensions`, use
+  `CompilationUnitElement.accessibleExtensions` instead.
+
 ## 6.9.0
 * `NormalFormalParameter` now implements `AnnotatedNode`.
 * Deprecated `Element.enclosingElement`, use `enclosingElement3`.

@@ -7,6 +7,7 @@ library;
 
 import 'package:args/args.dart';
 
+import 'ddc.dart';
 import 'load.dart';
 import 'model.dart';
 import 'target.dart';
@@ -47,7 +48,7 @@ void main(List<String> args) async {
   late TargetExecutor executor;
   try {
     executor = switch (target) {
-      Target.ddc => UnimplementedExecutor(logger),
+      Target.ddc => DdcExecutor(logger),
       Target.aot => UnimplementedExecutor(logger),
       Target.dart2wasm => UnimplementedExecutor(logger),
     };

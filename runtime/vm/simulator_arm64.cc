@@ -3110,8 +3110,8 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
     for (int idx = 0; idx < 4; idx++) {
       const int32_t vn_val = get_vregisters(vn, idx);
       const int32_t vm_val = get_vregisters(vm, idx);
-      const float vn_flt = bit_cast<float, int32_t>(vn_val);
-      const float vm_flt = bit_cast<float, int32_t>(vm_val);
+      const volatile float vn_flt = bit_cast<float, int32_t>(vn_val);
+      const volatile float vm_flt = bit_cast<float, int32_t>(vm_val);
       int32_t res = 0.0;
       if ((U == 0) && (opcode == 0x3)) {
         if (instr->Bit(23) == 0) {
@@ -3184,8 +3184,8 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
     for (int idx = 0; idx < 2; idx++) {
       const int64_t vn_val = get_vregisterd(vn, idx);
       const int64_t vm_val = get_vregisterd(vm, idx);
-      const double vn_dbl = bit_cast<double, int64_t>(vn_val);
-      const double vm_dbl = bit_cast<double, int64_t>(vm_val);
+      const volatile double vn_dbl = bit_cast<double, int64_t>(vn_val);
+      const volatile double vm_dbl = bit_cast<double, int64_t>(vm_val);
       int64_t res = 0.0;
       if ((U == 0) && (opcode == 0x3)) {
         if (instr->Bit(23) == 0) {

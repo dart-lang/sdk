@@ -14,7 +14,6 @@ import 'package:analysis_server/src/services/completion/dart/relevance_computer.
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
-import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -581,51 +580,12 @@ class SuggestionBuilder {
   void suggestNamedArgument(ParameterElement parameter,
       {required bool appendColon,
       required bool appendComma,
+      required int selectionOffset,
+      required String completion,
       int? replacementLength,
-      int? relevance}) {
+      required int relevance}) {
     var name = parameter.name;
     var type = parameter.type.getDisplayString();
-
-    var completion = name;
-    if (appendColon) {
-      completion += ': ';
-    }
-    var selectionOffset = completion.length;
-
-    // Optionally add Flutter child widget details.
-    // TODO(pq): revisit this special casing; likely it can be generalized away.
-    var element = parameter.enclosingElement3;
-    // If `appendColon` is false, default values should never be appended.
-    if (element is ConstructorElement && appendColon) {
-      if (element.enclosingElement3.augmented.declaration.isWidget) {
-        var analysisOptions = request.analysisSession.analysisContext
-            .getAnalysisOptionsForFile(
-                request.resourceProvider.getFile(request.path));
-        var codeStyleOptions = analysisOptions.codeStyleOptions;
-        // Don't bother with nullability. It won't affect default list values.
-        var defaultValue =
-            getDefaultStringParameterValue(parameter, codeStyleOptions);
-        // TODO(devoncarew): Should we remove the check here? We would then
-        // suggest values for param types like closures.
-        if (defaultValue != null && defaultValue.text == '[]') {
-          var completionLength = completion.length;
-          completion += defaultValue.text;
-          var cursorPosition = defaultValue.cursorPosition;
-          if (cursorPosition != null) {
-            selectionOffset = completionLength + cursorPosition;
-          }
-        }
-      }
-    }
-
-    if (appendComma) {
-      completion += ',';
-    }
-
-    relevance ??= Relevance.namedArgument;
-    if (parameter.isRequiredNamed || parameter.hasRequired) {
-      relevance = Relevance.requiredNamedArgument;
-    }
 
     var suggestion = DartCompletionSuggestion(
         CompletionSuggestionKind.NAMED_ARGUMENT,
