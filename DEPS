@@ -188,7 +188,7 @@ vars = {
   "typed_data_rev": "365468a74251c930a463daf5b8f13227e269111a",
   "vector_math_rev": "2cfbe2c115a57b368ccbc3c89ebd38a06764d3d1",
   "watcher_rev": "0484625589d8512b36a7ad898a6cc6351d24c556",
-  "web_rev": "4996dc2acd30ff06f7e500ec76fde8a66db82c0c",
+  "web_rev": "fb3019264edbed87b40c29d7777b2f98ae562008",
   "web_socket_channel_rev": "0e1d6e2eb5a0bfd62e45b772ac7107d796176cf6",
   "webdev_rev": "5f30c560dc4e3df341356c43ec1a766ee6b74a7c",
   "webdriver_rev": "b181c9e5eca657ea4a12621332f47d9579106fda",
