@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <emscripten.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -162,4 +163,14 @@ size_t incrementSize(size_t a) {
 EMSCRIPTEN_KEEPALIVE
 wchar_t incrementWchar(wchar_t a) {
     return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double sqrtDouble(double d) {
+    return sqrt(d);
+}
+
+EMSCRIPTEN_KEEPALIVE
+float sqrtFloat(float d) {
+    return sqrtf(d);
 }
