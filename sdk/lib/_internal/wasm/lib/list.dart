@@ -67,54 +67,116 @@ abstract class _ModifiableList<E> extends WasmListBase<E> {
       : super._withData(length, data);
 
   @pragma('wasm:prefer-inline')
+  @override
   void operator []=(int index, E value) {
     indexCheckWithName(index, _length, "[]=");
     _data[index] = value;
   }
 
-  // List interface.
+  @override
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     RangeError.checkValidRange(start, end, this.length);
     int length = end - start;
     if (length == 0) return;
     RangeError.checkNotNegative(skipCount, "skipCount");
-    if (identical(this, iterable)) {
-      _data.copy(start, _data, skipCount, length);
-    } else if (iterable is List<E>) {
-      Lists.copy(iterable, skipCount, this, start, length);
-    } else {
-      Iterator<E> it = iterable.iterator;
-      while (skipCount > 0) {
-        if (!it.moveNext()) return;
-        skipCount--;
+
+    // Look through `SubListIterable`s while still testing for the fast case as
+    // first thing.
+    while (true) {
+      if (iterable is WasmListBase) {
+        final iterableWasmList = unsafeCast<WasmListBase>(iterable);
+        if (skipCount + length > iterableWasmList.length) {
+          throw IterableElementError.tooFew();
+        }
+        _data.copy(start, iterableWasmList._data, skipCount, length);
+        return;
       }
-      for (int i = start; i < end; i++) {
-        if (!it.moveNext()) return;
-        _data[i] = it.current;
+
+      if (iterable is List) {
+        final iterableList = unsafeCast<List<E>>(iterable);
+        for (int i = skipCount, j = start; i < skipCount + length; i++, j++) {
+          _data[j] = iterableList[i];
+        }
+        return;
       }
+
+      if (iterable is SubListIterable) {
+        final listIterable = unsafeCast<SubListIterable<E>>(iterable);
+        var sourceLength = listIterable.length;
+        if (sourceLength - skipCount < length) {
+          throw IterableElementError.tooFew();
+        }
+        iterable = SubListIterable.iterableOf(listIterable);
+        skipCount += SubListIterable.startOf(listIterable);
+        continue;
+      }
+
+      break;
+    }
+
+    Iterator<E> it = iterable.iterator;
+    while (skipCount > 0) {
+      if (!it.moveNext()) throw IterableElementError.tooFew();
+      skipCount--;
+    }
+    for (int i = start; i < end; i++) {
+      if (!it.moveNext()) throw IterableElementError.tooFew();
+      _data[i] = it.current;
     }
   }
 
+  @override
   void setAll(int index, Iterable<E> iterable) {
-    if (index < 0 || index > this.length) {
-      throw RangeError.range(index, 0, this.length, "index");
+    final length = this.length;
+
+    // index < 0 || index > length
+    if (index.gtU(length)) {
+      throw RangeError.range(index, 0, length, "index");
     }
-    List<E> iterableAsList;
-    if (identical(this, iterable)) {
-      iterableAsList = this;
-    } else if (iterable is List<E>) {
-      iterableAsList = iterable;
-    } else {
-      for (var value in iterable) {
-        this[index++] = value;
+
+    if (iterable is WasmListBase) {
+      final iterableWasmList = unsafeCast<WasmListBase>(iterable);
+      final elementCount = iterableWasmList.length;
+
+      // Elements to copy = min(length - index, elementCount).
+      int copyCount = length - index;
+      if (copyCount > elementCount) {
+        copyCount = elementCount;
       }
+
+      _data.copy(index, iterableWasmList._data, 0, copyCount);
+
+      if (elementCount > copyCount) {
+        throw IndexError.withLength(length, length);
+      }
+
       return;
     }
-    int length = iterableAsList.length;
-    if (index + length > this.length) {
-      throw RangeError.range(index + length, 0, this.length);
+
+    if (iterable is List) {
+      final iterableList = unsafeCast<List<E>>(iterable);
+      final elementCount = iterableList.length;
+
+      // Elements to copy = min(length - index, elementCount).
+      int copyCount = length - index;
+      if (copyCount > elementCount) {
+        copyCount = elementCount;
+      }
+
+      for (int i = 0, j = index; i < copyCount; i++, j++) {
+        _data[j] = iterableList[i];
+      }
+
+      if (elementCount > copyCount) {
+        throw IndexError.withLength(length, length);
+      }
+
+      return;
     }
-    Lists.copy(iterableAsList, 0, this, index, length);
+
+    for (var value in iterable) {
+      this[index++] = value;
+    }
   }
 
   @override
