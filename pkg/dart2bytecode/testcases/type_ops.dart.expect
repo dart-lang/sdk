@@ -588,7 +588,7 @@ ConstantPool {
 }
 
 
-Function 'foo7', reflectable, debuggable, forwarding-stub
+Function 'foo7', reflectable, debuggable
     parameters [dart:core::num 'b', dart:core::String 'c'] (required: 2)
     return-type void
 

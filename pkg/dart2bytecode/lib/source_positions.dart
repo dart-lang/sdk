@@ -17,8 +17,6 @@ class SourcePositions extends BytecodeDeclaration {
   // Special value of fileOffset which marks synthetic code without source
   // position.
   static const syntheticCodeMarker = -1;
-  // Special value of fileOffset which marks yield point.
-  static const yieldPointMarker = -2;
 
   final List<int> _positions = <int>[]; // Pairs (PC, fileOffset).
   int _lastPc = 0;
@@ -35,17 +33,6 @@ class SourcePositions extends BytecodeDeclaration {
       _lastPc = pc;
       _lastOffset = fileOffset;
     }
-  }
-
-  void addYieldPoint(int pc, int fileOffset) {
-    assert(pc > _lastPc);
-    assert((fileOffset >= 0) || (fileOffset == syntheticCodeMarker));
-    _positions.add(pc);
-    _positions.add(yieldPointMarker);
-    _positions.add(pc);
-    _positions.add(fileOffset);
-    _lastPc = pc;
-    _lastOffset = fileOffset;
   }
 
   bool get isEmpty => _positions.isEmpty;
@@ -83,9 +70,7 @@ class SourcePositions extends BytecodeDeclaration {
     for (int i = 0; i < _positions.length; i += 2) {
       final int pc = _positions[i];
       final int fileOffset = _positions[i + 1];
-      final entry = (fileOffset == yieldPointMarker)
-          ? 'yield point'
-          : 'source position $fileOffset';
+      final entry = 'source position $fileOffset';
       if (map[pc] == null) {
         map[pc] = entry;
       } else {

@@ -525,7 +525,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       flags |= FieldDeclaration.isCovariantFlag;
     }
     if (field.isCovariantByClass) {
-      flags |= FieldDeclaration.isGenericCovariantImplFlag;
+      flags |= FieldDeclaration.isCovariantByClassFlag;
     }
     if (field.isExtensionMember) {
       flags |= FieldDeclaration.isExtensionMemberFlag;
@@ -583,9 +583,6 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
       if (member.isStatic) {
         flags |= FunctionDeclaration.isStaticFlag;
-      }
-      if (member.isForwardingStub) {
-        flags |= FunctionDeclaration.isForwardingStubFlag;
       }
       if (member.isNoSuchMethodForwarder) {
         flags |= FunctionDeclaration.isNoSuchMethodForwarderFlag;
@@ -765,7 +762,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         flags |= ParameterDeclaration.isCovariantFlag;
       }
       if (variable.isCovariantByClass) {
-        flags |= ParameterDeclaration.isGenericCovariantImplFlag;
+        flags |= ParameterDeclaration.isCovariantByClassFlag;
       }
       if (variable.isFinal) {
         flags |= ParameterDeclaration.isFinalFlag;

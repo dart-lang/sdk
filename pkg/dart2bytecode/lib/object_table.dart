@@ -284,44 +284,44 @@ type BoundAndDefaultType {
 enum ObjectKind {
   kInvalid,
   kLibrary,
+  kScript,
   kClass,
   kMember,
   kClosure,
   kName,
-  kTypeArguments,
   kConstObject,
-  kArgDesc,
-  kScript,
   kType,
+  kTypeArguments,
+  kArgDesc,
 }
 
 enum ConstTag {
   kInvalid,
-  kInstance,
   kInt,
   kDouble,
-  kList,
-  kTearOff,
   kBool,
-  kSymbol,
-  kTearOffInstantiation,
   kString,
+  kSymbol,
+  kInstance,
+  kList,
   kMap,
   kSet,
   kRecord,
+  kTearOff,
+  kTearOffInstantiation,
 }
 
 enum TypeTag {
   kInvalid,
   kDynamic,
   kVoid,
-  kSimpleType,
-  kTypeParameter,
-  kGenericType,
-  kFunctionType,
-  kRecordType,
   kNull,
   kNever,
+  kSimpleType,
+  kGenericType,
+  kTypeParameter,
+  kFunctionType,
+  kRecordType,
 }
 
 /// Name of artificial class containing top-level members of a library.
