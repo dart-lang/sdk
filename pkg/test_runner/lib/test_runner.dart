@@ -34,7 +34,7 @@ const int deflakingCount = 5;
 ///   bar becomes 'foo
 ///   bar'
 String shellSingleQuote(String string) {
-  return "'${string.replaceAll("'", "'\\''")}'";
+  return "'${string.replaceAll("'", r"'\''")}'";
 }
 
 /// Like [shellSingleQuote], but if the string only contains safe ASCII
@@ -43,7 +43,7 @@ String shellSingleQuote(String string) {
 /// a shell keyword or a shell builtin in the first argument in a command. It
 /// should be safe to use this for the second argument onwards in a command.
 String simpleShellSingleQuote(String string) {
-  return RegExp(r"^[a-zA-Z0-9%+,./:_-]*$").hasMatch(string)
+  return RegExp(r"^[a-zA-Z\d%+,./:_\-]*$").hasMatch(string)
       ? string
       : shellSingleQuote(string);
 }

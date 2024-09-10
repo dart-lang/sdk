@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Requirements=checked-implicit-downcasts
+// Requirements=checked-implicit-downcasts
 
 // Test that Function.toJS properly converts/casts arguments and return values
 // when using non-JS types.

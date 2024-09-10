@@ -359,6 +359,10 @@ if (argsSplit != -1) {
   self.clearInterval = cancelTimer;
   self.queueMicrotask = addTask;
 
+  // Constructor function for JS `Response` objects, allows us to test for it
+  // via `instanceof`.
+  self.Response = function() {}
+
   self.location = {}
   self.location.href = 'file://' + args[wasmArg];
 
@@ -402,7 +406,7 @@ const main = async () => {
   const appInstance = await compiledApp.instantiate(importObject, {
     loadDeferredWasm: async (moduleName) => {
       let filename = wasmFilename.replace('.wasm', `_${moduleName}.wasm`);
-      return await dart2wasm.compile(readBytes(filename));
+      return readBytes(filename);
     }
   });
 

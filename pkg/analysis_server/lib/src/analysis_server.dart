@@ -12,12 +12,14 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analysis_server/src/lsp/client_capabilities.dart';
-import 'package:analysis_server/src/lsp/client_configuration.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart' as lsp;
+import 'package:analysis_server/src/lsp/client_configuration.dart' as lsp;
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
-import 'package:analysis_server/src/lsp/error_or.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
+import 'package:analysis_server/src/lsp/error_or.dart' as lsp;
+import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart'
+    as lsp;
+import 'package:analysis_server/src/lsp/handlers/handler_states.dart' as lsp;
+import 'package:analysis_server/src/lsp/handlers/handlers.dart' as lsp;
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
@@ -136,7 +138,7 @@ abstract class AnalysisServer {
   ///
   /// This allows the server to call commands itself, such as "Fix All in
   /// Workspace" triggered from the [DartFixPromptManager].
-  ExecuteCommandHandler? executeCommandHandler;
+  lsp.ExecuteCommandHandler? executeCommandHandler;
 
   /// The object used to manage the execution of plugins.
   late PluginManager pluginManager;
@@ -405,13 +407,13 @@ abstract class AnalysisServer {
   /// For the legacy server, this set may be a fixed set that is not actually
   /// configured by the client, but matches what legacy protocol editors expect
   /// when using LSP-over-Legacy.
-  LspClientCapabilities? get editorClientCapabilities;
+  lsp.LspClientCapabilities? get editorClientCapabilities;
 
   /// The configuration (user/workspace settings) from the LSP client.
   ///
   /// For the legacy server, this set may be a fixed set that is not controlled
   /// by the client.
-  LspClientConfiguration get lspClientConfiguration;
+  lsp.LspClientConfiguration get lspClientConfiguration;
 
   /// A [Future] that completes when the LSP server moves into the initialized
   /// state and can handle normal LSP requests.
@@ -420,7 +422,7 @@ abstract class AnalysisServer {
   ///
   /// When the server leaves the initialized state, [lspUninitialized] will
   /// complete.
-  FutureOr<InitializedStateMessageHandler> get lspInitialized;
+  FutureOr<lsp.InitializedStateMessageHandler> get lspInitialized;
 
   /// A [Future] that completes once the server transitions out of an
   /// initialized state.
@@ -517,10 +519,10 @@ abstract class AnalysisServer {
   ///
   /// If there is already an active connection to DTD or there is an error
   /// connecting, returns an error, otherwise returns `null`.
-  Future<ErrorOr<Null>> connectToDtd(Uri dtdUri) async {
+  Future<lsp.ErrorOr<Null>> connectToDtd(Uri dtdUri) async {
     switch (dtd?.state) {
       case DtdConnectionState.Connecting || DtdConnectionState.Connected:
-        return error(
+        return lsp.error(
           lsp.ServerErrorCodes.StateError,
           'Server is already connected to DTD',
         );
@@ -528,7 +530,7 @@ abstract class AnalysisServer {
         var connectResult = await DtdServices.connect(this, dtdUri);
         return connectResult.mapResultSync((dtd) {
           this.dtd = dtd;
-          return success(null);
+          return lsp.success(null);
         });
     }
   }
@@ -793,6 +795,28 @@ abstract class AnalysisServer {
       isFirstAnalysisSinceContextsBuilt = false;
       _dartFixPrompt.triggerCheck();
     }
+  }
+
+  /// Immediately handles an LSP message by delegating to the
+  /// [lsp.InitializedStateMessageHandler]. This method does not schedule the
+  /// message and is intended to be used by the scheduler (or LSP-over-Legacy
+  /// where the original legacy wrapper was already scheduled).
+  ///
+  /// If the LSP server/support is not yet initialized, will wait until it is.
+  FutureOr<lsp.ErrorOr<Object?>> immediatelyHandleLspMessage(
+    lsp.IncomingMessage message,
+    lsp.MessageInfo messageInfo, {
+    lsp.CancellationToken? cancellationToken,
+  }) async {
+    // This is FutureOr<> because for the legacy server it's never a future, so
+    // we can skip the await.
+    var initializedLspHandler = lspInitialized;
+    var handler = initializedLspHandler is lsp.InitializedStateMessageHandler
+        ? initializedLspHandler
+        : await initializedLspHandler;
+
+    return handler.handleMessage(message, messageInfo,
+        cancellationToken: cancellationToken);
   }
 
   /// Return `true` if the file or directory with the given [path] will be

@@ -9,7 +9,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart' as lsp;
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:language_server_protocol/json_parsing.dart';
@@ -43,20 +42,10 @@ class LspOverLegacyHandler extends LegacyHandler {
           })
         : null;
 
-    // Get the handler for LSP requests from the server.
-    // The value is a `FutureOr<>` because for the real LSP server it can be
-    // delayed (the client influences when we're in the initialized state) but
-    // since it's never a `Future` for the legacy server and we want to maintain
-    // request order here, skip the `await`.
-    var initializedLspHandler = server.lspInitialized;
-    var handler = initializedLspHandler is InitializedStateMessageHandler
-        ? initializedLspHandler
-        : await server.lspInitialized;
-
     if (lspMessage != null) {
       server.analyticsManager.startedRequestMessage(
           request: lspMessage, startTime: DateTime.now());
-      await handleRequest(handler, lspMessage);
+      await handleRequest(lspMessage);
     } else {
       var message = "The 'lspMessage' parameter was not a valid LSP request:\n"
           "${reporter.errors.join('\n')}";
@@ -65,10 +54,7 @@ class LspOverLegacyHandler extends LegacyHandler {
     }
   }
 
-  Future<void> handleRequest(
-    InitializedStateMessageHandler handler,
-    RequestMessage message,
-  ) async {
+  Future<void> handleRequest(RequestMessage message) async {
     var messageInfo = lsp.MessageInfo(
       performance: performance,
       clientCapabilities: server.editorClientCapabilities,
@@ -77,7 +63,9 @@ class LspOverLegacyHandler extends LegacyHandler {
 
     ErrorOr<Object?> result;
     try {
-      result = await handler.handleMessage(message, messageInfo,
+      // Since this (legacy) request was already scheduled, we immediately
+      // execute the wrapped LSP request without additional scheduling.
+      result = await server.immediatelyHandleLspMessage(message, messageInfo,
           cancellationToken: cancellationToken);
     } on InconsistentAnalysisException {
       result = error(

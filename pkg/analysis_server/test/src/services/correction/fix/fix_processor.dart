@@ -17,6 +17,7 @@ import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
@@ -89,7 +90,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   late BulkFixProcessor processor;
 
   @override
-  List<String> get experiments => const [];
+  List<String> get experiments => experimentsForTests;
 
   /// The name of the lint code being tested.
   String? get lintCode => null;

@@ -1626,15 +1626,14 @@ void ProgramReloadContext::RollbackLibraries() {
   saved_libraries_ = GrowableObjectArray::null();
 }
 
-#ifdef DEBUG
 void ProgramReloadContext::VerifyMaps() {
   TIMELINE_SCOPE(VerifyMaps);
+
+  // Verify that two old classes aren't both mapped to the same new
+  // class. This could happen if the IsSameClass function is broken.
   Class& cls = Class::Handle();
   Class& new_cls = Class::Handle();
   Class& cls2 = Class::Handle();
-
-  // Verify that two old classes aren't both mapped to the same new
-  // class. This could happen is the IsSameClass function is broken.
   UnorderedHashMap<ClassMapTraits> class_map(class_map_storage_);
   UnorderedHashMap<ClassMapTraits> reverse_class_map(
       HashTables::New<UnorderedHashMap<ClassMapTraits> >(
@@ -1647,11 +1646,10 @@ void ProgramReloadContext::VerifyMaps() {
       cls = Class::RawCast(class_map.GetPayload(entry, 0));
       cls2 ^= reverse_class_map.GetOrNull(new_cls);
       if (!cls2.IsNull()) {
-        OS::PrintErr(
+        FATAL(
             "Classes '%s' and '%s' are distinct classes but both map "
             " to class '%s'\n",
             cls.ToCString(), cls2.ToCString(), new_cls.ToCString());
-        UNREACHABLE();
       }
       bool update = reverse_class_map.UpdateOrInsert(cls, new_cls);
       ASSERT(!update);
@@ -1659,15 +1657,41 @@ void ProgramReloadContext::VerifyMaps() {
   }
   class_map.Release();
   reverse_class_map.Release();
+
+  // Verify that two old libraries aren't both mapped to the same new
+  // library. This could happen if the IsSameLibrary function is broken.
+  Library& lib = Library::Handle();
+  Library& new_lib = Library::Handle();
+  Library& lib2 = Library::Handle();
+  UnorderedHashMap<LibraryMapTraits> library_map(library_map_storage_);
+  UnorderedHashMap<LibraryMapTraits> reverse_library_map(
+      HashTables::New<UnorderedHashMap<LibraryMapTraits> >(
+          library_map.NumOccupied()));
+  {
+    UnorderedHashMap<LibraryMapTraits>::Iterator it(&library_map);
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      new_lib = Library::RawCast(library_map.GetKey(entry));
+      lib = Library::RawCast(library_map.GetPayload(entry, 0));
+      lib2 ^= reverse_library_map.GetOrNull(new_lib);
+      if (!lib2.IsNull()) {
+        FATAL(
+            "Libraries '%s' and '%s' are distinct libraries but both map "
+            " to library '%s'\n",
+            lib.ToCString(), lib2.ToCString(), new_lib.ToCString());
+      }
+      bool update = reverse_library_map.UpdateOrInsert(lib, new_lib);
+      ASSERT(!update);
+    }
+  }
+  library_map.Release();
+  reverse_library_map.Release();
 }
-#endif
 
 void ProgramReloadContext::CommitBeforeInstanceMorphing() {
   TIMELINE_SCOPE(Commit);
 
-#ifdef DEBUG
   VerifyMaps();
-#endif
 
   // Copy over certain properties of libraries, e.g. is the library
   // debuggable?

@@ -44,10 +44,10 @@ sealed class MessageObject {}
 
 /// The [MessageScheduler] receives messages from all clients of the
 /// [AnalysisServer]. Clients can include IDE's (LSP and Legacy protocol), DTD,
-/// and the Diagnostic server. The [MessageSchedular] acts as a hub for all
+/// and the Diagnostic server. The [MessageScheduler] acts as a hub for all
 /// incoming messages and forwards the messages to the appropriate handlers.
 final class MessageScheduler {
-  /// The [AnalaysisServer] associated with the schedular.
+  /// The [AnalysisServer] associated with the scheduler.
   late final AnalysisServer server;
 
   /// A queue of incoming messages from all the clients of the [AnalysisServer].
@@ -61,7 +61,7 @@ final class MessageScheduler {
     _incomingMessages.addLast(message);
   }
 
-  /// Notify the [MessageSchedular] to process the messages queue.
+  /// Notify the [MessageScheduler] to process the messages queue.
   void notify() async {
     processMessages();
   }

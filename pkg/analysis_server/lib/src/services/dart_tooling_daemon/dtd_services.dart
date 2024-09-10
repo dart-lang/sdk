@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -63,52 +64,42 @@ class DtdServices {
 
   DtdConnectionState get state => _state;
 
-  /// Executes the LSP handler [messageHandler] with [params] and returns the
-  /// results as a map to provide back to DTD.
-  ///
-  /// If the handler fails, throws an [RpcException] to be propagated to the
-  /// client.
+  /// Executes the LSP handler for [message] and completes [completer] with the
+  /// result or an [RpcException].
   void processMessage(
       IncomingMessage message,
       OperationPerformanceImpl performance,
       Completer<Map<String, Object?>> completer) async {
-    // (TODO:keertip) Lookup the right handler, execute and return results.
-    // For now, complete with exception.
-    completer.completeError(RpcException(
-      ErrorCodes.InvalidRequest.toJson(),
-      'DTD requests are not yet supported',
-    ));
+    var info = MessageInfo(
+      performance: performance,
+      // DTD clients requests are always executed with a fixed set of
+      // capabilities so that the responses don't change in format based on the
+      // owning editor.
+      clientCapabilities: fixedBasicLspClientCapabilities,
+    );
+    var token = NotCancelableToken(); // We don't currently support cancel.
 
-    // (TODO:keertip) Uncomment when lookup has been implemented
-    // var info = MessageInfo(
-    //   performance: performance,
-    //   // DTD clients requests are always executed with a fixed set of
-    //   // capabilities so that the responses don't change in format based on the
-    //   // owning editor.
-    //   clientCapabilities: fixedBasicLspClientCapabilities,
-    // );
-    // var token = NotCancelableToken(); // We don't currently support cancel.
+    // Execute the handler.
+    var result = await _server.immediatelyHandleLspMessage(message, info,
+        cancellationToken: token);
 
-    // // Execute the handler.
-    // var result = await messageHandler.handleMessage(message, info, token);
-
-    // // Map the result (or error) on to what a DTD handler needs to return.
-    // return result.map(
-    //   // Map LSP errors on to equiv JSON-RPC errors for DTD.
-    //   (error) => throw RpcException(
-    //     error.code.toJson(),
-    //     error.message,
-    //     data: error.data,
-    //   ),
-    //   // DTD requires that all results are a Map and that they contain a
-    //   // 'type' field. This differs slightly from LSP where we could return a
-    //   // boolean (for example). This means we need to put the result in a
-    //   // field, which we're calling 'result'.
-    //   (result) => {
-    //     'type': result?.runtimeType.toString(),
-    //     'result': result,
-    //   },
-    // );
+    // Complete with the result or error.
+    result.map(
+      // Map LSP errors on to equiv JSON-RPC errors for DTD.
+      (error) => completer.completeError(RpcException(
+        error.code.toJson(),
+        error.message,
+        data: error.data,
+      )),
+      // DTD requires that all results are a Map and that they contain a
+      // 'type' field. This differs slightly from LSP where we could return a
+      // boolean (for example). This means we need to put the result in a
+      // field, which we're calling 'result'.
+      (result) => completer.complete({
+        'type': result?.runtimeType.toString(),
+        'result': result,
+      }),
+    );
   }
 
   /// Closes the connection to DTD and cleans up.
@@ -174,14 +165,14 @@ class DtdServices {
   /// A completer is returned which will be completed with the result of the
   /// execution of the request by the corresponding [MessageHandler].
   Future<Map<String, Object?>> _executeLspHandler(
-    MessageHandler<Object?, Object?, AnalysisServer> messageHandler,
+    Method method,
     Parameters params,
     OperationPerformanceImpl performance,
   ) async {
     // Map the incoming request into types we use for LSP request handling.
     var message = IncomingMessage(
       jsonrpc: jsonRpcVersion,
-      method: messageHandler.handlesMessage,
+      method: method,
       params: params.asMap,
     );
     var scheduler = _server.messageScheduler;
@@ -227,9 +218,10 @@ class DtdServices {
     DartToolingDaemon dtd,
   ) async {
     if (messageHandler.requiresTrustedCaller) return;
+    var method = messageHandler.handlesMessage;
     await dtd.registerService(
       _lspServiceName,
-      messageHandler.handlesMessage.toString(),
+      method.toString(),
       (Parameters params) async {
         var rootPerformance = OperationPerformanceImpl('<root>');
         RequestPerformance? requestPerformance;
@@ -237,12 +229,12 @@ class DtdServices {
           // Record request performance so DTD requests show up in the
           // server diagnostic pages.
           requestPerformance = RequestPerformance(
-            operation: '${messageHandler.handlesMessage} (DTD)',
+            operation: '$method (DTD)',
             performance: performance,
           );
           _server.recentPerformance.requests.add(requestPerformance!);
 
-          return await _executeLspHandler(messageHandler, params, performance);
+          return await _executeLspHandler(method, params, performance);
         });
       },
     );
