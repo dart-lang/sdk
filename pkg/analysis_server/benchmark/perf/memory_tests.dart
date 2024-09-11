@@ -183,7 +183,6 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
     _test.instrumentationService = InstrumentationLogAdapter(_logger);
     await _test.setUp();
     _test.projectFolderPath = roots.single;
-    _test.projectFolderUri = Uri.file(_test.projectFolderPath);
     await _test.initialize();
   }
 

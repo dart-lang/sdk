@@ -4472,7 +4472,6 @@ void f() {
 
   Future<void> test_snippets_testBlock() async {
     mainFilePath = join(projectFolderPath, 'test', 'foo_test.dart');
-    mainFileUri = pathContext.toUri(mainFilePath);
     var content = '''
 void f() {
   test^
@@ -4497,7 +4496,6 @@ void f() {
 
   Future<void> test_snippets_testGroupBlock() async {
     mainFilePath = join(projectFolderPath, 'test', 'foo_test.dart');
-    mainFileUri = pathContext.toUri(mainFilePath);
     var content = '''
 void f() {
   group^
