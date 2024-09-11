@@ -57,6 +57,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Add return type',
   );
+  static const REMOVE_RETURN_TYPE = AssistKind(
+    'dart.assist.remove.returnType',
+    DartAssistKindPriority.DEFAULT,
+    'Remove return type',
+  );
   static const ADD_TYPE_ANNOTATION = AssistKind(
     'dart.assist.add.typeAnnotation',
     DartAssistKindPriority.DEFAULT,

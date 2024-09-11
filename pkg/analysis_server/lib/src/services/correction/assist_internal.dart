@@ -63,6 +63,7 @@ import 'package:analysis_server/src/services/correction/dart/join_if_with_inner.
 import 'package:analysis_server/src/services/correction/dart/join_if_with_outer.dart';
 import 'package:analysis_server/src/services/correction/dart/join_variable_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_digit_separators.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_conditional_with_if_else.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_if_else_with_conditional.dart';
@@ -153,6 +154,7 @@ class AssistProcessor {
     ReplaceConditionalWithIfElse.new,
     ReplaceIfElseWithConditional.new,
     ReplaceWithVar.new,
+    RemoveReturnType.new,
     ShadowField.new,
     SortChildPropertyLast.new,
     SplitAndCondition.new,
