@@ -23,7 +23,6 @@ const Map<Type, int> _knownSizes = {
 
 // Keep consistent with pkg/vm/lib/transformations/ffi/abi.dart.
 @pragma("vm:prefer-inline")
-@pragma("wasm:prefer-inline")
 int get _intPtrSize => (const [
       4, // androidArm,
       8, // androidArm64,

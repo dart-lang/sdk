@@ -177,6 +177,14 @@ class Intrinsifier {
       return w.NumType.i64;
     }
 
+    // Pointer.address
+    if (cls == translator.ffiPointerClass && name == 'address') {
+      // A Pointer is represented by its i32 address.
+      codeGen.wrap(receiver, w.NumType.i32);
+      b.i64_extend_i32_u();
+      return w.NumType.i64;
+    }
+
     return null;
   }
 
@@ -436,7 +444,7 @@ class Intrinsifier {
     w.ValueType leftType = typeOfExp(node.left);
     w.ValueType rightType = typeOfExp(node.right);
 
-    // Compare bool or WasmI32.
+    // Compare bool, Pointer or WasmI32.
     if (leftType == w.NumType.i32 && rightType == w.NumType.i32) {
       codeGen.wrap(node.left, w.NumType.i32);
       codeGen.wrap(node.right, w.NumType.i32);
@@ -879,22 +887,23 @@ class Intrinsifier {
 
     // dart:ffi static functions
     if (node.target.enclosingLibrary.name == "dart.ffi") {
+      // Pointer.fromAddress
+      if (name == "fromAddress") {
+        // A Pointer is represented by its i32 address.
+        codeGen.wrap(node.arguments.positional.single, w.NumType.i64);
+        b.i32_wrap_i64();
+        return w.NumType.i32;
+      }
+
       // Accesses to Pointer.value, Pointer.value=, Pointer.[], Pointer.[]= and
       // the members of structs and unions are desugared by the FFI kernel
       // transformations into calls to memory load and store functions.
       RegExp loadStoreFunctionNames = RegExp("^_(load|store)"
-          "((Int|Uint)(8|16|32|64)|(Float|Double)(Unaligned)?)\$");
+          "((Int|Uint)(8|16|32|64)|(Float|Double)(Unaligned)?|Pointer)\$");
       if (loadStoreFunctionNames.hasMatch(name)) {
         Expression pointerArg = node.arguments.positional[0];
         Expression offsetArg = node.arguments.positional[1];
-        final ffiPointerDartType =
-            InterfaceType(translator.ffiPointerClass, Nullability.nonNullable);
-        final ffiPointerWasmType =
-            translator.translateType(ffiPointerDartType) as w.RefType;
-        codeGen.wrap(pointerArg, ffiPointerWasmType);
-        final ffiPointerStruct = ffiPointerWasmType.heapType as w.StructType;
-        b.struct_get(ffiPointerStruct, FieldIndex.ffiPointerAddress);
-
+        codeGen.wrap(pointerArg, w.NumType.i32);
         int offset;
         if (offsetArg is IntLiteral) {
           offset = offsetArg.value;
@@ -944,6 +953,9 @@ class Intrinsifier {
           case "_loadDoubleUnaligned":
             b.f64_load(translator.ffiMemory, offset, 0);
             return w.NumType.f64;
+          case "_loadPointer":
+            b.i32_load(translator.ffiMemory, offset);
+            return w.NumType.i32;
           case "_storeInt8":
           case "_storeUint8":
             codeGen.wrap(node.arguments.positional[2], w.NumType.i64);
@@ -981,6 +993,10 @@ class Intrinsifier {
           case "_storeDoubleUnaligned":
             codeGen.wrap(node.arguments.positional[2], w.NumType.f64);
             b.f64_store(translator.ffiMemory, offset, 0);
+            return translator.voidMarker;
+          case "_storePointer":
+            codeGen.wrap(node.arguments.positional[2], w.NumType.i32);
+            b.i32_store(translator.ffiMemory, offset);
             return translator.voidMarker;
         }
       }
