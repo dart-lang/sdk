@@ -554,7 +554,7 @@ Future<void> runTests(List<String> args) async {
       "${outDirectory.path}/results.json",
     ]);
     if (compareOutput.stdout == "") {
-      print("There were no test failures.");
+      print("No new unapproved test failures detected.");
     } else {
       stdout.write(compareOutput.stdout);
     }
