@@ -67,7 +67,6 @@ MessageHandler::MessageHandler()
       paused_timestamp_(-1),
 #endif
       task_running_(false),
-      delete_me_(false),
       pool_(nullptr),
       start_callback_(nullptr),
       end_callback_(nullptr),
@@ -88,12 +87,6 @@ const char* MessageHandler::name() const {
   return "<unnamed>";
 }
 
-#if defined(DEBUG)
-void MessageHandler::CheckAccess() const {
-  // By default there is no checking.
-}
-#endif
-
 void MessageHandler::MessageNotify(Message::Priority priority) {
   // By default, there is no custom message notification.
 }
@@ -110,7 +103,6 @@ bool MessageHandler::Run(ThreadPool* pool,
         name());
   }
   ASSERT(pool_ == nullptr);
-  ASSERT(!delete_me_);
   pool_ = pool;
   start_callback_ = start_callback;
   end_callback_ = end_callback;
@@ -165,7 +157,6 @@ void MessageHandler::PostMessage(std::unique_ptr<Message> message,
     }
 
     if (pool_ != nullptr && !task_running_) {
-      ASSERT(!delete_me_);
       task_running_ = true;
       const bool launched_successfully = pool_->Run<MessageHandlerTask>(this);
       ASSERT(launched_successfully);
@@ -292,7 +283,6 @@ MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
   // assigned to a thread pool.
   MonitorLocker ml(&monitor_);
   ASSERT(pool_ == nullptr);
-  ASSERT(!delete_me_);
 #if defined(DEBUG)
   CheckAccess();
 #endif
@@ -303,7 +293,6 @@ MessageHandler::MessageStatus MessageHandler::PauseAndHandleAllMessages(
     int64_t timeout_millis) {
   MonitorLocker ml(&monitor_, /*no_safepoint_scope=*/false);
   ASSERT(task_running_);
-  ASSERT(!delete_me_);
 #if defined(DEBUG)
   CheckAccess();
 #endif
@@ -317,7 +306,6 @@ MessageHandler::MessageStatus MessageHandler::PauseAndHandleAllMessages(
       wr = ml.Wait(timeout_millis);
     }
     ASSERT(task_running_);
-    ASSERT(!delete_me_);
     if (wr == Monitor::kTimedOut) {
       break;
     }
@@ -340,7 +328,6 @@ MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
     return kOK;
   }
   MonitorLocker ml(&monitor_);
-  ASSERT(!delete_me_);
 #if defined(DEBUG)
   CheckAccess();
 #endif
@@ -391,7 +378,6 @@ void MessageHandler::TaskCallback() {
   ASSERT(Isolate::Current() == nullptr);
   MessageStatus status = kOK;
   bool run_end_callback = false;
-  bool delete_me = false;
   EndCallback end_callback = nullptr;
   CallbackData callback_data = 0;
   {
@@ -504,7 +490,6 @@ void MessageHandler::TaskCallback() {
       end_callback = end_callback_;
       callback_data = callback_data_;
       run_end_callback = end_callback_ != nullptr;
-      delete_me = delete_me_;
     }
 
     // Clear task_running_ last.  This allows other tasks to potentially start
@@ -516,20 +501,14 @@ void MessageHandler::TaskCallback() {
   // The handler may have been deleted by another thread here if it is a native
   // message handler.
 
-  // Message handlers either use delete_me or end_callback but not both.
-  ASSERT(!delete_me || !run_end_callback);
-
   if (run_end_callback) {
     ASSERT(end_callback != nullptr);
     end_callback(callback_data);
     // The handler may have been deleted after this point.
   }
-  if (delete_me) {
-    delete this;
-  }
 }
 
-void MessageHandler::ClosePort(Dart_Port port) {
+void MessageHandler::OnPortClosed(Dart_Port port) {
   if (FLAG_trace_isolates) {
     MonitorLocker ml(&monitor_);
     OS::PrintErr(
@@ -540,7 +519,7 @@ void MessageHandler::ClosePort(Dart_Port port) {
   }
 }
 
-void MessageHandler::CloseAllPorts() {
+void MessageHandler::OnAllPortsClosed() {
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
     OS::PrintErr(
@@ -550,20 +529,6 @@ void MessageHandler::CloseAllPorts() {
   }
   queue_->Clear();
   oob_queue_->Clear();
-}
-
-void MessageHandler::RequestDeletion() {
-  {
-    MonitorLocker ml(&monitor_);
-    if (task_running_) {
-      // This message handler currently has a task running on the thread pool.
-      delete_me_ = true;
-      return;
-    }
-  }
-
-  // This message handler has no current task.  Delete it.
-  delete this;
 }
 
 #if !defined(PRODUCT)
