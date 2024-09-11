@@ -44,7 +44,7 @@ Future<io.Process> spawnDartProcess(
   final serviceInfoFile = await io.File.fromUri(serviceInfoUri).create();
 
   final arguments = [
-    '--disable-dart-dev',
+    '--no-dds',
     '--observe=0',
     if (!serveObservatory) '--no-serve-observatory',
     if (pauseOnStart) '--pause-isolates-on-start',
