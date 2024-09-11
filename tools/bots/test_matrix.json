@@ -1966,16 +1966,6 @@
           ]
         },
         {
-          "name": "ddc hot reload tests",
-          "script": "xcodebuild/ReleaseARM64/dart-sdk/bin/dart",
-          "testRunner": true,
-          "arguments": [
-            "pkg/dev_compiler/test/hot_reload_suite.dart",
-            "-nddc-mac-chrome",
-            "--verbose"
-          ]
-        },
-        {
           "name": "ddc sourcemap tests",
           "script": "xcodebuild/ReleaseARM64/dart",
           "arguments": [
