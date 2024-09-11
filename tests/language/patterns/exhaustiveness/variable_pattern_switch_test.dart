@@ -175,25 +175,3 @@ void unreachableCase3((E, bool)? r) {
       break;
   }
 }
-
-void unreachableDefault((E, bool) r) {
-  switch (r) /* Ok */ {
-    case (E.a, false):
-      print('(a, false)');
-      break;
-    case (E.b, false):
-      print('(b, false)');
-      break;
-    case (E.a, true):
-      print('(a, true)');
-      break;
-    case (E.b, true):
-      print('(b, true)');
-      break;
-    default: // Unreachable
-//  ^^^^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
-      print('default');
-      break;
-  }
-}
