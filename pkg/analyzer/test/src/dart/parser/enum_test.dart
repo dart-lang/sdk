@@ -16,8 +16,6 @@ main() {
 class EnumDeclarationParserTest extends ParserDiagnosticsTest {
   test_augment_constant_add() {
     var parseResult = parseStringWithErrors(r'''
-augment library 'a.dart';
-
 augment enum E {
   v
 }
@@ -40,8 +38,6 @@ EnumDeclaration
 
   test_augment_constant_augment_noConstructor() {
     var parseResult = parseStringWithErrors(r'''
-augment library 'a.dart';
-
 augment enum E {
   augment v
 }
@@ -65,8 +61,6 @@ EnumDeclaration
 
   test_augment_constant_augment_withConstructor() {
     var parseResult = parseStringWithErrors(r'''
-augment library 'a.dart';
-
 augment enum E {
   augment v.foo()
 }
@@ -98,8 +92,6 @@ EnumDeclaration
 
   test_augment_noConstants_semicolon_method() {
     var parseResult = parseStringWithErrors(r'''
-augment library 'a.dart';
-
 augment enum E {;
   void foo() {}
 }
