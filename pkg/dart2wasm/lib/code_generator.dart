@@ -2820,7 +2820,11 @@ abstract class AstCodeGenerator
 
   @override
   w.ValueType visitAsExpression(AsExpression node, w.ValueType expectedType) {
-    if (translator.options.omitExplicitTypeChecks || node.isUnchecked) {
+    final isImplicitCheck =
+        (node.isTypeError || node.isCovarianceCheck || node.isForDynamic);
+    if (node.isUnchecked ||
+        (translator.options.omitImplicitTypeChecks && isImplicitCheck) ||
+        (translator.options.omitExplicitTypeChecks && !isImplicitCheck)) {
       return wrap(node.operand, expectedType);
     }
 
