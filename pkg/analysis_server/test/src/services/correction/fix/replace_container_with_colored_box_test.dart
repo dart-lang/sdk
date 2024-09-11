@@ -35,11 +35,10 @@ import 'package:flutter/material.dart';
 Widget buildRow() {
   return Container(
     color: Colors.red,
-    child: 
-      Container(
-        color: Colors.red,
-        child: Row(),
-      ),
+    child: Container(
+      color: Colors.red,
+      child: Row(),
+    ),
   );
 }
 ''');
@@ -49,11 +48,10 @@ import 'package:flutter/material.dart';
 Widget buildRow() {
   return ColoredBox(
     color: Colors.red,
-    child: 
-      ColoredBox(
-        color: Colors.red,
-        child: Row(),
-      ),
+    child: ColoredBox(
+      color: Colors.red,
+      child: Row(),
+    ),
   );
 }
 ''');
