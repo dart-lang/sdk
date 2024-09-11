@@ -1642,6 +1642,26 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     "Replace ':'s with 'in's everywhere in file",
   );
+  static const REPLACE_CONTAINER_WITH_COLORED_BOX = FixKind(
+    'dart.fix.replace.containerWithColoredBox',
+    DartFixKindPriority.standard,
+    "Replace with 'ColoredBox'",
+  );
+  static const REPLACE_CONTAINER_WITH_COLORED_BOX_MULTI = FixKind(
+    'dart.fix.replace.containerWithColoredBox.multi',
+    DartFixKindPriority.inFile,
+    "Replace with 'ColoredBox' everywhere in file",
+  );
+  static const REPLACE_CONTAINER_WITH_SIZED_BOX = FixKind(
+    'dart.fix.replace.containerWithSizedBox',
+    DartFixKindPriority.standard,
+    "Replace with 'SizedBox'",
+  );
+  static const REPLACE_CONTAINER_WITH_SIZED_BOX_MULTI = FixKind(
+    'dart.fix.replace.containerWithSizedBox.multi',
+    DartFixKindPriority.inFile,
+    "Replace with 'SizedBox' everywhere in file",
+  );
   static const REPLACE_FINAL_WITH_CONST = FixKind(
     'dart.fix.replace.finalWithConst',
     DartFixKindPriority.standard,
@@ -1651,6 +1671,16 @@ abstract final class DartFixKind {
     'dart.fix.replace.finalWithConst.multi',
     DartFixKindPriority.inFile,
     "Replace 'final' with 'const' where possible in file",
+  );
+  static const REPLACE_FINAL_WITH_VAR = FixKind(
+    'dart.fix.replace.finalWithVar',
+    DartFixKindPriority.standard,
+    "Replace 'final' with 'var'",
+  );
+  static const REPLACE_FINAL_WITH_VAR_MULTI = FixKind(
+    'dart.fix.replace.finalWithVar.multi',
+    DartFixKindPriority.inFile,
+    "Replace 'final' with 'var' where possible in file",
   );
   static const REPLACE_NEW_WITH_CONST = FixKind(
     'dart.fix.replace.newWithConst',
@@ -1681,16 +1711,6 @@ abstract final class DartFixKind {
     'dart.fix.replace.nullWithClosure.multi',
     DartFixKindPriority.inFile,
     "Replace 'null's with closures where possible in file",
-  );
-  static const REPLACE_FINAL_WITH_VAR = FixKind(
-    'dart.fix.replace.finalWithVar',
-    DartFixKindPriority.standard,
-    "Replace 'final' with 'var'",
-  );
-  static const REPLACE_FINAL_WITH_VAR_MULTI = FixKind(
-    'dart.fix.replace.finalWithVar.multi',
-    DartFixKindPriority.inFile,
-    "Replace 'final' with 'var' where possible in file",
   );
   static const REPLACE_NULL_WITH_VOID = FixKind(
     'dart.fix.replace.nullWithVoid',
@@ -1726,26 +1746,6 @@ abstract final class DartFixKind {
     'dart.fix.replace.returnTypeStream',
     DartFixKindPriority.standard,
     "Return 'Stream<{0}>'",
-  );
-  static const REPLACE_CONTAINER_WITH_COLORED_BOX = FixKind(
-    'dart.fix.replace.containerWithColoredBox',
-    DartFixKindPriority.standard,
-    "Replace with 'ColoredBox'",
-  );
-  static const REPLACE_CONTAINER_WITH_COLORED_BOX_MULTI = FixKind(
-    'dart.fix.replace.containerWithColoredBox.multi',
-    DartFixKindPriority.inFile,
-    "Replace with 'ColoredBox' everywhere in file",
-  );
-  static const REPLACE_CONTAINER_WITH_SIZED_BOX = FixKind(
-    'dart.fix.replace.containerWithSizedBox',
-    DartFixKindPriority.standard,
-    "Replace with 'SizedBox'",
-  );
-  static const REPLACE_CONTAINER_WITH_SIZED_BOX_MULTI = FixKind(
-    'dart.fix.replace.containerWithSizedBox.multi',
-    DartFixKindPriority.inFile,
-    "Replace with 'SizedBox' everywhere in file",
   );
   static const REPLACE_VAR_WITH_DYNAMIC = FixKind(
     'dart.fix.replace.varWithDynamic',
