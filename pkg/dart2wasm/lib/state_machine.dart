@@ -944,7 +944,13 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
 
   @override
   void visitContinueSwitchStatement(ContinueSwitchStatement node) {
-    labelTargets[node.target]!.jump(this);
+    final labelTarget = labelTargets[node.target];
+    // The CFE does not attach labeled statements to targets of
+    // ContinueSwitchStatement nodes. If the enclosing switch statement does not
+    // include an await or yield then the label target may not be recorded and
+    // so we should use the normal code generator.
+    if (labelTarget == null) return super.visitContinueSwitchStatement(node);
+    labelTarget.jump(this);
   }
 
   @override
