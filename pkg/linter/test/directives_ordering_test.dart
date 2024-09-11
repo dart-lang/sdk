@@ -4,10 +4,18 @@
 
 import 'package:linter/src/rules/directives_ordering.dart';
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'rule_test_support.dart';
+
+// ignore_for_file: non_constant_identifier_names
 void main() {
-  group(compareDirectives, () {
-    void checkImportGroup(List<String> correctlyOrderedImports) {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(DirectivesOrderingTest);
+  });
+
+  group('compareDirectives', () {
+    void checkSection(List<String> correctlyOrderedImports) {
       for (int i = 0; i < correctlyOrderedImports.length; i++) {
         var a = correctlyOrderedImports[i];
         expect(compareDirectives(a, a), 0,
@@ -24,14 +32,14 @@ void main() {
     }
 
     test('dart: imports', () {
-      checkImportGroup(const [
+      checkSection(const [
         'dart:aaa',
         'dart:bbb',
       ]);
     });
 
     test('package: imports', () {
-      checkImportGroup(const [
+      checkSection(const [
         'package:aa/bb.dart',
         'package:aaa/aaa.dart',
         'package:aaa/ccc.dart',
@@ -40,7 +48,7 @@ void main() {
     });
 
     test('relative imports', () {
-      checkImportGroup(const [
+      checkSection(const [
         '/foo5.dart',
         '../../foo4.dart',
         '../foo2/a.dart',
@@ -53,4 +61,41 @@ void main() {
       ]);
     });
   });
+}
+
+@reflectiveTest
+class DirectivesOrderingTest extends LintRuleTest {
+  @override
+  String get lintRule => 'directives_ordering';
+
+  test_partOrder_sorted() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+''');
+
+    await assertNoDiagnostics(r'''
+part 'a.dart';
+part 'b.dart';
+''');
+  }
+
+  test_partOrder_unsorted() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+''');
+
+    // Because parts can contain augmentations, whose order of
+    // application matters, we do *not* want to enforce part sorting.
+    // See: https://github.com/dart-lang/linter/issues/4945
+    await assertNoDiagnostics(r'''
+part 'b.dart';
+part 'a.dart';
+''');
+  }
 }

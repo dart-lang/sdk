@@ -12,6 +12,7 @@ cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fail
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
 cc/TTS_STC_ManyAsserts: Pass, Slow # Generates 10k classes that are put into an STC via assert checks.
+cc/TypeArguments_Cache_ManyInstantiations: Pass, Slow
 dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart/async_igoto_threshold_flag_test: Pass, Slow
 dart/boxmint_test: Pass, Slow # Uses slow path
@@ -188,6 +189,7 @@ cc/Profiler_ToggleRecordAllocation: SkipByDesign
 cc/Profiler_TrivialRecordAllocation: SkipByDesign
 cc/Profiler_TypedArrayAllocation: SkipByDesign
 cc/Service_Profile: SkipByDesign
+dart/ffi_structs_optimizations_il_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 dart/gc/splay_c_finalizer_test: SkipByDesign # No FFI on simulators
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 dart/isolates/regress_54528_test: SkipByDesign # Invokes gen_kernel/gen_snapshot

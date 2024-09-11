@@ -8,11 +8,11 @@ part of 'globals.dart';
 class GlobalBuilder extends ir.Global with IndexableBuilder<ir.DefinedGlobal> {
   final InstructionsBuilder initializer;
 
-  GlobalBuilder(ModuleBuilder module, super.index, super.type,
+  GlobalBuilder(super.enclosingModule, super.index, super.type,
       [super.globalName])
-      : initializer = InstructionsBuilder(module, [], [type.type]);
+      : initializer = InstructionsBuilder(enclosingModule, [], [type.type]);
 
   @override
-  ir.DefinedGlobal forceBuild() =>
-      ir.DefinedGlobal(initializer.build(), finalizableIndex, type, globalName);
+  ir.DefinedGlobal forceBuild() => ir.DefinedGlobal(
+      enclosingModule, initializer.build(), finalizableIndex, type, globalName);
 }

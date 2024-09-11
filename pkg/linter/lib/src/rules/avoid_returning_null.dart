@@ -40,11 +40,11 @@ double getDouble() => -1.0;
 class AvoidReturningNull extends LintRule {
   AvoidReturningNull()
       : super(
-            name: 'avoid_returning_null',
-            description: _desc,
-            details: _details,
-            state: State.removed(since: dart3_3),
-            categories: {LintRuleCategory.style});
+          name: 'avoid_returning_null',
+          description: _desc,
+          details: _details,
+          state: State.removed(since: dart3_3),
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

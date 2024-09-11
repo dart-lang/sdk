@@ -171,6 +171,7 @@ extension DeserializerExtensions on Deserializer {
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
         bitMask: BitMask((this..moveNext()).expectInt()),
+        style: ParameterStyle.values[(this..moveNext()).expectInt()],
         type: RemoteInstance.deserialize(this),
       );
 
@@ -442,6 +443,7 @@ extension DeserializerExtensions on Deserializer {
           defaultValue: (this..moveNext()).expectNullableCode(),
           keywords: _readStringList(),
           name: (this..moveNext()).expectNullableString(),
+          style: ParameterStyle.values[(this..moveNext()).expectInt()],
           type: (this..moveNext()).expectNullableCode()) as T,
       CodeKind.recordField => RecordFieldCode(
           name: (this..moveNext()).expectNullableString(),
@@ -589,6 +591,7 @@ extension SerializeCode on Code {
         serializer
           ..endList()
           ..addNullableString(self.name);
+        serializer.addInt(self.style.index);
         self.type.serializeNullable(serializer);
         return;
       case CodeKind.typeParameter:

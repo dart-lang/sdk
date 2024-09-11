@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -163,8 +164,8 @@ class YieldStatementResolver {
     BodyInferenceContext bodyContext,
     YieldStatement node,
   ) {
-    _resolver.analyzeExpression(
-        node.expression, _computeContextType(bodyContext, node));
+    _resolver.analyzeExpression(node.expression,
+        SharedTypeSchemaView(_computeContextType(bodyContext, node)));
     _resolver.popRewrite();
 
     if (node.star != null) {

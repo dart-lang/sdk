@@ -509,7 +509,7 @@ has been specified on the command line.''')
           // Remove the `src/` subdirectories from the co19 directories that do
           // not appear in the test names.
           if (selector.startsWith('co19')) {
-            selector = selector.replaceFirst(RegExp('src/'), '');
+            selector = selector.replaceFirst('src/', '');
           }
           break;
         }
@@ -858,7 +858,7 @@ has been specified on the command line.''')
       var pattern = selectors[i];
       var suite = pattern;
       var slashLocation = pattern.indexOf('/');
-      if (slashLocation != -1) {
+      if (slashLocation >= 0) {
         suite = pattern.substring(0, slashLocation);
         pattern = pattern.substring(slashLocation + 1);
         pattern = pattern.replaceAll('*', '.*');

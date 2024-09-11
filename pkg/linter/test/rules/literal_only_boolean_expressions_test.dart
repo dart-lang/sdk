@@ -17,6 +17,116 @@ class LiteralOnlyBooleanExpressionsTest extends LintRuleTest {
   @override
   String get lintRule => 'literal_only_boolean_expressions';
 
+  test_doWhile_false() async {
+    await assertDiagnostics(r'''
+void f() {
+  do {} while (false);
+}
+''', [
+      lint(13, 20),
+    ]);
+  }
+
+  test_for_trueCondition() async {
+    await assertDiagnostics(r'''
+void f() {
+  for (; true; ) {}
+}
+''', [
+      lint(13, 17),
+    ]);
+  }
+
+  test_if_andTrue() async {
+    await assertDiagnostics(r'''
+void f() {
+  if (1 != 0 && true) {}
+}
+''', [
+      lint(13, 22),
+    ]);
+  }
+
+  test_if_notTrue() async {
+    await assertDiagnostics(r'''
+void f() {
+  if (!true) {}
+}
+''', [
+      lint(13, 13),
+      error(WarningCode.DEAD_CODE, 24, 2),
+    ]);
+  }
+
+  test_if_nullAware_notEqual() async {
+    await assertNoDiagnostics(r'''
+void f(String? text) {
+  if ((text?.length ?? 0) != 0) {}
+}
+''');
+  }
+
+  test_if_or_thenAndTrue() async {
+    await assertDiagnostics(r'''
+void f() {
+  if (1 != 0 || 3 < 4 && true) {}
+}
+''', [
+      lint(13, 31),
+    ]);
+  }
+
+  test_if_true() async {
+    await assertDiagnostics(r'''
+void f() {
+  if (true) {}
+}
+''', [
+      lint(13, 12),
+    ]);
+  }
+
+  test_if_trueAnd() async {
+    await assertDiagnostics(r'''
+void f() {
+  if (true && 1 != 0) {}
+}
+''', [
+      lint(13, 22),
+    ]);
+  }
+
+  test_if_trueAnd_thenOr() async {
+    await assertDiagnostics(r'''
+void f() {
+  if (true && 1 != 0 || 3 < 4) {}
+}
+''', [
+      lint(13, 31),
+    ]);
+  }
+
+  test_if_trueAndFalse() async {
+    await assertDiagnostics(r'''
+void bad() {
+  if (true && false) {}
+}
+''', [
+      lint(15, 21),
+      error(WarningCode.DEAD_CODE, 34, 2),
+    ]);
+  }
+
+  test_if_x() async {
+    await assertDiagnostics(r'''
+void f() {
+  if (1 != 0) {}
+}
+''', [
+      lint(13, 14),
+    ]);
+  }
+
   test_ifCase_intLiteral() async {
     await assertDiagnostics(r'''
 void f() {
@@ -76,6 +186,16 @@ void f() {
 ''');
   }
 
+  test_nullAware() async {
+    await assertDiagnostics(r'''
+void f(bool p) {
+  if (null ?? p) {}
+}
+''', [
+      lint(19, 17),
+    ]);
+  }
+
   test_switchExpression() async {
     await assertNoDiagnostics(r'''
 bool f(Object o) => switch(o) {
@@ -98,6 +218,17 @@ void f() {
 ''', [
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 35, 7),
       lint(43, 9),
+    ]);
+  }
+
+  test_while_notTrue() async {
+    await assertDiagnostics(r'''
+void f() {
+  while (!true) {}
+}
+''', [
+      lint(13, 16),
+      error(WarningCode.DEAD_CODE, 27, 2),
     ]);
   }
 

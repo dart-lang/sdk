@@ -66,6 +66,7 @@ class ConstructorDeclarationImpl extends macro.ConstructorDeclarationImpl
     required super.returnType,
     required super.typeParameters,
     required super.definingType,
+    required super.isConst,
     required super.isFactory,
     required this.element,
   });
@@ -226,7 +227,7 @@ class DeclarationBuilder {
           kind: macro.IdentifierKind.staticInstanceMember,
           name: element.name,
           uri: element.library.source.uri,
-          staticScope: element.enclosingElement.name,
+          staticScope: element.enclosingElement3.name,
         );
       case DynamicElementImpl():
         return macro.ResolvedIdentifier(
@@ -248,7 +249,7 @@ class DeclarationBuilder {
             kind: macro.IdentifierKind.staticInstanceMember,
             name: element.name,
             uri: element.library.source.uri,
-            staticScope: element.enclosingElement.name,
+            staticScope: element.enclosingElement3.name,
           );
         } else {
           return macro.ResolvedIdentifier(
@@ -278,7 +279,7 @@ class DeclarationBuilder {
             kind: macro.IdentifierKind.staticInstanceMember,
             name: element.name,
             uri: element.library.source.uri,
-            staticScope: element.enclosingElement.name,
+            staticScope: element.enclosingElement3.name,
           );
         } else {
           return macro.ResolvedIdentifier(
@@ -296,7 +297,7 @@ class DeclarationBuilder {
           staticScope: null,
         );
       case PropertyAccessorElement():
-        if (element.enclosingElement is CompilationUnitElement) {
+        if (element.enclosingElement3 is CompilationUnitElement) {
           return macro.ResolvedIdentifier(
             kind: macro.IdentifierKind.topLevelMember,
             name: element.name,
@@ -308,7 +309,7 @@ class DeclarationBuilder {
             kind: macro.IdentifierKind.staticInstanceMember,
             name: element.name,
             uri: element.library.source.uri,
-            staticScope: element.enclosingElement.name,
+            staticScope: element.enclosingElement3.name,
           );
         } else {
           return macro.ResolvedIdentifier(
@@ -679,7 +680,7 @@ class DeclarationBuilderFromElement {
       case MethodElementImpl():
         return methodElement(element);
       case PropertyAccessorElementImpl():
-        if (element.enclosingElement is CompilationUnitElement) {
+        if (element.enclosingElement3 is CompilationUnitElement) {
           return functionElement(element);
         } else {
           return methodElement(element);
@@ -855,6 +856,7 @@ class DeclarationBuilderFromElement {
       metadata: _buildMetadata(element),
       hasBody: !element.isAbstract,
       hasExternal: element.isExternal,
+      isConst: element.isConst,
       isFactory: element.isFactory,
       namedParameters: _namedFormalParameters(element.parameters),
       positionalParameters: _positionalFormalParameters(element.parameters),
@@ -920,7 +922,7 @@ class DeclarationBuilderFromElement {
   EnumValueDeclarationImpl _enumConstantElement(
     FieldElementImpl element,
   ) {
-    var enclosing = element.enclosingElement as EnumElementImpl;
+    var enclosing = element.enclosingElement3 as EnumElementImpl;
     return EnumValueDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
@@ -1018,6 +1020,7 @@ class DeclarationBuilderFromElement {
       isRequired: element.isRequired,
       library: library(element),
       metadata: _buildMetadata(element),
+      style: element.parameterStyle,
       type: _dartType(element.type),
     );
   }
@@ -1299,6 +1302,7 @@ class DeclarationBuilderFromNode {
       metadata: _buildMetadata(element),
       hasBody: node.body is! ast.EmptyFunctionBody,
       hasExternal: node.externalKeyword != null,
+      isConst: node.constKeyword != null,
       isFactory: node.factoryKeyword != null,
       namedParameters: namedParameters,
       positionalParameters: positionalParameters,
@@ -1718,7 +1722,7 @@ class DeclarationBuilderFromNode {
   macro.EnumValueDeclarationImpl _enumConstantDeclaration(
     FieldElementImpl element,
   ) {
-    var enclosing = element.enclosingElement as EnumElementImpl;
+    var enclosing = element.enclosingElement3 as EnumElementImpl;
     return EnumValueDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: _declaredIdentifier2(element.name, element),
@@ -1813,6 +1817,7 @@ class DeclarationBuilderFromNode {
       isRequired: node.isRequired,
       library: library(element),
       metadata: _buildMetadata(element),
+      style: element.parameterStyle,
       type: typeAnnotation,
     );
   }
@@ -2508,9 +2513,20 @@ extension on Element {
   /// is not an invalid augmentation, return the declaration - the start of
   /// the augmentation chain.
   InstanceElement get enclosingInstanceElement {
-    var enclosing = enclosingElement as InstanceElement;
+    var enclosing = enclosingElement3 as InstanceElement;
     return enclosing.augmented.declaration;
   }
+}
+
+extension on ParameterElement {
+  /// Returns the [macro.ParameterStyle] for this element.
+  macro.ParameterStyle get parameterStyle => switch (this) {
+        ParameterElement(isInitializingFormal: true) =>
+          macro.ParameterStyle.fieldFormal,
+        ParameterElement(isSuperFormal: true) =>
+          macro.ParameterStyle.superFormal,
+        _ => macro.ParameterStyle.normal,
+      };
 }
 
 extension<T extends ast.DeclarationImpl> on T {

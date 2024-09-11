@@ -51,6 +51,15 @@ abstract class ITypeDeclarationBuilder implements Builder {
       Uri fileUri,
       int charOffset,
       {required bool hasExplicitTypeArguments});
+
+  /// Computes the nullability of this type declaration when instantiated with
+  /// [typeArguments].
+  ///
+  /// [typeVariablesTraversalState] is passed to handle cyclic dependencies
+  /// between type variables,
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState});
 }
 
 abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl

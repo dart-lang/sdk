@@ -1390,7 +1390,7 @@ MethodInvocation
 
   test_class_explicitThis_inAugmentation_augmentationDeclares() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   void foo() {}
@@ -1401,7 +1401,7 @@ augment class A {
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 void foo() {}
 
@@ -1431,14 +1431,14 @@ MethodInvocation
 
   test_class_explicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 void foo() {}
 
@@ -1470,14 +1470,14 @@ MethodInvocation
 
   test_class_implicitStatic_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   static void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 void foo() {}
 
@@ -1505,14 +1505,14 @@ MethodInvocation
 
   test_class_implicitThis_inDeclaration_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   void foo() {}
@@ -1540,14 +1540,14 @@ MethodInvocation
 
   test_class_implicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 void foo() {}
 
@@ -2112,7 +2112,6 @@ main() {
   math?.loadLibrary();
 }
 ''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 49, 4),
     ]);
 
@@ -3235,14 +3234,14 @@ MethodInvocation
 
   test_hasReceiver_className_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment static void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   static void foo() {}
@@ -3275,14 +3274,14 @@ MethodInvocation
 
   test_hasReceiver_className_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   static void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -4269,14 +4268,14 @@ FunctionExpressionInvocation
 
   test_hasReceiver_interfaceType_class_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   void foo() {}
@@ -4309,14 +4308,14 @@ MethodInvocation
 
   test_hasReceiver_interfaceType_class_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -4648,14 +4647,14 @@ MethodInvocation
 
   test_hasReceiver_interfaceType_mixin_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment mixin A {
   augment void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 mixin A {
   void foo() {}
@@ -4688,14 +4687,14 @@ MethodInvocation
 
   test_hasReceiver_interfaceType_mixin_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment mixin A {
   void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 mixin A {}
 
@@ -4756,7 +4755,7 @@ MethodInvocation
 
   test_hasReceiver_interfaceType_ofExtension_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment extension E {
   vois foo() {}
@@ -4764,7 +4763,7 @@ augment extension E {
 ''');
 
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 extension E on int {}
 
@@ -5353,7 +5352,7 @@ MethodInvocation
 
   test_hasReceiver_super_classAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {
   void foo() {}
@@ -5363,7 +5362,7 @@ class B extends A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class B {
   void bar() {
@@ -5395,7 +5394,7 @@ MethodInvocation
 
   test_hasReceiver_super_classAugmentation_noDeclaration() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {
   void foo() {}
@@ -5403,7 +5402,7 @@ class A {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class B {
   void bar() {
@@ -6345,14 +6344,14 @@ MethodInvocation
 
   test_mixin_explicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment mixin A {
   void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 void foo() {}
 
@@ -6384,14 +6383,14 @@ MethodInvocation
 
   test_mixin_implicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment mixin A {
   void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 void foo() {}
 

@@ -66,6 +66,8 @@ class SourceCompilationUnitImpl
 
   late final BuilderFactoryResult _builderFactoryResult;
 
+  final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
+
   final NameSpace _importNameSpace;
 
   LibraryFeatures? _libraryFeatures;
@@ -83,7 +85,7 @@ class SourceCompilationUnitImpl
   final bool isUnsupported;
 
   SourceCompilationUnitImpl(this._sourceLibraryBuilder,
-      TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
+      LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       {required this.importUri,
       required this.fileUri,
       required Uri? packageUri,
@@ -101,16 +103,16 @@ class SourceCompilationUnitImpl
       : _libraryName = libraryName,
         _languageVersion = packageLanguageVersion,
         _packageUri = packageUri,
+        _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _importNameSpace = importNameSpace {
     // TODO(johnniwinther): Create these in [createOutlineBuilder].
     _builderFactoryResult = _builderFactory = new BuilderFactoryImpl(
         compilationUnit: this,
         augmentationRoot: _sourceLibraryBuilder,
         parent: _sourceLibraryBuilder,
-        libraryTypeParameterScopeBuilder: libraryTypeParameterScopeBuilder,
+        libraryNameSpaceBuilder: libraryNameSpaceBuilder,
         problemReporting: this,
         scope: _scope,
-        nameSpace: _nameSpace,
         libraryName: _libraryName,
         indexedLibrary: indexedLibrary,
         omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders);
@@ -302,10 +304,6 @@ class SourceCompilationUnitImpl
   bool get isSynthetic => accessProblem != null;
 
   @override
-  NameIterator<Builder> get localMembersNameIterator =>
-      _sourceLibraryBuilder.localMembersNameIterator;
-
-  @override
   LibraryBuilder? get partOfLibrary => _partOfLibrary;
 
   @override
@@ -324,7 +322,7 @@ class SourceCompilationUnitImpl
         _offsetMap == null, // Coverage-ignore(suite): Not run.
         "OffsetMap has already been set for $this");
     return new OutlineBuilder(
-        this, this, _builderFactory, _offsetMap = new OffsetMap(fileUri));
+        this, _builderFactory, _offsetMap = new OffsetMap(fileUri));
   }
 
   @override
@@ -416,10 +414,6 @@ class SourceCompilationUnitImpl
       Map<SourceClassBuilder, TypeBuilder> mixinApplications) {
     _builderFactoryResult.takeMixinApplications(mixinApplications);
   }
-
-  @override
-  List<NamedTypeBuilder> get unresolvedNamedTypes =>
-      _builderFactoryResult.unresolvedNamedTypes;
 
   @override
   void includeParts(SourceLibraryBuilder libraryBuilder,
@@ -554,7 +548,7 @@ class SourceCompilationUnitImpl
               context: context);
         }
 
-        part.validatePart(libraryBuilder, usedParts);
+        part.validatePart(libraryBuilder, _libraryNameSpaceBuilder, usedParts);
         includedParts.add(part);
         return true;
       case DillCompilationUnit():
@@ -576,53 +570,10 @@ class SourceCompilationUnitImpl
     }
   }
 
-  void _becomePart(SourceLibraryBuilder libraryBuilder) {
-    NameIterator partDeclarations = localMembersNameIterator;
-    while (partDeclarations.moveNext()) {
-      String name = partDeclarations.name;
-      Builder declaration = partDeclarations.current;
-
-      if (declaration.next != null) {
-        List<Builder> duplicated = <Builder>[];
-        while (declaration.next != null) {
-          duplicated.add(declaration);
-          partDeclarations.moveNext();
-          declaration = partDeclarations.current;
-        }
-        duplicated.add(declaration);
-        // Handle duplicated declarations in the part.
-        //
-        // Duplicated declarations are handled by creating a linked list
-        // using the `next` field. This is preferred over making all scope
-        // entries be a `List<Declaration>`.
-        //
-        // We maintain the linked list so that the last entry is easy to
-        // recognize (it's `next` field is null). This means that it is
-        // reversed with respect to source code order. Since kernel doesn't
-        // allow duplicated declarations, we ensure that we only add the
-        // first declaration to the kernel tree.
-        //
-        // Since the duplicated declarations are stored in reverse order, we
-        // iterate over them in reverse order as this is simpler and
-        // normally not a problem. However, in this case we need to call
-        // [addBuilder] in source order as it would otherwise create cycles.
-        //
-        // We also need to be careful preserving the order of the links. The
-        // part library still keeps these declarations in its scope so that
-        // DietListener can find them.
-        for (int i = duplicated.length; i > 0; i--) {
-          Builder declaration = duplicated[i - 1];
-          // No reference: There should be no duplicates when using
-          // references.
-          libraryBuilder.addBuilder(name, declaration, declaration.charOffset);
-        }
-      } else {
-        // No reference: The part is in the same loader so the reference
-        // - if needed - was already added.
-        libraryBuilder.addBuilder(name, declaration, declaration.charOffset);
-      }
-    }
-    libraryBuilder.unresolvedNamedTypes.addAll(unresolvedNamedTypes);
+  void _becomePart(SourceLibraryBuilder libraryBuilder,
+      LibraryNameSpaceBuilder libraryNameSpaceBuilder) {
+    libraryNameSpaceBuilder.includeBuilders(
+        libraryBuilder, libraryBuilder, fileUri, _libraryNameSpaceBuilder);
     _libraryName.reference = libraryBuilder.libraryName.reference;
 
     // TODO(johnniwinther): Avoid these. The compilation unit should not have
@@ -655,6 +606,11 @@ class SourceCompilationUnitImpl
   }
 
   @override
+  int resolveTypes(ProblemReporting problemReporting) {
+    return _builderFactoryResult.typeScope.resolveTypes(problemReporting);
+  }
+
+  @override
   int finishNativeMethods() {
     return _builderFactoryResult.finishNativeMethods();
   }
@@ -676,7 +632,8 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  void validatePart(SourceLibraryBuilder libraryBuilder, Set<Uri>? usedParts) {
+  void validatePart(SourceLibraryBuilder libraryBuilder,
+      LibraryNameSpaceBuilder libraryNameSpaceBuilder, Set<Uri>? usedParts) {
     _libraryBuilder = libraryBuilder;
     _partOfLibrary = libraryBuilder;
     if (_builderFactoryResult.parts.isNotEmpty) {
@@ -692,7 +649,7 @@ class SourceCompilationUnitImpl
       }
     }
     _clearPartsAndReportExporters();
-    _becomePart(libraryBuilder);
+    _becomePart(libraryBuilder, libraryNameSpaceBuilder);
   }
 
   @override
@@ -864,13 +821,10 @@ class SourceCompilationUnitImpl
         }
 
         if (!haveErroneousBounds) {
-          List<NamedTypeBuilder> unboundTypes = [];
           List<StructuralVariableBuilder> unboundTypeVariables = [];
           List<TypeBuilder> calculatedBounds = calculateBounds(
               variables, dynamicType, bottomType,
-              unboundTypes: unboundTypes,
               unboundTypeVariables: unboundTypeVariables);
-          _builderFactoryResult.registerUnresolvedNamedTypes(unboundTypes);
           _builderFactoryResult
               .registerUnresolvedStructuralVariables(unboundTypeVariables);
 
@@ -1052,17 +1006,9 @@ class SourceCompilationUnitImpl
       }
     }
 
-    for (Builder declaration in _builderFactoryResult.members) {
-      computeDefaultValuesForDeclaration(declaration);
-    }
-    for (Builder declaration in _builderFactoryResult.setters) {
-      computeDefaultValuesForDeclaration(declaration);
-    }
-    for (ExtensionBuilder declaration in _builderFactoryResult.extensions) {
-      if (declaration is SourceExtensionBuilder &&
-          declaration.isUnnamedExtension) {
-        computeDefaultValuesForDeclaration(declaration);
-      }
+    Iterator<Builder> iterator = _sourceLibraryBuilder.localMembersIterator;
+    while (iterator.moveNext()) {
+      computeDefaultValuesForDeclaration(iterator.current);
     }
     return count;
   }
@@ -1138,17 +1084,15 @@ class SourceCompilationUnitImpl
         bound.typeVariables != null &&
         bound.typeVariables!.isNotEmpty;
     bool isAliasedGenericFunctionType = false;
-    if (bound is NamedTypeBuilder) {
-      TypeDeclarationBuilder? declaration = bound.declaration;
-      // TODO(cstefantsova): Unalias beyond the first layer for the check.
-      if (declaration is TypeAliasBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        TypeBuilder? rhsType = declaration.type;
-        if (rhsType is FunctionTypeBuilder &&
-            rhsType.typeVariables != null &&
-            rhsType.typeVariables!.isNotEmpty) {
-          isAliasedGenericFunctionType = true;
-        }
+    TypeDeclarationBuilder? declaration = bound?.declaration;
+    // TODO(cstefantsova): Unalias beyond the first layer for the check.
+    if (declaration is TypeAliasBuilder) {
+      // Coverage-ignore-block(suite): Not run.
+      TypeBuilder? rhsType = declaration.type;
+      if (rhsType is FunctionTypeBuilder &&
+          rhsType.typeVariables != null &&
+          rhsType.typeVariables!.isNotEmpty) {
+        isAliasedGenericFunctionType = true;
       }
     }
 
@@ -1164,14 +1108,16 @@ class SourceCompilationUnitImpl
   int computeVariances() {
     int count = 0;
 
-    for (Builder? declaration in _builderFactoryResult.members) {
+    Iterator<Builder> iterator = _sourceLibraryBuilder.localMembersIterator;
+    while (iterator.moveNext()) {
+      Builder? declaration = iterator.current;
       while (declaration != null) {
         if (declaration is TypeAliasBuilder &&
             declaration.typeVariablesCount > 0) {
           for (NominalVariableBuilder typeParameter
               in declaration.typeVariables!) {
-            typeParameter.variance = computeTypeVariableBuilderVariance(
-                    typeParameter, declaration.type,
+            typeParameter.variance = declaration.type
+                .computeTypeVariableBuilderVariance(typeParameter,
                     sourceLoader: libraryBuilder.loader)
                 .variance!;
             ++count;

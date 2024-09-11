@@ -325,8 +325,11 @@ class ContextLocatorImpl implements ContextLocator {
 
     var localEnabledPlugins =
         _getEnabledPlugins(containingRoot.workspace, localOptionsFile);
-    var pluginsDiffer = !const SetEquality<String>()
-        .equals(containingRootEnabledPlugins, localEnabledPlugins);
+    // Plugins differ only if there is an analysis_options and it contains
+    // a different set of plugins from the containing context.
+    var pluginsDiffer = localOptionsFile != null &&
+        !const SetEquality<String>()
+            .equals(containingRootEnabledPlugins, localEnabledPlugins);
 
     //
     // Create a context root for the given [folder] if a packages or build file

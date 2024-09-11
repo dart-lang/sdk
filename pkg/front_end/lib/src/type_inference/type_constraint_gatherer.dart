@@ -8,12 +8,10 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
     as shared
     show
         TypeConstraintGenerator,
+        TypeConstraintGeneratorMixin,
         TypeConstraintGeneratorState,
-        TypeDeclarationKind,
-        TypeDeclarationMatchResult,
         Variance;
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
-    show SharedDynamicType, SharedRecordType, SharedUnknownType, SharedVoidType;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart' show callName;
 import 'package:kernel/type_algebra.dart';
@@ -26,13 +24,20 @@ import 'type_schema_environment.dart';
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,
 /// based on an attempt to make one type schema a subtype of another.
 class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
-    VariableDeclaration,
-    DartType,
-    DartType,
-    StructuralParameter,
-    TypeDeclarationType,
-    TypeDeclaration,
-    TreeNode> {
+        DartType,
+        VariableDeclaration,
+        StructuralParameter,
+        TypeDeclarationType,
+        TypeDeclaration,
+        TreeNode>
+    with
+        shared.TypeConstraintGeneratorMixin<
+            DartType,
+            VariableDeclaration,
+            StructuralParameter,
+            TypeDeclarationType,
+            TypeDeclaration,
+            TreeNode> {
   final List<GeneratedTypeConstraint> _protoConstraints = [];
 
   final List<StructuralParameter> _parametersToConstrain;
@@ -88,6 +93,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         .getInterfaceMember(class_, name, setter: setter);
   }
 
+  @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
       TypeDeclarationType type, TypeDeclaration typeDeclaration) {
     return _environment.getTypeArgumentsAsInstanceOf(type, typeDeclaration);
@@ -98,8 +104,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     Map<StructuralParameter, MergedTypeConstraint> result = {};
     for (StructuralParameter parameter in _parametersToConstrain) {
       result[parameter] = new MergedTypeConstraint(
-          lower: const UnknownType(),
-          upper: const UnknownType(),
+          lower: new SharedTypeSchemaView(const UnknownType()),
+          upper: new SharedTypeSchemaView(const UnknownType()),
           origin: const UnknownTypeConstraintOrigin());
     }
     for (GeneratedTypeConstraint protoConstraint in _protoConstraints) {
@@ -180,7 +186,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   void _constrainParameterLower(StructuralParameter parameter, DartType lower,
       {required TreeNode? treeNodeForTesting}) {
     GeneratedTypeConstraint generatedTypeConstraint =
-        new GeneratedTypeConstraint.lower(parameter, lower);
+        new GeneratedTypeConstraint.lower(
+            parameter, new SharedTypeSchemaView(lower));
     if (treeNodeForTesting != null && _inferenceResultForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       (_inferenceResultForTesting
@@ -194,7 +201,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   void _constrainParameterUpper(StructuralParameter parameter, DartType upper,
       {required TreeNode? treeNodeForTesting}) {
     GeneratedTypeConstraint generatedTypeConstraint =
-        new GeneratedTypeConstraint.upper(parameter, upper);
+        new GeneratedTypeConstraint.upper(
+            parameter, new SharedTypeSchemaView(upper));
     if (treeNodeForTesting != null && _inferenceResultForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       (_inferenceResultForTesting
@@ -349,17 +357,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   }
 
   @override
-  bool performSubtypeConstraintGenerationRightSchema(DartType p, DartType q,
-      {required TreeNode? astNodeForTesting}) {
+  bool performSubtypeConstraintGenerationInternal(DartType p, DartType q,
+      {required bool leftSchema, required TreeNode? astNodeForTesting}) {
     return _isNullabilityAwareSubtypeMatch(p, q,
-        constrainSupertype: false, treeNodeForTesting: astNodeForTesting);
-  }
-
-  @override
-  bool performSubtypeConstraintGenerationLeftSchema(DartType p, DartType q,
-      {required TreeNode? astNodeForTesting}) {
-    return _isNullabilityAwareSubtypeMatch(p, q,
-        constrainSupertype: true, treeNodeForTesting: astNodeForTesting);
+        constrainSupertype: leftSchema, treeNodeForTesting: astNodeForTesting);
   }
 
   /// Matches [p] against [q] as a subtype against supertype.
@@ -432,16 +433,16 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     if (p is InvalidType || q is InvalidType) return false;
 
     // If P is _ then the match holds with no constraints.
-    if (p is SharedUnknownType) return true;
+    if (p is SharedUnknownTypeStructure) return true;
 
     // If Q is _ then the match holds with no constraints.
-    if (q is SharedUnknownType) return true;
+    if (q is SharedUnknownTypeStructure) return true;
 
     // If P is a type variable X in L, then the match holds:
     //
     // Under constraint _ <: X <: Q.
     NullabilitySuffix pNullability = p.nullabilitySuffix;
-    if (typeOperations.matchInferableParameter(p)
+    if (typeOperations.matchInferableParameter(new SharedTypeView(p))
         case StructuralParameter pParameter?
         when pNullability == NullabilitySuffix.none &&
             _parametersToConstrain.contains(pParameter)) {
@@ -454,7 +455,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     //
     // Under constraint P <: X <: _.
     NullabilitySuffix qNullability = q.nullabilitySuffix;
-    if (typeOperations.matchInferableParameter(q)
+    if (typeOperations.matchInferableParameter(new SharedTypeView(q))
         case StructuralParameter qParameter?
         when qNullability == NullabilitySuffix.none &&
             _parametersToConstrain.contains(qParameter)) {
@@ -473,53 +474,12 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       return true;
     }
 
-    // If P is a legacy type P0* then the match holds under constraint set C:
-    //
-    // Only if P0 is a subtype match for Q under constraint set C.
-    if (pNullability == NullabilitySuffix.star) {
-      // Coverage-ignore-block(suite): Not run.
-      return _isNullabilityAwareSubtypeMatch(
-          typeOperations.withNullabilitySuffix(p, NullabilitySuffix.none), q,
-          constrainSupertype: constrainSupertype,
-          treeNodeForTesting: treeNodeForTesting);
-    }
-
-    // If Q is a legacy type Q0* then the match holds under constraint set C:
-    //
-    // If P is dynamic or void and P is a subtype match for Q0 under constraint
-    // set C.
-    // Or if P is not dynamic or void and P is a subtype match for Q0? under
-    // constraint set C.
-    if (qNullability == NullabilitySuffix.star) {
-      // Coverage-ignore-block(suite): Not run.
-      final int baseConstraintCount = _protoConstraints.length;
-
-      if ((p is SharedDynamicType || p is SharedVoidType) &&
-          _isNullabilityAwareSubtypeMatch(p,
-              typeOperations.withNullabilitySuffix(q, NullabilitySuffix.none),
-              constrainSupertype: constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting)) {
-        return true;
-      }
-      _protoConstraints.length = baseConstraintCount;
-
-      if (p is! SharedDynamicType &&
-          p is! SharedVoidType &&
-          _isNullabilityAwareSubtypeMatch(
-              p,
-              typeOperations.withNullabilitySuffix(
-                  q, NullabilitySuffix.question),
-              constrainSupertype: constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting)) {
-        return true;
-      }
-      _protoConstraints.length = baseConstraintCount;
-    }
-
     if (constrainSupertype
-        ? performSubtypeConstraintGenerationForFutureOrLeftSchema(p, q,
+        ? performSubtypeConstraintGenerationForFutureOrLeftSchema(
+            new SharedTypeSchemaView(p), new SharedTypeView(q),
             astNodeForTesting: treeNodeForTesting)
-        : performSubtypeConstraintGenerationForFutureOrRightSchema(p, q,
+        : performSubtypeConstraintGenerationForFutureOrRightSchema(
+            new SharedTypeView(p), new SharedTypeSchemaView(q),
             astNodeForTesting: treeNodeForTesting)) {
       return true;
     }
@@ -534,10 +494,12 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // Or if P is a subtype match for Q0 under empty constraint set C.
     if (qNullability == NullabilitySuffix.question) {
       final int baseConstraintCount = _protoConstraints.length;
-      final DartType rawP =
-          typeOperations.withNullabilitySuffix(p, NullabilitySuffix.none);
-      final DartType rawQ =
-          typeOperations.withNullabilitySuffix(q, NullabilitySuffix.none);
+      final DartType rawP = typeOperations
+          .withNullabilitySuffix(new SharedTypeView(p), NullabilitySuffix.none)
+          .unwrapTypeView();
+      final DartType rawQ = typeOperations
+          .withNullabilitySuffix(new SharedTypeView(q), NullabilitySuffix.none)
+          .unwrapTypeView();
 
       if (pNullability == NullabilitySuffix.question &&
           _isNullabilityAwareSubtypeMatch(rawP, rawQ,
@@ -547,8 +509,9 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       }
       _protoConstraints.length = baseConstraintCount;
 
-      if ((p is SharedDynamicType || p is SharedVoidType) &&
-          _isNullabilityAwareSubtypeMatch(typeOperations.objectType, rawQ,
+      if ((p is SharedDynamicTypeStructure || p is SharedVoidTypeStructure) &&
+          _isNullabilityAwareSubtypeMatch(
+              typeOperations.objectType.unwrapTypeView(), rawQ,
               constrainSupertype: constrainSupertype,
               treeNodeForTesting: treeNodeForTesting)) {
         return true;
@@ -565,7 +528,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       }
       _protoConstraints.length = baseConstraintCount;
 
-      if (_isNullabilityAwareSubtypeMatch(p, typeOperations.nullType,
+      if (_isNullabilityAwareSubtypeMatch(
+          p, typeOperations.nullType.unwrapTypeView(),
           constrainSupertype: constrainSupertype,
           treeNodeForTesting: treeNodeForTesting)) {
         return true;
@@ -582,9 +546,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     //
     // If Future<P0> is a subtype match for Q under constraint set C1.
     // And if P0 is a subtype match for Q under constraint set C2.
-    if (typeOperations.matchFutureOr(p) case DartType p0?) {
+    if (typeOperations.matchFutureOrInternal(p) case DartType p0?) {
       final int baseConstraintCount = _protoConstraints.length;
-      if (_isNullabilityAwareSubtypeMatch(typeOperations.futureType(p0), q,
+      if (_isNullabilityAwareSubtypeMatch(
+              typeOperations.futureTypeInternal(p0), q,
               constrainSupertype: constrainSupertype,
               treeNodeForTesting: treeNodeForTesting) &&
           // Coverage-ignore(suite): Not run.
@@ -603,11 +568,15 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     if (pNullability == NullabilitySuffix.question) {
       final int baseConstraintCount = _protoConstraints.length;
       if (_isNullabilityAwareSubtypeMatch(
-              typeOperations.withNullabilitySuffix(p, NullabilitySuffix.none),
+              typeOperations
+                  .withNullabilitySuffix(
+                      new SharedTypeView(p), NullabilitySuffix.none)
+                  .unwrapTypeView(),
               q,
               constrainSupertype: constrainSupertype,
               treeNodeForTesting: treeNodeForTesting) &&
-          _isNullabilityAwareSubtypeMatch(typeOperations.nullType, q,
+          _isNullabilityAwareSubtypeMatch(
+              typeOperations.nullType.unwrapTypeView(), q,
               constrainSupertype: constrainSupertype,
               treeNodeForTesting: treeNodeForTesting)) {
         return true;
@@ -617,28 +586,28 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
 
     // If Q is dynamic, Object?, or void then the match holds under no
     // constraints.
-    if (q is SharedDynamicType ||
-        q is SharedVoidType ||
-        q == typeOperations.objectQuestionType) {
+    if (q is SharedDynamicTypeStructure ||
+        q is SharedVoidTypeStructure ||
+        q == typeOperations.objectQuestionType.unwrapTypeView()) {
       return true;
     }
 
     // If P is Never then the match holds under no constraints.
-    if (typeOperations.isNever(p)) {
+    if (typeOperations.isNever(new SharedTypeView(p))) {
       return true;
     }
 
     // If Q is Object, then the match holds under no constraints:
     //
     // Only if P is non-nullable.
-    if (q == typeOperations.objectType) {
-      return typeOperations.isNonNullable(p);
+    if (q == typeOperations.objectType.unwrapTypeView()) {
+      return typeOperations.isNonNullable(new SharedTypeSchemaView(p));
     }
 
     // If P is Null, then the match holds under no constraints:
     //
     // Only if Q is nullable.
-    if (typeOperations.isNull(p)) {
+    if (typeOperations.isNull(new SharedTypeView(p))) {
       return q.nullability == Nullability.nullable;
     }
 
@@ -667,106 +636,19 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       _protoConstraints.length = baseConstraintCount;
     }
 
-    switch ((
-      typeOperations.matchTypeDeclarationType(p),
-      typeOperations.matchTypeDeclarationType(q)
-    )) {
-      // If P is C<M0, ..., Mk> and Q is C<N0, ..., Nk>, then the match holds
-      // under constraints C0 + ... + Ck:
-      //
-      // If Mi is a subtype match for Ni with respect to L under constraints Ci.
-      case (
-            shared.TypeDeclarationMatchResult(
-              typeDeclarationKind: shared.TypeDeclarationKind pDeclarationKind,
-              typeDeclaration: TypeDeclaration pDeclarationObject,
-              typeDeclarationType: TypeDeclarationType _,
-              typeArguments: List<DartType> pTypeArguments
-            ),
-            shared.TypeDeclarationMatchResult(
-              typeDeclarationKind: shared.TypeDeclarationKind qDeclarationKind,
-              typeDeclaration: TypeDeclaration qDeclarationObject,
-              typeDeclarationType: TypeDeclarationType _,
-              typeArguments: List<DartType> qTypeArguments
-            )
-          )
-          when pDeclarationKind == qDeclarationKind &&
-              pDeclarationObject == qDeclarationObject:
-        assert(pTypeArguments.length == qTypeArguments.length);
-
-        final int baseConstraintCount = _protoConstraints.length;
-        bool isMatch = true;
-        for (int i = 0; isMatch && i < pTypeArguments.length; ++i) {
-          shared.Variance variance =
-              typeOperations.getTypeParameterVariance(pDeclarationObject, i);
-          if (variance == shared.Variance.covariant ||
-              variance == shared.Variance.invariant) {
-            isMatch = isMatch &&
-                _isNullabilityAwareSubtypeMatch(
-                    pTypeArguments[i], qTypeArguments[i],
-                    constrainSupertype: constrainSupertype,
-                    treeNodeForTesting: treeNodeForTesting);
-          }
-          if (variance == shared.Variance.contravariant ||
-              variance == shared.Variance.invariant) {
-            isMatch = isMatch &&
-                _isNullabilityAwareSubtypeMatch(
-                    qTypeArguments[i], pTypeArguments[i],
-                    constrainSupertype: !constrainSupertype,
-                    treeNodeForTesting: treeNodeForTesting);
-          }
-        }
-        if (isMatch) return true;
-        _protoConstraints.length = baseConstraintCount;
-
-      // If P is C0<M0, ..., Mk> and Q is C1<N0, ..., Nj> then the match holds
-      // with respect to L under constraints C:
-      //
-      // If C1<B0, ..., Bj> is a superinterface of C0<M0, ..., Mk> and C1<B0,
-      // ..., Bj> is a subtype match for C1<N0, ..., Nj> with respect to L under
-      // constraints C.
-      case (
-          shared.TypeDeclarationMatchResult(
-            typeDeclarationKind: shared.TypeDeclarationKind _,
-            typeDeclaration: TypeDeclaration _,
-            typeDeclarationType: TypeDeclarationType pTypeDeclarationType,
-            typeArguments: List<DartType> _
-          ),
-          shared.TypeDeclarationMatchResult(
-            typeDeclarationKind: shared.TypeDeclarationKind _,
-            typeDeclaration: TypeDeclaration qDeclarationObject,
-            typeDeclarationType: TypeDeclarationType _,
-            typeArguments: List<DartType> qTypeArguments
-          )
-        ):
-        final List<DartType>? sArguments = getTypeArgumentsAsInstanceOf(
-            pTypeDeclarationType, qDeclarationObject);
-        if (sArguments != null) {
-          assert(sArguments.length == qTypeArguments.length);
-
-          final int baseConstraintCount = _protoConstraints.length;
-          bool isMatch = true;
-          for (int i = 0; isMatch && i < sArguments.length; ++i) {
-            isMatch = isMatch &&
-                _isNullabilityAwareSubtypeMatch(
-                    sArguments[i], qTypeArguments[i],
-                    constrainSupertype: constrainSupertype,
-                    treeNodeForTesting: treeNodeForTesting);
-          }
-          if (isMatch) return true;
-          // Coverage-ignore-block(suite): Not run.
-          _protoConstraints.length = baseConstraintCount;
-        }
-
-      case (_, _):
-      // Do nothing.
+    bool? result = performSubtypeConstraintGenerationForTypeDeclarationTypes(
+        p, q,
+        leftSchema: constrainSupertype, astNodeForTesting: treeNodeForTesting);
+    if (result != null) {
+      return result;
     }
 
     // If Q is Function then the match holds under no constraints:
     //
     // If P is a function type.
-    if (typeOperations.isDartCoreFunction(q) &&
+    if (typeOperations.isDartCoreFunction(new SharedTypeView(q)) &&
         // Coverage-ignore(suite): Not run.
-        typeOperations.isFunctionType(p)) {
+        typeOperations.isFunctionType(new SharedTypeView(p))) {
       return true;
     }
 
@@ -777,8 +659,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // If R0 is a subtype match for a type R1 with respect to L under
     // constraints C.  If n <= k and r <= m.  And for i in 0...r, Ni is a
     // subtype match for Mi with respect to L under constraints Ci.
-    if (typeOperations.isFunctionType(p) &&
-        typeOperations.isFunctionType(q) &&
+    if (typeOperations.isFunctionType(new SharedTypeView(p)) &&
+        typeOperations.isFunctionType(new SharedTypeView(q)) &&
         (p as FunctionType).typeParameters.isEmpty &&
         (q as FunctionType).typeParameters.isEmpty &&
         p.namedParameters.isEmpty &&
@@ -806,8 +688,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
 
     // Function types with named parameters are treated analogously to the
     // positional parameter case above.
-    if (typeOperations.isFunctionType(p) &&
-        typeOperations.isFunctionType(q) &&
+    if (typeOperations.isFunctionType(new SharedTypeView(p)) &&
+        typeOperations.isFunctionType(new SharedTypeView(q)) &&
         (p as FunctionType).typeParameters.isEmpty &&
         (q as FunctionType).typeParameters.isEmpty &&
         p.positionalParameters.length == p.requiredParameterCount &&
@@ -869,8 +751,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // with respect to L under constraints C0.  And C1 is C02 + ... + Cn2 + C0.
     // And C2 is C1 with each constraint replaced with its closure with respect
     // to [Z0, ..., Zn].
-    if (typeOperations.isFunctionType(p) &&
-        typeOperations.isFunctionType(q) &&
+    if (typeOperations.isFunctionType(new SharedTypeView(p)) &&
+        typeOperations.isFunctionType(new SharedTypeView(q)) &&
         (p as FunctionType).typeParameters.isNotEmpty &&
         (q as FunctionType).typeParameters.isNotEmpty &&
         p.typeParameters.length == q.typeParameters.length) {
@@ -907,8 +789,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
               new NullabilityAwareTypeVariableEliminator(
                   structuralEliminationTargets: p.typeParameters.toSet(),
                   nominalEliminationTargets: {},
-                  bottomType: typeOperations.neverType,
-                  topType: typeOperations.objectQuestionType,
+                  bottomType: typeOperations.neverType.unwrapTypeView(),
+                  topType: typeOperations.objectQuestionType.unwrapTypeView(),
                   topFunctionType:
                       _environment.coreTypes.functionNonNullableRawType,
                   unhandledTypeHandler:
@@ -921,12 +803,16 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
                               "Unsupported type '${type.runtimeType}'."));
           for (GeneratedTypeConstraint constraint in constraints) {
             if (constraint.isUpper) {
-              _constrainParameterUpper(constraint.typeParameter,
-                  eliminator.eliminateToLeast(constraint.constraint),
+              _constrainParameterUpper(
+                  constraint.typeParameter,
+                  eliminator.eliminateToLeast(
+                      constraint.constraint.unwrapTypeSchemaView()),
                   treeNodeForTesting: treeNodeForTesting);
             } else {
-              _constrainParameterLower(constraint.typeParameter,
-                  eliminator.eliminateToGreatest(constraint.constraint),
+              _constrainParameterLower(
+                  constraint.typeParameter,
+                  eliminator.eliminateToGreatest(
+                      constraint.constraint.unwrapTypeSchemaView()),
                   treeNodeForTesting: treeNodeForTesting);
             }
           }
@@ -951,8 +837,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // respect to `L` under constraints `C0 + ... + Cm`
     // If for `i` in `0...m`, `Mi` is a subtype match for `Ni` with respect to
     // `L` under constraints `Ci`.
-    if (p is SharedRecordType<DartType> &&
-        q is SharedRecordType<DartType> &&
+    if (p is SharedRecordTypeStructure<DartType> &&
+        q is SharedRecordTypeStructure<DartType> &&
         (p as RecordType).positional.length ==
             (q as RecordType).positional.length &&
         p.named.length == q.named.length) {
@@ -997,10 +883,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       {required TreeNode? treeNodeForTesting}) {
     // The unknown type `?` is a subtype match for any type `Q` with no
     // constraints.
-    if (subtype is SharedUnknownType) return true;
+    if (subtype is SharedUnknownTypeStructure) return true;
     // Any type `P` is a subtype match for the unknown type `?` with no
     // constraints.
-    if (supertype is SharedUnknownType) return true;
+    if (supertype is SharedUnknownTypeStructure) return true;
     // A type variable `T` in `L` is a subtype match for any type schema `Q`:
     // - Under constraint `T <: Q`.
 
@@ -1044,7 +930,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     if (identical(subtype, supertype)) return true;
 
     // Handle FutureOr<T> union type.
-    if (typeOperations.matchFutureOr(subtype) != null) {
+    if (typeOperations.matchFutureOrInternal(subtype) != null) {
       DartType subtypeArg = (subtype as FutureOrType).typeArgument;
       if (supertype is FutureOrType) {
         // `FutureOr<P>` is a subtype match for `FutureOr<Q>` with respect to
@@ -1062,7 +948,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       //   constraints `C0`.
       // - And `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C1`.
-      InterfaceType subtypeFuture = typeOperations.futureType(subtypeArg);
+      InterfaceType subtypeFuture =
+          typeOperations.futureTypeInternal(subtypeArg);
       return _isNullabilityObliviousSubtypeMatch(subtypeFuture, supertype,
               treeNodeForTesting: treeNodeForTesting) &&
           _isNullabilityObliviousSubtypeMatch(subtypeArg, supertype,
@@ -1071,7 +958,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
               .isSubtypeWhenUsingNullabilities();
     }
 
-    if (typeOperations.matchFutureOr(supertype) != null) {
+    if (typeOperations.matchFutureOrInternal(supertype) != null) {
       // `P` is a subtype match for `FutureOr<Q>` with respect to `L` under
       // constraints `C`:
       // - If `P` is a subtype match for `Future<Q>` with respect to `L` under
@@ -1098,7 +985,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       DartType supertypeArg =
           supertype.typeArgument.withDeclaredNullability(unitedNullability);
       DartType supertypeFuture = typeOperations
-          .futureType(supertypeArg)
+          .futureTypeInternal(supertypeArg)
           .withDeclaredNullability(unitedNullability);
 
       // The match against FutureOr<X> succeeds if the match against either
@@ -1121,7 +1008,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     if (_isTop(supertype)) return true;
     // `Null` is a subtype match for any type `Q` under no constraints.
     // Note that nullable types will change this.
-    if (typeOperations.isNull(subtype)) return true;
+    if (typeOperations.isNull(new SharedTypeView(subtype))) return true;
 
     // A type variable `T` not in `L` with bound `P` is a subtype match for the
     // same type variable `T` with bound `Q` with respect to `L` under
@@ -1163,14 +1050,14 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
           subtype.parameter.bound, supertype,
           treeNodeForTesting: treeNodeForTesting);
     }
-    if (typeOperations.isInterfaceType(subtype) &&
-        typeOperations.isInterfaceType(supertype)) {
+    if (typeOperations.isInterfaceType(new SharedTypeView(subtype)) &&
+        typeOperations.isInterfaceType(new SharedTypeView(supertype))) {
       return _isNullabilityObliviousInterfaceSubtypeMatch(
           subtype as InterfaceType, supertype as InterfaceType,
           treeNodeForTesting: treeNodeForTesting);
     }
-    if (typeOperations.isFunctionType(subtype)) {
-      if (typeOperations.isInterfaceType(supertype)) {
+    if (typeOperations.isFunctionType(new SharedTypeView(subtype))) {
+      if (typeOperations.isInterfaceType(new SharedTypeView(supertype))) {
         return supertype == _environment.coreTypes.functionLegacyRawType ||
             supertype == _environment.coreTypes.objectLegacyRawType;
       } else if (supertype is FunctionType) {
@@ -1183,7 +1070,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // - If `P` is an interface type which implements a call method of type `F`,
     //   and `F` is a subtype match for a type `Q` with respect to `L` under
     //   constraints `C`.
-    if (typeOperations.isInterfaceType(subtype)) {
+    if (typeOperations.isInterfaceType(new SharedTypeView(subtype))) {
       Member? callMember =
           getInterfaceMember((subtype as InterfaceType).classNode, callName);
       if (callMember is Procedure && !callMember.isGetter) {

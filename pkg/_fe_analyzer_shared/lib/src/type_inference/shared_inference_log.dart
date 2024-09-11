@@ -121,7 +121,9 @@ class GenericInferenceState<TypeParameter extends Object> extends State {
 /// This class defines methods that the analyzer or CFE can use to instrument
 /// their type inference logic. The implementations are found in
 /// [SharedInferenceLogWriterImpl].
-abstract interface class SharedInferenceLogWriter<Type extends SharedType<Type>,
+abstract interface class SharedInferenceLogWriter<
+    TypeStructure extends SharedTypeStructure<TypeStructure>,
+    Type extends SharedTypeStructure<Type>,
     TypeParameter extends Object> {
   /// If [inProgress] is `true`, verifies that generic type inference is in
   /// progress; otherwise, verifies that generic type inference is not in
@@ -238,7 +240,7 @@ abstract interface class SharedInferenceLogWriter<Type extends SharedType<Type>,
   /// type schema to another.
   void recordGeneratedConstraint(
       TypeParameter parameter,
-      MergedTypeConstraint<Type, Type, TypeParameter, Object, Type, Object>
+      MergedTypeConstraint<TypeStructure, TypeParameter, Object, Type, Object>
           constraint);
 
   /// Records that type inference has resolved a method name.
@@ -266,9 +268,11 @@ abstract interface class SharedInferenceLogWriter<Type extends SharedType<Type>,
 /// from classes derived from [SharedInferenceLogWriterImpl], but these methods
 /// are not exposed in [SharedInferenceLogWriter] so that they won't be called
 /// accidentally on their own.
-abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
+abstract class SharedInferenceLogWriterImpl<
+        TypeStructure extends SharedTypeStructure<TypeStructure>,
+        Type extends SharedTypeStructure<Type>,
         TypeParameter extends Object>
-    implements SharedInferenceLogWriter<Type, TypeParameter> {
+    implements SharedInferenceLogWriter<TypeStructure, Type, TypeParameter> {
   /// A stack of [State] objects representing the calls that have been made to
   /// `enter...` methods without any matched `exit...` method.
   ///
@@ -685,7 +689,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
   @override
   void recordGeneratedConstraint(
       TypeParameter parameter,
-      MergedTypeConstraint<Type, Type, TypeParameter, Object, Type, Object>
+      MergedTypeConstraint<TypeStructure, TypeParameter, Object, Type, Object>
           constraint) {
     checkCall(
         method: 'recordGeneratedConstraint',

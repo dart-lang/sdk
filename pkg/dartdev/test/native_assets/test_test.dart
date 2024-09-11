@@ -73,4 +73,22 @@ void main(List<String> args) async {
       expect(result.stderr, contains('native_add'));
     });
   });
+
+  test('run pub get if needed', timeout: longTimeout, () async {
+    await nativeAssetsTest(
+      'native_add',
+      skipPubGet: true,
+      (dartAppUri) async {
+        final result = await runDart(
+          arguments: [
+            'test',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: false,
+        );
+        expect(result.exitCode, isNot(0));
+      },
+    );
+  });
 }

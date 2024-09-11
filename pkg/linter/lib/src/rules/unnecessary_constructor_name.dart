@@ -43,10 +43,10 @@ var makeA = A.new;
 class UnnecessaryConstructorName extends LintRule {
   UnnecessaryConstructorName()
       : super(
-            name: 'unnecessary_constructor_name',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'unnecessary_constructor_name',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_constructor_name;

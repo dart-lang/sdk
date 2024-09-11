@@ -426,8 +426,10 @@ class UntaggedObject : public AllStatic {
   static const word kSizeTagSize;
   static const word kClassIdTagPos;
   static const word kClassIdTagSize;
+#if defined(HASH_IN_OBJECT_HEADER)
   static const word kHashTagPos;
   static const word kHashTagSize;
+#endif
   static const word kSizeTagMaxSizeTag;
   static const word kTagBitsSizeTagPos;
   static const word kBarrierOverlapShift;
@@ -1188,6 +1190,7 @@ class Thread : public AllStatic {
   static word allocate_object_entry_point_offset();
   static word allocate_object_parameterized_entry_point_offset();
   static word allocate_object_slow_entry_point_offset();
+  static word resume_interpreter_adjusted_entry_point_offset();
   static word slow_type_test_entry_point_offset();
   static word write_barrier_entry_point_offset();
   static word vm_tag_offset();

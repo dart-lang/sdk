@@ -163,7 +163,6 @@ class Thread;
     nullptr)                                                                   \
   V(CodePtr, throw_stub_, StubCode::Throw().ptr(), nullptr)                    \
   V(CodePtr, re_throw_stub_, StubCode::Throw().ptr(), nullptr)                 \
-  V(CodePtr, assert_boolean_stub_, StubCode::AssertBoolean().ptr(), nullptr)   \
   V(CodePtr, optimize_stub_, StubCode::OptimizeFunction().ptr(), nullptr)      \
   V(CodePtr, deoptimize_stub_, StubCode::Deoptimize().ptr(), nullptr)          \
   V(CodePtr, lazy_deopt_from_return_stub_,                                     \
@@ -246,6 +245,10 @@ class Thread;
   V(uword, jump_to_frame_entry_point_, StubCode::JumpToFrame().EntryPoint(),   \
     0)                                                                         \
   V(uword, slow_type_test_entry_point_, StubCode::SlowTypeTest().EntryPoint(), \
+    0)                                                                         \
+  V(uword, resume_interpreter_adjusted_entry_point_,                           \
+    StubCode::ResumeInterpreter().EntryPoint() +                               \
+        SuspendStubABI::kResumePcDistance,                                     \
     0)
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
@@ -1368,32 +1371,23 @@ class Thread : public ThreadState {
 #undef REUSABLE_HANDLE_SCOPE_VARIABLE
 #endif  // defined(DEBUG)
 
-  class AtSafepointField : public BitField<uword, bool, 0, 1> {};
-  class SafepointRequestedField
-      : public BitField<uword, bool, AtSafepointField::kNextBit, 1> {};
-
-  class AtDeoptSafepointField
-      : public BitField<uword, bool, SafepointRequestedField::kNextBit, 1> {};
-  class DeoptSafepointRequestedField
-      : public BitField<uword, bool, AtDeoptSafepointField::kNextBit, 1> {};
-
-  class AtReloadSafepointField
-      : public BitField<uword,
-                        bool,
-                        DeoptSafepointRequestedField::kNextBit,
-                        1> {};
-  class ReloadSafepointRequestedField
-      : public BitField<uword, bool, AtReloadSafepointField::kNextBit, 1> {};
-
-  class BlockedForSafepointField
-      : public BitField<uword,
-                        bool,
-                        ReloadSafepointRequestedField::kNextBit,
-                        1> {};
-  class BypassSafepointsField
-      : public BitField<uword, bool, BlockedForSafepointField::kNextBit, 1> {};
-  class UnwindErrorInProgressField
-      : public BitField<uword, bool, BypassSafepointsField::kNextBit, 1> {};
+  using AtSafepointField = BitField<uword, bool>;
+  using SafepointRequestedField =
+      BitField<uword, bool, AtSafepointField::kNextBit>;
+  using AtDeoptSafepointField =
+      BitField<uword, bool, SafepointRequestedField::kNextBit>;
+  using DeoptSafepointRequestedField =
+      BitField<uword, bool, AtDeoptSafepointField::kNextBit>;
+  using AtReloadSafepointField =
+      BitField<uword, bool, DeoptSafepointRequestedField::kNextBit>;
+  using ReloadSafepointRequestedField =
+      BitField<uword, bool, AtReloadSafepointField::kNextBit>;
+  using BlockedForSafepointField =
+      BitField<uword, bool, ReloadSafepointRequestedField::kNextBit>;
+  using BypassSafepointsField =
+      BitField<uword, bool, BlockedForSafepointField::kNextBit>;
+  using UnwindErrorInProgressField =
+      BitField<uword, bool, BypassSafepointsField::kNextBit>;
 
   static uword AtSafepointBits(SafepointLevel level) {
     switch (level) {

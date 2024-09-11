@@ -4,7 +4,6 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'augmentation_import_test.dart' as augmentation_import;
 import 'class_test.dart' as class_;
 import 'const_test.dart' as const_;
 import 'default_value_test.dart' as default_value;
@@ -14,7 +13,6 @@ import 'extension_test.dart' as extension_;
 import 'extension_type_test.dart' as extension_type;
 import 'formal_parameter_test.dart' as formal_parameter;
 import 'function_type_annotation_test.dart' as function_type_annotation;
-import 'library_augmentation_test.dart' as library_augmentation;
 import 'library_export_test.dart' as library_export;
 import 'library_fragment_test.dart' as library_fragment;
 import 'library_import_test.dart' as library_import;
@@ -35,7 +33,6 @@ import 'types_test.dart' as types;
 
 main() {
   defineReflectiveSuite(() {
-    augmentation_import.main();
     class_.main();
     const_.main();
     default_value.main();
@@ -45,7 +42,6 @@ main() {
     extension_type.main();
     formal_parameter.main();
     function_type_annotation.main();
-    library_augmentation.main();
     library_export.main();
     library_fragment.main();
     library_import.main();

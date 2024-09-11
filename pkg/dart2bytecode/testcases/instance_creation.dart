@@ -72,11 +72,11 @@ class J {
   factory J() => J._();
 }
 
-abstract class K<A, B> {
-  factory K() => new TestTypeArgReuse<A, B>();
+abstract class L<S, T> {
+  factory L() => new TestTypeArgReuse<S, T>();
 }
 
-class TestTypeArgReuse<P, Q> extends Base<P, Q> implements K<P, Q> {}
+class TestTypeArgReuse<P, Q> extends Base<P, Q> implements L<P, Q> {}
 
 foo6() => List<String>.empty();
 

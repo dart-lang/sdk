@@ -44,20 +44,6 @@ int 42
 ''');
   }
 
-  test_location_augmentationImportDirective() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-''');
-
-    await assertNoErrorsInCode(r'''
-@foo
-import augment 'a.dart';
-const foo = 42;
-''');
-
-    _assertAtFoo42();
-  }
-
   test_location_class_classDeclaration() async {
     await assertNoErrorsInCode(r'''
 const foo = 42;
@@ -202,63 +188,6 @@ void f() {
 ''');
     // This is invalid code.
     // No checks, as long as it does not crash.
-  }
-
-  test_location_libraryAugmentation_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  final int a;
-  const A(this.a);
-}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
-import 'a.dart' as prefix;
-
-@prefix.A(42)
-class B {}
-''');
-
-    newFile('$testPackageLibPath/test.dart', r'''
-import augment 'b.dart';
-''');
-
-    await resolveFile2(b);
-
-    var annotation = findNode.annotation('@prefix.A(42)');
-    assertResolvedNodeText(annotation, '''
-Annotation
-  atSign: @
-  name: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: prefix
-      staticElement: <testLibrary>::@fragment::package:test/b.dart::@prefix::prefix
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: A
-      staticElement: package:test/a.dart::<fragment>::@class::A
-      staticType: null
-    staticElement: package:test/a.dart::<fragment>::@class::A
-    staticType: null
-  arguments: ArgumentList
-    leftParenthesis: (
-    arguments
-      IntegerLiteral
-        literal: 42
-        parameter: package:test/a.dart::<fragment>::@class::A::@constructor::new::@parameter::a
-        staticType: int
-    rightParenthesis: )
-  element: package:test/a.dart::<fragment>::@class::A::@constructor::new
-''');
-
-    var localVariable = findElement.class_('B');
-    var annotationOnElement = localVariable.metadata.single;
-    _assertElementAnnotationValueText(annotationOnElement, '''
-A
-  a: int 42
-''');
   }
 
   test_location_libraryDirective() async {

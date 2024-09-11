@@ -90,7 +90,7 @@ class _LintConfig implements LintConfig {
   }
 
   String? asString(Object scalar) {
-    var value = scalar is YamlScalar ? scalar.valueOrThrow : scalar;
+    var value = scalar is YamlScalar ? scalar.value : scalar;
     if (value is String) {
       return value;
     }
@@ -158,7 +158,7 @@ class _LintConfig implements LintConfig {
                   var config = _RuleConfig();
                   config.group = asString(key);
                   config.name = asString(rule);
-                  config.args = parseArgs(args)!;
+                  config.args = parseArgs(args) ?? {};
                   ruleConfigs.add(config);
                 });
               }

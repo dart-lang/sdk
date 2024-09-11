@@ -55,7 +55,7 @@ class FunctionsBuilder with Builder<ir.Functions> {
   ir.ImportedFunction import(String module, String name, ir.FunctionType type,
       [String? functionName]) {
     final function = ir.ImportedFunction(
-        module, name, ir.FinalizableIndex(), type, functionName);
+        _module, module, name, ir.FinalizableIndex(), type, functionName);
     _importedFunctions.add(function);
     _addName(functionName, function);
     return function;

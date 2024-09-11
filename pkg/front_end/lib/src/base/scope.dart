@@ -294,11 +294,12 @@ class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
       : _parent = parent;
 }
 
-class TypeParameterScope with LookupScopeMixin {
+abstract class AbstractTypeParameterScope implements LookupScope {
   final LookupScope _parent;
-  final Map<String, Builder> _typeParameters;
 
-  TypeParameterScope(this._parent, this._typeParameters);
+  AbstractTypeParameterScope(this._parent);
+
+  Builder? getTypeParameter(String name);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -306,19 +307,46 @@ class TypeParameterScope with LookupScopeMixin {
 
   @override
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    return lookupGetableIn(name, charOffset, fileUri, _typeParameters) ??
-        _parent.lookupGetable(name, charOffset, fileUri);
+    Builder? builder = normalizeLookup(
+        getable: getTypeParameter(name),
+        setable: null,
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: classNameOrDebugName,
+        isSetter: false);
+    return builder ?? _parent.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    Builder? builder =
-        lookupSetableIn(name, charOffset, fileUri, _typeParameters);
+    Builder? builder = normalizeLookup(
+        getable: getTypeParameter(name),
+        setable: null,
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: classNameOrDebugName,
+        isSetter: true);
     return builder ?? _parent.lookupSetable(name, charOffset, fileUri);
   }
 
-  @override
   String get classNameOrDebugName => "type parameter";
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void forEachExtension(void Function(ExtensionBuilder) f) {
+    _parent.forEachExtension(f);
+  }
+}
+
+class TypeParameterScope extends AbstractTypeParameterScope {
+  final Map<String, Builder> _typeParameters;
+
+  TypeParameterScope(super._parent, this._typeParameters);
+
+  @override
+  Builder? getTypeParameter(String name) => _typeParameters[name];
 
   static LookupScope fromList(
       LookupScope parent, List<TypeVariableBuilder>? typeVariableBuilders) {
@@ -329,12 +357,6 @@ class TypeParameterScope with LookupScopeMixin {
       map[typeVariableBuilder.name] = typeVariableBuilder;
     }
     return new TypeParameterScope(parent, map);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    _parent.forEachExtension(f);
   }
 }
 
@@ -357,8 +379,12 @@ class FixedLookupScope implements LookupScope {
   @override
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
-        getable: _getables?[name],
-        setable: _setables?[name],
+        getable: _getables
+            // Coverage-ignore(suite): Not run.
+            ?[name],
+        setable: _setables
+            // Coverage-ignore(suite): Not run.
+            ?[name],
         name: name,
         charOffset: charOffset,
         fileUri: fileUri,

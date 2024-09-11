@@ -45,10 +45,10 @@ provide a name in the `library` directive.
 class DanglingLibraryDocComments extends LintRule {
   DanglingLibraryDocComments()
       : super(
-            name: 'dangling_library_doc_comments',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.documentationCommentMaintenance});
+          name: 'dangling_library_doc_comments',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.dangling_library_doc_comments;

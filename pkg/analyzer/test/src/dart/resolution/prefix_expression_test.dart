@@ -347,7 +347,7 @@ PrefixExpression
 
   test_minus_augmentedExpression_augments_class_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int foo = 0;
@@ -355,7 +355,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int foo = -augmented;
@@ -377,7 +377,7 @@ PrefixExpression
 
   test_minus_augmentedExpression_augments_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int get foo => 0;
@@ -385,7 +385,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int get foo {
@@ -409,7 +409,7 @@ PrefixExpression
 
   test_minus_augmentedExpression_augments_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   void foo() {}
@@ -417,7 +417,7 @@ class A {
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment void foo() {
@@ -425,7 +425,7 @@ augment class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 73, 9),
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 65, 9),
     ]);
 
     var node = findNode.singlePrefixExpression;
@@ -443,7 +443,7 @@ PrefixExpression
 
   test_minus_augmentedExpression_augments_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   set foo(int _) {}
@@ -451,7 +451,7 @@ class A {
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment set foo(int _) {
@@ -459,7 +459,7 @@ augment class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 77, 9),
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 69, 9),
     ]);
 
     var node = findNode.singlePrefixExpression;
@@ -477,7 +477,7 @@ PrefixExpression
 
   test_minus_augmentedExpression_augments_unaryMinus() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int operator-() => 0;
@@ -485,7 +485,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int operator-() {
@@ -1257,7 +1257,7 @@ PrefixExpression
 
   test_tilde_augmentedExpression_augments_unaryMinus() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int operator-() => 0;
@@ -1265,7 +1265,7 @@ class A {
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int operator-() {
@@ -1273,7 +1273,7 @@ augment class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 85, 9),
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 77, 9),
     ]);
 
     var node = findNode.singlePrefixExpression;

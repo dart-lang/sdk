@@ -22,7 +22,7 @@ class AnnotateRedeclaresTest extends LintRuleTest {
 
   test_augmentationClass_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   void m() {}
@@ -30,20 +30,20 @@ class A {
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 extension type E(A a) implements A {
   void m() {}
 }
 ''', [
-      lint(71, 1),
+      lint(63, 1),
     ]);
   }
 
   @FailingTest(reason: 'No check that `m` is an augmentation?')
   test_augmentationMethodWithAnnotation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 import 'package:meta/meta.dart';
 
@@ -58,7 +58,7 @@ extension type E(A a) implements A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment extension type E(A a) {
   augment void m() { }

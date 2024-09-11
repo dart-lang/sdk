@@ -2,11 +2,32 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# There is a fixed set of categories:
+#
+# * binarySize - rules that help to minimize binary size.
+# * breity - rules that encourage brevity in the source code.
+# * documentationCommentMaintenance - rules that help to maintain documentation
+#   comments.
+# * effectiveDart - rules that align with the Effective Dart style guide.
+# * errorProne - rules that protect against error-prone code.
+# * flutter - rules that help to write Flutter code.
+# * languageFeatureUsage - rules that promote language feature usage.
+# * memoryLeaks - rules that protect against possibly memory-leaking code.
+# * nonPerformant - rules that protect against non-performant code.
+# * pub - pub-related rules.
+# * publicInterface - rules that promote a healthy public interface.
+# * style - matters of style, largely derived from Effective Dart.
+# * unintentional - rules that protect against code that probably doesn't do
+#   what you think it does, or that shouldn't be used as it is.
+# * unusedCode - rules that protect against unused code.
+# * web - rules that help to write code deployed to the web.
+
 LintCode:
   always_declare_return_types_of_functions:
     sharedName: always_declare_return_types
     problemMessage: "The function '{0}' should have a return type but doesn't."
     correctionMessage: "Try adding a return type to the function."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -38,6 +59,7 @@ LintCode:
   always_put_control_body_on_new_line:
     problemMessage: "Statement should be on a separate line."
     correctionMessage: "Try moving the statement to a new line."
+    categories: [errorProne, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -71,6 +93,7 @@ LintCode:
   always_put_required_named_parameters_first:
     problemMessage: "Required named parameters should be before optional named parameters."
     correctionMessage: "Try moving the required named parameter to be before any optional named parameters."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -101,6 +124,7 @@ LintCode:
     sharedName: always_specify_types
     problemMessage: "Missing type annotation."
     correctionMessage: "Try adding a type annotation."
+    categories: [style]
     hasPublishedDocs: false
   always_specify_types_replace_keyword:
     sharedName: always_specify_types
@@ -120,6 +144,7 @@ LintCode:
   always_use_package_imports:
     problemMessage: "Use 'package:' imports for files in the 'lib' directory."
     correctionMessage: "Try converting the URI to a 'package:' URI."
+    categories: [errorProne]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -148,6 +173,7 @@ LintCode:
   annotate_overrides:
     problemMessage: "The member '{0}' overrides an inherited member but isn't annotated with '@override'."
     correctionMessage: "Try adding the '@override' annotation."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -202,25 +228,30 @@ LintCode:
   annotate_redeclares:
     problemMessage: "The member '{0}' is redeclaring but isn't annotated with '@redeclare'."
     correctionMessage: "Try adding the '@redeclare' annotation."
+    categories: [style]
     hasPublishedDocs: false
   avoid_annotating_with_dynamic:
     problemMessage: "Unnecessary 'dynamic' type annotation."
     correctionMessage: "Try removing the type 'dynamic'."
+    categories: [brevity, style]
     hasPublishedDocs: false
   avoid_as:
     removedIn: "3.0"
   avoid_bool_literals_in_conditional_expressions:
     problemMessage: "Conditional expressions with a 'bool' literal can be simplified."
     correctionMessage: "Try rewriting the expression to use either '&&' or '||'."
+    categories: [brevity]
     hasPublishedDocs: false
   avoid_catches_without_on_clauses:
     problemMessage: "Catch clause should use 'on' to specify the type of exception being caught."
     correctionMessage: "Try adding an 'on' clause before the 'catch'."
+    categories: [effectiveDart, style]
     hasPublishedDocs: false
   avoid_catching_errors_class:
     sharedName: avoid_catching_errors
     problemMessage: "The type 'Error' should not be caught."
     correctionMessage: "Try removing the catch or catching an 'Exception' instead."
+    categories: [style]
     hasPublishedDocs: false
   avoid_catching_errors_subclass:
     sharedName: avoid_catching_errors
@@ -230,18 +261,22 @@ LintCode:
   avoid_classes_with_only_static_members:
     problemMessage: "Classes should define instance members."
     correctionMessage: "Try adding instance behavior or moving the members out of the class."
+    categories: [effectiveDart, languageFeatureUsage, style]
     hasPublishedDocs: false
   avoid_double_and_int_checks:
     problemMessage: "Explicit check for double or int."
     correctionMessage: "Try removing the check."
+    categories: [errorProne, web]
     hasPublishedDocs: false
   avoid_dynamic_calls:
     problemMessage: "Method invocation or property access on a 'dynamic' target."
     correctionMessage: "Try giving the target a type."
+    categories: [binarySize, errorProne]
     hasPublishedDocs: false
   avoid_empty_else:
     problemMessage: "Empty statements are not allowed in an 'else' clause."
     correctionMessage: "Try removing the empty statement or removing the else clause."
+    categories: [brevity, errorProne]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -293,22 +328,29 @@ LintCode:
   avoid_equals_and_hash_code_on_mutable_classes:
     problemMessage: "The method '{0}' should not be overridden in classes not annotated with '@immutable'."
     correctionMessage: "Try removing the override or annotating the class with '@immutable'."
+    categories: [effectiveDart, style]
     hasPublishedDocs: false
   avoid_escaping_inner_quotes:
     problemMessage: "Unnecessary escape of '{0}'."
     correctionMessage: "Try changing the outer quotes to '{1}'."
+    categories: [style]
     hasPublishedDocs: false
   avoid_field_initializers_in_const_classes:
     problemMessage: "Fields in 'const' classes should not have initializers."
     correctionMessage: "Try converting the field to a getter or initialize the field in the constructors."
+    # TODO(srawlins): This rule has nothing to do with style. It is to reduce
+    # runtime memory usage. But we don't have a Category for that yet.
+    categories: [style]
     hasPublishedDocs: false
   avoid_final_parameters:
     problemMessage: "Parameters should not be marked as 'final'."
     correctionMessage: "Try removing the keyword 'final'."
+    categories: [style]
     hasPublishedDocs: false
   avoid_function_literals_in_foreach_calls:
     problemMessage: "Function literals shouldn't be passed to 'forEach'."
     correctionMessage: "Try using a 'for' loop."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -350,10 +392,12 @@ LintCode:
   avoid_implementing_value_types:
     problemMessage: "Classes that override '==' should not be implemented."
     correctionMessage: "Try removing the class from the 'implements' clause."
+    categories: [style]
     hasPublishedDocs: false
   avoid_init_to_null:
     problemMessage: "Redundant initialization to 'null'."
     correctionMessage: "Try removing the initializer."
+    categories: [brevity, effectiveDart, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -401,22 +445,27 @@ LintCode:
   avoid_js_rounded_ints:
     problemMessage: "Integer literal can't be represented exactly when compiled to JavaScript."
     correctionMessage: "Try using a 'BigInt' to represent the value."
+    categories: [errorProne, web]
     hasPublishedDocs: false
   avoid_multiple_declarations_per_line:
     problemMessage: "Multiple variables declared on a single line."
     correctionMessage: "Try splitting the variable declarations into multiple lines."
+    categories: [style]
     hasPublishedDocs: false
   avoid_null_checks_in_equality_operators:
     problemMessage: "Unnecessary null comparison in implementation of '=='."
     correctionMessage: "Try removing the comparison."
+    categories: [style]
     hasPublishedDocs: false
   avoid_positional_boolean_parameters:
     problemMessage: "'bool' parameters should be named parameters."
     correctionMessage: "Try converting the parameter to a named parameter."
+    categories: [effectiveDart, style]
     hasPublishedDocs: false
   avoid_print:
     problemMessage: "Don't invoke 'print' in production code."
     correctionMessage: "Try using a logging framework."
+    categories: [unintentional]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -457,14 +506,17 @@ LintCode:
   avoid_private_typedef_functions:
     problemMessage: "The typedef is unnecessary because it is only used in one place."
     correctionMessage: "Try inlining the type or using it in other places."
+    categories: [style]
     hasPublishedDocs: false
   avoid_redundant_argument_values:
     problemMessage: "The value of the argument is redundant because it matches the default value."
     correctionMessage: "Try removing the argument."
+    categories: [brevity, style]
     hasPublishedDocs: false
   avoid_relative_lib_imports:
     problemMessage: "Can't use a relative path to import a library in 'lib'."
     correctionMessage: "Try fixing the relative path or changing the import to a 'package:' import."
+    categories: [errorProne]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -498,6 +550,7 @@ LintCode:
   avoid_renaming_method_parameters:
     problemMessage: "The parameter name '{0}' doesn't match the name '{1}' in the overridden method."
     correctionMessage: "Try changing the name to '{1}'."
+    categories: [documentationCommentMaintenance]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -539,6 +592,7 @@ LintCode:
   avoid_return_types_on_setters:
     problemMessage: "Unnecessary return type on a setter."
     correctionMessage: "Try removing the return type."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -573,6 +627,7 @@ LintCode:
     sharedName: avoid_returning_null_for_void
     problemMessage: "Don't return 'null' from a function with a return type of 'void'."
     correctionMessage: "Try removing the 'null'."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -608,14 +663,17 @@ LintCode:
   avoid_returning_this:
     problemMessage: "Don't return 'this' from a method."
     correctionMessage: "Try changing the return type to 'void' and removing the return."
+    categories: [effectiveDart, style]
     hasPublishedDocs: false
   avoid_setters_without_getters:
     problemMessage: "Setter has no corresponding getter."
     correctionMessage: "Try adding a corresponding getter or removing the setter."
+    categories: [style]
     hasPublishedDocs: false
   avoid_shadowing_type_parameters:
     problemMessage: "The type parameter '{0}' shadows a type parameter from the enclosing {1}."
     correctionMessage: "Try renaming one of the type parameters."
+    categories: [errorProne]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -650,6 +708,7 @@ LintCode:
   avoid_single_cascade_in_expression_statements:
     problemMessage: "Unnecessary cascade expression."
     correctionMessage: "Try using the operator '{0}'."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -681,6 +740,7 @@ LintCode:
   avoid_slow_async_io:
     problemMessage: "Use of an async 'dart:io' method."
     correctionMessage: "Try using the synchronous version of the method."
+    categories: [nonPerformant]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -727,6 +787,7 @@ LintCode:
   avoid_type_to_string:
     problemMessage: "Using 'toString' on a 'Type' is not safe in production code."
     correctionMessage: "Try a normal type check or compare the 'runtimeType' directly."
+    categories: [unintentional]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -767,6 +828,7 @@ LintCode:
   avoid_types_as_parameter_names:
     problemMessage: "The parameter name '{0}' matches a visible type name."
     correctionMessage: "Try adding a name for the parameter or changing the parameter name to not match an existing type."
+    categories: [unintentional]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -808,10 +870,12 @@ LintCode:
   avoid_types_on_closure_parameters:
     problemMessage: "Unnecessary type annotation on a function expression parameter."
     correctionMessage: "Try removing the type annotation."
+    categories: [style]
     hasPublishedDocs: false
   avoid_unnecessary_containers:
     problemMessage: "Unnecessary instance of 'Container'."
     correctionMessage: "Try removing the 'Container' (but not its children) from the widget tree."
+    categories: [flutter, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -880,14 +944,19 @@ LintCode:
   avoid_unused_constructor_parameters:
     problemMessage: "The parameter '{0}' is not used in the constructor."
     correctionMessage: "Try using the parameter or removing it."
+    # TODO(srawlins): This isn't even just about unintentional syntax; unused
+    # parameters can represent code bloat.
+    categories: [unintentional]
     hasPublishedDocs: false
   avoid_void_async:
     problemMessage: "An 'async' function should have a 'Future' return type when it doesn't return a value."
     correctionMessage: "Try changing the return type."
+    categories: [style]
     hasPublishedDocs: false
   avoid_web_libraries_in_flutter:
     problemMessage: "Don't use web-only libraries outside Flutter web plugins."
     correctionMessage: "Try finding a different library for your needs."
+    categories: [errorProne, flutter, web]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -942,6 +1011,7 @@ LintCode:
   await_only_futures:
     problemMessage: "Uses 'await' on an instance of '{0}', which is not a subtype of 'Future'."
     correctionMessage: "Try removing the 'await' or changing the expression."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -979,6 +1049,7 @@ LintCode:
   camel_case_extensions:
     problemMessage: "The extension name '{0}' isn't an UpperCamelCase identifier."
     correctionMessage: "Try changing the name to follow the UpperCamelCase style."
+    categories: [effectiveDart, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1013,6 +1084,7 @@ LintCode:
   camel_case_types:
     problemMessage: "The type name '{0}' isn't an UpperCamelCase identifier."
     correctionMessage: "Try changing the name to follow the UpperCamelCase style."
+    categories: [effectiveDart, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1040,6 +1112,7 @@ LintCode:
   cancel_subscriptions:
     problemMessage: "Uncancelled instance of 'StreamSubscription'."
     correctionMessage: "Try invoking 'cancel' in the function in which the 'StreamSubscription' was created."
+    categories: [errorProne, memoryLeaks]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1076,14 +1149,17 @@ LintCode:
   cascade_invocations:
     problemMessage: "Unnecessary duplication of receiver."
     correctionMessage: "Try using a cascade to avoid the duplication."
+    categories: [brevity, languageFeatureUsage, style]
     hasPublishedDocs: false
   cast_nullable_to_non_nullable:
     problemMessage: "Don't cast a nullable value to a non-nullable type."
     correctionMessage: "Try adding a not-null assertion ('!') to make the type non-nullable."
+    categories: [errorProne]
     hasPublishedDocs: false
   close_sinks:
     problemMessage: "Unclosed instance of 'Sink'."
     correctionMessage: "Try invoking 'close' in the function in which the 'Sink' was created."
+    categories: [errorProne, memoryLeaks]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1121,6 +1197,7 @@ LintCode:
   collection_methods_unrelated_type:
     problemMessage: "The argument type '{0}' isn't related to '{1}'."
     correctionMessage: "Try changing the argument or element type to match."
+    categories: [unintentional]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1168,18 +1245,22 @@ LintCode:
   combinators_ordering:
     problemMessage: "Sort combinator names alphabetically."
     correctionMessage: "Try sorting the combinator names alphabetically."
+    categories: [style]
     hasPublishedDocs: false
   comment_references:
     problemMessage: "The referenced name isn't visible in scope."
     correctionMessage: "Try adding an import for the referenced name."
+    categories: [documentationCommentMaintenance]
     hasPublishedDocs: false
   conditional_uri_does_not_exist:
     problemMessage: "The target of the conditional URI '{0}' doesn't exist."
     correctionMessage: "Try creating the file referenced by the URI, or try using a URI for a file that does exist."
+    categories: [errorProne]
     hasPublishedDocs: false
   constant_identifier_names:
     problemMessage: "The constant name '{0}' isn't a lowerCamelCase identifier."
     correctionMessage: "Try changing the name to follow the lowerCamelCase style."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1206,6 +1287,7 @@ LintCode:
   control_flow_in_finally:
     problemMessage: "Use of '{0}' in a 'finally' clause."
     correctionMessage: "Try restructuring the code."
+    categories: [errorProne]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1261,6 +1343,7 @@ LintCode:
   curly_braces_in_flow_control_structures:
     problemMessage: "Statements in {0} should be enclosed in a block."
     correctionMessage: "Try wrapping the statement in a block."
+    categories: [errorProne]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1296,6 +1379,7 @@ LintCode:
   dangling_library_doc_comments:
     problemMessage: "Dangling library doc comment."
     correctionMessage: "Add a 'library' directive after the library comment."
+    categories: [documentationCommentMaintenance]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1349,6 +1433,7 @@ LintCode:
   depend_on_referenced_packages:
     problemMessage: "The imported package '{0}' isn't a dependency of the importing package."
     correctionMessage: "Try adding a dependency for '{0}' in the 'pubspec.yaml' file."
+    categories: [pub]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1407,21 +1492,23 @@ LintCode:
     sharedName: deprecated_consistency
     problemMessage: "Constructors in a deprecated class should be deprecated."
     correctionMessage: "Try marking the constructor as deprecated."
-    hasPublishedDocs: false
-  deprecated_consistency_parameter:
-    sharedName: deprecated_consistency
-    problemMessage: "Parameters that initialize a deprecated field should be deprecated."
-    correctionMessage: "Try marking the parameter as deprecated."
+    categories: [style]
     hasPublishedDocs: false
   deprecated_consistency_field:
     sharedName: deprecated_consistency
     problemMessage: "Fields that are initialized by a deprecated parameter should be deprecated."
     correctionMessage: "Try marking the field as deprecated."
     hasPublishedDocs: false
+  deprecated_consistency_parameter:
+    sharedName: deprecated_consistency
+    problemMessage: "Parameters that initialize a deprecated field should be deprecated."
+    correctionMessage: "Try marking the parameter as deprecated."
+    hasPublishedDocs: false
   deprecated_member_use_from_same_package_with_message:
     sharedName: deprecated_member_use_from_same_package
     problemMessage: "'{0}' is deprecated and shouldn't be used. {1}"
     correctionMessage: "Try replacing the use of the deprecated member with the replacement, if a replacement is specified."
+    categories: [languageFeatureUsage]
     hasPublishedDocs: false
   deprecated_member_use_from_same_package_without_message:
     sharedName: deprecated_member_use_from_same_package
@@ -1431,11 +1518,13 @@ LintCode:
   diagnostic_describe_all_properties:
     problemMessage: "The public property isn't described by either 'debugFillProperties' or 'debugDescribeChildren'."
     correctionMessage: "Try describing the property."
+    categories: [errorProne, flutter]
     hasPublishedDocs: false
   directives_ordering_alphabetical:
     sharedName: directives_ordering
     problemMessage: "Sort directive sections alphabetically."
     correctionMessage: "Try sorting the directives."
+    categories: [style]
     hasPublishedDocs: false
   directives_ordering_dart:
     sharedName: directives_ordering
@@ -1455,18 +1544,22 @@ LintCode:
   discarded_futures:
     problemMessage: "Asynchronous function invoked in a non-'async' function."
     correctionMessage: "Try converting the enclosing function to be 'async' and then 'await' the future."
+    categories: [errorProne]
     hasPublishedDocs: false
   do_not_use_environment:
     problemMessage: "Invalid use of an environment declaration."
     correctionMessage: "Try removing the environment declaration usage."
+    categories: [errorProne]
     hasPublishedDocs: false
   document_ignores:
     problemMessage: "Missing documentation explaining why the diagnostic is ignored."
     correctionMessage: "Try adding a comment immediately above the ignore comment."
+    categories: [style]
     hasPublishedDocs: false
   empty_catches:
     problemMessage: "Empty catch block."
     correctionMessage: "Try adding statements to the block, adding a comment to the block, or removing the 'catch' clause."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1528,6 +1621,7 @@ LintCode:
   empty_constructor_bodies:
     problemMessage: "Empty constructor bodies should be written using a ';' rather than '{}'."
     correctionMessage: "Try replacing the constructor body with ';'."
+    categories: [brevity, effectiveDart, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1558,6 +1652,7 @@ LintCode:
   empty_statements:
     problemMessage: "Unnecessary empty statement."
     correctionMessage: "Try removing the empty statement or restructuring the code."
+    categories: [errorProne]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1624,20 +1719,24 @@ LintCode:
   eol_at_end_of_file:
     problemMessage: "Missing a newline at the end of the file."
     correctionMessage: "Try adding a newline at the end of the file."
+    categories: [style]
     hasPublishedDocs: false
   erase_dart_type_extension_types:
     problemMessage: "Unsafe use of 'DartType' in an 'is' check."
     correctionMessage: "Ensure DartType extension types are erased by using a helper method."
+    categories: [errorProne]
     hasPublishedDocs: false
     todo: |-
       TODO(nshahan): Update.
   exhaustive_cases:
     problemMessage: "Missing case clauses for some constants in '{0}'."
     correctionMessage: "Try adding case clauses for the missing constants."
+    categories: [errorProne]
     hasPublishedDocs: false
   file_names:
     problemMessage: "The file name '{0}' isn't a lower_case_with_underscores identifier."
     correctionMessage: "Try changing the name to follow the lower_case_with_underscores style."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1657,10 +1756,12 @@ LintCode:
   flutter_style_todos:
     problemMessage: "To-do comment doesn't follow the Flutter style."
     correctionMessage: "Try following the Flutter style for to-do comments."
+    categories: [style]
     hasPublishedDocs: false
   hash_and_equals:
     problemMessage: "Missing a corresponding override of '{0}'."
     correctionMessage: "Try overriding '{0}' or removing '{1}'."
+    categories: [errorProne]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1728,6 +1829,7 @@ LintCode:
   implementation_imports:
     problemMessage: "Import of a library in the 'lib/src' directory of another package."
     correctionMessage: "Try importing a public library that exports this library, or removing the import."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1763,6 +1865,7 @@ LintCode:
   implicit_call_tearoffs:
     problemMessage: "Implicit tear-off of the 'call' method."
     correctionMessage: "Try explicitly tearing off the 'call' method."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1810,15 +1913,18 @@ LintCode:
   implicit_reopen:
     problemMessage: "The {0} '{1}' reopens '{2}' because it is not marked '{3}'."
     correctionMessage: "Try marking '{1}' '{3}' or annotating it with '@reopen'."
+    categories: [errorProne]
     hasPublishedDocs: false
   invalid_case_patterns:
     problemMessage: "This expression is not valid in a 'case' clause in Dart 3.0."
     correctionMessage: "Try refactoring the expression to be valid in 3.0."
+    categories: [languageFeatureUsage]
     hasPublishedDocs: false
   invalid_runtime_check_with_js_interop_types_dart_as_js:
     sharedName: invalid_runtime_check_with_js_interop_types
     problemMessage: "Cast from '{0}' to '{1}' casts a Dart value to a JS interop type, which might not be platform-consistent."
     correctionMessage: "Try using conversion methods from 'dart:js_interop' to convert between Dart types and JS interop types."
+    categories: [errorProne, web]
     hasPublishedDocs: false
   invalid_runtime_check_with_js_interop_types_dart_is_js:
     sharedName: invalid_runtime_check_with_js_interop_types
@@ -1854,18 +1960,22 @@ LintCode:
   join_return_with_assignment:
     problemMessage: "Assignment could be inlined in 'return' statement."
     correctionMessage: "Try inlining the assigned value in the 'return' statement."
+    categories: [brevity, style]
     hasPublishedDocs: false
   leading_newlines_in_multiline_strings:
     problemMessage: "Missing a newline at the beginning of a multiline string."
     correctionMessage: "Try adding a newline at the beginning of the string."
+    categories: [style]
     hasPublishedDocs: false
   library_annotations:
     problemMessage: "This annotation should be attached to a library directive."
     correctionMessage: "Try attaching the annotation to a library directive."
+    categories: [style]
     hasPublishedDocs: false
   library_names:
     problemMessage: "The library name '{0}' isn't a lower_case_with_underscores identifier."
     correctionMessage: "Try changing the name to follow the lower_case_with_underscores style."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1899,6 +2009,7 @@ LintCode:
   library_prefixes:
     problemMessage: "The prefix '{0}' isn't a lower_case_with_underscores identifier."
     correctionMessage: "Try changing the prefix to follow the lower_case_with_underscores style."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1926,6 +2037,7 @@ LintCode:
   library_private_types_in_public_api:
     problemMessage: "Invalid use of a private type in a public API."
     correctionMessage: "Try making the private type public, or making the API that uses the private type also be private."
+    categories: [publicInterface]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1969,12 +2081,14 @@ LintCode:
   lines_longer_than_80_chars:
     problemMessage: "The line length exceeds the 80-character limit."
     correctionMessage: "Try breaking the line across multiple lines."
+    categories: [style]
     hasPublishedDocs: false
   list_remove_unrelated_type:
     removedIn: "3.3"
   literal_only_boolean_expressions:
     problemMessage: "The Boolean expression has a constant value."
     correctionMessage: "Try changing the expression."
+    categories: [unusedCode]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2033,18 +2147,22 @@ LintCode:
   matching_super_parameters:
     problemMessage: "The super parameter named '{0}'' does not share the same name as the corresponding parameter in the super constructor, '{1}'."
     correctionMessage: "Try using the name of the corresponding parameter in the super constructor."
+    categories: [style]
     hasPublishedDocs: false
   missing_code_block_language_in_doc_comment:
     problemMessage: "The code block is missing a specified language."
     correctionMessage: "Try adding a language to the code block."
+    categories: [errorProne]
     hasPublishedDocs: false
   missing_whitespace_between_adjacent_strings:
     problemMessage: "Missing whitespace between adjacent strings."
     correctionMessage: "Try adding whitespace between the strings."
+    categories: [errorProne]
     hasPublishedDocs: false
   no_adjacent_strings_in_list:
     problemMessage: "Don't use adjacent strings in a list literal."
     correctionMessage: "Try adding a comma between the strings."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2087,10 +2205,12 @@ LintCode:
   no_default_cases:
     problemMessage: "Invalid use of 'default' member in a switch."
     correctionMessage: "Try enumerating all the possible values of the switch expression."
+    categories: [style]
     hasPublishedDocs: false
   no_duplicate_case_values:
     problemMessage: "The value of the case clause ('{0}') is equal to the value of an earlier case clause ('{1}')."
     correctionMessage: "Try removing or changing the value."
+    categories: [errorProne]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2150,6 +2270,7 @@ LintCode:
   no_leading_underscores_for_library_prefixes:
     problemMessage: "The library prefix '{0}' starts with an underscore."
     correctionMessage: "Try renaming the prefix to not start with an underscore."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2179,6 +2300,7 @@ LintCode:
   no_leading_underscores_for_local_identifiers:
     problemMessage: "The local variable '{0}' starts with an underscore."
     correctionMessage: "Try renaming the variable to not start with an underscore."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2208,10 +2330,12 @@ LintCode:
   no_literal_bool_comparisons:
     problemMessage: "Unnecessary comparison to a boolean literal."
     correctionMessage: "Remove the comparison and use the negate `!` operator if necessary."
+    categories: [effectiveDart, style]
     hasPublishedDocs: false
   no_logic_in_create_state:
     problemMessage: "Don't put any logic in 'createState'."
     correctionMessage: "Try moving the logic out of 'createState'."
+    categories: [errorProne, flutter]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2261,14 +2385,17 @@ LintCode:
   no_runtimeType_toString:
     problemMessage: "Using 'toString' on a 'Type' is not safe in production code."
     correctionMessage: "Try removing the usage of 'toString' or restructuring the code."
+    categories: [nonPerformant]
     hasPublishedDocs: false
   no_self_assignments:
     problemMessage: "The variable or property is being assigned to itself."
     correctionMessage: "Try removing the assignment that has no direct effect."
+    categories: [unintentional]
     hasPublishedDocs: false
   no_wildcard_variable_uses:
     problemMessage: "The referenced identifier is a wildcard."
     correctionMessage: "Use an identifier name that is not a wildcard."
+    categories: [languageFeatureUsage, unintentional]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2321,6 +2448,7 @@ LintCode:
   non_constant_identifier_names:
     problemMessage: "The variable name '{0}' isn't a lowerCamelCase identifier."
     correctionMessage: "Try changing the name to follow the lowerCamelCase style."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2350,10 +2478,12 @@ LintCode:
   noop_primitive_operations:
     problemMessage: "The expression has no effect and can be removed."
     correctionMessage: "Try removing the expression."
+    categories: [style]
     hasPublishedDocs: false
   null_check_on_nullable_type_parameter:
     problemMessage: "The null check operator shouldn't be used on a variable whose type is a potentially nullable type parameter."
     correctionMessage: "Try explicitly testing for 'null'."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2391,26 +2521,32 @@ LintCode:
   null_closures:
     problemMessage: "Closure can't be 'null' because it might be invoked."
     correctionMessage: "Try providing a non-null closure."
+    categories: [errorProne]
     hasPublishedDocs: false
   omit_local_variable_types:
     problemMessage: "Unnecessary type annotation on a local variable."
     correctionMessage: "Try removing the type annotation."
+    categories: [style]
     hasPublishedDocs: false
   omit_obvious_local_variable_types:
     problemMessage: "Omit the type annotation on a local variable when the type is obvious."
     correctionMessage: "Try removing the type annotation."
+    categories: [style]
     hasPublishedDocs: false
   one_member_abstracts:
     problemMessage: "Unnecessary use of an abstract class."
     correctionMessage: "Try making '{0}' a top-level function and removing the class."
+    categories: [effectiveDart, languageFeatureUsage, style]
     hasPublishedDocs: false
   only_throw_errors:
     problemMessage: "Don't throw instances of classes that don't extend either 'Exception' or 'Error'."
     correctionMessage: "Try throwing a different class of object."
+    categories: [style]
     hasPublishedDocs: false
   overridden_fields:
     problemMessage: "Field overrides a field inherited from '{0}'."
     correctionMessage: "Try removing the field, overriding the getter and setter if necessary."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2470,10 +2606,12 @@ LintCode:
   package_api_docs:
     problemMessage: "Missing documentation for public API."
     correctionMessage: "Try adding a documentation comment."
+    categories: [effectiveDart, publicInterface]
     hasPublishedDocs: false
   package_names:
     problemMessage: "The package name '{0}' isn't a lower_case_with_underscores identifier."
     correctionMessage: "Try changing the name to follow the lower_case_with_underscores style."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2501,6 +2639,7 @@ LintCode:
   package_prefixed_library_names:
     problemMessage: "The library name is not a dot-separated path prefixed by the package name."
     correctionMessage: "Try changing the name to '{0}'."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2552,10 +2691,12 @@ LintCode:
   parameter_assignments:
     problemMessage: "Invalid assignment to the parameter '{0}'."
     correctionMessage: "Try using a local variable in place of the parameter."
+    categories: [style]
     hasPublishedDocs: false
   prefer_adjacent_string_concatenation:
     problemMessage: "String literals shouldn't be concatenated by the '+' operator."
     correctionMessage: "Try removing the operator to use adjacent strings."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2582,16 +2723,19 @@ LintCode:
   prefer_asserts_in_initializer_lists:
     problemMessage: "Assert should be in the initializer list."
     correctionMessage: "Try moving the assert to the initializer list."
+    categories: [style]
     hasPublishedDocs: false
   prefer_asserts_with_message:
     problemMessage: "Missing a message in an assert."
     correctionMessage: "Try adding a message to the assert."
+    categories: [style]
     hasPublishedDocs: false
   prefer_bool_in_asserts:
     removedIn: "3.0"
   prefer_collection_literals:
     problemMessage: "Unnecessary constructor invocation."
     correctionMessage: "Try using a collection literal."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2619,6 +2763,7 @@ LintCode:
   prefer_conditional_assignment:
     problemMessage: "The 'if' statement could be replaced by a null-aware assignment."
     correctionMessage: "Try using the '??=' operator to conditionally assign a value."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2655,6 +2800,7 @@ LintCode:
   prefer_const_constructors:
     problemMessage: "Use 'const' with the constructor to improve performance."
     correctionMessage: "Try adding the 'const' keyword to the constructor invocation."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2701,6 +2847,7 @@ LintCode:
   prefer_const_constructors_in_immutables:
     problemMessage: "Constructors in '@immutable' classes should be declared as 'const'."
     correctionMessage: "Try adding 'const' to the constructor declaration."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2752,6 +2899,7 @@ LintCode:
   prefer_const_declarations:
     problemMessage: "Use 'const' for final variables initialized to a constant value."
     correctionMessage: "Try replacing 'final' with 'const'."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2801,6 +2949,7 @@ LintCode:
   prefer_const_literals_to_create_immutables:
     problemMessage: "Use 'const' literals as arguments to constructors of '@immutable' classes."
     correctionMessage: "Try adding 'const' before the literal."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2881,10 +3030,12 @@ LintCode:
   prefer_constructors_over_static_methods:
     problemMessage: "Static method should be a constructor."
     correctionMessage: "Try converting the method into a constructor."
+    categories: [style]
     hasPublishedDocs: false
   prefer_contains_always_false:
     sharedName: prefer_contains
     problemMessage: "Always 'false' because 'indexOf' is always greater than or equal to -1."
+    categories: [style]
     hasPublishedDocs: false
     todo: |-
       TODO(brianwilkerson): Should be warning rather than lint,
@@ -2935,6 +3086,7 @@ LintCode:
   prefer_double_quotes:
     problemMessage: "Unnecessary use of single quotes."
     correctionMessage: "Try using double quotes unless the string contains double quotes."
+    categories: [style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -2968,10 +3120,12 @@ LintCode:
   prefer_expression_function_bodies:
     problemMessage: "Unnecessary use of a block function body."
     correctionMessage: "Try using an expression function body."
+    categories: [brevity, style]
     hasPublishedDocs: false
   prefer_final_fields:
     problemMessage: "The private field {0} could be 'final'."
     correctionMessage: "Try making the field 'final'."
+    categories: [effectiveDart, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3008,6 +3162,7 @@ LintCode:
     sharedName: prefer_final_in_for_each
     problemMessage: "The pattern should be final."
     correctionMessage: "Try making the pattern final."
+    categories: [style]
     hasPublishedDocs: false
   prefer_final_in_for_each_variable:
     sharedName: prefer_final_in_for_each
@@ -3017,14 +3172,17 @@ LintCode:
   prefer_final_locals:
     problemMessage: "Local variables should be final."
     correctionMessage: "Try making the variable final."
+    categories: [style]
     hasPublishedDocs: false
   prefer_final_parameters:
     problemMessage: "The parameter '{0}' should be final."
     correctionMessage: "Try making the parameter final."
+    categories: [style]
     hasPublishedDocs: false
   prefer_for_elements_to_map_fromIterable:
     problemMessage: "Use 'for' elements when building maps from iterables."
     correctionMessage: "Try using a collection literal with a 'for' element."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3062,10 +3220,12 @@ LintCode:
   prefer_foreach:
     problemMessage: "Use 'forEach' rather than a 'for' loop to apply a function to every element."
     correctionMessage: "Try using 'forEach' rather than a 'for' loop."
+    categories: [style]
     hasPublishedDocs: false
   prefer_function_declarations_over_variables:
     problemMessage: "Use a function declaration rather than a variable assignment to bind a function to a name."
     correctionMessage: "Try rewriting the closure assignment as a function declaration."
+    categories: [effectiveDart, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3098,6 +3258,7 @@ LintCode:
   prefer_generic_function_type_aliases:
     problemMessage: "Use the generic function type syntax in 'typedef's."
     correctionMessage: "Try using the generic function type syntax ('{0}')."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3125,10 +3286,12 @@ LintCode:
   prefer_if_elements_to_conditional_expressions:
     problemMessage: "Use an 'if' element to conditionally add elements."
     correctionMessage: "Try using an 'if' element rather than a conditional expression."
+    categories: [brevity, style]
     hasPublishedDocs: false
   prefer_if_null_operators:
     problemMessage: "Use the '??' operator rather than '?:' when testing for 'null'."
     correctionMessage: "Try rewriting the code to use '??'."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3157,6 +3320,7 @@ LintCode:
   prefer_initializing_formals:
     problemMessage: "Use an initializing formal to assign a parameter to a field."
     correctionMessage: "Try using an initialing formal ('this.{0}') to initialize the field."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3188,6 +3352,12 @@ LintCode:
         C(this.c);
       }
       ```
+  prefer_inlined_adds_multiple:
+    sharedName: prefer_inlined_adds
+    problemMessage: "The addition of multiple list items could be inlined."
+    correctionMessage: "Try adding the items to the list literal directly."
+    categories: [brevity, style]
+    hasPublishedDocs: true
   prefer_inlined_adds_single:
     sharedName: prefer_inlined_adds
     problemMessage: "The addition of a list item could be inlined."
@@ -3241,18 +3411,15 @@ LintCode:
         return [a, ...b];
       }
       ```
-  prefer_inlined_adds_multiple:
-    sharedName: prefer_inlined_adds
-    problemMessage: "The addition of multiple list items could be inlined."
-    correctionMessage: "Try adding the items to the list literal directly."
-    hasPublishedDocs: true
   prefer_int_literals:
     problemMessage: "Unnecessary use of a 'double' literal."
     correctionMessage: "Try using an 'int' literal."
+    categories: [style]
     hasPublishedDocs: false
   prefer_interpolation_to_compose_strings:
     problemMessage: "Use interpolation to compose strings and values."
     correctionMessage: "Try using string interpolation to build the composite string."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3284,6 +3451,7 @@ LintCode:
   prefer_is_empty_always_false:
     sharedName: prefer_is_empty
     problemMessage: "The comparison is always 'false' because the length is always greater than or equal to 0."
+    categories: [errorProne]
     hasPublishedDocs: false
     todo: |-
       TODO(brianwilkerson): Should be warning rather than lint,
@@ -3332,6 +3500,7 @@ LintCode:
   prefer_is_not_empty:
     problemMessage: "Use 'isNotEmpty' rather than negating the result of 'isEmpty'."
     correctionMessage: "Try rewriting the expression to use 'isNotEmpty'."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3358,6 +3527,7 @@ LintCode:
   prefer_is_not_operator:
     problemMessage: "Use the 'is!' operator rather than negating the value of the 'is' operator."
     correctionMessage: "Try rewriting the condition to use the 'is!' operator."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3394,6 +3564,7 @@ LintCode:
   prefer_iterable_whereType:
     problemMessage: "Use 'whereType' to select elements of a given type."
     correctionMessage: "Try rewriting the expression to use 'whereType'."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3423,14 +3594,17 @@ LintCode:
   prefer_mixin:
     problemMessage: "Only mixins should be mixed in."
     correctionMessage: "Try converting '{0}' to a mixin."
+    categories: [languageFeatureUsage, style]
     hasPublishedDocs: false
   prefer_null_aware_method_calls:
     problemMessage: "Use a null-aware invocation of the 'call' method rather than explicitly testing for 'null'."
     correctionMessage: "Try using '?.call()' to invoke the function."
+    categories: [brevity, style]
     hasPublishedDocs: false
   prefer_null_aware_operators:
     problemMessage: "Use the null-aware operator '?.' rather than an explicit 'null' comparison."
     correctionMessage: "Try using '?.'."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3463,6 +3637,7 @@ LintCode:
   prefer_relative_imports:
     problemMessage: "Use relative imports for files in the 'lib' directory."
     correctionMessage: "Try converting the URI to a relative URI."
+    categories: [errorProne]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3490,6 +3665,7 @@ LintCode:
   prefer_single_quotes:
     problemMessage: "Unnecessary use of double quotes."
     correctionMessage: "Try using single quotes unless the string contains single quotes."
+    categories: [style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -3521,11 +3697,13 @@ LintCode:
   prefer_spread_collections:
     problemMessage: "The addition of multiple elements could be inlined."
     correctionMessage: "Try using the spread operator ('...') to inline the addition."
+    categories: [brevity, style]
     hasPublishedDocs: false
   prefer_typing_uninitialized_variables_for_field:
     sharedName: prefer_typing_uninitialized_variables
     problemMessage: "An uninitialized field should have an explicit type annotation."
     correctionMessage: "Try adding a type annotation."
+    categories: [errorProne, unintentional]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3579,6 +3757,7 @@ LintCode:
   prefer_void_to_null:
     problemMessage: "Unnecessary use of the type 'Null'."
     correctionMessage: "Try using 'void' instead."
+    categories: [errorProne]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3605,6 +3784,7 @@ LintCode:
   provide_deprecation_message:
     problemMessage: "Missing a deprecation message."
     correctionMessage: "Try using the constructor to provide a message ('@Deprecated(\"message\")')."
+    categories: [publicInterface]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3633,10 +3813,12 @@ LintCode:
   public_member_api_docs:
     problemMessage: "Missing documentation for a public member."
     correctionMessage: "Try adding documentation for the member."
+    categories: [publicInterface, style]
     hasPublishedDocs: false
   recursive_getters:
     problemMessage: "The getter '{0}' recursively returns itself."
     correctionMessage: "Try changing the value being returned."
+    categories: [errorProne, unintentional]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3671,10 +3853,12 @@ LintCode:
   require_trailing_commas:
     problemMessage: "Missing a required trailing comma."
     correctionMessage: "Try adding a trailing comma."
+    categories: [style]
     hasPublishedDocs: false
   secure_pubspec_urls:
     problemMessage: "The '{0}' protocol shouldn't be used because it isn't secure."
     correctionMessage: "Try using a secure protocol, such as 'https'."
+    categories: [pub]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3705,6 +3889,7 @@ LintCode:
   sized_box_for_whitespace:
     problemMessage: "Use a 'SizedBox' to add whitespace to a layout."
     correctionMessage: "Try using a 'SizedBox' rather than a 'Container'."
+    categories: [flutter, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3761,6 +3946,7 @@ LintCode:
   sized_box_shrink_expand:
     problemMessage: "Use 'SizedBox.{0}' to avoid needing to specify the 'height' and 'width'."
     correctionMessage: "Try using 'SizedBox.{0}' and removing the 'height' and 'width' arguments."
+    categories: [flutter, style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -3829,6 +4015,7 @@ LintCode:
   slash_for_doc_comments:
     problemMessage: "Use the end-of-line form ('///') for doc comments."
     correctionMessage: "Try rewriting the comment to use '///'."
+    categories: [effectiveDart, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3859,6 +4046,7 @@ LintCode:
   sort_child_properties_last:
     problemMessage: "The '{0}' argument should be last in widget constructor invocations."
     correctionMessage: "Try moving the argument to the end of the argument list."
+    categories: [flutter, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3901,6 +4089,7 @@ LintCode:
   sort_constructors_first:
     problemMessage: "Constructor declarations should be before non-constructor declarations."
     correctionMessage: "Try moving the constructor declaration before all other members."
+    categories: [style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -3935,6 +4124,7 @@ LintCode:
   sort_pub_dependencies:
     problemMessage: "Dependencies not sorted alphabetically."
     correctionMessage: "Try sorting the dependencies alphabetically (A to Z)."
+    categories: [pub]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3967,6 +4157,7 @@ LintCode:
   sort_unnamed_constructors_first:
     problemMessage: "Invalid location for the unnamed constructor."
     correctionMessage: "Try moving the unnamed constructor before all other constructors."
+    categories: [style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -4001,11 +4192,13 @@ LintCode:
   specify_nonobvious_local_variable_types:
     problemMessage: "Specify the type of a local variable when the type is non-obvious."
     correctionMessage: "Try adding a type annotation."
+    categories: [style]
   super_goes_last:
     removedIn: "3.0"
   test_types_in_equals:
     problemMessage: "Missing type test for '{0}' in '=='."
     correctionMessage: "Try testing the type of '{0}'."
+    categories: [errorProne]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4050,6 +4243,7 @@ LintCode:
   throw_in_finally:
     problemMessage: "Use of '{0}' in 'finally' block."
     correctionMessage: "Try moving the '{0}' outside the 'finally' block."
+    categories: [errorProne]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4092,14 +4286,17 @@ LintCode:
   tighten_type_of_initializing_formals:
     problemMessage: "Use a type annotation rather than 'assert' to enforce non-nullability."
     correctionMessage: "Try adding a type annotation and removing the 'assert'."
+    categories: [style]
     hasPublishedDocs: false
   type_annotate_public_apis:
     problemMessage: "Missing type annotation on a public API."
     correctionMessage: "Try adding a type annotation."
+    categories: [effectiveDart, publicInterface]
     hasPublishedDocs: false
   type_init_formals:
     problemMessage: "Don't needlessly type annotate initializing formals."
     correctionMessage: "Try removing the type."
+    categories: [effectiveDart, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4155,6 +4352,7 @@ LintCode:
   type_literal_in_constant_pattern:
     problemMessage: "Use 'TypeName _' instead of a type literal."
     correctionMessage: "Replace with 'TypeName _'."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4211,6 +4409,7 @@ LintCode:
   unawaited_futures:
     problemMessage: "Missing an 'await' for the 'Future' computed by this expression."
     correctionMessage: "Try adding an 'await' or wrapping the expression with 'unawaited'."
+    categories: [style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -4262,14 +4461,17 @@ LintCode:
   unintended_html_in_doc_comment:
     problemMessage: "Angle brackets will be interpreted as HTML."
     correctionMessage: "Try using backticks around the content with angle brackets, or try replacing `<` with `&lt;` and `>` with `&gt;`."
+    categories: [errorProne]
     hasPublishedDocs: false
   unnecessary_await_in_return:
     problemMessage: "Unnecessary 'await'."
     correctionMessage: "Try removing the 'await'."
+    categories: [style]
     hasPublishedDocs: false
   unnecessary_brace_in_string_interps:
     problemMessage: "Unnecessary braces in a string interpolation."
     correctionMessage: "Try removing the braces."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4301,10 +4503,12 @@ LintCode:
   unnecessary_breaks:
     problemMessage: "Unnecessary 'break' statement."
     correctionMessage: "Try removing the 'break'."
+    categories: [brevity, style]
     hasPublishedDocs: false
   unnecessary_const:
     problemMessage: "Unnecessary 'const' keyword."
     correctionMessage: "Try removing the keyword."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4334,6 +4538,7 @@ LintCode:
   unnecessary_constructor_name:
     problemMessage: "Unnecessary '.new' constructor name."
     correctionMessage: "Try removing the '.new'."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4362,6 +4567,7 @@ LintCode:
     sharedName: unnecessary_final
     problemMessage: "Local variables should not be marked as 'final'."
     correctionMessage: "Remove the 'final'."
+    categories: [effectiveDart, style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -4410,6 +4616,7 @@ LintCode:
   unnecessary_getters_setters:
     problemMessage: "Unnecessary use of getter and setter to wrap a field."
     correctionMessage: "Try removing the getter and setter and renaming the field."
+    categories: [effectiveDart, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4444,6 +4651,7 @@ LintCode:
   unnecessary_lambdas:
     problemMessage: "Closure should be a tearoff."
     correctionMessage: "Try using a tearoff rather than a closure."
+    categories: [style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -4478,6 +4686,7 @@ LintCode:
   unnecessary_late:
     problemMessage: "Unnecessary 'late' modifier."
     correctionMessage: "Try removing the 'late'."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4510,14 +4719,17 @@ LintCode:
   unnecessary_library_directive:
     problemMessage: "Library directives without comments or annotations should be avoided."
     correctionMessage: "Try deleting the library directive."
+    categories: [brevity]
     hasPublishedDocs: false
   unnecessary_library_name:
     problemMessage: "Library names are not necessary."
     correctionMessage: "Remove the library name."
+    categories: [brevity, languageFeatureUsage, style]
     hasPublishedDocs: false
   unnecessary_new:
     problemMessage: "Unnecessary 'new' keyword."
     correctionMessage: "Try removing the 'new' keyword."
+    categories: [brevity, languageFeatureUsage, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4544,6 +4756,7 @@ LintCode:
   unnecessary_null_aware_assignments:
     problemMessage: "Unnecessary assignment of 'null'."
     correctionMessage: "Try removing the assignment."
+    categories: [brevity, effectiveDart, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4583,14 +4796,17 @@ LintCode:
   unnecessary_null_aware_operator_on_extension_on_nullable:
     problemMessage: "Unnecessary use of a null-aware operator to invoke an extension method on a nullable type."
     correctionMessage: "Try removing the '?'."
+    categories: [style]
     hasPublishedDocs: false
   unnecessary_null_checks:
     problemMessage: "Unnecessary use of a null check ('!')."
     correctionMessage: "Try removing the null check."
+    categories: [brevity, style]
     hasPublishedDocs: false
   unnecessary_null_in_if_null_operators:
     problemMessage: "Unnecessary use of '??' with 'null'."
     correctionMessage: "Try removing the '??' operator and the 'null' operand."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4625,6 +4841,7 @@ LintCode:
   unnecessary_nullable_for_final_variable_declarations:
     problemMessage: "Type could be non-nullable."
     correctionMessage: "Try changing the type to be non-nullable."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4651,6 +4868,7 @@ LintCode:
   unnecessary_overrides:
     problemMessage: "Unnecessary override."
     correctionMessage: "Try adding behavior in the overriding member or removing the override."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4723,6 +4941,7 @@ LintCode:
   unnecessary_parenthesis:
     problemMessage: "Unnecessary use of parentheses."
     correctionMessage: "Try removing the parentheses."
+    categories: [brevity, style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -4749,6 +4968,7 @@ LintCode:
   unnecessary_raw_strings:
     problemMessage: "Unnecessary use of a raw string."
     correctionMessage: "Try using a normal string."
+    categories: [brevity, style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -4776,6 +4996,7 @@ LintCode:
   unnecessary_statements:
     problemMessage: "Unnecessary statement."
     correctionMessage: "Try completing the statement or breaking it up."
+    categories: [brevity, unintentional]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4824,6 +5045,7 @@ LintCode:
   unnecessary_string_escapes:
     problemMessage: "Unnecessary escape in string literal."
     correctionMessage: "Remove the '\\' escape."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4850,6 +5072,7 @@ LintCode:
   unnecessary_string_interpolations:
     problemMessage: "Unnecessary use of string interpolation."
     correctionMessage: "Try replacing the string literal with the variable name."
+    categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4878,6 +5101,7 @@ LintCode:
   unnecessary_this:
     problemMessage: "Unnecessary 'this.' qualifier."
     correctionMessage: "Try removing 'this.'."
+    categories: [brevity, effectiveDart, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4912,6 +5136,7 @@ LintCode:
   unnecessary_to_list_in_spreads:
     problemMessage: "Unnecessary use of 'toList' in a spread."
     correctionMessage: "Try removing the invocation of 'toList'."
+    categories: [brevity]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4949,11 +5174,13 @@ LintCode:
   unreachable_from_main:
     problemMessage: "Unreachable member '{0}' in an executable library."
     correctionMessage: "Try referencing the member or removing it."
+    categories: [unusedCode]
     hasPublishedDocs: false
   unrelated_type_equality_checks_in_expression:
     sharedName: unrelated_type_equality_checks
     problemMessage: "The type of the right operand ('{0}') isn't a subtype or a supertype of the left operand ('{1}')."
     correctionMessage: "Try changing one or both of the operands."
+    categories: [unintentional]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5005,21 +5232,23 @@ LintCode:
     sharedName: unsafe_html
     problemMessage: "Assigning to the attribute '{0}' is unsafe."
     correctionMessage: "Try finding a different way to implement the page."
-    hasPublishedDocs: false
-  unsafe_html_method:
-    sharedName: unsafe_html
-    problemMessage: "Invoking the method '{0}' is unsafe."
-    correctionMessage: "Try finding a different way to implement the page."
+    categories: [errorProne]
     hasPublishedDocs: false
   unsafe_html_constructor:
     sharedName: unsafe_html
     problemMessage: "Invoking the constructor '{0}' is unsafe."
     correctionMessage: "Try finding a different way to implement the page."
     hasPublishedDocs: false
+  unsafe_html_method:
+    sharedName: unsafe_html
+    problemMessage: "Invoking the method '{0}' is unsafe."
+    correctionMessage: "Try finding a different way to implement the page."
+    hasPublishedDocs: false
   use_build_context_synchronously_async_use:
     sharedName: use_build_context_synchronously
     problemMessage: "Don't use 'BuildContext's across async gaps."
     correctionMessage: "Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check."
+    categories: [errorProne, flutter]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5077,9 +5306,15 @@ LintCode:
         }
       }
       ```
+  use_build_context_synchronously_wrong_mounted:
+    sharedName: use_build_context_synchronously
+    problemMessage: "Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check."
+    correctionMessage: "Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext."
+    hasPublishedDocs: true
   use_colored_box:
     problemMessage: "Use a 'ColoredBox' rather than a 'Container' with only a 'Color'."
     correctionMessage: "Try replacing the 'Container' with a 'ColoredBox'."
+    categories: [flutter, style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -5120,6 +5355,7 @@ LintCode:
   use_decorated_box:
     problemMessage: "Use 'DecoratedBox' rather than a 'Container' with only a 'Decoration'."
     correctionMessage: "Try replacing the 'Container' with a 'DecoratedBox'."
+    categories: [flutter, style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -5167,18 +5403,14 @@ LintCode:
         );
       }
       ```
-  use_build_context_synchronously_wrong_mounted:
-    sharedName: use_build_context_synchronously
-    problemMessage: "Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check."
-    correctionMessage: "Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext."
-    hasPublishedDocs: true
   use_enums:
     problemMessage: "Class should be an enum."
     correctionMessage: "Try using an enum rather than a class."
+    categories: [style]
     hasPublishedDocs: false
   use_full_hex_values_for_flutter_colors:
     problemMessage: "Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF')."
-    correctionMessage: "Try using an 8-digit hexadecimal integer to create the 'Color'."
+    categories: [flutter, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5210,6 +5442,7 @@ LintCode:
   use_function_type_syntax_for_parameters:
     problemMessage: "Use the generic function type syntax to declare the parameter '{0}'."
     correctionMessage: "Try using the generic function type syntax."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5236,6 +5469,7 @@ LintCode:
   use_if_null_to_convert_nulls_to_bools:
     problemMessage: "Use an if-null operator to convert a 'null' to a 'bool'."
     correctionMessage: "Try using an if-null operator."
+    categories: [effectiveDart, style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -5270,10 +5504,12 @@ LintCode:
   use_is_even_rather_than_modulo:
     problemMessage: "Use '{0}' rather than '% 2'."
     correctionMessage: "Try using '{0}'."
+    categories: [style]
     hasPublishedDocs: false
   use_key_in_widget_constructors:
     problemMessage: "Constructors for public widgets should have a named 'key' parameter."
     correctionMessage: "Try adding a named parameter to the constructor."
+    categories: [flutter, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5319,6 +5555,7 @@ LintCode:
   use_late_for_private_fields_and_variables:
     problemMessage: "Use 'late' for private members with a non-nullable type."
     correctionMessage: "Try making adding the modifier 'late'."
+    categories: [style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -5356,6 +5593,7 @@ LintCode:
   use_named_constants:
     problemMessage: "Use the constant '{0}' rather than a constructor returning the same object."
     correctionMessage: "Try using '{0}'."
+    categories: [style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -5384,6 +5622,7 @@ LintCode:
   use_raw_strings:
     problemMessage: "Use a raw string to avoid using escapes."
     correctionMessage: "Try making the string a raw string and removing the escapes."
+    categories: [style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -5412,6 +5651,7 @@ LintCode:
   use_rethrow_when_possible:
     problemMessage: "Use 'rethrow' to rethrow a caught exception."
     correctionMessage: "Try replacing the 'throw' with a 'rethrow'."
+    categories: [brevity, effectiveDart]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5450,6 +5690,7 @@ LintCode:
   use_setters_to_change_properties:
     problemMessage: "The method is used to change a property."
     correctionMessage: "Try converting the method to a setter."
+    categories: [style]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -5485,6 +5726,7 @@ LintCode:
   use_string_buffers:
     problemMessage: "Use a string buffer rather than '+' to compose strings."
     correctionMessage: "Try writing the parts of a string to a string buffer."
+    categories: [nonPerformant]
     hasPublishedDocs: false
     documentation: |-
       #### Description
@@ -5524,6 +5766,7 @@ LintCode:
   use_string_in_part_of_directives:
     problemMessage: "The part-of directive uses a library name."
     correctionMessage: "Try converting the directive to use the URI of the library."
+    categories: [effectiveDart, style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5561,6 +5804,7 @@ LintCode:
     sharedName: use_super_parameters
     problemMessage: "Parameters '{0}' could be super parameters."
     correctionMessage: "Trying converting '{0}' to super parameters."
+    categories: [brevity]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5603,18 +5847,22 @@ LintCode:
   use_test_throws_matchers:
     problemMessage: "Use the 'throwsA' matcher instead of using 'fail' when there is no exception thrown."
     correctionMessage: "Try removing the try-catch and using 'throwsA' to expect an exception."
+    categories: [style]
     hasPublishedDocs: false
   use_to_and_as_if_applicable:
     problemMessage: "Start the name of the method with 'to' or 'as'."
     correctionMessage: "Try renaming the method to use either 'to' or 'as'."
+    categories: [effectiveDart, style]
     hasPublishedDocs: false
   use_truncating_division:
     problemMessage: "Use truncating division."
     correctionMessage: "Try using truncating division, '~/', instead of regular division ('/') followed by 'toInt()'."
+    categories: [languageFeatureUsage]
     hasPublishedDocs: false
   valid_regexps:
     problemMessage: "Invalid regular expression syntax."
     correctionMessage: "Try correcting the regular expression."
+    categories: [unintentional]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5645,6 +5893,7 @@ LintCode:
   void_checks:
     problemMessage: "Assignment to a variable of type 'void'."
     correctionMessage: "Try removing the assignment or changing the type of the variable."
+    categories: [style]
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5708,3 +5957,4 @@ LintCode:
 
       void f(A<void> a) {}
       ```
+

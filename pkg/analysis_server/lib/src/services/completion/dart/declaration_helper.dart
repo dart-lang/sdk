@@ -227,7 +227,7 @@ class DeclarationHelper {
   /// be skipped because the cursor is inside that field's name.
   void addFieldsForInitializers(
       ConstructorDeclaration constructor, FieldElement? fieldToInclude) {
-    var containingElement = constructor.declaredElement?.enclosingElement;
+    var containingElement = constructor.declaredElement?.enclosingElement3;
     if (containingElement == null) {
       return;
     }
@@ -358,6 +358,21 @@ class DeclarationHelper {
         excludedFields: const {},
       );
       _addMembersOfDartCoreObject();
+      _addExtensionMembers(
+        type: type,
+        excludedGetters: const {},
+        includeMethods: !mustBeAssignable,
+        includeSetters: true,
+      );
+      _recordOperation(
+        InstanceExtensionMembersOperation(
+          declarationHelper: this,
+          type: type,
+          excludedGetters: const {},
+          includeMethods: !mustBeAssignable,
+          includeSetters: true,
+        ),
+      );
     } else if (type is FunctionType) {
       _suggestFunctionCall();
       _addMembersOfDartCoreObject();
@@ -423,8 +438,8 @@ class DeclarationHelper {
       if (!accessor.isStatic) {
         _suggestProperty(
             accessor: accessor,
-            importData: importData,
-            referencingInterface: referencingInterface);
+            referencingInterface: referencingInterface,
+            importData: importData);
       }
     }
   }
@@ -444,18 +459,20 @@ class DeclarationHelper {
   /// not yet imported [library] that are applicable for the given [type].
   void addNotImportedExtensionMethods(
       {required LibraryElement library,
-      required InterfaceType type,
+      required DartType type,
       required Set<String> excludedGetters,
       required bool includeMethods,
       required bool includeSetters}) {
-    var applicableExtensions = library.accessibleExtensions.applicableTo(
-      targetLibrary: library,
-      // Ignore nullability, consistent with non-extension members.
-      targetType: type.isDartCoreNull
-          ? type
-          : library.typeSystem.promoteToNonNull(type),
-      strictCasts: false,
-    );
+    var applicableExtensions = library.exportNamespace.definedNames.values
+        .whereType<ExtensionElement>()
+        .applicableTo(
+          targetLibrary: library,
+          // Ignore nullability, consistent with non-extension members.
+          targetType: type.isDartCoreNull
+              ? type
+              : library.typeSystem.promoteToNonNull(type),
+          strictCasts: false,
+        );
     var importData = ImportData(
         libraryUri: library.source.uri, prefix: null, isNotImported: true);
     for (var instantiatedExtension in applicableExtensions) {
@@ -537,7 +554,7 @@ class DeclarationHelper {
   void addPossibleRedirectionsInLibrary(
       ConstructorElement redirectingConstructor, LibraryElement library) {
     var classElement =
-        redirectingConstructor.enclosingElement.augmented.declaration;
+        redirectingConstructor.enclosingElement3.augmented.declaration;
     var classType = classElement.thisType;
     var typeSystem = library.typeSystem;
     for (var unit in library.units) {
@@ -680,14 +697,17 @@ class DeclarationHelper {
 
   /// Add members from all the applicable extensions that are visible for the
   /// given [InterfaceType].
-  void _addExtensionMembers(
-      {required InterfaceType type,
-      required Set<String> excludedGetters,
-      required bool includeMethods,
-      required bool includeSetters}) {
+  void _addExtensionMembers({
+    required DartType type,
+    required Set<String> excludedGetters,
+    required bool includeMethods,
+    required bool includeSetters,
+  }) {
     var libraryElement = request.libraryElement;
+    var libraryFragment = request.libraryFragment;
 
-    var applicableExtensions = libraryElement.accessibleExtensions.applicableTo(
+    var accessibleExtensions = libraryFragment.accessibleExtensions;
+    var applicableExtensions = accessibleExtensions.applicableTo(
       targetLibrary: libraryElement,
       // Ignore nullability, consistent with non-extension members.
       targetType: type.isDartCoreNull
@@ -705,8 +725,20 @@ class DeclarationHelper {
         }
       }
       for (var accessor in extension.accessors) {
-        if (accessor.isGetter || includeSetters && accessor.isSetter) {
-          _suggestProperty(accessor: accessor);
+        if (!accessor.isSynthetic) {
+          if (accessor.isGetter || includeSetters && accessor.isSetter) {
+            _suggestProperty(accessor: accessor);
+          }
+        } else {
+          // Avoid visiting a field twice. All fields induce a getter, but only
+          // non-final fields induce a setter, so we don't add a suggestion for a
+          // synthetic setter.
+          if (accessor.isGetter) {
+            var variable = accessor.variable2;
+            if (variable is FieldElement) {
+              _suggestField(field: variable);
+            }
+          }
         }
       }
     }
@@ -902,9 +934,7 @@ class DeclarationHelper {
           );
         case PropertyAccessorElement():
           _suggestProperty(
-            accessor: member,
-            referencingInterface: referencingInterface,
-          );
+              accessor: member, referencingInterface: referencingInterface);
       }
     }
   }
@@ -1245,7 +1275,7 @@ class DeclarationHelper {
               (containingElement is EnumElement && field.name == 'values')) &&
           field.isVisibleIn(request.libraryElement)) {
         if (field.isEnumConstant) {
-          var enumElement = field.enclosingElement;
+          var enumElement = field.enclosingElement3;
           var matcherScore =
               state.matcher.score('${enumElement.name}.${field.name}');
           if (matcherScore != -1) {
@@ -1351,7 +1381,7 @@ class DeclarationHelper {
     }
 
     if (element.isProtected) {
-      var elementInterface = element.enclosingElement;
+      var elementInterface = element.enclosingElement3;
       if (elementInterface is! InterfaceElement) {
         return false;
       }
@@ -1458,7 +1488,7 @@ class DeclarationHelper {
     }
     if (importData?.isNotImported ?? false) {
       if (!visibilityTracker.isVisible(
-          element: element.enclosingElement, importData: importData)) {
+          element: element.enclosingElement3, importData: importData)) {
         // If the constructor is on a class from a not-yet-imported library and
         // the class isn't visible, then we shouldn't suggest it.
         //
@@ -1472,7 +1502,7 @@ class DeclarationHelper {
       // Add the class to the visibility tracker so that we will know later that
       // any non-imported elements with the same name are not visible.
       visibilityTracker.isVisible(
-          element: element.enclosingElement, importData: importData);
+          element: element.enclosingElement3, importData: importData);
     }
 
     // TODO(keertip): Compute the completion string.
@@ -1663,7 +1693,7 @@ class DeclarationHelper {
       }
       var matcherScore = state.matcher.score(method.displayName);
       if (matcherScore != -1) {
-        var enclosingElement = method.enclosingElement;
+        var enclosingElement = method.enclosingElement3;
         if (method.name == 'setState' &&
             enclosingElement is ClassElement &&
             enclosingElement.isExactState) {
@@ -1756,12 +1786,28 @@ class DeclarationHelper {
       }
       var matcherScore = state.matcher.score(accessor.displayName);
       if (matcherScore != -1) {
-        var suggestion = PropertyAccessSuggestion(
-            element: accessor,
-            importData: importData,
-            matcherScore: matcherScore,
-            referencingInterface: referencingInterface);
-        collector.addSuggestion(suggestion);
+        if (accessor.isSynthetic) {
+          // Avoid visiting a field twice. All fields induce a getter, but only
+          // non-final fields induce a setter, so we don't add a suggestion for a
+          // synthetic setter.
+          if (accessor.isGetter) {
+            var variable = accessor.variable2;
+            if (variable is FieldElement) {
+              var suggestion = FieldSuggestion(
+                  element: variable,
+                  matcherScore: matcherScore,
+                  referencingInterface: referencingInterface);
+              collector.addSuggestion(suggestion);
+            }
+          }
+        } else {
+          var suggestion = PropertyAccessSuggestion(
+              element: accessor,
+              importData: importData,
+              matcherScore: matcherScore,
+              referencingInterface: referencingInterface);
+          collector.addSuggestion(suggestion);
+        }
       }
     }
   }
@@ -1789,7 +1835,7 @@ class DeclarationHelper {
         request.libraryElement.typeSystem
             .isSubtypeOf(element.type, contextType)) {
       if (element.isEnumConstant) {
-        var enumElement = element.enclosingElement;
+        var enumElement = element.enclosingElement3;
         var matcherScore = state.matcher
             .score('${enumElement.displayName}.${element.displayName}');
         if (matcherScore != -1) {
@@ -1805,13 +1851,24 @@ class DeclarationHelper {
           if (element.isSynthetic) {
             var getter = element.getter;
             if (getter != null) {
-              var suggestion = PropertyAccessSuggestion(
-                  element: getter,
-                  importData: importData,
-                  referencingInterface: null,
-                  matcherScore: matcherScore,
-                  withEnclosingName: true);
-              collector.addSuggestion(suggestion);
+              if (getter.isSynthetic) {
+                var variable = getter.variable2;
+                if (variable is FieldElement) {
+                  var suggestion = FieldSuggestion(
+                      element: variable,
+                      matcherScore: matcherScore,
+                      referencingInterface: null);
+                  collector.addSuggestion(suggestion);
+                }
+              } else {
+                var suggestion = PropertyAccessSuggestion(
+                    element: getter,
+                    importData: importData,
+                    referencingInterface: null,
+                    matcherScore: matcherScore,
+                    withEnclosingName: true);
+                collector.addSuggestion(suggestion);
+              }
             }
           } else {
             var suggestion = StaticFieldSuggestion(

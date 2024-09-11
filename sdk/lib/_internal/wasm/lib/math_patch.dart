@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show mix64, patch, unsafeCast;
+import "dart:_internal" show mix64, patch;
 import "dart:_js_types" show JSUint8ArrayImpl;
 import "dart:js_interop";
 
@@ -226,8 +226,11 @@ class _Random implements Random {
 
   static int _setupSeed(int seed) => mix64(seed);
 
-  // TODO: Make this actually random
-  static int _initialSeed() => 0xCAFEBABEDEADBEEF;
+  static int _initialSeed() {
+    final low = (_jsMath.random() * 4294967295.0).toInt();
+    final high = (_jsMath.random() * 4294967295.0).toInt();
+    return ((high << 32) | low);
+  }
 
   static int _nextSeed() {
     // Trigger the PRNG once to change the internal state.
@@ -248,14 +251,20 @@ extension _JSCryptoGetRandomValues on _JSCrypto {
   external void getRandomValues(JSUint8Array array);
 }
 
-@JS('Uint8Array')
-extension type _JSUint8Array(JSObject _) {
-  external factory _JSUint8Array.create(int length);
+@JS('Math')
+external _JSMath get _jsMathGetter;
+
+final _JSMath _jsMath = _jsMathGetter;
+
+extension type _JSMath._(JSObject _jsMath) implements JSObject {}
+
+extension _JSMathRandom on _JSMath {
+  @JS('random')
+  external double random();
 }
 
 class _SecureRandom implements Random {
-  final JSUint8ArrayImpl _buffer = unsafeCast<JSUint8ArrayImpl>(
-      (_JSUint8Array.create(8) as JSUint8Array).toDart);
+  final JSUint8ArrayImpl _buffer = JSUint8ArrayImpl(8);
 
   _SecureRandom() {
     // Throw early in constructor if entropy source is not hooked up.

@@ -33,7 +33,7 @@ import 'kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'kernel/kernel_target.dart' show BuildResult, KernelTarget;
 import 'kernel/macro/macro.dart';
 import 'kernel/utils.dart' show printComponentText, serializeComponent;
-import 'kernel/verifier.dart' show verifyComponent;
+import 'kernel/cfe_verifier.dart' show verifyComponent;
 import 'macros/macro_target.dart'
     show MacroConfiguration, computeMacroConfiguration;
 import 'source/source_loader.dart' show SourceLoader;

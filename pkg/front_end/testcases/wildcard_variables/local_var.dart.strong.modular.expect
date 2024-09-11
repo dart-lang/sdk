@@ -6,13 +6,13 @@ library;
 //   _ = 3; // Compile-time error.
 //   ^
 //
-// pkg/front_end/testcases/wildcard_variables/local_var.dart:23:15: Error: Constant evaluation error:
+// pkg/front_end/testcases/wildcard_variables/local_var.dart:19:15: Error: Constant evaluation error:
 //   const _ = 2 + d; // This should result in a compile-time error.
 //               ^
-// pkg/front_end/testcases/wildcard_variables/local_var.dart:23:17: Context: Expected constant '"string"' to be of type 'num', but was of type 'String'.
+// pkg/front_end/testcases/wildcard_variables/local_var.dart:19:17: Context: Expected constant '"string"' to be of type 'num', but was of type 'String'.
 //   const _ = 2 + d; // This should result in a compile-time error.
 //                 ^
-// pkg/front_end/testcases/wildcard_variables/local_var.dart:23:9: Context: While analyzing:
+// pkg/front_end/testcases/wildcard_variables/local_var.dart:19:9: Context: While analyzing:
 //   const _ = 2 + d; // This should result in a compile-time error.
 //         ^
 //
@@ -30,11 +30,5 @@ static method test() → dynamic {
   function test2() → core::int
     return 1;
   test2(){() → core::int};
-  ;
-  ;
-  3;
-  late core::int x = 2;
-  3;
-  3;
-  const wildcard core::num _#wc13#var = invalid-expression "Expected constant '\"string\"' to be of type 'num', but was of type 'String'.";
+  const wildcard core::num _#wc8#var = invalid-expression "Expected constant '\"string\"' to be of type 'num', but was of type 'String'.";
 }

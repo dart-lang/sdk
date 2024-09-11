@@ -1462,6 +1462,41 @@ library;
 // enum E12 extends B extends B with C implements D { element }
 //                                                ^
 //
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:27: Error: 'B' isn't a type.
+// class N5 = with C extends B implements D;
+//                           ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:27: Context: This isn't a type.
+// class N5 = with C extends B implements D;
+//                           ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:33: Error: 'C' isn't a type.
+// class N10 = B implements D with C implements D;
+//                                 ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:33: Context: This isn't a type.
+// class N10 = B implements D with C implements D;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:30: Error: 'C' isn't a type.
+// class N12 = B extends B with C implements D;
+//                              ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:30: Context: This isn't a type.
+// class N12 = B extends B with C implements D;
+//                              ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:27: Error: 'C' isn't a type.
+// class N13 = B with C with C implements D;
+//                           ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:27: Context: This isn't a type.
+// class N13 = B with C with C implements D;
+//                           ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:35: Error: 'C' isn't a type.
+// enum E12 extends B extends B with C implements D { element }
+//                                   ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:35: Context: This isn't a type.
+// enum E12 extends B extends B with C implements D { element }
+//                                   ^
+//
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:5:17: Error: 'B' isn't a type.
 // class A extends B with C implements D {}
 //                 ^
@@ -2015,13 +2050,6 @@ library;
 // class N5 = with C extends B implements D;
 //                 ^
 //
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:27: Error: 'B' isn't a type.
-// class N5 = with C extends B implements D;
-//                           ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:27: Context: This isn't a type.
-// class N5 = with C extends B implements D;
-//                           ^
-//
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:39:12: Error: 'B' isn't a type.
 // class N6 = B with C implements D extends B;
 //            ^
@@ -2113,13 +2141,6 @@ library;
 // class N10 = B implements D with C implements D;
 //                          ^
 //
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:33: Error: 'C' isn't a type.
-// class N10 = B implements D with C implements D;
-//                                 ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:33: Context: This isn't a type.
-// class N10 = B implements D with C implements D;
-//                                 ^
-//
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:44:13: Error: 'B' isn't a type.
 // class N11 = B implements D with C with C;
 //             ^
@@ -2141,13 +2162,6 @@ library;
 // class N12 = B extends B with C implements D;
 //             ^
 //
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:30: Error: 'C' isn't a type.
-// class N12 = B extends B with C implements D;
-//                              ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:30: Context: This isn't a type.
-// class N12 = B extends B with C implements D;
-//                              ^
-//
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:46:13: Error: 'B' isn't a type.
 // class N13 = B with C with C implements D;
 //             ^
@@ -2161,13 +2175,6 @@ library;
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:46:20: Context: This isn't a type.
 // class N13 = B with C with C implements D;
 //                    ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:27: Error: 'C' isn't a type.
-// class N13 = B with C with C implements D;
-//                           ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:27: Context: This isn't a type.
-// class N13 = B with C with C implements D;
-//                           ^
 //
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:47:13: Error: 'B' isn't a type.
 // class N14 = B with C implements D implements D;
@@ -2413,13 +2420,6 @@ library;
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:72:31: Context: This isn't a type.
 // enum E11 extends B implements D with C with C { element }
 //                               ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:35: Error: 'C' isn't a type.
-// enum E12 extends B extends B with C implements D { element }
-//                                   ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:35: Context: This isn't a type.
-// enum E12 extends B extends B with C implements D { element }
-//                                   ^
 //
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:74:25: Error: 'C' isn't a type.
 // enum E13 extends B with C with C implements D { element }

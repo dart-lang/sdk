@@ -70,13 +70,10 @@ class B extends A {
 class TypeInitFormals extends LintRule {
   TypeInitFormals()
       : super(
-            name: 'type_init_formals',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'type_init_formals',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.type_init_formals;

@@ -169,13 +169,10 @@ class ErrorsResultImpl implements ErrorsResult {
   final List<AnalysisError> errors;
 
   @override
-  final bool isAugmentation;
-
-  @override
   final bool isLibrary;
 
   @override
-  final bool isMacroAugmentation;
+  final bool isMacroPart;
 
   @override
   final bool isPart;
@@ -204,9 +201,8 @@ class ErrorsResultImpl implements ErrorsResult {
     required this.content,
     required this.uri,
     required this.lineInfo,
-    required this.isAugmentation,
     required this.isLibrary,
-    required this.isMacroAugmentation,
+    required this.isMacroPart,
     required this.isPart,
     required this.errors,
     required this.analysisOptions,
@@ -226,9 +222,6 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   final LineInfo lineInfo;
 
   @override
-  final bool isAugmentation;
-
-  @override
   final bool isLibrary;
 
   @override
@@ -239,7 +232,6 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
     required this.fileState,
   })  : content = fileState.content,
         lineInfo = fileState.lineInfo,
-        isAugmentation = fileState.kind is AugmentationFileKind,
         isLibrary = fileState.kind is LibraryFileKind,
         isPart = fileState.kind is PartFileKind;
 
@@ -250,7 +242,7 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   File get file => fileState.resource;
 
   @override
-  bool get isMacroAugmentation {
+  bool get isMacroPart {
     return fileState.isMacroPart;
   }
 

@@ -15,7 +15,7 @@ import 'package:kernel/dart_scope_calculator.dart';
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/module_builder.dart';
 import '../js_ast/js_ast.dart' as js_ast;
-import 'compiler.dart' show ProgramCompiler;
+import 'compiler.dart' show Compiler;
 
 DiagnosticMessage _createInternalError(Uri uri, int line, int col, String msg) {
   return Message(Code<String>('Expression Compiler Internal error'),
@@ -32,7 +32,7 @@ class ExpressionCompiler {
   final CompilerOptions _options;
   final List<String> errors;
   final IncrementalCompiler _compiler;
-  final ProgramCompiler _kernel2jsCompiler;
+  final Compiler _kernel2jsCompiler;
   final Component _component;
   final ModuleFormat _moduleFormat;
 

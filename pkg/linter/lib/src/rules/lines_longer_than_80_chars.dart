@@ -45,10 +45,10 @@ bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);
 class LinesLongerThan80Chars extends LintRule {
   LinesLongerThan80Chars()
       : super(
-            name: 'lines_longer_than_80_chars',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'lines_longer_than_80_chars',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.lines_longer_than_80_chars;

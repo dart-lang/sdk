@@ -985,9 +985,6 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveDefaultValue.new,
     RemoveRequired.new,
   ],
-  CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT: [
-    RemoveUnusedImport.new,
-  ],
   CompileTimeErrorCode.EMPTY_MAP_PATTERN: [
     ReplaceEmptyMapPattern.any,
     ReplaceEmptyMapPattern.empty,
@@ -1825,6 +1822,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveUnnecessaryWildcardPattern.new,
   ],
   WarningCode.UNREACHABLE_SWITCH_CASE: [
+    RemoveDeadCode.new,
+  ],
+  WarningCode.UNREACHABLE_SWITCH_DEFAULT: [
     RemoveDeadCode.new,
   ],
   WarningCode.UNUSED_CATCH_CLAUSE: [

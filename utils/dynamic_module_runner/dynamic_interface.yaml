@@ -9,6 +9,9 @@ extendable:
 
 can-be-overridden:
   - library: 'dart:*'
+  - library: 'dart:core'
+    class: '_Enum'
+    member: '_enumToString'
 
 callable:
   - library: 'dart:*'
@@ -16,6 +19,11 @@ callable:
   - library: 'dart:core'
     class: '_Enum'
     member: ''
+  - library: 'dart:core'
+    class: '_InvocationMirror'
+  - library: 'dart:core'
+    class: '_InvocationMirror'
+    member: '_withType'
   - library: 'dart:core'
     class: '_GrowableList'
   - library: 'dart:core'
@@ -86,5 +94,8 @@ callable:
   - library: 'dart:async'
     class: '_StreamIterator'
     member: '_subscription'
+  - library: 'dart:async'
+    class: '_SuspendState'
+    member: 'get:_functionData'
   - library: 'dart:async'
     member: '_asyncStarMoveNextHelper'

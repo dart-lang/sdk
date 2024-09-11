@@ -228,9 +228,12 @@ Become::~Become() {
   Thread::Current()->isolate_group()->set_become(nullptr);
 }
 
-void Become::Add(const Object& before, const Object& after) {
+void Become::Add(const Object& before,
+                 const Object& after,
+                 const char* whence) {
   pointers_.Add(before.ptr());
   pointers_.Add(after.ptr());
+  whence_.Add(whence);
 }
 
 void Become::VisitObjectPointers(ObjectPointerVisitor* visitor) {
@@ -272,9 +275,75 @@ static void InvalidForwarding(ObjectPtr before,
   FATAL("become: %s", message);
 }
 
+struct PtrIntTrait {
+  typedef ObjectPtr Key;
+  typedef intptr_t Value;
+  typedef struct {
+    ObjectPtr key;
+    intptr_t value;
+  } Pair;
+
+  static Key KeyOf(Pair kv) { return kv.key; }
+  static Value ValueOf(Pair kv) { return kv.value; }
+  static uword Hash(Key key) {
+    return (static_cast<uword>(key) * 92821) ^ (static_cast<uword>(key) >> 8);
+  }
+  static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
+};
+
 void Become::Forward() {
   if (pointers_.length() == 0) {
     return;
+  }
+
+  {
+    intptr_t conflicts = 0;
+    MallocDirectChainedHashMap<PtrIntTrait> map(pointers_.length() / 2);
+    for (intptr_t i = 0; i < pointers_.length(); i += 2) {
+      ObjectPtr before = pointers_[i];
+      auto* pair = map.Lookup(before);
+      if (pair == nullptr) {
+        map.Insert({before, i + 1});  // 0 value is sentinel.
+      } else {
+        intptr_t j = pair->value - 1;  // 0 value is sentinel.
+        ObjectPtr before1 = pointers_[j];
+        ObjectPtr after1 = pointers_[j + 1];
+        ObjectPtr before2 = pointers_[i];
+        ObjectPtr after2 = pointers_[i + 1];
+        const char* whence1 = whence_[j / 2];
+        const char* whence2 = whence_[i / 2];
+
+        OS::PrintErr("become conflict:\n");
+        OS::PrintErr("whence1 = %s\n", whence1);
+        OS::PrintErr("whence2 = %s\n", whence2);
+
+        OS::PrintErr("before1 cid = %" Pd "\n", before1.GetClassId());
+        OS::PrintErr(" after1 cid = %" Pd "\n", after1.GetClassId());
+        OS::PrintErr("before2 cid = %" Pd "\n", before2.GetClassId());
+        OS::PrintErr(" after2 cid = %" Pd "\n", after2.GetClassId());
+
+        OS::PrintErr("before1 size = %" Pd "\n", before1.untag()->HeapSize());
+        OS::PrintErr(" after1 size = %" Pd "\n", after1.untag()->HeapSize());
+        OS::PrintErr("before2 size = %" Pd "\n", before2.untag()->HeapSize());
+        OS::PrintErr(" after2 size = %" Pd "\n", after2.untag()->HeapSize());
+
+#ifndef PRODUCT
+        ClassTable* class_table = IsolateGroup::Current()->class_table();
+        OS::PrintErr("before1 cls = %s\n",
+                     class_table->UserVisibleNameFor(before1.GetClassId()));
+        OS::PrintErr(" after1 cls = %s\n",
+                     class_table->UserVisibleNameFor(after1.GetClassId()));
+        OS::PrintErr("before2 cls = %s\n",
+                     class_table->UserVisibleNameFor(before2.GetClassId()));
+        OS::PrintErr(" after2 cls = %s\n",
+                     class_table->UserVisibleNameFor(after2.GetClassId()));
+#endif
+        conflicts++;
+      }
+    }
+    if (conflicts != 0) {
+      FATAL("%" Pd " become conflicts", conflicts);
+    }
   }
 
   Thread* thread = Thread::Current();
@@ -325,6 +394,7 @@ void Become::Forward() {
   }
 #endif
   pointers_.Clear();
+  whence_.Clear();
 }
 
 void Become::FollowForwardingPointers(Thread* thread) {
@@ -353,8 +423,8 @@ void Become::FollowForwardingPointers(Thread* thread) {
 #ifndef PRODUCT
   isolate_group->ForEachIsolate(
       [&](Isolate* isolate) {
-        if (isolate->NumServiceIdZones() > 0) {
-          isolate->EnsureDefaultServiceIdZone().VisitPointers(pointer_visitor);
+        for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
+          isolate->GetServiceIdZone(i)->VisitPointers(pointer_visitor);
         }
       },
       /*at_safepoint=*/true);

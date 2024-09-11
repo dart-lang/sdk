@@ -257,7 +257,7 @@ class _MatcherBuilder {
         );
       }
     } else if (parent is SuperConstructorInvocation) {
-      var superclassName = parent.staticElement?.enclosingElement.name;
+      var superclassName = parent.staticElement?.enclosingElement3.name;
       if (superclassName != null) {
         _addMatcher(
           components: [parent.constructorName?.name ?? '', superclassName],
@@ -537,7 +537,7 @@ class _MatcherBuilder {
         // Add enclosing element to the matcher for non top level property
         // accessors when possible.
         if (staticElement is PropertyAccessorElement) {
-          var enclosingElement = staticElement.enclosingElement;
+          var enclosingElement = staticElement.enclosingElement3;
           if (enclosingElement is! CompilationUnitElement) {
             _addMatcher(
                 components: [node.name, enclosingElement.displayName],
@@ -576,7 +576,7 @@ class _MatcherBuilder {
       }
     }
     if (element != null) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement is InterfaceElement) {
         return [identifier.name, enclosingElement.name];
       } else if (enclosingElement is ExtensionElement) {

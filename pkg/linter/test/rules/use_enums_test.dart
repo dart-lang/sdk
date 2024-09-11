@@ -19,13 +19,13 @@ class UseEnumsTest extends LintRuleTest {
 
   test_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class C {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class C {
   static const a = C._(1);

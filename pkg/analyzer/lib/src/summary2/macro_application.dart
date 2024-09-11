@@ -889,7 +889,7 @@ class LibraryMacroApplier {
       if (targetElement != null) {
         var applicationElement = application.target.element;
         if (!identical(applicationElement, targetElement) &&
-            !identical(applicationElement.enclosingElement, targetElement)) {
+            !identical(applicationElement.enclosingElement3, targetElement)) {
           continue;
         }
       }

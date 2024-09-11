@@ -32,10 +32,10 @@ print(RegExp(r'\(').hasMatch('foo()'));
 class ValidRegexps extends LintRule {
   ValidRegexps()
       : super(
-            name: 'valid_regexps',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.unintentional});
+          name: 'valid_regexps',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.valid_regexps;
@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.constructorName.staticElement?.enclosingElement;
+    var element = node.constructorName.staticElement?.enclosingElement3;
     if (element?.name == 'RegExp' && element?.library.name == 'dart.core') {
       var args = node.argumentList.arguments;
       if (args.isEmpty) {

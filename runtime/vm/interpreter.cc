@@ -340,8 +340,9 @@ void LookupCache::Insert(intptr_t receiver_cid,
 Interpreter::Interpreter()
     : stack_(nullptr),
       fp_(nullptr),
-      pp_(nullptr),
-      argdesc_(nullptr),
+      pp_(ObjectPool::null()),
+      argdesc_(Array::null()),
+      subtype_test_cache_(SubtypeTestCache::null()),
       lookup_cache_() {
   // Setup interpreter support first. Some of this information is needed to
   // setup the architecture state.
@@ -360,6 +361,8 @@ Interpreter::Interpreter()
   overflow_stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
   // High address.
   stack_limit_ = overflow_stack_limit_ + OSThread::kStackSizeBufferMax;
+
+  fp_ = reinterpret_cast<ObjectPtr*>(stack_base_);
 
   last_setjmp_buffer_ = nullptr;
 
@@ -381,8 +384,9 @@ Interpreter::Interpreter()
 
 Interpreter::~Interpreter() {
   delete[] stack_;
-  pp_ = nullptr;
-  argdesc_ = nullptr;
+  pp_ = ObjectPool::null();
+  argdesc_ = Array::null();
+  subtype_test_cache_ = SubtypeTestCache::null();
 #if defined(DEBUG)
   if (trace_file_ != nullptr) {
     FlushTraceBuffer();
@@ -620,7 +624,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   // (in the case of an unhandled exception) or it must be returned to the
   // caller of the interpreter to be propagated.
   const intptr_t result_cid = result->GetClassId();
-  if (result_cid == kUnhandledExceptionCid) {
+  if (UNLIKELY(result_cid == kUnhandledExceptionCid)) {
     (*SP)[0] = UnhandledException::RawCast(result)->untag()->exception();
     (*SP)[1] = UnhandledException::RawCast(result)->untag()->stacktrace();
     (*SP)[2] = 0;  // Do not bypass debugger.
@@ -632,7 +636,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
     }
     UNREACHABLE();
   }
-  if (IsErrorClassId(result_cid)) {
+  if (UNLIKELY(IsErrorClassId(result_cid))) {
     // Unwind to entry frame.
     fp_ = *FP;
     pc_ = SavedCallerPC(fp_);
@@ -1161,8 +1165,11 @@ bool Interpreter::AssertAssignable(Thread* thread,
                                    ObjectPtr* args,
                                    SubtypeTestCachePtr cache) {
   ObjectPtr null_value = Object::null();
-  if (cache != null_value) {
+  if ((cache != null_value) &&
+      (Smi::Value(cache->untag()->cache()->untag()->length()) <=
+       SubtypeTestCache::kMaxLinearCacheSize)) {
     InstancePtr instance = Instance::RawCast(args[0]);
+    AbstractTypePtr dst_type = AbstractType::RawCast(args[1]);
     TypeArgumentsPtr instantiator_type_arguments =
         static_cast<TypeArgumentsPtr>(args[2]);
     TypeArgumentsPtr function_type_arguments =
@@ -1223,7 +1230,9 @@ bool Interpreter::AssertAssignable(Thread* thread,
            parent_function_type_arguments) &&
           (entries->untag()->element(
                i + SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) ==
-           delayed_function_type_arguments)) {
+           delayed_function_type_arguments) &&
+          (entries->untag()->element(i + SubtypeTestCache::kDestinationType) ==
+           dst_type)) {
         if (Bool::True().ptr() ==
             entries->untag()->element(i + SubtypeTestCache::kTestResult)) {
           return true;
@@ -1256,8 +1265,47 @@ bool Interpreter::AssertAssignableField(Thread* thread,
                                         InstancePtr instance,
                                         FieldPtr field,
                                         InstancePtr value) {
-  // TODO(alexmarkov)
-  return true;
+  AbstractTypePtr field_type = field->untag()->type();
+  // Handle 'dynamic' early as it is not handled by the runtime type check.
+  if ((field_type->GetClassId() == kTypeCid) &&
+      (Type::RawCast(field_type)->untag()->type_class_id() == kDynamicCid)) {
+    return true;
+  }
+
+  SubtypeTestCachePtr cache = subtype_test_cache_;
+  if (UNLIKELY(cache == SubtypeTestCache::null())) {
+    // Allocate new cache.
+    SP[1] = instance;        // Preserve.
+    SP[2] = field;           // Preserve.
+    SP[3] = value;           // Preserve.
+    SP[4] = Object::null();  // Result slot.
+
+    Exit(thread, FP, SP + 5, pc);
+    if (!InvokeRuntime(thread, this, DRT_AllocateSubtypeTestCache,
+                       NativeArguments(thread, 0, /* argv */ SP + 4,
+                                       /* retval */ SP + 4))) {
+      return false;
+    }
+
+    // Reload objects after the call which may trigger GC.
+    instance = static_cast<InstancePtr>(SP[1]);
+    field = static_cast<FieldPtr>(SP[2]);
+    value = static_cast<InstancePtr>(SP[3]);
+    cache = static_cast<SubtypeTestCachePtr>(SP[4]);
+    field_type = field->untag()->type();
+
+    subtype_test_cache_ = cache;
+  }
+
+  // Push arguments of type test.
+  SP[1] = value;
+  SP[2] = field_type;
+  // Provide type arguments of instance as instantiator.
+  SP[3] = InterpreterHelpers::GetTypeArguments(thread, instance);
+  SP[4] = Object::null();  // Implicit setters cannot be generic.
+  SP[5] = is_getter ? Symbols::FunctionResult().ptr() : field->untag()->name();
+  return AssertAssignable(thread, pc, FP, /* call_top */ SP + 5,
+                          /* args */ SP + 1, cache);
 }
 
 ObjectPtr Interpreter::Call(const Function& function,
@@ -1411,6 +1459,33 @@ bool Interpreter::AllocateArray(Thread* thread,
   return InvokeRuntime(thread, this, DRT_AllocateArray, args);
 }
 
+// Allocate a Record with the given shape and put it into SP[0].
+// Returns false on exception.
+bool Interpreter::AllocateRecord(Thread* thread,
+                                 RecordShape shape,
+                                 const KBCInstr* pc,
+                                 ObjectPtr* FP,
+                                 ObjectPtr* SP) {
+  const intptr_t num_fields = shape.num_fields();
+  RecordPtr result;
+  if (TryAllocate(thread, kRecordCid, Record::InstanceSize(num_fields),
+                  reinterpret_cast<ObjectPtr*>(&result))) {
+    result->untag()->set_shape(shape.AsSmi());
+    ObjectPtr null_value = Object::null();
+    for (intptr_t i = 0; i < num_fields; i++) {
+      result->untag()->set_field(i, null_value, thread);
+    }
+    SP[0] = result;
+    return true;
+  } else {
+    SP[0] = 0;  // Space for the result.
+    SP[1] = shape.AsSmi();
+    Exit(thread, FP, SP + 2, pc);
+    NativeArguments args(thread, 1, SP + 1, SP);
+    return InvokeRuntime(thread, this, DRT_AllocateRecord, args);
+  }
+}
+
 // Allocate a _Context with the given length and put it into SP[0].
 // Returns false on exception.
 bool Interpreter::AllocateContext(Thread* thread,
@@ -1467,34 +1542,7 @@ bool Interpreter::AllocateClosure(Thread* thread,
   }
 }
 
-ObjectPtr Interpreter::Call(FunctionPtr function,
-                            ArrayPtr argdesc,
-                            intptr_t argc,
-                            ObjectPtr const* argv,
-                            ArrayPtr args_array,
-                            Thread* thread) {
-  // Interpreter state (see constants_kbc.h for high-level overview).
-  const KBCInstr* pc;  // Program Counter: points to the next op to execute.
-  ObjectPtr* FP;       // Frame Pointer.
-  ObjectPtr* SP;       // Stack Pointer.
-
-  uint32_t op;  // Currently executing op.
-
-  bool reentering = fp_ != nullptr;
-  if (!reentering) {
-    fp_ = reinterpret_cast<ObjectPtr*>(stack_base_);
-  }
-#if defined(DEBUG)
-  if (IsTracingExecution()) {
-    THR_Print("%" Pu64 " ", icount_);
-    THR_Print("%s interpreter 0x%" Px " at fp_ 0x%" Px " exit 0x%" Px " %s\n",
-              reentering ? "Re-entering" : "Entering",
-              reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
-              thread->top_exit_frame_info(),
-              Function::Handle(function).ToFullyQualifiedCString());
-  }
-#endif
-
+void Interpreter::SetupEntryFrame(Thread* thread) {
   // Setup entry frame:
   //
   //                        ^
@@ -1518,10 +1566,6 @@ ObjectPtr Interpreter::Call(FunctionPtr function,
   //                        |
   //                        v
   //
-  // A negative argc indicates reverse memory order of arguments.
-  const intptr_t arg_count = argc < 0 ? -argc : argc;
-  FP = fp_ + kKBCEntrySavedSlots + arg_count + kKBCDartFrameFixedSize;
-  SP = FP - 1;
 
   // Save outer top_exit_frame_info, current argdesc, and current pp.
   fp_[kKBCExitLinkSlotFromEntryFp] =
@@ -1529,6 +1573,31 @@ ObjectPtr Interpreter::Call(FunctionPtr function,
   thread->set_top_exit_frame_info(0);
   fp_[kKBCSavedArgDescSlotFromEntryFp] = static_cast<ObjectPtr>(argdesc_);
   fp_[kKBCSavedPpSlotFromEntryFp] = static_cast<ObjectPtr>(pp_);
+}
+
+ObjectPtr Interpreter::Call(FunctionPtr function,
+                            ArrayPtr argdesc,
+                            intptr_t argc,
+                            ObjectPtr const* argv,
+                            ArrayPtr args_array,
+                            Thread* thread) {
+#if defined(DEBUG)
+  if (IsTracingExecution()) {
+    THR_Print("%" Pu64 " ", icount_);
+    THR_Print("Entering interpreter 0x%" Px " at fp_ 0x%" Px " exit 0x%" Px
+              " %s\n",
+              reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
+              thread->top_exit_frame_info(),
+              Function::Handle(function).ToFullyQualifiedCString());
+  }
+#endif
+
+  SetupEntryFrame(thread);
+
+  // A negative argc indicates reverse memory order of arguments.
+  const intptr_t arg_count = argc < 0 ? -argc : argc;
+  ObjectPtr* FP =
+      fp_ + kKBCEntrySavedSlots + arg_count + kKBCDartFrameFixedSize;
 
   // Copy arguments and setup the Dart frame.
   if (argv != nullptr) {
@@ -1554,10 +1623,110 @@ ObjectPtr Interpreter::Call(FunctionPtr function,
 
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
-  pc = reinterpret_cast<const KBCInstr*>(bytecode->untag()->instructions_);
-  NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
-  NOT_IN_PRODUCT(fp_ = FP);  // For the profiler.
+  pc_ = reinterpret_cast<const KBCInstr*>(bytecode->untag()->instructions_);
   pp_ = bytecode->untag()->object_pool();
+  fp_ = FP;
+
+  return Run(thread, FP - 1, /*rethrow_exception=*/false);
+}
+
+ObjectPtr Interpreter::Resume(Thread* thread,
+                              uword resumed_frame_fp,
+                              uword resumed_frame_sp,
+                              ObjectPtr value,
+                              ObjectPtr exception,
+                              ObjectPtr stack_trace) {
+  const intptr_t suspend_state_index_from_fp =
+      runtime_frame_layout.FrameSlotForVariableIndex(
+          SuspendState::kSuspendStateVarIndex);
+  ASSERT(suspend_state_index_from_fp < 0);
+
+  // Resumed native frame wraps interpreter state.
+  ASSERT(resumed_frame_fp > resumed_frame_sp);
+  ASSERT(resumed_frame_fp - resumed_frame_sp >=
+         static_cast<uword>(-suspend_state_index_from_fp +
+                            kKBCSuspendedFrameFixedSlots) *
+             kWordSize);
+  ObjectPtr* resumed_native_frame =
+      reinterpret_cast<ObjectPtr*>(resumed_frame_sp);
+  intptr_t interp_frame_size =
+      resumed_frame_fp - resumed_frame_sp -
+      (-suspend_state_index_from_fp + kKBCSuspendedFrameFixedSlots) * kWordSize;
+
+  FunctionPtr function =
+      Function::RawCast(resumed_native_frame[kKBCFunctionSlotInSuspendedFrame]);
+  const intptr_t pc_offset = Smi::Value(
+      Smi::RawCast(resumed_native_frame[kKBCPcOffsetSlotInSuspendedFrame]));
+
+#if defined(DEBUG)
+  if (IsTracingExecution()) {
+    THR_Print("%" Pu64 " ", icount_);
+    THR_Print("Resuming interpreter 0x%" Px " at fp_ 0x%" Px " exit 0x%" Px
+              " %s\n",
+              reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
+              thread->top_exit_frame_info(),
+              Function::Handle(function).ToFullyQualifiedCString());
+  }
+#endif
+
+  SetupEntryFrame(thread);
+
+  ObjectPtr* FP = fp_ + kKBCEntrySavedSlots + kKBCDartFrameFixedSize;
+
+  BytecodePtr bytecode = Function::GetBytecode(function);
+  FP[kKBCFunctionSlotFromFp] = function;
+  FP[kKBCPcMarkerSlotFromFp] = bytecode;
+  FP[kKBCSavedCallerPcSlotFromFp] = static_cast<ObjectPtr>(kEntryFramePcMarker);
+  FP[kKBCSavedCallerFpSlotFromFp] =
+      static_cast<ObjectPtr>(reinterpret_cast<uword>(fp_));
+
+  memmove(FP, &resumed_native_frame[kKBCSuspendedFrameFixedSlots],
+          interp_frame_size);
+
+  FP[kKBCSuspendStateSlotFromFp] = *reinterpret_cast<ObjectPtr*>(
+      resumed_frame_fp + suspend_state_index_from_fp * kWordSize);
+
+  ObjectPtr* SP = FP + (interp_frame_size >> kWordSizeLog2);
+
+  const bool rethrow_exception = (exception != Object::null());
+  if (rethrow_exception) {
+    SP[0] = exception;
+    *++SP = stack_trace;
+  } else {
+    SP[0] = value;
+  }
+
+  argdesc_ = Array::null();
+  pc_ = reinterpret_cast<const KBCInstr*>(bytecode->untag()->instructions_ +
+                                          pc_offset);
+  pp_ = bytecode->untag()->object_pool();
+  fp_ = FP;
+
+  return Run(thread, SP, rethrow_exception);
+}
+
+BytecodePtr Interpreter::GetSuspendedLocation(const SuspendState& suspend_state,
+                                              uword* pc_offset) {
+  ASSERT(suspend_state.pc() == StubCode::ResumeInterpreter().EntryPoint());
+  ASSERT(suspend_state.frame_size() > kKBCSuspendedFrameFixedSlots);
+  ObjectPtr* sp = reinterpret_cast<ObjectPtr*>(suspend_state.payload());
+  *pc_offset = static_cast<uword>(
+      Smi::Value(Smi::RawCast(sp[kKBCPcOffsetSlotInSuspendedFrame])));
+  FunctionPtr function =
+      Function::RawCast(sp[kKBCFunctionSlotInSuspendedFrame]);
+  return Function::GetBytecode(function);
+}
+
+ObjectPtr Interpreter::Run(Thread* thread,
+                           ObjectPtr* sp,
+                           bool rethrow_exception) {
+  // Interpreter state (see constants_kbc.h for high-level overview).
+  const KBCInstr* pc =
+      pc_;              // Program Counter: points to the next op to execute.
+  ObjectPtr* FP = fp_;  // Frame Pointer.
+  ObjectPtr* SP = sp;   // Stack Pointer.
+
+  uint32_t op;  // Currently executing op.
 
   // Save current VM tag and mark thread as executing Dart code. For the
   // profiler, do this *after* setting up the entry frame (compare the machine
@@ -1573,6 +1742,10 @@ ObjectPtr Interpreter::Call(FunctionPtr function,
   BoolPtr true_value = Bool::True().ptr();
   BoolPtr false_value = Bool::False().ptr();
   ObjectPtr null_value = Object::null();
+
+  if (rethrow_exception) {
+    goto RethrowException;
+  }
 
 #ifdef DART_HAS_COMPUTED_GOTO
   static const void* dispatch[] = {
@@ -1743,7 +1916,8 @@ SwitchDispatch:
         SP[1] = 0;    // Space for result.
         Exit(thread, FP, SP + 2, pc);
         INVOKE_RUNTIME(DRT_Throw, NativeArguments(thread, 1, SP, SP + 1));
-      } else {      // ReThrow
+      } else {  // ReThrow
+      RethrowException:
         SP[1] = 0;  // Do not bypass debugger.
         SP[2] = 0;  // Space for result.
         Exit(thread, FP, SP + 3, pc);
@@ -1988,7 +2162,6 @@ SwitchDispatch:
   {
     BYTECODE(ReturnTOS, 0);
 
-  ReturnTOS:
     ObjectPtr result;  // result to return to the caller.
     result = *SP;
     // Restore caller PC.
@@ -2042,64 +2215,6 @@ SwitchDispatch:
     }
 #endif
     DISPATCH();
-  }
-
-  {
-    BYTECODE(ReturnAsync, 0);
-
-    argdesc_ = ArgumentsDescriptor::NewBoxed(0, 2);
-    ObjectPtr return_value = *SP;
-    ObjectPtr suspend_state = FP[kKBCSuspendStateSlotFromFp];
-    FP[kKBCSuspendStateSlotFromFp] = null_value;
-
-    FunctionPtr function =
-        thread->isolate_group()->object_store()->suspend_state_return_async();
-    ASSERT(Function::HasCode(function));
-
-    SP[0] = suspend_state;
-    SP[1] = return_value;
-    ObjectPtr* call_base = SP;
-    ObjectPtr* call_top = SP + 2;
-    call_top[0] = function;
-    if (!InvokeCompiled(thread, function, call_base, call_top, &pc, &FP, &SP)) {
-      HANDLE_EXCEPTION;
-    } else {
-      HANDLE_RETURN;
-    }
-    goto ReturnTOS;
-  }
-
-  {
-    BYTECODE(ReturnAsyncStar, 0);
-
-    argdesc_ = ArgumentsDescriptor::NewBoxed(0, 2);
-    ObjectPtr return_value = *SP;
-    ObjectPtr suspend_state = FP[kKBCSuspendStateSlotFromFp];
-    FP[kKBCSuspendStateSlotFromFp] = null_value;
-
-    FunctionPtr function = thread->isolate_group()
-                               ->object_store()
-                               ->suspend_state_return_async_star();
-    ASSERT(Function::HasCode(function));
-
-    SP[0] = suspend_state;
-    SP[1] = return_value;
-    ObjectPtr* call_base = SP;
-    ObjectPtr* call_top = SP + 2;
-    call_top[0] = function;
-    if (!InvokeCompiled(thread, function, call_base, call_top, &pc, &FP, &SP)) {
-      HANDLE_EXCEPTION;
-    } else {
-      HANDLE_RETURN;
-    }
-    goto ReturnTOS;
-  }
-
-  {
-    BYTECODE(ReturnSyncStar, 0);
-    // Return false from sync* function to indicate the end of iteration.
-    *SP = false_value;
-    goto ReturnTOS;
   }
 
   {
@@ -2280,6 +2395,14 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(LoadRecordField, D);
+    const intptr_t field_index = rD;
+    RecordPtr record = Record::RawCast(SP[0]);
+    SP[0] = record->untag()->field(field_index);
+    DISPATCH();
+  }
+
+  {
     BYTECODE(AllocateContext, A_E);
     ++SP;
     const uint32_t num_context_variables = rE;
@@ -2398,20 +2521,31 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(AllocateRecord, D);
+    RecordTypePtr type = RecordType::RawCast(LOAD_CONSTANT(rD));
+    RecordShape shape(Smi::RawCast(type->untag()->shape()));
+    ++SP;
+    if (!AllocateRecord(thread, shape, pc, FP, SP)) {
+      HANDLE_EXCEPTION;
+    }
+    RecordPtr record = Record::RawCast(SP[0]);
+    const intptr_t num_fields = shape.num_fields();
+    for (intptr_t i = 0; i < num_fields; ++i) {
+      record->untag()->set_field(i, SP[-num_fields + i], thread);
+    }
+    SP -= num_fields;
+    SP[0] = record;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(AssertAssignable, A_E);
     // Stack: instance, type, instantiator type args, function type args, name
     ObjectPtr* args = SP - 4;
-    const bool may_be_smi = (rA == 1);
-    const bool is_smi =
-        ((static_cast<intptr_t>(args[0]) & kSmiTagMask) == kSmiTag);
-    const bool smi_ok = is_smi && may_be_smi;
-    if (!smi_ok && (args[0] != null_value)) {
-      SubtypeTestCachePtr cache =
-          static_cast<SubtypeTestCachePtr>(LOAD_CONSTANT(rE));
+    SubtypeTestCachePtr cache = SubtypeTestCache::RawCast(LOAD_CONSTANT(rE));
 
-      if (!AssertAssignable(thread, pc, FP, SP, args, cache)) {
-        HANDLE_EXCEPTION;
-      }
+    if (!AssertAssignable(thread, pc, FP, SP, args, cache)) {
+      HANDLE_EXCEPTION;
     }
 
     SP -= 4;  // Instance remains on stack.
@@ -2442,29 +2576,6 @@ SwitchDispatch:
     // Drop result slot and all arguments.
     SP -= 6;
 
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(AssertBoolean, A);
-    ObjectPtr value = SP[0];
-    if (rA != 0u) {  // Should we perform type check?
-      if ((value == true_value) || (value == false_value)) {
-        goto AssertBooleanOk;
-      }
-    } else if (value != null_value) {
-      goto AssertBooleanOk;
-    }
-
-    // Assertion failed.
-    {
-      SP[1] = SP[0];  // instance
-      Exit(thread, FP, SP + 2, pc);
-      INVOKE_RUNTIME(DRT_NonBoolTypeError,
-                     NativeArguments(thread, 1, SP + 1, SP));
-    }
-
-  AssertBooleanOk:
     DISPATCH();
   }
 
@@ -2548,6 +2659,91 @@ SwitchDispatch:
     BYTECODE(JumpIfUnchecked, T);
     // Interpreter is not tracking unchecked calls, so fall through to
     // parameter type checks.
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Suspend, T);
+    const intptr_t suspend_state_index_from_fp =
+        runtime_frame_layout.FrameSlotForVariableIndex(
+            SuspendState::kSuspendStateVarIndex);
+    ASSERT(suspend_state_index_from_fp < 0);
+    // Saved interpreter frame is "wrapped" into a native frame in
+    // the suspend state:
+    //
+    // (-suspend_state_index_from_fp) words:
+    //         header to mimic native frame with the slot for suspend state
+    // (SP + 1 - FP) words:
+    //         locals and expression stack
+    // kKBCSuspendedFrameFixedSlots words:
+    //         suspended function and PC offset to resume.
+    const intptr_t frame_size = ((-suspend_state_index_from_fp) +
+                                 (SP + 1 - FP) + kKBCSuspendedFrameFixedSlots) *
+                                kWordSize;
+
+    SuspendStatePtr state;
+    ObjectPtr old_state = FP[kKBCSuspendStateSlotFromFp];
+    if (!old_state->IsSuspendState() ||
+#if defined(DART_PRECOMPILED_RUNTIME)
+        (SuspendState::RawCast(old_state)->untag()->frame_size_ != frame_size)
+#else
+        (SuspendState::RawCast(old_state)->untag()->frame_capacity_ <
+         frame_size)
+#endif
+    ) {
+      SP[1] = 0;  // Space for result.
+      SP[2] = Smi::New(frame_size);
+      SP[3] = old_state;
+      Exit(thread, FP, SP + 4, pc);
+      INVOKE_RUNTIME(
+          DRT_AllocateSuspendState,
+          NativeArguments(thread, 2, /* argv */ SP + 2, /* retval */ SP + 1));
+      state = SuspendState::RawCast(SP[1]);
+      ASSERT(state->untag()->frame_size_ == frame_size);
+      FP[kKBCSuspendStateSlotFromFp] = state;
+    } else {
+      state = SuspendState::RawCast(old_state);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      state->untag()->frame_size_ = frame_size;
+#endif
+    }
+
+    // Copy interpreter frame, locals and expression stack.
+    uint8_t* payload = state->untag()->payload();
+    ObjectPtr* suspended_frame = reinterpret_cast<ObjectPtr*>(payload);
+
+    FunctionPtr function = FrameFunction(FP);
+    const intptr_t pc_offset =
+        (reinterpret_cast<uword>(rT) -
+         Function::GetBytecode(function)->untag()->instructions_);
+    suspended_frame[kKBCFunctionSlotInSuspendedFrame] = function;
+    suspended_frame[kKBCPcOffsetSlotInSuspendedFrame] = Smi::New(pc_offset);
+
+    memmove(&suspended_frame[kKBCSuspendedFrameFixedSlots], FP,
+            (SP + 1 - FP) * kWordSize);
+
+    // Fill suspend state slot.
+    const uword native_fp = reinterpret_cast<uword>(payload + frame_size);
+    *reinterpret_cast<ObjectPtr*>(native_fp + suspend_state_index_from_fp *
+                                                  kWordSize) = state;
+    // Clear the rest of the slots.
+    for (intptr_t i = suspend_state_index_from_fp + 1; i < 0; ++i) {
+      *reinterpret_cast<ObjectPtr*>(native_fp + i * kWordSize) = 0;
+    }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    *(reinterpret_cast<ObjectPtr*>(
+        native_fp + runtime_frame_layout.code_from_fp * kWordSize)) =
+        StubCode::ResumeInterpreter().ptr();
+#endif
+    state->untag()->pc_ = StubCode::ResumeInterpreter().EntryPoint();
+
+    // Write barrier.
+    if (state->IsOldObject() || thread->is_marking()) {
+      DLRT_EnsureRememberedAndMarkingDeferred(static_cast<uword>(state),
+                                              thread);
+    }
+
     DISPATCH();
   }
 
@@ -2897,17 +3093,28 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(AllocateClosure, D);
+    BYTECODE(AllocateClosure, 0);
     ++SP;
     if (!AllocateClosure(thread, pc, FP, SP)) {
       HANDLE_EXCEPTION;
     }
-    FunctionPtr function = Function::RawCast(LOAD_CONSTANT(rD));
-    ASSERT(Function::KindOf(function) == UntaggedFunction::kClosureFunction);
     ClosurePtr closure = Closure::RawCast(SP[0]);
+    FunctionPtr function = Function::RawCast(SP[-3]);
+    ObjectPtr context = SP[-2];
+    TypeArgumentsPtr instantiator_type_arguments =
+        TypeArguments::RawCast(SP[-1]);
+
+    ASSERT((Function::KindOf(function) == UntaggedFunction::kClosureFunction) ||
+           (Function::KindOf(function) ==
+            UntaggedFunction::kImplicitClosureFunction));
     closure->untag()->set_function(function);
     ONLY_IN_PRECOMPILED(closure->untag()->entry_point_ =
                             function->untag()->entry_point_);
+    closure->untag()->set_context(context);
+    closure->untag()->set_instantiator_type_arguments(
+        instantiator_type_arguments);
+    SP -= 3;
+    SP[0] = closure;
     DISPATCH();
   }
 
@@ -3007,6 +3214,19 @@ SwitchDispatch:
     instance = Instance::RawCast(FrameArguments(FP, kArgc)[0]);
     value = Instance::RawCast(FrameArguments(FP, kArgc)[1]);
 
+    if (Field::FinalBit::decode(field->untag()->kind_bits_)) {
+      // Check that final field was not initialized already.
+      ObjectPtr old_value = GET_FIELD(instance, offset_in_words);
+      if (UNLIKELY(old_value != Object::sentinel().ptr())) {
+        SP[0] = field;
+        SP[1] = 0;  // Unused space for result.
+        Exit(thread, FP, SP + 2, pc);
+        INVOKE_RUNTIME(DRT_LateFieldAlreadyInitializedError,
+                       NativeArguments(thread, 1, SP, SP + 1));
+        UNREACHABLE();
+      }
+    }
+
     if (InterpreterHelpers::FieldNeedsGuardUpdate(thread, field, value)) {
       SP[1] = 0;  // Unused result of runtime call.
       SP[2] = field;
@@ -3072,6 +3292,38 @@ SwitchDispatch:
     }
 #endif
 
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(VMInternal_ImplicitStaticSetter, 0);
+
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::KindOf(function) == UntaggedFunction::kImplicitSetter);
+
+    // Field object is cached in function's data_.
+    FieldPtr field = Field::RawCast(function->untag()->data());
+    intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
+
+    // Static fields use setters only if they are final.
+    ASSERT(Field::FinalBit::decode(field->untag()->kind_bits_));
+    // Check that final field was not initialized already.
+    ObjectPtr old_value = thread->field_table_values()[field_id];
+    if (UNLIKELY(old_value != Object::sentinel().ptr())) {
+      ++SP;
+      SP[0] = field;
+      SP[1] = 0;  // Unused space for result.
+      Exit(thread, FP, SP + 2, pc);
+      INVOKE_RUNTIME(DRT_LateFieldAlreadyInitializedError,
+                     NativeArguments(thread, 1, SP, SP + 1));
+      UNREACHABLE();
+    }
+
+    const intptr_t kArgc = 1;
+    InstancePtr value = Instance::RawCast(FrameArguments(FP, kArgc)[0]);
+    thread->field_table_values()[field_id] = value;
+
+    *++SP = null_value;
     DISPATCH();
   }
 
@@ -3378,8 +3630,49 @@ SwitchDispatch:
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
-    UNIMPLEMENTED();
-    DISPATCH();
+    ClosureDataPtr data = ClosureData::RawCast(function->untag()->data());
+    FunctionPtr target = Function::RawCast(data->untag()->parent_function());
+    ASSERT(Function::KindOf(target) == UntaggedFunction::kConstructor);
+
+    const intptr_t type_args_len =
+        InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+    const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+    const intptr_t argc =
+        InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
+    ObjectPtr* argv = FrameArguments(FP, argc);
+
+    ClassPtr cls = Function::Owner(target);
+    TypeParametersPtr type_params = cls->untag()->type_parameters();
+    TypeArgumentsPtr type_args =
+        (type_params == null_value)
+            ? TypeArguments::null()
+            : ((type_args_len > 0) ? TypeArguments::RawCast(argv[0])
+                                   : type_params->untag()->defaults());
+
+    SP[1] = target;    // Save target.
+    SP[2] = argdesc_;  // Save arguments descriptor.
+
+    // Allocate instance and put it into the receiver slot.
+    SP[3] = cls;
+    SP[4] = type_args;
+    Exit(thread, FP, SP + 5, pc);
+    INVOKE_RUNTIME(DRT_AllocateObject,
+                   NativeArguments(thread, 2, SP + 3, argv + receiver_idx));
+
+    argdesc_ = Array::RawCast(SP[2]);
+
+    if (type_args_len > 0) {
+      // Need to adjust arguments descriptor in order to drop type arguments.
+      SP[2] = 0;  // Space for result.
+      SP[3] = argdesc_;
+      SP[4] = SP[1];  // Target.
+      Exit(thread, FP, SP + 5, pc);
+      INVOKE_RUNTIME(DRT_AdjustArgumentsDesciptorForImplicitClosure,
+                     NativeArguments(thread, 2, SP + 3, SP + 2));
+      argdesc_ = Array::RawCast(SP[2]);
+    }
+
+    goto TailCallSP1;
   }
 
   {
@@ -3586,6 +3879,16 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
     pc_ = reinterpret_cast<const KBCInstr*>(pc);
   }
 
+#if defined(DEBUG)
+  if (IsTracingExecution()) {
+    THR_Print("%" Pu64 " ", icount_);
+    THR_Print("JumpToFrame interpreter 0x%" Px " at fp_ 0x%" Px " pc_ 0x%" Px
+              "\n",
+              reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
+              reinterpret_cast<uword>(pc_));
+  }
+#endif
+
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartInterpretedTagId);
   // Clear top exit frame.
@@ -3598,6 +3901,7 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
 void Interpreter::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&pp_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&argdesc_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&subtype_test_cache_));
 }
 
 }  // namespace dart

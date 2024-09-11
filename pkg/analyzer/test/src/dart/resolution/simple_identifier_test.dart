@@ -17,13 +17,13 @@ main() {
 class SimpleIdentifierResolutionTest extends PubPackageResolutionTest {
   test_augment_topLevel_function_with_function() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment void foo() {}
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 void foo() {}
 
@@ -43,13 +43,13 @@ SimpleIdentifier
 
   test_augment_topLevel_getter_with_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment int get foo => 1;
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 int get foo => 0;
 
@@ -69,13 +69,13 @@ SimpleIdentifier
 
   test_augment_topLevel_setter_with_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment set foo(int _) {}
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 set foo(int _) {}
 
@@ -107,13 +107,13 @@ AssignmentExpression
 
   test_augment_topLevel_variable_with_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment int get foo() => 1;
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 int foo = 0;
 
@@ -133,13 +133,13 @@ SimpleIdentifier
 
   test_augment_topLevel_variable_with_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment int foo = 1;
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 int foo = 0;
 
@@ -372,14 +372,14 @@ SimpleIdentifier
 
   test_inClass_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 int get foo => 0;
 
@@ -653,14 +653,14 @@ SimpleIdentifier
 
   test_inMixin_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment mixin A {
   int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 int get foo => 0;
 

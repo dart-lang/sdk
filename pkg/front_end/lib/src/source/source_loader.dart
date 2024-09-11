@@ -969,7 +969,8 @@ severity: $severity
   Set<SourceCompilationUnit> _unavailableDartLibraries = {};
 
   Future<Token> tokenize(SourceCompilationUnit compilationUnit,
-      {bool suppressLexicalErrors = false}) async {
+      {bool suppressLexicalErrors = false,
+      bool allowLazyStrings = true}) async {
     target.benchmarker
         // Coverage-ignore(suite): Not run.
         ?.beginSubdivide(BenchmarkSubdivides.tokenize);
@@ -1060,7 +1061,7 @@ severity: $severity
           enableExtensionMethods:
               compilationUnit.libraryFeatures.extensionMethods.isEnabled,
           enableNonNullable: true);
-    });
+    }, allowLazyStrings: allowLazyStrings);
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
@@ -1274,7 +1275,8 @@ severity: $severity
     // second time, and the first time was in [buildOutline] above. So this
     // time we suppress lexical errors.
     SourceCompilationUnit compilationUnit = library.compilationUnit;
-    Token tokens = await tokenize(compilationUnit, suppressLexicalErrors: true);
+    Token tokens = await tokenize(compilationUnit,
+        suppressLexicalErrors: true, allowLazyStrings: false);
 
     if (target.benchmarker != null) {
       // When benchmarking we do extra parsing on it's own to get a timing of
@@ -1310,8 +1312,8 @@ severity: $severity
         allowPatterns: library.libraryFeatures.patterns.isEnabled);
     parser.parseUnit(tokens);
     for (SourceCompilationUnit compilationUnit in library.parts) {
-      Token tokens =
-          await tokenize(compilationUnit, suppressLexicalErrors: true);
+      Token tokens = await tokenize(compilationUnit,
+          suppressLexicalErrors: true, allowLazyStrings: false);
       DietListener listener =
           createDietListener(library, compilationUnit.offsetMap);
       DietParser parser = new DietParser(listener,
@@ -1328,7 +1330,7 @@ severity: $severity
       FunctionNode parameters,
       VariableDeclaration? extensionThis) async {
     Token token = await tokenize(libraryBuilder.compilationUnit,
-        suppressLexicalErrors: false);
+        suppressLexicalErrors: false, allowLazyStrings: false);
     DietListener dietListener = createDietListener(
         libraryBuilder,
         // Expression compilation doesn't build an outline, and thus doesn't
@@ -1867,9 +1869,9 @@ severity: $severity
   void finishTypeVariables(Iterable<SourceLibraryBuilder> libraryBuilders,
       ClassBuilder object, TypeBuilder dynamicType) {
     Map<NominalVariableBuilder, SourceLibraryBuilder>
-        unboundTypeVariableBuilders = {};
+        unboundTypeVariableBuilders = new Map.identity();
     Map<StructuralVariableBuilder, SourceLibraryBuilder>
-        unboundFunctionTypeTypeVariableBuilders = {};
+        unboundFunctionTypeTypeVariableBuilders = new Map.identity();
     for (SourceLibraryBuilder library in libraryBuilders) {
       library.collectUnboundTypeVariables(
           unboundTypeVariableBuilders, unboundFunctionTypeTypeVariableBuilders);
@@ -1889,17 +1891,23 @@ severity: $severity
           SourceLibraryBuilder? libraryBuilder =
               unboundTypeVariableBuilders[builder]!;
           libraryBuilder.checkTypeVariableDependencies([builder]);
-          builder.finish(libraryBuilder, object, dynamicType);
         case StructuralVariableBuilder():
           SourceLibraryBuilder? libraryBuilder =
               unboundFunctionTypeTypeVariableBuilders[builder]!;
           libraryBuilder.checkTypeVariableDependencies([builder]);
-          builder.finish(libraryBuilder, object, dynamicType);
       }
     }
-
-    for (SourceLibraryBuilder library in libraryBuilders) {
-      library.processPendingNullabilities();
+    for (TypeVariableBuilder builder in sortedTypeVariables) {
+      switch (builder) {
+        case NominalVariableBuilder():
+          SourceLibraryBuilder? libraryBuilder =
+              unboundTypeVariableBuilders[builder]!;
+          builder.finish(libraryBuilder, object, dynamicType);
+        case StructuralVariableBuilder():
+          SourceLibraryBuilder? libraryBuilder =
+              unboundFunctionTypeTypeVariableBuilders[builder]!;
+          builder.finish(libraryBuilder, object, dynamicType);
+      }
     }
 
     ticker.logMs("Resolved ${sortedTypeVariables.length} type-variable bounds");
@@ -2121,7 +2129,7 @@ severity: $severity
   }
 
   void checkClassSupertypes(
-      SourceClassBuilder cls,
+      SourceClassBuilder classBuilder,
       Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypeMap,
       Set<ClassBuilder> denyListedClasses,
       ClassBuilder enumClass) {
@@ -2132,87 +2140,79 @@ severity: $severity
       TypeDeclarationBuilder? supertype = directSupertypes[i];
       if (supertype is SourceEnumBuilder) {
         // Coverage-ignore-block(suite): Not run.
-        cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
-            cls.charOffset, noLength);
-      } else if (!cls.libraryBuilder.mayImplementRestrictedTypes &&
+        classBuilder.addProblem(
+            templateExtendingEnum.withArguments(supertype.name),
+            classBuilder.charOffset,
+            noLength);
+      } else if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
           (denyListedClasses.contains(supertype) ||
               identical(supertype, enumClass) &&
-                  checkEnumSupertypeIsDenylisted(cls))) {
+                  checkEnumSupertypeIsDenylisted(classBuilder))) {
         TypeAliasBuilder? aliasBuilder = directSupertypeMap[supertype];
         if (aliasBuilder != null) {
-          cls.addProblem(
+          classBuilder.addProblem(
               templateExtendingRestricted
                   .withArguments(supertype!.fullNameForErrors),
-              cls.charOffset,
+              classBuilder.charOffset,
               noLength,
               context: [
                 messageTypedefCause.withLocation(
                     aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
               ]);
         } else {
-          cls.addProblem(
+          classBuilder.addProblem(
               templateExtendingRestricted
                   .withArguments(supertype!.fullNameForErrors),
-              cls.charOffset,
+              classBuilder.charOffset,
               noLength);
         }
       }
     }
 
     // Check that the mixed-in type can be used as a mixin.
-    final TypeBuilder? mixedInTypeBuilder = cls.mixedInTypeBuilder;
+    final TypeBuilder? mixedInTypeBuilder = classBuilder.mixedInTypeBuilder;
     if (mixedInTypeBuilder != null) {
-      bool isClassBuilder = false;
-      if (mixedInTypeBuilder is NamedTypeBuilder) {
-        TypeDeclarationBuilder? builder = mixedInTypeBuilder.declaration;
-        if (builder is TypeAliasBuilder) {
-          TypeAliasBuilder aliasBuilder = builder;
-          NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
-          builder = aliasBuilder.unaliasDeclaration(namedBuilder.typeArguments,
-              isUsedAsClass: true,
-              usedAsClassCharOffset: namedBuilder.charOffset,
-              usedAsClassFileUri: namedBuilder.fileUri);
-          if (builder is! ClassBuilder) {
-            cls.addProblem(
-                templateIllegalMixin.withArguments(builder!.fullNameForErrors),
-                cls.charOffset,
-                noLength,
-                context: [
-                  messageTypedefCause.withLocation(
-                      aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
-                ]);
-            return;
-          } else if (!cls.libraryBuilder.mayImplementRestrictedTypes &&
-              denyListedClasses.contains(builder)) {
-            cls.addProblem(
-                templateExtendingRestricted
-                    .withArguments(mixedInTypeBuilder.fullNameForErrors),
-                cls.charOffset,
-                noLength,
-                context: [
-                  messageTypedefUnaliasedTypeCause.withLocation(
-                      builder.fileUri, builder.charOffset, noLength),
-                ]);
-            return;
-          }
-        }
-        if (builder is ClassBuilder) {
-          isClassBuilder = true;
+      TypeDeclarationBuilder? declaration = mixedInTypeBuilder.declaration;
+      TypeDeclarationBuilder? unaliasedDeclaration =
+          mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true);
+
+      if (unaliasedDeclaration is ClassBuilder) {
+        if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
+            denyListedClasses.contains(unaliasedDeclaration)) {
+          classBuilder.addProblem(
+              templateExtendingRestricted
+                  .withArguments(mixedInTypeBuilder.fullNameForErrors),
+              classBuilder.charOffset,
+              noLength,
+              context: declaration is TypeAliasBuilder
+                  ? [
+                      messageTypedefUnaliasedTypeCause.withLocation(
+                          unaliasedDeclaration.fileUri,
+                          unaliasedDeclaration.charOffset,
+                          noLength),
+                    ]
+                  : null);
+        } else {
           // Assume that mixin classes fulfill their contract of having no
           // generative constructors.
-          if (!builder.isMixinClass) {
-            _checkConstructorsForMixin(cls, builder);
+          if (!unaliasedDeclaration.isMixinClass) {
+            _checkConstructorsForMixin(classBuilder, unaliasedDeclaration);
           }
         }
-      }
-      if (!isClassBuilder) {
+      } else {
         // TODO(ahe): Either we need to check this for superclass and
         // interfaces, or this shouldn't be necessary (or handled elsewhere).
-        cls.addProblem(
+        classBuilder.addProblem(
             templateIllegalMixin
                 .withArguments(mixedInTypeBuilder.fullNameForErrors),
-            cls.charOffset,
-            noLength);
+            classBuilder.charOffset,
+            noLength,
+            context: declaration is TypeAliasBuilder
+                ? [
+                    messageTypedefCause.withLocation(
+                        declaration.fileUri, declaration.charOffset, noLength),
+                  ]
+                : null);
       }
     }
   }
@@ -2304,20 +2304,6 @@ severity: $severity
       }
       isExempt = false;
       return false;
-    }
-
-    TypeDeclarationBuilder? unaliasDeclaration(TypeBuilder typeBuilder) {
-      TypeDeclarationBuilder? typeDeclarationBuilder = typeBuilder.declaration;
-      if (typeDeclarationBuilder is TypeAliasBuilder) {
-        final TypeAliasBuilder aliasBuilder = typeDeclarationBuilder;
-        final NamedTypeBuilder namedBuilder = typeBuilder as NamedTypeBuilder;
-        typeDeclarationBuilder = aliasBuilder.unaliasDeclaration(
-            namedBuilder.typeArguments,
-            isUsedAsClass: true,
-            usedAsClassCharOffset: namedBuilder.charOffset,
-            usedAsClassFileUri: namedBuilder.fileUri);
-      }
-      return typeDeclarationBuilder;
     }
 
     // All subtypes of a base or final class or mixin must also be base,
@@ -2441,7 +2427,7 @@ severity: $severity
     final TypeBuilder? supertypeBuilder = cls.supertypeBuilder;
     if (supertypeBuilder != null) {
       final TypeDeclarationBuilder? supertypeDeclaration =
-          unaliasDeclaration(supertypeBuilder);
+          supertypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true);
       if (supertypeDeclaration is ClassBuilder) {
         checkForBaseFinalRestriction(supertypeDeclaration);
 
@@ -2490,7 +2476,7 @@ severity: $severity
     final TypeBuilder? mixedInTypeBuilder = cls.mixedInTypeBuilder;
     if (mixedInTypeBuilder != null) {
       final TypeDeclarationBuilder? mixedInTypeDeclaration =
-          unaliasDeclaration(mixedInTypeBuilder);
+          mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true);
       if (mixedInTypeDeclaration is ClassBuilder) {
         checkForBaseFinalRestriction(mixedInTypeDeclaration);
 
@@ -2527,7 +2513,7 @@ severity: $severity
     if (interfaceBuilders != null) {
       for (TypeBuilder interfaceBuilder in interfaceBuilders) {
         final TypeDeclarationBuilder? interfaceDeclaration =
-            unaliasDeclaration(interfaceBuilder);
+            interfaceBuilder.computeUnaliasedDeclaration(isUsedAsClass: true);
         if (interfaceDeclaration is ClassBuilder) {
           checkForBaseFinalRestriction(interfaceDeclaration,
               implementsBuilder: interfaceBuilder);
@@ -2606,9 +2592,6 @@ severity: $severity
         referenceFromIndex!.addIndexedLibrary(target, library.indexedLibrary!);
       }
       libraries.add(target);
-    }
-    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      library.processPendingNullabilities();
     }
     ticker.logMs("Built component");
   }

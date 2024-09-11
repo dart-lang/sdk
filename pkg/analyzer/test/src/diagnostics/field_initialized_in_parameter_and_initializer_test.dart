@@ -18,7 +18,7 @@ class FinalInitializedInParameterAndInitializerTest
     extends PubPackageResolutionTest {
   test_class_augmentation() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   final int f;
@@ -27,7 +27,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A(this.f) : f = 0;
@@ -40,7 +40,7 @@ augment class A {
     await resolveFile2(a);
     assertErrorsInResult([
       error(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-          70, 1),
+          62, 1),
     ]);
   }
 

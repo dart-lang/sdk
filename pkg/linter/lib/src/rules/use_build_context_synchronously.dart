@@ -270,12 +270,14 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
       return switch ((leftGuardState, rightGuardState)) {
         // Anything on the left followed by async on the right is async.
         (_, AsyncState.asynchronous) => AsyncState.asynchronous,
-        // Async on the left followed by anything on the right is async.
+        // Anything on the left followed by not-mounted on the right is a
+        // not-mounted check.
+        (_, AsyncState.notMountedCheck) => AsyncState.notMountedCheck,
+        // Async on the left followed by anything else on the right is async.
         (AsyncState.asynchronous, _) => AsyncState.asynchronous,
         // A mounted guard only applies if both sides are guarded.
         (AsyncState.mountedCheck, AsyncState.mountedCheck) =>
           AsyncState.mountedCheck,
-        (_, AsyncState.notMountedCheck) => AsyncState.notMountedCheck,
         (AsyncState.notMountedCheck, _) => AsyncState.notMountedCheck,
         // Otherwise it's just uninteresting.
         (_, _) => null,
@@ -957,7 +959,6 @@ class UseBuildContextSynchronously extends LintRule {
           name: 'use_build_context_synchronously',
           description: _desc,
           details: _details,
-          categories: {LintRuleCategory.errorProne, LintRuleCategory.flutter},
           state: State.stable(since: Version(3, 2, 0)),
         );
 
@@ -1388,7 +1389,7 @@ extension ElementExtension on Element {
     var self = this;
 
     if (self is PropertyAccessorElement) {
-      var enclosingElement = self.enclosingElement;
+      var enclosingElement = self.enclosingElement3;
       if (enclosingElement is InterfaceElement && isState(enclosingElement)) {
         // The BuildContext object is the field on Flutter's State class.
         // This object can only be guarded by async gaps with a mounted

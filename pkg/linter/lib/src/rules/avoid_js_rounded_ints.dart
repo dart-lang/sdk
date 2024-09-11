@@ -36,10 +36,10 @@ BigInt value = BigInt.parse('9007199254740995');
 class AvoidJsRoundedInts extends LintRule {
   AvoidJsRoundedInts()
       : super(
-            name: 'avoid_js_rounded_ints',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne, LintRuleCategory.web});
+          name: 'avoid_js_rounded_ints',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_js_rounded_ints;

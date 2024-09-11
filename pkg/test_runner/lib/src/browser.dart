@@ -60,24 +60,26 @@ String pathToJSIdentifier(String path) {
       .replaceAll('-', '_'));
 }
 
+final _digitPattern = RegExp(r'\d');
+
 /// Escape [name] to make it into a valid identifier.
 String _toJSIdentifier(String name) {
   if (name.isEmpty) return r'$';
 
   // Escape any invalid characters
-  var result = name.replaceAllMapped(_invalidCharInIdentifier,
-      (match) => '\$${match.group(0)!.codeUnits.join("")}');
+  var result = name.replaceAllMapped(
+      _invalidCharInIdentifier, (match) => '\$${match[0]!.codeUnits.join("")}');
 
   // Ensure the identifier first character is not numeric and that the whole
   // identifier is not a keyword.
-  if (result.startsWith(RegExp('[0-9]')) || _invalidVariableName(result)) {
+  if (result.startsWith(_digitPattern) || _invalidVariableName(result)) {
     return '\$$result';
   }
   return result;
 }
 
 // Invalid characters for identifiers, which would need to be escaped.
-final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_0-9]');
+final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_\d]');
 
 bool _invalidVariableName(String keyword, {bool strictMode = true}) {
   switch (keyword) {
@@ -328,15 +330,21 @@ String dart2wasmHtml(String title, String wasmPath, String mjsPath) {
           src="/root_dart/pkg/test_runner/lib/src/test_controller.js">
   </script>
   <script type="module">
-  let dart2wasm_runtime = await import('$mjsPath');
-  const dartModulePromise =
-      dart2wasm_runtime.compileStreaming(fetch('$wasmPath'));
-  let moduleInstance =
-      await dart2wasm_runtime.instantiate(dartModulePromise, {});
+  async function loadAndRun(mjsPath, wasmPath) {
+    const mjs = await import(mjsPath);
+    const compiledApp = await mjs.compileStreaming(fetch(wasmPath));
+    const appInstance = await compiledApp.instantiate({}, {
+      loadDeferredWasm: (moduleName) => {
+        const moduleFile = '$wasmPath'.replace('.wasm', `_\${moduleName}.wasm`);
+        return fetch(moduleFile);
+      }
+    });
+    dartMainRunner(() => {
+      appInstance.invokeMain();
+    });
+  }
 
-  dartMainRunner(() => {
-    dart2wasm_runtime.invoke(moduleInstance);
-  });
+  loadAndRun('$mjsPath', '$wasmPath');
   </script>
 </body>
 </html>""";

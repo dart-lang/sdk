@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/completion/dart/not_imported_comple
 import 'package:analysis_server/src/services/completion/dart/override_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_helper.dart';
+import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
@@ -368,12 +369,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         for (var parameter in availableNamedParameters) {
           var matcherScore = state.matcher.score(parameter.displayName);
           if (matcherScore != -1) {
+            var isWidget = isFlutterWidgetParameter(parameter);
             collector.addSuggestion(NamedArgumentSuggestion(
               parameter: parameter,
               appendColon: true,
               appendComma: appendComma,
               replacementLength: replacementLength,
               matcherScore: matcherScore,
+              preferredQuoteForStrings: state.preferredQuoteForStrings,
+              isWidget: isWidget,
             ));
           }
         }
@@ -1972,11 +1976,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
                 if (!usedNames.contains(parameter.name)) {
                   var matcherScore = state.matcher.score(parameter.displayName);
                   if (matcherScore != -1) {
+                    var isWidget = isFlutterWidgetParameter(parameter);
                     collector.addSuggestion(NamedArgumentSuggestion(
                         parameter: parameter,
                         matcherScore: matcherScore,
                         appendColon: appendColon,
-                        appendComma: false));
+                        appendComma: false,
+                        isWidget: isWidget,
+                        preferredQuoteForStrings:
+                            state.preferredQuoteForStrings));
                   }
                 }
               }
@@ -3940,7 +3948,6 @@ extension on AstNode {
     return switch (this) {
       AdjacentStrings(:var strings) => strings.contains(child),
       ArgumentList(:var arguments) => arguments.contains(child),
-      AugmentationImportDirective(:var metadata) => metadata.contains(child),
       Block(:var statements) => statements.contains(child),
       CascadeExpression(:var cascadeSections) =>
         cascadeSections.contains(child),
@@ -3982,7 +3989,6 @@ extension on AstNode {
             configurations.contains(child) ||
             metadata.contains(child),
       LabeledStatement(:var labels) => labels.contains(child),
-      LibraryAugmentationDirective(:var metadata) => metadata.contains(child),
       LibraryDirective(:var metadata) => metadata.contains(child),
       LibraryIdentifier(:var components) => components.contains(child),
       ListLiteral(:var elements) => elements.contains(child),

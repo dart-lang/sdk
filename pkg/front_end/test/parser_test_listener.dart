@@ -1661,7 +1661,8 @@ class ParserTestListener implements Listener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
+      Token name,
+      String? enclosingDeclarationName) {
     seen(augmentToken);
     seen(externalToken);
     seen(staticToken);
@@ -1677,7 +1678,8 @@ class ParserTestListener implements Listener {
         '$covariantToken, '
         '$varFinalOrConst, '
         '$getOrSet, '
-        '$name)');
+        '$name, '
+        '$enclosingDeclarationName)');
     indent++;
   }
 
@@ -1855,12 +1857,15 @@ class ParserTestListener implements Listener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint(
-        'endOptionalFormalParameters(' '$count, ' '$beginToken, ' '$endToken)');
+    doPrint('endOptionalFormalParameters('
+        '$count, '
+        '$beginToken, '
+        '$endToken, '
+        '$kind)');
   }
 
   @override

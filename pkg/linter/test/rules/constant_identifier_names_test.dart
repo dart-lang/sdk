@@ -19,7 +19,7 @@ class ConstantIdentifierNamesTest extends LintRuleTest {
 
   test_augmentationEnum() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 enum E {
   a;
@@ -27,33 +27,33 @@ enum E {
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment enum E {
   Xy;
 }
 ''', [
-      lint(46, 2),
+      lint(38, 2),
     ]);
   }
 
   test_augmentationTopLevelVariable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 const PI = 3.14;
 ''', [
-      lint(33, 2),
+      lint(25, 2),
     ]);
   }
 
   test_augmentedEnumValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 enum E {
   Xy;
@@ -61,7 +61,7 @@ enum E {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment enum E {
   augment Xy;
@@ -71,13 +71,13 @@ augment enum E {
 
   test_augmentedTopLevelVariable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 const PI = 3.14;
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment const PI = 3.1415;
 ''');

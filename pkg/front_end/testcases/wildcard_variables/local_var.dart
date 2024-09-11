@@ -12,10 +12,6 @@ test() {
   int test2() => 1;
   var _ = test2();
 
-  late bool _;
-  late int _, _ = 3, x = 2;
-  late int _ = 3, _ = 3;
-
   const _ = 2 + 3; // This evaluate to the constant 5.
   const int _ = 3, _ = 3;
 

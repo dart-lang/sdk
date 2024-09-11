@@ -80,7 +80,7 @@ String getElementKindName(Element element) {
 String getElementQualifiedName(Element element) {
   var kind = element.kind;
   if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
-    return '${element.enclosingElement!.displayName}.${element.displayName}';
+    return '${element.enclosingElement3!.displayName}.${element.displayName}';
   } else if (kind == ElementKind.LIBRARY) {
     // Libraries may not have names, so use a path relative to the context root.
     var session = element.session!;

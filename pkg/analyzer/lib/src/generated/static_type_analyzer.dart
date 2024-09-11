@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -238,8 +239,9 @@ class StaticTypeAnalyzer {
 
   void visitSuperExpression(covariant SuperExpressionImpl node) {
     var thisType = _resolver.thisType;
-    _resolver.flowAnalysis.flow
-        ?.thisOrSuper(node, thisType ?? _dynamicType, isSuper: true);
+    _resolver.flowAnalysis.flow?.thisOrSuper(
+        node, SharedTypeView(thisType ?? _dynamicType),
+        isSuper: true);
     if (thisType == null ||
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson): Report this error if it hasn't already been
@@ -258,8 +260,9 @@ class StaticTypeAnalyzer {
   /// interface of the immediately enclosing class.</blockquote>
   void visitThisExpression(covariant ThisExpressionImpl node) {
     var thisType = _resolver.thisType;
-    _resolver.flowAnalysis.flow
-        ?.thisOrSuper(node, thisType ?? _dynamicType, isSuper: false);
+    _resolver.flowAnalysis.flow?.thisOrSuper(
+        node, SharedTypeView(thisType ?? _dynamicType),
+        isSuper: false);
     if (thisType == null) {
       // TODO(brianwilkerson): Report this error if it hasn't already been
       // reported.

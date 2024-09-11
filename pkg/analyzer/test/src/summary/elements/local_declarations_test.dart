@@ -42,6 +42,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        f @0
+          reference: <testLibraryFragment>::@function::f
+          element: <none>
+  functions
+    f
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 
@@ -73,14 +82,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
+          constructors
+            new @12
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -117,14 +135,31 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
+          methods
+            m @12
+              reference: <testLibraryFragment>::@class::C::@method::m
+              element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      methods
+        m
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
 
@@ -156,6 +191,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic g @-1
+          reference: <testLibraryFragment>::@topLevelVariable::g
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::g
+      getters
+        get g @4
+          reference: <testLibraryFragment>::@getter::g
+          element: <none>
+  topLevelVariables
+    synthetic g
+      reference: <none>
+      type: dynamic
+      firstFragment: <testLibraryFragment>::@topLevelVariable::g
+      getter: <none>
+  getters
+    static get g
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::g
 ''');
   }
 
@@ -191,14 +246,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
+          constructors
+            new @12
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -239,14 +303,31 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
+          methods
+            m @12
+              reference: <testLibraryFragment>::@class::C::@method::m
+              element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      methods
+        m
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
 
@@ -277,6 +358,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        main @0
+          reference: <testLibraryFragment>::@function::main
+          element: <none>
+  functions
+    main
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 }

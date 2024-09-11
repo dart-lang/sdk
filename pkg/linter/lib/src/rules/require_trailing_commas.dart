@@ -52,7 +52,6 @@ class RequireTrailingCommas extends LintRule {
           name: 'require_trailing_commas',
           description: _desc,
           details: _details,
-          categories: {LintRuleCategory.style},
         );
 
   @override

@@ -39,10 +39,10 @@ Future<int> f2() {
 class UnnecessaryAwaitInReturn extends LintRule {
   UnnecessaryAwaitInReturn()
       : super(
-            name: 'unnecessary_await_in_return',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'unnecessary_await_in_return',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_await_in_return;

@@ -64,7 +64,7 @@ class InitializeMessageHandler
     );
 
     var capabilities = server.capabilitiesComputer
-        .computeServerCapabilities(server.lspClientCapabilities!);
+        .computeServerCapabilities(server.editorClientCapabilities!);
     server.capabilities = capabilities;
 
     var sdkVersion = Platform.version;

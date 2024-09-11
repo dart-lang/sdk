@@ -72,10 +72,10 @@ const List<String> _fileSystemEntityMethodNames = <String>[
 class AvoidSlowAsyncIo extends LintRule {
   AvoidSlowAsyncIo()
       : super(
-            name: 'avoid_slow_async_io',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.nonPerformant});
+          name: 'avoid_slow_async_io',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_slow_async_io;

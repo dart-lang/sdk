@@ -37,10 +37,10 @@ Set<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
 class UnnecessaryLambdas extends LintRule {
   UnnecessaryLambdas()
       : super(
-            name: 'unnecessary_lambdas',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'unnecessary_lambdas',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_lambdas;

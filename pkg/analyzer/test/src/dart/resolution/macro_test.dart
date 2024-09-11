@@ -811,7 +811,7 @@ class A {
     // into a library augmentation.
     assertResolvedLibraryResultText(result, configure: (configuration) {
       configuration.unitConfiguration.withContentPredicate = (unitResult) {
-        return unitResult.isMacroAugmentation;
+        return unitResult.isMacroPart;
       };
     }, r'''
 ResolvedLibraryResult #0
@@ -826,7 +826,7 @@ ResolvedLibraryResult #0
     ResolvedUnitResult #2
       path: /home/test/lib/test.macro.dart
       uri: package:test/test.macro.dart
-      flags: exists isMacroAugmentation isPart
+      flags: exists isMacroPart isPart
       content
 ---
 part of 'package:test/test.dart';
@@ -1060,7 +1060,7 @@ ResolvedLibraryResult #0
     ResolvedUnitResult #2
       path: /home/test/lib/test.macro.dart
       uri: package:test/test.macro.dart
-      flags: exists isMacroAugmentation isPart
+      flags: exists isMacroPart isPart
 ''');
   }
 
@@ -1085,13 +1085,13 @@ class A {}
     assertResolvedLibraryResultText(result, configure: (configuration) {
       configuration.unitConfiguration
         ..nodeSelector = (unitResult) {
-          if (unitResult.isMacroAugmentation) {
+          if (unitResult.isMacroPart) {
             return unitResult.findNode.namedType('NotType');
           }
           return null;
         }
         ..withContentPredicate = (unitResult) {
-          return unitResult.isMacroAugmentation;
+          return unitResult.isMacroPart;
         };
     }, r'''
 ResolvedLibraryResult #0
@@ -1104,7 +1104,7 @@ ResolvedLibraryResult #0
     ResolvedUnitResult #2
       path: /home/test/lib/test.macro.dart
       uri: package:test/test.macro.dart
-      flags: exists isMacroAugmentation isPart
+      flags: exists isMacroPart isPart
       content
 ---
 part of 'package:test/test.dart';
@@ -1152,7 +1152,7 @@ void f() {
           return null;
         }
         ..withContentPredicate = (unitResult) {
-          return unitResult.isMacroAugmentation;
+          return unitResult.isMacroPart;
         };
     }, r'''
 ResolvedLibraryResult #0
@@ -1175,7 +1175,7 @@ ResolvedLibraryResult #0
     ResolvedUnitResult #2
       path: /home/test/lib/test.macro.dart
       uri: package:test/test.macro.dart
-      flags: exists isMacroAugmentation isPart
+      flags: exists isMacroPart isPart
       content
 ---
 part of 'package:test/test.dart';

@@ -56,10 +56,10 @@ class Better {
 class HashAndEquals extends LintRule {
   HashAndEquals()
       : super(
-            name: 'hash_and_equals',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'hash_and_equals',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.hash_and_equals;

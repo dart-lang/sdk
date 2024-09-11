@@ -1463,7 +1463,8 @@ class FfiTransformer extends Transformer {
         null;
   }
 
-  void addPragmaPreferInline(Procedure node) {
+  void addPragmaPreferInline(Member node) {
+    assert(node is Procedure || node is Constructor);
     node.addAnnotation(
       ConstantExpression(
         InstanceConstant(

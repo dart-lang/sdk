@@ -45,10 +45,10 @@ provide a name in the `library` directive.
 class LibraryAnnotations extends LintRule {
   LibraryAnnotations()
       : super(
-            name: 'library_annotations',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'library_annotations',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.library_annotations;
@@ -74,9 +74,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       firstDirective = node.directives.first;
     }
     for (var directive in node.directives) {
-      if (directive is PartDirective) {
-        return;
-      }
+      if (directive is PartOfDirective) return;
+
       if (directive is! LibraryDirective) {
         _check(directive);
       }
@@ -121,7 +120,7 @@ extension on ElementAnnotation {
   }) {
     var element = this.element;
     return element is ConstructorElement &&
-        element.enclosingElement.name == className &&
+        element.enclosingElement3.name == className &&
         element.library.name == libraryName;
   }
 }

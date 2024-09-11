@@ -28,99 +28,153 @@ mixin StandardBounds {
     assert(coreTypes.isTop(s) || coreTypes.isObject(s));
     assert(coreTypes.isTop(t) || coreTypes.isObject(t));
 
-    // MORETOP(void, T) = true.
-    if (s is VoidType) return true;
+    switch ((s, t)) {
+      // MORETOP(void, T) = true.
+      case (VoidType(), _):
+        return true;
 
-    // MORETOP(S, void) = false.
-    if (t is VoidType) return false;
+      // MORETOP(S, void) = false.
+      case (_, VoidType()):
+        return false;
 
-    // MORETOP(dynamic, T) = true.
-    if (s is DynamicType) return true;
+      // MORETOP(dynamic, T) = true.
+      case (DynamicType(), _):
+        return true;
 
-    // MORETOP(S, dynamic) = false.
-    if (t is DynamicType) return false;
+      // MORETOP(S, dynamic) = false.
+      case (_, DynamicType()):
+        return false;
 
-    // MORETOP(Object, T) = true.
-    if (s is InterfaceType &&
-        s.classNode == coreTypes.objectClass &&
-        s.declaredNullability == Nullability.nonNullable) {
-      return true;
+      // MORETOP(Object, T) = true.
+      case (
+            InterfaceType(
+              classNode: Class sClassNode,
+              declaredNullability: Nullability.nonNullable
+            ),
+            _
+          )
+          when sClassNode == coreTypes.objectClass:
+        return true;
+
+      // MORETOP(S, Object) = false.
+      case (
+            _,
+            InterfaceType(
+              classNode: Class tClassNode,
+              declaredNullability: Nullability.nonNullable
+            )
+          )
+          when tClassNode == coreTypes.objectClass:
+        return false;
+
+      // MORETOP(S*, T*) = MORETOP(S, T).
+      case (
+          DartType(declaredNullability: Nullability.legacy),
+          DartType(declaredNullability: Nullability.legacy)
+        ):
+        DartType nonNullableS =
+            s.withDeclaredNullability(Nullability.nonNullable);
+        assert(!identical(s, nonNullableS));
+        DartType nonNullableT =
+            t.withDeclaredNullability(Nullability.nonNullable);
+        assert(!identical(t, nonNullableT));
+        return moretop(nonNullableS, nonNullableT);
+
+      // MORETOP(S, T*) = true.
+      case (
+          DartType(declaredNullability: Nullability.nonNullable),
+          DartType(declaredNullability: Nullability.legacy)
+        ):
+        return true;
+
+      // MORETOP(S*, T) = false.
+      case (
+          DartType(declaredNullability: Nullability.legacy),
+          DartType(declaredNullability: Nullability.nonNullable)
+        ):
+        return false;
+
+      // MORETOP(S?, T?) == MORETOP(S, T).
+      case (
+          DartType(declaredNullability: Nullability.nullable),
+          DartType(declaredNullability: Nullability.nullable)
+        ):
+        DartType nonNullableS =
+            s.withDeclaredNullability(Nullability.nonNullable);
+        assert(!identical(s, nonNullableS));
+        DartType nonNullableT =
+            t.withDeclaredNullability(Nullability.nonNullable);
+        assert(!identical(t, nonNullableT));
+        return moretop(nonNullableS, nonNullableT);
+
+      // MORETOP(S, T?) = true.
+      case (
+          DartType(declaredNullability: Nullability.nonNullable),
+          DartType(declaredNullability: Nullability.nullable)
+        ):
+        return true;
+
+      // MORETOP(S?, T) = false.
+      case (
+          DartType(declaredNullability: Nullability.nullable),
+          DartType(declaredNullability: Nullability.nonNullable)
+        ):
+        return false;
+
+      // TODO(cstefantsova): Update the following after the spec is updated.
+      case (
+          DartType(declaredNullability: Nullability.nullable),
+          DartType(declaredNullability: Nullability.legacy)
+        ):
+        return true;
+
+      // TODO(cstefantsova): Update the following after the spec is updated.
+      case (
+          DartType(declaredNullability: Nullability.legacy),
+          DartType(declaredNullability: Nullability.nullable)
+        ):
+        return false;
+
+      // MORETOP(FutureOr<S>, FutureOr<T>) = MORETOP(S, T).
+      case (
+          FutureOrType(
+            typeArgument: DartType sTypeArgument,
+            declaredNullability: Nullability.nonNullable
+          ),
+          FutureOrType(
+            typeArgument: DartType tTypeArgument,
+            declaredNullability: Nullability.nonNullable
+          )
+        ):
+        return moretop(sTypeArgument, tTypeArgument);
+
+      case (InterfaceType(), _):
+      case (_, InterfaceType()):
+      case (ExtensionType(), _):
+      case (_, ExtensionType()):
+      case (FunctionType(), _):
+      case (_, FunctionType()):
+      case (RecordType(), _):
+      case (_, RecordType()):
+      case (NeverType(), _):
+      case (_, NeverType()):
+      case (NullType(), _):
+      case (_, NullType()):
+      case (FutureOrType(), _):
+      case (_, FutureOrType()):
+      case (TypeParameterType(), _):
+      case (_, TypeParameterType()):
+      case (StructuralParameterType(), _):
+      case (_, StructuralParameterType()):
+      case (IntersectionType(), _):
+      case (_, IntersectionType()):
+      case (TypedefType(), _):
+      case (_, TypedefType()):
+      case (InvalidType(), _):
+      case (_, InvalidType()):
+      case (AuxiliaryType(), _):
+        throw new UnsupportedError("moretop($s, $t)");
     }
-
-    // MORETOP(S, Object) = false.
-    if (t is InterfaceType &&
-        t.classNode == coreTypes.objectClass &&
-        t.declaredNullability == Nullability.nonNullable) {
-      return false;
-    }
-
-    // MORETOP(S*, T*) = MORETOP(S, T).
-    if (s.declaredNullability == Nullability.legacy &&
-        t.declaredNullability == Nullability.legacy) {
-      DartType nonNullableS =
-          s.withDeclaredNullability(Nullability.nonNullable);
-      assert(!identical(s, nonNullableS));
-      DartType nonNullableT =
-          t.withDeclaredNullability(Nullability.nonNullable);
-      assert(!identical(t, nonNullableT));
-      return moretop(nonNullableS, nonNullableT);
-    }
-
-    // MORETOP(S, T*) = true.
-    if (s.declaredNullability == Nullability.nonNullable &&
-        t.declaredNullability == Nullability.legacy) {
-      return true;
-    }
-
-    // MORETOP(S*, T) = false.
-    if (s.declaredNullability == Nullability.legacy &&
-        t.declaredNullability == Nullability.nonNullable) {
-      return false;
-    }
-
-    // MORETOP(S?, T?) == MORETOP(S, T).
-    if (s.declaredNullability == Nullability.nullable &&
-        t.declaredNullability == Nullability.nullable) {
-      DartType nonNullableS =
-          s.withDeclaredNullability(Nullability.nonNullable);
-      assert(!identical(s, nonNullableS));
-      DartType nonNullableT =
-          t.withDeclaredNullability(Nullability.nonNullable);
-      assert(!identical(t, nonNullableT));
-      return moretop(nonNullableS, nonNullableT);
-    }
-
-    // MORETOP(S, T?) = true.
-    if (s.declaredNullability == Nullability.nonNullable &&
-        t.declaredNullability == Nullability.nullable) {
-      return true;
-    }
-
-    // MORETOP(S?, T) = false.
-    if (s.declaredNullability == Nullability.nullable &&
-        t.declaredNullability == Nullability.nonNullable) {
-      return false;
-    }
-
-    // TODO(cstefantsova): Update the following after the spec is updated.
-    if (s.declaredNullability == Nullability.nullable &&
-        t.declaredNullability == Nullability.legacy) {
-      return true;
-    }
-    if (s.declaredNullability == Nullability.legacy &&
-        t.declaredNullability == Nullability.nullable) {
-      return false;
-    }
-
-    // MORETOP(FutureOr<S>, FutureOr<T>) = MORETOP(S, T).
-    if (s is FutureOrType &&
-        s.declaredNullability == Nullability.nonNullable &&
-        t is FutureOrType &&
-        t.declaredNullability == Nullability.nonNullable) {
-      return moretop(s.typeArgument, t.typeArgument);
-    }
-
-    throw new UnsupportedError("moretop($s, $t)");
   }
 
   /// Checks the value of the MOREBOTTOM predicate for [s] and [t].
@@ -131,105 +185,140 @@ mixin StandardBounds {
     assert(coreTypes.isBottom(s) || coreTypes.isNull(s));
     assert(coreTypes.isBottom(t) || coreTypes.isNull(t));
 
-    // MOREBOTTOM(Never, T) = true.
-    if (s is NeverType && s.declaredNullability == Nullability.nonNullable) {
-      return true;
-    }
+    switch ((s, t)) {
+      // MOREBOTTOM(Never, T) = true.
+      case (NeverType(declaredNullability: Nullability.nonNullable), _):
+        return true;
 
-    // MOREBOTTOM(S, Never) = false.
-    if (t is NeverType && t.declaredNullability == Nullability.nonNullable) {
-      return false;
-    }
+      // MOREBOTTOM(S, Never) = false.
+      case (_, NeverType(declaredNullability: Nullability.nonNullable)):
+        return false;
 
-    // MOREBOTTOM(Null, T) = true.
-    if (s is NullType) {
-      return true;
-    }
+      // MOREBOTTOM(Null, T) = true.
+      case (NullType(), _):
+        return true;
 
-    // MOREBOTTOM(S, Null) = false.
-    if (t is NullType) {
-      return false;
-    }
+      // MOREBOTTOM(S, Null) = false.
+      case (_, NullType()):
+        return false;
 
-    // MOREBOTTOM(S?, T?) = MOREBOTTOM(S, T).
-    if (t.declaredNullability == Nullability.nullable &&
-        s.declaredNullability == Nullability.nullable) {
-      DartType nonNullableS =
-          s.withDeclaredNullability(Nullability.nonNullable);
-      assert(s != nonNullableS);
-      DartType nonNullableT =
-          t.withDeclaredNullability(Nullability.nonNullable);
-      assert(t != nonNullableT);
-      return morebottom(nonNullableS, nonNullableT);
-    }
+      // MOREBOTTOM(S?, T?) = MOREBOTTOM(S, T).
+      case (
+          DartType(declaredNullability: Nullability.nullable),
+          DartType(declaredNullability: Nullability.nullable)
+        ):
+        DartType nonNullableS =
+            s.withDeclaredNullability(Nullability.nonNullable);
+        assert(s != nonNullableS);
+        DartType nonNullableT =
+            t.withDeclaredNullability(Nullability.nonNullable);
+        assert(t != nonNullableT);
+        return morebottom(nonNullableS, nonNullableT);
 
-    // MOREBOTTOM(S, T?) = true.
-    if (s.declaredNullability == Nullability.nonNullable &&
-        t.declaredNullability == Nullability.nullable) {
-      return true;
-    }
+      // MOREBOTTOM(S, T?) = true.
+      case (
+          DartType(declaredNullability: Nullability.nonNullable),
+          DartType(declaredNullability: Nullability.nullable)
+        ):
+        return true;
 
-    // MOREBOTTOM(S?, T) = false.
-    if (s.declaredNullability == Nullability.nullable &&
-        t.declaredNullability == Nullability.nonNullable) {
-      return false;
-    }
+      // MOREBOTTOM(S?, T) = false.
+      case (
+          DartType(declaredNullability: Nullability.nullable),
+          DartType(declaredNullability: Nullability.nonNullable)
+        ):
+        return false;
 
-    // MOREBOTTOM(S*, T*) = MOREBOTTOM(S, T)
-    if (s.declaredNullability == Nullability.legacy &&
-        t.declaredNullability == Nullability.legacy) {
-      DartType nonNullableS =
-          s.withDeclaredNullability(Nullability.nonNullable);
-      assert(s != nonNullableS);
-      DartType nonNullableT =
-          t.withDeclaredNullability(Nullability.nonNullable);
-      assert(t != nonNullableT);
-      return morebottom(nonNullableS, nonNullableT);
-    }
+      // MOREBOTTOM(S*, T*) = MOREBOTTOM(S, T)
+      case (
+          DartType(declaredNullability: Nullability.legacy),
+          DartType(declaredNullability: Nullability.legacy)
+        ):
+        DartType nonNullableS =
+            s.withDeclaredNullability(Nullability.nonNullable);
+        assert(s != nonNullableS);
+        DartType nonNullableT =
+            t.withDeclaredNullability(Nullability.nonNullable);
+        assert(t != nonNullableT);
+        return morebottom(nonNullableS, nonNullableT);
 
-    // MOREBOTTOM(S, T*) = true.
-    if (s.declaredNullability == Nullability.nonNullable &&
-        t.declaredNullability == Nullability.legacy) {
-      return true;
-    }
+      // MOREBOTTOM(S, T*) = true.
+      case (
+          DartType(declaredNullability: Nullability.nonNullable),
+          DartType(declaredNullability: Nullability.legacy)
+        ):
+        return true;
 
-    // MOREBOTTOM(S*, T) = false.
-    if (s.declaredNullability == Nullability.legacy &&
-        t.declaredNullability == Nullability.nonNullable) {
-      return false;
-    }
+      // MOREBOTTOM(S*, T) = false.
+      case (
+          DartType(declaredNullability: Nullability.legacy),
+          DartType(declaredNullability: Nullability.nonNullable)
+        ):
+        return false;
 
-    // TODO(cstefantsova): Update the following after the spec is updated.
-    if (s.declaredNullability == Nullability.nullable &&
-        t.declaredNullability == Nullability.legacy) {
-      return true;
-    }
-    if (s.declaredNullability == Nullability.legacy &&
-        t.declaredNullability == Nullability.nullable) {
-      return false;
-    }
+      // TODO(cstefantsova): Update the following after the spec is updated.
+      case (
+          DartType(declaredNullability: Nullability.nullable),
+          DartType(declaredNullability: Nullability.legacy)
+        ):
+        return true;
 
-    // MOREBOTTOM(X&S, Y&T) = MOREBOTTOM(S, T).
-    if (s is IntersectionType && t is IntersectionType) {
-      return morebottom(s.right, t.right);
-    }
+      // TODO(cstefantsova): Update the following after the spec is updated.
+      case (
+          DartType(declaredNullability: Nullability.legacy),
+          DartType(declaredNullability: Nullability.nullable)
+        ):
+        return false;
 
-    // MOREBOTTOM(X&S, T) = true.
-    if (s is IntersectionType) {
-      return true;
-    }
+      // MOREBOTTOM(X&S, Y&T) = MOREBOTTOM(S, T).
+      case (
+          IntersectionType(right: DartType sRight),
+          IntersectionType(right: DartType tRight)
+        ):
+        return morebottom(sRight, tRight);
 
-    // MOREBOTTOM(S, X&T) = false.
-    if (t is IntersectionType) {
-      return false;
-    }
+      // MOREBOTTOM(X&S, T) = true.
+      case (IntersectionType(), _):
+        return true;
 
-    // MOREBOTTOM(X extends S, Y extends T) = MOREBOTTOM(S, T).
-    if (s is TypeParameterType && t is TypeParameterType) {
-      return morebottom(s.parameter.bound, t.parameter.bound);
-    }
+      // MOREBOTTOM(S, X&T) = false.
+      case (_, IntersectionType()):
+        return false;
 
-    throw new UnsupportedError("morebottom($s, $t)");
+      // MOREBOTTOM(X extends S, Y extends T) = MOREBOTTOM(S, T).
+      case (
+          TypeParameterType(parameter: TypeParameter sParameter),
+          TypeParameterType(parameter: TypeParameter tParameter)
+        ):
+        return morebottom(sParameter.bound, tParameter.bound);
+
+      case (DynamicType(), _):
+      case (_, DynamicType()):
+      case (VoidType(), _):
+      case (_, VoidType()):
+      case (NeverType(), _):
+      case (_, NeverType()):
+      case (FunctionType(), _):
+      case (_, FunctionType()):
+      case (TypedefType(), _):
+      case (_, TypedefType()):
+      case (FutureOrType(), _):
+      case (_, FutureOrType()):
+      case (TypeParameterType(), _):
+      case (_, TypeParameterType()):
+      case (StructuralParameterType(), _):
+      case (_, StructuralParameterType()):
+      case (RecordType(), _):
+      case (_, RecordType()):
+      case (InterfaceType(), _):
+      case (_, InterfaceType()):
+      case (ExtensionType(), _):
+      case (_, ExtensionType()):
+      case (InvalidType(), _):
+      case (_, InvalidType()):
+      case (AuxiliaryType(), _):
+        throw new UnsupportedError("morebottom($s, $t)");
+    }
   }
 
   /// Computes the standard lower bound of [type1] and [type2].
@@ -480,15 +569,15 @@ mixin StandardBounds {
       // subtype relation is established.
       case (_, _)
           when isSubtypeOf(
-              type1WithoutNullabilityMarker,
-              type2WithoutNullabilityMarker,
+              greatestClosureForLowerBound(type1WithoutNullabilityMarker),
+              greatestClosureForLowerBound(type2WithoutNullabilityMarker),
               SubtypeCheckMode.withNullabilities):
         return type1.withDeclaredNullability(intersectNullabilities(
             type1.declaredNullability, type2.declaredNullability));
       case (_, _)
           when isSubtypeOf(
-              type2WithoutNullabilityMarker,
-              type1WithoutNullabilityMarker,
+              greatestClosureForLowerBound(type2WithoutNullabilityMarker),
+              greatestClosureForLowerBound(type1WithoutNullabilityMarker),
               SubtypeCheckMode.withNullabilities):
         return type2.withDeclaredNullability(intersectNullabilities(
             type2.declaredNullability, type1.declaredNullability));
@@ -559,8 +648,8 @@ mixin StandardBounds {
       case (IntersectionType(), _):
       case (_, IntersectionType()):
         return NeverType.fromNullability(combineNullabilitiesForSubstitution(
-            Nullability.nonNullable,
-            intersectNullabilities(
+            inner: Nullability.nonNullable,
+            outer: intersectNullabilities(
                 type1.declaredNullability, type2.declaredNullability)));
 
       case (NeverType(nullability: Nullability.undetermined), _):
@@ -963,8 +1052,8 @@ mixin StandardBounds {
       // type if the subtype relation is established.
       case (_, _)
           when isSubtypeOf(
-              typeWithoutNullabilityMarker1,
-              typeWithoutNullabilityMarker2,
+              leastClosureForUpperBound(typeWithoutNullabilityMarker1),
+              leastClosureForUpperBound(typeWithoutNullabilityMarker2),
               SubtypeCheckMode.withNullabilities):
         // UP(T1, T2) = T2 if T1 <: T2
         //   Note that both types must be interface or extension types at this
@@ -973,8 +1062,8 @@ mixin StandardBounds {
             uniteNullabilities(type1.nullability, type2.nullability));
       case (_, _)
           when isSubtypeOf(
-              typeWithoutNullabilityMarker2,
-              typeWithoutNullabilityMarker1,
+              leastClosureForUpperBound(typeWithoutNullabilityMarker2),
+              leastClosureForUpperBound(typeWithoutNullabilityMarker1),
               SubtypeCheckMode.withNullabilities):
         // UP(T1, T2) = T1 if T2 <: T1
         //   Note that both types must be interface or extension types at this
@@ -1610,15 +1699,19 @@ mixin StandardBounds {
     //     where B1a is the greatest closure of B1 with respect to X1,
     //     as defined in [inference.md].
 
-    if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(leastClosureForUpperBound(type1),
+        leastClosureForUpperBound(type2), SubtypeCheckMode.withNullabilities)) {
       return type2.withDeclaredNullability(combineNullabilitiesForSubstitution(
-          type2.nullability,
-          uniteNullabilities(type1.declaredNullability, type2.nullability)));
+          inner: type2.nullability,
+          outer: uniteNullabilities(
+              type1.declaredNullability, type2.nullability)));
     }
-    if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(leastClosureForUpperBound(type2),
+        leastClosureForUpperBound(type1), SubtypeCheckMode.withNullabilities)) {
       return type1.withDeclaredNullability(combineNullabilitiesForSubstitution(
-          type1.declaredNullability,
-          uniteNullabilities(type1.declaredNullability, type2.nullability)));
+          inner: type1.declaredNullability,
+          outer: uniteNullabilities(
+              type1.declaredNullability, type2.nullability)));
     }
     NullabilityAwareTypeVariableEliminator eliminator =
         new NullabilityAwareTypeVariableEliminator(
@@ -1635,8 +1728,9 @@ mixin StandardBounds {
     DartType result = _getNullabilityAwareStandardUpperBound(
         eliminator.eliminateToGreatest(bound1), type2);
     return result.withDeclaredNullability(combineNullabilitiesForSubstitution(
-        result.declaredNullability,
-        uniteNullabilities(bound1.declaredNullability, type2.nullability)));
+        inner: result.declaredNullability,
+        outer:
+            uniteNullabilities(bound1.declaredNullability, type2.nullability)));
   }
 
   DartType _getNullabilityAwareIntersectionStandardUpperBound(
@@ -1648,11 +1742,15 @@ mixin StandardBounds {
     //     where B1a is the greatest closure of B1 with respect to X1,
     //     as defined in [inference.md].
     DartType demoted = type1.left;
-    if (isSubtypeOf(demoted, type2, SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(leastClosureForUpperBound(demoted),
+        leastClosureForUpperBound(type2), SubtypeCheckMode.withNullabilities)) {
       return type2.withDeclaredNullability(uniteNullabilities(
           type1.declaredNullability, type2.declaredNullability));
     }
-    if (isSubtypeOf(type2, demoted, SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(
+        leastClosureForUpperBound(type2),
+        leastClosureForUpperBound(demoted),
+        SubtypeCheckMode.withNullabilities)) {
       return demoted.withDeclaredNullability(uniteNullabilities(
           demoted.declaredNullability, type2.declaredNullability));
     }
@@ -1973,10 +2071,12 @@ mixin StandardBounds {
     // 3. Otherwise return the spec-defined standard upper bound.  This will
     //    be an upper bound, might (or might not) be least, and might
     //    (or might not) be a well-formed type.
-    if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(leastClosureForUpperBound(type1),
+        leastClosureForUpperBound(type2), SubtypeCheckMode.withNullabilities)) {
       return type2;
     }
-    if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(leastClosureForUpperBound(type2),
+        leastClosureForUpperBound(type1), SubtypeCheckMode.withNullabilities)) {
       return type1;
     }
     if (identical(type1.classNode, type2.classNode)) {
@@ -2071,4 +2171,26 @@ mixin StandardBounds {
       return const DynamicType();
     }
   }
+
+  /// Compute the greatest closure of [typeSchema] for subtyping in DOWN.
+  ///
+  /// > We add the axiom that DOWN(T, _) == T and the symmetric version.
+  /// > We replace all uses of T1 <: T2 in the DOWN algorithm by S1 <: S2 where
+  /// >   Si is the greatest closure of Ti with respect to _.
+  ///
+  /// The specification of using the greatest closure in DOWN can be found at
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#upper-bound
+  DartType greatestClosureForLowerBound(DartType typeSchema) => typeSchema;
+
+  /// Compute the least closure of [typeSchema] for subtyping in UP.
+  ///
+  /// Taking closures of type schemas in UP is specified as follows:
+  ///
+  /// > We add the axiom that UP(T, _) == T and the symmetric version.
+  /// > We replace all uses of T1 <: T2 in the UP algorithm by S1 <: S2 where Si
+  /// >   is the least closure of Ti with respect to _.
+  ///
+  /// The specification of using the least closure in UP can be found at
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#upper-bound
+  DartType leastClosureForUpperBound(DartType typeSchema) => typeSchema;
 }

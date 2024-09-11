@@ -463,6 +463,7 @@ class Fixtures {
             metadata: [],
             isNamed: false,
             isRequired: true,
+            style: ParameterStyle.normal,
             type: stringType)
       ],
       returnType: voidType,
@@ -542,11 +543,65 @@ class Fixtures {
             metadata: [],
             isNamed: false,
             isRequired: true,
+            style: ParameterStyle.superFormal,
             type: TestOmittedTypeAnnotation(myField.type))
       ],
       returnType: myClassType,
       typeParameters: [],
       definingType: myClassType.identifier,
+      isConst: false,
+      isFactory: false);
+  static final myFactoryConstructor = ConstructorDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier: IdentifierImpl(
+          id: RemoteInstance.uniqueId, name: 'myFactoryConstructor'),
+      library: Fixtures.library,
+      metadata: [],
+      hasBody: false, // we will augment with one
+      hasExternal: false,
+      namedParameters: [],
+      positionalParameters: [
+        FormalParameterDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
+            library: Fixtures.library,
+            metadata: [],
+            isNamed: false,
+            isRequired: true,
+            style: ParameterStyle.normal,
+            type: TestOmittedTypeAnnotation(myField.type))
+      ],
+      returnType: myClassType,
+      typeParameters: [],
+      definingType: myClassType.identifier,
+      isConst: false,
+      isFactory: true);
+  static final myConstConstructor = ConstructorDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier: IdentifierImpl(
+          id: RemoteInstance.uniqueId, name: 'myConstConstructor'),
+      library: Fixtures.library,
+      metadata: [],
+      hasBody: false, // we will augment with one
+      hasExternal: false,
+      namedParameters: [],
+      positionalParameters: [
+        FormalParameterDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
+            library: Fixtures.library,
+            metadata: [],
+            isNamed: false,
+            isRequired: true,
+            style: ParameterStyle.fieldFormal,
+            type: TestOmittedTypeAnnotation(myField.type))
+      ],
+      returnType: myClassType,
+      typeParameters: [],
+      definingType: myClassType.identifier,
+      isConst: true,
       isFactory: false);
   static final myField = FieldDeclarationImpl(
       id: RemoteInstance.uniqueId,
@@ -680,11 +735,13 @@ class Fixtures {
             metadata: [],
             isNamed: false,
             isRequired: true,
+            style: ParameterStyle.fieldFormal,
             type: stringType)
       ],
       returnType: myEnumType,
       typeParameters: [],
       definingType: myEnum.identifier,
+      isConst: false,
       isFactory: false);
 
   static final myMixin = MixinDeclarationImpl(
@@ -795,7 +852,7 @@ class Fixtures {
 
   static final testDeclarationPhaseIntrospector =
       TestDeclarationPhaseIntrospector(constructors: {
-    myClass: [myConstructor],
+    myClass: [myConstructor, myConstConstructor, myFactoryConstructor],
     myEnum: [myEnumConstructor],
     myMixin: [],
   }, enumValues: {

@@ -47,10 +47,10 @@ myList.forEach(foo().f); // But this one invokes foo() just once.
 class PreferForeach extends LintRule {
   PreferForeach()
       : super(
-            name: 'prefer_foreach',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_foreach',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_foreach;

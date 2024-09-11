@@ -28,7 +28,8 @@ mixin KernelNodes {
       index.getClass("dart:_compact_hash", "_ConstSet");
 
   // dart:core various classes
-  late final Class boxedBoolClass = index.getClass("dart:core", "_BoxedBool");
+  late final Class boxedBoolClass =
+      index.getClass("dart:_boxed_bool", "BoxedBool");
   late final Class boxedDoubleClass =
       index.getClass("dart:_boxed_double", "BoxedDouble");
   late final Class boxedIntClass =
@@ -188,6 +189,8 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:_internal", "loadLibrary");
   late final Procedure checkLibraryIsLoaded =
       index.getTopLevelProcedure("dart:_internal", "checkLibraryIsLoaded");
+  late final Procedure loadLibraryImportMap =
+      index.getTopLevelProcedure("dart:_internal", "get:_importMapping");
 
   // dart:_js_helper procedures
   late final Procedure getInternalizedString =
@@ -229,7 +232,7 @@ mixin KernelNodes {
 
   // dart:core various procedures
   late final Procedure boxedBoolEquals =
-      index.getProcedure("dart:core", "_BoxedBool", "==");
+      index.getProcedure("dart:_boxed_bool", "BoxedBool", "==");
   late final Procedure boxedIntEquals =
       index.getProcedure("dart:_boxed_int", "BoxedInt", "==");
   late final Procedure objectHashCode =
@@ -312,6 +315,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", '_Closure', "_getClosureRuntimeType");
   late final Procedure getMasqueradedRuntimeType =
       index.getTopLevelProcedure("dart:core", "_getMasqueradedRuntimeType");
+  late final Procedure isNullabilityCheck =
+      index.getTopLevelProcedure("dart:core", "_isNullabilityCheck");
   late final Procedure isSubtype =
       index.getTopLevelProcedure("dart:core", "_isSubtype");
   late final Procedure isInterfaceSubtype =

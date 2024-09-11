@@ -104,10 +104,20 @@ final class FunctionBodyCode extends Code {
 /// It is the job of the user to construct and combine these together in a way
 /// that creates valid parameter lists.
 final class ParameterCode implements Code {
+  /// Optional default value for this parameter (not including the ` = `).
   final Code? defaultValue;
+
+  /// Any keywords to put on this parameter (before the type).
   final List<String> keywords;
+
+  /// Optional name of this parameter (can only be omitted for function types).
   final String? name;
+
+  /// Optional type for this parameter.
   final TypeAnnotationCode? type;
+
+  /// The type of parameter this is.
+  final ParameterStyle style;
 
   @override
   CodeKind get kind => CodeKind.parameter;
@@ -122,6 +132,10 @@ final class ParameterCode implements Code {
           type!,
           ' ',
         ],
+        if (style == ParameterStyle.fieldFormal)
+          'this.'
+        else if (style == ParameterStyle.superFormal)
+          'super.',
         if (name != null) name!,
         if (defaultValue != null) ...[
           ' = ',
@@ -133,6 +147,7 @@ final class ParameterCode implements Code {
     this.defaultValue,
     this.keywords = const [],
     this.name,
+    this.style = ParameterStyle.normal,
     this.type,
   });
 }

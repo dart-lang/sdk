@@ -17,12 +17,11 @@ import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
-import '../source/constructor_declaration.dart';
 import '../source/builder_factory.dart';
+import '../source/constructor_declaration.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
-import '../source/type_parameter_scope_builder.dart';
 import 'builder.dart';
 import 'constructor_builder.dart';
 import 'declaration_builders.dart';
@@ -48,11 +47,6 @@ abstract class ParameterBuilder {
   bool get isRequiredNamed;
 
   String? get name;
-
-  ParameterBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      BuilderFactory builderFactory,
-      TypeParameterScopeBuilder contextDeclaration);
 }
 
 /// A builder for a formal parameter, i.e. a parameter on a method or
@@ -186,15 +180,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     }
   }
 
-  @override
-  ParameterBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      BuilderFactory builderFactory,
-      TypeParameterScopeBuilder contextDeclaration) {
-    return new FunctionTypeParameterBuilder(
-        kind, type.clone(newTypes, builderFactory, contextDeclaration), name);
-  }
-
   FormalParameterBuilder forPrimaryConstructor(BuilderFactory builderFactory) {
     return new FormalParameterBuilder(kind, modifiers | initializingFormalMask,
         builderFactory.addInferableType(), name, null, charOffset,
@@ -315,16 +300,6 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   final String? name;
 
   FunctionTypeParameterBuilder(this.kind, this.type, this.name);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ParameterBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      BuilderFactory builderFactory,
-      TypeParameterScopeBuilder contextDeclaration) {
-    return new FunctionTypeParameterBuilder(
-        kind, type.clone(newTypes, builderFactory, contextDeclaration), name);
-  }
 
   @override
   bool get isNamed => kind.isNamed;

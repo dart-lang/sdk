@@ -139,8 +139,8 @@ abstract class ClassElement2 implements InterfaceElement2 {
   /// A class is a sealed class if it has an explicit `sealed` modifier.
   bool get isSealed;
 
-  /// Whether the class can validly be used as a mixin when defining
-  /// another class.
+  /// Whether the class can validly be used as a mixin when defining another
+  /// class.
   ///
   /// For classes defined by a class declaration or a mixin application, the
   /// behavior of this method is defined by the Dart Language Specification
@@ -172,26 +172,48 @@ abstract class ClassElement2 implements InterfaceElement2 {
 /// body), or a mixin application (without a class body).
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ClassFragment implements InterfaceFragment {}
+abstract class ClassFragment implements InterfaceFragment {
+  @override
+  ClassElement2 get element;
+}
 
+/// An element representing a constructor defined by a class, enum, or extension
+/// type.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class ConstructorElement2 implements ExecutableElement2, _Fragmented {
   @override
   ConstructorElement2 get baseElement;
 
+  /// Whether the constructor is a const constructor.
   bool get isConst;
 
+  /// Whether the constructor can be used as a default constructor - unnamed,
+  /// and has no required parameters.
   bool get isDefaultConstructor;
 
+  /// Whether the constructor represents a factory constructor.
   bool get isFactory;
 
+  /// Whether the constructor represents a generative constructor.
   bool get isGenerative;
 
+  /// The constructor to which this constructor is redirecting.
+  ///
+  /// Returns `null` if this constructor does not redirect to another
+  /// constructor or if the library containing this constructor has not yet been
+  /// resolved.
   ConstructorElement2? get redirectedConstructor2;
 
+  /// The constructor of the superclass that this constructor invokes, or
+  /// `null` if this constructor redirects to another constructor, or if the
+  /// library containing this constructor has not yet been resolved.
   ConstructorElement2? get superConstructor2;
 }
 
 /// The portion of a [ConstructorElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class ConstructorFragment implements ExecutableFragment {
   @override
   ConstructorElement2 get element;
@@ -207,6 +229,9 @@ abstract class ConstructorFragment implements ExecutableFragment {
   @override
   ConstructorFragment? get nextFragment;
 
+  /// The offset of the `.` before the constructor name.
+  ///
+  /// Returns `null` if the constructor is unnamed.
   int? get periodOffset;
 
   @override
@@ -296,8 +321,8 @@ abstract class Element2 {
 
   /// Library that contains this element.
   ///
-  /// This will be the element itself if it is a library element. This will be
-  /// `null` if this element is [MultiplyDefinedElement] that is not contained
+  /// This will be the element itself if it's a library element. This will be
+  /// `null` if this element is a [MultiplyDefinedElement] that isn't contained
   /// in a single library.
   LibraryElement2? get library2;
 
@@ -308,7 +333,7 @@ abstract class Element2 {
 
   /// The name of this element.
   ///
-  /// Returns `null` if this element does not have a name.
+  /// Returns `null` if this element doesn't have a name.
   String? get name;
 
   /// The non-synthetic element that caused this element to be created.
@@ -364,123 +389,295 @@ abstract class Element2 {
   E? thisOrAncestorOfType2<E extends Element2>();
 }
 
+/// An element that represents an enum.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class EnumElement2 implements InterfaceElement2 {
+  /// The constants defined by the enum.
   List<FieldElement2> get constants2;
 }
 
+/// The portion of an [EnumElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class EnumFragment implements InterfaceFragment {
+  /// The constants defined by this fragment of the enum.
   List<FieldElement2> get constants2;
+
+  @override
+  EnumElement2 get element;
 }
 
+/// An element representing an executable object, including functions, methods,
+/// constructors, getters, and setters.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class ExecutableElement2 implements FunctionTypedElement2 {
   @override
   ExecutableElement2 get baseElement;
 
+  /// Whether the executable element did not have an explicit return type
+  /// specified for it in the original source.
   bool get hasImplicitReturnType;
 
+  /// Whether the executable element is abstract.
+  ///
+  /// Executable elements are abstract if they are not external, and have no
+  /// body.
   bool get isAbstract;
 
-  bool get isAsynchronous;
-
+  /// Whether the executable element is an extension type member.
   bool get isExtensionTypeMember;
 
+  /// Whether the executable element is external.
+  ///
+  /// Executable elements are external if they are explicitly marked as such
+  /// using the 'external' keyword.
   bool get isExternal;
 
+  /// Whether the element is a static element.
+  ///
+  /// A static element is an element that is not associated with a particular
+  /// instance, but rather with an entire library or class.
+  bool get isStatic;
+}
+
+/// The portion of an [ExecutableElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ExecutableFragment implements FunctionTypedFragment {
+  @override
+  ExecutableElement2 get element;
+
+  /// Whether the body is marked as being asynchronous.
+  bool get isAsynchronous;
+
+  /// Whether the element is an augmentation.
+  ///
+  /// Executable elements are augmentations if they are explicitly marked as
+  /// such using the 'augment' modifier.
+  bool get isAugmentation;
+
+  /// Whether the body is marked as being a generator.
   bool get isGenerator;
 
-  bool get isStatic;
-
+  /// Whether the body is marked as being synchronous.
   bool get isSynchronous;
 }
 
-abstract class ExecutableFragment implements FunctionTypedFragment {
-  bool get isAugmentation;
-}
-
+/// An extension.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class ExtensionElement2 implements InstanceElement2 {
+  /// The type that is extended by this extension.
   DartType get extendedType;
 }
 
-abstract class ExtensionFragment implements InstanceFragment {}
+/// The portion of an [ExtensionElement2] contributed by a single
+/// declaration.
+///
+/// Clients may not extend, implement, or mix-in this class.
+abstract class ExtensionFragment implements InstanceFragment {
+  @override
+  ExtensionElement2 get element;
+}
 
+/// An extension type.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class ExtensionTypeElement2 implements InterfaceElement2 {
+  /// The primary constructor of this extension.
   ConstructorElement2 get primaryConstructor2;
 
+  /// The representation of this extension.
   FieldElement2 get representation2;
 
+  /// The extension type erasure, obtained by recursively replacing every
+  /// subterm which is an extension type by the corresponding representation
+  /// type.
   DartType get typeErasure;
 }
 
+/// The portion of an [ExtensionTypeElement2] contributed by a single
+/// declaration.
+///
+/// Clients may not extend, implement, or mix-in this class.
 abstract class ExtensionTypeFragment implements InterfaceFragment {
+  @override
+  ExtensionTypeElement2 get element;
+
   ConstructorFragment get primaryConstructor2;
 
+  /// The representation of this extension.
   FieldFragment get representation2;
 }
 
+/// A field defined within a class, enum, extension, or mixin.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class FieldElement2 implements PropertyInducingElement2 {
   @override
   FieldElement2 get baseElement;
 
+  /// Whether the field is abstract.
+  ///
+  /// Executable fields are abstract if they are declared with the `abstract`
+  /// keyword.
   bool get isAbstract;
 
+  /// Whether the field was explicitly marked as being covariant.
   bool get isCovariant;
 
+  /// Whether the element is an enum constant.
   bool get isEnumConstant;
 
+  /// Whether the field was explicitly marked as being external.
   bool get isExternal;
 
+  /// Whether the field can be type promoted.
   bool get isPromotable;
 }
 
+/// A field formal parameter defined within a constructor element.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class FieldFormalParameterElement2 implements FormalParameterElement {
+  /// The field element associated with this field formal parameter.
+  ///
+  /// Returns `null` if the parameter references a field that doesn't exist.
   FieldElement2? get field2;
 }
 
-abstract class FieldFormalParameterFragment
-    implements FormalParameterFragment {}
+/// The portion of a [FieldFormalParameterElement2] contributed by a single
+/// declaration.
+///
+/// Clients may not extend, implement, or mix-in this class.
+abstract class FieldFormalParameterFragment implements FormalParameterFragment {
+  @override
+  FieldFormalParameterElement2 get element;
+}
 
-abstract class FieldFragment implements PropertyInducingFragment {}
+/// The portion of a [FieldElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement, or mix-in this class.
+abstract class FieldFragment implements PropertyInducingFragment {
+  @override
+  FieldElement2 get element;
 
+  @override
+  FieldFragment? get nextFragment;
+
+  @override
+  FieldFragment? get previousFragment;
+}
+
+/// A formal parameter defined by an executable element.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class FormalParameterElement
     implements PromotableElement2, _Annotatable, _Fragmented {
   @override
   FormalParameterElement get baseElement;
 
+  /// The code of the default value.
+  ///
+  /// Returns `null` if no default value.
   String? get defaultValueCode;
 
+  /// Whether the parameter has a default value.
   bool get hasDefaultValue;
 
+  /// Whether the parameter is covariant, meaning it is allowed to have a
+  /// narrower type in an override.
   bool get isCovariant;
 
+  /// Whether the parameter is an initializing formal parameter.
   bool get isInitializingFormal;
 
+  /// Whether the parameter is a named parameter.
+  ///
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional. Named parameters that are annotated with the
+  /// `required` syntax are considered required.
   bool get isNamed;
 
+  /// Whether the parameter is an optional parameter.
+  ///
+  /// Optional parameters can either be positional or named. Named parameters
+  /// that are annotated with the `@required` annotation are considered
+  /// optional. Named parameters that are annotated with the `required` syntax
+  /// are considered required.
   bool get isOptional;
 
+  /// Whether the parameter is both an optional and named parameter.
+  ///
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional. Named parameters that are annotated with the
+  /// `required` syntax are considered required.
   bool get isOptionalNamed;
 
+  /// Whether the parameter is both an optional and positional parameter.
   bool get isOptionalPositional;
 
+  /// Whether the parameter is a positional parameter.
+  ///
+  /// Positional parameters can either be required or optional.
   bool get isPositional;
 
+  /// Whether the parameter is either a required positional parameter, or a
+  /// named parameter with the `required` keyword.
+  ///
+  /// Note: the presence or absence of the `@required` annotation does not
+  /// change the meaning of this getter. The parameter `{@required int x}`
+  /// will return `false` and the parameter `{@required required int x}`
+  /// will return `true`.
   bool get isRequired;
 
+  /// Whether the parameter is both a required and named parameter.
+  ///
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional. Named parameters that are annotated with the
+  /// `required` syntax are considered required.
   bool get isRequiredNamed;
 
+  /// Whether the parameter is both a required and positional parameter.
   bool get isRequiredPositional;
 
+  /// Whether the parameter is a super formal parameter.
   bool get isSuperFormal;
 
+  /// The parameters defined by this parameter.
+  ///
+  /// A parameter will only define other parameters if it is a function typed
+  /// parameter.
   List<FormalParameterElement> get parameters2;
 
+  /// The type parameters defined by this parameter.
+  ///
+  /// A parameter will only define type parameters if it is a function typed
+  /// parameter.
   List<TypeParameterElement2> get typeParameters2;
 
+  /// Appends the type, name and possibly the default value of this parameter
+  /// to the given [buffer].
   void appendToWithoutDelimiters2(StringBuffer buffer);
 }
 
+/// The portion of a [FormalParameterElement] contributed by a single
+/// declaration.
+///
+/// Clients may not extend, implement, or mix-in this class.
 abstract class FormalParameterFragment
-    implements PromotableFragment, _Annotatable {}
+    implements PromotableFragment, _Annotatable {
+  @override
+  FormalParameterElement get element;
+
+  @override
+  FormalParameterFragment? get nextFragment;
+
+  @override
+  FormalParameterFragment? get previousFragment;
+}
 
 /// A fragment that wholly or partially defines an element.
 ///
@@ -513,6 +710,11 @@ abstract class Fragment {
   /// This will be the fragment itself if it is a library fragment.
   LibraryFragment get libraryFragment;
 
+  /// The name of this fragment.
+  ///
+  /// Returns `null` if this fragment doesn't have a name.
+  String? get name;
+
   /// The offset of the name in this fragment.
   ///
   /// Returns `null` if the fragment has no name.
@@ -529,18 +731,36 @@ abstract class Fragment {
   Fragment? get previousFragment;
 }
 
+/// An element that has a [FunctionType] as its [type].
+///
+/// This also provides convenient access to the parameters and return type.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypedElement2 implements TypeParameterizedElement2 {
+  /// The parameters defined by this element.
   List<FormalParameterElement> get parameters2;
 
+  /// The return type defined by this element.
   DartType get returnType;
 
+  /// The type defined by this element.
   FunctionType get type;
 }
 
+/// The portion of a [FunctionTypedElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement, or mix-in this class.
 abstract class FunctionTypedFragment implements TypeParameterizedFragment {
-  List<FormalParameterFragment> get parameters;
+  @override
+  FunctionTypedElement2 get element;
+
+  /// The parameters defined by this fragment.
+  List<FormalParameterFragment> get parameters2;
 }
 
+/// The pseudo-declaration that defines a generic function type.
+///
+/// Clients may not extend, implement, or mix-in this class.
 abstract class GenericFunctionTypeElement2
     implements FunctionTypedElement2, _Fragmented {}
 
@@ -560,19 +780,45 @@ abstract class GenericFunctionTypeFragment implements FunctionTypedFragment {
   GenericFunctionTypeFragment? get previousFragment;
 }
 
+/// A getter.
+///
+/// Getters can either be defined explicitly or they can be induced by either a
+/// top-level variable or a field. Induced getters are synthetic.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class GetterElement implements ExecutableElement2, _Fragmented {
   @override
   GetterElement get baseElement;
 
+  /// The setter that corresponds to (has the same name as) this getter, or
+  /// `null` if there is no corresponding setter.
   SetterElement? get correspondingSetter2;
 
-  PropertyInducingElement2? get variable2;
+  /// The field or top-level variable associated with this getter.
+  ///
+  /// If this getter was explicitly defined (is not synthetic) then the variable
+  /// associated with it will be synthetic.
+  PropertyInducingElement2? get variable3;
 }
 
+/// The portion of a [GetterElement] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class GetterFragment implements ExecutableFragment {
-  SetterFragment? get correspondingSetter;
+  /// The setter that corresponds to (has the same name as) this getter, or
+  /// `null` if there is no corresponding setter.
+  SetterFragment? get correspondingSetter2;
 
-  PropertyInducingFragment? get variable;
+  // TODO(brianwilkerson): This should override `element` to be more specific,
+  //  but can't because the Impl class supports both getters and setters.
+  // @override
+  // GetterElement get element;
+
+  /// The field or top-level variable associated with this getter.
+  ///
+  /// If this getter was explicitly defined (is not synthetic) then the variable
+  /// associated with it will be synthetic.
+  PropertyInducingFragment? get variable3;
 }
 
 /// An element whose instance members can refer to `this`.
@@ -690,6 +936,10 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   /// guard against infinite loops.
   InterfaceType? get supertype;
 
+  /// The unnamed constructor declared directly in this class.
+  ///
+  /// If the class does not declare any constructors, a synthetic default
+  /// constructor will be returned.
   ConstructorElement2? get unnamedConstructor2;
 
   /// Create the [InterfaceType] for this element with the given
@@ -707,6 +957,9 @@ abstract class InterfaceFragment implements InstanceFragment {
   /// The list is empty for [MixinFragment].
   List<ConstructorFragment> get constructors2;
 
+  @override
+  InterfaceElement2 get element;
+
   /// The interfaces that are implemented by this fragment.
   List<InterfaceType> get interfaces;
 
@@ -721,17 +974,28 @@ abstract class InterfaceFragment implements InstanceFragment {
   InterfaceType? get supertype;
 }
 
+/// A pattern variable that is a join of other pattern variables, created
+/// for a logical-or patterns, or shared `case` bodies in `switch` statements.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class JoinPatternVariableElement2 implements PatternVariableElement2 {
+  /// Whether the [variables] are consistent, present in all branches,
+  /// and have the same type and finality.
   bool get isConsistent;
 
+  /// The variables that join into this variable.
   List<PatternVariableElement2> get variables2;
 }
 
+/// A label associated with a statement.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class LabelElement2 implements Element2 {
   @override
   // TODO(brianwilkerson): We shouldn't be inheriting this member.
   ExecutableElement2 get enclosingElement2;
 
+  /// The function in which the variable is defined.
   ExecutableFragment get enclosingFunction;
 
   @override
@@ -742,9 +1006,6 @@ abstract class LabelElement2 implements Element2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryElement2 implements Element2, _Annotatable, _Fragmented {
-  /// The extension elements accessible within this library.
-  List<ExtensionElement2> get accessibleExtensions2;
-
   /// The classes defined in this library.
   ///
   /// There is no guarantee of the order in which the classes will be returned.
@@ -889,8 +1150,14 @@ abstract class LibraryExport {
 
 /// The portion of a [LibraryElement2] coming from a single compilation unit.
 abstract class LibraryFragment implements Fragment, _Annotatable {
+  /// The extension elements accessible within this fragment.
+  List<ExtensionElement2> get accessibleExtensions2;
+
   /// The fragments of the classes declared in this fragment.
   List<ClassFragment> get classes2;
+
+  @override
+  LibraryElement2 get element;
 
   @override
   LibraryFragment? get enclosingFragment;
@@ -994,27 +1261,51 @@ abstract class LibraryImport {
   DirectiveUri get uri;
 }
 
+/// A local function.
+///
+/// This can be either a local function, a closure, or the initialization
+/// expression for a field or variable.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class LocalFunctionElement implements ExecutableElement2 {
+  /// The function in which the variable is defined.
   ExecutableFragment get enclosingFunction;
 }
 
+/// A local variable.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class LocalVariableElement2 implements PromotableElement2 {
   @override
   LocalVariableElement2 get baseElement;
 
+  /// The function in which the variable is defined.
   ExecutableFragment get enclosingFunction;
 
+  /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
 }
 
+/// A method.
+///
+/// The method can be either an instance method, an operator, or a static
+/// method.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class MethodElement2 implements ExecutableElement2, _Fragmented {
   @override
   MethodElement2 get baseElement;
 
+  /// Whether the method defines an operator.
+  ///
+  /// The test might be based on the name of the executable element, in which
+  /// case the result will be correct when the name is legal.
   bool get isOperator;
 }
 
 /// The portion of a [MethodElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class MethodFragment implements ExecutableFragment {
   @override
   MethodElement2 get element;
@@ -1029,28 +1320,71 @@ abstract class MethodFragment implements ExecutableFragment {
   MethodFragment? get previousFragment;
 }
 
+/// An element that represents a mixin.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class MixinElement2 implements InterfaceElement2 {
+  /// Whether the mixin is a base mixin.
+  ///
+  /// A mixin is a base mixin if it has an explicit `base` modifier.
+  /// The base modifier allows a mixin to be mixed in, but not implemented.
   bool get isBase;
 
+  /// The superclass constraints defined for this mixin.
+  ///
+  /// If the declaration does not have an `on` clause, then the list will
+  /// contain the type for the class `Object`.
+  ///
+  /// <b>Note:</b> Because the element model represents the state of the code,
+  /// it is possible for it to be semantically invalid. In particular, it is not
+  /// safe to assume that the inheritance structure of a class does not contain
+  /// a cycle. Clients that traverse the inheritance structure must explicitly
+  /// guard against infinite loops.
   List<InterfaceType> get superclassConstraints;
 
+  /// Whether the element, assuming that it is within scope, is
+  /// implementable to classes, mixins, and enums in the given [library].
   bool isImplementableIn2(LibraryElement2 library);
 }
 
+/// The portion of a [PrefixElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class MixinFragment implements InterfaceFragment {
+  @override
+  MixinElement2 get element;
+
+  /// The superclass constraints defined for this mixin.
+  ///
+  /// If the declaration does not have an `on` clause, then the list will
+  /// contain the type for the class `Object`.
+  ///
+  /// <b>Note:</b> Because the element model represents the state of the code,
+  /// it is possible for it to be semantically invalid. In particular, it is not
+  /// safe to assume that the inheritance structure of a class does not contain
+  /// a cycle. Clients that traverse the inheritance structure must explicitly
+  /// guard against infinite loops.
   List<InterfaceType> get superclassConstraints;
 }
 
+/// A pseudo-element that represents multiple elements defined within a single
+/// scope that have the same name. This situation is not allowed by the
+/// language, so objects implementing this interface always represent an error.
+/// As a result, most of the normal operations on elements do not make sense
+/// and will return useless results.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class MultiplyDefinedElement2 implements Element2 {
+  /// The elements that were defined within the scope to have the same name.
   List<Element2> get conflictingElements2;
 }
 
-abstract class MultiplyInheritedExecutableElement2
-    implements ExecutableElement2 {
-  List<ExecutableElement2> get inheritedElements2;
-}
-
+/// A pattern variable.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class PatternVariableElement2 implements LocalVariableElement2 {
+  /// The variable in which this variable joins with other pattern variables
+  /// with the same name, in a logical-or pattern, or shared case scope.
   JoinPatternVariableElement2? get join2;
 }
 
@@ -1095,79 +1429,267 @@ abstract class PrefixFragment implements Fragment {
   PrefixFragment? get previousFragment;
 }
 
+/// A variable that might be subject to type promotion.  This might be a local
+/// variable or a parameter.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class PromotableElement2 implements VariableElement2 {}
 
-abstract class PromotableFragment implements VariableFragment {}
+/// The portion of a [PromotableElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class PromotableFragment implements VariableFragment {
+  @override
+  PromotableElement2 get element;
+}
 
+/// A variable that has an associated getter and possibly a setter. Note that
+/// explicitly defined variables implicitly define a synthetic getter and that
+/// non-`final` explicitly defined variables implicitly define a synthetic
+/// setter. Symmetrically, synthetic fields are implicitly created for
+/// explicitly defined getters and setters. The following rules apply:
+///
+/// * Every explicit variable is represented by a non-synthetic
+///   [PropertyInducingElement].
+/// * Every explicit variable induces a getter and possibly a setter, both of
+///   which are represented by synthetic [PropertyAccessorElement]s.
+/// * Every explicit getter or setter is represented by a non-synthetic
+///   [PropertyAccessorElement].
+/// * Every explicit getter or setter (or pair thereof if they have the same
+///   name) induces a variable that is represented by a synthetic
+///   [PropertyInducingElement].
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingElement2
-    implements VariableElement2, _Fragmented {
+    implements VariableElement2, _Annotatable, _Fragmented {
+  /// The getter associated with this variable.
+  ///
+  /// If this variable was explicitly defined (is not synthetic) then the
+  /// getter associated with it will be synthetic.
   GetterElement? get getter;
 
-  bool get hasInitializer;
-
+  /// The setter associated with this variable.
+  ///
+  /// Returns `null` if the variable is effectively `final` and therefore does
+  /// not have a setter associated with it.
+  ///
+  /// This can happen either because the variable is explicitly defined as
+  /// being `final` or because the variable is induced by an explicit getter
+  /// that does not have a corresponding setter. If this variable was
+  /// explicitly defined (is not synthetic) then the setter associated with
+  /// it will be synthetic.
   SetterElement? get setter;
 }
 
-abstract class PropertyInducingFragment implements VariableFragment {
-  GetterElement? get getter;
+/// The portion of a [PropertyInducingElement2] contributed by a single
+/// declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class PropertyInducingFragment
+    implements VariableFragment, _Annotatable {
+  @override
+  PropertyInducingElement2 get element;
 
+  /// The getter associated with this variable.
+  ///
+  /// If this variable was explicitly defined (is not synthetic) then the
+  /// getter associated with it will be synthetic.
+  GetterFragment? get getter2;
+
+  /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
 
-  SetterElement? get setter;
+  /// Whether the element is an augmentation.
+  ///
+  /// Property indicing fragments are augmentations if they are explicitly
+  /// marked as such using the 'augment' modifier.
+  bool get isAugmentation;
+
+  /// Whether the fragment is a static fragment.
+  ///
+  /// A static fragment is a fragment that is not associated with a particular
+  /// instance, but rather with an entire library or class.
+  bool get isStatic;
+
+  /// Whether this fragment is synthetic.
+  ///
+  /// A synthetic fragment is a fragment that is not represented in the source
+  /// code explicitly, but is implied by the source code, such as the default
+  /// constructor for a class that does not explicitly define any constructors.
+  // TODO(brianwilkerson): Should synthetic elements have a fragment?
+  bool get isSynthetic;
+
+  @override
+  PropertyInducingFragment? get nextFragment;
+
+  @override
+  PropertyInducingFragment? get previousFragment;
+
+  /// The setter associated with this variable.
+  ///
+  /// Returns `null` if the variable is effectively `final` and therefore
+  /// doesn't have a setter associated with it.
+  ///
+  /// This can happen either because the variable is explicitly defined as
+  /// being `final` or because the variable is induced by an explicit getter
+  /// that does not have a corresponding setter. If this variable was
+  /// explicitly defined (is not synthetic) then the setter associated with
+  /// it will be synthetic.
+  SetterFragment? get setter2;
 }
 
+/// A setter.
+///
+/// Setters can either be defined explicitly or they can be induced by either a
+/// top-level variable or a field. Induced setters are synthetic.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class SetterElement implements ExecutableElement2, _Fragmented {
   @override
   SetterElement get baseElement;
 
+  /// The getter that corresponds to (has the same name as) this setter, or
+  /// `null` if there is no corresponding getter.
   GetterElement? get correspondingGetter2;
 
-  PropertyInducingElement2? get variable2;
+  /// The field or top-level variable associated with this setter.
+  ///
+  /// If this setter was explicitly defined (is not synthetic) then the variable
+  /// associated with it will be synthetic.
+  PropertyInducingElement2? get variable3;
 }
 
+/// The portion of a [SetterElement] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class SetterFragment implements ExecutableFragment {
-  GetterFragment? get correspondingGetter;
+  /// The getter that corresponds to (has the same name as) this setter, or
+  /// `null` if there is no corresponding getter.
+  GetterFragment? get correspondingGetter2;
 
-  PropertyInducingFragment? get variable;
+  // TODO(brianwilkerson): This should override `element` to be more specific,
+  //  but can't because the Impl class supports both getters and setters.
+  // @override
+  // SetterElement get element;
+
+  /// The field or top-level variable associated with this setter.
+  ///
+  /// If this setter was explicitly defined (is not synthetic) then the variable
+  /// associated with it will be synthetic.
+  PropertyInducingFragment? get variable3;
 }
 
+/// A super formal parameter.
+///
+/// Super formal parameters can only be defined within a constructor element.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class SuperFormalParameterElement2 implements FormalParameterElement {
+  /// The associated super-constructor parameter, from the super-constructor
+  /// that is referenced by the implicit or explicit super-constructor
+  /// invocation.
+  ///
+  /// Can be `null` for erroneous code - not existing super-constructor,
+  /// no corresponding parameter in the super-constructor.
   FormalParameterElement? get superConstructorParameter2;
 }
 
-abstract class SuperFormalParameterFragment
-    implements FormalParameterFragment {}
+/// The portion of a [SuperFormalParameterElement2] contributed by a single
+/// declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class SuperFormalParameterFragment implements FormalParameterFragment {
+  @override
+  SuperFormalParameterElement2 get element;
+}
 
+/// A top-level function.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class TopLevelFunctionElement
     implements ExecutableElement2, _Fragmented {
   @override
   TopLevelFunctionElement get baseElement;
 
+  /// Whether the function represents `identical` from the `dart:core` library.
   bool get isDartCoreIdentical;
 
+  /// Whether the function is an entry point.
+  ///
+  /// A top-level function is an entry point if it has the name `main`.
   bool get isEntryPoint;
 }
 
-abstract class TopLevelFunctionFragment implements ExecutableFragment {}
+/// The portion of a [TopLevelFunctionElement] contributed by a single
+/// declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class TopLevelFunctionFragment implements ExecutableFragment {
+  @override
+  TopLevelFunctionElement get element;
 
+  @override
+  TopLevelFunctionFragment? get nextFragment;
+
+  @override
+  TopLevelFunctionFragment? get previousFragment;
+}
+
+/// A top-level variable.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class TopLevelVariableElement2 implements PropertyInducingElement2 {
   @override
   TopLevelVariableElement2 get baseElement;
 
+  /// Whether the field was explicitly marked as being external.
   bool get isExternal;
 }
 
-abstract class TopLevelVariableFragment implements PropertyInducingFragment {}
+/// The portion of a [TopLevelVariableElement2] contributed by a single
+/// declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class TopLevelVariableFragment implements PropertyInducingFragment {
+  @override
+  TopLevelVariableElement2 get element;
 
+  @override
+  TopLevelVariableFragment? get nextFragment;
+
+  @override
+  TopLevelVariableFragment? get previousFragment;
+}
+
+/// A type alias (`typedef`).
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class TypeAliasElement2
     implements TypeParameterizedElement2, TypeDefiningElement2 {
+  /// If the aliased type has structure, return the corresponding element.
+  /// For example it could be [GenericFunctionTypeElement].
+  ///
+  /// If there is no structure, return `null`.
   Element2? get aliasedElement2;
 
+  /// The aliased type.
+  ///
+  /// If non-function type aliases feature is enabled for the enclosing library,
+  /// this type might be just anything. If the feature is disabled, return
+  /// a [FunctionType].
   DartType get aliasedType;
 
   @override
   LibraryElement2 get enclosingElement2;
 
+  /// Returns the type resulting from instantiating this typedef with the given
+  /// [typeArguments] and [nullabilitySuffix].
+  ///
+  /// Note that this always instantiates the typedef itself, so for a
+  /// [TypeAliasElement2] the returned [DartType] might still be a generic
+  /// type, with type formals. For example, if the typedef is:
+  ///     typedef F<T> = void Function<U>(T, U);
+  /// then `F<int>` will produce `void Function<U>(int, U)`.
   DartType instantiate({
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
@@ -1175,6 +1697,8 @@ abstract class TypeAliasElement2
 }
 
 /// The portion of a [TypeAliasElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class TypeAliasFragment
     implements TypeParameterizedFragment, TypeDefiningFragment {
   @override
@@ -1197,29 +1721,54 @@ abstract class TypeDefiningElement2
     implements Element2, _Annotatable, _Fragmented {
   // TODO(brianwilkerson): Evaluate to see whether this type is actually needed
   //  after converting clients to the new API.
-
-  @override
-  LibraryElement2 get library2;
 }
 
 /// The portion of a [TypeDefiningElement2] contributed by a single declaration.
-abstract class TypeDefiningFragment implements Fragment, _Annotatable {}
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class TypeDefiningFragment implements Fragment, _Annotatable {
+  @override
+  TypeDefiningElement2 get element;
+}
 
+/// A type parameter.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class TypeParameterElement2 implements TypeDefiningElement2 {
   @override
   TypeParameterElement2 get baseElement;
 
+  /// The type representing the bound associated with this parameter.
+  ///
+  /// Returns `null` if this parameter does not have an explicit bound. Being
+  /// able to distinguish between an implicit and explicit bound is needed by
+  /// the instantiate to bounds algorithm.`
   DartType? get bound;
 
   @override
   LibraryElement2 get library2;
 
+  /// Returns the [TypeParameterType] with the given [nullabilitySuffix] for
+  /// this type parameter.
   TypeParameterType instantiate({
     required NullabilitySuffix nullabilitySuffix,
   });
 }
 
-abstract class TypeParameterFragment implements TypeDefiningFragment {}
+/// The portion of a [TypeParameterElement2] contributed by a single
+/// declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class TypeParameterFragment implements TypeDefiningFragment {
+  @override
+  TypeParameterElement2 get element;
+
+  @override
+  TypeParameterFragment? get nextFragment;
+
+  @override
+  TypeParameterFragment? get previousFragment;
+}
 
 /// An element that has type parameters, such as a class, typedef, or method.
 ///
@@ -1241,27 +1790,91 @@ abstract class TypeParameterizedElement2 implements Element2, _Annotatable {
 
 /// The portion of a [TypeParameterizedElement2] contributed by a single
 /// declaration.
-abstract class TypeParameterizedFragment implements Fragment, _Annotatable {}
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class TypeParameterizedFragment implements Fragment, _Annotatable {
+  @override
+  TypeParameterizedElement2 get element;
 
+  /// The type parameters declared by this fragment directly.
+  ///
+  /// This does not include type parameters that are declared by any enclosing
+  /// fragments.
+  List<TypeParameterFragment> get typeParameters2;
+}
+
+/// A pseudo-element that represents names that are undefined.
+///
+/// This situation is not allowed by the language, so objects implementing this
+/// interface always represent an error. As a result, most of the normal
+/// operations on elements do not make sense and will return useless results.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class UndefinedElement2 implements Element2 {}
 
+/// A variable.
+///
+/// There are more specific subclasses for more specific kinds of variables.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class VariableElement2 implements Element2 {
+  /// Whether the variable element did not have an explicit type specified
+  /// for it.
   bool get hasImplicitType;
 
+  /// Whether the variable was declared with the 'const' modifier.
   bool get isConst;
 
+  /// Whether the variable was declared with the 'final' modifier.
+  ///
+  /// Variables that are declared with the 'const' modifier will return `false`
+  /// even though they are implicitly final.
   bool get isFinal;
 
+  /// Whether the variable uses late evaluation semantics.
   bool get isLate;
 
+  /// Whether the element is a static variable, as per section 8 of the Dart
+  /// Language Specification:
+  ///
+  /// > A static variable is a variable that is not associated with a particular
+  /// > instance, but rather with an entire library or class. Static variables
+  /// > include library variables and class variables. Class variables are
+  /// > variables whose declaration is immediately nested inside a class
+  /// > declaration and includes the modifier static. A library variable is
+  /// > implicitly static.
   bool get isStatic;
 
+  /// The declared type of this variable.
   DartType get type;
 
+  /// Returns a representation of the value of this variable.
+  ///
+  /// If the value had not previously been computed, it will be computed as a
+  /// result of invoking this method.
+  ///
+  /// Returns `null` if either this variable was not declared with the 'const'
+  /// modifier or if the value of this variable could not be computed because of
+  /// errors.
   DartObject? computeConstantValue();
 }
 
-abstract class VariableFragment implements Fragment {}
+/// The portion of a [VariableElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class VariableFragment implements Fragment {
+  @override
+  VariableElement2 get element;
+
+  /// Whether the variable was declared with the 'const' modifier.
+  bool get isConst;
+
+  /// Whether the variable was declared with the 'final' modifier.
+  ///
+  /// Variables that are declared with the 'const' modifier will return `false`
+  /// even though they are implicitly final.
+  bool get isFinal;
+}
 
 /// An element or fragment that can have either annotations (metadata), a
 /// documentation comment, or both associated with it.
@@ -1386,7 +1999,12 @@ abstract class _Annotatable {
   Version? get sinceSdkVersion;
 }
 
-/// An element that can be declared in multiple fragments.
+/// An element that can be defined by multiple fragments.
 abstract class _Fragmented {
+  /// The first fragment in the chain of fragments that are merged to make this
+  /// element.
+  ///
+  /// The other fragments in the chain can be accessed using
+  /// [Fragment.nextFragment].
   Fragment get firstFragment;
 }

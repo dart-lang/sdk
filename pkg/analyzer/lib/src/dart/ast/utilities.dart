@@ -165,17 +165,6 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitAugmentationImportDirective(AugmentationImportDirective node) {
-    var other = _other as AugmentationImportDirective;
-    return isEqualNodes(
-            node.documentationComment, other.documentationComment) &&
-        _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.importKeyword, other.importKeyword) &&
-        isEqualNodes(node.uri, other.uri) &&
-        isEqualTokens(node.semicolon, other.semicolon);
-  }
-
-  @override
   bool visitAugmentedExpression(AugmentedExpression node) {
     var other = _other as AugmentedExpression;
     return isEqualTokens(node.augmentedKeyword, other.augmentedKeyword);
@@ -934,18 +923,6 @@ class AstComparator implements AstVisitor<bool> {
     LabeledStatement other = _other as LabeledStatement;
     return _isEqualNodeLists(node.labels, other.labels) &&
         isEqualNodes(node.statement, other.statement);
-  }
-
-  @override
-  bool? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    var other = _other as LibraryAugmentationDirective;
-    return isEqualNodes(
-            node.documentationComment, other.documentationComment) &&
-        _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.libraryKeyword, other.libraryKeyword) &&
-        isEqualTokens(node.augmentKeyword, other.augmentKeyword) &&
-        isEqualNodes(node.uri, other.uri) &&
-        isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
@@ -2141,13 +2118,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
-  bool visitAugmentationImportDirective(
-    covariant AugmentationImportDirectiveImpl node,
-  ) {
-    return visitUriBasedDirective(node);
-  }
-
-  @override
   bool visitAwaitExpression(covariant AwaitExpressionImpl node) {
     if (identical(node.expression, _oldNode)) {
       node.expression = _newNode as ExpressionImpl;
@@ -2926,13 +2896,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     }
     return visitNode(node);
-  }
-
-  @override
-  bool? visitLibraryAugmentationDirective(
-    covariant LibraryAugmentationDirectiveImpl node,
-  ) {
-    return visitUriBasedDirective(node);
   }
 
   @override

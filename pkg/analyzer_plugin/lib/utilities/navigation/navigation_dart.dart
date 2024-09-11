@@ -190,7 +190,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     var element = node.element;
     if (element is ConstructorElement && element.isSynthetic) {
-      element = element.enclosingElement;
+      element = element.enclosingElement3;
     }
     var name = node.name;
     if (name is PrefixedIdentifier) {
@@ -217,12 +217,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     node.leftHandSide.accept(this);
     computer._addRegionForToken(node.operator, node.staticElement);
     node.rightHandSide.accept(this);
-  }
-
-  @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    super.visitAugmentationImportDirective(node);
-    _addUriDirectiveRegion(node, node.element?.importedAugmentation);
   }
 
   @override
@@ -438,18 +432,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    super.visitLibraryAugmentationDirective(node);
-    var element = node.element;
-    var library = element?.library;
-    // If the library URI is unresolved, library will be the augmentation
-    // itself, so don't create a navigation region in that case.
-    if (element != library) {
-      _addUriDirectiveRegion(node, library);
-    }
-  }
-
-  @override
   void visitLibraryDirective(LibraryDirective node) {
     computer._addRegionForNode(node.name2, node.element);
   }
@@ -526,7 +508,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       RedirectingConstructorInvocation node) {
     Element? element = node.staticElement;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement;
+      element = element.enclosingElement3;
     }
     // add region
     computer._addRegionForToken(node.thisKeyword, element);
@@ -564,7 +546,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     Element? element = node.staticElement;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement;
+      element = element.enclosingElement3;
     }
     // add region
     computer._addRegionForToken(node.superKeyword, element);

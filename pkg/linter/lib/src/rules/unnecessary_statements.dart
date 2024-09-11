@@ -49,13 +49,10 @@ return myvar;
 class UnnecessaryStatements extends LintRule {
   UnnecessaryStatements()
       : super(
-            name: 'unnecessary_statements',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.brevity,
-              LintRuleCategory.unintentional
-            });
+          name: 'unnecessary_statements',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_statements;

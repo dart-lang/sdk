@@ -42,7 +42,9 @@ void unorderedListEquals(List<String> expected, List<String> actual) {
 void verifyGeneratedFile(
     String filename, StringBuffer contents, Map<String, String> expectations) {
   Expect.stringEquals(
-      DartFormatter().format(contents.toString()), expectations[filename]!);
+      DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+          .format(contents.toString()),
+      expectations[filename]!);
 }
 
 GraphIsomorphizer generateFiles(List<String> graphFileLines,

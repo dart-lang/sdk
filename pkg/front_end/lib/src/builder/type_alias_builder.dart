@@ -53,7 +53,6 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   // [unaliasTypeArguments].
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables});
 
   /// Returns the [TypeDeclarationBuilder] for the type aliased by `this`,
@@ -195,8 +194,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   }
 
   void _ensureUnaliasedType(
-      {required List<TypeBuilder>? unboundTypes,
-      required List<StructuralVariableBuilder>? unboundTypeVariables}) {
+      {required List<StructuralVariableBuilder>? unboundTypeVariables}) {
     if (_unaliasedRhsType != null) {
       return;
     }
@@ -214,15 +212,13 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         _unaliasedRhsType = type;
       case TypeAliasBuilder():
         rhsTypeDeclaration as TypeAliasBuilderImpl;
-        NamedTypeBuilder namedType = type as NamedTypeBuilder;
         Set<TypeAliasBuilder> usedTypeAliasBuilders = {};
         List<NominalVariableBuilder>? typeVariables =
             rhsTypeDeclaration.typeVariables;
-        List<TypeBuilder>? typeArguments = namedType.typeArguments;
+        List<TypeBuilder>? typeArguments = type.typeArguments;
         TypeBuilder? unaliasedRhsType = rhsTypeDeclaration.unalias(
             typeArguments,
             usedTypeAliasBuilders: usedTypeAliasBuilders,
-            unboundTypes: unboundTypes,
             unboundTypeVariables: unboundTypeVariables);
         _unaliasedRhsType = unaliasedRhsType;
         if (typeVariables != null) {
@@ -241,7 +237,6 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
                       typeVariables, typeArguments))
               .unalias(
                   usedTypeAliasBuilders: usedTypeAliasBuilders,
-                  unboundTypes: unboundTypes,
                   unboundTypeVariables: unboundTypeVariables);
         }
         _typeAliasesUsedInUnaliasing.addAll(usedTypeAliasBuilders);
@@ -255,10 +250,8 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   @override
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables}) {
-    _ensureUnaliasedType(
-        unboundTypes: unboundTypes, unboundTypeVariables: unboundTypeVariables);
+    _ensureUnaliasedType(unboundTypeVariables: unboundTypeVariables);
     if (usedTypeAliasBuilders != null) {
       usedTypeAliasBuilders.addAll(_typeAliasesUsedInUnaliasing);
     }
@@ -288,7 +281,6 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           return unaliasedRhsType!.subst(
               new Map<NominalVariableBuilder, TypeBuilder>.fromIterables(
                   typeVariables, typeArguments),
-              unboundTypes: unboundTypes,
               unboundTypeVariables: unboundTypeVariables);
         }
       case ExtensionBuilder():
@@ -439,78 +431,61 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     while (currentDeclarationBuilder is TypeAliasBuilder) {
       TypeAliasBuilder currentAliasBuilder = currentDeclarationBuilder;
       TypeBuilder nextTypeBuilder = currentAliasBuilder.type;
-      if (nextTypeBuilder is NamedTypeBuilder) {
-        Map<NominalVariableBuilder, TypeBuilder> substitution = {};
-        int index = 0;
-        if (currentTypeArguments == null || currentTypeArguments.isEmpty) {
-          if (currentAliasBuilder.typeVariables != null) {
-            List<TypeBuilder> defaultTypeArguments =
-                new List<TypeBuilder>.generate(
-                    currentAliasBuilder.typeVariables!.length, (int i) {
-              return currentAliasBuilder.typeVariables![i].defaultType!;
-            }, growable: true);
-            currentTypeArguments = defaultTypeArguments;
-          } else {
-            currentTypeArguments = <TypeBuilder>[];
-          }
+      Map<NominalVariableBuilder, TypeBuilder> substitution = {};
+      int index = 0;
+      if (currentTypeArguments == null || currentTypeArguments.isEmpty) {
+        if (currentAliasBuilder.typeVariables != null) {
+          List<TypeBuilder> defaultTypeArguments =
+              new List<TypeBuilder>.generate(
+                  currentAliasBuilder.typeVariables!.length, (int i) {
+            return currentAliasBuilder.typeVariables![i].defaultType!;
+          }, growable: true);
+          currentTypeArguments = defaultTypeArguments;
+        } else {
+          currentTypeArguments = <TypeBuilder>[];
         }
-        if ((currentAliasBuilder.typeVariables?.length ?? 0) !=
-            currentTypeArguments.length) {
-          // Coverage-ignore-block(suite): Not run.
-          if (previousAliasBuilder != null) {
-            previousAliasBuilder.libraryBuilder.addProblem(
-                templateTypeArgumentMismatch.withArguments(
-                    currentAliasBuilder.typeVariables?.length ?? 0),
-                previousAliasBuilder.charOffset,
-                noLength,
-                previousAliasBuilder.fileUri);
-            previousAliasBuilder.thisType = const InvalidType();
-            return this;
-          } else {
-            // This implies that `currentAliasBuilder` is [this], and the call
-            // violated the precondition.
-            return unhandled("$this: Wrong number of type arguments",
-                "_unaliasDeclaration", -1, null);
-          }
-        }
-        for (NominalVariableBuilder typeVariableBuilder
-            in currentAliasBuilder.typeVariables ?? []) {
-          substitution[typeVariableBuilder] = currentTypeArguments[index];
-          ++index;
-        }
-        TypeDeclarationBuilder? nextDeclarationBuilder =
-            nextTypeBuilder.declaration;
-        TypeBuilder substitutedBuilder = nextTypeBuilder.subst(substitution);
-        if (nextDeclarationBuilder is NominalVariableBuilder) {
-          // We have reached the end of the type alias chain which yields a
-          // type argument, which may become a type alias, possibly with its
-          // own similar chain. We do not simply continue the iteration here,
-          // though: We must call `unaliasDeclaration` because it can be
-          // cyclic; we want to do it as well, because the result could be
-          // cached.
-          if (substitutedBuilder is NamedTypeBuilder) {
-            TypeDeclarationBuilder? declarationBuilder =
-                substitutedBuilder.declaration;
-            if (declarationBuilder is TypeAliasBuilder) {
-              return declarationBuilder
-                  .unaliasDeclaration(substitutedBuilder.typeArguments);
-            }
-            return declarationBuilder;
-          }
-          // Coverage-ignore(suite): Not run.
-          // This can be null, e.g, `substitutedBuilder is FunctionTypeBuilder`
-          return substitutedBuilder.declaration;
-        }
-        // Not yet at the end of the chain, more named builders to come.
-        NamedTypeBuilder namedBuilder = substitutedBuilder as NamedTypeBuilder;
-        currentDeclarationBuilder = namedBuilder.declaration;
-        currentTypeArguments = namedBuilder.typeArguments;
-        previousAliasBuilder = currentAliasBuilder;
-      } else {
-        // Violation of requirement that we only step through
-        // `NamedTypeBuilder`s ending in a `TypeVariableBuilder`.
-        return null;
       }
+      if ((currentAliasBuilder.typeVariables?.length ?? 0) !=
+          currentTypeArguments.length) {
+        // Coverage-ignore-block(suite): Not run.
+        if (previousAliasBuilder != null) {
+          previousAliasBuilder.libraryBuilder.addProblem(
+              templateTypeArgumentMismatch.withArguments(
+                  currentAliasBuilder.typeVariables?.length ?? 0),
+              previousAliasBuilder.charOffset,
+              noLength,
+              previousAliasBuilder.fileUri);
+          previousAliasBuilder.thisType = const InvalidType();
+          return this;
+        } else {
+          // This implies that `currentAliasBuilder` is [this], and the call
+          // violated the precondition.
+          return unhandled("$this: Wrong number of type arguments",
+              "_unaliasDeclaration", -1, null);
+        }
+      }
+      for (NominalVariableBuilder typeVariableBuilder
+          in currentAliasBuilder.typeVariables ?? []) {
+        substitution[typeVariableBuilder] = currentTypeArguments[index];
+        ++index;
+      }
+      TypeDeclarationBuilder? nextDeclarationBuilder =
+          nextTypeBuilder.declaration;
+      TypeBuilder substitutedBuilder = nextTypeBuilder.subst(substitution);
+      if (nextDeclarationBuilder is NominalVariableBuilder) {
+        // We have reached the end of the type alias chain which yields a
+        // type argument, which may become a type alias, possibly with its
+        // own similar chain. We do not simply continue the iteration here,
+        // though: We must call `unaliasDeclaration` because it can be
+        // cyclic; we want to do it as well, because the result could be
+        // cached.
+        return substitutedBuilder.computeUnaliasedDeclaration(
+            isUsedAsClass: false);
+      }
+      // Not yet at the end of the chain, more named builders to come.
+      currentDeclarationBuilder = substitutedBuilder.declaration;
+      currentTypeArguments = substitutedBuilder.typeArguments;
+      previousAliasBuilder = currentAliasBuilder;
     }
     return currentDeclarationBuilder;
   }
@@ -538,12 +513,6 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     while (currentDeclarationBuilder is TypeAliasBuilder) {
       TypeAliasBuilder currentAliasBuilder = currentDeclarationBuilder;
       TypeBuilder nextTypeBuilder = currentAliasBuilder.type;
-      assert(
-          nextTypeBuilder is NamedTypeBuilder,
-          // Coverage-ignore(suite): Not run.
-          "Expected NamedTypeBuilder, got '${nextTypeBuilder.runtimeType}'.");
-      NamedTypeBuilder namedNextTypeBuilder =
-          nextTypeBuilder as NamedTypeBuilder;
       Map<NominalVariableBuilder, TypeBuilder> substitution = {};
       int index = 0;
       if (currentTypeArguments == null || currentTypeArguments.isEmpty) {
@@ -567,30 +536,26 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         ++index;
       }
       TypeDeclarationBuilder? nextDeclarationBuilder =
-          namedNextTypeBuilder.declaration;
+          nextTypeBuilder.declaration;
       TypeBuilder substitutedBuilder = nextTypeBuilder.subst(substitution);
       if (nextDeclarationBuilder is NominalVariableBuilder) {
         // Coverage-ignore-block(suite): Not run.
         // We have reached the end of the type alias chain which yields a
         // type argument, which may become a type alias, possibly with its
         // own similar chain.
-        assert(substitutedBuilder is NamedTypeBuilder);
-        NamedTypeBuilder namedSubstitutedBuilder =
-            substitutedBuilder as NamedTypeBuilder;
         TypeDeclarationBuilder? declarationBuilder =
-            namedSubstitutedBuilder.declaration;
+            substitutedBuilder.declaration;
         if (declarationBuilder is TypeAliasBuilder) {
           return declarationBuilder
-              .unaliasTypeArguments(namedSubstitutedBuilder.typeArguments);
+              .unaliasTypeArguments(substitutedBuilder.typeArguments);
         }
         assert(declarationBuilder is ClassBuilder ||
             declarationBuilder is ExtensionTypeDeclarationBuilder);
-        return namedSubstitutedBuilder.typeArguments ?? [];
+        return substitutedBuilder.typeArguments ?? [];
       }
       // Not yet at the end of the chain, more named builders to come.
-      NamedTypeBuilder namedBuilder = substitutedBuilder as NamedTypeBuilder;
-      currentDeclarationBuilder = namedBuilder.declaration;
-      currentTypeArguments = namedBuilder.typeArguments ?? [];
+      currentDeclarationBuilder = substitutedBuilder.declaration;
+      currentTypeArguments = substitutedBuilder.typeArguments ?? [];
     }
     return currentTypeArguments;
   }
@@ -605,6 +570,14 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       return tearOffs![name];
     }
     return null;
+  }
+
+  @override
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    return unalias(typeArguments, unboundTypeVariables: [])!.computeNullability(
+        typeVariablesTraversalState: typeVariablesTraversalState);
   }
 }
 

@@ -101,44 +101,6 @@ class AnalyzerStatePrinter {
     expect(knownFilesNotInUriFiles, isEmpty);
   }
 
-  void _writeAugmentationImport(
-    LibraryOrAugmentationFileKind container,
-    AugmentationImportState<DirectiveUri> import,
-  ) {
-    expect(import.container, same(container));
-
-    switch (import) {
-      case AugmentationImportWithFile():
-        sink.writeIndentedLine(() {
-          var file = import.importedFile;
-          var importedAugmentation = import.importedAugmentation;
-          if (importedAugmentation != null) {
-            expect(importedAugmentation.file, file);
-            sink.write(idProvider.fileKind(importedAugmentation));
-          } else {
-            sink.write('notAugmentation ${idProvider.fileState(file)}');
-          }
-        });
-      case AugmentationImportWithUri():
-        sink.writelnWithIndent('uri: ${import.uri.relativeUri}');
-      case AugmentationImportWithUriStr():
-        var uriStr = _stringOfUriStr(import.uri.relativeUriStr);
-        sink.writelnWithIndent('uriStr: $uriStr');
-      default:
-        sink.writelnWithIndent('noUriStr');
-    }
-  }
-
-  void _writeAugmentationImports(LibraryOrAugmentationFileKind container) {
-    _writeElements<AugmentationImportState>(
-      'augmentationImports',
-      container.augmentationImports,
-      (import) {
-        _writeAugmentationImport(container, import);
-      },
-    );
-  }
-
   void _writeByteStore() {
     sink.writelnWithIndent('byteStore');
     sink.withIndent(() {
@@ -213,43 +175,6 @@ class AnalyzerStatePrinter {
 
     sink.writelnWithIndent('kind: ${idProvider.fileKind(kind)}');
     switch (kind) {
-      case AugmentationKnownFileKind():
-        sink.withIndent(() {
-          var augmented = kind.augmented;
-          if (augmented != null) {
-            var id = idProvider.fileKind(augmented);
-            sink.writelnWithIndent('augmented: $id');
-          } else {
-            var id = idProvider.fileState(kind.uriFile);
-            sink.writelnWithIndent('uriFile: $id');
-          }
-
-          var library = kind.library;
-          if (library != null) {
-            var id = idProvider.fileKind(library);
-            sink.writelnWithIndent('library: $id');
-          }
-
-          _writeLibraryImports(kind);
-          _writeLibraryExports(kind);
-          _writeAugmentationImports(kind);
-          _writeDocImports(kind);
-        });
-      case AugmentationUnknownFileKind():
-        sink.withIndent(() {
-          var uri = kind.uri;
-          switch (uri) {
-            case DirectiveUriWithoutString():
-              sink.writelnWithIndent('noUriStr');
-            case DirectiveUriWithInSummarySource():
-              throw UnimplementedError('${uri.runtimeType}');
-            case DirectiveUriWithUri():
-              sink.writelnWithIndent('uri: ${uri.relativeUri}');
-            case DirectiveUriWithString():
-              var uriStr = _stringOfUriStr(uri.relativeUriStr);
-              sink.writelnWithIndent('uriStr: $uriStr');
-          }
-        });
       case LibraryFileKind():
         expect(kind.library, same(kind));
 
@@ -261,7 +186,6 @@ class AnalyzerStatePrinter {
 
           _writeLibraryImports(kind);
           _writeLibraryExports(kind);
-          _writeAugmentationImports(kind);
           _writePartIncludes(kind);
           _writeDocImports(kind);
 
@@ -758,10 +682,6 @@ class IdProvider {
     }
     return _fileKind[kind] ??= () {
       switch (kind) {
-        case AugmentationKnownFileKind():
-          return 'augmentation_${_fileKind.length}';
-        case AugmentationUnknownFileKind():
-          return 'augmentationUnknown_${_fileKind.length}';
         case LibraryFileKind():
           return 'library_${_fileKind.length}';
         case PartOfNameFileKind():

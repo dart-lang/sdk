@@ -382,7 +382,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           var element = field.declaredElement;
           if (element is PropertyAccessorElement || element is FieldElement) {
             Name name = Name(_currentLibrary.source.uri, element!.name);
-            var enclosingElement = element.enclosingElement!;
+            var enclosingElement = element.enclosingElement3!;
             var enclosingDeclaration = enclosingElement is InstanceElement
                 ? enclosingElement.augmented.declaration
                 : enclosingElement;
@@ -414,7 +414,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
             arguments: [
               field.name.lexeme,
-              overriddenElement.enclosingElement.displayName
+              overriddenElement.enclosingElement3.displayName
             ],
           );
         }
@@ -568,7 +568,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
     var element = node.declaredElement!;
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     var enclosingDeclaration = enclosingElement is InstanceElement
         ? enclosingElement.augmented.declaration
         : enclosingElement;
@@ -612,7 +612,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
           arguments: [
             node.name.lexeme,
-            overriddenElement.enclosingElement.displayName
+            overriddenElement.enclosingElement3.displayName
           ],
         );
       }
@@ -1242,7 +1242,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         SimpleIdentifier name = invocation.methodName;
         if (name.name == FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
           var methodElement = name.staticElement;
-          var classElement = methodElement?.enclosingElement;
+          var classElement = methodElement?.enclosingElement3;
           return methodElement is MethodElement &&
               classElement is ClassElement &&
               !classElement.isDartCoreObject;
@@ -1842,7 +1842,7 @@ class _InvalidAccessVerifier {
   void _checkForOtherInvalidAccess(AstNode node, Element element) {
     var hasProtected = element.isProtected;
     if (hasProtected) {
-      var definingClass = element.enclosingElement as InterfaceElement;
+      var definingClass = element.enclosingElement3 as InterfaceElement;
       if (_hasTypeOrSuperType(_enclosingClass, definingClass)) {
         return;
       }
@@ -1869,7 +1869,7 @@ class _InvalidAccessVerifier {
     // annotation present.
     var (name, errorEntity) = _getIdentifierNameAndErrorEntity(node, element);
 
-    var definingClass = element.enclosingElement;
+    var definingClass = element.enclosingElement3;
     if (definingClass == null) {
       return;
     }
@@ -1965,7 +1965,7 @@ class _InvalidAccessVerifier {
         return true;
       }
     }
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (_hasVisibleForTemplate(enclosingElement)) {
       return true;
     }
@@ -1982,7 +1982,7 @@ class _InvalidAccessVerifier {
         return true;
       }
     }
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement != null &&
         _hasVisibleOutsideTemplate(enclosingElement)) {
       return true;

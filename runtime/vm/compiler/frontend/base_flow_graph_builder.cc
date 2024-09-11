@@ -899,14 +899,6 @@ Fragment BaseFlowGraphBuilder::ThrowException(TokenPosition position) {
   return instructions;
 }
 
-Fragment BaseFlowGraphBuilder::AssertBool(TokenPosition position) {
-  Value* value = Pop();
-  AssertBooleanInstr* instr = new (Z)
-      AssertBooleanInstr(InstructionSource(position), value, GetNextDeoptId());
-  Push(instr);
-  return Fragment(instr);
-}
-
 Fragment BaseFlowGraphBuilder::BooleanNegate() {
   BooleanNegateInstr* negate = new (Z) BooleanNegateInstr(Pop());
   Push(negate);

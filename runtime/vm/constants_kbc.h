@@ -12,456 +12,12 @@
 namespace dart {
 
 // clang-format off
-// List of KernelBytecode instructions.
-//
-// INTERPRETER STATE
-//
-//      current frame info (see stack_frame_kbc.h for layout)
-//        v-----^-----v
-//   ~----+----~ ~----+-------+-------+-~ ~-+-------+-------+-~
-//   ~    |    ~ ~    | FP[0] | FP[1] | ~ ~ | SP[-1]| SP[0] |
-//   ~----+----~ ~----+-------+-------+-~ ~-+-------+-------+-~
-//                    ^                             ^
-//                    FP                            SP
-//
-//
-// The state of execution is captured in few interpreter registers:
-//
-//   FP - base of the current frame
-//   SP - top of the stack (TOS) for the current frame
-//   PP - object pool for the currently execution function
-//
-// Frame info stored below FP additionally contains pointers to the currently
-// executing function and code.
-//
-// In the unoptimized code most of bytecodes take operands implicitly from
-// stack and store results again on the stack. Constant operands are usually
-// taken from the object pool by index.
-//
-// ENCODING
-//
-// Each instruction starts with opcode byte. Certain instructions have
-// wide encoding variant. In such case, the least significant bit of opcode is
-// not set for compact variant and set for wide variant.
-//
-// The following operand encodings are used:
-//
-//   0........8.......16.......24.......32.......40.......48
-//   +--------+
-//   | opcode |                              0: no operands
-//   +--------+
-//
-//   +--------+--------+
-//   | opcode |    A   |                     A: unsigned 8-bit operand
-//   +--------+--------+
-//
-//   +--------+--------+
-//   | opcode |   D    |                     D: unsigned 8/32-bit operand
-//   +--------+--------+
-//
-//   +--------+----------------------------------+
-//   | opcode |                D                 |            D (wide)
-//   +--------+----------------------------------+
-//
-//   +--------+--------+
-//   | opcode |   X    |                     X: signed 8/32-bit operand
-//   +--------+--------+
-//
-//   +--------+----------------------------------+
-//   | opcode |                X                 |            X (wide)
-//   +--------+----------------------------------+
-//
-//   +--------+--------+
-//   | opcode |    T   |                     T: signed 8/24-bit operand
-//   +--------+--------+
-//
-//   +--------+--------------------------+
-//   | opcode |            T             |   T (wide)
-//   +--------+--------------------------+
-//
-//   +--------+--------+--------+
-//   | opcode |    A   |   E    |            A_E: unsigned 8-bit operand and
-//   +--------+--------+--------+                 unsigned 8/32-bit operand
-//
-//   +--------+--------+----------------------------------+
-//   | opcode |    A   |                 E                |   A_E (wide)
-//   +--------+--------+----------------------------------+
-//
-//   +--------+--------+--------+
-//   | opcode |    A   |   Y    |            A_Y: unsigned 8-bit operand and
-//   +--------+--------+--------+                 signed 8/32-bit operand
-//
-//   +--------+--------+----------------------------------+
-//   | opcode |    A   |                 Y                |   A_Y (wide)
-//   +--------+--------+----------------------------------+
-//
-//   +--------+--------+--------+
-//   | opcode |    D   |   F    |            D_F: unsigned 8/32-bit operand and
-//   +--------+--------+--------+                 unsigned 8-bit operand
-//
-//   +--------+----------------------------------+--------+
-//   | opcode |                 D                |    F   |   D_F (wide)
-//   +--------+----------------------------------+--------+
-//
-//   +--------+--------+--------+--------+
-//   | opcode |    A   |    B   |    C   |   A_B_C: 3 unsigned 8-bit operands
-//   +--------+--------+--------+--------+
-//
-//
-// INSTRUCTIONS
-//
-//  - Trap
-//
-//    Unreachable instruction.
-//
-//  - Entry rD
-//
-//    Function prologue for the function
-//        rD - number of local slots to reserve;
-//
-//  - EntryOptional A, B, C
-//
-//    Function prologue for the function with optional or named arguments:
-//        A - expected number of positional arguments;
-//        B - number of optional arguments;
-//        C - number of named arguments;
-//
-//    Only one of B and C can be not 0.
-//
-//    If B is not 0 then EntryOptional bytecode is followed by B LoadConstant
-//    bytecodes specifying default values for optional arguments.
-//
-//    If C is not 0 then EntryOptional is followed by 2 * C LoadConstant
-//    bytecodes.
-//    Bytecode at 2 * i specifies name of the i-th named argument and at
-//    2 * i + 1 default value. rA part of the LoadConstant bytecode specifies
-//    the location of the parameter on the stack. Here named arguments are
-//    sorted alphabetically to enable linear matching similar to how function
-//    prologues are implemented on other architectures.
-//
-//    Note: Unlike Entry bytecode EntryOptional does not setup the frame for
-//    local variables this is done by a separate bytecode Frame, which should
-//    follow EntryOptional and its LoadConstant instructions.
-//
-//  - EntrySuspendable A, B, C
-//
-//    Similar to EntryOptional, but also reserves a local variable slot
-//    for suspend state variable.
-//
-//  - LoadConstant rA, D
-//
-//    Used in conjunction with EntryOptional instruction to describe names and
-//    default values of optional parameters.
-//
-//  - Frame D
-//
-//    Reserve and initialize with null space for D local variables.
-//
-//  - CheckFunctionTypeArgs A, D
-//
-//    Check for a passed-in type argument vector of length A and
-//    store it at FP[D].
-//
-//  - CheckStack A
-//
-//    Compare SP against isolate stack limit and call StackOverflow handler if
-//    necessary. Should be used in prologue (A = 0), or at the beginning of
-//    a loop with depth A.
-//
-//  - Allocate D
-//
-//    Allocate object of class PP[D] with no type arguments.
-//
-//  - AllocateT
-//
-//    Allocate object of class SP[0] with type arguments SP[-1].
-//
-//  - CreateArrayTOS
-//
-//    Allocate array of length SP[0] with type arguments SP[-1].
-//
-//  - AllocateContext A, D
-//
-//    Allocate Context object holding D context variables.
-//    A is a static ID of the context. Static ID of a context may be used to
-//    disambiguate accesses to different context objects.
-//    Context objects with the same ID should have the same number of
-//    context variables.
-//
-//  - CloneContext A, D
-//
-//    Clone Context object SP[0] holding D context variables.
-//    A is a static ID of the context. Cloned context has the same ID.
-//
-//  - LoadContextParent
-//
-//    Load parent from context SP[0].
-//
-//  - StoreContextParent
-//
-//    Store context SP[0] into `parent` field of context SP[-1].
-//
-//  - LoadContextVar A, D
-//
-//    Load value from context SP[0] at index D.
-//    A is a static ID of the context.
-//
-//  - StoreContextVar A, D
-//
-//    Store value SP[0] into context SP[-1] at index D.
-//    A is a static ID of the context.
-//
-//  - PushConstant D
-//
-//    Push value at index D from constant pool onto the stack.
-//
-//  - PushNull
-//
-//    Push `null` onto the stack.
-//
-//  - PushTrue
-//
-//    Push `true` onto the stack.
-//
-//  - PushFalse
-//
-//    Push `false` onto the stack.
-//
-//  - PushInt rX
-//
-//    Push int rX onto the stack.
-//
-//  - Drop1
-//
-//    Drop 1 value from the stack
-//
-//  - Push rX
-//
-//    Push FP[rX] to the stack.
-//
-//  - StoreLocal rX; PopLocal rX
-//
-//    Store top of the stack into FP[rX] and pop it if needed.
-//
-//  - LoadFieldTOS D
-//
-//    Push value at offset (in words) PP[D] from object SP[0].
-//
-//  - StoreFieldTOS D
-//
-//    Store value SP[0] into object SP[-1] at offset (in words) PP[D].
-//
-//  - StoreIndexedTOS
-//
-//    Store SP[0] into array SP[-2] at index SP[-1]. No typechecking is done.
-//    SP[-2] is assumed to be a RawArray, SP[-1] to be a smi.
-//
-//  - PushStatic D
-//
-//    Pushes value of the static field PP[D] on to the stack.
-//
-//  - StoreStaticTOS D
-//
-//    Stores TOS into the static field PP[D].
-//
-//  - Jump target
-//
-//    Jump to the given target. Target is specified as offset from the PC of the
-//    jump instruction.
-//
-//  - JumpIfNoAsserts target
-//
-//    Jump to the given target if assertions are not enabled.
-//    Target is specified as offset from the PC of the jump instruction.
-//
-//  - JumpIfNotZeroTypeArgs target
-//
-//    Jump to the given target if number of passed function type
-//    arguments is not zero.
-//    Target is specified as offset from the PC of the jump instruction.
-//
-//  - JumpIfEqStrict target; JumpIfNeStrict target
-//
-//    Jump to the given target if SP[-1] is the same (JumpIfEqStrict) /
-//    not the same (JumpIfNeStrict) object as SP[0].
-//
-//  - JumpIfTrue target; JumpIfFalse target
-//  - JumpIfNull target; JumpIfNotNull target
-//
-//    Jump to the given target if SP[0] is true/false/null/not null.
-//
-//  - IndirectStaticCall ArgC, D
-//
-//    Invoke the function given by the ICData in SP[0] with arguments
-//    SP[-(1+ArgC)], ..., SP[-1] and argument descriptor PP[D], which
-//    indicates whether the first argument is a type argument vector.
-//
-//  - DirectCall ArgC, D
-//
-//    Invoke the function PP[D] with arguments
-//    SP[-(ArgC-1)], ..., SP[0] and argument descriptor PP[D+1].
-//
-//  - InterfaceCall ArgC, D
-//
-//    Lookup and invoke method using ICData in PP[D]
-//    with arguments SP[-(1+ArgC)], ..., SP[-1].
-//    Method has to be declared (explicitly or implicitly) in an interface
-//    implemented by a receiver, and passed arguments are valid for the
-//    interface method declaration.
-//    The ICData indicates whether the first argument is a type argument vector.
-//
-//  - UncheckedInterfaceCall ArgC, D
-//
-//    Same as InterfaceCall, but can omit type checks of generic-covariant
-//    parameters.
-//
-//  - DynamicCall ArgC, D
-//
-//    Lookup and invoke method using ICData in PP[D]
-//    with arguments SP[-(1+ArgC)], ..., SP[-1].
-//    The ICData indicates whether the first argument is a type argument vector.
-//
-//  - ReturnTOS
-//
-//    Return to the caller using a value from the top-of-stack as a result.
-//
-//    Note: return instruction knows how many arguments to remove from the
-//    stack because it can look at the call instruction at caller's PC and
-//    take argument count from it.
-//
-//  - ReturnAsync
-//
-//    Return to the caller from async function using a value from
-//    the top-of-stack as a result.
-//
-//  - ReturnAsyncStar
-//
-//    Return to the caller from async* function using a value from
-//    the top-of-stack as a result.
-//
-//  - ReturnSyncStar
-//
-//    Return to the caller from sync* function using a value from
-//    the top-of-stack as a result.
-//
-//  - AssertAssignable A, D
-//
-//    Assert that instance SP[-4] is assignable to variable named SP[0] of
-//    type SP[-1] with instantiator type arguments SP[-3] and function type
-//    arguments SP[-2] using SubtypeTestCache PP[D].
-//    If A is 1, then the instance may be a Smi.
-//
-//    Instance remains on stack. Other arguments are consumed.
-//
-//  - AssertBoolean A
-//
-//    Assert that TOS is a boolean (A = 1) or that TOS is not null (A = 0).
-//
-//  - AssertSubtype
-//
-//    Assert that one type is a subtype of another.  Throws a TypeError
-//    otherwise.  The stack has the following arguments on it:
-//
-//        SP[-4]  instantiator type args
-//        SP[-3]  function type args
-//        SP[-2]  sub_type
-//        SP[-1]  super_type
-//        SP[-0]  dst_name
-//
-//    All 5 arguments are consumed from the stack and no results is pushed.
-//
-//  - LoadTypeArgumentsField D
-//
-//    Load instantiator type arguments from an instance SP[0].
-//    PP[D] = offset (in words) of type arguments field corresponding
-//    to an instance's class.
-//
-//  - InstantiateType D
-//
-//    Instantiate type PP[D] with instantiator type arguments SP[-1] and
-//    function type arguments SP[0].
-//
-//  - InstantiateTypeArgumentsTOS A, D
-//
-//    Instantiate type arguments PP[D] with instantiator type arguments SP[-1]
-//    and function type arguments SP[0]. A != 0 indicates that resulting type
-//    arguments are all dynamic if both instantiator and function type
-//    arguments are all dynamic.
-//
-//  - Throw A
-//
-//    Throw (Rethrow if A != 0) exception. Exception object and stack object
-//    are taken from TOS.
-//
-//  - MoveSpecial A, rX
-//
-//    Copy value from special variable to FP[rX]. Currently only
-//    used to pass exception object (A = 0) and stack trace object (A = 1) to
-//    catch handler.
-//
-//  - SetFrame A
-//
-//    Reinitialize SP assuming that current frame has size A.
-//    Used to drop temporaries from the stack in the exception handler.
-//
-//  - BooleanNegateTOS
-//
-//    SP[0] = !SP[0]
-//
-//  - EqualsNull
-//
-//    SP[0] = (SP[0] == null) ? true : false
-//
-//  - NegateInt
-//
-//    Equivalent to invocation of unary int operator-.
-//    Receiver should have static type int.
-//    Check SP[0] for null; SP[0] = -SP[0].
-//
-//  - AddInt; SubInt; MulInt; TruncDivInt; ModInt; BitAndInt; BitOrInt;
-//    BitXorInt; ShlInt; ShrInt
-//
-//    Equivalent to invocation of binary int operator +, -, *, ~/, %, &, |,
-//    ^, << or >>. Receiver and argument should have static type int.
-//    Check SP[-1] and SP[0] for null; push SP[-1] <op> SP[0].
-//
-//  - CompareIntEq; CompareIntGt; CompareIntLt; CompareIntGe; CompareIntLe
-//
-//    Equivalent to invocation of binary int operator ==, >, <, >= or <=.
-//    Receiver and argument should have static type int.
-//    Check SP[-1] and SP[0] for null; push SP[-1] <op> SP[0] ? true : false.
-//
-//  - NegateDouble
-//
-//    Equivalent to invocation of unary double operator-.
-//    Receiver should have static type double.
-//    Check SP[0] for null; SP[0] = -SP[0].
-//
-//  - AddDouble; SubDouble; MulDouble; DivDouble
-//
-//    Equivalent to invocation of binary int operator +, -, *, /.
-//    Receiver and argument should have static type double.
-//    Check SP[-1] and SP[0] for null; push SP[-1] <op> SP[0].
-//
-//  - CompareDoubleEq; CompareDoubleGt; CompareDoubleLt; CompareDoubleGe;
-//    CompareDoubleLe
-//
-//    Equivalent to invocation of binary double operator ==, >, <, >= or <=.
-//    Receiver and argument should have static type double.
-//    Check SP[-1] and SP[0] for null; push SP[-1] <op> SP[0] ? true : false.
-//
-//  - AllocateClosure D
-//
-//    Allocate closure object for closure function ConstantPool[D].
-//
-// BYTECODE LIST FORMAT
-//
-// KernelBytecode list below is specified using the following format:
+// Bytecode instructions are specified using the following format:
 //
 //     V(BytecodeName, OperandForm, BytecodeKind, Op1, Op2, Op3)
 //
 // - OperandForm specifies operand encoding and should be one of 0, A, D, X, T,
-//   A_E, A_Y, D_F or A_B_C (see ENCODING section above).
+//   A_E, A_Y, D_F or A_B_C.
 //
 // - BytecodeKind is one of WIDE, RESV (reserved), ORDN (ordinary)
 //
@@ -499,8 +55,8 @@ namespace dart {
   V(Allocate_Wide,                         D, WIDE, lit, ___, ___)             \
   V(AllocateT,                             0, ORDN, ___, ___, ___)             \
   V(CreateArrayTOS,                        0, ORDN, ___, ___, ___)             \
-  V(AllocateClosure,                       D, ORDN, lit, ___, ___)             \
-  V(AllocateClosure_Wide,                  D, WIDE, lit, ___, ___)             \
+  V(AllocateClosure,                       0, ORDN, ___, ___, ___)             \
+  V(Unused03,                              0, RESV, ___, ___, ___)             \
   V(AllocateContext,                     A_E, ORDN, num, num, ___)             \
   V(AllocateContext_Wide,                A_E, WIDE, num, num, ___)             \
   V(CloneContext,                        A_E, ORDN, num, num, ___)             \
@@ -573,6 +129,8 @@ namespace dart {
   V(JumpIfNull_Wide,                       T, WIDE, tgt, ___, ___)             \
   V(JumpIfNotNull,                         T, ORDN, tgt, ___, ___)             \
   V(JumpIfNotNull_Wide,                    T, WIDE, tgt, ___, ___)             \
+  V(Suspend,                               T, ORDN, tgt, ___, ___)             \
+  V(Suspend_Wide,                          T, WIDE, tgt, ___, ___)             \
   V(DirectCall,                          D_F, ORDN, num, num, ___)             \
   V(DirectCall_Wide,                     D_F, WIDE, num, num, ___)             \
   V(UncheckedDirectCall,                 D_F, ORDN, num, num, ___)             \
@@ -590,15 +148,11 @@ namespace dart {
   V(DynamicCall,                         D_F, ORDN, num, num, ___)             \
   V(DynamicCall_Wide,                    D_F, WIDE, num, num, ___)             \
   V(ReturnTOS,                             0, ORDN, ___, ___, ___)             \
-  V(ReturnAsync,                           0, ORDN, ___, ___, ___)             \
-  V(ReturnAsyncStar,                       0, ORDN, ___, ___, ___)             \
-  V(ReturnSyncStar,                        0, ORDN, ___, ___, ___)             \
+  V(Unused25,                              0, RESV, ___, ___, ___)             \
   V(AssertAssignable,                    A_E, ORDN, num, lit, ___)             \
   V(AssertAssignable_Wide,               A_E, WIDE, num, lit, ___)             \
-  V(Unused30,                              0, RESV, ___, ___, ___)             \
-  V(Unused31,                              0, RESV, ___, ___, ___)             \
-  V(AssertBoolean,                         A, ORDN, num, ___, ___)             \
   V(AssertSubtype,                         0, ORDN, ___, ___, ___)             \
+  V(Unused30,                              0, RESV, ___, ___, ___)             \
   V(LoadTypeArgumentsField,                D, ORDN, lit, ___, ___)             \
   V(LoadTypeArgumentsField_Wide,           D, WIDE, lit, ___, ___)             \
   V(InstantiateType,                       D, ORDN, lit, ___, ___)             \
@@ -643,6 +197,10 @@ namespace dart {
   V(CompareDoubleLt,                       0, ORDN, ___, ___, ___)             \
   V(CompareDoubleGe,                       0, ORDN, ___, ___, ___)             \
   V(CompareDoubleLe,                       0, ORDN, ___, ___, ___)             \
+  V(AllocateRecord,                        D, ORDN, lit, ___, ___)             \
+  V(AllocateRecord_Wide,                   D, WIDE, lit, ___, ___)             \
+  V(LoadRecordField,                       D, ORDN, num, ___, ___)             \
+  V(LoadRecordField_Wide,                  D, WIDE, num, ___, ___)             \
 
   // These bytecodes are only generated within the VM. Reassigning their
   // opcodes is not a breaking change.
@@ -650,6 +208,7 @@ namespace dart {
   V(VMInternal_ImplicitGetter,             0, ORDN, ___, ___, ___)             \
   V(VMInternal_ImplicitSetter,             0, ORDN, ___, ___, ___)             \
   V(VMInternal_ImplicitStaticGetter,       0, ORDN, ___, ___, ___)             \
+  V(VMInternal_ImplicitStaticSetter,       0, ORDN, ___, ___, ___)             \
   V(VMInternal_MethodExtractor,            0, ORDN, ___, ___, ___)             \
   V(VMInternal_InvokeClosure,              0, ORDN, ___, ___, ___)             \
   V(VMInternal_InvokeField,                0, ORDN, ___, ___, ___)             \
@@ -789,47 +348,6 @@ class KernelBytecode {
                     reinterpret_cast<const KBCInstr*>(pc))];
   }
 
-  DART_FORCE_INLINE static bool IsJumpOpcode(const KBCInstr* instr) {
-    switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kJump:
-      case KernelBytecode::kJump_Wide:
-      case KernelBytecode::kJumpIfNoAsserts:
-      case KernelBytecode::kJumpIfNoAsserts_Wide:
-      case KernelBytecode::kJumpIfNotZeroTypeArgs:
-      case KernelBytecode::kJumpIfNotZeroTypeArgs_Wide:
-      case KernelBytecode::kJumpIfEqStrict:
-      case KernelBytecode::kJumpIfEqStrict_Wide:
-      case KernelBytecode::kJumpIfNeStrict:
-      case KernelBytecode::kJumpIfNeStrict_Wide:
-      case KernelBytecode::kJumpIfTrue:
-      case KernelBytecode::kJumpIfTrue_Wide:
-      case KernelBytecode::kJumpIfFalse:
-      case KernelBytecode::kJumpIfFalse_Wide:
-      case KernelBytecode::kJumpIfNull:
-      case KernelBytecode::kJumpIfNull_Wide:
-      case KernelBytecode::kJumpIfNotNull:
-      case KernelBytecode::kJumpIfNotNull_Wide:
-      case KernelBytecode::kJumpIfUnchecked:
-      case KernelBytecode::kJumpIfUnchecked_Wide:
-      case KernelBytecode::kJumpIfInitialized:
-      case KernelBytecode::kJumpIfInitialized_Wide:
-        return true;
-
-      default:
-        return false;
-    }
-  }
-
-  DART_FORCE_INLINE static bool IsJumpIfUncheckedOpcode(const KBCInstr* instr) {
-    switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kJumpIfUnchecked:
-      case KernelBytecode::kJumpIfUnchecked_Wide:
-        return true;
-      default:
-        return false;
-    }
-  }
-
   DART_FORCE_INLINE static bool IsLoadConstantOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kLoadConstant:
@@ -910,9 +428,6 @@ class KernelBytecode {
       case KernelBytecode::kDynamicCall:
       case KernelBytecode::kDynamicCall_Wide:
       case KernelBytecode::kReturnTOS:
-      case KernelBytecode::kReturnAsync:
-      case KernelBytecode::kReturnAsyncStar:
-      case KernelBytecode::kReturnSyncStar:
       case KernelBytecode::kEqualsNull:
       case KernelBytecode::kNegateInt:
       case KernelBytecode::kNegateDouble:

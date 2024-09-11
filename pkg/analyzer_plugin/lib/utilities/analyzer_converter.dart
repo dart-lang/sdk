@@ -178,7 +178,7 @@ class AnalyzerConverter {
         // in either or both of these cases?
         ) {
       var type = element.type;
-      if (type is InterfaceType && type.element == element.enclosingElement) {
+      if (type is InterfaceType && type.element == element.enclosingElement3) {
         return plugin.ElementKind.ENUM_CONSTANT;
       }
     }
@@ -320,7 +320,7 @@ extension ElementExtensions on analyzer.Element? {
     var currentElement = this;
     for (;
         currentElement != null;
-        currentElement = currentElement.enclosingElement) {
+        currentElement = currentElement.enclosingElement3) {
       if (currentElement is analyzer.CompilationUnitElement) {
         return currentElement;
       } else if (currentElement is analyzer.LibraryOrAugmentationElement) {

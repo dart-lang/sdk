@@ -20,6 +20,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/src/utilities/charcodes.dart';
+import 'package:analyzer_plugin/src/utilities/directive_sort.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
 import 'package:analyzer_plugin/src/utilities/library.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
@@ -681,7 +682,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeReference(Element element) {
-    if (element.enclosingElement is CompilationUnitElement) {
+    if (element.enclosingElement3 is CompilationUnitElement) {
       _writeLibraryReference(element);
     }
     write(element.displayName);
@@ -1092,10 +1093,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
       var element = type.element;
-      var enclosing = element.enclosingElement;
+      var enclosing = element.enclosingElement3;
       while (enclosing is GenericFunctionTypeElement ||
           enclosing is ParameterElement) {
-        enclosing = enclosing!.enclosingElement;
+        enclosing = enclosing!.enclosingElement3;
       }
       if (enclosing == _enclosingExecutable ||
           enclosing == _enclosingClass ||
@@ -1542,22 +1543,27 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return;
     }
 
-    var libraryWithElement = resultCache?[element] ??
+    var elementLibrariesToImport =
+        (libraryChangeBuilder ?? this)._elementLibrariesToImport;
+    var libraryToImport = resultCache?[element] ??
         await TopLevelDeclarations(resolvedUnit)
-            .publiclyExporting(element, resultCache: resultCache);
-    if (libraryWithElement != null) {
-      _elementLibrariesToImport[element] = _importLibrary(
-        libraryWithElement.source.uri,
+            .publiclyExporting(element, resultCache: resultCache) ??
+        // Fall back to the elements library if we didn't find a better one.
+        element.library;
+
+    var uriToImport = libraryToImport?.source.uri;
+    if (uriToImport != null) {
+      var newImport = elementLibrariesToImport[element] = _importLibrary(
+        uriToImport,
+        isExplicitImport: false,
         shownName: element.name,
         useShow: useShow,
       );
-      return;
-    }
 
-    // If we didn't find one, use the original URI.
-    var uri = element.source?.uri;
-    if (uri != null) {
-      _importLibrary(uri, shownName: element.name, useShow: useShow);
+      // It's possible this new import can satisfy other pending elements
+      // imports in which case we could remove them to avoid adding unnecessary
+      // imports.
+      _removeUnnecessaryPendingElementImports(newImport, libraryToImport);
     }
   }
 
@@ -1793,9 +1799,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
     }
 
-    // Sort imports by URIs.
-    var importList = imports.toList();
-    importList.sort((a, b) => a.uriText.compareTo(b.uriText));
+    // Sort the new imports so dart, package, and relative imports appear in the
+    // correct order.
+    var importList = imports.toList()..sort();
     var sortCombinators = resolvedUnit.session.analysisContext
         .getAnalysisOptionsForFile(resolvedUnit.file)
         .isLintEnabled('combinators_ordering');
@@ -1984,6 +1990,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
           if (isReplacement) {
             insert(replace: existingImport);
+            break;
           } else if (isDart) {
             if (!isExistingDart || isNewBeforeExisting) {
               insert(
@@ -2126,6 +2133,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       if (definedNames.containsValue(element)) {
         return _LibraryImport(
           uriText: import.librarySource.uri.toString(),
+          isExplicitlyImported: true,
           shownNames: [
             for (var combinator in import.combinators)
               if (combinator is ShowElementCombinator)
@@ -2141,7 +2149,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
     }
 
-    return _elementLibrariesToImport[element];
+    return (libraryChangeBuilder ?? this)._elementLibrariesToImport[element];
   }
 
   List<LibraryImportElement> _getImportsForUri(Uri uri) {
@@ -2204,6 +2212,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     Uri uri, {
     String? prefix,
     String? shownName,
+    bool isExplicitImport = true,
     bool useShow = false,
     bool forceAbsolute = false,
     bool forceRelative = false,
@@ -2219,6 +2228,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       if (shownName != null) {
         import.ensureShown(shownName, useShow: useShow);
       }
+      // If this was an explicit import request, ensure the existing import
+      // is marked as such so it cannot be removed by other optimizations.
+      if (isExplicitImport) {
+        import.isExplicitlyImported = true;
+      }
     } else {
       var uriText = _getLibraryUriText(uri,
           forceAbsolute: forceAbsolute, forceRelative: forceRelative);
@@ -2226,16 +2240,16 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       // the URI and prefix we care about.
       for (var element in resolvedUnit.libraryElement.libraryImports) {
         var library = element.importedLibrary;
-        if (library == null || element.prefix?.element.name != prefix) {
+        if (library == null) {
+          continue;
+        }
+        if ((element.prefix?.element.name ?? '') != (prefix ?? '')) {
+          // Imports need to have the same prefix to be replaced.
           continue;
         }
         var elementUrlText = _getLibraryUriText(library.source.uri,
             forceAbsolute: forceAbsolute, forceRelative: forceRelative);
         if (uriText != elementUrlText) {
-          continue;
-        }
-        if ((element.prefix?.element.name ?? '') != (prefix ?? '')) {
-          // Imports need to have the same prefix to be replaced.
           continue;
         }
         for (var combinator in element.combinators) {
@@ -2252,6 +2266,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       import = _LibraryImport(
         uriText: uriText,
         prefix: prefix ?? '',
+        isExplicitlyImported: isExplicitImport,
         shownNames: shownNames,
         hiddenNames: hiddenNames,
       );
@@ -2266,6 +2281,48 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// Returns whether the [element] is defined in the target library.
   bool _isDefinedLocally(Element element) {
     return element.library == resolvedUnit.libraryElement;
+  }
+
+  /// Removes any pending imports (for [Element]s) that are no longer necessary
+  /// because the newly-added [newImport] for [newLibrary] also provides those
+  /// [Element]s.
+  void _removeUnnecessaryPendingElementImports(
+      _LibraryImport newImport, LibraryElement? newLibrary) {
+    var elementLibrariesToImport =
+        (libraryChangeBuilder ?? this)._elementLibrariesToImport;
+
+    // Replace the imports for any elements that we can satisfy, and collect the
+    // set of any that might no longer be needed.
+    var candidatesToRemove = <_LibraryImport>{};
+    // Use toList() because we'll mutate the maps values while enumerating.
+    var existingOtherImports = elementLibrariesToImport.entries.toList();
+    for (var MapEntry(key: otherElement, value: otherImport)
+        in existingOtherImports) {
+      // Ignore those that are the new import or explicit imports (which we can
+      // not remove).
+      if (otherImport == newImport || otherImport.isExplicitlyImported) {
+        continue;
+      }
+
+      // If this new import exports the other element, change it to this import
+      // and record it as a removal candidate.
+      if (newLibrary?.exportNamespace.get(otherElement.displayName) ==
+          otherElement) {
+        candidatesToRemove.add(otherImport);
+        elementLibrariesToImport[otherElement] = newImport;
+      }
+    }
+
+    // Remove anything from the removal candidates that is still used by another
+    // remaining element.
+    var remainingElementImports = elementLibrariesToImport.values.toSet();
+    candidatesToRemove.removeWhere(remainingElementImports.contains);
+
+    // And finally, remove the remaining candidates from the set of libraries to
+    // be imported.
+    (libraryChangeBuilder ?? this)
+        .librariesToImport
+        .removeWhere((_, import) => candidatesToRemove.contains(import));
   }
 
   /// Creates an edit to replace the return type of the innermost function
@@ -2522,8 +2579,10 @@ class _InsertionPreparer {
 }
 
 /// Information about a library import.
-class _LibraryImport {
+class _LibraryImport implements Comparable<_LibraryImport> {
   final String uriText;
+
+  late final DirectiveSortPriority sortPriority;
 
   /// Prefixes that this library is/will be imported using.
   ///
@@ -2537,13 +2596,24 @@ class _LibraryImport {
   /// Names this import has in its `hide` combinator.
   final List<List<String>> hiddenNames;
 
+  /// Whether this import was added explicitly, either because it already exists
+  /// or a caller requested it was added without the context of an [Element].
+  ///
+  /// If `false`, this is a pending import that only currently exists to satisfy
+  /// [Element] imports and could be removed if subsequent imports also provide
+  /// that element. If an explicit call is made to import this library, this
+  /// flag may change from `false` to `true`.
+  bool isExplicitlyImported;
+
   _LibraryImport({
     required this.uriText,
     required String prefix,
+    required this.isExplicitlyImported,
     List<List<String>>? shownNames,
     List<List<String>>? hiddenNames,
   })  : shownNames = shownNames ?? [],
         hiddenNames = hiddenNames ?? [] {
+    sortPriority = DirectiveSortPriority(uriText, DirectiveSortKind.import);
     prefixes.add(prefix);
   }
 
@@ -2565,7 +2635,15 @@ class _LibraryImport {
   bool operator ==(other) {
     return other is _LibraryImport &&
         other.uriText == uriText &&
-        !const SetEquality().equals(other.prefixes, prefixes);
+        const SetEquality().equals(other.prefixes, prefixes);
+  }
+
+  @override
+  int compareTo(_LibraryImport other) {
+    if (sortPriority == other.sortPriority) {
+      return compareDirectiveUri(uriText, other.uriText);
+    }
+    return sortPriority.ordinal - other.sortPriority.ordinal;
   }
 
   /// Ensures [name] is visible for this import.

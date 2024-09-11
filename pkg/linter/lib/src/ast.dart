@@ -157,7 +157,7 @@ bool isInLibDir(CompilationUnit node, WorkspacePackage? package) {
 
 /// Return `true` if this compilation unit [node] is declared within a public
 /// directory in the given [package]'s directory tree. Public dirs are the
-/// `lib` and `bin` dirs.
+/// `lib` and `bin` dirs and the build and link hook file.
 //
 // TODO(jakemac): move into WorkspacePackage
 bool isInPublicDir(CompilationUnit node, WorkspacePackage? package) {
@@ -166,7 +166,13 @@ bool isInPublicDir(CompilationUnit node, WorkspacePackage? package) {
   if (cuPath == null) return false;
   var libDir = path.join(package.root, 'lib');
   var binDir = path.join(package.root, 'bin');
-  return path.isWithin(libDir, cuPath) || path.isWithin(binDir, cuPath);
+  // Hook directory: https://github.com/dart-lang/sdk/issues/54334,
+  var buildHookFile = path.join(package.root, 'hook', 'build.dart');
+  var linkHookFile = path.join(package.root, 'hook', 'link.dart');
+  return path.isWithin(libDir, cuPath) ||
+      path.isWithin(binDir, cuPath) ||
+      cuPath == buildHookFile ||
+      cuPath == linkHookFile;
 }
 
 /// Returns `true` if the keyword associated with the given [token] matches
@@ -305,10 +311,10 @@ bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
   if (expression is SimpleIdentifier) {
     var staticElement = expression.staticElement;
     if (staticElement is PropertyAccessorElement) {
-      var enclosingElement = getter.declaredElement?.enclosingElement;
+      var enclosingElement = getter.declaredElement?.enclosingElement3;
       // Skipping library level getters, test that the enclosing element is
       // the same
-      if (staticElement.enclosingElement == enclosingElement) {
+      if (staticElement.enclosingElement3 == enclosingElement) {
         var variable = staticElement.variable2;
         if (variable != null) {
           return staticElement.isSynthetic && variable.isPrivate;

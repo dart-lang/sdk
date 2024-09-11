@@ -123,15 +123,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    _sink.writeln('AugmentationImportDirective');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
-    });
-  }
-
-  @override
   void visitAugmentedExpression(AugmentedExpression node) {
     _sink.writeln('AugmentedExpression');
     _sink.withIndent(() {
@@ -926,15 +917,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('LabeledStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-    });
-  }
-
-  @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    _sink.writeln('LibraryAugmentationDirective');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
     });
   }
 

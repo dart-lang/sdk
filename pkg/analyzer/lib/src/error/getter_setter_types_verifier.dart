@@ -49,28 +49,28 @@ class GetterSetterTypesVerifier {
           var setterType = setter.parameters[0].type;
           if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
             Element errorElement;
-            if (getter.enclosingElement == element) {
+            if (getter.enclosingElement3 == element) {
               if (element is ExtensionTypeElement &&
                   element.representation.getter == getter) {
                 errorElement = setter;
               } else {
                 errorElement = getter;
               }
-            } else if (setter.enclosingElement == element) {
+            } else if (setter.enclosingElement3 == element) {
               errorElement = setter;
             } else {
               errorElement = element;
             }
 
             var getterName = getter.displayName;
-            if (getter.enclosingElement != element) {
-              var getterClassName = getter.enclosingElement.displayName;
+            if (getter.enclosingElement3 != element) {
+              var getterClassName = getter.enclosingElement3.displayName;
               getterName = '$getterClassName.$getterName';
             }
 
             var setterName = setter.displayName;
-            if (setter.enclosingElement != element) {
-              var setterClassName = setter.enclosingElement.displayName;
+            if (setter.enclosingElement3 != element) {
+              var setterClassName = setter.enclosingElement3.displayName;
               setterName = '$setterClassName.$setterName';
             }
 

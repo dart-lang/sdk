@@ -156,7 +156,7 @@ class Intrinsifier {
         throw "Table size not directly on a static field"
             " at ${node.location}";
       }
-      w.Table table = translator.getTable(receiver.target as Field)!;
+      w.Table table = translator.getTable(b.module, receiver.target as Field)!;
       assert(name == "size");
       b.table_size(table);
       return w.NumType.i32;
@@ -363,7 +363,7 @@ class Intrinsifier {
         throw "Table indexing not directly on a static field"
             " at ${node.location}";
       }
-      w.Table table = translator.getTable(receiver.target as Field)!;
+      w.Table table = translator.getTable(b.module, receiver.target as Field)!;
       codeGen.wrap(node.arguments.positional[0], w.NumType.i32);
       if (name == '[]') {
         b.table_get(table);
@@ -882,10 +882,6 @@ class Intrinsifier {
           codeGen.wrap(node.arguments.positional.single, info.nonNullableType);
           b.struct_get(info.struct, FieldIndex.classId);
           return w.NumType.i32;
-        case "makeListFixedLength":
-          return _changeListClassID(node, translator.fixedLengthListClass);
-        case "makeFixedListUnmodifiable":
-          return _changeListClassID(node, translator.immutableListClass);
       }
     }
 
@@ -1065,9 +1061,8 @@ class Intrinsifier {
         StaticTearOffConstant func = f.constant as StaticTearOffConstant;
         w.BaseFunction wasmFunction =
             translator.functions.getFunction(func.targetReference);
-        w.Global functionRef = translator.makeFunctionRef(wasmFunction);
-        b.global_get(functionRef);
-        return functionRef.type.type;
+        return translator.globals
+            .readGlobal(b, translator.makeFunctionRef(b.module, wasmFunction));
       }
 
       // Wasm(AnyRef|FuncRef|EqRef|StructRef|I32|I64|F32|F64) constructors
@@ -1154,34 +1149,21 @@ class Intrinsifier {
           codeGen.wrap(value, w.RefType.extern(nullable: true));
           b.ref_is_null();
           return w.NumType.i32;
+        case "isSubClassOf":
+          final baseClass =
+              (node.arguments.types.single as InterfaceType).classNode;
+          final range =
+              translator.classIdNumbering.getConcreteSubclassRange(baseClass);
+
+          final object = node.arguments.positional.single;
+          codeGen.wrap(object, w.RefType.any(nullable: false));
+          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+          b.emitClassIdRangeCheck([range]);
+          return w.NumType.i32;
       }
     }
 
     return null;
-  }
-
-  w.ValueType _changeListClassID(StaticInvocation node, Class newClass) {
-    ClassInfo receiverInfo = translator.classInfo[translator.listBaseClass]!;
-    codeGen.wrap(
-        node.arguments.positional.single, receiverInfo.nonNullableType);
-    w.Local receiverLocal = b.addLocal(receiverInfo.nonNullableType);
-    b.local_set(receiverLocal);
-
-    ClassInfo newInfo = translator.classInfo[newClass]!;
-    translator.functions.recordClassAllocation(newInfo.classId);
-    b.i32_const(newInfo.classId);
-    b.i32_const(initialIdentityHash);
-    b.local_get(receiverLocal);
-    b.struct_get(
-        receiverInfo.struct,
-        translator.typeParameterIndex[
-            translator.listBaseClass.typeParameters.single]!);
-    b.local_get(receiverLocal);
-    b.struct_get(receiverInfo.struct, FieldIndex.listLength);
-    b.local_get(receiverLocal);
-    b.struct_get(receiverInfo.struct, FieldIndex.listArray);
-    b.struct_new(newInfo.struct);
-    return newInfo.nonNullableType;
   }
 
   /// Generate inline code for a [ConstructorInvocation] if the constructor is
@@ -1248,7 +1230,7 @@ class Intrinsifier {
         throw "Table callIndirect not directly on a static field"
             " at ${node.location}";
       }
-      w.Table table = translator.getTable(tableExp.target as Field)!;
+      w.Table table = translator.getTable(b.module, tableExp.target as Field)!;
       InterfaceType wasmFunctionType = InterfaceType(
           translator.wasmFunctionClass,
           Nullability.nonNullable,
@@ -1755,7 +1737,7 @@ class Intrinsifier {
       b.end(); // notErrorBlock
 
       b.local_get(stackTraceLocal);
-      b.throw_(translator.exceptionTag);
+      b.throw_(translator.getExceptionTag(b.module));
 
       return true;
     }

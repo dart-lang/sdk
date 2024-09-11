@@ -49,10 +49,10 @@ import 'package:foo/src/baz.dart';
 class AlwaysUsePackageImports extends LintRule {
   AlwaysUsePackageImports()
       : super(
-            name: 'always_use_package_imports',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'always_use_package_imports',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<String> get incompatibleRules => const ['prefer_relative_imports'];

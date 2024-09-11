@@ -28,7 +28,7 @@ class C {
 
   test_class_augmentation_augments() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   A.named();
@@ -36,7 +36,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A.named();
@@ -52,7 +52,7 @@ augment class A {
 
   test_class_augmentation_augments2() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   A.named();
@@ -60,7 +60,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A.named();
@@ -77,7 +77,7 @@ augment class A {
 
   test_class_augmentation_declares() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   A.named();
@@ -85,7 +85,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   A.named();
@@ -97,7 +97,7 @@ augment class A {
 
     await resolveFile2(a);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 50, 7),
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 42, 7),
     ]);
   }
 

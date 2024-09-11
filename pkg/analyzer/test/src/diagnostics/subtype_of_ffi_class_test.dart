@@ -276,6 +276,10 @@ class C implements Pointer {}
 ''', [
       error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 38,
           7),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          25,
+          1),
     ]);
   }
 

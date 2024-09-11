@@ -635,6 +635,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void call(ir.BaseFunction function) {
     assert(_verifyTypes(function.type.inputs, function.type.outputs,
         trace: ['call', function]));
+    assert(function.enclosingModule == module);
     _add(ir.Call(function));
   }
 

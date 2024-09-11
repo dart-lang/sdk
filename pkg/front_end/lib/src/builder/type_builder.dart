@@ -4,14 +4,15 @@
 
 library fasta.type_builder;
 
-import 'package:kernel/ast.dart' show DartType, Supertype, TreeNode;
+import 'package:kernel/ast.dart'
+    show DartType, Nullability, Supertype, TreeNode, Variance;
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
 import '../base/messages.dart';
 import '../base/scope.dart';
 import '../kernel/type_algorithms.dart';
-import '../source/builder_factory.dart';
-import '../source/type_parameter_scope_builder.dart';
+import '../source/source_loader.dart';
 import 'declaration_builders.dart';
 import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
@@ -307,10 +308,14 @@ enum TypeUse {
   macroTypeArgument,
 }
 
+// TODO(johnniwinther): Change from sealed to abstract.
 sealed class TypeBuilder {
   const TypeBuilder();
 
   TypeDeclarationBuilder? get declaration => null;
+
+  // Coverage-ignore(suite): Not run.
+  List<TypeBuilder>? get typeArguments => null;
 
   /// Returns the Uri for the file in which this type annotation occurred, or
   /// `null` if the type was synthesized.
@@ -350,21 +355,16 @@ sealed class TypeBuilder {
   // [TypeParameterScopeBuilder] should resolve it, so that we cannot create
   // [NamedTypeBuilder]s that are orphaned.
   TypeBuilder subst(Map<NominalVariableBuilder, TypeBuilder> substitution,
-      {List<TypeBuilder>? unboundTypes,
-      List<StructuralVariableBuilder>? unboundTypeVariables}) {
+      {List<StructuralVariableBuilder>? unboundTypeVariables}) {
     if (substitution.isEmpty) {
       return this;
     }
-    List<TypeBuilder> unboundTypesInternal = unboundTypes ?? [];
     List<StructuralVariableBuilder> unboundTypeVariablesInternal =
         unboundTypeVariables ?? [];
-    TypeBuilder result = substitute(this, substitution,
-        unboundTypes: unboundTypesInternal,
-        unboundTypeVariables: unboundTypeVariablesInternal);
-    assert(
-        unboundTypes != null || unboundTypesInternal.isEmpty,
-        // Coverage-ignore(suite): Not run.
-        "Non-empty unbound types: $unboundTypesInternal.");
+    TypeBuilder result = substituteRange(
+            substitution, substitution, unboundTypeVariablesInternal,
+            variance: Variance.covariant) ??
+        this;
     assert(
         unboundTypeVariables != null || unboundTypeVariablesInternal.isEmpty,
         // Coverage-ignore(suite): Not run.
@@ -372,14 +372,15 @@ sealed class TypeBuilder {
     return result;
   }
 
-  /// Clones the type builder recursively without binding the subterms to
-  /// existing declaration or type variable builders.  All newly built types
-  /// are added to [newTypes], so that they can be added to a proper scope and
-  /// resolved later.
-  TypeBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      BuilderFactory builderFactory,
-      TypeParameterScopeBuilder contextDeclaration);
+  // Coverage-ignore(suite): Not run.
+  TypeBuilder substitute(
+      TypeBuilder type, Map<NominalVariableBuilder, TypeBuilder> substitution,
+      {required List<StructuralVariableBuilder> unboundTypeVariables}) {
+    return type.substituteRange(
+            substitution, substitution, unboundTypeVariables,
+            variance: Variance.covariant) ??
+        type;
+  }
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 
@@ -460,9 +461,48 @@ sealed class TypeBuilder {
   /// not part of the generated AST.
   TypeBuilder? unalias(
           {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-          List<TypeBuilder>? unboundTypes,
           List<StructuralVariableBuilder>? unboundTypeVariables}) =>
       this;
+
+  /// Computes the nullability of this type.
+  ///
+  /// [typeVariablesTraversalState] is passed to handle cyclic dependencies
+  /// between type variables,
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState});
+
+  /// Computes the variance of a variable in a type.  The function can be run
+  /// before the types are resolved to compute variances of typedefs' type
+  /// variables.  For that case if the type has its declaration set to null and
+  /// its name matches that of the variable, it's interpreted as an occurrence
+  /// of a type variable.
+  VarianceCalculationValue computeTypeVariableBuilderVariance(
+      NominalVariableBuilder variable,
+      {required SourceLoader sourceLoader});
+
+  /// Computes the unaliased [TypeDeclarationBuilder] for this type, if any.
+  TypeDeclarationBuilder? computeUnaliasedDeclaration(
+      {required bool isUsedAsClass});
+
+  void collectReferencesFrom(Map<TypeVariableBuilder, int> variableIndices,
+      List<List<int>> edges, int index);
+
+  TypeBuilder? substituteRange(
+      Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
+      Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
+      List<StructuralVariableBuilder> unboundTypeVariables,
+      {final Variance variance = Variance.covariant});
+
+  TypeBuilder? unaliasAndErase();
+
+  /// Helper function that returns `true` if a type variable with a name
+  /// from [typeVariableNames] is referenced in this type.
+  bool usesTypeVariables(Set<String> typeVariableNames);
+
+  /// Finds raw generic types in this type with inbound references in type
+  /// variables.
+  List<TypeWithInBoundReferences> findRawTypesWithInboundReferences();
 }
 
 abstract class OmittedTypeBuilder extends TypeBuilder {
@@ -485,7 +525,20 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
   bool get hasFunctionFormalParameterSyntax;
 }
 
-abstract class InvalidTypeBuilder extends TypeBuilder {}
+// Coverage-ignore(suite): Not run.
+abstract class InvalidTypeBuilder extends TypeBuilder {
+  @override
+  VarianceCalculationValue computeTypeVariableBuilderVariance(
+      NominalVariableBuilder variable,
+      {required SourceLoader sourceLoader}) {
+    return VarianceCalculationValue.calculatedUnrelated;
+  }
+
+  @override
+  TypeDeclarationBuilder? computeUnaliasedDeclaration(
+          {required bool isUsedAsClass}) =>
+      null;
+}
 
 abstract class NamedTypeBuilder extends TypeBuilder {
   @override
@@ -495,8 +548,6 @@ abstract class NamedTypeBuilder extends TypeBuilder {
       ProblemReporting problemReporting);
   void bind(
       ProblemReporting problemReporting, TypeDeclarationBuilder declaration);
-
-  List<TypeBuilder>? get typeArguments;
 
   NamedTypeBuilder withTypeArguments(List<TypeBuilder> arguments);
 

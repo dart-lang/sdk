@@ -338,9 +338,9 @@ class PragmaAnnotationData {
   final String suffix;
 
   // TODO(johnniwinther): Support options objects when necessary.
-  final bool hasOptions;
+  final ir.Constant? options;
 
-  const PragmaAnnotationData(this.suffix, {this.hasOptions = false});
+  const PragmaAnnotationData(this.suffix, {this.options});
 
   String get name => 'dart2js:$suffix';
 
@@ -351,7 +351,7 @@ class PragmaAnnotationData {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! PragmaAnnotationData) return false;
-    return suffix == other.suffix && hasOptions == other.hasOptions;
+    return suffix == other.suffix && options == other.options;
   }
 }
 
@@ -385,7 +385,7 @@ PragmaAnnotationData? _getPragmaAnnotation(ir.Constant constant) {
     if (!name.startsWith(prefix)) return null;
     String suffix = name.substring(prefix.length);
     return PragmaAnnotationData(suffix,
-        hasOptions: optionsValue is! ir.NullConstant);
+        options: optionsValue is ir.NullConstant ? null : optionsValue);
   }
   return null;
 }

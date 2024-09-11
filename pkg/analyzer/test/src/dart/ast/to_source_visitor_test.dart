@@ -127,16 +127,6 @@ void f() {
     _assertSource(code, findNode.assignment(code));
   }
 
-  void test_visitAugmentationImportDirective() {
-    var findNode = _parseStringToFindNode(r'''
-import augment 'a.dart';
-''');
-    _assertSource(
-      "import augment 'a.dart';",
-      findNode.augmentationImportDirective('import'),
-    );
-  }
-
   void test_visitAwaitExpression() {
     var findNode = _parseStringToFindNode(r'''
 void f() async => await e;
@@ -2253,16 +2243,6 @@ void f() {
 }
 ''');
     _assertSource(code, findNode.labeledStatement(code));
-  }
-
-  void test_visitLibraryAugmentationDirective() {
-    var findNode = _parseStringToFindNode(r'''
-augment library 'a.dart';
-''');
-    _assertSource(
-      "augment library 'a.dart';",
-      findNode.libraryAugmentation('library'),
-    );
   }
 
   void test_visitLibraryDirective() {

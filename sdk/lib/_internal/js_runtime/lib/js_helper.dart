@@ -79,8 +79,6 @@ import 'dart:_rti' as newRti
         throwTypeError,
         Rti;
 
-import 'dart:_load_library_priority';
-
 import 'dart:_invocation_mirror_constants' as mirrors;
 
 part 'annotations.dart';
@@ -1098,6 +1096,15 @@ class Primitives {
     if (jsError == null) return null;
     return getTraceFromException(jsError);
   }
+
+  static void trySetStackTrace(Error error, StackTrace stackTrace) {
+    var jsError = JS('', r'#.$thrownJsError', error);
+    if (jsError == null) {
+      jsError = wrapException(error);
+      JS('', r'#.$thrownJsError = #', error, jsError);
+      JS('void', '#.stack = #', jsError, stackTrace.toString());
+    }
+  }
 }
 
 /// Called by generated code to throw an illegal-argument exception,
@@ -1193,7 +1200,7 @@ String checkString(value) {
   return value;
 }
 
-/// Wrap the given Dart object and record a stack trace.
+/// Wrap the given Dart object as a JS `Error` that can carry a stack trace.
 ///
 /// The code in [unwrapException] deals with getting the original Dart
 /// object out of the wrapper again.
@@ -2949,19 +2956,10 @@ String _getEventLog() {
 }
 
 /// Loads a deferred library. The compiler generates a call to this method to
-/// implement `import.loadLibrary()`. The [priority] argument is the index of
-/// one of the [LoadLibraryPriority] enum's members.
-///
-///   - `0` for `LoadLibraryPriority.normal`
-///   - `1` for `LoadLibraryPriority.high`
+/// implement `import.loadLibrary()`. The [priority] argument is the argument
+/// to the 'dart2js:priority' pragma on the import or the `loadLibrary` call.
 @pragma('dart2js:resource-identifier')
-Future<Null> loadDeferredLibrary(String loadId, int priority) {
-  // Validate the priority using the index to allow the actual enum to get
-  // tree-shaken.
-  if (priority < 0 || priority >= LoadLibraryPriority.values.length) {
-    throw DeferredLoadException('Invalid library priority: $priority');
-  }
-
+Future<Null> loadDeferredLibrary(String loadId, String priority) {
   // For each loadId there is a list of parts to load. The parts are represented
   // by an index. There are two arrays, one that maps the index into a Uri and
   // another that maps the index to a hash.
@@ -3206,9 +3204,8 @@ Object _buildTrustedScriptUriWithRetry(String hunkName, int retryCount) {
 }
 
 Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
-    String loadId, int priority, int retryCount) {
+    String loadId, String priority, int retryCount) {
   const int maxRetries = 3;
-  var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
   var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
 
   _addEvent(part: hunkNames.join(';'), event: 'startLoad', loadId: loadId);
@@ -3259,7 +3256,7 @@ Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
       for (var i = 0; i < hunksToRetry.length; i++) {
         _loadingLibraries[hunksToRetry[i]] = null;
       }
-      _loadAllHunks(loader, hunksToRetry!, hashesToRetry!, loadId, priority,
+      _loadAllHunks(loader, hunksToRetry, hashesToRetry!, loadId, priority,
               retryCount + 1)
           .then((_) => completer.complete(null),
               onError: completer.completeError);
@@ -3324,10 +3321,9 @@ Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
   return Future.wait([...pendingLoads, completer.future]);
 }
 
-Future<Null> _loadHunk(
-    String hunkName, String loadId, int priority, String hash, int retryCount) {
+Future<Null> _loadHunk(String hunkName, String loadId, String priority,
+    String hash, int retryCount) {
   const int maxRetries = 3;
-  var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
 
   var completer = _loadingLibraries[hunkName];
   _addEvent(part: hunkName, event: 'startLoad', loadId: loadId);
@@ -3431,9 +3427,6 @@ Future<Null> _loadHunk(
     }
     if (_crossOrigin != null && _crossOrigin != '') {
       JS('', '#.crossOrigin = #', script, _crossOrigin);
-    }
-    if (priority == LoadLibraryPriority.high.index) {
-      JS('', '#.fetchPriority = "high"', script);
     }
     JS('', '#.addEventListener("load", #, false)', script, jsSuccess);
     JS('', '#.addEventListener("error", #, false)', script, jsFailure);

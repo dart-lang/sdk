@@ -45,10 +45,10 @@ type information is more important than performance:
 class NoRuntimeTypeToString extends LintRule {
   NoRuntimeTypeToString()
       : super(
-            name: 'no_runtimeType_toString',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.nonPerformant});
+          name: 'no_runtimeType_toString',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.no_runtimeType_toString;

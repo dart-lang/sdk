@@ -32,7 +32,7 @@ class TestResultOutcome {
         'time_ms': elapsedTime.inMilliseconds,
         'expected': expectedResult,
         'result': matchedExpectations ? 'Pass' : 'Fail',
-        'matches': expectedResult == expectedResult,
+        'matches': matchedExpectations,
       });
 
   String toLogJson() => _encoder.convert({

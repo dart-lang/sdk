@@ -22,9 +22,9 @@ abstract class LibraryImportElementTest extends ElementsBaseTest {
     declaredVariables = {
       'dart.library.io': 'false',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -62,17 +62,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/foo.dart
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
+              superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -83,9 +94,9 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -123,17 +134,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/foo_io.dart
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
+              superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -144,9 +166,9 @@ library
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io == 'true') 'foo_io.dart'
@@ -184,17 +206,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/foo_io.dart
       classes
         class B @124
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
+              superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -205,9 +238,9 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
@@ -245,17 +278,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/foo_html.dart
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
+              superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -266,9 +310,9 @@ library
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     };
-    addSource('$testPackageLibPath/foo.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_io.dart', 'class A {}');
-    addSource('$testPackageLibPath/foo_html.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
+    newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
     var library = await buildLibrary(r'''
 import 'foo.dart'
   if (dart.library.io == 'true') 'foo_io.dart'
@@ -306,17 +350,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/foo_html.dart
       classes
         class B @124
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
+              superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -353,6 +408,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         dart:core
         dart:math
@@ -383,13 +439,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         dart:math
 ''');
   }
 
   test_import_deferred() async {
-    addSource('$testPackageLibPath/a.dart', 'f() {}');
+    newFile('$testPackageLibPath/a.dart', 'f() {}');
     var library = await buildLibrary('''
 import 'a.dart' deferred as p;
 ''');
@@ -423,6 +480,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/a.dart
       prefixes
@@ -518,6 +576,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         dart:async
         dart:async
@@ -577,8 +636,45 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         dart:async
+      topLevelVariables
+        f @51
+          reference: <testLibraryFragment>::@topLevelVariable::f
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::f
+          setter2: <testLibraryFragment>::@setter::f
+      getters
+        get f @-1
+          reference: <testLibraryFragment>::@getter::f
+          element: <none>
+      setters
+        set f= @-1
+          reference: <testLibraryFragment>::@setter::f
+          element: <none>
+          parameters
+            _f @-1
+              element: <none>
+  topLevelVariables
+    f
+      reference: <none>
+      type: Future<dynamic>
+      firstFragment: <testLibraryFragment>::@topLevelVariable::f
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get f
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::f
+  setters
+    synthetic static set f=
+      reference: <none>
+      parameters
+        requiredPositional _f
+          reference: <none>
+          type: Future<dynamic>
+      firstFragment: <testLibraryFragment>::@setter::f
 ''');
   }
 
@@ -649,6 +745,7 @@ library
       element: <null>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         relativeUri 'ht:'
           metadata
@@ -710,13 +807,50 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         dart:async
+      topLevelVariables
+        f @52
+          reference: <testLibraryFragment>::@topLevelVariable::f
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::f
+          setter2: <testLibraryFragment>::@setter::f
+      getters
+        get f @-1
+          reference: <testLibraryFragment>::@getter::f
+          element: <none>
+      setters
+        set f= @-1
+          reference: <testLibraryFragment>::@setter::f
+          element: <none>
+          parameters
+            _f @-1
+              element: <none>
+  topLevelVariables
+    f
+      reference: <none>
+      type: Future<dynamic>
+      firstFragment: <testLibraryFragment>::@topLevelVariable::f
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get f
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::f
+  setters
+    synthetic static set f=
+      reference: <none>
+      parameters
+        requiredPositional _f
+          reference: <none>
+          type: Future<dynamic>
+      firstFragment: <testLibraryFragment>::@setter::f
 ''');
   }
 
   test_import_prefixed() async {
-    addSource('$testPackageLibPath/a.dart', 'library a; class C {}');
+    newFile('$testPackageLibPath/a.dart', 'library a; class C {}');
     var library = await buildLibrary('import "a.dart" as a; a.C c;');
 
     var prefixElement = library.libraryImports[0].prefix!.element;
@@ -769,11 +903,48 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/a.dart
       prefixes
         a
           reference: <testLibraryFragment>::@prefix::a
+      topLevelVariables
+        c @26
+          reference: <testLibraryFragment>::@topLevelVariable::c
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::c
+          setter2: <testLibraryFragment>::@setter::c
+      getters
+        get c @-1
+          reference: <testLibraryFragment>::@getter::c
+          element: <none>
+      setters
+        set c= @-1
+          reference: <testLibraryFragment>::@setter::c
+          element: <none>
+          parameters
+            _c @-1
+              element: <none>
+  topLevelVariables
+    c
+      reference: <none>
+      type: C
+      firstFragment: <testLibraryFragment>::@topLevelVariable::c
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get c
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::c
+  setters
+    synthetic static set c=
+      reference: <none>
+      parameters
+        requiredPositional _c
+          reference: <none>
+          type: C
+      firstFragment: <testLibraryFragment>::@setter::c
 ''');
   }
 
@@ -834,6 +1005,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/test.dart
       prefixes
@@ -842,18 +1014,36 @@ library
       classes
         class C @31
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
         class D @42
           reference: <testLibraryFragment>::@class::D
+          element: <testLibraryFragment>::@class::D
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              element: <none>
+              superConstructor: <testLibraryFragment>::@class::C::@constructor::new
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class D
       reference: <testLibraryFragment>::@class::D
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
       supertype: C
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
 ''');
   }
 
@@ -919,8 +1109,75 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         dart:async
+      topLevelVariables
+        f @48
+          reference: <testLibraryFragment>::@topLevelVariable::f
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::f
+          setter2: <testLibraryFragment>::@setter::f
+        s @58
+          reference: <testLibraryFragment>::@topLevelVariable::s
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::s
+          setter2: <testLibraryFragment>::@setter::s
+      getters
+        get f @-1
+          reference: <testLibraryFragment>::@getter::f
+          element: <none>
+        get s @-1
+          reference: <testLibraryFragment>::@getter::s
+          element: <none>
+      setters
+        set f= @-1
+          reference: <testLibraryFragment>::@setter::f
+          element: <none>
+          parameters
+            _f @-1
+              element: <none>
+        set s= @-1
+          reference: <testLibraryFragment>::@setter::s
+          element: <none>
+          parameters
+            _s @-1
+              element: <none>
+  topLevelVariables
+    f
+      reference: <none>
+      type: Future<dynamic>
+      firstFragment: <testLibraryFragment>::@topLevelVariable::f
+      getter: <none>
+      setter: <none>
+    s
+      reference: <none>
+      type: Stream<dynamic>
+      firstFragment: <testLibraryFragment>::@topLevelVariable::s
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get f
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::f
+    synthetic static get s
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::s
+  setters
+    synthetic static set f=
+      reference: <none>
+      parameters
+        requiredPositional _f
+          reference: <none>
+          type: Future<dynamic>
+      firstFragment: <testLibraryFragment>::@setter::f
+    synthetic static set s=
+      reference: <none>
+      parameters
+        requiredPositional _s
+          reference: <none>
+          type: Stream<dynamic>
+      firstFragment: <testLibraryFragment>::@setter::s
 ''');
   }
 
@@ -944,8 +1201,8 @@ import 'foo.dart';
   }
 
   test_imports() async {
-    addSource('$testPackageLibPath/a.dart', 'library a; class C {}');
-    addSource('$testPackageLibPath/b.dart', 'library b; class D {}');
+    newFile('$testPackageLibPath/a.dart', 'library a; class C {}');
+    newFile('$testPackageLibPath/b.dart', 'library b; class D {}');
     var library =
         await buildLibrary('import "a.dart"; import "b.dart"; C c; D d;');
     checkElementText(library, r'''
@@ -1006,9 +1263,76 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/a.dart
         package:test/b.dart
+      topLevelVariables
+        c @36
+          reference: <testLibraryFragment>::@topLevelVariable::c
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::c
+          setter2: <testLibraryFragment>::@setter::c
+        d @41
+          reference: <testLibraryFragment>::@topLevelVariable::d
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::d
+          setter2: <testLibraryFragment>::@setter::d
+      getters
+        get c @-1
+          reference: <testLibraryFragment>::@getter::c
+          element: <none>
+        get d @-1
+          reference: <testLibraryFragment>::@getter::d
+          element: <none>
+      setters
+        set c= @-1
+          reference: <testLibraryFragment>::@setter::c
+          element: <none>
+          parameters
+            _c @-1
+              element: <none>
+        set d= @-1
+          reference: <testLibraryFragment>::@setter::d
+          element: <none>
+          parameters
+            _d @-1
+              element: <none>
+  topLevelVariables
+    c
+      reference: <none>
+      type: C
+      firstFragment: <testLibraryFragment>::@topLevelVariable::c
+      getter: <none>
+      setter: <none>
+    d
+      reference: <none>
+      type: D
+      firstFragment: <testLibraryFragment>::@topLevelVariable::d
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get c
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::c
+    synthetic static get d
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::d
+  setters
+    synthetic static set c=
+      reference: <none>
+      parameters
+        requiredPositional _c
+          reference: <none>
+          type: C
+      firstFragment: <testLibraryFragment>::@setter::c
+    synthetic static set d=
+      reference: <none>
+      parameters
+        requiredPositional _d
+          reference: <none>
+          type: D
+      firstFragment: <testLibraryFragment>::@setter::d
 ''');
   }
 
@@ -1036,6 +1360,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         noRelativeUriString
 ''');
@@ -1076,6 +1401,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         dart:core synthetic
 ''');
@@ -1105,6 +1431,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/test.dart
 ''');
@@ -1134,6 +1461,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         relativeUri 'foo:bar'
 ''');
@@ -1163,40 +1491,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/a.dart
-''');
-  }
-
-  test_library_imports_withRelativeUri_notLibrary_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-''');
-    var library = await buildLibrary(r'''
-import 'a.dart';
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryImports
-    source 'package:test/a.dart'
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement: <testLibrary>
-      libraryImports
-        source 'package:test/a.dart'
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      libraryImports
-        source 'package:test/a.dart'
 ''');
   }
 
@@ -1227,6 +1524,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         source 'package:test/a.dart'
 ''');
@@ -1256,6 +1554,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         relativeUriString ':'
 ''');
@@ -1344,6 +1643,7 @@ library
       element: <testLibraryFragment>::@getter::a
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         dart:math
           metadata
@@ -1354,6 +1654,25 @@ library
                 staticElement: <testLibraryFragment>::@getter::a
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+      topLevelVariables
+        const a @29
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::a
+      getters
+        get a @-1
+          reference: <testLibraryFragment>::@getter::a
+          element: <none>
+  topLevelVariables
+    const a
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      getter: <none>
+  getters
+    synthetic static get a
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::a
 ''');
   }
 
@@ -1435,6 +1754,7 @@ library
       element: <testLibraryFragment>::@getter::a
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         dart:math
           metadata
@@ -1445,6 +1765,25 @@ library
                 staticElement: <testLibraryFragment>::@getter::a
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+      topLevelVariables
+        const a @42
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::a
+      getters
+        get a @-1
+          reference: <testLibraryFragment>::@getter::a
+          element: <none>
+  topLevelVariables
+    const a
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      getter: <none>
+  getters
+    synthetic static get a
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::a
 ''');
   }
 
@@ -1453,8 +1792,8 @@ library
       return;
     }
 
-    addSource('$testPackageLibPath/a.dart', 'class A {}');
-    addSource('$testPackageLibPath/b.dart', 'export "/a.dart";');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/b.dart', 'export "/a.dart";');
     var library = await buildLibrary('''
 import 'a.dart';
 import 'b.dart';
@@ -1504,9 +1843,46 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/a.dart
         package:test/b.dart
+      topLevelVariables
+        v @36
+          reference: <testLibraryFragment>::@topLevelVariable::v
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::v
+          setter2: <testLibraryFragment>::@setter::v
+      getters
+        get v @-1
+          reference: <testLibraryFragment>::@getter::v
+          element: <none>
+      setters
+        set v= @-1
+          reference: <testLibraryFragment>::@setter::v
+          element: <none>
+          parameters
+            _v @-1
+              element: <none>
+  topLevelVariables
+    v
+      reference: <none>
+      type: A
+      firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get v
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::v
+  setters
+    synthetic static set v=
+      reference: <none>
+      parameters
+        requiredPositional _v
+          reference: <none>
+          type: A
+      firstFragment: <testLibraryFragment>::@setter::v
 ''');
   }
 
@@ -1536,6 +1912,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/foo.dart
 ''');

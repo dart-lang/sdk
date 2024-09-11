@@ -49,7 +49,7 @@ abstract class BuilderFactoryResult {
 
   List<MetadataBuilder>? get metadata;
 
-  List<NamedTypeBuilder> get unresolvedNamedTypes;
+  TypeScope get typeScope;
 
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications);
@@ -61,32 +61,126 @@ abstract class BuilderFactoryResult {
 
   int finishNativeMethods();
 
-  void registerUnresolvedNamedTypes(List<NamedTypeBuilder> unboundTypes);
-
   void registerUnresolvedStructuralVariables(
       List<StructuralVariableBuilder> unboundTypeVariables);
-
-  Iterable<Builder> get members;
-
-  Iterable<Builder> get setters;
-
-  Iterable<ExtensionBuilder> get extensions;
 
   List<LibraryPart> get libraryParts;
 }
 
 abstract class BuilderFactory {
-  /// The current declaration that is being built. When we start parsing a
-  /// declaration (class, method, and so on), we don't have enough information
-  /// to create a builder and this object records its members and types until,
-  /// for example, [addClass] is called.
-  TypeParameterScopeBuilder get currentTypeParameterScopeBuilder;
+  void beginClassOrNamedMixinApplicationHeader();
 
-  void beginNestedDeclaration(TypeParameterScopeKind kind, String name,
-      {bool hasMembers = true});
+  /// Registers that this builder is preparing for a class declaration with the
+  /// given [name] and [typeVariables] located [charOffset].
+  void beginClassDeclaration(
+      String name, int charOffset, List<NominalVariableBuilder>? typeVariables);
 
-  TypeParameterScopeBuilder endNestedDeclaration(
-      TypeParameterScopeKind kind, String? name);
+  void beginClassBody();
+
+  void endClassDeclaration(String name);
+
+  void endClassDeclarationForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables);
+
+  /// Registers that this builder is preparing for a mixin declaration with the
+  /// given [name] and [typeVariables] located [charOffset].
+  void beginMixinDeclaration(
+      String name, int charOffset, List<NominalVariableBuilder>? typeVariables);
+
+  void beginMixinBody();
+
+  void endMixinDeclaration(String name);
+
+  void endMixinDeclarationForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables);
+
+  /// Registers that this builder is preparing for a named mixin application
+  /// with the given [name] and [typeVariables] located [charOffset].
+  void beginNamedMixinApplication(
+      String name, int charOffset, List<NominalVariableBuilder>? typeVariables);
+
+  void endNamedMixinApplication(String name);
+
+  void endNamedMixinApplicationForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables);
+
+  void beginEnumDeclarationHeader(String name);
+
+  /// Registers that this builder is preparing for an enum declaration with
+  /// the given [name] and [typeVariables] located [charOffset].
+  void beginEnumDeclaration(
+      String name, int charOffset, List<NominalVariableBuilder>? typeVariables);
+
+  void beginEnumBody();
+
+  void endEnumDeclaration(String name);
+
+  void endEnumDeclarationForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables);
+
+  void beginExtensionOrExtensionTypeHeader();
+
+  /// Registers that this builder is preparing for an extension declaration with
+  /// the given [name] and [typeVariables] located [charOffset].
+  void beginExtensionDeclaration(String? name, int charOffset,
+      List<NominalVariableBuilder>? typeVariables);
+
+  void beginExtensionBody(TypeBuilder? extensionThisType);
+
+  void endExtensionDeclaration(String? name);
+
+  /// Registers that this builder is preparing for an extension type declaration
+  /// with the given [name] and [typeVariables] located [charOffset].
+  void beginExtensionTypeDeclaration(
+      String name, int charOffset, List<NominalVariableBuilder>? typeVariables);
+
+  void beginExtensionTypeBody();
+
+  void endExtensionTypeDeclaration(String name);
+
+  void beginFactoryMethod();
+
+  void endFactoryMethod();
+
+  void endFactoryMethodForParserRecovery();
+
+  void beginFunctionType();
+
+  void endFunctionType();
+
+  void beginConstructor();
+
+  void endConstructor();
+
+  void endConstructorForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables);
+
+  void beginStaticMethod();
+
+  void endStaticMethod();
+
+  void endStaticMethodForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables);
+
+  void beginInstanceMethod();
+
+  void endInstanceMethod();
+
+  void endInstanceMethodForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables);
+
+  void beginTopLevelMethod();
+
+  void endTopLevelMethod();
+
+  void endTopLevelMethodForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables);
+
+  void beginTypedef();
+
+  void endTypedef();
+
+  void endTypedefForParserRecovery(List<NominalVariableBuilder>? typeVariables);
 
   /// Call this when entering a class, mixin, enum, or extension type
   /// declaration.
@@ -107,6 +201,8 @@ abstract class BuilderFactory {
   /// `OutlineBuilder.endEnum`, `OutlineBuilder.endMixinDeclaration` and
   /// `OutlineBuilder.endExtensionTypeDeclaration`.
   void endIndexedContainer();
+
+  void checkStacks();
 
   void addScriptToken(int charOffset);
 
@@ -203,7 +299,6 @@ abstract class BuilderFactory {
   void addMixinDeclaration(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
       Identifier identifier,
       List<NominalVariableBuilder>? typeVariables,
       List<TypeBuilder>? supertypeConstraints,
@@ -244,6 +339,30 @@ abstract class BuilderFactory {
       TypeBuilder type,
       int charOffset);
 
+  void addClassMethod(
+      {required OffsetMap offsetMap,
+      required List<MetadataBuilder>? metadata,
+      required Identifier identifier,
+      required String name,
+      required TypeBuilder? returnType,
+      required List<FormalParameterBuilder>? formals,
+      required List<NominalVariableBuilder>? typeVariables,
+      required Token? beginInitializers,
+      required int startCharOffset,
+      required int endCharOffset,
+      required int charOffset,
+      required int formalsOffset,
+      required int modifiers,
+      required bool inConstructor,
+      required bool isStatic,
+      required bool isConstructor,
+      required bool forAbstractClassOrMixin,
+      required bool isExtensionMember,
+      required bool isExtensionTypeMember,
+      required AsyncMarker asyncModifier,
+      required String? nativeMethodName,
+      required ProcedureKind? kind});
+
   void addConstructor(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
@@ -264,7 +383,6 @@ abstract class BuilderFactory {
       {required OffsetMap offsetMap,
       required Token beginToken,
       required String constructorName,
-      required List<NominalVariableBuilder>? typeVariables,
       required List<FormalParameterBuilder>? formals,
       required int charOffset,
       required bool isConst});
@@ -289,7 +407,8 @@ abstract class BuilderFactory {
       String? nativeMethodName,
       AsyncMarker asyncModifier);
 
-  String? computeAndValidateConstructorName(Identifier identifier,
+  String? computeAndValidateConstructorName(
+      DeclarationFragment enclosingDeclaration, Identifier identifier,
       {isFactory = false});
 
   void addProcedure(
@@ -335,6 +454,9 @@ abstract class BuilderFactory {
   ConstructorReferenceBuilder addConstructorReference(TypeName name,
       List<TypeBuilder>? typeArguments, String? suffix, int charOffset);
 
+  ConstructorReferenceBuilder? addUnnamedConstructorReference(
+      List<TypeBuilder>? typeArguments, Identifier? suffix, int charOffset);
+
   TypeBuilder addNamedType(
       TypeName typeName,
       NullabilityBuilder nullabilityBuilder,
@@ -366,29 +488,31 @@ abstract class BuilderFactory {
       int charOffset,
       Uri fileUri);
 
-  /// Creates a copy of [original] into the scope of [declaration].
+  /// Creates a [NominalVariableCopy] object containing a copy of
+  /// [oldVariableBuilders] into the scope of [declaration].
   ///
   /// This is used for adding copies of class type parameters to factory
   /// methods and unnamed mixin applications, and for adding copies of
   /// extension type parameters to extension instance methods.
-  ///
-  /// If [synthesizeTypeParameterNames] is `true` the names of the
-  /// [TypeParameter] are prefix with '#' to indicate that their synthesized.
-  List<NominalVariableBuilder> copyTypeVariables(
-      List<NominalVariableBuilder> original,
-      TypeParameterScopeBuilder declaration,
-      {required TypeVariableKind kind});
-
-  List<StructuralVariableBuilder> copyStructuralVariables(
-      List<StructuralVariableBuilder> original,
-      TypeParameterScopeBuilder declaration,
-      {required TypeVariableKind kind});
+  NominalVariableCopy? copyTypeVariables(
+      List<NominalVariableBuilder>? oldVariableBuilders,
+      {required TypeVariableKind kind,
+      required InstanceTypeVariableAccessState instanceTypeVariableAccess});
 
   void registerUnboundStructuralVariables(
       List<StructuralVariableBuilder> variableBuilders);
 
-  Builder addBuilder(String name, Builder declaration, int charOffset,
-      {Reference? getterReference, Reference? setterReference});
+  Builder addBuilder(String name, Builder declaration, int charOffset);
+}
+
+class NominalVariableCopy {
+  final List<NominalVariableBuilder> newVariableBuilders;
+  final List<TypeBuilder> newTypeArguments;
+  final Map<NominalVariableBuilder, TypeBuilder> substitutionMap;
+  final Map<NominalVariableBuilder, NominalVariableBuilder> newToOldVariableMap;
+
+  NominalVariableCopy(this.newVariableBuilders, this.newTypeArguments,
+      this.substitutionMap, this.newToOldVariableMap);
 }
 
 class FieldInfo {

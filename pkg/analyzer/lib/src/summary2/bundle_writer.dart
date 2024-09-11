@@ -154,19 +154,6 @@ class BundleWriter {
     );
   }
 
-  void _writeAugmentationElement(LibraryAugmentationElementImpl augmentation) {
-    _writeUnitElement(augmentation.definingCompilationUnit);
-    // The offset where resolution for the augmentation starts.
-    // We need it to skip resolution information from the unit.
-    _sink.writeUInt30(_resolutionSink.offset);
-    _writeLibraryOrAugmentationElement(augmentation);
-  }
-
-  void _writeAugmentationImportElement(AugmentationImportElementImpl element) {
-    _resolutionSink._writeAnnotationList(element.metadata);
-    _writeDirectiveUri(element.uri);
-  }
-
   void _writeClassElement(ClassElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
@@ -245,11 +232,7 @@ class BundleWriter {
       _sink._writeStringReference('${element.source.uri}');
     }
 
-    if (element is DirectiveUriWithAugmentationImpl) {
-      _sink.writeByte(DirectiveUriKind.withAugmentation.index);
-      writeWithSource(element);
-      _writeAugmentationElement(element.augmentation);
-    } else if (element is DirectiveUriWithLibrary) {
+    if (element is DirectiveUriWithLibrary) {
       _sink.writeByte(DirectiveUriKind.withLibrary.index);
       writeWithSource(element);
     } else if (element is DirectiveUriWithUnitImpl) {
@@ -509,10 +492,6 @@ class BundleWriter {
     LibraryOrAugmentationElementImpl container,
   ) {
     _resolutionSink._writeAnnotationList(container.metadata);
-    _writeList(
-      container.augmentationImports,
-      _writeAugmentationImportElement,
-    );
   }
 
   void _writeList<T>(List<T> elements, void Function(T) writeElement) {
@@ -632,6 +611,16 @@ class BundleWriter {
     _writeDirectiveUri(element.uri);
   }
 
+  /// We write metadata here, to keep it inside [unitElement] resolution
+  /// data, because [_writePartElement] recursively writes included unit
+  /// elements. But the bundle reader wants all metadata for `parts`
+  /// sequentially.
+  void _writePartElementsMetadata(CompilationUnitElementImpl unitElement) {
+    for (var element in unitElement.parts) {
+      _resolutionSink._writeAnnotationList(element.metadata);
+    }
+  }
+
   /// Write information to update `getter` and `setter` properties of
   /// augmented variables to use the corresponding augmentations.
   void _writePropertyAccessorAugmentations() {
@@ -731,6 +720,8 @@ class BundleWriter {
 
     _writeList(unitElement.libraryImports, _writeImportElement);
     _writeList(unitElement.libraryExports, _writeExportElement);
+
+    _writePartElementsMetadata(unitElement);
     _writeList(unitElement.parts, _writePartElement);
 
     _writeList(unitElement.classes, _writeClassElement);
@@ -1139,7 +1130,7 @@ class ResolutionSink extends _SummaryDataWriter {
       return const [];
     }
 
-    var enclosing = declaration.enclosingElement;
+    var enclosing = declaration.enclosingElement3;
     if (enclosing is InstanceElement) {
       var typeParameters = enclosing.typeParameters;
       if (typeParameters.isEmpty) {

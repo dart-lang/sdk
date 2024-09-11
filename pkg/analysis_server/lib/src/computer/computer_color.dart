@@ -74,7 +74,7 @@ class ColorComputer {
 
     var constructor = expression.constructorName;
     var staticElement = constructor.staticElement;
-    var classElement = staticElement?.enclosingElement;
+    var classElement = staticElement?.enclosingElement3;
     var className = classElement?.name;
     var constructorName = constructor.name?.name;
     var constructorArgs = expression.argumentList.arguments
@@ -94,30 +94,6 @@ class ColorComputer {
     }
 
     return _tryRecordColorValue(expression, colorValue);
-  }
-
-  /// Creates a [ColorInformation] by extracting the argb values from
-  /// [value] encoded as 0xAARRGGBB as in the dart:ui Color class.
-  ColorInformation _colorInformationForColorValue(int value) {
-    // Extract color information according to dart:ui Color values.
-    var alpha = (0xff000000 & value) >> 24;
-    var red = (0x00ff0000 & value) >> 16;
-    var blue = (0x000000ff & value) >> 0;
-    var green = (0x0000ff00 & value) >> 8;
-
-    return ColorInformation(alpha, red, green, blue);
-  }
-
-  /// Extracts the integer color value from the dart:ui Color constant [color].
-  int? _colorValueForColorConst(DartObject? color) {
-    if (color == null || color.isNull) return null;
-
-    // If the object has a "color" field, walk down to that, because some colors
-    // like CupertinoColors have a "value=0" with an overridden getter that
-    // would always result in a value representing black.
-    color = color.getFieldFromHierarchy('color') ?? color;
-
-    return color.getFieldFromHierarchy('value')?.toIntValue();
   }
 
   /// Converts ARGB values into a single int value as 0xAARRGGBB as used by
@@ -251,6 +227,40 @@ class ColorComputer {
     // Record the color against the original entire expression.
     _colors.add(ColorReference(expression.offset, expression.length, color));
     return true;
+  }
+
+  static ColorInformation? getColorForValue(DartObject object) {
+    if (object.type.isColor) {
+      var colorValue = _colorValueForColorConst(object);
+      if (colorValue != null) {
+        return _colorInformationForColorValue(colorValue);
+      }
+    }
+    return null;
+  }
+
+  /// Creates a [ColorInformation] by extracting the argb values from
+  /// [value] encoded as 0xAARRGGBB as in the dart:ui Color class.
+  static ColorInformation _colorInformationForColorValue(int value) {
+    // Extract color information according to dart:ui Color values.
+    var alpha = (0xff000000 & value) >> 24;
+    var red = (0x00ff0000 & value) >> 16;
+    var blue = (0x000000ff & value) >> 0;
+    var green = (0x0000ff00 & value) >> 8;
+
+    return ColorInformation(alpha, red, green, blue);
+  }
+
+  /// Extracts the integer color value from the dart:ui Color constant [color].
+  static int? _colorValueForColorConst(DartObject? color) {
+    if (color == null || color.isNull) return null;
+
+    // If the object has a "color" field, walk down to that, because some colors
+    // like CupertinoColors have a "value=0" with an overridden getter that
+    // would always result in a value representing black.
+    color = color.getFieldFromHierarchy('color') ?? color;
+
+    return color.getFieldFromHierarchy('value')?.toIntValue();
   }
 }
 

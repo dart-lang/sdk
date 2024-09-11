@@ -539,6 +539,52 @@ void f() {
 ''');
   }
 
+  Future<void> test_switchDefault_sharedStatements() async {
+    await resolveTestCode('''
+enum E { e1, e2 }
+void f(E e) {
+  switch(e) {
+    case E.e1:
+    case E.e2:
+    default:
+      break;
+  }
+}
+''');
+    await assertHasFix('''
+enum E { e1, e2 }
+void f(E e) {
+  switch(e) {
+    case E.e1:
+    case E.e2:
+    break;
+  }
+}
+''');
+  }
+
+  Future<void> test_switchDefault_uniqueStatements() async {
+    await resolveTestCode('''
+enum E { e1, e2 }
+void f(E e) {
+  switch(e) {
+    case E.e1: print('e1');
+    case E.e2: print('e2');
+    default: print('e3');
+  }
+}
+''');
+    await assertHasFix('''
+enum E { e1, e2 }
+void f(E e) {
+  switch(e) {
+    case E.e1: print('e1');
+    case E.e2: print('e2');
+    }
+}
+''');
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50950')
   Future<void> test_switchExpression() async {
     await resolveTestCode('''

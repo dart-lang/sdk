@@ -1142,30 +1142,6 @@ Comment
 ''');
   }
 
-  test_hideConstantImplementations() {
-    var parseResult = parseStringWithErrors(r'''
-int x = 0;
-
-/// Text.
-/// {@hideConstantImplementations}
-class A {}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.comment('hideConstantImplementations');
-    assertParsedNodeText(node, r'''
-Comment
-  tokens
-    /// Text.
-    /// {@hideConstantImplementations}
-  docDirectives
-    SimpleDocDirective
-      tag
-        offset: [26, 57]
-        type: [DocDirectiveType.hideConstantImplementations]
-''');
-  }
-
   test_indentedCodeBlock_afterBlankLine() {
     var parseResult = parseStringWithErrors(r'''
 /// Text.
@@ -1509,7 +1485,7 @@ int x = 0;
 /// Text.
 /// {@template name}
 /// More text.
-/// {@example path}
+/// {@macro name}
 /// {@endtemplate}
 class A {}
 ''');
@@ -1522,7 +1498,7 @@ Comment
     /// Text.
     /// {@template name}
     /// More text.
-    /// {@example path}
+    /// {@macro name}
     /// {@endtemplate}
   docDirectives
     BlockDocDirective
@@ -1532,14 +1508,14 @@ Comment
         positionalArguments
           name
       closingTag
-        offset: [82, 97]
+        offset: [80, 95]
         type: [DocDirectiveType.endTemplate]
     SimpleDocDirective
       tag
-        offset: [62, 78]
-        type: [DocDirectiveType.example]
+        offset: [62, 76]
+        type: [DocDirectiveType.macro]
         positionalArguments
-          path
+          name
 ''');
   }
 

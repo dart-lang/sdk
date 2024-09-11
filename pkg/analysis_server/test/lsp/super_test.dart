@@ -84,6 +84,16 @@ class C^ extends B {}
 '''));
   }
 
+  Future<void> test_className_underscore() async {
+    await verifyGoToSuper(TestCode.parse('''
+class A {}
+
+class [!_!] extends A {}
+
+class C^ extends _ {}
+'''));
+  }
+
   Future<void> test_constructor_named_callsSuperNamed() async {
     await verifyGoToSuper(TestCode.parse('''
 class A {
@@ -153,6 +163,21 @@ class B extends A {}
 class C extends B {
   @override
   String get fo^o => '';
+}
+'''));
+  }
+
+  Future<void> test_getter_underscore() async {
+    await verifyGoToSuper(TestCode.parse('''
+class A {
+  String get [!_!] => '';
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  String get ^_ => '';
 }
 '''));
   }
@@ -231,6 +256,21 @@ class C extends B {
 '''));
   }
 
+  Future<void> test_methodName_underscore() async {
+    await verifyGoToSuper(TestCode.parse('''
+class A {
+  void [!_!]() {}
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  void ^_() {}
+}
+'''));
+  }
+
   Future<void> test_methodReturnType() async {
     await verifyGoToSuper(TestCode.parse('''
 class A {
@@ -257,6 +297,21 @@ class B extends A {}
 class C extends B {
   @override
   set fo^o(String value) {}
+}
+'''));
+  }
+
+  Future<void> test_setter_underscore() async {
+    await verifyGoToSuper(TestCode.parse('''
+class A {
+  set [!_!](String value) {}
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  set ^_(String value) {}
 }
 '''));
   }

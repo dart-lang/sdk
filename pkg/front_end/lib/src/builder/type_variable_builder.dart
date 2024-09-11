@@ -82,8 +82,15 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
 
   void set parameterBound(DartType bound);
 
-  /// Unused in interface; left in on purpose.
-  Nullability get nullabilityFromParameterBound;
+  Nullability? _nullabilityFromParameterBound;
+
+  Nullability get nullabilityFromParameterBound {
+    assert(
+        _nullabilityFromParameterBound != null,
+        // Coverage-ignore(suite): Not run.
+        "Nullability has not been computed for $this.");
+    return _nullabilityFromParameterBound!;
+  }
 
   /// Unused in interface; left in on purpose.
   bool get hasUnsetParameterDefaultType;
@@ -93,57 +100,60 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
   void finish(SourceLibraryBuilder library, ClassBuilder object,
       TypeBuilder dynamicType);
 
-  TypeBuilder? _unaliasAndErase(TypeBuilder? typeBuilder) {
-    if (typeBuilder is! NamedTypeBuilder) {
-      return typeBuilder;
-    } else {
-      TypeDeclarationBuilder? declaration = typeBuilder.declaration;
-      if (declaration is TypeAliasBuilder) {
-        // We pass empty lists as [unboundTypes] and [unboundTypeVariables]
-        // because new builders can be generated during unaliasing. We ignore
-        // the returned builders, however, because they will not be used in the
-        // output and are needed only for the checks.
-        //
-        // We also don't instantiate-to-bound raw types because it won't affect
-        // the dependency cycle analysis.
-        return _unaliasAndErase(declaration.unalias(typeBuilder.typeArguments,
-            unboundTypes: [], unboundTypeVariables: []));
-      } else if (declaration is ExtensionTypeDeclarationBuilder) {
-        TypeBuilder? representationType =
-            declaration.declaredRepresentationTypeBuilder;
-        if (representationType == null) {
-          return null;
-        } else {
-          List<NominalVariableBuilder>? typeParameters =
-              declaration.typeParameters;
-          List<TypeBuilder>? typeArguments = typeBuilder.typeArguments;
-          if (typeParameters != null && typeArguments != null) {
-            representationType = representationType.subst(
-                new Map<NominalVariableBuilder, TypeBuilder>.fromIterables(
-                    typeParameters, typeArguments));
-          }
-          return _unaliasAndErase(representationType);
-        }
-      } else {
-        return typeBuilder;
-      }
+  Nullability _computeNullabilityFromType(TypeBuilder? typeBuilder,
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    if (typeBuilder == null) {
+      return Nullability.undetermined;
+    }
+    return typeBuilder.computeNullability(
+        typeVariablesTraversalState: typeVariablesTraversalState);
+  }
+
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    if (_nullabilityFromParameterBound != null) {
+      return _nullabilityFromParameterBound!;
+    }
+    switch (typeVariablesTraversalState[this] ??= TraversalState.unvisited) {
+      case TraversalState.visited:
+        // Coverage-ignore(suite): Not run.
+        return _nullabilityFromParameterBound!;
+      case TraversalState.active:
+        typeVariablesTraversalState[this] = TraversalState.visited;
+        return _nullabilityFromParameterBound = Nullability.undetermined;
+      case TraversalState.unvisited:
+        typeVariablesTraversalState[this] = TraversalState.active;
+        Nullability nullability = _computeNullabilityFromType(bound,
+            typeVariablesTraversalState: typeVariablesTraversalState);
+        typeVariablesTraversalState[this] = TraversalState.visited;
+        return _nullabilityFromParameterBound =
+            nullability == Nullability.nullable
+                ? Nullability.undetermined
+                : nullability;
     }
   }
 
+  @override
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    return computeNullability(
+        typeVariablesTraversalState: typeVariablesTraversalState);
+  }
+
   TypeVariableCyclicDependency? findCyclicDependency(
-      {Map<TypeVariableBuilder, TypeVariableTraversalState>?
+      {required Map<TypeVariableBuilder, TraversalState>
           typeVariablesTraversalState,
       Map<TypeVariableBuilder, TypeVariableBuilder>? cycleElements}) {
-    // Coverage-ignore(suite): Not run.
-    typeVariablesTraversalState ??= {};
     cycleElements ??= {};
 
-    switch (typeVariablesTraversalState[this] ??=
-        TypeVariableTraversalState.unvisited) {
-      case TypeVariableTraversalState.visited:
+    switch (typeVariablesTraversalState[this] ??= TraversalState.unvisited) {
+      case TraversalState.visited:
         return null;
-      case TypeVariableTraversalState.active:
-        typeVariablesTraversalState[this] = TypeVariableTraversalState.visited;
+      case TraversalState.active:
+        typeVariablesTraversalState[this] = TraversalState.visited;
         List<TypeVariableBuilder>? viaTypeVariables;
         TypeVariableBuilder? nextViaTypeVariable = cycleElements[this];
         while (nextViaTypeVariable != null && nextViaTypeVariable != this) {
@@ -152,35 +162,26 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
         }
         return new TypeVariableCyclicDependency(this,
             viaTypeVariables: viaTypeVariables);
-      case TypeVariableTraversalState.unvisited:
-        typeVariablesTraversalState[this] = TypeVariableTraversalState.active;
-        TypeBuilder? bound = this.bound;
-        if (bound is NamedTypeBuilder) {
-          TypeBuilder? unaliasedAndErasedBound = _unaliasAndErase(bound);
-          TypeDeclarationBuilder? unaliasedAndErasedBoundDeclaration =
-              unaliasedAndErasedBound?.declaration;
-          TypeVariableBuilder? nextVariable;
-          if (unaliasedAndErasedBoundDeclaration is TypeVariableBuilder) {
-            nextVariable = unaliasedAndErasedBoundDeclaration;
-          }
+      case TraversalState.unvisited:
+        typeVariablesTraversalState[this] = TraversalState.active;
+        TypeBuilder? unaliasedAndErasedBound = bound?.unaliasAndErase();
+        TypeDeclarationBuilder? unaliasedAndErasedBoundDeclaration =
+            unaliasedAndErasedBound?.declaration;
+        TypeVariableBuilder? nextVariable;
+        if (unaliasedAndErasedBoundDeclaration is TypeVariableBuilder) {
+          nextVariable = unaliasedAndErasedBoundDeclaration;
+        }
 
-          if (nextVariable != null) {
-            cycleElements[this] = nextVariable;
-            TypeVariableCyclicDependency? result =
-                nextVariable.findCyclicDependency(
-                    typeVariablesTraversalState: typeVariablesTraversalState,
-                    cycleElements: cycleElements);
-            typeVariablesTraversalState[this] =
-                TypeVariableTraversalState.visited;
-            return result;
-          } else {
-            typeVariablesTraversalState[this] =
-                TypeVariableTraversalState.visited;
-            return null;
-          }
+        if (nextVariable != null) {
+          cycleElements[this] = nextVariable;
+          TypeVariableCyclicDependency? result =
+              nextVariable.findCyclicDependency(
+                  typeVariablesTraversalState: typeVariablesTraversalState,
+                  cycleElements: cycleElements);
+          typeVariablesTraversalState[this] = TraversalState.visited;
+          return result;
         } else {
-          typeVariablesTraversalState[this] =
-              TypeVariableTraversalState.visited;
+          typeVariablesTraversalState[this] = TraversalState.visited;
           return null;
         }
     }
@@ -196,6 +197,12 @@ class NominalVariableBuilder extends TypeVariableBuilder {
 
   @override
   NominalVariableBuilder? actualOrigin;
+
+  /// [NominalVariableBuilder] overrides ==/hashCode in terms of
+  /// [actualParameter] making it vulnerable to use in sets and maps. This
+  /// fields tracks the first access to [hashCode] when asserts are enabled, to
+  /// signal if the [hashCode] is used before updates to [actualParameter].
+  StackTrace? _hasHashCode;
 
   NominalVariableBuilder(
       String name, Builder? compilationUnit, int charOffset, Uri? fileUri,
@@ -236,7 +243,10 @@ class NominalVariableBuilder extends TypeVariableBuilder {
         super(parameter.name ?? "", null, parameter.fileOffset, null,
             kind: TypeVariableKind.fromKernel,
             bound: loader?.computeTypeBuilder(parameter.bound),
-            defaultType: loader?.computeTypeBuilder(parameter.defaultType));
+            defaultType: loader?.computeTypeBuilder(parameter.defaultType)) {
+    _nullabilityFromParameterBound =
+        TypeParameterType.computeNullabilityFromBound(parameter);
+  }
 
   @override
   String get debugName => "NominalVariableBuilder";
@@ -249,6 +259,11 @@ class NominalVariableBuilder extends TypeVariableBuilder {
 
   @override
   void applyAugmentation(covariant NominalVariableBuilder augmentation) {
+    assert(
+        _hasHashCode == null,
+        // Coverage-ignore(suite): Not run.
+        "Cannot apply augmentation since to $this since hashCode has already "
+        "been computed from $actualParameter @\n$_hasHashCode");
     augmentation.actualOrigin = this;
   }
 
@@ -295,10 +310,6 @@ class NominalVariableBuilder extends TypeVariableBuilder {
   }
 
   @override
-  Nullability get nullabilityFromParameterBound =>
-      TypeParameterType.computeNullabilityFromBound(parameter);
-
-  @override
   bool get hasUnsetParameterDefaultType =>
       identical(parameter.defaultType, TypeParameter.unsetDefaultTypeSentinel);
 
@@ -313,7 +324,13 @@ class NominalVariableBuilder extends TypeVariableBuilder {
   }
 
   @override
-  int get hashCode => parameter.hashCode;
+  int get hashCode {
+    assert(() {
+      _hasHashCode ??= StackTrace.current;
+      return true;
+    }());
+    return parameter.hashCode;
+  }
 
   @override
   TypeParameterType buildAliasedTypeWithBuiltArguments(
@@ -357,43 +374,15 @@ class NominalVariableBuilder extends TypeVariableBuilder {
     }
     // If the bound is not set yet, the actual value is not important yet as it
     // will be set later.
-    TypeBuilder? boundBuilder = bound;
-    TypeDeclarationBuilder? boundDeclarationBuilder =
-        boundBuilder is NamedTypeBuilder ? boundBuilder.declaration : null;
-    bool needsPostUpdate =
-        nullabilityBuilder.isOmitted && hasUnsetParameterBound ||
-            library is SourceLibraryBuilder &&
-                library.hasPendingNullability(parameterBound) ||
-            nullabilityBuilder.isOmitted &&
-                boundDeclarationBuilder is ExtensionTypeDeclarationBuilder &&
-                !boundDeclarationBuilder.hasInterfacesBuilt;
     Nullability nullability;
     if (nullabilityBuilder.isOmitted) {
-      if (needsPostUpdate) {
-        nullability = Nullability.legacy;
-      } else {
-        nullability = nullabilityFromParameterBound;
-      }
+      nullability = nullabilityFromParameterBound;
     } else {
       nullability = nullabilityBuilder.build();
     }
     TypeParameterType type = buildAliasedTypeWithBuiltArguments(
         library, nullability, null, typeUse, fileUri, charOffset,
         hasExplicitTypeArguments: hasExplicitTypeArguments);
-    if (needsPostUpdate) {
-      if (library is SourceLibraryBuilder) {
-        library.registerPendingNullability(
-            this.fileUri!, this.charOffset, type);
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        library.addProblem(
-            templateInternalProblemUnfinishedTypeVariable.withArguments(
-                name, library.importUri),
-            this.charOffset,
-            name.length,
-            this.fileUri);
-      }
-    }
     return type;
   }
 
@@ -546,9 +535,9 @@ void _sortAllTypeVariablesTopologicallyFromRoot(
           internalDependents.add(field.type);
         }
       }
-    // Coverage-ignore(suite): Not run.
     case OmittedTypeBuilder():
     case FixedTypeBuilder():
+    // Coverage-ignore(suite): Not run.
     case InvalidTypeBuilder():
   }
 
@@ -612,7 +601,10 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
         // TODO(johnniwinther): Do we need to support synthesized type
         //  parameters from kernel?
         super(parameter.name ?? "", null, parameter.fileOffset, null,
-            kind: TypeVariableKind.fromKernel);
+            kind: TypeVariableKind.fromKernel) {
+    _nullabilityFromParameterBound =
+        StructuralParameterType.computeNullabilityFromBound(parameter);
+  }
 
   @override
   bool get isTypeVariable => true;
@@ -643,11 +635,6 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
   void set parameterBound(DartType bound) {
     parameter.bound = bound;
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Nullability get nullabilityFromParameterBound =>
-      StructuralParameterType.computeNullabilityFromBound(parameter);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -708,25 +695,9 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
     }
     // If the bound is not set yet, the actual value is not important yet as it
     // will be set later.
-    TypeBuilder? boundBuilder = bound;
-    TypeDeclarationBuilder? boundDeclarationBuilder =
-        boundBuilder is NamedTypeBuilder ? boundBuilder.declaration : null;
-    bool needsPostUpdate = nullabilityBuilder.isOmitted &&
-            identical(
-                parameter.bound, StructuralParameter.unsetBoundSentinel) ||
-        library is SourceLibraryBuilder &&
-            library.hasPendingNullability(parameter.bound) ||
-        nullabilityBuilder.isOmitted &&
-            boundDeclarationBuilder is ExtensionTypeDeclarationBuilder &&
-            !boundDeclarationBuilder.hasInterfacesBuilt;
     Nullability nullability;
     if (nullabilityBuilder.isOmitted) {
-      if (needsPostUpdate) {
-        nullability = Nullability.legacy;
-      } else {
-        nullability =
-            StructuralParameterType.computeNullabilityFromBound(parameter);
-      }
+      nullability = nullabilityFromParameterBound;
     } else {
       // Coverage-ignore-block(suite): Not run.
       nullability = nullabilityBuilder.build();
@@ -734,20 +705,6 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
     StructuralParameterType type = buildAliasedTypeWithBuiltArguments(
         library, nullability, null, typeUse, fileUri, charOffset,
         hasExplicitTypeArguments: hasExplicitTypeArguments);
-    if (needsPostUpdate) {
-      if (library is SourceLibraryBuilder) {
-        library.registerPendingFunctionTypeNullability(
-            this.fileUri!, this.charOffset, type);
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        library.addProblem(
-            templateInternalProblemUnfinishedTypeVariable.withArguments(
-                name, library.importUri),
-            this.charOffset,
-            name.length,
-            this.fileUri);
-      }
-    }
     return type;
   }
 
@@ -812,15 +769,16 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
   }
 }
 
-/// This enum is used internally for dependency analysis of type variables.
-enum TypeVariableTraversalState {
-  /// An [unvisited] type variable isn't yet visited by the traversal algorithm.
+/// This enum is used internally for dependency analysis of potentially cyclic
+/// builder dependencies.
+enum TraversalState {
+  /// An [unvisited] builder isn't yet visited by the traversal algorithm.
   unvisited,
 
-  /// An [active] type variable is traversed, but not fully processed.
+  /// An [active] builder is traversed, but not fully processed.
   active,
 
-  /// A [visited] type variable is fully processed.
+  /// A [visited] builder is fully processed.
   visited;
 }
 

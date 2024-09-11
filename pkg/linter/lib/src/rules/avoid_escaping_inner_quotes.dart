@@ -28,10 +28,10 @@ var s = "It's not fun";
 class AvoidEscapingInnerQuotes extends LintRule {
   AvoidEscapingInnerQuotes()
       : super(
-            name: 'avoid_escaping_inner_quotes',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'avoid_escaping_inner_quotes',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_escaping_inner_quotes;

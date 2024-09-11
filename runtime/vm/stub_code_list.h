@@ -72,6 +72,7 @@ namespace dart {
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
   V(InterpretCall)                                                             \
+  V(ResumeInterpreter)                                                         \
   V(CallBootstrapNative)                                                       \
   V(CallNoScopeNative)                                                         \
   V(CallAutoScopeNative)                                                       \
@@ -154,7 +155,6 @@ namespace dart {
   V(InitSharedLateFinalStaticField)                                            \
   V(Throw)                                                                     \
   V(ReThrow)                                                                   \
-  V(AssertBoolean)                                                             \
   V(InstanceOf)                                                                \
   V(InstantiateType)                                                           \
   V(InstantiateTypeNonNullableClassTypeParameter)                              \

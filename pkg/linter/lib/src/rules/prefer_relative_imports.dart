@@ -36,10 +36,10 @@ import 'bar.dart';
 class PreferRelativeImports extends LintRule {
   PreferRelativeImports()
       : super(
-            name: 'prefer_relative_imports',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'prefer_relative_imports',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<String> get incompatibleRules => const ['always_use_package_imports'];

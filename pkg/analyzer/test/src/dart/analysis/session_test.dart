@@ -280,16 +280,6 @@ class B {}
     );
   }
 
-  test_getLibraryByUri_notLibrary_augmentation() async {
-    newFile(testFile.path, r'''
-augment library 'a.dart';
-''');
-
-    var session = contextFor(testFile).currentSession;
-    var result = await session.getLibraryByUri('package:test/test.dart');
-    expect(result, isA<NotLibraryButAugmentationResult>());
-  }
-
   test_getLibraryByUri_notLibrary_part() async {
     newFile(testFile.path, r'''
 part of 'a.dart';
@@ -423,16 +413,6 @@ part 'c.dart';
     var test = newFile(testFile.path, 'part of "a.dart";');
     var session = contextFor(testFile).currentSession;
     expect(session.getParsedLibrary(test.path), isA<NotLibraryButPartResult>());
-  }
-
-  test_getParsedLibrary_notLibrary_augmentation() async {
-    newFile(testFile.path, r'''
-augment library 'a.dart';
-''');
-
-    var session = contextFor(testFile).currentSession;
-    var result = session.getParsedLibrary(testFile.path);
-    expect(result, isA<NotLibraryButAugmentationResult>());
   }
 
   test_getParsedLibrary_parts() async {
@@ -687,16 +667,6 @@ part 'c.dart';
     expect(result, isA<InvalidPathResult>());
   }
 
-  test_getResolvedLibrary_notLibrary_augmentation() async {
-    newFile(testFile.path, r'''
-augment library of 'a.dart';
-''');
-
-    var session = contextFor(testFile).currentSession;
-    var result = await session.getResolvedLibrary(testFile.path);
-    expect(result, isA<NotLibraryButAugmentationResult>());
-  }
-
   test_getResolvedLibrary_notLibrary_part() async {
     var test = newFile(testFile.path, 'part of "a.dart";');
 
@@ -767,13 +737,13 @@ class B {}
 
   test_getUnitElement_augmentationKnown_inLibrary() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 class A {}
 class B {}
 ''');
 
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
 
     await _assertFileUnitElementResultText(a, r'''

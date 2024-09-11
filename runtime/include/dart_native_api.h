@@ -166,7 +166,23 @@ typedef void (*Dart_NativeMessageHandler)(Dart_Port dest_port_id,
 DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
                                          Dart_NativeMessageHandler handler,
                                          bool handle_concurrently);
-/* TODO(turnidge): Currently handle_concurrently is ignored. */
+
+/**
+ * Creates a new native port.  When messages are received on this
+ * native port, then they will be dispatched to the provided native
+ * message handler using up to |max_concurrency| concurrent threads.
+ *
+ * \param name The name of this port in debugging messages.
+ * \param handler The C handler to run when messages arrive on the port.
+ * \param max_concurrency Size of the thread pool used by the native port.
+ *
+ * \return If successful, returns the port id for the native port.  In
+ *   case of error, returns ILLEGAL_PORT.
+ */
+DART_EXPORT Dart_Port
+Dart_NewConcurrentNativePort(const char* name,
+                             Dart_NativeMessageHandler handler,
+                             intptr_t max_concurrency);
 
 /**
  * Closes the native port with the given id.
@@ -191,12 +207,13 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
  *
  * TODO(turnidge): Document.
  */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_CompileAll(void);
+DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle Dart_CompileAll(void);
 
 /**
  * Finalizes all classes.
  */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_FinalizeAllClasses(void);
+DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+Dart_FinalizeAllClasses(void);
 
 /*  This function is intentionally undocumented.
  *

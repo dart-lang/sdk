@@ -197,15 +197,6 @@ static constexpr Representation kUnboxedAddress = kUnboxedUword;
 // the location not to the location itself.
 class Location : public ValueObject {
  private:
-  enum {
-    // Number of bits required to encode Kind value.
-    kKindBitsPos = 0,
-    kKindBitsSize = 5,
-
-    kPayloadBitsPos = kKindBitsPos + kKindBitsSize,
-    kPayloadBitsSize = kBitsPerWord - kPayloadBitsPos,
-  };
-
   static constexpr uword kInvalidLocation = 0;
   static constexpr uword kLocationTagMask = 0x3;
 
@@ -245,6 +236,8 @@ class Location : public ValueObject {
     // FpuRegister location represents a fixed fpu register.  Payload contains
     // its code.
     kFpuRegister = 6 << 2,
+
+    // Update KindField below if more kinds are added.
   };
 
   Location() : value_(kInvalidLocation) {
@@ -336,6 +329,8 @@ class Location : public ValueObject {
     // Currently only used for `Handle` arguments in `FfiCall` instructions.
     // Only available in optimized mode.
     kRequiresStack,
+
+    // Update PolicyField below if more policies are added.
   };
 
   bool IsUnallocated() const { return kind() == kUnallocated; }
@@ -438,15 +433,9 @@ class Location : public ValueObject {
     return static_cast<intptr_t>(payload());
   }
 
-  static uword EncodeStackIndex(intptr_t stack_index) {
-    ASSERT((-kStackIndexBias <= stack_index) &&
-           (stack_index < kStackIndexBias));
-    return static_cast<uword>(kStackIndexBias + stack_index);
-  }
-
   static Location StackSlot(intptr_t stack_index, Register base) {
-    uword payload = StackSlotBaseField::encode(base) |
-                    StackIndexField::encode(EncodeStackIndex(stack_index));
+    uword payload =
+        StackSlotBaseField::encode(base) | StackIndexField::encode(stack_index);
     Location loc(kStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
@@ -456,8 +445,8 @@ class Location : public ValueObject {
   bool IsStackSlot() const { return kind() == kStackSlot; }
 
   static Location DoubleStackSlot(intptr_t stack_index, Register base) {
-    uword payload = StackSlotBaseField::encode(base) |
-                    StackIndexField::encode(EncodeStackIndex(stack_index));
+    uword payload =
+        StackSlotBaseField::encode(base) | StackIndexField::encode(stack_index);
     Location loc(kDoubleStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
@@ -467,11 +456,11 @@ class Location : public ValueObject {
   bool IsDoubleStackSlot() const { return kind() == kDoubleStackSlot; }
 
   static Location QuadStackSlot(intptr_t stack_index, Register base) {
-    uword payload = StackSlotBaseField::encode(base) |
-                    StackIndexField::encode(EncodeStackIndex(stack_index));
+    uword payload =
+        StackSlotBaseField::encode(base) | StackIndexField::encode(stack_index);
     Location loc(kQuadStackSlot, payload);
     // Ensure that sign is preserved.
-    ASSERT(loc.stack_index() == stack_index);
+    ASSERT_EQUAL(loc.stack_index(), stack_index);
     return loc;
   }
 
@@ -484,8 +473,7 @@ class Location : public ValueObject {
 
   intptr_t stack_index() const {
     ASSERT(HasStackIndex());
-    // Decode stack index manually to preserve sign.
-    return StackIndexField::decode(payload()) - kStackIndexBias;
+    return StackIndexField::decode(payload());
   }
 
   bool HasStackIndex() const {
@@ -532,8 +520,8 @@ class Location : public ValueObject {
 
   void set_stack_index(intptr_t index) {
     ASSERT(HasStackIndex());
-    value_ = PayloadField::update(
-        StackIndexField::update(EncodeStackIndex(index), payload()), value_);
+    value_ =
+        PayloadField::update(StackIndexField::update(index, payload()), value_);
   }
 
   void set_base_reg(Register reg) {
@@ -547,31 +535,26 @@ class Location : public ValueObject {
 
   uword payload() const { return PayloadField::decode(value_); }
 
-  class KindField : public BitField<uword, Kind, kKindBitsPos, kKindBitsSize> {
-  };
-  class PayloadField
-      : public BitField<uword, uword, kPayloadBitsPos, kPayloadBitsSize> {};
+  using KindField = BitField<uword, Kind, 0, Utils::BitLength(kFpuRegister)>;
+  using PayloadField = BitField<uword, uword, KindField::kNextBit>;
 
   // Layout for kUnallocated locations payload.
-  typedef BitField<uword, Policy, 0, 3> PolicyField;
+  using PolicyField =
+      BitField<uword, Policy, 0, Utils::BitLength(kRequiresStack)>;
+  COMPILE_ASSERT(PolicyField::bitsize() <= PayloadField::bitsize());
 
-// Layout for stack slots.
+  // Layout for stack slot payloads.
 #if defined(ARCH_IS_64_BIT)
   static constexpr intptr_t kBitsForBaseReg = 6;
 #else
   static constexpr intptr_t kBitsForBaseReg = 5;
 #endif
-  static constexpr intptr_t kBitsForStackIndex =
-      kPayloadBitsSize - kBitsForBaseReg;
-  class StackSlotBaseField
-      : public BitField<uword, Register, 0, kBitsForBaseReg> {};
-  class StackIndexField
-      : public BitField<uword, intptr_t, kBitsForBaseReg, kBitsForStackIndex> {
-  };
-  COMPILE_ASSERT(1 << kBitsForBaseReg >= kNumberOfCpuRegisters);
-
-  static constexpr intptr_t kStackIndexBias = static_cast<intptr_t>(1)
-                                              << (kBitsForStackIndex - 1);
+  using StackSlotBaseField = BitField<uword, Register, 0, kBitsForBaseReg>;
+  using StackIndexField =
+      SignedBitField<uword,
+                     intptr_t,
+                     StackSlotBaseField::kNextBit,
+                     PayloadField::bitsize() - StackSlotBaseField::kNextBit>;
 
   // Location either contains kind and payload fields or a tagged handle for
   // a constant locations. Values of enumeration Kind are selected in such a

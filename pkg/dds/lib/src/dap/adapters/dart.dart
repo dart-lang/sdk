@@ -15,6 +15,7 @@ import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../../../dds.dart';
+import '../../../dds_launcher.dart';
 import '../../rpc_error_codes.dart';
 import '../base_debug_adapter.dart';
 import '../isolate_manager.dart';
@@ -357,7 +358,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   ///
   /// `null` if the session is running in noDebug mode of the connection has not
   /// yet been made or has been shut down.
-  DartDevelopmentService? _dds;
+  DartDevelopmentServiceLauncher? _dds;
 
   /// The [DartInitializeRequestArguments] provided by the client in the
   /// `initialize` request.
@@ -660,9 +661,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// If a new DDS instance was started, it is assigned to [_dds].
   Future<Uri?> _startOrReuseDds(Uri uri) async {
     try {
-      final dds = await startDds(uri, uriConverter());
+      final dds = await startDds(uri);
       _dds = dds;
-      return dds.wsUri!;
+      return dds.wsUri;
     } catch (error, stack) {
       if (error is DartDevelopmentServiceException &&
           error.errorCode ==
@@ -788,12 +789,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     shutdown();
   }
 
-  Future<DartDevelopmentService> startDds(Uri uri, UriConverter? uriConverter) {
-    return DartDevelopmentService.startDartDevelopmentService(
-      vmServiceUriToHttp(uri),
+  Future<DartDevelopmentServiceLauncher> startDds(Uri uri) {
+    return DartDevelopmentServiceLauncher.start(
+      remoteVmServiceUri: vmServiceUriToHttp(uri),
       enableAuthCodes: enableAuthCodes,
-      ipv6: ipv6,
-      uriConverter: uriConverter,
     );
   }
 
@@ -2862,7 +2861,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // outside of the DAP (eg. closing the simulator) so it's possible our
       // requests will fail in this way before we've handled any event to set
       // `isTerminating`.
-      if (e.code == RpcErrorCodes.kServiceDisappeared) {
+      if (e.code == RpcErrorCodes.kServiceDisappeared ||
+          e.code == RpcErrorCodes.kConnectionDisposed) {
         return null;
       }
 

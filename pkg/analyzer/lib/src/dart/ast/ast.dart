@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -784,9 +785,11 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
     var element = this.element;
     if (element is PromotableElement) {
-      return resolverVisitor.analyzeAssignedVariablePatternSchema(element);
+      return resolverVisitor
+          .analyzeAssignedVariablePatternSchema(element)
+          .unwrapTypeSchemaView();
     }
-    return resolverVisitor.operations.unknownType;
+    return resolverVisitor.operations.unknownType.unwrapTypeSchemaView();
   }
 
   @override
@@ -1193,8 +1196,6 @@ abstract class AstVisitor<R> {
 
   R? visitAssignmentExpression(AssignmentExpression node);
 
-  R? visitAugmentationImportDirective(AugmentationImportDirective node);
-
   R? visitAugmentedExpression(AugmentedExpression node);
 
   R? visitAugmentedInvocation(AugmentedInvocation node);
@@ -1358,8 +1359,6 @@ abstract class AstVisitor<R> {
   R? visitLabel(Label node);
 
   R? visitLabeledStatement(LabeledStatement node);
-
-  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node);
 
   R? visitLibraryDirective(LibraryDirective node);
 
@@ -1530,71 +1529,6 @@ abstract class AstVisitor<R> {
   R? visitWithClause(WithClause node);
 
   R? visitYieldStatement(YieldStatement node);
-}
-
-/// An augmentation import directive.
-///
-///    importDirective ::=
-///        [Annotation] 'import' 'augment' [StringLiteral] ';'
-@experimental
-abstract final class AugmentationImportDirective implements UriBasedDirective {
-  /// The token representing the `augment` keyword.
-  Token get augmentKeyword;
-
-  @override
-  AugmentationImportElement? get element;
-
-  /// The token representing the `import` keyword.
-  Token get importKeyword;
-
-  /// The semicolon terminating the directive.
-  Token get semicolon;
-}
-
-final class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
-    implements AugmentationImportDirective {
-  @override
-  final Token importKeyword;
-
-  @override
-  final Token augmentKeyword;
-
-  @override
-  final Token semicolon;
-
-  AugmentationImportDirectiveImpl({
-    required super.comment,
-    required super.metadata,
-    required this.importKeyword,
-    required this.augmentKeyword,
-    required this.semicolon,
-    required super.uri,
-  }) {
-    _becomeParentOf(_uri);
-  }
-
-  @override
-  AugmentationImportElementImpl? get element {
-    return super.element as AugmentationImportElementImpl?;
-  }
-
-  @override
-  Token get endToken => semicolon;
-
-  @override
-  Token get firstTokenAfterCommentAndMetadata => importKeyword;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('importKeyword', importKeyword)
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addNode('uri', uri)
-    ..addToken('semicolon', semicolon);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    return visitor.visitAugmentationImportDirective(this);
-  }
 }
 
 /// The augmented expression.
@@ -2382,7 +2316,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeCastPatternSchema();
+    return resolverVisitor.analyzeCastPatternSchema().unwrapTypeSchemaView();
   }
 
   @override
@@ -2398,14 +2332,14 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
       context: context,
       pattern: this,
       innerPattern: pattern,
-      requiredType: requiredType,
+      requiredType: SharedTypeView(requiredType),
     );
 
     resolverVisitor.checkPatternNeverMatchesValueType(
       context: context,
       pattern: this,
       requiredType: requiredType,
-      matchedValueType: analysisResult.matchedValueType,
+      matchedValueType: analysisResult.matchedValueType.unwrapTypeView(),
     );
     inferenceLogWriter?.exitPattern(this);
 
@@ -3988,7 +3922,9 @@ final class ConstantPatternImpl extends DartPatternImpl
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeConstantPatternSchema();
+    return resolverVisitor
+        .analyzeConstantPatternSchema()
+        .unwrapTypeSchemaView();
   }
 
   @override
@@ -4921,7 +4857,9 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
-        .analyzeDeclaredVariablePatternSchema(type?.typeOrThrow);
+        .analyzeDeclaredVariablePatternSchema(
+            type?.typeOrThrow.wrapSharedTypeView())
+        .unwrapTypeSchemaView();
   }
 
   @override
@@ -4930,15 +4868,19 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var result = resolverVisitor.analyzeDeclaredVariablePattern(context, this,
-        declaredElement!, declaredElement!.name, type?.typeOrThrow);
-    declaredElement!.type = result.staticType;
+    var result = resolverVisitor.analyzeDeclaredVariablePattern(
+        context,
+        this,
+        declaredElement!,
+        declaredElement!.name,
+        type?.typeOrThrow.wrapSharedTypeView());
+    declaredElement!.type = result.staticType.unwrapTypeView();
 
     resolverVisitor.checkPatternNeverMatchesValueType(
       context: context,
       pattern: this,
-      requiredType: result.staticType,
-      matchedValueType: result.matchedValueType,
+      requiredType: result.staticType.unwrapTypeView(),
+      matchedValueType: result.matchedValueType.unwrapTypeView(),
     );
     inferenceLogWriter?.exitPattern(this);
 
@@ -6065,7 +6007,9 @@ sealed class ExpressionImpl extends AstNodeImpl
   void resolveElement(
       ResolverVisitor resolver, CollectionLiteralContext? context) {
     resolver.analyzeExpression(
-        this, context?.elementType ?? UnknownInferredType.instance);
+        this,
+        SharedTypeSchemaView(
+            context?.elementType ?? UnknownInferredType.instance));
   }
 
   /// Dispatches this expression to the [resolver], with the given [contextType]
@@ -10629,62 +10573,6 @@ final class LabelImpl extends AstNodeImpl implements Label {
   }
 }
 
-/// A library augmentation directive.
-///
-///    libraryAugmentationDirective ::=
-///        [metadata] 'library' 'augment' [StringLiteral] ';'
-@experimental
-abstract final class LibraryAugmentationDirective implements UriBasedDirective {
-  /// The token representing the `augment` keyword.
-  Token get augmentKeyword;
-
-  /// The token representing the `library` keyword.
-  Token get libraryKeyword;
-
-  /// The semicolon terminating the directive.
-  Token get semicolon;
-}
-
-@experimental
-final class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
-    implements LibraryAugmentationDirective {
-  @override
-  final Token augmentKeyword;
-
-  @override
-  final Token libraryKeyword;
-
-  @override
-  final Token semicolon;
-
-  LibraryAugmentationDirectiveImpl({
-    required super.comment,
-    required super.metadata,
-    required this.augmentKeyword,
-    required this.libraryKeyword,
-    required super.uri,
-    required this.semicolon,
-  });
-
-  @override
-  Token get endToken => semicolon;
-
-  @override
-  Token get firstTokenAfterCommentAndMetadata => augmentKeyword;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('libraryKeyword', libraryKeyword)
-    ..addNode('uri', uri)
-    ..addToken('semicolon', semicolon);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    return visitor.visitLibraryAugmentationDirective(this);
-  }
-}
-
 /// A library directive.
 ///
 ///    libraryDirective ::=
@@ -10995,10 +10883,12 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
     var elementType = typeArguments?.arguments.elementAtOrNull(0)?.typeOrThrow;
-    return resolverVisitor.analyzeListPatternSchema(
-      elementType: elementType,
-      elements: elements,
-    );
+    return resolverVisitor
+        .analyzeListPatternSchema(
+          elementType: elementType?.wrapSharedTypeView(),
+          elements: elements,
+        )
+        .unwrapTypeSchemaView();
   }
 
   @override
@@ -11100,8 +10990,9 @@ final class LogicalAndPatternImpl extends DartPatternImpl
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeLogicalAndPatternSchema(
-        leftOperand, rightOperand);
+    return resolverVisitor
+        .analyzeLogicalAndPatternSchema(leftOperand, rightOperand)
+        .unwrapTypeSchemaView();
   }
 
   @override
@@ -11178,8 +11069,9 @@ final class LogicalOrPatternImpl extends DartPatternImpl
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeLogicalOrPatternSchema(
-        leftOperand, rightOperand);
+    return resolverVisitor
+        .analyzeLogicalOrPatternSchema(leftOperand, rightOperand)
+        .unwrapTypeSchemaView();
   }
 
   @override
@@ -11438,18 +11330,23 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    ({DartType keyType, DartType valueType})? typeArguments;
     var typeArgumentNodes = this.typeArguments?.arguments;
+    ({
+      SharedTypeView<DartType> keyType,
+      SharedTypeView<DartType> valueType
+    })? typeArguments;
     if (typeArgumentNodes != null && typeArgumentNodes.length == 2) {
       typeArguments = (
-        keyType: typeArgumentNodes[0].typeOrThrow,
-        valueType: typeArgumentNodes[1].typeOrThrow,
+        keyType: SharedTypeView(typeArgumentNodes[0].typeOrThrow),
+        valueType: SharedTypeView(typeArgumentNodes[1].typeOrThrow),
       );
     }
-    return resolverVisitor.analyzeMapPatternSchema(
-      typeArguments: typeArguments,
-      elements: elements,
-    );
+    return resolverVisitor
+        .analyzeMapPatternSchema(
+          typeArguments: typeArguments,
+          elements: elements,
+        )
+        .unwrapTypeSchemaView();
   }
 
   @override
@@ -12704,10 +12601,12 @@ final class NullAssertPatternImpl extends DartPatternImpl
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeNullCheckOrAssertPatternSchema(
-      pattern,
-      isAssert: true,
-    );
+    return resolverVisitor
+        .analyzeNullCheckOrAssertPatternSchema(
+          pattern,
+          isAssert: true,
+        )
+        .unwrapTypeSchemaView();
   }
 
   @override
@@ -12838,10 +12737,12 @@ final class NullCheckPatternImpl extends DartPatternImpl
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeNullCheckOrAssertPatternSchema(
-      pattern,
-      isAssert: false,
-    );
+    return resolverVisitor
+        .analyzeNullCheckOrAssertPatternSchema(
+          pattern,
+          isAssert: false,
+        )
+        .unwrapTypeSchemaView();
   }
 
   @override
@@ -13016,7 +12917,9 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeObjectPatternSchema(type.typeOrThrow);
+    return resolverVisitor
+        .analyzeObjectPatternSchema(SharedTypeView(type.typeOrThrow))
+        .unwrapTypeSchemaView();
   }
 
   @override
@@ -13037,8 +12940,8 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     resolverVisitor.checkPatternNeverMatchesValueType(
       context: context,
       pattern: this,
-      requiredType: result.requiredType,
-      matchedValueType: result.matchedValueType,
+      requiredType: result.requiredType.unwrapTypeView(),
+      matchedValueType: result.matchedValueType.unwrapTypeView(),
     );
     inferenceLogWriter?.exitPattern(this);
 
@@ -13201,7 +13104,9 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.dispatchPatternSchema(pattern);
+    return resolverVisitor
+        .dispatchPatternSchema(pattern)
+        .unwrapTypeSchemaView();
   }
 
   @override
@@ -14315,12 +14220,14 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeRecordPatternSchema(
-      fields: resolverVisitor.buildSharedPatternFields(
-        fields,
-        mustBeNamed: false,
-      ),
-    );
+    return resolverVisitor
+        .analyzeRecordPatternSchema(
+          fields: resolverVisitor.buildSharedPatternFields(
+            fields,
+            mustBeNamed: false,
+          ),
+        )
+        .unwrapTypeSchemaView();
   }
 
   @override
@@ -14342,8 +14249,8 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
       resolverVisitor.checkPatternNeverMatchesValueType(
         context: context,
         pattern: this,
-        requiredType: result.requiredType,
-        matchedValueType: result.matchedValueType,
+        requiredType: result.requiredType.unwrapTypeView(),
+        matchedValueType: result.matchedValueType.unwrapTypeView(),
       );
     }
     inferenceLogWriter?.exitPattern(this);
@@ -14750,7 +14657,9 @@ final class RelationalPatternImpl extends DartPatternImpl
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeRelationalPatternSchema();
+    return resolverVisitor
+        .analyzeRelationalPatternSchema()
+        .unwrapTypeSchemaView();
   }
 
   @override
@@ -16680,8 +16589,10 @@ final class SwitchExpressionImpl extends ExpressionImpl
     inferenceLogWriter?.enterExpression(this, contextType);
     var previousExhaustiveness = resolver.legacySwitchExhaustiveness;
     var staticType = resolver
-        .analyzeSwitchExpression(this, expression, cases.length, contextType)
-        .type;
+        .analyzeSwitchExpression(
+            this, expression, cases.length, SharedTypeSchemaView(contextType))
+        .type
+        .unwrapTypeView();
     recordStaticType(staticType, resolver: resolver);
     resolver.popRewrite();
     resolver.legacySwitchExhaustiveness = previousExhaustiveness;
@@ -18364,7 +18275,9 @@ final class WildcardPatternImpl extends DartPatternImpl
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
-        .analyzeDeclaredVariablePatternSchema(type?.typeOrThrow);
+        .analyzeDeclaredVariablePatternSchema(
+            type?.typeOrThrow.wrapSharedTypeView())
+        .unwrapTypeSchemaView();
   }
 
   @override
@@ -18376,7 +18289,7 @@ final class WildcardPatternImpl extends DartPatternImpl
     var analysisResult = resolverVisitor.analyzeWildcardPattern(
       context: context,
       node: this,
-      declaredType: declaredType,
+      declaredType: declaredType?.wrapSharedTypeView(),
     );
 
     if (declaredType != null) {
@@ -18384,7 +18297,7 @@ final class WildcardPatternImpl extends DartPatternImpl
         context: context,
         pattern: this,
         requiredType: declaredType,
-        matchedValueType: analysisResult.matchedValueType,
+        matchedValueType: analysisResult.matchedValueType.unwrapTypeView(),
       );
     }
 

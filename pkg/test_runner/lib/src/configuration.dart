@@ -335,6 +335,10 @@ class TestConfiguration {
     }
 
     assert(Platform.isLinux);
+    final nmKey = unparseKey('${CCompilerConfigImpl.configKey}.nm');
+    final objdumpKey = unparseKey('${CCompilerConfigImpl.configKey}.objdump');
+    final otoolKey = unparseKey('${CCompilerConfigImpl.configKey}.otool');
+    final readelfKey = unparseKey('${CCompilerConfigImpl.configKey}.readelf');
     // Keep consistent with DEPS.
     const clangHostFolderName = {
       Abi.linuxArm64: 'linux-arm64',
@@ -350,6 +354,10 @@ class TestConfiguration {
       arKey: clangBin.resolve('llvm-ar').toFilePath(),
       ccKey: clangBin.resolve('clang').toFilePath(),
       ldKey: clangBin.resolve('ld.lld').toFilePath(),
+      nmKey: clangBin.resolve('llvm-nm').toFilePath(),
+      otoolKey: clangBin.resolve('llvm-otool').toFilePath(),
+      objdumpKey: clangBin.resolve('llvm-objdump').toFilePath(),
+      readelfKey: clangBin.resolve('llvm-readelf').toFilePath(),
     };
   }();
 

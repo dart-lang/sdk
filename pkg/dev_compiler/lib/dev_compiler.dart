@@ -8,6 +8,7 @@ export 'src/compiler/module_builder.dart'
     show ModuleFormat, parseModuleFormat, libraryUriToJsIdentifier;
 export 'src/compiler/shared_command.dart' show SharedCompilerOptions;
 export 'src/kernel/command.dart' show jsProgramToCode;
-export 'src/kernel/compiler.dart' show ProgramCompiler;
+export 'src/kernel/compiler.dart' show Compiler, ProgramCompiler;
+export 'src/kernel/compiler_new.dart' show LibraryBundleCompiler;
 export 'src/kernel/expression_compiler.dart' show ExpressionCompiler;
 export 'src/kernel/target.dart' show DevCompilerTarget;

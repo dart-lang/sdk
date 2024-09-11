@@ -13,9 +13,6 @@
 //
 // Run as follows on JSC:
 //
-// $> export JSC_useWebAssemblyTypedFunctionReferences=1
-// $> export JSC_useWebAssemblyExtendedConstantExpressions=1
-// $> export JSC_useWebAssemblyGC=1
 // $> jsc run_wasm.js -- <dart_module>.mjs <dart_module>.wasm [<ffi_module>.wasm] \
 //       [-- Dart commandline arguments...]
 //
@@ -64,7 +61,7 @@ if (isD8) {
   delete performance.measure;
 }
 
-var args =  (isD8 || isJSC) ? arguments : scriptArgs;
+var args = (isD8 || isJSC) ? arguments : scriptArgs;
 var dartArgs = [];
 const argsSplit = args.indexOf("--");
 if (argsSplit != -1) {
@@ -78,7 +75,7 @@ if (argsSplit != -1) {
 //
 // The code below is copied form dart2js, with some modifications:
 // sdk/lib/_internal/js_runtime/lib/preambles/d8.js
-(function(self, scriptArguments) {
+(function (self, scriptArguments) {
   // Using strict mode to avoid accidentally defining global variables.
   "use strict"; // Should be first statement of this function.
 
@@ -87,11 +84,15 @@ if (argsSplit != -1) {
   var head = 0;
   var tail = 0;
   var mask = taskQueue.length - 1;
+  var isEventLoopRunning = false;
 
   function addTask(elem) {
     taskQueue[head] = elem;
     head = (head + 1) & mask;
     if (head == tail) _growTaskQueue();
+    if (!isEventLoopRunning) {
+      eventLoop(removeTask());
+    }
   }
 
   function removeTask() {
@@ -179,7 +180,7 @@ if (argsSplit != -1) {
 
   // Mocking time.
   var timeOffset = 0;
-  var now = function() {
+  var now = function () {
     // Install the mock Date object only once.
     // Following calls to "now" will just use the new (mocked) Date.now
     // method directly.
@@ -202,13 +203,13 @@ if (argsSplit != -1) {
       if (this instanceof Date) {
         // Assume a construct call.
         switch (arguments.length) {
-          case 0:  return new originalDate(originalNow() + timeOffset);
-          case 1:  return new originalDate(Y);
-          case 2:  return new originalDate(Y, M);
-          case 3:  return new originalDate(Y, M, D);
-          case 4:  return new originalDate(Y, M, D, h);
-          case 5:  return new originalDate(Y, M, D, h, m);
-          case 6:  return new originalDate(Y, M, D, h, m, s);
+          case 0: return new originalDate(originalNow() + timeOffset);
+          case 1: return new originalDate(Y);
+          case 2: return new originalDate(Y, M);
+          case 3: return new originalDate(Y, M, D);
+          case 4: return new originalDate(Y, M, D, h);
+          case 5: return new originalDate(Y, M, D, h, m);
+          case 6: return new originalDate(Y, M, D, h, m, s);
           default: return new originalDate(Y, M, D, h, m, s, ms);
         }
       }
@@ -322,6 +323,7 @@ if (argsSplit != -1) {
 
   async function eventLoop(action) {
     if (isJSC) asyncTestStart(1);
+    isEventLoopRunning = true;
     while (action) {
       try {
         await action();
@@ -339,15 +341,16 @@ if (argsSplit != -1) {
       }
       action = nextEvent();
     }
+    isEventLoopRunning = false;
     if (isJSC) asyncTestPassed();
   }
 
   // Global properties. "self" refers to the global object, so adding a
   // property to "self" defines a global variable.
   self.self = self;
-  self.dartMainRunner = function(main, ignored_args) {
+  self.dartMainRunner = function (main, ignored_args) {
     // Initialize.
-    var action = async function() { await main(scriptArguments, null); }
+    var action = async function () { await main(scriptArguments, null); }
     eventLoop(action);
   };
   self.setTimeout = addTimer;
@@ -355,6 +358,10 @@ if (argsSplit != -1) {
   self.setInterval = addInterval;
   self.clearInterval = cancelTimer;
   self.queueMicrotask = addTask;
+
+  // Constructor function for JS `Response` objects, allows us to test for it
+  // via `instanceof`.
+  self.Response = function() {}
 
   self.location = {}
   self.location.href = 'file://' + args[wasmArg];
@@ -368,43 +375,45 @@ if (argsSplit != -1) {
 // unfortunately d8 does not return a failed error code if an unhandled
 // exception occurs asynchronously in an ES module.
 const main = async () => {
-    const dart2wasm = await import(args[jsRuntimeArg]);
+  const dart2wasm = await import(args[jsRuntimeArg]);
 
-    function compile(filename) {
-        // Create a Wasm module from the binary Wasm file.
-        var bytes;
-        if (isJSC) {
-          bytes = readFile(filename, "binary");
-        } else if (isD8) {
-          bytes = readbuffer(filename);
-        } else {
-          bytes = readRelativeToScript(filename, "binary");
-        }
-        return dart2wasm.compile(bytes);
+  function readBytes(filename) {
+    if (isJSC) {
+      return readFile(filename, "binary");
+    } else if (isD8) {
+      return readbuffer(filename);
     }
+    return readRelativeToScript(filename, "binary");
+  }
 
-    globalThis.window ??= globalThis;
+  globalThis.window ??= globalThis;
 
-    let importObject = {};
+  let importObject = {};
 
-    // Is an FFI module specified?
-    if (args.length > 2) {
-        // Instantiate FFI module.
-        var ffiInstance = await WebAssembly.instantiate(await compile(args[ffiArg], false), {});
-        // Make its exports available as imports under the 'ffi' module name.
-        importObject.ffi = ffiInstance.exports;
+  // Is an FFI module specified?
+  if (args.length > 2) {
+    // Instantiate FFI module.
+    const ffiModule = await WebAssembly.compile(readBytes(args[ffiArg]));
+    const ffiInstance = await WebAssembly.instantiate(ffiModule, {});
+
+    // Make its exports available as imports under the 'ffi' module name.
+    importObject.ffi = ffiInstance.exports;
+  }
+
+  // Instantiate the Dart module, importing from the global scope.
+  const wasmFilename = args[wasmArg];
+  const compiledApp = await dart2wasm.compile(readBytes(wasmFilename));
+  const appInstance = await compiledApp.instantiate(importObject, {
+    loadDeferredWasm: async (moduleName) => {
+      let filename = wasmFilename.replace('.wasm', `_${moduleName}.wasm`);
+      return readBytes(filename);
     }
+  });
 
-    // Instantiate the Dart module, importing from the global scope.
-    var dartInstance = await dart2wasm.instantiate(
-        compile(args[wasmArg]),
-        Promise.resolve(importObject),
-    );
-
-    // Call `main`. If tasks are placed into the event loop (by scheduling tasks
-    // explicitly or awaiting Futures), these will automatically keep the script
-    // alive even after `main` returns.
-    await dart2wasm.invoke(dartInstance, ...dartArgs);
+  // Call `main`. If tasks are placed into the event loop (by scheduling tasks
+  // explicitly or awaiting Futures), these will automatically keep the script
+  // alive even after `main` returns.
+  await appInstance.invokeMain(...dartArgs);
 };
 
 dartMainRunner(main, []);

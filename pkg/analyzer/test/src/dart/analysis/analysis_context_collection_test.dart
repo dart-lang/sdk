@@ -212,6 +212,74 @@ workspaces
 ''');
   }
 
+  /// Verify the type of invalid data in
+  /// https://github.com/dart-lang/sdk/issues/55594 doesn't result in unhandled
+  /// exceptions when building contexts.
+  test_basicWorkspace_invalidAnalysisOption_issue55594() async {
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    newFile('$testPackageRootPath/lib/a.dart', '');
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - camel_case_types
+    - file_names
+    - non_constant_identifier_names
+    - comment_references
+    -
+''');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home
+    workspacePackage_0_0
+''');
+  }
+
+  /// Verify the type of invalid data in
+  /// https://github.com/dart-lang/sdk/issues/56577 doesn't result in unhandled
+  /// exceptions when building contexts.
+  test_basicWorkspace_invalidAnalysisOption_issue56577() async {
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    newFile('$testPackageRootPath/lib/a.dart', '');
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    analyzer:
+      errors:
+        todo: ignore
+''');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home
+    workspacePackage_0_0
+''');
+  }
+
   test_packageConfigWorkspace_enabledExperiment() async {
     configuration.withEnabledFeatures = true;
 

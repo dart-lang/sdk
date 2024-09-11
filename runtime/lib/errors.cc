@@ -182,4 +182,12 @@ DEFINE_NATIVE_ENTRY(Error_throwWithStackTrace, 0, 2) {
   return Object::null();
 }
 
+// Sets stack trace on object, if it's an `Error` with no `Error.stackTrace`.
+DEFINE_NATIVE_ENTRY(Error_trySetStackTrace, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, error, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, stacktrace, arguments->NativeArgAt(1));
+  Exceptions::TrySetStackTrace(zone, error, stacktrace);
+  return Object::null();
+}
+
 }  // namespace dart

@@ -26,8 +26,10 @@ import '../../SkeletalAnimation/dart/SkeletalAnimation.dart'
     as lib_SkeletalAnimation;
 import '../../SkeletalAnimationSIMD/dart/SkeletalAnimationSIMD.dart'
     as lib_SkeletalAnimationSIMD;
+import '../../SwitchFSM/dart/SwitchFSM.dart' as lib_SwitchFSM;
 import '../../TypedDataDuplicate/dart/TypedDataDuplicate.dart'
     as lib_TypedDataDuplicate;
+import '../../UiMatrix/dart/UiMatrixHarness.dart' as lib_UiMatrix;
 import '../../Utf8Decode/dart/Utf8Decode.dart' as lib_Utf8Decode;
 import '../../Utf8Encode/dart/Utf8Encode.dart' as lib_Utf8Encode;
 
@@ -43,7 +45,9 @@ final Map<String, Function()> benchmarks = {
   'SHA256': lib_SHA256.main,
   'SkeletalAnimation': lib_SkeletalAnimation.main,
   'SkeletalAnimationSIMD': lib_SkeletalAnimationSIMD.main,
+  'SwitchFSM': lib_SwitchFSM.main,
   'TypedDataDuplicate': lib_TypedDataDuplicate.main,
+  'UiMatrix': lib_UiMatrix.main,
   'Utf8Decode': () => lib_Utf8Decode.main([]),
   'Utf8Encode': () => lib_Utf8Encode.main([]),
 };

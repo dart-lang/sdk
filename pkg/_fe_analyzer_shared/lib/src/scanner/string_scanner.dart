@@ -86,12 +86,13 @@ class StringScanner extends AbstractScanner {
   void handleUnicode(int startScanOffset) {}
 
   @override
-  analyzer.StringToken createSubstringToken(
-      TokenType type, int start, bool asciiOnly,
-      [int extraOffset = 0]) {
+  analyzer.StringToken createSubstringToken(TokenType type, int start,
+      bool asciiOnly, int extraOffset, bool allowLazy) {
     return new StringTokenImpl.fromSubstring(
         type, string, start, scanOffset + extraOffset, tokenStart,
-        canonicalize: true, precedingComments: comments);
+        canonicalize: true,
+        precedingComments: comments,
+        allowLazyFoo: allowLazy);
   }
 
   @override

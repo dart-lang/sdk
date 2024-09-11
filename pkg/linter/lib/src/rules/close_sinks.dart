@@ -66,13 +66,10 @@ for more information.
 class CloseSinks extends LintRule {
   CloseSinks()
       : super(
-            name: 'close_sinks',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.errorProne,
-              LintRuleCategory.memoryLeaks
-            });
+          name: 'close_sinks',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.close_sinks;

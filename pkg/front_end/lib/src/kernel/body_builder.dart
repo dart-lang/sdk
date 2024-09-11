@@ -32,6 +32,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart';
@@ -1192,15 +1193,17 @@ class BodyBuilder extends StackListenerImpl
 
     FunctionNode function = _context.function;
     if (thisVariable != null) {
-      typeInferrer.flowAnalysis
-          .declare(thisVariable!, thisVariable!.type, initialized: true);
+      typeInferrer.flowAnalysis.declare(
+          thisVariable!, new SharedTypeView(thisVariable!.type),
+          initialized: true);
     }
     if (formals?.parameters != null) {
       for (int i = 0; i < formals!.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
         VariableDeclaration variable = parameter.variable!;
-        typeInferrer.flowAnalysis
-            .declare(variable, variable.type, initialized: true);
+        typeInferrer.flowAnalysis.declare(
+            variable, new SharedTypeView(variable.type),
+            initialized: true);
       }
       for (int i = 0; i < formals.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
@@ -1654,8 +1657,9 @@ class BodyBuilder extends StackListenerImpl
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         VariableDeclaration variable = formals[i].variable!;
-        typeInferrer.flowAnalysis
-            .declare(variable, variable.type, initialized: true);
+        typeInferrer.flowAnalysis.declare(
+            variable, new SharedTypeView(variable.type),
+            initialized: true);
       }
     }
     InferredFunctionBody inferredFunctionBody = typeInferrer.inferFunctionBody(
@@ -1784,7 +1788,8 @@ class BodyBuilder extends StackListenerImpl
         // around a failure in
         // co19/Language/Expressions/Postfix_Expressions/conditional_increment_t02;
         // fix this.
-        typeInferrer.flowAnalysis.declare(variable, variable.type,
+        typeInferrer.flowAnalysis.declare(
+            variable, new SharedTypeView(variable.type),
             initialized: true, skipDuplicateCheck: true);
       }
     }
@@ -5158,11 +5163,11 @@ class BodyBuilder extends StackListenerImpl
   void endFunctionType(Token functionToken, Token? questionMark) {
     debugEvent("FunctionType");
     _structuralParameterDepthLevel--;
-    FormalParameters formals = pop() as FormalParameters;
+    FunctionTypeParameters parameters = pop() as FunctionTypeParameters;
     TypeBuilder? returnType = pop() as TypeBuilder?;
     List<StructuralVariableBuilder>? typeVariables =
         pop() as List<StructuralVariableBuilder>?;
-    TypeBuilder type = formals.toFunctionType(
+    TypeBuilder type = parameters.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         questionMark != null
             ? const NullabilityBuilder.nullable()
@@ -5404,6 +5409,11 @@ class BodyBuilder extends StackListenerImpl
             createWildcardFormalParameterName(wildcardVariableIndex);
         wildcardVariableIndex++;
       }
+      if (memberKind.isFunctionType) {
+        push(new FunctionTypeParameterBuilder(
+            kind, type ?? const ImplicitTypeBuilder(), parameterName));
+        return;
+      }
       parameter = new FormalParameterBuilder(
           kind,
           modifiers,
@@ -5451,19 +5461,31 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("OptionalFormalParameters");
     // When recovering from an empty list of optional arguments, count may be
     // 0. It might be simpler if the parser didn't call this method in that
     // case, however, then [beginOptionalFormalParameters] wouldn't always be
     // matched by this method.
-    List<FormalParameterBuilder>? parameters =
-        const FixedNullableList<FormalParameterBuilder>()
-            .popNonNullable(stack, count, dummyFormalParameterBuilder);
-    if (parameters == null) {
-      push(new ParserRecovery(offsetForToken(beginToken)));
+    if (kind.isFunctionType) {
+      List<FunctionTypeParameterBuilder>? parameters =
+          const FixedNullableList<FunctionTypeParameterBuilder>()
+              .popNonNullable(stack, count, dummyFunctionTypeParameterBuilder);
+      if (parameters == null) {
+        push(new ParserRecovery(offsetForToken(beginToken)));
+      } else {
+        push(parameters);
+      }
     } else {
-      push(parameters);
+      List<FormalParameterBuilder>? parameters =
+          const FixedNullableList<FormalParameterBuilder>()
+              .popNonNullable(stack, count, dummyFormalParameterBuilder);
+      if (parameters == null) {
+        // Coverage-ignore-block(suite): Not run.
+        push(new ParserRecovery(offsetForToken(beginToken)));
+      } else {
+        push(parameters);
+      }
     }
   }
 
@@ -5480,18 +5502,17 @@ class BodyBuilder extends StackListenerImpl
     if (inCatchClause || functionNestingLevel != 0) {
       exitLocalScope();
     }
-    FormalParameters formals = pop() as FormalParameters;
+    FunctionTypeParameters parameters = pop() as FunctionTypeParameters;
     TypeBuilder? returnType = pop() as TypeBuilder?;
     List<StructuralVariableBuilder>? typeVariables =
         pop() as List<StructuralVariableBuilder>?;
-    TypeBuilder type = formals.toFunctionType(
+    TypeBuilder type = parameters.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         question != null
             ? const NullabilityBuilder.nullable()
             : const NullabilityBuilder.omitted(),
         structuralVariableBuilders: typeVariables,
         hasFunctionFormalParameterSyntax: true);
-    exitLocalScope();
     push(type);
     functionNestingLevel--;
   }
@@ -5548,51 +5569,94 @@ class BodyBuilder extends StackListenerImpl
   void endFormalParameters(
       int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
-    assert(checkState(beginToken, [
-      if (count > 0 && peek() is List<FormalParameterBuilder>) ...[
-        ValueKinds.FormalList,
-        ...repeatedKind(
-            unionOfKinds([
-              ValueKinds.FormalParameterBuilder,
-              ValueKinds.ParserRecovery,
-            ]),
-            count - 1),
-      ] else
-        ...repeatedKind(
-            unionOfKinds([
-              ValueKinds.FormalParameterBuilder,
-              ValueKinds.ParserRecovery,
-            ]),
-            count),
-      /* inFormals */ ValueKinds.Bool,
-      /* constantContext */ ValueKinds.ConstantContext,
-    ]));
-    List<FormalParameterBuilder>? optionals;
-    int optionalsCount = 0;
-    if (count > 0 && peek() is List<FormalParameterBuilder>) {
-      optionals = pop() as List<FormalParameterBuilder>;
-      count--;
-      optionalsCount = optionals.length;
-    }
-    List<FormalParameterBuilder>? parameters =
-        const FixedNullableList<FormalParameterBuilder>().popPaddedNonNullable(
-            stack, count, optionalsCount, dummyFormalParameterBuilder);
-    if (optionals != null && parameters != null) {
-      parameters.setRange(count, count + optionalsCount, optionals);
-    }
-    assert(parameters?.isNotEmpty ?? true);
-    FormalParameters formals = new FormalParameters(parameters,
-        offsetForToken(beginToken), lengthOfSpan(beginToken, endToken), uri);
-    inFormals = pop() as bool;
-    constantContext = pop() as ConstantContext;
-    push(formals);
-    if ((inCatchClause || functionNestingLevel != 0) &&
-        kind != MemberKind.GeneralizedFunctionType) {
-      enterLocalScope(formals.computeFormalParameterScope(
-        _localScope,
-        this,
-        wildcardVariablesEnabled: libraryFeatures.wildcardVariables.isEnabled,
-      ));
+    if (kind.isFunctionType) {
+      assert(checkState(beginToken, [
+        if (count > 0 && peek() is List<FunctionTypeParameterBuilder>) ...[
+          ValueKinds.FunctionTypeParameterBuilderList,
+          ...repeatedKind(
+              unionOfKinds([
+                ValueKinds.FunctionTypeParameterBuilder,
+                ValueKinds.ParserRecovery,
+              ]),
+              count - 1),
+        ] else
+          ...repeatedKind(
+              unionOfKinds([
+                ValueKinds.FunctionTypeParameterBuilder,
+                ValueKinds.ParserRecovery,
+              ]),
+              count),
+        /* inFormals */ ValueKinds.Bool,
+        /* constantContext */ ValueKinds.ConstantContext,
+      ]));
+      List<FunctionTypeParameterBuilder>? optionals;
+      int optionalsCount = 0;
+      if (count > 0 && peek() is List<FunctionTypeParameterBuilder>) {
+        optionals = pop() as List<FunctionTypeParameterBuilder>;
+        count--;
+        optionalsCount = optionals.length;
+      }
+      List<FunctionTypeParameterBuilder>? parameters =
+          const FixedNullableList<FunctionTypeParameterBuilder>()
+              .popPaddedNonNullable(stack, count, optionalsCount,
+                  dummyFunctionTypeParameterBuilder);
+      if (optionals != null && parameters != null) {
+        parameters.setRange(count, count + optionalsCount, optionals);
+      }
+      assert(parameters?.isNotEmpty ?? true);
+      FunctionTypeParameters formals = new FunctionTypeParameters(parameters,
+          offsetForToken(beginToken), lengthOfSpan(beginToken, endToken), uri);
+      inFormals = pop() as bool;
+      constantContext = pop() as ConstantContext;
+      push(formals);
+    } else {
+      assert(checkState(beginToken, [
+        if (count > 0 && peek() is List<FormalParameterBuilder>) ...[
+          ValueKinds.FormalList,
+          ...repeatedKind(
+              unionOfKinds([
+                ValueKinds.FormalParameterBuilder,
+                ValueKinds.ParserRecovery,
+              ]),
+              count - 1),
+        ] else
+          ...repeatedKind(
+              unionOfKinds([
+                ValueKinds.FormalParameterBuilder,
+                ValueKinds.ParserRecovery,
+              ]),
+              count),
+        /* inFormals */ ValueKinds.Bool,
+        /* constantContext */ ValueKinds.ConstantContext,
+      ]));
+      List<FormalParameterBuilder>? optionals;
+      int optionalsCount = 0;
+      if (count > 0 && peek() is List<FormalParameterBuilder>) {
+        optionals = pop() as List<FormalParameterBuilder>;
+        count--;
+        optionalsCount = optionals.length;
+      }
+      List<FormalParameterBuilder>? parameters =
+          const FixedNullableList<FormalParameterBuilder>()
+              .popPaddedNonNullable(
+                  stack, count, optionalsCount, dummyFormalParameterBuilder);
+      if (optionals != null && parameters != null) {
+        parameters.setRange(count, count + optionalsCount, optionals);
+      }
+      assert(parameters?.isNotEmpty ?? true);
+      FormalParameters formals = new FormalParameters(parameters,
+          offsetForToken(beginToken), lengthOfSpan(beginToken, endToken), uri);
+      inFormals = pop() as bool;
+      constantContext = pop() as ConstantContext;
+      push(formals);
+      if ((inCatchClause || functionNestingLevel != 0) &&
+          kind != MemberKind.GeneralizedFunctionType) {
+        enterLocalScope(formals.computeFormalParameterScope(
+          _localScope,
+          this,
+          wildcardVariablesEnabled: libraryFeatures.wildcardVariables.isEnabled,
+        ));
+      }
     }
   }
 
@@ -8827,16 +8891,12 @@ class BodyBuilder extends StackListenerImpl
         peek() as List<TypeVariableBuilder>;
     libraryBuilder.checkTypeVariableDependencies(typeVariables);
 
-    List<TypeBuilder> unboundTypes = [];
     List<StructuralVariableBuilder> unboundTypeVariables = [];
     List<TypeBuilder> calculatedBounds = calculateBounds(
         typeVariables,
         libraryBuilder.loader.target.dynamicType,
         libraryBuilder.loader.target.nullType,
-        unboundTypes: unboundTypes,
         unboundTypeVariables: unboundTypeVariables);
-    assert(unboundTypes.isEmpty,
-        "Found a type not bound to a declaration in BodyBuilder.");
     for (int i = 0; i < typeVariables.length; ++i) {
       typeVariables[i].defaultType = calculatedBounds[i];
       typeVariables[i].finish(
@@ -8854,7 +8914,6 @@ class BodyBuilder extends StackListenerImpl
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
     }
-    libraryBuilder.processPendingNullabilities();
   }
 
   @override
@@ -10026,6 +10085,34 @@ class LabelTarget implements JumpTarget {
   }
 }
 
+class FunctionTypeParameters {
+  final List<ParameterBuilder>? parameters;
+  final int charOffset;
+  final int length;
+  final Uri uri;
+
+  FunctionTypeParameters(
+      this.parameters, this.charOffset, this.length, this.uri) {
+    if (parameters?.isEmpty ?? false) {
+      throw "Empty parameters should be null";
+    }
+  }
+
+  TypeBuilder toFunctionType(
+      TypeBuilder returnType, NullabilityBuilder nullabilityBuilder,
+      {List<StructuralVariableBuilder>? structuralVariableBuilders,
+      required bool hasFunctionFormalParameterSyntax}) {
+    return new FunctionTypeBuilderImpl(returnType, structuralVariableBuilders,
+        parameters, nullabilityBuilder, uri, charOffset,
+        hasFunctionFormalParameterSyntax: hasFunctionFormalParameterSyntax);
+  }
+
+  @override
+  String toString() {
+    return "FormalParameters($parameters, $charOffset, $uri)";
+  }
+}
+
 class FormalParameters {
   final List<FormalParameterBuilder>? parameters;
   final int charOffset;
@@ -10086,15 +10173,6 @@ class FormalParameters {
         asyncMarker: asyncModifier)
       ..fileOffset = charOffset
       ..fileEndOffset = fileEndOffset;
-  }
-
-  TypeBuilder toFunctionType(
-      TypeBuilder returnType, NullabilityBuilder nullabilityBuilder,
-      {List<StructuralVariableBuilder>? structuralVariableBuilders,
-      required bool hasFunctionFormalParameterSyntax}) {
-    return new FunctionTypeBuilderImpl(returnType, structuralVariableBuilders,
-        parameters, nullabilityBuilder, uri, charOffset,
-        hasFunctionFormalParameterSyntax: hasFunctionFormalParameterSyntax);
   }
 
   LocalScope computeFormalParameterScope(
@@ -10315,4 +10393,30 @@ class RedirectionTarget {
   final List<DartType> typeArguments;
 
   RedirectionTarget(this.target, this.typeArguments);
+}
+
+extension on MemberKind {
+  bool get isFunctionType {
+    switch (this) {
+      case MemberKind.FunctionTypeAlias:
+      case MemberKind.FunctionTypedParameter:
+      case MemberKind.GeneralizedFunctionType:
+        return true;
+      case MemberKind.Catch:
+      case MemberKind.Factory:
+      case MemberKind.Local:
+      case MemberKind.NonStaticMethod:
+      case MemberKind.StaticMethod:
+      case MemberKind.TopLevelMethod:
+      case MemberKind.ExtensionNonStaticMethod:
+      case MemberKind.ExtensionStaticMethod:
+      case MemberKind.ExtensionTypeNonStaticMethod:
+      case MemberKind.ExtensionTypeStaticMethod:
+      case MemberKind.NonStaticField:
+      case MemberKind.StaticField:
+      case MemberKind.TopLevelField:
+      case MemberKind.PrimaryConstructor:
+        return false;
+    }
+  }
 }

@@ -53,6 +53,8 @@ abstract class Compiler {
   Map<Member, String> get memberNames;
   Map<Procedure, js_ast.Identifier> get procedureIdentifiers;
   Map<VariableDeclaration, js_ast.Identifier> get variableIdentifiers;
+  js_ast.Fun emitFunctionIncremental(List<ModuleItem> items, Library library,
+      Class? cls, FunctionNode functionNode, String name);
 }
 
 class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
@@ -385,6 +387,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// This is used for deferred supertypes of mutually recursive non-generic
   /// classes.
   final _afterClassDefItems = <js_ast.ModuleItem>[];
+
+  /// The entrypoint method of a dynamic module, if any.
+  Procedure? _dynamicEntrypoint;
 
   final Class _jsArrayClass;
   final Class _privateSymbolClass;
@@ -915,9 +920,31 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitLibraryProcedures(library);
       _emitTopLevelFields(library.fields);
     }
-
+    if (_options.emitLibraryBundle) {
+      // TODO(nshahan): Remove when the Dart SDK can be compiled with the
+      // `LibraryBundleCompiler`.
+      _moduleItems.add(_emitEmptyLinkMethod(
+          _jsLibraryName(library), _emitLibraryName(library)));
+    }
     _staticTypeContext.leaveLibrary(_currentLibrary!);
     _currentLibrary = null;
+  }
+
+  /// Returns an empty placeholder link method for the libraries in the SDK.
+  ///
+  /// This is a temporary solution to allow the Dart SDK to act like it was
+  /// compiled as a bundle of individual libraries.
+  // TODO(nshahan): Remove when the Dart SDK can be compiled with the
+  // `LibraryBundleCompiler`.
+  js_ast.Statement _emitEmptyLinkMethod(
+      String libraryName, js_ast.Identifier libraryId) {
+    assert(_options.emitLibraryBundle && _isBuildingSdk);
+    var functionName = _emitTemporaryId('link__$libraryName');
+    return js.statement('# = #', [
+      js_ast.PropertyAccess.field(libraryId, 'link'),
+      js_ast.NamedFunction(
+          functionName, js_ast.Fun(const [], js_ast.Block(const [])))
+    ]);
   }
 
   void _emitExports(Library library) {
@@ -3205,6 +3232,25 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     _currentUri = savedUri;
     _staticTypeContext.leaveMember(p);
+
+    if (_options.dynamicModule &&
+        p.annotations.any((a) => _isEntrypointPragma(a, _coreTypes))) {
+      if (_dynamicEntrypoint == null) {
+        if (p.function.requiredParameterCount > 0) {
+          // TODO(sigmund): this error should be caught by a kernel checker that
+          // runs prior to DDC.
+          throw StateError('Entrypoint ${p.name.text} must accept being called '
+              'with 0 arguments.');
+        } else {
+          _dynamicEntrypoint = p;
+        }
+      } else {
+        // TODO(sigmund): this error should be caught by a kernel checker that
+        // runs prior to DDC.
+        throw StateError('A module should define a single entrypoint.');
+      }
+    }
+
     return js_ast.Statement.from(body);
   }
 
@@ -3509,6 +3555,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// by the debugger.
   /// Triggers incremental mode, which only emits symbols, types, constants,
   /// libraries, and uris referenced in the expression compilation result.
+  @override
   js_ast.Fun emitFunctionIncremental(List<ModuleItem> items, Library library,
       Class? cls, FunctionNode functionNode, String name) {
     // Setup context.
@@ -7934,38 +7981,70 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       items.add(js.statement('#.library = #', [_runtimeModule, libraryProto]));
       exports.add(js_ast.NameSpecifier(_runtimeModule));
     }
-
-    for (var library in libraries) {
-      if (_isBuildingSdk && _isSdkInternalRuntime(library)) {
-        _libraries[library] = _runtimeModule;
-        continue;
+    if (_options.emitLibraryBundle) {
+      assert(_isBuildingSdk);
+      for (var library in libraries) {
+        js_ast.Identifier libraryId;
+        if (_isSdkInternalRuntime(library)) {
+          libraryId = _runtimeModule;
+        } else if (_isDartLibrary(library, '_rti')) {
+          libraryId = _rtiLibraryId;
+        } else {
+          libraryId = js_ast.TemporaryId(_jsLibraryName(library));
+        }
+        _libraries[library] = libraryId;
+        var alias = _jsLibraryAlias(library);
+        var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
+        items.add(js_ast.ExportDeclaration(js_ast.ExportClause(
+            [js_ast.NameSpecifier(libraryId, asName: aliasId)],
+            from: js.string('${library.importUri}'))));
+        // The initialization object for the runtime library is created above so
+        // it is skipped here.
+        if (_isSdkInternalRuntime(library)) continue;
+        items.add(js.statement(
+            'const # = Object.create(#.library)', [libraryId, _runtimeModule]));
       }
-      var libraryId = _isBuildingSdk && _isDartLibrary(library, '_rti')
-          ? _rtiLibraryId
-          : js_ast.TemporaryId(_jsLibraryName(library));
+      // dart:_runtime has a magic library that holds extension method symbols.
+      // TODO(nshahan): Could this be created with a kernel transform or just
+      // become a member in dart:_runtime?
+      items.add(js.statement('const # = Object.create(#.library)',
+          [_extensionSymbolsModule, _runtimeModule]));
+      items.add(js_ast.ExportDeclaration(js_ast.ExportClause(
+          [js_ast.NameSpecifier(_extensionSymbolsModule)],
+          from: js.string('dartx'))));
+    } else {
+      for (var library in libraries) {
+        if (_isBuildingSdk && _isSdkInternalRuntime(library)) {
+          _libraries[library] = _runtimeModule;
+          continue;
+        }
+        var libraryId = _isBuildingSdk && _isDartLibrary(library, '_rti')
+            ? _rtiLibraryId
+            : js_ast.TemporaryId(_jsLibraryName(library));
 
-      _libraries[library] = libraryId;
-      var alias = _jsLibraryAlias(library);
-      var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
+        _libraries[library] = libraryId;
+        var alias = _jsLibraryAlias(library);
+        var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
 
-      // TODO(vsm): Change back to `const`.
-      // See https://github.com/dart-lang/sdk/issues/40380.
-      items.add(js.statement(
-          'var # = Object.create(#.library)', [libraryId, _runtimeModule]));
-      exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
+        // TODO(vsm): Change back to `const`.
+        // See https://github.com/dart-lang/sdk/issues/40380.
+        items.add(js.statement(
+            'var # = Object.create(#.library)', [libraryId, _runtimeModule]));
+        exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
+      }
+
+      // dart:_runtime has a magic module that holds extension method symbols.
+      // TODO(jmesserly): find a cleaner design for this.
+      if (_isBuildingSdk) {
+        var id = _extensionSymbolsModule;
+        // TODO(vsm): Change back to `const`.
+        // See https://github.com/dart-lang/sdk/issues/40380.
+        items.add(js.statement(
+            'var # = Object.create(#.library)', [id, _runtimeModule]));
+        exports.add(js_ast.NameSpecifier(id));
+      }
+      items.add(js_ast.ExportDeclaration(js_ast.ExportClause(exports)));
     }
-
-    // dart:_runtime has a magic module that holds extension method symbols.
-    // TODO(jmesserly): find a cleaner design for this.
-    if (_isBuildingSdk) {
-      var id = _extensionSymbolsModule;
-      // TODO(vsm): Change back to `const`.
-      // See https://github.com/dart-lang/sdk/issues/40380.
-      items.add(js
-          .statement('var # = Object.create(#.library)', [id, _runtimeModule]));
-      exports.add(js_ast.NameSpecifier(id));
-    }
-    items.add(js_ast.ExportDeclaration(js_ast.ExportClause(exports)));
 
     if (_isBuildingSdk) {
       // Initialize the private name function.
@@ -8156,6 +8235,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // full library uri if we wanted to save space.
       var libraryName = js.escapedString(_jsLibraryDebuggerName(library));
       properties.add(js_ast.Property(libraryName, value));
+
+      // Dynamic modules shouldn't define a library that was previously defined.
+      // We leverage that we track which libraries have been defined via
+      // `trackedLibraries` to query whether a library already exists.
+      if (_options.dynamicModule) {
+        _moduleItems.add(js.statement('''if (# != null) {
+                throw Error(
+                    "Dynamic module provides second definition for " + #);
+            }''', [
+          _runtimeCall('getLibrary(#)', [libraryName]),
+          libraryName
+        ]));
+      }
+
       var partNames = _jsPartDebuggerNames(library);
       if (partNames.isNotEmpty) {
         parts.add(js_ast.Property(libraryName, js.stringArray(partNames)));
@@ -8165,7 +8258,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var partMap = js_ast.ObjectInitializer(parts, multiline: true);
 
     // Track the module name for each library in the module.
-    // This data is consumed by the debugger and by the stack trace mapper.
+    // This data is mainly consumed by the debugger and by the stack trace
+    // mapper. It is also used for the experimental dynamic modules feature
+    // to validate that a dynamic module doesn't reintroduce an existing
+    // library.
     //
     // See also the implementation of this API in the SDK.
     _moduleItems.add(_runtimeStatement(
@@ -8210,6 +8306,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// field of the result.
   js_ast.Program _finishModule(List<js_ast.ModuleItem> items, String moduleName,
       {List<js_ast.Comment> header = const []}) {
+    if (_options.emitLibraryBundle) {
+      assert(_isBuildingSdk);
+      // Manually add a link method for the runtime "dartx" library. It is
+      // synthetically created by DDC and doesn't have an associated kernel
+      // library node.
+      // TODO(nshahan): Remove when the Dart SDK can be compiled with the
+      // `LibraryBundleCompiler`.
+      _moduleItems.add(_emitEmptyLinkMethod('dartx', _extensionSymbolsModule));
+    }
     // TODO(jmesserly): there's probably further consolidation we can do
     // between DDC's two backends, by moving more code into this method, as the
     // code between `startModule` and `finishModule` is very similar in both.
@@ -8217,6 +8322,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Emit all top-level JS symbol containers.
     items.addAll(_symbolContainer.emit());
+
+    if (_dynamicEntrypoint != null) {
+      // Expose the entrypoint of the dynamic module under a reserved name.
+      // TODO(sigmund): this could use a reserved symbol from dartx.
+      var name = _emitTopLevelName(_dynamicEntrypoint!);
+      _moduleItems.add(js_ast.ExportDeclaration(
+          js('var __dynamic_module_entrypoint__ = #', [name])));
+    }
 
     // Add the module's code (produced by visiting compilation units, above)
     _copyAndFlattenBlocks(items, _moduleItems);
@@ -8333,4 +8446,19 @@ class _SwitchLabelState {
   js_ast.Identifier variable;
 
   _SwitchLabelState(this.label, this.variable);
+}
+
+/// Whether [expression] is a constant of the form
+/// `const pragma('dyn-module:entry-point')`.
+///
+/// Used to denote the entrypoint method of a dynamic module.
+// TODO(sigmund): move to package:kernel.
+bool _isEntrypointPragma(Expression expression, CoreTypes coreTypes) {
+  if (expression is! ConstantExpression) return false;
+  final value = expression.constant;
+  if (value is! InstanceConstant) return false;
+  if (value.classReference != coreTypes.pragmaClass.reference) return false;
+  final name = value.fieldValues[coreTypes.pragmaName.fieldReference];
+  if (name is! StringConstant) return false;
+  return name.value == 'dyn-module:entry-point';
 }

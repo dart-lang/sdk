@@ -62,13 +62,10 @@ bool _isVoid(TypeAnnotation? returnType) =>
 class UseToAndAsIfApplicable extends LintRule {
   UseToAndAsIfApplicable()
       : super(
-            name: 'use_to_and_as_if_applicable',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'use_to_and_as_if_applicable',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.use_to_and_as_if_applicable;

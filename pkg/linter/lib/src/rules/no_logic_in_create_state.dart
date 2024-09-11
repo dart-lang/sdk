@@ -62,10 +62,10 @@ class MyStateful extends StatefulWidget {
 class NoLogicInCreateState extends LintRule {
   NoLogicInCreateState()
       : super(
-            name: 'no_logic_in_create_state',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errors, LintRuleCategory.flutter});
+          name: 'no_logic_in_create_state',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.no_logic_in_create_state;

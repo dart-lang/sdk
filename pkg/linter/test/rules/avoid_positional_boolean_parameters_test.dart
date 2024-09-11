@@ -27,7 +27,7 @@ void f(List<bool> list) {
 
   test_augmentationConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   A(bool b);
@@ -35,7 +35,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment A(bool b);
@@ -45,13 +45,13 @@ augment class A {
 
   test_augmentationFunction() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 void f(bool b) { }
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment void f(bool b) { }
 ''');
@@ -59,7 +59,7 @@ augment void f(bool b) { }
 
   test_augmentationMethod() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   void f(bool b) { }
@@ -67,7 +67,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment void f(bool b) { }

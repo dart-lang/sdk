@@ -392,9 +392,18 @@ class ForwardingListener implements Listener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
-    listener?.beginMethod(declarationKind, augmentToken, externalToken,
-        staticToken, covariantToken, varFinalOrConst, getOrSet, name);
+      Token name,
+      String? enclosingDeclarationName) {
+    listener?.beginMethod(
+        declarationKind,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        varFinalOrConst,
+        getOrSet,
+        name,
+        enclosingDeclarationName);
   }
 
   @override
@@ -1149,8 +1158,8 @@ class ForwardingListener implements Listener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken) {
-    listener?.endOptionalFormalParameters(count, beginToken, endToken);
+      int count, Token beginToken, Token endToken, MemberKind kind) {
+    listener?.endOptionalFormalParameters(count, beginToken, endToken, kind);
   }
 
   @override

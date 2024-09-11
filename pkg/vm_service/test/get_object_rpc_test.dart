@@ -810,7 +810,7 @@ var tests = <IsolateTest>[
   // An expired object.
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
-    final objectId = 'objects/99999999';
+    final objectId = 'objects/99999999/0';
     try {
       await service.getObject(isolateId, objectId);
       fail('successfully got object with bad ID');

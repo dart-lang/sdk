@@ -29,7 +29,9 @@ git commit DEPS -m \
   "$(printf "[co19] Roll co19 to $NEW\n\n" \
   && cd $CO19 \
   && git log --date='format:%Y-%m-%d' --pretty='format:%ad %ae %s' $OLD..$NEW \
-    | sed 's/\#/dart-lang\/co19\#/g')"
+    | sed 's/\#/dart-lang\/co19\#/g')
+
+Cq-Include-Trybots: luci.dart.try:analyzer-linux-release-try"
 
 rm -rf tests/co19/src.git
 

@@ -27,7 +27,7 @@ class FoldingHandler
   @override
   Future<ErrorOr<List<FoldingRange>>> handle(FoldingRangeParams params,
       MessageInfo message, CancellationToken token) async {
-    var clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = message.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;

@@ -5,7 +5,6 @@
 library dart._vmservice;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:math';
@@ -22,13 +21,9 @@ part 'message_router.dart';
 part 'named_lookup.dart';
 
 final isolateControlPort = RawReceivePort(null, 'Isolate Control Port');
-final scriptLoadPort = RawReceivePort(null, 'Script Load');
 
-abstract class IsolateEmbedderData {
-  void cleanup();
-}
-
-String _makeAuthToken() {
+// The randomly generated auth token used to access the VM service.
+late final String serviceAuthToken = () {
   final kTokenByteSize = 8;
   Uint8List bytes = Uint8List(kTokenByteSize);
   Random random = Random.secure();
@@ -36,15 +31,7 @@ String _makeAuthToken() {
     bytes[i] = random.nextInt(256);
   }
   return base64Url.encode(bytes);
-}
-
-// The randomly generated auth token used to access the VM service.
-final serviceAuthToken = _makeAuthToken();
-
-// This is for use by the embedder. It is a map from the isolateId to
-// anything implementing IsolateEmbedderData. When an isolate goes away,
-// the cleanup method will be invoked after being removed from the map.
-final isolateEmbedderData = <int, IsolateEmbedderData>{};
+}();
 
 // These must be kept in sync with the declarations in vm/json_stream.h and
 // pkg/dds/lib/src/rpc_error_codes.dart.
@@ -139,12 +126,6 @@ String encodeSuccess(Message message) =>
 
 const shortDelay = Duration(milliseconds: 10);
 
-/// Called when the server should be started.
-typedef Future<void> ServerStartCallback();
-
-/// Called when the server should be stopped.
-typedef Future<void> ServerStopCallback();
-
 /// Called when DDS has connected.
 typedef Future<void> DdsConnectedCallback();
 
@@ -191,8 +172,6 @@ typedef void ServeObservatoryCallback();
 
 /// Hooks that are setup by the embedder.
 class VMServiceEmbedderHooks {
-  static ServerStartCallback? serverStart;
-  static ServerStopCallback? serverStop;
   static DdsConnectedCallback? ddsConnected;
   static DdsDisconnectedCallback? ddsDisconnected;
   static CleanupCallback? cleanup;
@@ -209,11 +188,6 @@ class VMServiceEmbedderHooks {
   static ServeObservatoryCallback? serveObservatory;
 }
 
-class _ClientResumePermissions {
-  final List<Client> clients = [];
-  int permissionsMask = 0;
-}
-
 class VMService extends MessageRouter {
   static VMService? _instance;
 
@@ -223,15 +197,12 @@ class VMService extends MessageRouter {
   final clients = NamedLookup<Client>(prologue: serviceNamespace);
   final _serviceRequests = IdGenerator(prologue: 'sr');
 
-  /// Mapping of client names to all clients of that name and their resume
-  /// permissions.
-  final Map<String, _ClientResumePermissions> clientResumePermissions = {};
-
   /// Collection of currently running isolates.
   final runningIsolates = RunningIsolates();
 
   /// Flag to indicate VM service is exiting.
-  bool isExiting = false;
+  bool get isExiting => _isExiting;
+  bool _isExiting = false;
 
   /// A port used to receive events from the VM.
   final RawReceivePort eventPort;
@@ -393,7 +364,6 @@ class VMService extends MessageRouter {
         break;
       case Constants.ISOLATE_SHUTDOWN_MESSAGE_ID:
         runningIsolates.isolateShutdown(portId, sp);
-        isolateEmbedderData.remove(portId)?.cleanup();
         break;
     }
   }
@@ -465,64 +435,49 @@ class VMService extends MessageRouter {
   }
 
   Future<void> _exit() async {
-    isExiting = true;
-
-    final serverStop = VMServiceEmbedderHooks.serverStop;
-    // Stop the server.
-    if (serverStop != null) {
-      await serverStop();
-    }
+    _isExiting = true;
 
     // Close receive ports.
     isolateControlPort.close();
-    scriptLoadPort.close();
+    await VMServiceEmbedderHooks.cleanup!();
     await clearState();
-    final cleanup = VMServiceEmbedderHooks.cleanup;
-    if (cleanup != null) {
-      await cleanup();
-    }
-
     // Notify the VM that we have exited.
     _onExit();
   }
 
   void messageHandler(message) {
     if (message is List) {
-      if (message.length == 2) {
+      if (message case [String streamId, Object event]) {
         // This is an event.
-        _eventMessageHandler(
-            message[0] as String, Response.from(message[1] as Object));
+        _eventMessageHandler(streamId, Response.from(event));
         return;
       }
-      if (message.length == 1) {
+      if (message case [int opcode]) {
         // This is a control message directing the vm service to exit.
-        assert(message[0] == Constants.SERVICE_EXIT_MESSAGE_ID);
+        assert(opcode == Constants.SERVICE_EXIT_MESSAGE_ID);
         _exit();
         return;
       }
-      final opcode = message[0];
-      if (message.length == 3 && opcode == Constants.METHOD_CALL_FROM_NATIVE) {
-        _handleNativeRpcCall(message[1] as List<int>, message[2] as SendPort);
+      if (message case [int opcode, List<int> messageBytes, SendPort replyPort]
+          when opcode == Constants.METHOD_CALL_FROM_NATIVE) {
+        _handleNativeRpcCall(messageBytes, replyPort);
         return;
       }
-      if (message.length == 4) {
-        if ((opcode == Constants.WEB_SERVER_CONTROL_MESSAGE_ID) ||
-            (opcode == Constants.SERVER_INFO_MESSAGE_ID)) {
-          // This is a message interacting with the web server.
-          _serverMessageHandler(
-            message[0] as int,
-            message[1] as SendPort,
-            message[2] as bool,
-            message[3] as bool?,
-          );
-          return;
-        } else {
-          // This is a message informing us of the birth or death of an
-          // isolate.
-          _controlMessageHandler(message[0] as int, message[1] as int,
-              message[2] as SendPort, message[3] as String);
-          return;
-        }
+      if (message
+          case [int opcode, SendPort sendPort, bool enable, bool? silenceOutput]
+          when opcode == Constants.WEB_SERVER_CONTROL_MESSAGE_ID ||
+              opcode == Constants.SERVER_INFO_MESSAGE_ID) {
+        // This is a message interacting with the web server.
+        _serverMessageHandler(opcode, sendPort, enable, silenceOutput);
+        return;
+      }
+      if (message case [int opcode, int portId, SendPort sendPort, String name]
+          when opcode == Constants.ISOLATE_STARTUP_MESSAGE_ID ||
+              opcode == Constants.ISOLATE_SHUTDOWN_MESSAGE_ID) {
+        // This is a message informing us of the birth or death of an
+        // isolate.
+        _controlMessageHandler(opcode, portId, sendPort, name);
+        return;
       }
       print('Internal vm-service error: ignoring illegal message: $message');
     }

@@ -63,9 +63,8 @@ class DriverEventsPrinter {
           sink.writelnWithIndent('uri: ${result.uri}');
 
           sink.writeFlags({
-            'isAugmentation': result.isAugmentation,
             'isLibrary': result.isLibrary,
-            'isMacroAugmentation': result.isMacroAugmentation,
+            'isMacroPart': result.isMacroPart,
             'isPart': result.isPart,
           });
 
@@ -179,8 +178,6 @@ class DriverEventsPrinter {
     switch (result) {
       case CannotResolveUriResult():
         sink.writelnWithIndent('CannotResolveUriResult');
-      case NotLibraryButAugmentationResult():
-        sink.writelnWithIndent('NotLibraryButAugmentationResult');
       case NotLibraryButPartResult():
         sink.writelnWithIndent('NotLibraryButPartResult');
       default:
@@ -192,8 +189,6 @@ class DriverEventsPrinter {
     switch (result) {
       case CannotResolveUriResult():
         sink.writelnWithIndent('CannotResolveUriResult');
-      case NotLibraryButAugmentationResult():
-        sink.writelnWithIndent('NotLibraryButAugmentationResult');
       case NotLibraryButPartResult():
         sink.writelnWithIndent('NotLibraryButPartResult');
       case ResolvedLibraryResult():
@@ -277,9 +272,8 @@ class DriverEventsPrinter {
     sink.writelnWithIndent('uri: ${result.uri}');
 
     sink.writeFlags({
-      'isAugmentation': result.isAugmentation,
       'isLibrary': result.isLibrary,
-      'isMacroAugmentation': result.isMacroAugmentation,
+      'isMacroPart': result.isMacroPart,
       'isPart': result.isPart,
     });
 
@@ -539,9 +533,8 @@ class ResolvedUnitResultPrinter {
 
       sink.writeFlags({
         'exists': result.exists,
-        'isAugmentation': result.isAugmentation,
         'isLibrary': result.isLibrary,
-        'isMacroAugmentation': result.isMacroAugmentation,
+        'isMacroPart': result.isMacroPart,
         'isPart': result.isPart,
       });
 

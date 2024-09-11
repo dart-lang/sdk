@@ -550,10 +550,6 @@ Value* AssertAssignableInstr::RedefinedValue() const {
   return value();
 }
 
-Value* AssertBooleanInstr::RedefinedValue() const {
-  return value();
-}
-
 Value* CheckBoundBaseInstr::RedefinedValue() const {
   return index();
 }
@@ -3054,22 +3050,6 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
-Definition* AssertBooleanInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (FLAG_eliminate_type_checks) {
-    if (value()->Type()->ToCid() == kBoolCid) {
-      return value()->definition();
-    }
-
-    // In strong mode type is already verified either by static analysis
-    // or runtime checks, so AssertBoolean just ensures that value is not null.
-    if (!value()->Type()->is_nullable()) {
-      return value()->definition();
-    }
-  }
-
-  return this;
-}
-
 Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   // We need dst_type() to be a constant AbstractType to perform any
   // canonicalization.
@@ -4837,17 +4817,6 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // runtime might associated this call with the try-index of the next
   // instruction.
   __ Breakpoint();
-}
-
-LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
-                                                         bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(AssertBooleanABI::kObjectReg));
-  locs->set_out(0, Location::RegisterLocation(AssertBooleanABI::kObjectReg));
-  return locs;
 }
 
 LocationSummary* PhiInstr::MakeLocationSummary(Zone* zone,

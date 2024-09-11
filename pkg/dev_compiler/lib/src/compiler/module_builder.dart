@@ -474,21 +474,21 @@ class DdcLibraryBundleBuilder extends _ModuleBuilder {
       Identifier? moduleVar, ImportDeclaration import) {
     var items = <Statement>[];
 
+    var fromName = import.from;
     for (var importName in import.namedImports!) {
       // import * is not emitted by the compiler, so we don't handle it here.
       assert(!importName.isStar);
 
-      var fromName = importName.name!.name;
       var asName = importName.asName ?? importName.name;
       if (import.from.valueWithoutQuotes != dartSdkModule) {
         // Load non-SDK modules on demand (i.e., deferred).
         items.add(js.statement(
             'let # = dartDevEmbedder.importLibrary(#, function (lib) { '
             '# = lib; });',
-            [asName, js.string(fromName), asName]));
+            [asName, fromName, asName]));
       } else {
-        items.add(js.statement('const # = dartDevEmbedder.importLibrary(#)',
-            [asName, js.string(fromName)]));
+        items.add(js.statement(
+            'const # = dartDevEmbedder.importLibrary(#)', [asName, fromName]));
       }
     }
     return items;
@@ -503,13 +503,11 @@ class DdcLibraryBundleBuilder extends _ModuleBuilder {
       for (var export in exports) {
         // Dart SDK module must export the libraries via a definition until it
         // can be separated into individual libraries.
-        var names = export.exportedNames!;
-        for (var name in names) {
-          var alias = name.asName ?? name.name!;
-          items.add(js.statement(
-              'dartDevEmbedder.defineLibrary(#, function(_) { return #; })',
-              [js.string(name.name!.name), alias]));
-        }
+        var name = export.exportedNames!.single;
+        var alias = name.asName ?? name.name!;
+        items.add(js.statement(
+            'dartDevEmbedder.defineLibrary(#, function(_) { return #; })',
+            [(export.exported as ExportClause).from, alias]));
       }
     }
     return items;

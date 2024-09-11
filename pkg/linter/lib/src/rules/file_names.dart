@@ -46,10 +46,10 @@ library.
 class FileNames extends LintRule {
   FileNames()
       : super(
-            name: 'file_names',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'file_names',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.file_names;

@@ -160,6 +160,9 @@ constexpr bool FLAG_support_il_printer = false;
   P(polymorphic_with_deopt, bool, true,                                        \
     "Polymorphic calls with deoptimization / megamorphic call")                \
   P(precompiled_mode, bool, false, "Precompilation compiler mode")             \
+  D(print_scopes, bool, false,                                                 \
+    "Print scopes after scope building. Filtered by "                          \
+    "--print-flow-graph-filter.")                                              \
   P(print_snapshot_sizes, bool, false, "Print sizes of generated snapshots.")  \
   P(print_snapshot_sizes_verbose, bool, false,                                 \
     "Print cluster sizes of generated snapshots.")                             \

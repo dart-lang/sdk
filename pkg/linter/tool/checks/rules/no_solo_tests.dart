@@ -36,10 +36,10 @@ class NoSoloTests extends LintRule {
 
   NoSoloTests()
       : super(
-            name: 'no_solo_tests',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errors});
+          name: 'no_solo_tests',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => code;

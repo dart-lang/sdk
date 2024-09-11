@@ -34,7 +34,7 @@ const int deflakingCount = 5;
 ///   bar becomes 'foo
 ///   bar'
 String shellSingleQuote(String string) {
-  return "'${string.replaceAll("'", "'\\''")}'";
+  return "'${string.replaceAll("'", r"'\''")}'";
 }
 
 /// Like [shellSingleQuote], but if the string only contains safe ASCII
@@ -43,7 +43,7 @@ String shellSingleQuote(String string) {
 /// a shell keyword or a shell builtin in the first argument in a command. It
 /// should be safe to use this for the second argument onwards in a command.
 String simpleShellSingleQuote(String string) {
-  return RegExp(r"^[a-zA-Z0-9%+,./:_-]*$").hasMatch(string)
+  return RegExp(r"^[a-zA-Z\d%+,./:_\-]*$").hasMatch(string)
       ? string
       : shellSingleQuote(string);
 }
@@ -440,7 +440,7 @@ Future<void> runTests(List<String> args) async {
     var inexactBuilds = <String, String>{};
     var previousFileName = "previous.json";
     var flakyFileName = "flaky.json";
-    var downloadNumber = 0;
+    var downloadNumber = needsMerge ? 0 : 1;
 
     // Download the previous results and flakiness info from cloud storage.
     for (var builder in builders) {
@@ -554,7 +554,7 @@ Future<void> runTests(List<String> args) async {
       "${outDirectory.path}/results.json",
     ]);
     if (compareOutput.stdout == "") {
-      print("There were no test failures.");
+      print("No new unapproved test failures detected.");
     } else {
       stdout.write(compareOutput.stdout);
     }

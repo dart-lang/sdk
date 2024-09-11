@@ -871,6 +871,18 @@ DEFINE_RUNTIME_ENTRY(CloneSuspendState, 1) {
   RuntimeAllocationEpilogue(thread);
 }
 
+// Allocate a new SubtypeTestCache for use in interpreted implicit setters.
+// Return value: newly allocated SubtypeTestCache.
+DEFINE_RUNTIME_ENTRY(AllocateSubtypeTestCache, 0) {
+#if defined(DART_DYNAMIC_MODULES)
+  const auto& cache = SubtypeTestCache::Handle(
+      zone, SubtypeTestCache::New(SubtypeTestCache::kMaxInputs));
+  arguments.SetReturn(cache);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
 // Invoke field getter before dispatch.
 // Arg0: instance.
 // Arg1: field name (may be demangled during call).
@@ -1039,7 +1051,7 @@ static void PrintTypeCheck(const char* message,
   }
 }
 
-#if defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_IA32) || defined(DART_DYNAMIC_MODULES)
 static BoolPtr CheckHashBasedSubtypeTestCache(
     Zone* zone,
     Thread* thread,
@@ -1091,7 +1103,7 @@ static BoolPtr CheckHashBasedSubtypeTestCache(
 
   return Bool::null();
 }
-#endif  // defined(TARGET_ARCH_IA32)
+#endif  // defined(TARGET_ARCH_IA32) || defined(DART_DYNAMIC_MODULES)
 
 // This updates the type test cache, an array containing 8 elements:
 // - instance class (or function if the instance is a closure)
@@ -1286,7 +1298,7 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
 #if defined(TESTING)
 // Used only in type_testing_stubs_test.cc. If DRT_TypeCheck is entered, then
 // this flag is set to true.
-bool TESTING_runtime_entered_on_TTS_invocation = false;
+thread_local bool TESTING_runtime_entered_on_TTS_invocation = false;
 #endif
 
 // Check that the type of the given instance is a subtype of the given type and
@@ -1326,8 +1338,12 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 
 #if defined(TARGET_ARCH_IA32)
   ASSERT(mode == kTypeCheckFromInline);
-  // Hash-based caches are still not handled by the stubs on IA32.
-  if (cache.IsHash()) {
+#endif
+
+#if defined(TARGET_ARCH_IA32) || defined(DART_DYNAMIC_MODULES)
+  // Hash-based caches are not handled by the inline AssertAssignable
+  // on IA32 and in the interpreter.
+  if ((mode == kTypeCheckFromInline) && cache.IsHash()) {
     const auto& result = Bool::Handle(
         zone, CheckHashBasedSubtypeTestCache(
                   zone, thread, src_instance, dst_type,
@@ -1338,7 +1354,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       return;
     }
   }
-#endif  // defined(TARGET_ARCH_IA32)
+#endif  // defined(TARGET_ARCH_IA32) || defined(DART_DYNAMIC_MODULES)
 
   // This is guaranteed on the calling side.
   ASSERT(!dst_type.IsDynamicType());
@@ -1568,43 +1584,6 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   }
 
   arguments.SetReturn(src_instance);
-}
-
-// Report that the type of the given object is not bool in conditional context.
-// Throw assertion error if the object is null. (cf. Boolean Conversion
-// in language Spec.)
-// Arg0: bad object.
-// Return value: none, throws TypeError or AssertionError.
-DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
-  const TokenPosition location = GetCallerLocation();
-  const Instance& src_instance =
-      Instance::CheckedHandle(zone, arguments.ArgAt(0));
-
-  if (src_instance.IsNull()) {
-    const Array& args = Array::Handle(zone, Array::New(5));
-    args.SetAt(
-        0, String::Handle(
-               zone,
-               String::New(
-                   "Failed assertion: boolean expression must not be null")));
-
-    // No source code for this assertion, set url to null.
-    args.SetAt(1, String::Handle(zone, String::null()));
-    args.SetAt(2, Object::smi_zero());
-    args.SetAt(3, Object::smi_zero());
-    args.SetAt(4, String::Handle(zone, String::null()));
-
-    Exceptions::ThrowByType(Exceptions::kAssertion, args);
-    UNREACHABLE();
-  }
-
-  ASSERT(!src_instance.IsBool());
-  const Type& bool_interface = Type::Handle(Type::BoolType());
-  const AbstractType& src_type =
-      AbstractType::Handle(zone, src_instance.GetType(Heap::kNew));
-  Exceptions::CreateAndThrowTypeError(location, src_type, bool_interface,
-                                      Symbols::BooleanExpression());
-  UNREACHABLE();
 }
 
 DEFINE_RUNTIME_ENTRY(Throw, 1) {
@@ -3979,6 +3958,7 @@ DEFINE_RUNTIME_ENTRY(ResumeFrame, 2) {
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame->IsDartFrame());
+  ASSERT(!frame->is_interpreted());
   ASSERT(Function::Handle(zone, frame->LookupDartFunction())
              .IsSuspendableFunction());
   const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
@@ -4079,6 +4059,11 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   result = field.StaticValue();
   ASSERT(result.ptr() != Object::sentinel().ptr());
   arguments.SetReturn(result);
+}
+
+DEFINE_RUNTIME_ENTRY(LateFieldAlreadyInitializedError, 1) {
+  const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
+  Exceptions::ThrowLateFieldAlreadyInitialized(String::Handle(field.name()));
 }
 
 DEFINE_RUNTIME_ENTRY(LateFieldAssignedDuringInitializationError, 1) {
@@ -4233,7 +4218,7 @@ extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
   ObjectPtr result =
       interpreter->Call(function, argdesc, argc, argv, Array::null(), thread);
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
-  if (IsErrorClassId(result->GetClassId())) {
+  if (UNLIKELY(IsErrorClassId(result->GetClassId()))) {
     // Must not leak handles in the caller's zone.
     HANDLESCOPE(thread);
     // Protect the result in a handle before transitioning, which may trigger
@@ -4258,6 +4243,60 @@ uword RuntimeEntry::InterpretCallEntry() {
   return entry;
 #else
   return 0;
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
+// Restore suspended interpreter frame and resume execution.
+//
+// Arg0: return value (result of the suspension)
+// Arg1: exception
+// Arg2: stack trace
+DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 3) {
+#if defined(DART_DYNAMIC_MODULES)
+  const Instance& value = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Instance& exception = Instance::CheckedHandle(zone, arguments.ArgAt(1));
+  const Instance& stack_trace =
+      Instance::CheckedHandle(zone, arguments.ArgAt(2));
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const auto& resume_stub = Code::Handle(
+      zone, thread->isolate_group()->object_store()->resume_stub());
+#else
+  const auto& resume_stub = StubCode::Resume();
+#endif
+
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
+                              StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* frame = iterator.NextFrame();
+  ASSERT(frame != nullptr);
+  while (frame->IsExitFrame() ||
+         (frame->IsStubFrame() &&
+          !StubCode::ResumeInterpreter().ContainsInstructionAt(frame->pc()) &&
+          !resume_stub.ContainsInstructionAt(frame->pc()))) {
+    frame = iterator.NextFrame();
+    ASSERT(frame != nullptr);
+  }
+  RELEASE_ASSERT(frame->IsStubFrame());
+
+  const uword fp = frame->fp();
+  const uword sp = arguments.GetCallerSP();
+  ASSERT((fp > sp) && (sp > frame->sp()));
+  MSAN_UNPOISON(reinterpret_cast<uint8_t*>(sp), fp - sp);
+
+  Interpreter* interpreter = Interpreter::Current();
+  auto& result = Object::Handle(zone);
+
+  {
+    TransitionVMToGenerated transition(thread);
+    result = interpreter->Resume(thread, fp, sp, value.ptr(), exception.ptr(),
+                                 stack_trace.ptr());
+  }
+  if (UNLIKELY(IsErrorClassId(result.GetClassId()))) {
+    Exceptions::PropagateError(Error::Cast(result));
+  }
+  arguments.SetReturn(result);
+#else
+  UNREACHABLE();
 #endif  // defined(DART_DYNAMIC_MODULES)
 }
 

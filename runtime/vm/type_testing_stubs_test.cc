@@ -198,8 +198,8 @@ static void CanonicalizeTAV(TypeArguments* tav) {
 
 #if defined(TESTING)
 // Defined before DRT_TypeCheck in runtime_entry.cc.
-extern bool TESTING_runtime_entered_on_TTS_invocation;
-extern bool TESTING_found_hash_STC_entry;
+extern thread_local bool TESTING_runtime_entered_on_TTS_invocation;
+extern thread_local bool TESTING_found_hash_STC_entry;
 #endif
 
 enum TTSTestResult {

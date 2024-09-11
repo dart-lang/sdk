@@ -58,10 +58,10 @@ A foo(int x) => new A(x);
 class PreferConstConstructors extends LintRule {
   PreferConstConstructors()
       : super(
-            name: 'prefer_const_constructors',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_const_constructors',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_const_constructors;
@@ -91,7 +91,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Handled by an analyzer warning.
     if (element.hasLiteral) return;
 
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is ClassElement && enclosingElement.isDartCoreObject) {
       // Skip lint for `new Object()`, because it can be used for ID creation.
       return;

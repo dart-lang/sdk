@@ -8,8 +8,6 @@ import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:vm/modular/transformations/type_casts_optimizer.dart'
-    as typeCastsOptimizer show transformAsExpression;
 
 import 'list_factory_specializer.dart';
 
@@ -54,6 +52,12 @@ class _WasmTransformer extends Transformer {
   final Procedure _streamControllerSetOnCancel;
   final Procedure _streamControllerSetOnListen;
   final Procedure _streamControllerSetOnResume;
+
+  final Procedure _trySetStackTraceForwarder;
+  final Procedure _trySetStackTrace;
+
+  final Procedure _loadLibrary;
+  final Procedure _checkLibraryIsLoaded;
 
   final List<_AsyncStarFrame> _asyncStarFrames = [];
   bool _enclosingIsAsyncStar = false;
@@ -106,6 +110,14 @@ class _WasmTransformer extends Transformer {
             .getProcedure('dart:async', 'StreamController', 'set:onListen'),
         _streamControllerSetOnResume = coreTypes.index
             .getProcedure('dart:async', 'StreamController', 'set:onResume'),
+        _trySetStackTraceForwarder = coreTypes.index
+            .getTopLevelProcedure('dart:async', '_trySetStackTrace'),
+        _trySetStackTrace = coreTypes.index
+            .getProcedure('dart:core', 'Error', '_trySetStackTrace'),
+        _loadLibrary = coreTypes.index
+            .getTopLevelProcedure("dart:_internal", "loadLibrary"),
+        _checkLibraryIsLoaded = coreTypes.index
+            .getTopLevelProcedure("dart:_internal", "checkLibraryIsLoaded"),
         _listFactorySpecializer = ListFactorySpecializer(coreTypes),
         _pushPopWasmArrayTransformer = PushPopWasmArrayTransformer(coreTypes);
 
@@ -718,6 +730,12 @@ class _WasmTransformer extends Transformer {
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
     node.transformChildren(this);
+
+    // Forward calls in `dart:async` to private `dart:core` method.
+    if (node.target == _trySetStackTraceForwarder) {
+      node.target = _trySetStackTrace;
+    }
+
     return _pushPopWasmArrayTransformer.transformStaticInvocation(
         _listFactorySpecializer.transformStaticInvocation(node));
   }
@@ -729,9 +747,27 @@ class _WasmTransformer extends Transformer {
   }
 
   @override
-  TreeNode visitAsExpression(AsExpression node) {
+  TreeNode visitLoadLibrary(LoadLibrary node) {
     node.transformChildren(this);
-    return typeCastsOptimizer.transformAsExpression(node, typeContext);
+    final import = node.import;
+    return StaticInvocation(
+        _loadLibrary,
+        Arguments([
+          StringLiteral('${import.enclosingLibrary.importUri}'),
+          StringLiteral(import.name!)
+        ]));
+  }
+
+  @override
+  TreeNode visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    node.transformChildren(this);
+    final import = node.import;
+    return StaticInvocation(
+        _checkLibraryIsLoaded,
+        Arguments([
+          StringLiteral('${import.enclosingLibrary.importUri}'),
+          StringLiteral(import.name!)
+        ]));
   }
 }
 
@@ -843,7 +879,8 @@ class PushPopWasmArrayTransformer {
     }
 
     // array.length == length
-    final objectEqualsType = _procedureType(_coreTypes.objectEquals);
+    final objectEqualsType =
+        _coreTypes.objectEquals.computeSignatureOrFunctionType();
     final lengthCheck = EqualsCall(
         InstanceGet(InstanceAccessKind.Instance, array, Name('length'),
             interfaceTarget: _wasmArrayLength, resultType: _intType),
@@ -897,7 +934,7 @@ class PushPopWasmArrayTransformer {
         Arguments([clone(array), clone(length), elem], types: [elementType])));
 
     // length + 1
-    final intAddType = _procedureType(_intAdd);
+    final intAddType = _intAdd.computeSignatureOrFunctionType();
     final lengthPlusOne = InstanceInvocation(InstanceAccessKind.Instance,
         clone(length), Name('+'), Arguments([IntLiteral(1)]),
         interfaceTarget: _intAdd, functionType: intAddType);
@@ -955,7 +992,7 @@ class PushPopWasmArrayTransformer {
     }
 
     // length - 1
-    final intSubtractType = _procedureType(_intSubtract);
+    final intSubtractType = _intSubtract.computeSignatureOrFunctionType();
     final lengthMinusOne = InstanceInvocation(InstanceAccessKind.Instance,
         clone(length), Name('-'), Arguments([IntLiteral(1)]),
         interfaceTarget: _intSubtract, functionType: intSubtractType);
@@ -990,10 +1027,6 @@ class PushPopWasmArrayTransformer {
         Block([arrayLengthUpdate, arrayGetVariable, arrayClearElement]),
         VariableGet(arrayGetVariable));
   }
-
-  static FunctionType _procedureType(Procedure procedure) =>
-      procedure.signatureType ??
-      procedure.function.computeFunctionType(Nullability.nonNullable);
 }
 
 class _VariableCollector extends RecursiveVisitor {

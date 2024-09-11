@@ -48,7 +48,7 @@ class _ElementVisitor extends GeneralizingElementVisitor<void> {
 
   @override
   void visitElement(Element element) {
-    var enclosing = element.enclosingElement;
+    var enclosing = element.enclosingElement3;
     if (enclosing is CompilationUnitElement ||
         element is FieldElement ||
         element is MethodElement ||

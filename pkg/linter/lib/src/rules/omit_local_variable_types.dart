@@ -67,10 +67,10 @@ Widget build(BuildContext context) {
 class OmitLocalVariableTypes extends LintRule {
   OmitLocalVariableTypes()
       : super(
-            name: 'omit_local_variable_types',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'omit_local_variable_types',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<String> get incompatibleRules => const [

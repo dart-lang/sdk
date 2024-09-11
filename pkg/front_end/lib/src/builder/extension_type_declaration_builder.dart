@@ -24,11 +24,14 @@ abstract class ExtensionTypeDeclarationBuilder
   /// extension type.
   List<TypeBuilder>? get interfaceBuilders;
 
-  /// Returns `true` if the interfaces of the declaration are built.
-  bool get hasInterfacesBuilt;
-
   @override
   Uri get fileUri;
+
+  /// Computes the inherent nullability of this extension type.
+  ///
+  /// An extension type is non-nullable if it implements a non-nullable type.
+  Nullability computeNullability(
+      {Map<ExtensionTypeDeclarationBuilder, TraversalState>? traversalState});
 }
 
 abstract class ExtensionTypeDeclarationBuilderImpl
@@ -61,12 +64,9 @@ abstract class ExtensionTypeDeclarationBuilderImpl
   String get debugName => "ExtensionTypeDeclarationBuilder";
 
   @override
-  bool get hasInterfacesBuilt {
-    if (interfaceBuilders == null) {
-      return true;
-    } else {
-      return interfaceBuilders!.length ==
-          extensionTypeDeclaration.implements.length;
-    }
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    return computeNullability();
   }
 }

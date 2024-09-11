@@ -38,10 +38,10 @@ List<String> list = <String>[
 class NoAdjacentStringsInList extends LintRule {
   NoAdjacentStringsInList()
       : super(
-            name: 'no_adjacent_strings_in_list',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'no_adjacent_strings_in_list',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.no_adjacent_strings_in_list;

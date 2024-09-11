@@ -40,7 +40,7 @@ class BackendImpact {
       this.instantiatedClasses = const [],
       this.globalClasses = const [],
       this.otherImpacts = const [],
-      EnumSet<BackendFeature> features = const EnumSet.fixed(0)})
+      EnumSet<BackendFeature> features = const EnumSet.empty()})
       : this._features = features;
 
   Iterable<BackendFeature> get features =>
@@ -378,7 +378,7 @@ class BackendImpacts {
     features: EnumSet<BackendFeature>.fromValues([
       BackendFeature.needToInitializeDispatchProperty,
       BackendFeature.needToInitializeIsolateAffinityTag
-    ], fixed: true),
+    ]),
   );
 
   late final BackendImpact allowInterop = BackendImpact(
@@ -388,7 +388,7 @@ class BackendImpacts {
     instantiatedClasses: [_commonElements.jsJavaScriptFunctionClass],
     features: EnumSet<BackendFeature>.fromValues([
       BackendFeature.needToInitializeIsolateAffinityTag,
-    ], fixed: true),
+    ]),
   );
 
   late final BackendImpact numClasses = BackendImpact(

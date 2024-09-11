@@ -78,10 +78,10 @@ void ok(EnumLike e) {
 class ExhaustiveCases extends LintRule {
   ExhaustiveCases()
       : super(
-            name: 'exhaustive_cases',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'exhaustive_cases',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.exhaustive_cases;

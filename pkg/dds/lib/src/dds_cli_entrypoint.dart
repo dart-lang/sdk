@@ -55,16 +55,21 @@ ${argParser.usage}
     argResults[DartDevelopmentServiceOptions.vmServiceUriOption],
   );
 
+  // Prefer IPv4 addresses if we can't determine the address type from the
+  // VM service host.
+  final preferredProtocolType =
+      InternetAddress.tryParse(remoteVmServiceUri.host)?.type ??
+          InternetAddressType.IPv4;
+
   // Resolve the address which is potentially provided by the user.
   late InternetAddress address;
   final bindAddress =
       argResults[DartDevelopmentServiceOptions.bindAddressOption];
   try {
     final addresses = await InternetAddress.lookup(bindAddress);
-    // Prefer IPv4 addresses.
     for (int i = 0; i < addresses.length; i++) {
       address = addresses[i];
-      if (address.type == InternetAddressType.IPv4) break;
+      if (address.type == preferredProtocolType) break;
     }
   } on SocketException catch (e, st) {
     writeErrorResponse('Invalid bind address: $bindAddress', st);
@@ -132,7 +137,9 @@ ${argParser.usage}
       if (dds.devToolsUri != null) 'devToolsUri': dds.devToolsUri.toString(),
       if (dtdInfo != null)
         'dtd': {
-          'uri': dtdInfo.uri,
+          // For DDS-hosted DTD, there's only ever a local URI since there
+          // is no mechanism for exposing URIs.
+          'uri': dtdInfo.localUri.toString(),
         },
     }));
   } catch (e, st) {

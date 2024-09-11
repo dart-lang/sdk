@@ -24,7 +24,7 @@ class AnnotateOverridesTest extends LintRuleTest {
   )
   test_augmentationClass_implementsInterface() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 abstract interface class HasLength {
   int get length;
@@ -37,7 +37,7 @@ class C {
 
     // TODO(pq): update getter to be abstract when supported.
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class C implements HasLength {
   @override
@@ -54,7 +54,7 @@ augment class C implements HasLength {
 
   test_augmentationClass_methodWithoutAnnotation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   void a() {}
@@ -64,19 +64,19 @@ class B extends A { }
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class B {
   void a() {}
 }
 ''', [
-      lint(52, 1),
+      lint(44, 1),
     ]);
   }
 
   test_augmentationMethodWithAnnotation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   void a() {}
@@ -89,7 +89,7 @@ class B extends A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class B {
   augment void a() {}

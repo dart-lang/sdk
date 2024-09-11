@@ -21,17 +21,17 @@ abstract class PartIncludeElementTest extends ElementsBaseTest {
       'dart.library.io': 'false',
     };
 
-    addSource('$testPackageLibPath/foo.dart', r'''
+    newFile('$testPackageLibPath/foo.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_io.dart', r'''
+    newFile('$testPackageLibPath/foo_io.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_html.dart', r'''
+    newFile('$testPackageLibPath/foo_html.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
@@ -80,25 +80,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo.dart
       classes
         class B @102
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
     <testLibrary>::@fragment::package:test/foo.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/foo.dart::@class::A
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo.dart::@class::A
     class A
       reference: <testLibrary>::@fragment::package:test/foo.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo.dart::@class::A
 ''');
   }
@@ -109,17 +111,17 @@ library
       'dart.library.html': 'true',
     };
 
-    addSource('$testPackageLibPath/foo.dart', r'''
+    newFile('$testPackageLibPath/foo.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_io.dart', r'''
+    newFile('$testPackageLibPath/foo_io.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_html.dart', r'''
+    newFile('$testPackageLibPath/foo_html.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
@@ -168,25 +170,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo_io.dart
       classes
         class B @102
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
     <testLibrary>::@fragment::package:test/foo_io.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
     class A
       reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
 ''');
   }
@@ -197,17 +201,17 @@ library
       'dart.library.html': 'true',
     };
 
-    addSource('$testPackageLibPath/foo.dart', r'''
+    newFile('$testPackageLibPath/foo.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_io.dart', r'''
+    newFile('$testPackageLibPath/foo_io.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_html.dart', r'''
+    newFile('$testPackageLibPath/foo_html.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
@@ -256,25 +260,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo_io.dart
       classes
         class B @122
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
     <testLibrary>::@fragment::package:test/foo_io.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
     class A
       reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
 ''');
   }
@@ -285,17 +291,17 @@ library
       'dart.library.html': 'true',
     };
 
-    addSource('$testPackageLibPath/foo.dart', r'''
+    newFile('$testPackageLibPath/foo.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_io.dart', r'''
+    newFile('$testPackageLibPath/foo_io.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_html.dart', r'''
+    newFile('$testPackageLibPath/foo_html.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
@@ -344,25 +350,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo_html.dart
       classes
         class B @102
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
     <testLibrary>::@fragment::package:test/foo_html.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
     class A
       reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
 ''');
   }
@@ -373,17 +381,17 @@ library
       'dart.library.html': 'true',
     };
 
-    addSource('$testPackageLibPath/foo.dart', r'''
+    newFile('$testPackageLibPath/foo.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_io.dart', r'''
+    newFile('$testPackageLibPath/foo_io.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
 
-    addSource('$testPackageLibPath/foo_html.dart', r'''
+    newFile('$testPackageLibPath/foo_html.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
@@ -432,32 +440,34 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo_html.dart
       classes
         class B @122
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
     <testLibrary>::@fragment::package:test/foo_html.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
   classes
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
     class A
       reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
 ''');
   }
 
   test_library_parts() async {
-    addSource('$testPackageLibPath/a.dart', 'part of my.lib;');
-    addSource('$testPackageLibPath/b.dart', 'part of my.lib;');
+    newFile('$testPackageLibPath/a.dart', 'part of my.lib;');
+    newFile('$testPackageLibPath/b.dart', 'part of my.lib;');
     var library =
         await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
@@ -495,11 +505,14 @@ library
   name: my.lib
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
@@ -635,66 +648,73 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class Z @36
           reference: <testLibraryFragment>::@class::Z
+          element: <testLibraryFragment>::@class::Z
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
       classes
         class A @61
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::A
     <testLibrary>::@fragment::package:test/a11.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       nextFragment: <testLibrary>::@fragment::package:test/a12.dart
       classes
         class A11 @24
           reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
+          element: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
     <testLibrary>::@fragment::package:test/a12.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a11.dart
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class A12 @24
           reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
+          element: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/b11.dart
     <testLibrary>::@fragment::package:test/b11.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/b.dart
       nextFragment: <testLibrary>::@fragment::package:test/b12.dart
       classes
         class B11 @24
           reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
+          element: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
     <testLibrary>::@fragment::package:test/b12.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/b11.dart
       classes
         class B12 @24
           reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
+          element: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
   classes
     class Z
       reference: <testLibraryFragment>::@class::Z
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::Z
     class A
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
     class A11
       reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
     class A12
       reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
     class B11
       reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
     class B12
       reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
 ''');
   }
@@ -722,6 +742,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -777,24 +798,42 @@ library
   name: my.lib
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B @22
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
 ''');
   }
 
@@ -846,24 +885,42 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @21
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
 ''');
   }
 
@@ -890,6 +947,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -916,6 +974,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -943,6 +1002,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -969,6 +1029,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -995,15 +1056,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
   test_parts() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
 
-    addSource('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -1044,11 +1106,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
@@ -1184,66 +1249,73 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class Z @36
           reference: <testLibraryFragment>::@class::Z
+          element: <testLibraryFragment>::@class::Z
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
       classes
         class A @61
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::A
     <testLibrary>::@fragment::package:test/a11.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       nextFragment: <testLibrary>::@fragment::package:test/a12.dart
       classes
         class A11 @24
           reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
+          element: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
     <testLibrary>::@fragment::package:test/a12.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a11.dart
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class A12 @24
           reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
+          element: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/b11.dart
     <testLibrary>::@fragment::package:test/b11.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/b.dart
       nextFragment: <testLibrary>::@fragment::package:test/b12.dart
       classes
         class B11 @24
           reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
+          element: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
     <testLibrary>::@fragment::package:test/b12.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/b11.dart
       classes
         class B12 @24
           reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
+          element: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
   classes
     class Z
       reference: <testLibraryFragment>::@class::Z
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::Z
     class A
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
     class A11
       reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
     class A12
       reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
     class B11
       reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
     class B12
       reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
 ''');
   }

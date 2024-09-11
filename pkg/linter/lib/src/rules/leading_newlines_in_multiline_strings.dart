@@ -38,10 +38,10 @@ var s2 = '''This one-liner multiline string is ok. It usually allows to escape b
 class LeadingNewlinesInMultilineStrings extends LintRule {
   LeadingNewlinesInMultilineStrings()
       : super(
-            name: 'leading_newlines_in_multiline_strings',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'leading_newlines_in_multiline_strings',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.leading_newlines_in_multiline_strings;

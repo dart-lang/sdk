@@ -11,7 +11,7 @@ import 'package:testing/testing.dart' as testing;
 
 import 'presubmit_helper.dart';
 import 'test/deps_git_test.dart' as deps_test;
-import 'test/explicit_creation_impl.dart' show runExplicitCreationTest;
+import 'test/compile_and_lint_impl.dart' show runCompileAndLintTest;
 import 'test/fasta/messages_suite.dart' as messages_suite;
 import 'test/lint_suite.dart' as lint_suite;
 import 'test/spelling_test_not_src_suite.dart' as spelling_test_not_src;
@@ -29,21 +29,21 @@ Future<void> main(List<String> args, [SendPort? sendPort]) async {
     Work work = Work.workFromJson(json.decode(rawData));
     Stopwatch stopwatch = new Stopwatch()..start();
     switch (work) {
-      case ExplicitCreationWork():
-        int explicitCreationErrorsFound = -1;
+      case CompileAndLintWork():
+        int compileAndLintErrorsFound = -1;
         try {
-          explicitCreationErrorsFound = await Isolate.run(() =>
-              runExplicitCreationTest(
+          compileAndLintErrorsFound = await Isolate.run(() =>
+              runCompileAndLintTest(
                   includedFiles: work.includedFiles,
                   includedDirectoryUris: work.includedDirectoryUris,
                   repoDir: work.repoDir));
         } catch (e) {
           // This will make it send false.
-          explicitCreationErrorsFound = -1;
+          compileAndLintErrorsFound = -1;
         }
-        print("Sending ok = ${explicitCreationErrorsFound == 0} "
+        print("Sending ok = ${compileAndLintErrorsFound == 0} "
             "for ${work.name} after ${stopwatch.elapsed}");
-        sendPort.send(explicitCreationErrorsFound == 0);
+        sendPort.send(compileAndLintErrorsFound == 0);
 
       case MessagesWork():
         bool ok;

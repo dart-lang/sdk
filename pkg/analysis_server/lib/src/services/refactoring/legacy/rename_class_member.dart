@@ -20,7 +20,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Checks if creating a method with the given [name] in [interfaceElement] will
@@ -98,7 +97,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       } else {
         processor.addDeclarationEdit(renameElement);
         if (!newName.startsWith('_')) {
-          var interfaceElement = renameElement.enclosingElement;
+          var interfaceElement = renameElement.enclosingElement3;
           if (interfaceElement is InterfaceElement) {
             for (var constructor in interfaceElement.constructors) {
               for (var parameter in constructor.parameters) {
@@ -232,7 +231,7 @@ class _BaseClassMemberValidator {
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
       var nameElement = getSyntheticAccessorVariable(declaration.element);
-      var nameClass = nameElement.enclosingElement;
+      var nameClass = nameElement.enclosingElement3;
       // the renamed Element shadows a member of a superclass
       if (superClasses.contains(nameClass)) {
         result.addError(
@@ -372,7 +371,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
         interfaceElement, subClasses, OperationPerformanceImpl('<root>'));
     // check shadowing of class names
     for (var element in elements) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement is InterfaceElement &&
           enclosingElement.name == name) {
         result.addError(

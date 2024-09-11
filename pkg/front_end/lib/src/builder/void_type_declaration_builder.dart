@@ -4,10 +4,11 @@
 
 library fasta.void_type_builder;
 
-import 'package:kernel/ast.dart' show DartType;
+import 'package:kernel/ast.dart' show DartType, Nullability;
 
 import 'declaration_builders.dart';
 import 'library_builder.dart';
+import 'type_builder.dart';
 
 class VoidTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   VoidTypeDeclarationBuilder(
@@ -16,4 +17,11 @@ class VoidTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
 
   @override
   String get debugName => "VoidTypeDeclarationBuilder";
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+          {required Map<TypeVariableBuilder, TraversalState>
+              typeVariablesTraversalState}) =>
+      Nullability.nullable;
 }

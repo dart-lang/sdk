@@ -270,7 +270,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment EvaluateAssertion();
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
-  Fragment CheckBoolean(TokenPosition position);
   Fragment CheckAssignable(
       const AbstractType& dst_type,
       const String& dst_name,
@@ -532,6 +531,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // expression stack only as needed, switching to Smis as soon as possible.
   template <typename T>
   Fragment BuildExtractUnboxedSlotBitFieldIntoSmi(const Slot& slot) {
+    // Currently this method is not used with any sign-extended BitFields.
+    COMPILE_ASSERT(!T::sign_extended());
     ASSERT(RepresentationUtils::IsUnboxedInteger(slot.representation()));
     Fragment instructions;
     if (!Boxing::RequiresAllocation(slot.representation())) {

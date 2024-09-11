@@ -28,6 +28,8 @@ import 'dart:_internal'
         WhereTypeIterable;
 import 'dart:_simd';
 import 'dart:_wasm';
+import 'dart:_js_types';
+import 'dart:_js_helper';
 
 import 'dart:collection' show ListBase;
 import 'dart:math' show Random;
@@ -62,12 +64,12 @@ void _offsetAlignmentCheck(int offset, int alignment) {
 }
 
 final class _TypedListIterator<E> implements Iterator<E> {
-  final List<E> _array;
+  final TypedDataList<E> _array;
   final int _length;
   int _position;
   E? _current;
 
-  _TypedListIterator(List<E> array)
+  _TypedListIterator(TypedDataList<E> array)
       : _array = array,
         _length = array.length,
         _position = -1;
@@ -80,7 +82,6 @@ final class _TypedListIterator<E> implements Iterator<E> {
       _position = nextPosition;
       return true;
     }
-    _position = _length;
     _current = null;
     return false;
   }
@@ -1742,6 +1743,39 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
 
     if (count == 0) return;
 
+    if (this is _UnmodifiableIntListMixin) {
+      throw UnsupportedError("Cannot modify an unmodifiable list");
+    }
+
+    if (from is JSIntegerArrayBase) {
+      // We only add this mixin to typed lists in this library so we know
+      // `this` is `TypedData`.
+      final fromTypedData = unsafeCast<JSIntegerArrayBase>(from);
+
+      final fromElementSize = fromTypedData.elementSizeInBytes;
+      if (fromElementSize == 1 && this is _WasmI8ArrayBase) {
+        final destTypedData = unsafeCast<_WasmI8ArrayBase>(this);
+        copyToWasmI8Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+      if (fromElementSize == 2 && this is _WasmI16ArrayBase) {
+        final destTypedData = unsafeCast<_WasmI16ArrayBase>(this);
+        copyToWasmI16Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+      if (fromElementSize == 4 && this is _WasmI32ArrayBase) {
+        final destTypedData = unsafeCast<_WasmI32ArrayBase>(this);
+        copyToWasmI32Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+
+      // NOTICE: We currently don't have `JSUint64Array` classes in
+      // `dart:js_interop`.
+    }
+
     if (from is TypedData) {
       // We only add this mixin to typed lists in this library so we know
       // `this` is `TypedData`.
@@ -2139,6 +2173,30 @@ mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
 
     if (count == 0) return;
 
+    if (this is _UnmodifiableDoubleListMixin) {
+      throw UnsupportedError("Cannot modify an unmodifiable list");
+    }
+
+    if (from is JSFloatArrayBase) {
+      // We only add this mixin to typed lists in this library so we know
+      // `this` is `TypedData`.
+      final fromTypedData = unsafeCast<JSFloatArrayBase>(from);
+
+      final fromElementSize = fromTypedData.elementSizeInBytes;
+      if (fromElementSize == 4 && this is _WasmF32ArrayBase) {
+        final destTypedData = unsafeCast<_WasmF32ArrayBase>(this);
+        copyToWasmF32Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+      if (fromElementSize == 8 && this is _WasmF64ArrayBase) {
+        final destTypedData = unsafeCast<_WasmF64ArrayBase>(this);
+        copyToWasmF64Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+    }
+
     if (from is TypedData) {
       // We only add this mixin to typed lists in this library so we know
       // `this` is `TypedData`.
@@ -2244,7 +2302,7 @@ abstract class _WasmI8ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements;
 
-  ByteBuffer get buffer => _I8ByteBuffer(_data);
+  _I8ByteBuffer get buffer => _I8ByteBuffer(_data);
 }
 
 abstract class _WasmI16ArrayBase extends WasmTypedDataBase {
@@ -2262,7 +2320,7 @@ abstract class _WasmI16ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 2;
 
-  ByteBuffer get buffer => _I16ByteBuffer(_data);
+  _I16ByteBuffer get buffer => _I16ByteBuffer(_data);
 }
 
 abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
@@ -2280,7 +2338,7 @@ abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 4;
 
-  ByteBuffer get buffer => _I32ByteBuffer(_data);
+  _I32ByteBuffer get buffer => _I32ByteBuffer(_data);
 }
 
 abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
@@ -2298,7 +2356,7 @@ abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 8;
 
-  ByteBuffer get buffer => _I64ByteBuffer(_data);
+  _I64ByteBuffer get buffer => _I64ByteBuffer(_data);
 }
 
 abstract class _WasmF32ArrayBase extends WasmTypedDataBase {
@@ -2316,7 +2374,7 @@ abstract class _WasmF32ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 4;
 
-  ByteBuffer get buffer => _F32ByteBuffer(_data);
+  _F32ByteBuffer get buffer => _F32ByteBuffer(_data);
 }
 
 abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
@@ -2334,7 +2392,7 @@ abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 8;
 
-  ByteBuffer get buffer => _F64ByteBuffer(_data);
+  _F64ByteBuffer get buffer => _F64ByteBuffer(_data);
 }
 
 extension WasmI8ArrayBaseExt on _WasmI8ArrayBase {

@@ -1335,42 +1335,43 @@ class ConstantsTransformer extends RemovingTransformer {
       cases.add(patternConverter.createRootSpace(type, patternGuard.pattern,
           hasGuard: patternGuard.guard != null));
     }
-    List<ExhaustivenessError> errors = reportErrors(
-        _exhaustivenessCache!, type, cases,
-        computeUnreachable: retainDataForTesting);
-    List<ExhaustivenessError>? reportedErrors;
-    if (_exhaustivenessDataForTesting != null) {
-      // Coverage-ignore-block(suite): Not run.
-      reportedErrors = [];
-    }
-    for (ExhaustivenessError error in errors) {
-      if (error is UnreachableCaseError) {
-        // Coverage-ignore-block(suite): Not run.
-        reportedErrors?.add(error);
-      } else if (error is NonExhaustiveError &&
-          !hasDefault &&
-          mustBeExhaustive) {
+    List<CaseUnreachability>? caseUnreachabilities = retainDataForTesting
+        ?
         // Coverage-ignore(suite): Not run.
-        reportedErrors?.add(error);
-        constantEvaluator.errorReporter.report(
-            constantEvaluator.createLocatedMessageWithOffset(
-                node,
-                fileOffset,
-                (isSwitchExpression
-                        ? templateNonExhaustiveSwitchExpression
-                        : templateNonExhaustiveSwitchStatement)
-                    .withArguments(
-                        expressionType,
-                        error.witnesses.first.asWitness,
-                        error.witnesses.first.asCorrection)));
-      }
+        []
+        : null;
+    NonExhaustiveness? nonExhaustiveness = computeExhaustiveness(
+        _exhaustivenessCache!, type, cases,
+        caseUnreachabilities: caseUnreachabilities);
+    NonExhaustiveness? reportedNonExhaustiveness;
+    if (nonExhaustiveness != null && !hasDefault && mustBeExhaustive) {
+      reportedNonExhaustiveness = nonExhaustiveness;
+      constantEvaluator.errorReporter.report(
+          constantEvaluator.createLocatedMessageWithOffset(
+              node,
+              fileOffset,
+              (isSwitchExpression
+                      ? templateNonExhaustiveSwitchExpression
+                      : templateNonExhaustiveSwitchStatement)
+                  .withArguments(
+                      expressionType,
+                      nonExhaustiveness.witnesses.first.asWitness,
+                      nonExhaustiveness.witnesses.first.asCorrection)));
     }
     if (_exhaustivenessDataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       _exhaustivenessDataForTesting.objectFieldLookup ??= _exhaustivenessCache;
       _exhaustivenessDataForTesting.switchResults[replacement] =
-          new ExhaustivenessResult(type, cases,
-              patternGuards.map((c) => c.fileOffset).toList(), reportedErrors!);
+          new ExhaustivenessResult(
+              type,
+              cases,
+              patternGuards.map((c) => c.fileOffset).toList(),
+              {
+                for (CaseUnreachability caseUnreachability
+                    in caseUnreachabilities!)
+                  caseUnreachability.index
+              },
+              reportedNonExhaustiveness);
     }
   }
 

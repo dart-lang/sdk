@@ -50,7 +50,6 @@ class NullCheckOnNullableTypeParameter extends LintRule {
           name: 'null_check_on_nullable_type_parameter',
           description: _desc,
           details: _details,
-          categories: {LintRuleCategory.style},
         );
 
   @override

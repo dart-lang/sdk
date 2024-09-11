@@ -18,7 +18,7 @@ class FieldInitializedInInitializerAndDeclarationTest
     extends PubPackageResolutionTest {
   test_class_augmentation() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   final int f = 0;
@@ -27,7 +27,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A() : f = 1;
@@ -41,7 +41,7 @@ augment class A {
     assertErrorsInResult([
       error(
           CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
-          64,
+          56,
           1),
     ]);
   }

@@ -14,9 +14,11 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element;
+import 'package:analyzer_plugin/src/utilities/directive_sort.dart';
 import 'package:meta/meta_meta.dart';
 
-/// Organizer of imports (and other directives) in the [unit].
+/// Organizes imports (and other directives) in the [unit], using sorting
+/// rules from [DirectiveSorter].
 class ImportOrganizer {
   final String initialCode;
 
@@ -84,75 +86,81 @@ class ImportOrganizer {
         // text for the computed DirectiveInfo and also its range for replacement
         // in the document.
         int? libraryDocsAndAnnotationsEndOffset;
-        var priority = _getDirectivePriority(directive);
-        if (priority != null) {
-          var offset = directive.offset;
-          var end = directive.end;
+        var uriContent = directive.uri.stringValue ?? '';
+        var priority = switch (directive) {
+          ImportDirective() =>
+            DirectiveSortPriority(uriContent, DirectiveSortKind.import),
+          ExportDirective() =>
+            DirectiveSortPriority(uriContent, DirectiveSortKind.export),
+          PartDirective() =>
+            DirectiveSortPriority(uriContent, DirectiveSortKind.part),
+        };
 
-          var isPseudoLibraryDirective =
-              !hasLibraryDirective && directive == unit.directives.first;
-          Annotation? lastLibraryAnnotation;
-          if (isPseudoLibraryDirective) {
-            // Find the last library-level annotation that does not come
-            // after any non-library annotation. If there are already
-            // non-library annotations before library annotations, we will not
-            // try to correct those.
-            lastLibraryAnnotation = directive.metadata
-                .takeWhile(_isLibraryTargetAnnotation)
-                .lastOrNull;
+        var offset = directive.offset;
+        var end = directive.end;
 
-            // If there is no annotation, use the end of the doc text (since the
-            // doc text is considered library-level here).
-            libraryDocsAndAnnotationsEndOffset = lastLibraryAnnotation?.end ??
-                directive.documentationComment?.end;
+        var isPseudoLibraryDirective =
+            !hasLibraryDirective && directive == unit.directives.first;
+        Annotation? lastLibraryAnnotation;
+        if (isPseudoLibraryDirective) {
+          // Find the last library-level annotation that does not come
+          // after any non-library annotation. If there are already
+          // non-library annotations before library annotations, we will not
+          // try to correct those.
+          lastLibraryAnnotation = directive.metadata
+              .takeWhile(_isLibraryTargetAnnotation)
+              .lastOrNull;
 
-            // Fix up the offset to be after the line end.
-            if (libraryDocsAndAnnotationsEndOffset != null) {
-              libraryDocsAndAnnotationsEndOffset = lineInfo
-                  .getOffsetOfLineAfter(libraryDocsAndAnnotationsEndOffset);
-              // In the case of a blank line after the annotation/doc text
-              // we should include that in the library part. Otherwise it will
-              // be included in the top of the following directive and may
-              // result in an extra blank line in the annotation block if it
-              // is moved.
-              var nextLineOffset = lineInfo
-                  .getOffsetOfLineAfter(libraryDocsAndAnnotationsEndOffset);
-              if (code
-                  .substring(libraryDocsAndAnnotationsEndOffset, nextLineOffset)
-                  .trim()
-                  .isEmpty) {
-                libraryDocsAndAnnotationsEndOffset = nextLineOffset;
-              }
+          // If there is no annotation, use the end of the doc text (since the
+          // doc text is considered library-level here).
+          libraryDocsAndAnnotationsEndOffset =
+              lastLibraryAnnotation?.end ?? directive.documentationComment?.end;
+
+          // Fix up the offset to be after the line end.
+          if (libraryDocsAndAnnotationsEndOffset != null) {
+            libraryDocsAndAnnotationsEndOffset = lineInfo
+                .getOffsetOfLineAfter(libraryDocsAndAnnotationsEndOffset);
+            // In the case of a blank line after the annotation/doc text
+            // we should include that in the library part. Otherwise it will
+            // be included in the top of the following directive and may
+            // result in an extra blank line in the annotation block if it
+            // is moved.
+            var nextLineOffset = lineInfo
+                .getOffsetOfLineAfter(libraryDocsAndAnnotationsEndOffset);
+            if (code
+                .substring(libraryDocsAndAnnotationsEndOffset, nextLineOffset)
+                .trim()
+                .isEmpty) {
+              libraryDocsAndAnnotationsEndOffset = nextLineOffset;
             }
           }
-
-          // Usually we look for leading comments on the directive. However if
-          // some library annotations were trimmed off, those comments are part
-          // of that and should not also be included here.
-          var leadingToken =
-              lastLibraryAnnotation == null ? directive.beginToken : null;
-          var leadingComment = leadingToken != null
-              ? getLeadingComment(unit, leadingToken, lineInfo,
-                  isPseudoLibraryDirective: isPseudoLibraryDirective)
-              : null;
-          var trailingComment = getTrailingComment(unit, directive, lineInfo);
-
-          if (leadingComment != null && leadingToken != null) {
-            offset = libraryDocsAndAnnotationsEndOffset != null
-                ? math.max(
-                    libraryDocsAndAnnotationsEndOffset, leadingComment.offset)
-                : leadingComment.offset;
-          }
-          if (trailingComment != null) {
-            end = trailingComment.end;
-          }
-          offset = libraryDocsAndAnnotationsEndOffset ?? offset;
-          var text = code.substring(offset, end);
-          var uriContent = directive.uri.stringValue ?? '';
-          directives.add(
-            _DirectiveInfo(directive, priority, uriContent, offset, end, text),
-          );
         }
+
+        // Usually we look for leading comments on the directive. However if
+        // some library annotations were trimmed off, those comments are part
+        // of that and should not also be included here.
+        var leadingToken =
+            lastLibraryAnnotation == null ? directive.beginToken : null;
+        var leadingComment = leadingToken != null
+            ? getLeadingComment(unit, leadingToken, lineInfo,
+                isPseudoLibraryDirective: isPseudoLibraryDirective)
+            : null;
+        var trailingComment = getTrailingComment(unit, directive, lineInfo);
+
+        if (leadingComment != null && leadingToken != null) {
+          offset = libraryDocsAndAnnotationsEndOffset != null
+              ? math.max(
+                  libraryDocsAndAnnotationsEndOffset, leadingComment.offset)
+              : leadingComment.offset;
+        }
+        if (trailingComment != null) {
+          end = trailingComment.end;
+        }
+        offset = libraryDocsAndAnnotationsEndOffset ?? offset;
+        var text = code.substring(offset, end);
+        directives.add(
+          _DirectiveInfo(directive, priority, uriContent, offset, end, text),
+        );
       }
     }
     // nothing to do
@@ -168,7 +176,7 @@ class ImportOrganizer {
     String directivesCode;
     {
       var sb = StringBuffer();
-      _DirectivePriority? currentPriority;
+      DirectiveSortPriority? currentPriority;
       var previousDirectiveText = '';
       for (var directiveInfo in directives) {
         if (!hasUnresolvedIdentifierError) {
@@ -293,37 +301,6 @@ class ImportOrganizer {
     return null;
   }
 
-  static _DirectivePriority? _getDirectivePriority(
-      UriBasedDirective directive) {
-    var uriContent = directive.uri.stringValue ?? '';
-    if (directive is ImportDirective) {
-      if (uriContent.startsWith('dart:')) {
-        return _DirectivePriority.IMPORT_SDK;
-      } else if (uriContent.startsWith('package:')) {
-        return _DirectivePriority.IMPORT_PKG;
-      } else if (uriContent.contains('://')) {
-        return _DirectivePriority.IMPORT_OTHER;
-      } else {
-        return _DirectivePriority.IMPORT_REL;
-      }
-    }
-    if (directive is ExportDirective) {
-      if (uriContent.startsWith('dart:')) {
-        return _DirectivePriority.EXPORT_SDK;
-      } else if (uriContent.startsWith('package:')) {
-        return _DirectivePriority.EXPORT_PKG;
-      } else if (uriContent.contains('://')) {
-        return _DirectivePriority.EXPORT_OTHER;
-      } else {
-        return _DirectivePriority.EXPORT_REL;
-      }
-    }
-    if (directive is PartDirective) {
-      return _DirectivePriority.PART;
-    }
-    return null;
-  }
-
   /// Returns whether this token is a '// ignore:' comment (but not an
   /// '// ignore_for_file:' comment).
   static bool _isIgnoreComment(Token token) =>
@@ -336,7 +313,7 @@ class ImportOrganizer {
 
 class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   final UriBasedDirective directive;
-  final _DirectivePriority priority;
+  final DirectiveSortPriority priority;
   final String uri;
 
   /// The offset of the first token, usually the keyword but may include leading comments.
@@ -354,7 +331,7 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   @override
   int compareTo(_DirectiveInfo other) {
     if (priority == other.priority) {
-      var compare = _compareUri(uri, other.uri);
+      var compare = compareDirectiveUri(uri, other.uri);
       if (compare != 0) {
         return compare;
       }
@@ -365,41 +342,4 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
 
   @override
   String toString() => '(priority=$priority; text=$text)';
-
-  /// Should keep these in sync! Copied from
-  /// https://github.com/dart-lang/linter/blob/658f497eef/lib/src/rules/directives_ordering.dart#L380-L387
-  /// Consider finding a way to share this code!
-  static int _compareUri(String a, String b) {
-    if (!a.startsWith('package:') || !b.startsWith('package:')) {
-      if (!a.startsWith('/') && !b.startsWith('/')) {
-        return a.compareTo(b);
-      }
-    }
-    var indexA = a.indexOf('/');
-    var indexB = b.indexOf('/');
-    if (indexA == -1 || indexB == -1) return a.compareTo(b);
-    var result = a.substring(0, indexA).compareTo(b.substring(0, indexB));
-    if (result != 0) return result;
-    return a.substring(indexA + 1).compareTo(b.substring(indexB + 1));
-  }
-}
-
-class _DirectivePriority {
-  static const IMPORT_SDK = _DirectivePriority('IMPORT_SDK', 0);
-  static const IMPORT_PKG = _DirectivePriority('IMPORT_PKG', 1);
-  static const IMPORT_OTHER = _DirectivePriority('IMPORT_OTHER', 2);
-  static const IMPORT_REL = _DirectivePriority('IMPORT_REL', 3);
-  static const EXPORT_SDK = _DirectivePriority('EXPORT_SDK', 4);
-  static const EXPORT_PKG = _DirectivePriority('EXPORT_PKG', 5);
-  static const EXPORT_OTHER = _DirectivePriority('EXPORT_OTHER', 6);
-  static const EXPORT_REL = _DirectivePriority('EXPORT_REL', 7);
-  static const PART = _DirectivePriority('PART', 8);
-
-  final String name;
-  final int ordinal;
-
-  const _DirectivePriority(this.name, this.ordinal);
-
-  @override
-  String toString() => name;
 }

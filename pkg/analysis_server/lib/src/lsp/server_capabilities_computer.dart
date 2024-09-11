@@ -219,6 +219,9 @@ class ServerCapabilitiesComputer {
           'augmented': {},
           'augmentation': {},
         },
+        // TODO(dantup): Add something to indicate support for connectToDtd here
+        //  and also bump the legacy protocol version and record in the
+        //  changelog that this is available for LSP-over-Legacy.
       },
     );
   }
@@ -325,7 +328,7 @@ class ServerCapabilitiesComputer {
 
   RegistrationContext _createRegistrationContext() {
     return RegistrationContext(
-      clientCapabilities: _server.lspClientCapabilities!,
+      clientCapabilities: _server.editorClientCapabilities!,
       clientConfiguration: _server.lspClientConfiguration,
       customDartSchemes: _server.uriConverter.supportedNonFileSchemes,
       dartFilters: [

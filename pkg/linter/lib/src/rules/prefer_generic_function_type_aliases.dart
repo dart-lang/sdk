@@ -36,10 +36,10 @@ typedef F = void Function();
 class PreferGenericFunctionTypeAliases extends LintRule {
   PreferGenericFunctionTypeAliases()
       : super(
-            name: 'prefer_generic_function_type_aliases',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_generic_function_type_aliases',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   bool get canUseParsedResult => true;

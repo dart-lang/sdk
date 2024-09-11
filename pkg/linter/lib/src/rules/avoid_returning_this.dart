@@ -51,13 +51,10 @@ bool _returnsThis(ReturnStatement node) => node.expression is ThisExpression;
 class AvoidReturningThis extends LintRule {
   AvoidReturningThis()
       : super(
-            name: 'avoid_returning_this',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'avoid_returning_this',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_returning_this;

@@ -2962,11 +2962,9 @@ class DeferredAccessGenerator extends Generator {
         allowPotentiallyConstantType: allowPotentiallyConstantType,
         performTypeCanonicalization: performTypeCanonicalization);
     LocatedMessage message;
-    if (type is NamedTypeBuilder &&
-        type.declaration is InvalidTypeDeclarationBuilder) {
+    TypeDeclarationBuilder? declaration = type.declaration;
+    if (declaration is InvalidTypeDeclarationBuilder) {
       // Coverage-ignore-block(suite): Not run.
-      InvalidTypeDeclarationBuilder declaration =
-          type.declaration as InvalidTypeDeclarationBuilder;
       message = declaration.message;
     } else {
       int charOffset = offsetForToken(prefixGenerator.token);

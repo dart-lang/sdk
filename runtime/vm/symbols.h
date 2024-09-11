@@ -80,6 +80,7 @@ class ObjectPointerVisitor;
   V(DefaultLabel, ":L")                                                        \
   V(DotCreate, "._create")                                                     \
   V(DotFieldADI, ".fieldADI")                                                  \
+  V(DotFieldAI, ".fieldAI")                                                    \
   V(DotFieldNI, ".fieldNI")                                                    \
   V(DotRange, ".range")                                                        \
   V(DotUnder, "._")                                                            \

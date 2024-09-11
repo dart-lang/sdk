@@ -449,7 +449,8 @@ class AstBuilder extends StackListener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
+      Token name,
+      String? enclosingDeclarationName) {
     _Modifiers modifiers = _Modifiers();
     if (augmentToken != null) {
       assert(augmentToken.isModifier);
@@ -2238,33 +2239,20 @@ class AstBuilder extends StackListener {
       }
     }
 
-    if (augmentToken != null) {
-      directives.add(
-        AugmentationImportDirectiveImpl(
-          comment: comment,
-          uri: uri,
-          importKeyword: importKeyword,
-          augmentKeyword: augmentToken,
-          metadata: metadata,
-          semicolon: semicolon ?? Tokens.semicolon(),
-        ),
-      );
-    } else {
-      directives.add(
-        ImportDirectiveImpl(
-          comment: comment,
-          metadata: metadata,
-          importKeyword: importKeyword,
-          uri: uri,
-          configurations: configurations,
-          deferredKeyword: deferredKeyword,
-          asKeyword: asKeyword,
-          prefix: prefix,
-          combinators: combinators,
-          semicolon: semicolon ?? Tokens.semicolon(),
-        ),
-      );
-    }
+    directives.add(
+      ImportDirectiveImpl(
+        comment: comment,
+        metadata: metadata,
+        importKeyword: importKeyword,
+        uri: uri,
+        configurations: configurations,
+        deferredKeyword: deferredKeyword,
+        asKeyword: asKeyword,
+        prefix: prefix,
+        combinators: combinators,
+        semicolon: semicolon ?? Tokens.semicolon(),
+      ),
+    );
   }
 
   @override
@@ -2361,19 +2349,9 @@ class AstBuilder extends StackListener {
   @override
   void endLibraryAugmentation(
       Token augmentKeyword, Token libraryKeyword, Token semicolon) {
-    var uri = pop() as StringLiteralImpl;
-    var metadata = pop() as List<AnnotationImpl>?;
-    var comment = _findComment(metadata, augmentKeyword);
-    directives.add(
-      LibraryAugmentationDirectiveImpl(
-        comment: comment,
-        metadata: metadata,
-        libraryKeyword: libraryKeyword,
-        augmentKeyword: augmentKeyword,
-        uri: uri,
-        semicolon: semicolon,
-      ),
-    );
+    // TODO(scheglov): remove this method
+    pop() as StringLiteralImpl; // uri
+    pop() as List<AnnotationImpl>?; // metadata
   }
 
   @override
@@ -2742,7 +2720,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token leftDelimiter, Token rightDelimiter) {
+      int count, Token leftDelimiter, Token rightDelimiter, MemberKind kind) {
     assert((optional('[', leftDelimiter) && optional(']', rightDelimiter)) ||
         (optional('{', leftDelimiter) && optional('}', rightDelimiter)));
     debugEvent("OptionalFormalParameters");
@@ -5441,15 +5419,6 @@ class AstBuilder extends StackListener {
 
     var directive = directives.last;
     switch (directive) {
-      case AugmentationImportDirectiveImpl():
-        directives.last = AugmentationImportDirectiveImpl(
-          comment: directive.documentationComment,
-          metadata: directive.metadata,
-          importKeyword: directive.importKeyword,
-          augmentKeyword: directive.augmentKeyword,
-          uri: directive.uri,
-          semicolon: semicolon ?? directive.semicolon,
-        );
       case ImportDirectiveImpl():
         // TODO(scheglov): This code would be easier if we used one object.
         var mergedAsKeyword = directive.asKeyword;

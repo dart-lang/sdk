@@ -40,10 +40,10 @@ main() async {
 class AwaitOnlyFutures extends LintRule {
   AwaitOnlyFutures()
       : super(
-            name: 'await_only_futures',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'await_only_futures',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.await_only_futures;

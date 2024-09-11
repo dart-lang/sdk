@@ -79,6 +79,17 @@ class Types {
   /// parameter index range of their corresponding function type.
   Map<StructuralParameter, int> functionTypeParameterIndex = Map.identity();
 
+  final Map<w.ModuleBuilder, AsCheckers> _asCheckers = {};
+  final Map<w.ModuleBuilder, IsCheckers> _isCheckers = {};
+
+  AsCheckers asCheckersForModule(w.ModuleBuilder module) {
+    return _asCheckers[module] ??= AsCheckers(translator, rtt, module);
+  }
+
+  IsCheckers isCheckersForModule(w.ModuleBuilder module) {
+    return _isCheckers[module] ??= IsCheckers(translator, rtt, module);
+  }
+
   Types(this.translator);
 
   w.ValueType classAndFieldToType(Class cls, int fieldIndex) =>
@@ -387,15 +398,18 @@ class Types {
       operandTemp = b.addLocal(translator.topInfo.nullableType);
       b.local_tee(operandTemp);
     }
+    final checkOnlyNullAssignability =
+        _requiresOnlyNullAssignabilityCheck(operandType, testedAgainstType);
+    final isCheckers = isCheckersForModule(b.module);
     final (typeToCheck, :checkArguments) =
-        _canUseTypeCheckHelper(testedAgainstType, operandType);
-    if (typeToCheck != null) {
+        isCheckers.canUseTypeCheckHelper(testedAgainstType, operandType);
+    if (!checkOnlyNullAssignability && typeToCheck != null) {
       if (checkArguments) {
         for (final typeArgument in typeToCheck.typeArguments) {
           makeType(codeGen, typeArgument);
         }
       }
-      b.invoke(_generateIsChecker(
+      b.invoke(isCheckers.generateIsChecker(
           typeToCheck, checkArguments, operandType.isPotentiallyNullable));
     } else {
       if (testedAgainstType is InterfaceType &&
@@ -403,24 +417,35 @@ class Types {
         final typeClassInfo =
             translator.classInfo[testedAgainstType.classNode]!;
         final typeArguments = testedAgainstType.typeArguments;
-        b.i32_const(encodedNullability(testedAgainstType));
-        b.i32_const(typeClassInfo.classId);
-        if (typeArguments.isEmpty) {
-          codeGen.call(translator.isInterfaceSubtype0.reference);
-        } else if (typeArguments.length == 1) {
-          makeType(codeGen, typeArguments[0]);
-          codeGen.call(translator.isInterfaceSubtype1.reference);
-        } else if (typeArguments.length == 2) {
-          makeType(codeGen, typeArguments[0]);
-          makeType(codeGen, typeArguments[1]);
-          codeGen.call(translator.isInterfaceSubtype2.reference);
+        if (checkOnlyNullAssignability) {
+          b.i32_const(encodedNullability(testedAgainstType));
+          codeGen.call(translator.isNullabilityCheck.reference);
         } else {
-          _makeTypeArray(codeGen, typeArguments);
-          codeGen.call(translator.isInterfaceSubtype.reference);
+          b.i32_const(encodedNullability(testedAgainstType));
+          b.i32_const(typeClassInfo.classId);
+          if (typeArguments.isEmpty) {
+            codeGen.call(translator.isInterfaceSubtype0.reference);
+          } else if (typeArguments.length == 1) {
+            makeType(codeGen, typeArguments[0]);
+            codeGen.call(translator.isInterfaceSubtype1.reference);
+          } else if (typeArguments.length == 2) {
+            makeType(codeGen, typeArguments[0]);
+            makeType(codeGen, typeArguments[1]);
+            codeGen.call(translator.isInterfaceSubtype2.reference);
+          } else {
+            _makeTypeArray(codeGen, typeArguments);
+            codeGen.call(translator.isInterfaceSubtype.reference);
+          }
         }
       } else {
         makeType(codeGen, testedAgainstType);
-        codeGen.call(translator.isSubtype.reference);
+        if (checkOnlyNullAssignability) {
+          b.struct_get(typeClassInfo.struct,
+              translator.fieldIndex[translator.typeIsDeclaredNullableField]!);
+          codeGen.call(translator.isNullabilityCheck.reference);
+        } else {
+          codeGen.call(translator.isSubtype.reference);
+        }
       }
     }
     if (translator.options.verifyTypeChecks) {
@@ -438,20 +463,29 @@ class Types {
     }
   }
 
-  w.ValueType emitAsCheck(AstCodeGenerator codeGen, DartType testedAgainstType,
-      DartType operandType, w.RefType boxedOperandType,
+  w.ValueType emitAsCheck(
+      AstCodeGenerator codeGen,
+      bool isCovarianceCheck,
+      DartType testedAgainstType,
+      DartType operandType,
+      w.RefType boxedOperandType,
       [Location? location]) {
     final b = codeGen.b;
 
+    // Keep casts inserted by the CFE to ensure soundness of covariant types.
+    final checkOnlyNullAssignability = !isCovarianceCheck &&
+        _requiresOnlyNullAssignabilityCheck(operandType, testedAgainstType);
+
+    final asCheckers = asCheckersForModule(b.module);
     final (typeToCheck, :checkArguments) =
-        _canUseTypeCheckHelper(testedAgainstType, operandType);
-    if (typeToCheck != null) {
+        asCheckers.canUseTypeCheckHelper(testedAgainstType, operandType);
+    if (!checkOnlyNullAssignability && typeToCheck != null) {
       if (checkArguments) {
         for (final typeArgument in typeToCheck.typeArguments) {
           makeType(codeGen, typeArgument);
         }
       }
-      b.invoke(_generateAsChecker(
+      b.invoke(asCheckers.generateAsChecker(
           typeToCheck, checkArguments, operandType.isPotentiallyNullable));
       return translator.translateType(testedAgainstType);
     }
@@ -460,6 +494,7 @@ class Types {
     b.local_tee(operand);
 
     late List<w.ValueType> outputsToDrop;
+    b.i32_const(encodedBool(checkOnlyNullAssignability));
     if (testedAgainstType is InterfaceType &&
         classForType(testedAgainstType) == translator.interfaceTypeClass) {
       final typeClassInfo = translator.classInfo[testedAgainstType.classNode]!;
@@ -490,9 +525,27 @@ class Types {
     return operand.type;
   }
 
+  bool _requiresOnlyNullAssignabilityCheck(
+      DartType operandType, DartType testedAgainstType) {
+    // We may only need to check that either of these hold:
+    //   * value is non-null
+    //   * value is null and the type is nullable.
+    return translator.typeEnvironment.isSubtypeOf(
+        operandType,
+        testedAgainstType.withDeclaredNullability(Nullability.nullable),
+        type_env.SubtypeCheckMode.withNullabilities);
+  }
+}
+
+abstract class _TypeCheckers {
+  final RuntimeTypeInformation rtt;
+  final type_env.TypeEnvironment typeEnvironment;
+
+  _TypeCheckers(this.typeEnvironment, this.rtt);
+
   // If a type check helper can be used, returns the type the caller has to
   // check and whether arguments of the type have to be checked or not.
-  (InterfaceType?, {bool checkArguments}) _canUseTypeCheckHelper(
+  (InterfaceType?, {bool checkArguments}) canUseTypeCheckHelper(
       DartType testedAgainstType, DartType operandType) {
     // The is/as check helpers are for cid-range checks of interface types.
     if (testedAgainstType is! InterfaceType) {
@@ -526,12 +579,11 @@ class Types {
     // to tell us anything about the type arguments of testedAgainstType.
     if (operandType.typeArguments.isEmpty) return false;
 
-    final sufficiency = translator.typeEnvironment
-        .computeTypeShapeCheckSufficiency(
-            expressionStaticType: operandType,
-            checkTargetType:
-                testedAgainstType.withDeclaredNullability(Nullability.nullable),
-            subtypeCheckMode: type_env.SubtypeCheckMode.withNullabilities);
+    final sufficiency = typeEnvironment.computeTypeShapeCheckSufficiency(
+        expressionStaticType: operandType,
+        checkTargetType:
+            testedAgainstType.withDeclaredNullability(Nullability.nullable),
+        subtypeCheckMode: type_env.SubtypeCheckMode.withNullabilities);
 
     // If `true` the caller only needs to check nullabillity and the actual
     // concrete class, no need to check [testedAgainstType] arguments.
@@ -559,6 +611,14 @@ class Types {
     ];
     return InterfaceType(type.classNode, type.nullability, args);
   }
+}
+
+class IsCheckers extends _TypeCheckers {
+  final Translator translator;
+  final w.ModuleBuilder callingModule;
+
+  IsCheckers(this.translator, RuntimeTypeInformation rtt, this.callingModule)
+      : super(translator.typeEnvironment, rtt);
 
   final Map<DartType, IsCheckerCallTarget> _nullableIsCheckers = {};
   final Map<DartType, IsCheckerCallTarget> _isCheckers = {};
@@ -568,7 +628,7 @@ class Types {
 
   // Currently the is-checker helper functions only check nullability and the
   // concrete class (the arguments do not have to be checked).
-  CallTarget _generateIsChecker(InterfaceType testedAgainstType,
+  CallTarget generateIsChecker(InterfaceType testedAgainstType,
       bool checkArguments, bool operandIsNullable) {
     assert(_hasOnlyDefaultTypeArguments(testedAgainstType) || checkArguments);
 
@@ -594,10 +654,18 @@ class Types {
       final signature = w.FunctionType(
           [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
           [w.NumType.i32]);
-      return IsCheckerCallTarget(translator, signature, testedAgainstType,
-          operandIsNullable, checkArguments, argumentCount);
+      return IsCheckerCallTarget(translator, callingModule, signature,
+          testedAgainstType, operandIsNullable, checkArguments, argumentCount);
     });
   }
+}
+
+class AsCheckers extends _TypeCheckers {
+  final Translator translator;
+  final w.ModuleBuilder callingModule;
+
+  AsCheckers(this.translator, RuntimeTypeInformation rtt, this.callingModule)
+      : super(translator.typeEnvironment, rtt);
 
   final Map<DartType, AsCheckerCallTarget> _nullableAsCheckers = {};
   final Map<DartType, AsCheckerCallTarget> _asCheckers = {};
@@ -605,7 +673,7 @@ class Types {
   final Map<DartType, AsCheckerCallTarget>
       _nullableAsCheckersWithArgumentsCheck = {};
 
-  CallTarget _generateAsChecker(InterfaceType testedAgainstType,
+  CallTarget generateAsChecker(InterfaceType testedAgainstType,
       bool checkArguments, bool operandIsNullable) {
     assert(_hasOnlyDefaultTypeArguments(testedAgainstType) || checkArguments);
 
@@ -631,8 +699,8 @@ class Types {
           [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
           [returnType]);
 
-      return AsCheckerCallTarget(translator, signature, testedAgainstType,
-          operandIsNullable, checkArguments, argumentCount);
+      return AsCheckerCallTarget(translator, callingModule, signature,
+          testedAgainstType, operandIsNullable, checkArguments, argumentCount);
     });
   }
 }
@@ -640,16 +708,25 @@ class Types {
 int encodedNullability(DartType type) =>
     type.declaredNullability == Nullability.nullable ? 1 : 0;
 
+int encodedBool(bool value) => value ? 1 : 0;
+
 class IsCheckerCallTarget extends CallTarget {
   final Translator translator;
 
+  final w.ModuleBuilder callingModule;
   final InterfaceType testedAgainstType;
   final bool operandIsNullable;
   final bool checkArguments;
   final int argumentCount;
 
-  IsCheckerCallTarget(this.translator, super.signature, this.testedAgainstType,
-      this.operandIsNullable, this.checkArguments, this.argumentCount);
+  IsCheckerCallTarget(
+      this.translator,
+      this.callingModule,
+      super.signature,
+      this.testedAgainstType,
+      this.operandIsNullable,
+      this.checkArguments,
+      this.argumentCount);
 
   @override
   String get name {
@@ -689,8 +766,8 @@ class IsCheckerCallTarget extends CallTarget {
 
   @override
   late final w.BaseFunction function = (() {
-    final function = translator.m.functions.define(
-        translator.m.types.defineFunction(
+    final function = callingModule.functions.define(
+        translator.typesBuilder.defineFunction(
           signature.inputs,
           signature.outputs,
         ),
@@ -740,7 +817,9 @@ class IsCheckerCodeGenerator implements CodeGenerator {
       // performance.
       const bool forceInline = true;
       b.invoke(
-          translator.types._generateIsChecker(testedAgainstType, false, false),
+          translator.types
+              .isCheckersForModule(b.module)
+              .generateIsChecker(testedAgainstType, false, false),
           forceInline: forceInline);
       b.local_set(boolTemp);
 
@@ -821,13 +900,20 @@ class IsCheckerCodeGenerator implements CodeGenerator {
 class AsCheckerCallTarget extends CallTarget {
   final Translator translator;
 
+  final w.ModuleBuilder callingModule;
   final InterfaceType testedAgainstType;
   final bool operandIsNullable;
   final bool checkArguments;
   final int argumentCount;
 
-  AsCheckerCallTarget(this.translator, super.signature, this.testedAgainstType,
-      this.operandIsNullable, this.checkArguments, this.argumentCount);
+  AsCheckerCallTarget(
+      this.translator,
+      this.callingModule,
+      super.signature,
+      this.testedAgainstType,
+      this.operandIsNullable,
+      this.checkArguments,
+      this.argumentCount);
 
   @override
   String get name {
@@ -839,8 +925,8 @@ class AsCheckerCallTarget extends CallTarget {
 
   @override
   late final w.BaseFunction function = (() {
-    final function = translator.m.functions.define(
-        translator.m.types.defineFunction(
+    final function = callingModule.functions.define(
+        translator.typesBuilder.defineFunction(
           signature.inputs,
           signature.outputs,
         ),
@@ -890,7 +976,7 @@ class AsCheckerCodeGenerator implements CodeGenerator {
     // performance.
     const bool forceInline = true;
     b.invoke(
-        translator.types._generateIsChecker(
+        translator.types.isCheckersForModule(b.module).generateIsChecker(
             testedAgainstType, checkArguments, operandIsNullable),
         forceInline: forceInline);
     b.br_if(asCheckBlock);
@@ -903,20 +989,20 @@ class AsCheckerCodeGenerator implements CodeGenerator {
       b.i32_const(testedAgainstClassId);
       if (argumentCount == 1) {
         b.local_get(b.locals[1]);
-        b.call(translator.functions
-            .getFunction(translator.throwInterfaceTypeAsCheckError1.reference));
+        translator.callReference(
+            translator.throwInterfaceTypeAsCheckError1.reference, b);
       } else if (argumentCount == 2) {
         b.local_get(b.locals[1]);
         b.local_get(b.locals[2]);
-        b.call(translator.functions
-            .getFunction(translator.throwInterfaceTypeAsCheckError2.reference));
+        translator.callReference(
+            translator.throwInterfaceTypeAsCheckError2.reference, b);
       } else {
         for (int i = 0; i < argumentCount; ++i) {
           b.local_get(b.locals[1 + i]);
         }
         b.array_new_fixed(translator.types.typeArrayArrayType, argumentCount);
-        b.call(translator.functions
-            .getFunction(translator.throwInterfaceTypeAsCheckError.reference));
+        translator.callReference(
+            translator.throwInterfaceTypeAsCheckError.reference, b);
       }
     } else {
       b.local_get(b.locals[0]);
@@ -924,8 +1010,7 @@ class AsCheckerCodeGenerator implements CodeGenerator {
           b,
           TypeLiteralConstant(testedAgainstType),
           translator.types.nonNullableTypeType);
-      b.call(translator.functions
-          .getFunction(translator.throwAsCheckError.reference));
+      translator.callReference(translator.throwAsCheckError.reference, b);
     }
     b.unreachable();
 

@@ -477,6 +477,7 @@ class Object {
   V(Bytecode, implicit_getter_bytecode)                                        \
   V(Bytecode, implicit_setter_bytecode)                                        \
   V(Bytecode, implicit_static_getter_bytecode)                                 \
+  V(Bytecode, implicit_static_setter_bytecode)                                 \
   V(Bytecode, method_extractor_bytecode)                                       \
   V(Bytecode, invoke_closure_bytecode)                                         \
   V(Bytecode, invoke_field_bytecode)                                           \
@@ -2046,108 +2047,71 @@ class Class : public Object {
     kConstructor,
     kFactory,
   };
-  enum StateBits {
-    kConstBit = 0,
-    kImplementedBit = 1,
-    kClassFinalizedPos = 2,
-    kClassFinalizedSize = 2,
-    kClassLoadingPos = kClassFinalizedPos + kClassFinalizedSize,  // = 4
-    kClassLoadingSize = 2,
-    kAbstractBit = kClassLoadingPos + kClassLoadingSize,  // = 6
-    kSynthesizedClassBit,
-    kMixinAppAliasBit,
-    kMixinTypeAppliedBit,
-    kFieldsMarkedNullableBit,
-    kEnumBit,
-    kTransformedMixinApplicationBit,
-    kIsAllocatedBit,
-    kIsLoadedBit,
-    kHasPragmaBit,
-    kSealedBit,
-    kMixinClassBit,
-    kBaseClassBit,
-    kInterfaceClassBit,
-    kFinalBit,
-    // Whether instances of the class cannot be sent across ports.
-    //
-    // Will be true iff
-    //    - class is marked with `@pragma('vm:isolate-unsendable')
-    //    - super class / super interface classes are marked as unsendable.
-    //    - class has native fields.
-    kIsIsolateUnsendableBit,
-    // True if this class has `@pragma('vm:isolate-unsendable')` annotation or
-    // base class or implemented interfaces has this bit.
-    kIsIsolateUnsendableDueToPragmaBit,
-    // Will be set to 1 for the following classes:
-    //
-    // 1. Deeply immutable class.
-    //    a. Statically guaranteed deeply immutable classes.
-    //       `@pragma('vm:deeply-immutable')`.
-    //    b. VM recognized deeply immutable classes.
-    //       `IsDeeplyImmutableCid(intptr_t predefined_cid)`.
-    //
-    // See also ImmutableBit in raw_object.h.
-    kIsDeeplyImmutableBit,
-    // This class is a subtype of Future.
-    kIsFutureSubtypeBit,
-    // This class has a non-abstract subtype which is a subtype of Future.
-    // It means that variable of static type based on this class may hold
-    // a Future instance.
-    kCanBeFutureBit,
-    // This class can be extended, implemented or mixed-in by
-    // a dynamically loaded class.
-    kIsDynamicallyExtendableBit,
-    // This class has a dynamically extendable subtype.
-    kHasDynamicallyExtendableSubtypesBit,
-    // This class was loaded from bytecode at runtime.
-    kIsDeclaredInBytecodeBit,
-  };
-  class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
-  class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
-  class ClassFinalizedBits : public BitField<uint32_t,
-                                             UntaggedClass::ClassFinalizedState,
-                                             kClassFinalizedPos,
-                                             kClassFinalizedSize> {};
-  class ClassLoadingBits : public BitField<uint32_t,
-                                           UntaggedClass::ClassLoadingState,
-                                           kClassLoadingPos,
-                                           kClassLoadingSize> {};
-  class AbstractBit : public BitField<uint32_t, bool, kAbstractBit, 1> {};
-  class SynthesizedClassBit
-      : public BitField<uint32_t, bool, kSynthesizedClassBit, 1> {};
-  class FieldsMarkedNullableBit
-      : public BitField<uint32_t, bool, kFieldsMarkedNullableBit, 1> {};
-  class EnumBit : public BitField<uint32_t, bool, kEnumBit, 1> {};
-  class TransformedMixinApplicationBit
-      : public BitField<uint32_t, bool, kTransformedMixinApplicationBit, 1> {};
-  class IsAllocatedBit : public BitField<uint32_t, bool, kIsAllocatedBit, 1> {};
-  class IsLoadedBit : public BitField<uint32_t, bool, kIsLoadedBit, 1> {};
-  class HasPragmaBit : public BitField<uint32_t, bool, kHasPragmaBit, 1> {};
-  class SealedBit : public BitField<uint32_t, bool, kSealedBit, 1> {};
-  class MixinClassBit : public BitField<uint32_t, bool, kMixinClassBit, 1> {};
-  class BaseClassBit : public BitField<uint32_t, bool, kBaseClassBit, 1> {};
-  class InterfaceClassBit
-      : public BitField<uint32_t, bool, kInterfaceClassBit, 1> {};
-  class FinalBit : public BitField<uint32_t, bool, kFinalBit, 1> {};
-  class IsIsolateUnsendableBit
-      : public BitField<uint32_t, bool, kIsIsolateUnsendableBit, 1> {};
-  class IsIsolateUnsendableDueToPragmaBit
-      : public BitField<uint32_t, bool, kIsIsolateUnsendableDueToPragmaBit, 1> {
-  };
-  class IsDeeplyImmutableBit
-      : public BitField<uint32_t, bool, kIsDeeplyImmutableBit, 1> {};
-  class IsFutureSubtypeBit
-      : public BitField<uint32_t, bool, kIsFutureSubtypeBit, 1> {};
-  class CanBeFutureBit : public BitField<uint32_t, bool, kCanBeFutureBit, 1> {};
-  class IsDynamicallyExtendableBit
-      : public BitField<uint32_t, bool, kIsDynamicallyExtendableBit, 1> {};
-  class HasDynamicallyExtendableSubtypesBit
-      : public BitField<uint32_t,
-                        bool,
-                        kHasDynamicallyExtendableSubtypesBit,
-                        1> {};
-  class IsDeclaredInBytecodeBit
-      : public BitField<uint32_t, bool, kIsDeclaredInBytecodeBit, 1> {};
+  using ConstBit = BitField<uint32_t, bool>;
+  using ImplementedBit = BitField<uint32_t, bool, ConstBit::kNextBit>;
+  using ClassFinalizedBits = BitField<uint32_t,
+                                      UntaggedClass::ClassFinalizedState,
+                                      ImplementedBit::kNextBit,
+                                      2>;
+  using ClassLoadingBits = BitField<uint32_t,
+                                    UntaggedClass::ClassLoadingState,
+                                    ClassFinalizedBits::kNextBit,
+                                    2>;
+  using AbstractBit = BitField<uint32_t, bool, ClassLoadingBits::kNextBit>;
+  using SynthesizedClassBit = BitField<uint32_t, bool, AbstractBit::kNextBit>;
+  using FieldsMarkedNullableBit =
+      BitField<uint32_t, bool, SynthesizedClassBit::kNextBit>;
+  using EnumBit = BitField<uint32_t, bool, FieldsMarkedNullableBit::kNextBit>;
+  using TransformedMixinApplicationBit =
+      BitField<uint32_t, bool, EnumBit::kNextBit>;
+  using IsAllocatedBit =
+      BitField<uint32_t, bool, TransformedMixinApplicationBit::kNextBit>;
+  using IsLoadedBit = BitField<uint32_t, bool, IsAllocatedBit::kNextBit>;
+  using HasPragmaBit = BitField<uint32_t, bool, IsLoadedBit::kNextBit>;
+  using SealedBit = BitField<uint32_t, bool, HasPragmaBit::kNextBit>;
+  using MixinClassBit = BitField<uint32_t, bool, SealedBit::kNextBit>;
+  using BaseClassBit = BitField<uint32_t, bool, MixinClassBit::kNextBit>;
+  using InterfaceClassBit = BitField<uint32_t, bool, BaseClassBit::kNextBit>;
+  using FinalBit = BitField<uint32_t, bool, InterfaceClassBit::kNextBit>;
+  // Whether instances of the class cannot be sent across ports.
+  //
+  // Will be true iff
+  //    - class is marked with `@pragma('vm:isolate-unsendable')
+  //    - super class / super interface classes are marked as unsendable.
+  //    - class has native fields.
+  using IsIsolateUnsendableBit = BitField<uint32_t, bool, FinalBit::kNextBit>;
+  // True if this class has `@pragma('vm:isolate-unsendable')` annotation or
+  // base class or implemented interfaces has this bit.
+  using IsIsolateUnsendableDueToPragmaBit =
+      BitField<uint32_t, bool, IsIsolateUnsendableBit::kNextBit>;
+  // Will be set to 1 for the following classes:
+  //
+  // 1. Deeply immutable class.
+  //    a. Statically guaranteed deeply immutable classes.
+  //       `@pragma('vm:deeply-immutable')`.
+  //    b. VM recognized deeply immutable classes.
+  //       `IsDeeplyImmutableCid(intptr_t predefined_cid)`.
+  //
+  // See also ImmutableBit in raw_object.h.
+  using IsDeeplyImmutableBit =
+      BitField<uint32_t, bool, IsIsolateUnsendableDueToPragmaBit::kNextBit>;
+  // This class is a subtype of Future.
+  using IsFutureSubtypeBit =
+      BitField<uint32_t, bool, IsDeeplyImmutableBit::kNextBit>;
+  // This class has a non-abstract subtype which is a subtype of Future.
+  // It means that variable of static type based on this class may hold
+  // a Future instance.
+  using CanBeFutureBit = BitField<uint32_t, bool, IsFutureSubtypeBit::kNextBit>;
+  // This class can be extended, implemented or mixed-in by
+  // a dynamically loaded class.
+  using IsDynamicallyExtendableBit =
+      BitField<uint32_t, bool, CanBeFutureBit::kNextBit>;
+  // This class has a dynamically extendable subtype.
+  using HasDynamicallyExtendableSubtypesBit =
+      BitField<uint32_t, bool, IsDynamicallyExtendableBit::kNextBit>;
+  // This class was loaded from bytecode at runtime.
+  using IsDeclaredInBytecodeBit =
+      BitField<uint32_t, bool, HasDynamicallyExtendableSubtypesBit::kNextBit>;
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -2612,10 +2576,10 @@ class ICData : public CallSiteData {
     return OFFSET_OF(UntaggedICData, state_bits_);
   }
 
-  static intptr_t NumArgsTestedShift() { return kNumArgsTestedPos; }
+  static intptr_t NumArgsTestedShift() { return NumArgsTestedBits::shift(); }
 
   static intptr_t NumArgsTestedMask() {
-    return ((1 << kNumArgsTestedSize) - 1) << kNumArgsTestedPos;
+    return NumArgsTestedBits::mask_in_place();
   }
 
   static intptr_t entries_offset() {
@@ -2873,48 +2837,25 @@ class ICData : public CallSiteData {
 
   bool ValidateInterceptor(const Function& target) const;
 
-  enum {
-    kNumArgsTestedPos = 0,
-    kNumArgsTestedSize = 2,
-    kTrackingExactnessPos = kNumArgsTestedPos + kNumArgsTestedSize,
-    kTrackingExactnessSize = 1,
-    kDeoptReasonPos = kTrackingExactnessPos + kTrackingExactnessSize,
-    kDeoptReasonSize = kLastRecordedDeoptReason + 1,
-    kRebindRulePos = kDeoptReasonPos + kDeoptReasonSize,
-    kRebindRuleSize = 3,
-    kMegamorphicPos = kRebindRulePos + kRebindRuleSize,
-    kMegamorphicSize = 1,
-    kReceiverCannotBeSmiPos = kMegamorphicPos + kMegamorphicSize,
-    kReceiverCannotBeSmiSize = 1,
-  };
-
-  COMPILE_ASSERT(kReceiverCannotBeSmiPos + kReceiverCannotBeSmiSize <=
-                 sizeof(UntaggedICData::state_bits_) * kBitsPerWord);
-  COMPILE_ASSERT(kNumRebindRules <= (1 << kRebindRuleSize));
-
-  class NumArgsTestedBits : public BitField<uint32_t,
-                                            uint32_t,
-                                            kNumArgsTestedPos,
-                                            kNumArgsTestedSize> {};
-  class TrackingExactnessBit : public BitField<uint32_t,
-                                               bool,
-                                               kTrackingExactnessPos,
-                                               kTrackingExactnessSize> {};
-  class DeoptReasonBits : public BitField<uint32_t,
-                                          uint32_t,
-                                          ICData::kDeoptReasonPos,
-                                          ICData::kDeoptReasonSize> {};
-  class RebindRuleBits : public BitField<uint32_t,
-                                         uint32_t,
-                                         ICData::kRebindRulePos,
-                                         ICData::kRebindRuleSize> {};
-  class MegamorphicBit
-      : public BitField<uint32_t, bool, kMegamorphicPos, kMegamorphicSize> {};
-
-  class ReceiverCannotBeSmiBit : public BitField<uint32_t,
-                                                 bool,
-                                                 kReceiverCannotBeSmiPos,
-                                                 kReceiverCannotBeSmiSize> {};
+  using NumArgsTestedBits =
+      BitField<decltype(UntaggedICData::state_bits_), uint32_t, 0, 2>;
+  using TrackingExactnessBit = BitField<decltype(UntaggedICData::state_bits_),
+                                        bool,
+                                        NumArgsTestedBits::kNextBit>;
+  using DeoptReasonBits = BitField<decltype(UntaggedICData::state_bits_),
+                                   uint32_t,
+                                   TrackingExactnessBit::kNextBit,
+                                   kLastRecordedDeoptReason + 1>;
+  using RebindRuleBits = BitField<decltype(UntaggedICData::state_bits_),
+                                  uint32_t,
+                                  DeoptReasonBits::kNextBit,
+                                  Utils::BitLength(kNumRebindRules - 1)>;
+  using MegamorphicBit = BitField<decltype(UntaggedICData::state_bits_),
+                                  bool,
+                                  RebindRuleBits::kNextBit>;
+  using ReceiverCannotBeSmiBit = BitField<decltype(UntaggedICData::state_bits_),
+                                          bool,
+                                          MegamorphicBit::kNextBit>;
 
 #if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.
@@ -3106,7 +3047,8 @@ class Function : public Object {
 
   bool IsPrivate() const;
 
-  ClassPtr Owner() const;
+  ClassPtr Owner() const { return Owner(ptr()); }
+  static ClassPtr Owner(FunctionPtr function);
   void set_owner(const Object& value) const;
   ScriptPtr script() const;
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3534,15 +3476,6 @@ class Function : public Object {
   // Returns the size of the source for this function.
   intptr_t SourceSize() const;
 
-  uint32_t packed_fields() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    return untag()->packed_fields_;
-#endif
-  }
-  void set_packed_fields(uint32_t packed_fields) const;
-
   // Returns the number of required positional parameters.
   intptr_t num_fixed_parameters() const;
   // Returns the number of optional parameters, whether positional or named.
@@ -3651,7 +3584,16 @@ class Function : public Object {
   TypedDataViewPtr KernelLibrary() const;
 
   bool IsOptimizable() const;
-  void SetIsOptimizable(bool value) const;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void SetIsOptimizable(bool value) const {
+    ASSERT(!is_native());
+    set_is_optimizable(value);
+    if (!value) {
+      set_is_inlinable(false);
+      set_usage_counter(INT32_MIN);
+    }
+  }
+#endif
 
   // Whether this function must be optimized immediately and cannot be compiled
   // with the unoptimizing compiler. Such a function must be sure to not
@@ -4169,7 +4111,7 @@ class Function : public Object {
 #undef DECLARE_FLAG_POS
   };
 #define DEFINE_FLAG_BIT(Name)                                                  \
-  class Name##Bit : public BitField<uint8_t, bool, k##Name##Pos, 1> {};
+  using Name##Bit = BitField<uint8_t, bool, k##Name##Pos>;
   STATE_BITS_LIST(DEFINE_FLAG_BIT)
 #undef DEFINE_FLAG_BIT
 
@@ -4270,61 +4212,39 @@ class Function : public Object {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return false;
 #else
-    return untag()->packed_fields_.Read<UntaggedFunction::PackedOptimizable>();
+    return untag()->is_optimizable_.load(std::memory_order_relaxed);
 #endif
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
   void set_is_optimizable(bool value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    untag()->packed_fields_.UpdateBool<UntaggedFunction::PackedOptimizable>(
-        value);
-#endif
+    untag()->is_optimizable_.store(value, std::memory_order_relaxed);
   }
+#endif
+
+  using KindBits = BitField<decltype(UntaggedFunction::kind_tag_),
+                            UntaggedFunction::Kind,
+                            0,
+                            UntaggedFunction::kKindBitSize>;
+  using RecognizedBits = BitField<decltype(UntaggedFunction::kind_tag_),
+                                  MethodRecognizer::Kind,
+                                  KindBits::kNextBit,
+                                  MethodRecognizer::kKindBitSize>;
+  using ModifierBits = BitField<decltype(UntaggedFunction::kind_tag_),
+                                UntaggedFunction::AsyncModifier,
+                                RecognizedBits::kNextBit,
+                                UntaggedFunction::kAsyncModifierBitSize>;
 
   enum KindTagBits {
-    kKindTagPos = 0,
-    kKindTagSize = 5,
-    kRecognizedTagPos = kKindTagPos + kKindTagSize,
-    kRecognizedTagSize = 9,
-    kModifierPos = kRecognizedTagPos + kRecognizedTagSize,
-    kModifierSize = 2,
-    kLastModifierBitPos = kModifierPos + (kModifierSize - 1),
 // Single bit sized fields start here.
 #define DECLARE_BIT(name, _) k##name##Bit,
     FOR_EACH_FUNCTION_KIND_BIT(DECLARE_BIT)
         FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DECLARE_BIT)
 #undef DECLARE_BIT
-            kNumTagBits
   };
 
-  COMPILE_ASSERT(MethodRecognizer::kNumRecognizedMethods <
-                 (1 << kRecognizedTagSize));
-  COMPILE_ASSERT(kNumTagBits <=
-                 (kBitsPerByte *
-                  sizeof(decltype(UntaggedFunction::kind_tag_))));
-
-#define ASSERT_FUNCTION_KIND_IN_RANGE(Name)                                    \
-  COMPILE_ASSERT(UntaggedFunction::k##Name < (1 << kKindTagSize));
-  FOR_EACH_RAW_FUNCTION_KIND(ASSERT_FUNCTION_KIND_IN_RANGE)
-#undef ASSERT_FUNCTION_KIND_IN_RANGE
-
-  class KindBits : public BitField<uint32_t,
-                                   UntaggedFunction::Kind,
-                                   kKindTagPos,
-                                   kKindTagSize> {};
-
-  class RecognizedBits : public BitField<uint32_t,
-                                         MethodRecognizer::Kind,
-                                         kRecognizedTagPos,
-                                         kRecognizedTagSize> {};
-  class ModifierBits : public BitField<uint32_t,
-                                       UntaggedFunction::AsyncModifier,
-                                       kModifierPos,
-                                       kModifierSize> {};
-
 #define DEFINE_BIT(name, _)                                                    \
-  class name##Bit : public BitField<uint32_t, bool, k##name##Bit, 1> {};
+  using name##Bit = BitField<decltype(UntaggedFunction::kind_tag_), bool,      \
+                             ModifierBits::kNextBit + k##name##Bit>;
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
   FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DEFINE_BIT)
 #undef DEFINE_BIT
@@ -4501,65 +4421,62 @@ class Field : public Object {
   const char* UserVisibleNameCString() const;
   virtual StringPtr DictionaryName() const { return name(); }
 
-  uint16_t kind_bits() const {
-    return LoadNonPointer<uint16_t, std::memory_order_acquire>(
-        &untag()->kind_bits_);
-  }
-
-  bool is_static() const { return StaticBit::decode(kind_bits()); }
+  bool is_static() const { return untag()->kind_bits_.Read<StaticBit>(); }
   bool is_instance() const { return !is_static(); }
-  bool is_final() const { return FinalBit::decode(kind_bits()); }
-  bool is_const() const { return ConstBit::decode(kind_bits()); }
-  bool is_late() const { return IsLateBit::decode(kind_bits()); }
+  bool is_final() const { return untag()->kind_bits_.Read<FinalBit>(); }
+  bool is_const() const { return untag()->kind_bits_.Read<ConstBit>(); }
+  bool is_late() const { return untag()->kind_bits_.Read<IsLateBit>(); }
   bool is_extension_member() const {
-    return IsExtensionMemberBit::decode(kind_bits());
+    return untag()->kind_bits_.Read<IsExtensionMemberBit>();
   }
   bool is_extension_type_member() const {
-    return IsExtensionTypeMemberBit::decode(kind_bits());
+    return untag()->kind_bits_.Read<IsExtensionTypeMemberBit>();
   }
   bool needs_load_guard() const {
-    return NeedsLoadGuardBit::decode(kind_bits());
+    return untag()->kind_bits_.Read<NeedsLoadGuardBit>();
   }
-  bool is_reflectable() const { return ReflectableBit::decode(kind_bits()); }
+  bool is_reflectable() const {
+    return untag()->kind_bits_.Read<ReflectableBit>();
+  }
   void set_is_reflectable(bool value) const {
     ASSERT(IsOriginal());
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(ReflectableBit::update(value, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<ReflectableBit>(value);
   }
 
   bool initializer_changed_after_initialization() const {
-    return InitializerChangedAfterInitializationBit::decode(kind_bits());
+    return untag()->kind_bits_.Read<InitializerChangedAfterInitializationBit>();
   }
   void set_initializer_changed_after_initialization(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(InitializerChangedAfterInitializationBit::update(
-        value, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<InitializerChangedAfterInitializationBit>(
+        value);
   }
 
-  bool has_pragma() const { return HasPragmaBit::decode(kind_bits()); }
+  bool has_pragma() const { return untag()->kind_bits_.Read<HasPragmaBit>(); }
   void set_has_pragma(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(HasPragmaBit::update(value, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<HasPragmaBit>(value);
   }
 
-  bool is_covariant() const { return CovariantBit::decode(kind_bits()); }
+  bool is_covariant() const { return untag()->kind_bits_.Read<CovariantBit>(); }
   void set_is_covariant(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(CovariantBit::update(value, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<CovariantBit>(value);
   }
 
   bool is_generic_covariant_impl() const {
-    return GenericCovariantImplBit::decode(kind_bits());
+    return untag()->kind_bits_.Read<GenericCovariantImplBit>();
   }
   void set_is_generic_covariant_impl(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(GenericCovariantImplBit::update(value, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<GenericCovariantImplBit>(value);
   }
 
   void set_is_shared(bool value) const {
-    set_kind_bits(SharedBit::update(value, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<SharedBit>(value);
   }
-  bool is_shared() const { return SharedBit::decode(kind_bits()); }
+  bool is_shared() const { return untag()->kind_bits_.Read<SharedBit>(); }
 
 #if defined(DART_DYNAMIC_MODULES)
   bool is_declared_in_bytecode() const;
@@ -4669,15 +4586,15 @@ class Field : public Object {
   StringPtr InitializingExpression() const;
 
   bool has_nontrivial_initializer() const {
-    return HasNontrivialInitializerBit::decode(kind_bits());
+    return untag()->kind_bits_.Read<HasNontrivialInitializerBit>();
   }
   // Called by parser after allocating field.
   void set_has_nontrivial_initializer_unsafe(
       bool has_nontrivial_initializer) const {
     ASSERT(IsOriginal());
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(HasNontrivialInitializerBit::update(
-        has_nontrivial_initializer, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<HasNontrivialInitializerBit>(
+        has_nontrivial_initializer);
   }
   void set_has_nontrivial_initializer(bool has_nontrivial_initializer) const {
     DEBUG_ASSERT(
@@ -4686,14 +4603,13 @@ class Field : public Object {
   }
 
   bool has_initializer() const {
-    return HasInitializerBit::decode(kind_bits());
+    return untag()->kind_bits_.Read<HasInitializerBit>();
   }
   // Called by parser after allocating field.
   void set_has_initializer_unsafe(bool has_initializer) const {
     ASSERT(IsOriginal());
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(
-        HasInitializerBit::update(has_initializer, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<HasInitializerBit>(has_initializer);
   }
   void set_has_initializer(bool has_initializer) const {
     DEBUG_ASSERT(
@@ -4784,12 +4700,12 @@ class Field : public Object {
 
   const char* GuardedPropertiesAsCString() const;
 
-  bool is_unboxed() const { return UnboxedBit::decode(kind_bits()); }
+  bool is_unboxed() const { return untag()->kind_bits_.Read<UnboxedBit>(); }
 
   // Field unboxing decisions are based either on static types (JIT) or
   // inferred types (AOT). See the callers of this function.
   void set_is_unboxed_unsafe(bool b) const {
-    set_kind_bits(UnboxedBit::update(b, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<UnboxedBit>(b);
   }
 
   void set_is_unboxed(bool b) const {
@@ -4805,19 +4721,19 @@ class Field : public Object {
   };
   void set_is_late(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(IsLateBit::update(value, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<IsLateBit>(value);
   }
   void set_is_extension_member(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(IsExtensionMemberBit::update(value, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<IsExtensionMemberBit>(value);
   }
   void set_is_extension_type_member(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(IsExtensionTypeMemberBit::update(value, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<IsExtensionTypeMemberBit>(value);
   }
   void set_needs_load_guard(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(NeedsLoadGuardBit::update(value, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<NeedsLoadGuardBit>(value);
   }
   // Returns false if any value read from this field is guaranteed to be
   // not null.
@@ -4925,50 +4841,49 @@ class Field : public Object {
   friend class Interpreter;      // Access to bit field.
   friend class StoreFieldInstr;  // Generated code access to bit field.
 
-  enum {
-    kConstBit = 0,
-    kStaticBit,
-    kFinalBit,
-    kHasNontrivialInitializerBit,
-    kUnboxedBit,
-    kReflectableBit,
-    kInitializerChangedAfterInitializationBit,
-    kHasPragmaBit,
-    kCovariantBit,
-    kGenericCovariantImplBit,
-    kIsLateBit,
-    kIsExtensionMemberBit,
-    kIsExtensionTypeMemberBit,
-    kNeedsLoadGuardBit,
-    kHasInitializerBit,
-    kSharedBit,
-  };
-  class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
-  class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
-  class FinalBit : public BitField<uint16_t, bool, kFinalBit, 1> {};
-  class HasNontrivialInitializerBit
-      : public BitField<uint16_t, bool, kHasNontrivialInitializerBit, 1> {};
-  class UnboxedBit : public BitField<uint16_t, bool, kUnboxedBit, 1> {};
-  class ReflectableBit : public BitField<uint16_t, bool, kReflectableBit, 1> {};
-  class InitializerChangedAfterInitializationBit
-      : public BitField<uint16_t,
-                        bool,
-                        kInitializerChangedAfterInitializationBit,
-                        1> {};
-  class HasPragmaBit : public BitField<uint16_t, bool, kHasPragmaBit, 1> {};
-  class CovariantBit : public BitField<uint16_t, bool, kCovariantBit, 1> {};
-  class GenericCovariantImplBit
-      : public BitField<uint16_t, bool, kGenericCovariantImplBit, 1> {};
-  class IsLateBit : public BitField<uint16_t, bool, kIsLateBit, 1> {};
-  class IsExtensionMemberBit
-      : public BitField<uint16_t, bool, kIsExtensionMemberBit, 1> {};
-  class IsExtensionTypeMemberBit
-      : public BitField<uint16_t, bool, kIsExtensionTypeMemberBit, 1> {};
-  class NeedsLoadGuardBit
-      : public BitField<uint16_t, bool, kNeedsLoadGuardBit, 1> {};
-  class HasInitializerBit
-      : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
-  class SharedBit : public BitField<uint16_t, bool, kSharedBit, 1> {};
+  using ConstBit = BitField<decltype(UntaggedField::kind_bits_), bool>;
+  using StaticBit =
+      BitField<decltype(UntaggedField::kind_bits_), bool, ConstBit::kNextBit>;
+  using FinalBit =
+      BitField<decltype(UntaggedField::kind_bits_), bool, StaticBit::kNextBit>;
+  using HasNontrivialInitializerBit =
+      BitField<decltype(UntaggedField::kind_bits_), bool, FinalBit::kNextBit>;
+  using UnboxedBit = BitField<decltype(UntaggedField::kind_bits_),
+                              bool,
+                              HasNontrivialInitializerBit::kNextBit>;
+  using ReflectableBit =
+      BitField<decltype(UntaggedField::kind_bits_), bool, UnboxedBit::kNextBit>;
+  using InitializerChangedAfterInitializationBit =
+      BitField<decltype(UntaggedField::kind_bits_),
+               bool,
+               ReflectableBit::kNextBit>;
+  using HasPragmaBit =
+      BitField<decltype(UntaggedField::kind_bits_),
+               bool,
+               InitializerChangedAfterInitializationBit::kNextBit>;
+  using CovariantBit = BitField<decltype(UntaggedField::kind_bits_),
+                                bool,
+                                HasPragmaBit::kNextBit>;
+  using GenericCovariantImplBit = BitField<decltype(UntaggedField::kind_bits_),
+                                           bool,
+                                           CovariantBit::kNextBit>;
+  using IsLateBit = BitField<decltype(UntaggedField::kind_bits_),
+                             bool,
+                             GenericCovariantImplBit::kNextBit>;
+  using IsExtensionMemberBit =
+      BitField<decltype(UntaggedField::kind_bits_), bool, IsLateBit::kNextBit>;
+  using IsExtensionTypeMemberBit = BitField<decltype(UntaggedField::kind_bits_),
+                                            bool,
+                                            IsExtensionMemberBit::kNextBit>;
+  using NeedsLoadGuardBit = BitField<decltype(UntaggedField::kind_bits_),
+                                     bool,
+                                     IsExtensionTypeMemberBit::kNextBit>;
+  using HasInitializerBit = BitField<decltype(UntaggedField::kind_bits_),
+                                     bool,
+                                     NeedsLoadGuardBit::kNextBit>;
+  using SharedBit = BitField<decltype(UntaggedField::kind_bits_),
+                             bool,
+                             HasInitializerBit::kNextBit>;
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
@@ -4976,15 +4891,15 @@ class Field : public Object {
   void set_name(const String& value) const;
   void set_is_static(bool is_static) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(StaticBit::update(is_static, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<StaticBit>(is_static);
   }
   void set_is_final(bool is_final) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(FinalBit::update(is_final, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<FinalBit>(is_final);
   }
   void set_is_const(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(ConstBit::update(value, untag()->kind_bits_));
+    untag()->kind_bits_.UpdateBool<ConstBit>(value);
   }
   void set_owner(const Object& value) const { untag()->set_owner(value.ptr()); }
   void set_token_pos(TokenPosition token_pos) const {
@@ -4992,10 +4907,6 @@ class Field : public Object {
   }
   void set_end_token_pos(TokenPosition token_pos) const {
     StoreNonPointer(&untag()->end_token_pos_, token_pos);
-  }
-  void set_kind_bits(uint16_t value) const {
-    StoreNonPointer<uint16_t, uint16_t, std::memory_order_release>(
-        &untag()->kind_bits_, value);
   }
 
   static FieldPtr New();
@@ -5787,13 +5698,6 @@ class ObjectPool : public Object {
 
 class Instructions : public Object {
  public:
-  enum {
-    kSizePos = 0,
-    kSizeSize = 30,
-    kFlagsPos = kSizePos + kSizeSize,
-    kFlagsSize = kBitsPerInt32 - kSizeSize,
-  };
-
 #define INSTRUCTIONS_FLAGS_LIST(V)                                             \
   V(HasMonomorphicEntry)                                                       \
   V(ShouldBeAligned)
@@ -5804,11 +5708,9 @@ class Instructions : public Object {
 #undef DEFINE_INSTRUCTIONS_FLAG
   };
 
-  class SizeBits : public BitField<uint32_t, uint32_t, kSizePos, kSizeSize> {};
-
 #define DEFINE_INSTRUCTIONS_FLAG_HANDLING(Name)                                \
-  class Name##Bit                                                              \
-      : public BitField<uint32_t, bool, kFlagsPos + k##Name##Index, 1> {};     \
+  using Name##Bit = BitField<decltype(UntaggedInstructions::size_and_flags_),  \
+                             bool, k##Name##Index>;                            \
   bool Name() const { return Name##Bit::decode(untag()->size_and_flags_); }    \
   static bool Name(const InstructionsPtr instr) {                              \
     return Name##Bit::decode(instr->untag()->size_and_flags_);                 \
@@ -5817,6 +5719,10 @@ class Instructions : public Object {
   INSTRUCTIONS_FLAGS_LIST(DEFINE_INSTRUCTIONS_FLAG_HANDLING)
 
 #undef DEFINE_INSTRUCTIONS_FLAG_HANDLING
+
+  using SizeBits = BitField<decltype(UntaggedInstructions::size_and_flags_),
+                            uint32_t,
+                            ShouldBeAlignedBit::kNextBit>;
 
   // Excludes HeaderSize().
   intptr_t Size() const { return SizeBits::decode(untag()->size_and_flags_); }
@@ -6132,7 +6038,7 @@ class LocalVarDescriptors : public Object {
   static constexpr intptr_t kBytesPerElement =
       sizeof(UntaggedLocalVarDescriptors::VarInfo);
   static constexpr intptr_t kMaxElements =
-      UntaggedLocalVarDescriptors::kMaxIndex;
+      UntaggedLocalVarDescriptors::VarInfo::kMaxIndex;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedLocalVarDescriptors) ==
@@ -7053,11 +6959,19 @@ class Code : public Object {
     kPcRelativeTailCall = 3,
     kCallViaCode = 4,
   };
+  using KindField =
+      BitField<intptr_t, CallKind, 0, Utils::BitLength(kCallViaCode)>;
 
   enum CallEntryPoint {
     kDefaultEntry,
     kUncheckedEntry,
   };
+  using EntryPointField = BitField<intptr_t,
+                                   CallEntryPoint,
+                                   KindField::kNextBit,
+                                   Utils::BitLength(kUncheckedEntry)>;
+
+  using OffsetField = BitField<intptr_t, intptr_t, EntryPointField::kNextBit>;
 
   enum SCallTableEntry {
     kSCallTableKindAndOffset = 0,
@@ -7070,12 +6984,6 @@ class Code : public Object {
     kAttachPool,
     kNotAttachPool,
   };
-
-  class KindField : public BitField<intptr_t, CallKind, 0, 3> {};
-  class EntryPointField
-      : public BitField<intptr_t, CallEntryPoint, KindField::kNextBit, 1> {};
-  class OffsetField
-      : public BitField<intptr_t, intptr_t, EntryPointField::kNextBit, 26> {};
 
   void set_static_calls_target_table(const Array& value) const;
   ArrayPtr static_calls_target_table() const {
@@ -7358,32 +7266,28 @@ class Code : public Object {
   friend class UntaggedCode;
   friend struct RelocatorTestHelper;
 
-  enum {
-    kOptimizedBit = 0,
-    kForceOptimizedBit = 1,
-    kAliveBit = 2,
-    kDiscardedBit = 3,
-    kPtrOffBit = 4,
-    kPtrOffSize = kBitsPerInt32 - kPtrOffBit,
-  };
-
-  class OptimizedBit : public BitField<int32_t, bool, kOptimizedBit, 1> {};
+  using OptimizedBit = BitField<decltype(UntaggedCode::state_bits_), bool>;
 
   // Force-optimized is true if the Code was generated for a function with
   // Function::ForceOptimize().
-  class ForceOptimizedBit
-      : public BitField<int32_t, bool, kForceOptimizedBit, 1> {};
+  using ForceOptimizedBit = BitField<decltype(UntaggedCode::state_bits_),
+                                     bool,
+                                     OptimizedBit::kNextBit>;
 
-  class AliveBit : public BitField<int32_t, bool, kAliveBit, 1> {};
+  using AliveBit = BitField<decltype(UntaggedCode::state_bits_),
+                            bool,
+                            ForceOptimizedBit::kNextBit>;
 
   // Set by precompiler if this Code object doesn't contain
   // useful information besides instructions and compressed stack map.
   // Such objects are serialized in a shorter form and replaced with
   // StubCode::UnknownDartCode() during snapshot deserialization.
-  class DiscardedBit : public BitField<int32_t, bool, kDiscardedBit, 1> {};
+  using DiscardedBit =
+      BitField<decltype(UntaggedCode::state_bits_), bool, AliveBit::kNextBit>;
 
-  class PtrOffBits
-      : public BitField<int32_t, intptr_t, kPtrOffBit, kPtrOffSize> {};
+  using PtrOffBits = BitField<decltype(UntaggedCode::state_bits_),
+                              intptr_t,
+                              DiscardedBit::kNextBit>;
 
   static constexpr intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
@@ -10388,9 +10292,9 @@ class String : public Instance {
 
   static intptr_t hash_offset() {
 #if defined(HASH_IN_OBJECT_HEADER)
-    COMPILE_ASSERT(UntaggedObject::kHashTagPos % kBitsPerByte == 0);
+    COMPILE_ASSERT(UntaggedObject::HashTag::shift() % kBitsPerByte == 0);
     return OFFSET_OF(UntaggedObject, tags_) +
-           UntaggedObject::kHashTagPos / kBitsPerByte;
+           UntaggedObject::HashTag::shift() / kBitsPerByte;
 #else
     return OFFSET_OF(UntaggedString, hash_);
 #endif
@@ -11435,24 +11339,22 @@ class Float64x2 : public Instance {
 
 // Packed representation of record shape (number of fields and field names).
 class RecordShape {
-  enum {
-    kNumFieldsBits = 16,
-    kFieldNamesIndexBits = kSmiBits - kNumFieldsBits,
-  };
-  using NumFieldsBitField = BitField<intptr_t, intptr_t, 0, kNumFieldsBits>;
-  using FieldNamesIndexBitField = BitField<intptr_t,
-                                           intptr_t,
-                                           NumFieldsBitField::kNextBit,
-                                           kFieldNamesIndexBits>;
+  using NumFieldsBitField = BitField<intptr_t, intptr_t, 0, 16>;
+  using FieldNamesIndexBitField =
+      BitField<intptr_t,
+               intptr_t,
+               NumFieldsBitField::kNextBit,
+               kSmiBits - NumFieldsBitField::kNextBit>;
 
  public:
   static constexpr intptr_t kNumFieldsMask = NumFieldsBitField::mask();
-  static constexpr intptr_t kMaxNumFields = kNumFieldsMask;
+  static constexpr intptr_t kMaxNumFields = NumFieldsBitField::max();
   static constexpr intptr_t kFieldNamesIndexMask =
       FieldNamesIndexBitField::mask();
   static constexpr intptr_t kFieldNamesIndexShift =
       FieldNamesIndexBitField::shift();
-  static constexpr intptr_t kMaxFieldNamesIndex = kFieldNamesIndexMask;
+  static constexpr intptr_t kMaxFieldNamesIndex =
+      FieldNamesIndexBitField::max();
 
   explicit RecordShape(intptr_t value) : value_(value) { ASSERT(value_ >= 0); }
   explicit RecordShape(SmiPtr smi_value) : value_(Smi::Value(smi_value)) {
@@ -12634,9 +12536,8 @@ class ReceivePort : public Instance {
                             Heap::Space space = Heap::kNew);
 
  private:
-  class IsOpen : public BitField<intptr_t, bool, 0, 1> {};
-  class IsKeepIsolateAlive
-      : public BitField<intptr_t, bool, IsOpen::kNextBit, 1> {};
+  using IsOpen = BitField<intptr_t, bool>;
+  using IsKeepIsolateAlive = BitField<intptr_t, bool, IsOpen::kNextBit>;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ReceivePort, Instance);
   friend class Class;
@@ -12855,6 +12756,7 @@ class SuspendState : public Instance {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SuspendState, Instance);
   friend class Class;
+  friend class Interpreter;
 };
 
 class RegExpFlags {
@@ -12923,24 +12825,21 @@ class RegExp : public Instance {
     kComplex = 2,
   };
 
-  enum {
-    kTypePos = 0,
-    kTypeSize = 2,
-    kFlagsPos = 2,
-    kFlagsSize = 5,
-  };
+  using TypeBits = BitField<int8_t, RegExType, 0, 2>;
 
-  class TypeBits : public BitField<int8_t, RegExType, kTypePos, kTypeSize> {};
-  class GlobalBit : public BitField<int8_t, bool, kFlagsPos, 1> {};
-  class IgnoreCaseBit : public BitField<int8_t, bool, GlobalBit::kNextBit, 1> {
-  };
-  class MultiLineBit
-      : public BitField<int8_t, bool, IgnoreCaseBit::kNextBit, 1> {};
-  class UnicodeBit : public BitField<int8_t, bool, MultiLineBit::kNextBit, 1> {
-  };
-  class DotAllBit : public BitField<int8_t, bool, UnicodeBit::kNextBit, 1> {};
+  // Must be kept in sync with RegExFlags::Flags.
+  using GlobalBit = BitField<int8_t, bool, TypeBits::kNextBit>;
+  using IgnoreCaseBit = BitField<int8_t, bool, GlobalBit::kNextBit>;
+  using MultiLineBit = BitField<int8_t, bool, IgnoreCaseBit::kNextBit>;
+  using UnicodeBit = BitField<int8_t, bool, MultiLineBit::kNextBit>;
+  using DotAllBit = BitField<int8_t, bool, UnicodeBit::kNextBit>;
 
-  class FlagsBits : public BitField<int8_t, int8_t, kFlagsPos, kFlagsSize> {};
+  // The portion of the bitfield container that contains all the above
+  // bool bits, which is passed to the constructor for RegExFlags.
+  using FlagsBits = BitField<int8_t,
+                             int8_t,
+                             TypeBits::kNextBit,
+                             DotAllBit::kNextBit - TypeBits::kNextBit>;
 
   bool is_initialized() const { return (type() != kUninitialized); }
   bool is_simple() const { return (type() == kSimple); }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart'
@@ -16,7 +14,6 @@ import 'package:analysis_server/src/services/completion/dart/relevance_computer.
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
-import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -48,121 +45,6 @@ abstract class CompletionSuggestionBuilder {
   String get textToMatch;
 
   CompletionSuggestion build();
-}
-
-/// This class provides suggestions based upon the visible instance members in
-/// an interface type.
-class MemberSuggestionBuilder {
-  /// Enumerated value indicating that we have not generated any completions for
-  /// a given identifier yet.
-  static const int _COMPLETION_TYPE_NONE = 0;
-
-  /// Enumerated value indicating that we have generated a completion for a
-  /// getter.
-  static const int _COMPLETION_TYPE_GETTER = 1;
-
-  /// Enumerated value indicating that we have generated a completion for a
-  /// setter.
-  static const int _COMPLETION_TYPE_SETTER = 2;
-
-  /// Enumerated value indicating that we have generated a completion for a
-  /// field, a method, or a getter/setter pair.
-  static const int _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET = 3;
-
-  /// The request for which suggestions are being built.
-  final DartCompletionRequest request;
-
-  /// The builder used to build the suggestions.
-  final SuggestionBuilder builder;
-
-  /// Map indicating, for each possible completion identifier, whether we have
-  /// already generated completions for a getter, setter, or both.  The "both"
-  /// case also handles the case where have generated a completion for a method
-  /// or a field.
-  ///
-  /// Note: the enumerated values stored in this map are intended to be bitwise
-  /// compared.
-  final Map<String, int> _completionTypesGenerated = HashMap<String, int>();
-
-  MemberSuggestionBuilder(this.request, this.builder);
-
-  /// Add a suggestion for the given [accessor].
-  void addSuggestionForAccessor(
-      {required PropertyAccessorElement accessor,
-      required double inheritanceDistance}) {
-    if (accessor.isAccessibleIn(request.libraryElement)) {
-      var member =
-          accessor.isSynthetic ? accessor.variable2 ?? accessor : accessor;
-      if (_shouldAddSuggestion(member)) {
-        builder.suggestAccessor(accessor,
-            inheritanceDistance: inheritanceDistance);
-      }
-    }
-  }
-
-  /// Add a suggestion for the given [method].
-  void addSuggestionForMethod(
-      {required MethodElement method,
-      required CompletionSuggestionKind kind,
-      required double inheritanceDistance}) {
-    if (method.isAccessibleIn(request.libraryElement) &&
-        _shouldAddSuggestion(method) &&
-        request.opType.patternLocation == null) {
-      builder.suggestMethod(method,
-          kind: kind, inheritanceDistance: inheritanceDistance);
-    }
-  }
-
-  /// Return `true` if a suggestion for the given [element] should be created.
-  bool _shouldAddSuggestion(Element element) {
-    // TODO(brianwilkerson): Consider moving this into SuggestionBuilder.
-    var identifier = element.displayName;
-
-    var alreadyGenerated = _completionTypesGenerated.putIfAbsent(
-        identifier, () => _COMPLETION_TYPE_NONE);
-    if (element is MethodElement) {
-      // Anything shadows a method.
-      if (alreadyGenerated != _COMPLETION_TYPE_NONE) {
-        return false;
-      }
-      _completionTypesGenerated[identifier] =
-          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
-    } else if (element is PropertyAccessorElement) {
-      if (element.isGetter) {
-        // Getters, fields, and methods shadow a getter.
-        if ((alreadyGenerated & _COMPLETION_TYPE_GETTER) != 0) {
-          return false;
-        }
-        _completionTypesGenerated[identifier] =
-            _completionTypesGenerated[identifier]! | _COMPLETION_TYPE_GETTER;
-      } else {
-        // Setters, fields, and methods shadow a setter.
-        if ((alreadyGenerated & _COMPLETION_TYPE_SETTER) != 0) {
-          return false;
-        } else if (element.hasDeprecated &&
-            !(element.correspondingGetter?.hasDeprecated ?? true)) {
-          // A deprecated setter should not take priority over a non-deprecated
-          // getter.
-          return false;
-        }
-        _completionTypesGenerated[identifier] =
-            _completionTypesGenerated[identifier]! | _COMPLETION_TYPE_SETTER;
-      }
-    } else if (element is FieldElement) {
-      // Fields and methods shadow a field.  A getter/setter pair shadows a
-      // field, but a getter or setter by itself doesn't.
-      if (alreadyGenerated == _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET) {
-        return false;
-      }
-      _completionTypesGenerated[identifier] =
-          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
-    } else {
-      // Unexpected element type; skip it.
-      assert(false);
-      return false;
-    }
-    return true;
-  }
 }
 
 /// An object used to build a list of suggestions in response to a single
@@ -265,6 +147,7 @@ class SuggestionBuilder {
     required double inheritanceDistance,
     bool withEnclosingName = false,
     int? relevance,
+    String? completion,
   }) {
     var enclosingPrefix = '';
     var enclosingName = _enclosingClassOrExtensionName(accessor);
@@ -272,79 +155,42 @@ class SuggestionBuilder {
       enclosingPrefix = '$enclosingName.';
     }
 
-    if (accessor.isSynthetic) {
-      // Avoid visiting a field twice. All fields induce a getter, but only
-      // non-final fields induce a setter, so we don't add a suggestion for a
-      // synthetic setter.
-      if (accessor.isGetter) {
-        var variable = accessor.variable2;
-        if (variable is FieldElement) {
-          suggestField(variable, inheritanceDistance: inheritanceDistance);
-        }
-      }
-    } else {
-      var completion = enclosingPrefix + accessor.displayName;
-      if (_couldMatch(completion, null)) {
-        var type = _getPropertyAccessorType(accessor);
-        var featureComputer = request.featureComputer;
-        var contextType =
-            featureComputer.contextTypeFeature(request.contextType, type);
-        var elementKind =
-            _computeElementKind(accessor, distance: inheritanceDistance);
-        var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
-        var isConstant = _preferConstants
-            ? featureComputer.isConstantFeature(accessor)
-            : 0.0;
-        var startsWithDollar =
-            featureComputer.startsWithDollarFeature(accessor.name);
-        var superMatches = featureComputer.superMatchesFeature(
-            _containingMemberName, accessor.name);
-        relevance ??= relevanceComputer.computeScore(
-          contextType: contextType,
-          elementKind: elementKind,
-          hasDeprecated: hasDeprecated,
-          isConstant: isConstant,
-          isNotImported: request.featureComputer
-              .isNotImportedFeature(isNotImportedLibrary),
-          startsWithDollar: startsWithDollar,
-          superMatches: superMatches,
-          inheritanceDistance: inheritanceDistance,
-        );
-        _addBuilder(
-          _createCompletionSuggestionBuilder(
-            accessor,
-            completion: completion,
-            kind: CompletionSuggestionKind.IDENTIFIER,
-            relevance: relevance,
-            isNotImported: isNotImportedLibrary,
-          ),
-        );
-      }
+    completion ??= enclosingPrefix + accessor.displayName;
+    if (_couldMatch(completion, null)) {
+      var type = _getPropertyAccessorType(accessor);
+      var featureComputer = request.featureComputer;
+      var contextType =
+          featureComputer.contextTypeFeature(request.contextType, type);
+      var elementKind =
+          _computeElementKind(accessor, distance: inheritanceDistance);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+      var isConstant =
+          _preferConstants ? featureComputer.isConstantFeature(accessor) : 0.0;
+      var startsWithDollar =
+          featureComputer.startsWithDollarFeature(accessor.name);
+      var superMatches = featureComputer.superMatchesFeature(
+          _containingMemberName, accessor.name);
+      relevance ??= relevanceComputer.computeScore(
+        contextType: contextType,
+        elementKind: elementKind,
+        hasDeprecated: hasDeprecated,
+        isConstant: isConstant,
+        isNotImported:
+            request.featureComputer.isNotImportedFeature(isNotImportedLibrary),
+        startsWithDollar: startsWithDollar,
+        superMatches: superMatches,
+        inheritanceDistance: inheritanceDistance,
+      );
+      _addBuilder(
+        _createCompletionSuggestionBuilder(
+          accessor,
+          completion: completion,
+          kind: CompletionSuggestionKind.IDENTIFIER,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+        ),
+      );
     }
-  }
-
-  /// Add a suggestion for a catch [parameter].
-  void suggestCatchParameter(LocalVariableElement parameter) {
-    var variableType = parameter.type;
-    var contextType = request.featureComputer
-        .contextTypeFeature(request.contextType, variableType);
-    var elementKind = _computeElementKind(parameter);
-    var isConstant = _preferConstants
-        ? request.featureComputer.isConstantFeature(parameter)
-        : 0.0;
-    var relevance = relevanceComputer.computeScore(
-      contextType: contextType,
-      elementKind: elementKind,
-      isConstant: isConstant,
-    );
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        parameter,
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        relevance: relevance,
-        isNotImported: isNotImportedLibrary,
-      ),
-    );
   }
 
   /// Add a suggestion to insert a closure.
@@ -383,7 +229,7 @@ class SuggestionBuilder {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
-    var enclosingClass = constructor.enclosingElement.augmented.declaration;
+    var enclosingClass = constructor.enclosingElement3.augmented.declaration;
 
     if (completion == null) {
       var className = enclosingClass.name;
@@ -425,35 +271,12 @@ class SuggestionBuilder {
     }
   }
 
-  /// Add a suggestion for a top-level [element]. If a [kind] is provided it
-  /// will be used as the kind for the suggestion.
-  void suggestElement(Element element,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
-    if (element is InterfaceElement) {
-      suggestInterface(element);
-    } else if (element is ConstructorElement) {
-      suggestConstructor(element, kind: kind);
-    } else if (element is ExtensionElement) {
-      suggestExtension(element, kind: kind);
-    } else if (element is FunctionElement &&
-        element.enclosingElement is CompilationUnitElement) {
-      suggestTopLevelFunction(element, kind: kind);
-    } else if (element is PropertyAccessorElement &&
-        element.enclosingElement is CompilationUnitElement) {
-      suggestTopLevelPropertyAccessor(element);
-    } else if (element is TypeAliasElement) {
-      suggestTypeAlias(element);
-    } else {
-      throw ArgumentError('Cannot suggest a ${element.runtimeType}');
-    }
-  }
-
   /// Add a suggestion for an enum [constant]. If the enum can only be
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestEnumConstant(FieldElement constant,
       {String? prefix, int? relevance}) {
     var constantName = constant.name;
-    var enumElement = constant.enclosingElement;
+    var enumElement = constant.enclosingElement3;
     var enumName = enumElement.name;
     var completion = '$enumName.$constantName';
     relevance ??= relevanceComputer.computeTopLevelRelevance(constant,
@@ -535,20 +358,6 @@ class SuggestionBuilder {
         ),
       );
     }
-  }
-
-  /// Add a suggestion to reference a [field] in a field formal parameter.
-  void suggestFieldFormalParameter(FieldElement field) {
-    // TODO(brianwilkerson): Add a parameter (`bool includePrefix`) indicating
-    //  whether to include the `this.` prefix in the completion.
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        field,
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        relevance: Relevance.fieldFormalParameter,
-        isNotImported: isNotImportedLibrary,
-      ),
-    );
   }
 
   void suggestFormalParameter({
@@ -771,51 +580,12 @@ class SuggestionBuilder {
   void suggestNamedArgument(ParameterElement parameter,
       {required bool appendColon,
       required bool appendComma,
+      required int selectionOffset,
+      required String completion,
       int? replacementLength,
-      int? relevance}) {
+      required int relevance}) {
     var name = parameter.name;
     var type = parameter.type.getDisplayString();
-
-    var completion = name;
-    if (appendColon) {
-      completion += ': ';
-    }
-    var selectionOffset = completion.length;
-
-    // Optionally add Flutter child widget details.
-    // TODO(pq): revisit this special casing; likely it can be generalized away.
-    var element = parameter.enclosingElement;
-    // If `appendColon` is false, default values should never be appended.
-    if (element is ConstructorElement && appendColon) {
-      if (element.enclosingElement.augmented.declaration.isWidget) {
-        var analysisOptions = request.analysisSession.analysisContext
-            .getAnalysisOptionsForFile(
-                request.resourceProvider.getFile(request.path));
-        var codeStyleOptions = analysisOptions.codeStyleOptions;
-        // Don't bother with nullability. It won't affect default list values.
-        var defaultValue =
-            getDefaultStringParameterValue(parameter, codeStyleOptions);
-        // TODO(devoncarew): Should we remove the check here? We would then
-        // suggest values for param types like closures.
-        if (defaultValue != null && defaultValue.text == '[]') {
-          var completionLength = completion.length;
-          completion += defaultValue.text;
-          var cursorPosition = defaultValue.cursorPosition;
-          if (cursorPosition != null) {
-            selectionOffset = completionLength + cursorPosition;
-          }
-        }
-      }
-    }
-
-    if (appendComma) {
-      completion += ',';
-    }
-
-    relevance ??= Relevance.namedArgument;
-    if (parameter.isRequiredNamed || parameter.hasRequired) {
-      relevance = Relevance.requiredNamedArgument;
-    }
 
     var suggestion = DartCompletionSuggestion(
         CompletionSuggestionKind.NAMED_ARGUMENT,
@@ -1103,9 +873,9 @@ class SuggestionBuilder {
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
       {String? prefix, int? relevance}) {
     assert(
-        accessor.enclosingElement is CompilationUnitElement,
+        accessor.enclosingElement3 is CompilationUnitElement,
         'Enclosing element of ${accessor.runtimeType} is '
-        '${accessor.enclosingElement.runtimeType}.');
+        '${accessor.enclosingElement3.runtimeType}.');
     if (accessor.isSynthetic) {
       // Avoid visiting a field twice. All fields induce a getter, but only
       // non-final fields induce a setter, so we don't add a suggestion for a
@@ -1162,7 +932,7 @@ class SuggestionBuilder {
     var completion = _getCompletionString(variable);
     if (completion == null) return;
     if (_couldMatch(completion, prefix)) {
-      assert(variable.enclosingElement is CompilationUnitElement);
+      assert(variable.enclosingElement3 is CompilationUnitElement);
       relevance ??= relevanceComputer.computeTopLevelRelevance(variable,
           elementType: variable.type,
           isNotImportedLibrary: isNotImportedLibrary);
@@ -1244,7 +1014,7 @@ class SuggestionBuilder {
           // `InScopeCompletionPass`.
           var suggestedElement = suggestion.orgElement;
           if (suggestedElement is ConstructorElement) {
-            var parentName = suggestedElement.enclosingElement.name;
+            var parentName = suggestedElement.enclosingElement3.name;
             var existingSuggestion = _suggestionMap[parentName];
             if (existingSuggestion is _CompletionSuggestionBuilderImpl &&
                 existingSuggestion.orgElement is! ClassElement) {
@@ -1360,7 +1130,7 @@ class SuggestionBuilder {
 
     var suggestedElement = protocol.convertElement(element);
 
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
 
     String? declaringType;
     if (enclosingElement is InterfaceElement) {
@@ -1368,6 +1138,7 @@ class SuggestionBuilder {
     }
 
     var returnType = getReturnTypeString(element);
+    var colorHex = getColorHexString(element);
 
     List<String>? parameterNames;
     List<String>? parameterTypes;
@@ -1406,6 +1177,7 @@ class SuggestionBuilder {
       defaultArgumentList: defaultArgumentList,
       element: suggestedElement,
       elementLocation: element.location,
+      colorHex: colorHex,
     );
   }
 
@@ -1414,7 +1186,7 @@ class SuggestionBuilder {
   /// The enclosing element must be either a class, or extension; otherwise
   /// we either fail with assertion, or return `null`.
   String? _enclosingClassOrExtensionName(Element element) {
-    var enclosing = element.enclosingElement;
+    var enclosing = element.enclosingElement3;
     if (enclosing is InterfaceElement) {
       return enclosing.name;
     } else if (enclosing is ExtensionElement) {
@@ -1654,6 +1426,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
       isNotImported: isNotImported ? true : null,
       elementLocation: element.elementLocation,
       requiredImports: requiredImports,
+      colorHex: element.colorHex,
     );
   }
 }
@@ -1673,6 +1446,7 @@ class _ElementCompletionData {
   final _ElementDocumentation? documentation;
   final protocol.Element element;
   final ElementLocation? elementLocation;
+  final String? colorHex;
 
   _ElementCompletionData({
     required this.isDeprecated,
@@ -1686,6 +1460,7 @@ class _ElementCompletionData {
     required this.documentation,
     required this.element,
     required this.elementLocation,
+    required this.colorHex,
   });
 }
 

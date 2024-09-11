@@ -34,7 +34,7 @@ def CreateSymlinkForSDKAt(src, dst):
         dst = os.path.join(ROOT_SRC_DIR, dst)
 
     if not os.path.isdir(dst):
-        os.makedirs(dst)
+        os.makedirs(dst, exist_ok=True)
 
     dst = os.path.join(dst, os.path.basename(src))
 
@@ -85,6 +85,16 @@ def main():
         help=
         "Create symlink to SDK at given location and return symlink path as SDK "
         "info instead of the original location.")
+    parser.add_option("--platform",
+                      action="store",
+                      type="choice",
+                      choices=[
+                          "mac", "iphone", "iphone_simulator", "watch",
+                          "watch_simulator"
+                      ],
+                      dest="platform",
+                      default="mac",
+                      help="SDK Platform")
     (options, args) = parser.parse_args()
     min_sdk_version = args[0]
 
@@ -92,20 +102,28 @@ def main():
                            stdout=subprocess.PIPE,
                            stderr=subprocess.STDOUT,
                            universal_newlines=True)
+    platform = {
+        'mac': 'MacOSX',
+        'iphone': 'iPhoneOS',
+        'iphone_simulator': 'iPhoneSimulator',
+        'watch': 'WatchOS',
+        'watch_simulator': 'WatchSimulator'
+    }[options.platform]
     out, err = job.communicate()
     if job.returncode != 0:
         print(out, file=sys.stderr)
         print(err, file=sys.stderr)
         raise Exception('Error %d running xcode-select' % job.returncode)
     sdk_dir = os.path.join(out.rstrip(),
-                           'Platforms/MacOSX.platform/Developer/SDKs')
+                           f'Platforms/{platform}.platform/Developer/SDKs')
     if not os.path.isdir(sdk_dir):
         raise Exception(
             'Install Xcode, launch it, accept the license ' +
             'agreement, and run `sudo xcode-select -s /path/to/Xcode.app` ' +
             'to continue.')
     sdks = [
-        re.findall('^MacOSX(\d+\.\d+)\.sdk$', s) for s in os.listdir(sdk_dir)
+        re.findall(fr'^{platform}(\d+\.\d+)\.sdk$', s)
+        for s in os.listdir(sdk_dir)
     ]
     sdks = [s[0] for s in sdks if s]  # [['10.5'], ['10.6']] => ['10.5', '10.6']
     sdks = [
@@ -130,9 +148,11 @@ Either install it, or explicitly set mac_sdk in your GYP_DEFINES.
         return min_sdk_version
 
     if options.print_sdk_path:
-        sdk_path = subprocess.check_output(
-            ['xcodebuild', '-version', '-sdk', 'macosx' + best_sdk, 'Path'],
-            universal_newlines=True).strip()
+        sdk_path = subprocess.check_output([
+            'xcodebuild', '-version', '-sdk',
+            platform.lower() + best_sdk, 'Path'
+        ],
+                                           universal_newlines=True).strip()
         if options.create_symlink_at:
             print(CreateSymlinkForSDKAt(sdk_path, options.create_symlink_at))
         else:

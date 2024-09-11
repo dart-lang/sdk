@@ -19,7 +19,7 @@ class OverriddenFieldsTest extends LintRuleTest {
 
   test_augmentationClass() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class O {
   final a = '';
@@ -29,7 +29,7 @@ class A extends O { }
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A { 
   final a = '';
@@ -41,13 +41,13 @@ augment class A {
 
     result = await resolveFile(b.path);
     await assertDiagnosticsIn(errors, [
-      lint(54, 1),
+      lint(46, 1),
     ]);
   }
 
   test_augmentedField() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class O {
   final a = '';
@@ -60,7 +60,7 @@ class A extends O {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A { 
   augment final a = '';
@@ -69,7 +69,7 @@ augment class A {
 
     result = await resolveFile(a.path);
     await assertDiagnosticsIn(errors, [
-      lint(96, 1),
+      lint(86, 1),
     ]);
 
     result = await resolveFile(b.path);

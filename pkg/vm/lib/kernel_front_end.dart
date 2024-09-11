@@ -29,6 +29,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         StandardFileSystem,
         Verbosity,
         getMessageUri,
+        kernelForModule,
         kernelForProgram,
         parseExperimentalArguments,
         parseExperimentalFlags,
@@ -449,6 +450,7 @@ class KernelCompilationArguments {
   final List<Uri> additionalSources;
   final Uri? nativeAssets;
   final Uri? resourcesFile;
+  final bool requireMain;
   final bool includePlatform;
   final List<String> deleteToStringPackageUris;
   final List<String> keepClassNamesImplementing;
@@ -470,6 +472,7 @@ class KernelCompilationArguments {
     this.additionalSources = const <Uri>[],
     this.nativeAssets,
     this.resourcesFile,
+    this.requireMain = true,
     this.includePlatform = false,
     this.deleteToStringPackageUris = const <String>[],
     this.keepClassNamesImplementing = const <String>[],
@@ -521,8 +524,11 @@ Future<KernelCompilationResults> compileToKernel(
     compilerResult =
         await loadKernel(options.fileSystem, resolveInputUri(fromDillFile));
   } else {
-    compilerResult = await kernelForProgram(args.source!, options,
-        additionalSources: args.additionalSources);
+    compilerResult = args.requireMain
+        ? await kernelForProgram(args.source!, options,
+            additionalSources: args.additionalSources)
+        : await kernelForModule(
+            [args.source!, ...args.additionalSources], options);
   }
   final Component? component = compilerResult?.component;
 
@@ -601,8 +607,9 @@ Future runGlobalTransformations(Target target, Component component,
 
   final dynamicInterface = args.dynamicInterface;
   if (dynamicInterface != null) {
+    final fileUri = await asFileUri(args.options!.fileSystem, dynamicInterface);
     dynamic_interface_annotator.annotateComponent(
-        File(dynamicInterface.toFilePath()).readAsStringSync(),
+        File(fileUri.toFilePath()).readAsStringSync(),
         dynamicInterface,
         component,
         coreTypes);

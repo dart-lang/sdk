@@ -2248,7 +2248,7 @@ class Parser {
     }
     token = token.next!;
     assert(optional(']', token));
-    listener.endOptionalFormalParameters(parameterCount, begin, token);
+    listener.endOptionalFormalParameters(parameterCount, begin, token, kind);
     return token;
   }
 
@@ -2299,7 +2299,7 @@ class Parser {
     }
     token = token.next!;
     assert(optional('}', token));
-    listener.endOptionalFormalParameters(parameterCount, begin, token);
+    listener.endOptionalFormalParameters(parameterCount, begin, token, kind);
     return token;
   }
 
@@ -4878,8 +4878,16 @@ class Parser {
 
     // TODO(danrubel): Consider parsing the name before calling beginMethod
     // rather than passing the name token into beginMethod.
-    listener.beginMethod(kind, augmentToken, externalToken, staticToken,
-        covariantToken, varFinalOrConst, getOrSet, name);
+    listener.beginMethod(
+        kind,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        varFinalOrConst,
+        getOrSet,
+        name,
+        enclosingDeclarationName);
 
     Token token = typeInfo.parseType(beforeType, this);
     assert(token.next == (getOrSet ?? name) ||

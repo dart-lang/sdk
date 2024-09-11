@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/parser/util.dart' as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -128,7 +129,7 @@ class EnclosingExecutableContext {
   }
 
   static bool _inFactoryConstructor(Element? element) {
-    var enclosing = element?.enclosingElement;
+    var enclosing = element?.enclosingElement3;
     if (enclosing == null) {
       return false;
     }
@@ -139,7 +140,7 @@ class EnclosingExecutableContext {
   }
 
   static bool _inStaticMethod(Element? element) {
-    var enclosing = element?.enclosingElement;
+    var enclosing = element?.enclosingElement3;
     if (enclosing == null) {
       return false;
     }
@@ -327,7 +328,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
       SyntacticEntity errorEntity,
-      Map<DartType, NonPromotionReason>? whyNotPromoted) {
+      Map<SharedTypeView<DartType>, NonPromotionReason>? whyNotPromoted) {
     return [];
   }
 
@@ -949,7 +950,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     var element = node.declaredElement!;
-    if (element.enclosingElement is! CompilationUnitElement) {
+    if (element.enclosingElement3 is! CompilationUnitElement) {
       _hiddenElements!.declare(element);
     }
 
@@ -2174,7 +2175,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         errorReporter.atNode(
           highlightedNode,
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
-          arguments: [variable.name, variable.enclosingElement.displayName],
+          arguments: [variable.name, variable.enclosingElement3.displayName],
         );
       } else {
         errorReporter.atNode(
@@ -2393,7 +2394,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             arguments: [
               enclosingClass.displayName,
               name,
-              inherited.enclosingElement.displayName,
+              inherited.enclosingElement3.displayName,
             ],
           );
         }
@@ -2421,7 +2422,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.enclosingElement.displayName
+            inherited.enclosingElement3.displayName
           ],
         );
       }
@@ -2454,7 +2455,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.enclosingElement.displayName,
+            inherited.enclosingElement3.displayName,
           ],
         );
         conflictingDeclaredNames.add(name);
@@ -2469,7 +2470,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.enclosingElement.displayName
+            inherited.enclosingElement3.displayName
           ],
         );
         conflictingDeclaredNames.add(name);
@@ -2502,8 +2503,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 message: formatList(
                   "The method is inherited from the {0} '{1}'.",
                   [
-                    method.enclosingElement.kind.displayName,
-                    method.enclosingElement.name,
+                    method.enclosingElement3.kind.displayName,
+                    method.enclosingElement3.name,
                   ],
                 ),
                 offset: method.nameOffset,
@@ -2515,8 +2516,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 message: formatList(
                   "The setter is inherited from the {0} '{1}'.",
                   [
-                    setter.enclosingElement.kind.displayName,
-                    setter.enclosingElement.name,
+                    setter.enclosingElement3.kind.displayName,
+                    setter.enclosingElement3.name,
                   ],
                 ),
                 offset: setter.nameOffset,
@@ -2842,12 +2843,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.atNode(
         constructor.returnType,
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-        arguments: ["'${field.enclosingElement.name}.${field.name}'"],
+        arguments: ["'${field.enclosingElement3.name}.${field.name}'"],
       );
       return true;
     } else if (instanceFields.length > 1) {
       var fieldNames = instanceFields
-          .map((field) => "'${field.enclosingElement.name}.${field.name}'")
+          .map((field) => "'${field.enclosingElement3.name}.${field.name}'")
           .join(', ');
       errorReporter.atNode(
         constructor.returnType,
@@ -2886,7 +2887,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     errorReporter.atNode(
       errorNode,
       CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
-      arguments: [element.enclosingElement.displayName],
+      arguments: [element.enclosingElement3.displayName],
     );
     return true;
   }
@@ -2904,13 +2905,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // check if there is non-final field
-    var classElement = constructorElement.enclosingElement;
+    var classElement = constructorElement.enclosingElement3;
     if (classElement is! ClassElement || !classElement.hasNonFinalField) {
       return;
     }
-    errorReporter.reportErrorForName(
-        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
-        constructor);
+    errorReporter.atConstructorDeclaration(
+      constructor,
+      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
+    );
   }
 
   /// Verify that the given 'const' instance creation [expression] is not
@@ -3451,11 +3453,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }) {
     void report(String memberName, List<ExecutableElement> candidates) {
       var contextMessages = candidates.map<DiagnosticMessage>((executable) {
-        var container = executable.enclosingElement as InterfaceElement;
+        var nonSynthetic = executable.nonSynthetic;
+        var container = executable.enclosingElement3 as InterfaceElement;
         return DiagnosticMessageImpl(
           filePath: executable.source.fullName,
-          offset: executable.nameOffset,
-          length: executable.nameLength,
+          offset: nonSynthetic.nameOffset,
+          length: nonSynthetic.nameLength,
           message: "Inherited from '${container.name}'",
           url: null,
         );
@@ -3836,7 +3839,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // OK, instance member
         return;
       }
-      Element enclosingElement = element.enclosingElement;
+      Element enclosingElement = element.enclosingElement3;
       if (enclosingElement is ExtensionElement) {
         if (target is ExtensionOverride) {
           // OK, target is an extension override
@@ -3949,7 +3952,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var constructorElement = node.staticElement;
     if (constructorElement != null &&
         constructorElement.isGenerative &&
-        constructorElement.enclosingElement is EnumElement) {
+        constructorElement.enclosingElement3 is EnumElement) {
       if (_currentLibrary.featureSet.isEnabled(Feature.enhanced_enums)) {
         errorReporter.atNode(
           node,
@@ -3992,7 +3995,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // not a class member
-    Element enclosingElement = element.enclosingElement;
+    Element enclosingElement = element.enclosingElement3;
     if (enclosingElement is! InterfaceElement &&
         enclosingElement is! ExtensionElement) {
       return;
@@ -4121,7 +4124,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForMainFunction1(Token nameToken, Element declaredElement) {
     // We should only check exported declarations, i.e. top-level.
-    if (declaredElement.enclosingElement is! CompilationUnitElement) {
+    if (declaredElement.enclosingElement3 is! CompilationUnitElement) {
       return;
     }
 
@@ -4535,7 +4538,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             arguments: [
               name,
               namedType.name2.lexeme,
-              inheritedMember.enclosingElement.name!
+              inheritedMember.enclosingElement3.name!
             ],
           );
           return true;
@@ -4708,9 +4711,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_enclosingClass is EnumElement &&
         node.constKeyword == null &&
         node.factoryKeyword == null) {
-      errorReporter.reportErrorForName(
-        CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR,
+      errorReporter.atConstructorDeclaration(
         node,
+        CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR,
       );
     }
   }
@@ -5110,7 +5113,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       redirectedElement,
       redirectedConstructor,
     );
-    var redirectedClass = redirectedElement?.enclosingElement;
+    var redirectedClass = redirectedElement?.enclosingElement3;
     if (redirectedClass is ClassElement &&
         redirectedClass.isAbstract &&
         redirectedElement != null &&
@@ -5419,7 +5422,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }) {
     if (_enclosingExecutable.inStaticMethod || _isInStaticVariableDeclaration) {
       if (element is TypeParameterElement &&
-          element.enclosingElement is InstanceElement) {
+          element.enclosingElement3 is InstanceElement) {
         // The class's type parameters are not in scope for static methods.
         // However all other type parameters are legal (e.g. the static method's
         // type parameters, or a local function's type parameters).
@@ -5661,7 +5664,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement == null) {
       return;
     }
@@ -6685,7 +6688,7 @@ class _MacroDiagnosticsReporter {
       var element = annotation.element;
       if (element is! ConstructorElementImpl) continue;
 
-      var macroElement = element.enclosingElement;
+      var macroElement = element.enclosingElement3;
       if (macroElement is! ClassElementImpl) continue;
       if (!macroElement.isMacro) continue;
 

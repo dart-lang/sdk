@@ -10,6 +10,7 @@
 
 #include "vm/compiler/method_recognizer.h"
 #include "vm/constants_kbc.h"
+#include "vm/object.h"
 #include "vm/tagged_pointer.h"
 
 namespace dart {
@@ -97,6 +98,16 @@ class Interpreter {
                  ArrayPtr args_array,
                  Thread* thread);
 
+  ObjectPtr Resume(Thread* thread,
+                   uword resumed_frame_fp,
+                   uword resumed_frame_sp,
+                   ObjectPtr value,
+                   ObjectPtr exception,
+                   ObjectPtr stack_trace);
+
+  BytecodePtr GetSuspendedLocation(const SuspendState& suspend_state,
+                                   uword* pc_offset);
+
   void JumpToFrame(uword pc, uword sp, uword fp, Thread* thread);
 
   uword get_sp() const { return reinterpret_cast<uword>(fp_); }  // Yes, fp_.
@@ -114,6 +125,12 @@ class Interpreter {
 #endif  // !PRODUCT
 
  private:
+  enum {
+    kKBCFunctionSlotInSuspendedFrame,
+    kKBCPcOffsetSlotInSuspendedFrame,
+    kKBCSuspendedFrameFixedSlots
+  };
+
   uintptr_t* stack_;
   uword stack_base_;
   uword overflow_stack_limit_;
@@ -128,6 +145,7 @@ class Interpreter {
   ObjectPoolPtr pp_;  // Pool Pointer.
   ArrayPtr argdesc_;  // Arguments Descriptor: used to pass information between
                       // call instruction and the function entry.
+  SubtypeTestCachePtr subtype_test_cache_;
   ObjectPtr special_[KernelBytecode::kSpecialIndexCount];
 
   LookupCache lookup_cache_;
@@ -218,6 +236,11 @@ class Interpreter {
                      const KBCInstr* pc,
                      ObjectPtr* FP,
                      ObjectPtr* SP);
+  bool AllocateRecord(Thread* thread,
+                      RecordShape shape,
+                      const KBCInstr* pc,
+                      ObjectPtr* FP,
+                      ObjectPtr* SP);
   bool AllocateContext(Thread* thread,
                        intptr_t num_variables,
                        const KBCInstr* pc,
@@ -227,6 +250,10 @@ class Interpreter {
                        const KBCInstr* pc,
                        ObjectPtr* FP,
                        ObjectPtr* SP);
+
+  void SetupEntryFrame(Thread* thread);
+
+  ObjectPtr Run(Thread* thread, ObjectPtr* sp, bool rethrow_exception);
 
 #if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.

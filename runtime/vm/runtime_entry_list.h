@@ -39,7 +39,6 @@ namespace dart {
   V(Instanceof)                                                                \
   V(SubtypeCheck)                                                              \
   V(TypeCheck)                                                                 \
-  V(NonBoolTypeError)                                                          \
   V(InstantiateType)                                                           \
   V(InstantiateTypeArguments)                                                  \
   V(NoSuchMethodFromCallStub)                                                  \
@@ -66,6 +65,7 @@ namespace dart {
   V(UpdateFieldCid)                                                            \
   V(InitInstanceField)                                                         \
   V(InitStaticField)                                                           \
+  V(LateFieldAlreadyInitializedError)                                          \
   V(LateFieldAssignedDuringInitializationError)                                \
   V(LateFieldNotInitializedError)                                              \
   V(CompileFunction)                                                           \
@@ -73,12 +73,14 @@ namespace dart {
   V(SwitchableCallMiss)                                                        \
   V(NotLoaded)                                                                 \
   V(FfiAsyncCallbackSend)                                                      \
+  V(AllocateSubtypeTestCache)                                                  \
   V(GetFieldForDispatch)                                                       \
   V(AdjustArgumentsDesciptorForImplicitClosure)                                \
   V(ClosureArgumentsValid)                                                     \
   V(ResolveCallFunction)                                                       \
   V(InterpretedInstanceCallMissHandler)                                        \
-  V(InvokeNoSuchMethod)
+  V(InvokeNoSuchMethod)                                                        \
+  V(ResumeInterpreter)
 
 // Note: Leaf runtime function have C linkage, so they cannot pass C++ struct
 // values like ObjectPtr.

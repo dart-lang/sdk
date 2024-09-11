@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -30,21 +31,46 @@ class FlutterWrapPaddingTest extends AssistProcessorTest {
   Future<void> test_aroundContainer() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-class FakeFlutter {
-  Widget f() {
-    return /*caret*/Container();
-  }
+
+void f() {
+  /*caret*/Container();
 }
 ''');
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
-class FakeFlutter {
-  Widget f() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(),
-    );
+
+void f() {
+  Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: Container(),
+  );
+}
+''');
   }
+
+  Future<void> test_aroundContainer_preferIntLiterals() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_int_literals,
+      ],
+    );
+
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+void f() {
+  /*caret*/Container();
+}
+''');
+
+    await assertHasAssist('''
+import 'package:flutter/widgets.dart';
+
+void f() {
+  Padding(
+    padding: const EdgeInsets.all(8),
+    child: Container(),
+  );
 }
 ''');
   }
@@ -52,13 +78,12 @@ class FakeFlutter {
   Future<void> test_aroundPadding() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-class FakeFlutter {
-  Widget f() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(),
-    );
-  }
+
+void f() {
+  Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: Container(),
+  );
 }
 ''');
     await assertNoAssist();
@@ -67,25 +92,23 @@ class FakeFlutter {
   Future<void> test_inConstantContext() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-class FakeFlutter {
-  Widget build() {
-    return const Center(
-      child: /*caret*/Text('x'),
-    );
-  }
+
+void f() {
+  const Center(
+    child: /*caret*/Text('x'),
+  );
 }
 ''');
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
-class FakeFlutter {
-  Widget build() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Text('x'),
-      ),
-    );
-  }
+
+void f() {
+  const Center(
+    child: Padding(
+      padding: EdgeInsets.all(8.0),
+      child: Text('x'),
+    ),
+  );
 }
 ''');
   }

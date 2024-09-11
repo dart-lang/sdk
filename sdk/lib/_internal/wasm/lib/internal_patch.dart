@@ -2,12 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper" show JS, jsStringFromDartString, jsStringToDartString;
+import 'dart:async';
+import "dart:_js_helper"
+    show JS, JSAnyToExternRef, jsStringFromDartString, jsStringToDartString;
 import "dart:_js_types" show JSStringImpl;
 import 'dart:_string';
 import 'dart:js_interop'
-    show JSArray, JSString, JSArrayToList, JSStringToString;
+    show
+        JSArray,
+        JSString,
+        JSArrayToList,
+        JSStringToString,
+        JSPromise,
+        JSPromiseToFuture,
+        StringToJSString;
 import 'dart:_js_helper' show JSValue;
+import 'dart:_js_types';
 import 'dart:_wasm';
 import 'dart:typed_data' show Uint8List;
 

@@ -6449,6 +6449,7 @@ static void CreateAppAOTSnapshot(
     elf->Finalize();
     if (debug_elf != nullptr) {
       debug_elf->Finalize();
+      Elf::AssertConsistency(elf, debug_elf);
     }
   } else {
     StreamingWriteStream assembly_stream(kAssemblyInitialSize, callback,

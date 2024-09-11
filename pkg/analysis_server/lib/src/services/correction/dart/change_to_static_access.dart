@@ -50,7 +50,7 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
     }
 
     var target_final = target;
-    var declaringElement = invokedElement.enclosingElement;
+    var declaringElement = invokedElement.enclosingElement3;
 
     if (declaringElement is InterfaceElement) {
       _className = declaringElement.name;

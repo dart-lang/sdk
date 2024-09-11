@@ -71,10 +71,10 @@ class Good {
 class TestTypesInEquals extends LintRule {
   TestTypesInEquals()
       : super(
-            name: 'test_types_in_equals',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'test_types_in_equals',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.test_types_in_equals;

@@ -2,6 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# Run
+#
+#     dart run analyzer/tool/messages/generate.dart
+#
+# to regenerate messages after having edited this file.
+
 # This file is organized as a two level map, where the outer key corresponds to
 # the name of an analyzer error class (e.g. CompileTimeErrorCode), and the inner
 # key corresponds to the name of a static variable in that class, describing a
@@ -1169,14 +1175,6 @@ CompileTimeErrorCode:
   AUGMENTATION_WITHOUT_DECLARATION:
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
-    hasPublishedDocs: false
-  AUGMENTATION_WITHOUT_IMPORT:
-    problemMessage: The library does not import this augmentation.
-    correctionMessage: Try updating the augmented library to import this augmentation.
-    hasPublishedDocs: false
-  AUGMENTATION_WITHOUT_LIBRARY:
-    problemMessage: The URI does not resolve to a library.
-    correctionMessage: Try updating the URI to reference the augmented library.
     hasPublishedDocs: false
   AUGMENTED_EXPRESSION_IS_NOT_SETTER:
     problemMessage: The augmented declaration is not a setter, it can't be used to write a value.
@@ -3838,13 +3836,6 @@ CompileTimeErrorCode:
         print(i);
       }
       ```
-  DUPLICATE_AUGMENTATION_IMPORT:
-    problemMessage: "The library already contains an augmentation with the URI '{0}'."
-    correctionMessage: Try removing all except one of the duplicated augmentation directives.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the URI of the duplicate augmentation
   DUPLICATE_CONSTRUCTOR_NAME:
     sharedName: DUPLICATE_CONSTRUCTOR
     problemMessage: "The constructor with name '{0}' is already defined."
@@ -7431,13 +7422,6 @@ CompileTimeErrorCode:
 
       Import the library that contains the [part file][] rather than the
       [part file][] itself.
-  IMPORT_OF_NOT_AUGMENTATION:
-    problemMessage: "The imported file '{0}' isn't an augmentation of this library."
-    correctionMessage: Try adding an 'augment library' directive referencing this library to the imported file.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the URI of the imported file
   INCONSISTENT_CASE_EXPRESSION_TYPES:
     problemMessage: "Case expressions must have the same types, '{0}' isn't a '{1}'."
     hasPublishedDocs: false
@@ -27214,6 +27198,53 @@ WarningCode:
           case 1:
             print('one');
           case 2:
+            print('two');
+        }
+      }
+      ```
+  UNREACHABLE_SWITCH_DEFAULT:
+    problemMessage: "This default clause is covered by the previous cases."
+    correctionMessage: Try removing the default clause, or restructuring the preceding patterns.
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `default` clause in a
+      `switch` statement doesn't match anything because all of the matchable
+      values are matched by an earlier `case` clause.
+
+      #### Example
+
+      The following code produces this diagnostic because the values `E.e1` and
+      `E.e2` were matched in the preceding cases:
+
+      ```dart
+      enum E { e1, e2 }
+
+      void f(E x) {
+        switch (x) {
+          case E.e1:
+            print('one');
+          case E.e2:
+            print('two');
+          [!default!]:
+            print('other');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary `default` clause:
+
+      ```dart
+      enum E { e1, e2 }
+      void f(E x) {
+        switch (x) {
+          case E.e1:
+            print('one');
+          case E.e2:
             print('two');
         }
       }

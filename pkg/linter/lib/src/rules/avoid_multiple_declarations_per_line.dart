@@ -30,10 +30,10 @@ String? baz;
 class AvoidMultipleDeclarationsPerLine extends LintRule {
   AvoidMultipleDeclarationsPerLine()
       : super(
-            name: 'avoid_multiple_declarations_per_line',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'avoid_multiple_declarations_per_line',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_multiple_declarations_per_line;

@@ -7,12 +7,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:devtools_shared/devtools_shared.dart' show DTDConnectionInfo;
+import 'package:devtools_shared/devtools_shared.dart' show DtdInfo;
 import 'package:path/path.dart' as path;
 
 import 'utils.dart';
 
-Future<DTDConnectionInfo> startDtd({
+Future<DtdInfo?> startDtd({
   required bool machineMode,
   required bool printDtdUri,
 }) async {
@@ -24,8 +24,8 @@ Future<DTDConnectionInfo> startDtd({
     'dart_tooling_daemon.dart.snapshot',
   );
 
-  final completer = Completer<DTDConnectionInfo>();
-  void completeForError() => completer.complete((uri: null, secret: null));
+  final completer = Completer<DtdInfo?>();
+  void completeForError() => completer.complete(null);
 
   final exitPort = ReceivePort()
     ..listen((_) {
@@ -57,7 +57,7 @@ Future<DTDConnectionInfo> startDtd({
               machineMode: machineMode,
             );
           }
-          completer.complete((uri: uri, secret: secret));
+          completer.complete(DtdInfo(Uri.parse(uri), secret: secret));
         }
       } catch (_) {
         completeForError();
@@ -78,7 +78,7 @@ Future<DTDConnectionInfo> startDtd({
 
   final result = await completer.future.timeout(
     const Duration(seconds: 5),
-    onTimeout: () => (uri: null, secret: null),
+    onTimeout: () => null,
   );
   receivePort.close();
   errorPort.close();

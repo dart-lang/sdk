@@ -87,10 +87,10 @@ class Ok {
 class ControlFlowInFinally extends LintRule {
   ControlFlowInFinally()
       : super(
-            name: 'control_flow_in_finally',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'control_flow_in_finally',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.control_flow_in_finally;

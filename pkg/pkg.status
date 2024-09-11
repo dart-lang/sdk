@@ -148,6 +148,7 @@ vm_service/test/get_source_report_with_mixin_test: SkipByDesign # Debugger is di
 vm_service/test/get_stack_limit_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_stack_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_stack_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/id_zones_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/implicit_getter_setter_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/invoke_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/isolate_lifecycle_test: SkipByDesign # Debugger is disabled in AOT mode.

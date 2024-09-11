@@ -336,6 +336,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
 
   SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
   JSONStream js;
+  js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
   report.PrintJSON(&js, script);
   const char* json_str = js.ToCString();
   ASSERT(strlen(json_str) < kBufferSize);
@@ -347,7 +348,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
       // UnusedClass has a syntax error.
       "{\"scriptIndex\":0,\"startPos\":30,\"endPos\":53,\"compiled\":false,"
       "\"error\":{\"type\":\"@Error\",\"_vmType\":\"LanguageError\","
-      "\"kind\":\"LanguageError\",\"id\":\"objects\\/0\","
+      "\"kind\":\"LanguageError\",\"id\":\"objects\\/0\\/0\","
       "\"message\":\"'file:\\/\\/\\/test-lib': error: "
       "\\/test-lib:3:26: "
       "Error: This couldn't be parsed.\\n"
@@ -590,6 +591,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
 
   SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
   JSONStream js;
+  js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
 
   // We generate a report with all functions in the VM.
   Script& null_script = Script::Handle();

@@ -30,6 +30,66 @@ library;
 // void set topLevelLateFinalFieldAndDuplicateSetter(int? value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:104:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? extensionInstanceFieldAndSetter;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:107:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? extensionInstanceFieldAndDuplicateSetter;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:111:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? duplicateExtensionInstanceFieldAndSetter1;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:112:14: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int? duplicateExtensionInstanceFieldAndSetter1 = null;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:115:14: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int? duplicateExtensionInstanceFieldAndSetter2 = null;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:116:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? duplicateExtensionInstanceFieldAndSetter2;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:148:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? extensionInstanceFieldAndStaticSetter;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:151:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? extensionInstanceFieldAndStaticDuplicateSetter;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:155:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? duplicateExtensionInstanceFieldAndStaticSetter1;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:156:14: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int? duplicateExtensionInstanceFieldAndStaticSetter1 = null;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:159:14: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int? duplicateExtensionInstanceFieldAndStaticSetter2 = null;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:160:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? duplicateExtensionInstanceFieldAndStaticSetter2;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:33:12: Error: 'instanceFieldAndDuplicateSetter' is already declared in this scope.
 //   void set instanceFieldAndDuplicateSetter(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -128,16 +188,6 @@ library;
 //   static final int? duplicateStaticFieldAndInstanceSetter2 = null;
 //                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:104:8: Error: Extensions can't declare instance fields
-// Try removing the field declaration or making it a static field
-//   int? extensionInstanceFieldAndSetter;
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:107:8: Error: Extensions can't declare instance fields
-// Try removing the field declaration or making it a static field
-//   int? extensionInstanceFieldAndDuplicateSetter;
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:109:12: Error: 'extensionInstanceFieldAndDuplicateSetter' is already declared in this scope.
 //   void set extensionInstanceFieldAndDuplicateSetter(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -145,31 +195,11 @@ library;
 //   void set extensionInstanceFieldAndDuplicateSetter(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:111:8: Error: Extensions can't declare instance fields
-// Try removing the field declaration or making it a static field
-//   int? duplicateExtensionInstanceFieldAndSetter1;
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:112:14: Error: Extensions can't declare instance fields
-// Try removing the field declaration or making it a static field
-//   final int? duplicateExtensionInstanceFieldAndSetter1 = null;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:112:14: Error: 'duplicateExtensionInstanceFieldAndSetter1' is already declared in this scope.
 //   final int? duplicateExtensionInstanceFieldAndSetter1 = null;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:111:8: Context: Previous declaration of 'duplicateExtensionInstanceFieldAndSetter1'.
 //   int? duplicateExtensionInstanceFieldAndSetter1;
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:115:14: Error: Extensions can't declare instance fields
-// Try removing the field declaration or making it a static field
-//   final int? duplicateExtensionInstanceFieldAndSetter2 = null;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:116:8: Error: Extensions can't declare instance fields
-// Try removing the field declaration or making it a static field
-//   int? duplicateExtensionInstanceFieldAndSetter2;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:116:8: Error: 'duplicateExtensionInstanceFieldAndSetter2' is already declared in this scope.
@@ -214,16 +244,6 @@ library;
 //   void set extensionStaticFieldAndInstanceDuplicateSetter(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:148:8: Error: Extensions can't declare instance fields
-// Try removing the field declaration or making it a static field
-//   int? extensionInstanceFieldAndStaticSetter;
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:151:8: Error: Extensions can't declare instance fields
-// Try removing the field declaration or making it a static field
-//   int? extensionInstanceFieldAndStaticDuplicateSetter;
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:153:19: Error: 'extensionInstanceFieldAndStaticDuplicateSetter' is already declared in this scope.
 //   static void set extensionInstanceFieldAndStaticDuplicateSetter(int? value) {}
 //                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -231,31 +251,11 @@ library;
 //   static void set extensionInstanceFieldAndStaticDuplicateSetter(int? value) {}
 //                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:155:8: Error: Extensions can't declare instance fields
-// Try removing the field declaration or making it a static field
-//   int? duplicateExtensionInstanceFieldAndStaticSetter1;
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:156:14: Error: Extensions can't declare instance fields
-// Try removing the field declaration or making it a static field
-//   final int? duplicateExtensionInstanceFieldAndStaticSetter1 = null;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:156:14: Error: 'duplicateExtensionInstanceFieldAndStaticSetter1' is already declared in this scope.
 //   final int? duplicateExtensionInstanceFieldAndStaticSetter1 = null;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:155:8: Context: Previous declaration of 'duplicateExtensionInstanceFieldAndStaticSetter1'.
 //   int? duplicateExtensionInstanceFieldAndStaticSetter1;
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:159:14: Error: Extensions can't declare instance fields
-// Try removing the field declaration or making it a static field
-//   final int? duplicateExtensionInstanceFieldAndStaticSetter2 = null;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:160:8: Error: Extensions can't declare instance fields
-// Try removing the field declaration or making it a static field
-//   int? duplicateExtensionInstanceFieldAndStaticSetter2;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:160:8: Error: 'duplicateExtensionInstanceFieldAndStaticSetter2' is already declared in this scope.

@@ -19,25 +19,25 @@ class AvoidUnusedConstructorParametersTest extends LintRuleTest {
 
   test_augmentationClass() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A { }
 ''');
 
     await assertDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   A(int a);
 }
 ''', [
-      lint(49, 5),
+      lint(41, 5),
     ]);
   }
 
   test_augmentedConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   A(int a);
@@ -45,10 +45,83 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment A.new(int a);
+}
+''');
+  }
+
+  test_deprecated() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C(@Deprecated('') int p);
+}
+''');
+  }
+
+  test_externalConstructor() async {
+    await assertNoDiagnostics(r'''
+class C {
+  external C(int p);
+}
+''');
+  }
+
+  test_fieldFormalParameter() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int p;
+  C({this.p = 0});
+}
+''');
+  }
+
+  test_namedAsWildcards() async {
+    // https://github.com/dart-lang/linter/issues/1793
+    await assertNoDiagnostics(r'''
+class C {
+  C(int _, int __);
+}
+''');
+  }
+
+  test_namedParameter_hasDefault() async {
+    await assertDiagnostics(r'''
+class C {
+  C({int c = 0});
+}
+''', [
+      lint(15, 9),
+    ]);
+  }
+
+  test_noParameters() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C();
+}
+''');
+  }
+
+  test_redirectingConstructor1() async {
+    await assertDiagnostics(r'''
+class C {
+  C.named(int p);
+  factory C(int p) = C.named;
+}
+''', [
+      lint(20, 5),
+    ]);
+  }
+
+  test_redirectingConstructor2() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int p;
+  C.named(this.p);
+  factory C(int p) => C.named(p);
 }
 ''');
   }
@@ -62,6 +135,68 @@ class A {
 }
 class B extends A {
   B(super.a, super.b);
+}
+''');
+  }
+
+  test_unused_optionalPositional() async {
+    await assertDiagnostics(r'''
+class C {
+  C([int p = 0]) {}
+}
+''', [
+      lint(15, 9),
+    ]);
+  }
+
+  test_unused_requiredPositional() async {
+    await assertDiagnostics(r'''
+class C {
+  C(int p);
+}
+''', [
+      lint(14, 5),
+    ]);
+  }
+
+  test_usedInConstructorBody() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C({int p = 0}) {
+   p;
+  }
+}
+''');
+  }
+
+  test_usedInConstructorInitializer() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int f;
+  C({int p = 0}) : f = p;
+}
+''');
+  }
+
+  test_usedInRedirectingInitializer() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int p;
+  C(this.p);
+  C.named(int p) : this(p);
+}
+''');
+  }
+
+  test_usedInSuperInitializer() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int p;
+  C(this.p);
+}
+
+class D extends C {
+  D(int p) : super(p);
 }
 ''');
   }

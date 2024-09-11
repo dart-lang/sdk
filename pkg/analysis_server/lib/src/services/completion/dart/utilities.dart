@@ -9,13 +9,12 @@ import 'package:analysis_server/src/protocol_server.dart' show Location;
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
-import 'package:analyzer/dart/analysis/code_style_options.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
 
@@ -151,7 +150,7 @@ protocol.Element createLocalElement(
 
 /// Return a default argument value for the given [parameter].
 DefaultArgument? getDefaultStringParameterValue(
-    ParameterElement parameter, CodeStyleOptions codeStyleOptions) {
+    ParameterElement parameter, String quote) {
   var type = parameter.type;
   if (type is InterfaceType) {
     if (type.isDartCoreList) {
@@ -159,7 +158,6 @@ DefaultArgument? getDefaultStringParameterValue(
     } else if (type.isDartCoreMap) {
       return DefaultArgument('{}', cursorPosition: 1);
     } else if (type.isDartCoreString) {
-      var quote = codeStyleOptions.preferredQuoteForStrings;
       return DefaultArgument('$quote$quote', cursorPosition: 1);
     }
   } else if (type is FunctionType) {
@@ -209,6 +207,17 @@ InterfaceType instantiateInstanceElement(
     typeArguments: typeArguments,
     nullabilitySuffix: NullabilitySuffix.none,
   );
+}
+
+/// Returns true if the [parameter] is part of a constructor for a Flutter
+/// [Widget].
+bool isFlutterWidgetParameter(ParameterElement parameter) {
+  var element = parameter.enclosingElement3;
+  if (element is ConstructorElement &&
+      element.enclosingElement3.augmented.declaration.isWidget) {
+    return true;
+  }
+  return false;
 }
 
 /// Return name of the type of the given [identifier], or, if it unresolved, the

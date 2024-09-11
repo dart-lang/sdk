@@ -158,60 +158,109 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class Raw @6
           reference: <testLibraryFragment>::@class::Raw
+          element: <testLibraryFragment>::@class::Raw
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::Raw::@constructor::new
+              element: <none>
         class HasDocComment @50
           reference: <testLibraryFragment>::@class::HasDocComment
+          element: <testLibraryFragment>::@class::HasDocComment
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::HasDocComment::@constructor::new
+              element: <none>
         class HasAnnotation @84
           reference: <testLibraryFragment>::@class::HasAnnotation
+          element: <testLibraryFragment>::@class::HasAnnotation
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
+              element: <none>
         class AnnotationThenComment @148
           reference: <testLibraryFragment>::@class::AnnotationThenComment
+          element: <testLibraryFragment>::@class::AnnotationThenComment
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
+              element: <none>
         class CommentThenAnnotation @220
           reference: <testLibraryFragment>::@class::CommentThenAnnotation
+          element: <testLibraryFragment>::@class::CommentThenAnnotation
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
+              element: <none>
         class CommentAroundAnnotation @292
           reference: <testLibraryFragment>::@class::CommentAroundAnnotation
+          element: <testLibraryFragment>::@class::CommentAroundAnnotation
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
+              element: <none>
   classes
     class Raw
       reference: <testLibraryFragment>::@class::Raw
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 12
       firstFragment: <testLibraryFragment>::@class::Raw
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::Raw::@constructor::new
     class HasDocComment
       reference: <testLibraryFragment>::@class::HasDocComment
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 14
       codeLength: 52
       firstFragment: <testLibraryFragment>::@class::HasDocComment
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::HasDocComment::@constructor::new
     class HasAnnotation
       reference: <testLibraryFragment>::@class::HasAnnotation
-      enclosingElement2: <testLibrary>
       codeOffset: 68
       codeLength: 32
       firstFragment: <testLibraryFragment>::@class::HasAnnotation
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
     class AnnotationThenComment
       reference: <testLibraryFragment>::@class::AnnotationThenComment
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 102
       codeLength: 70
       firstFragment: <testLibraryFragment>::@class::AnnotationThenComment
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
     class CommentThenAnnotation
       reference: <testLibraryFragment>::@class::CommentThenAnnotation
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 174
       codeLength: 70
       firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
     class CommentAroundAnnotation
       reference: <testLibraryFragment>::@class::CommentAroundAnnotation
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 2.
       codeOffset: 261
       codeLength: 57
       firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
 ''');
   }
 
@@ -445,82 +494,189 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @18
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class Raw @30
           reference: <testLibraryFragment>::@class::Raw
+          element: <testLibraryFragment>::@class::Raw
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@class::Raw::@constructor::new
+              element: <none>
+              constantInitializers
+                SuperConstructorInvocation
+                  superKeyword: super @0
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
         class HasDocComment @91
           reference: <testLibraryFragment>::@class::HasDocComment
+          element: <testLibraryFragment>::@class::HasDocComment
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@class::HasDocComment::@constructor::new
+              element: <none>
+              constantInitializers
+                SuperConstructorInvocation
+                  superKeyword: super @0
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
         class HasAnnotation @142
           reference: <testLibraryFragment>::@class::HasAnnotation
+          element: <testLibraryFragment>::@class::HasAnnotation
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
+              element: <none>
+              constantInitializers
+                SuperConstructorInvocation
+                  superKeyword: super @0
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
         class AnnotationThenComment @223
           reference: <testLibraryFragment>::@class::AnnotationThenComment
+          element: <testLibraryFragment>::@class::AnnotationThenComment
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
+              element: <none>
+              constantInitializers
+                SuperConstructorInvocation
+                  superKeyword: super @0
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
         class CommentThenAnnotation @312
           reference: <testLibraryFragment>::@class::CommentThenAnnotation
+          element: <testLibraryFragment>::@class::CommentThenAnnotation
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
+              element: <none>
+              constantInitializers
+                SuperConstructorInvocation
+                  superKeyword: super @0
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
         class CommentAroundAnnotation @401
           reference: <testLibraryFragment>::@class::CommentAroundAnnotation
+          element: <testLibraryFragment>::@class::CommentAroundAnnotation
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
+              element: <none>
+              constantInitializers
+                SuperConstructorInvocation
+                  superKeyword: super @0
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 10
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       codeOffset: 12
       codeLength: 10
       firstFragment: <testLibraryFragment>::@class::B
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class alias Raw
       reference: <testLibraryFragment>::@class::Raw
-      enclosingElement2: <testLibrary>
       codeOffset: 24
       codeLength: 29
       firstFragment: <testLibraryFragment>::@class::Raw
       supertype: Object
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::Raw::@constructor::new
     class alias HasDocComment
       reference: <testLibraryFragment>::@class::HasDocComment
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 55
       codeLength: 69
       firstFragment: <testLibraryFragment>::@class::HasDocComment
       supertype: Object
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::HasDocComment::@constructor::new
     class alias HasAnnotation
       reference: <testLibraryFragment>::@class::HasAnnotation
-      enclosingElement2: <testLibrary>
       codeOffset: 126
       codeLength: 49
       firstFragment: <testLibraryFragment>::@class::HasAnnotation
       supertype: Object
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
     class alias AnnotationThenComment
       reference: <testLibraryFragment>::@class::AnnotationThenComment
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 177
       codeLength: 87
       firstFragment: <testLibraryFragment>::@class::AnnotationThenComment
       supertype: Object
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
     class alias CommentThenAnnotation
       reference: <testLibraryFragment>::@class::CommentThenAnnotation
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 1.\n/// Comment 2.
       codeOffset: 266
       codeLength: 87
       firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation
       supertype: Object
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
     class alias CommentAroundAnnotation
       reference: <testLibraryFragment>::@class::CommentAroundAnnotation
-      enclosingElement2: <testLibrary>
       documentationComment: /// Comment 2.
       codeOffset: 370
       codeLength: 74
       firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation
       supertype: Object
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
 ''');
   }
 
@@ -669,16 +825,183 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
+          constructors
+            new @12
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
+              codeOffset: 12
+              codeLength: 4
+            raw @22
+              reference: <testLibraryFragment>::@class::C::@constructor::raw
+              element: <none>
+              codeOffset: 20
+              codeLength: 10
+              periodOffset: 21
+              nameEnd: 25
+            hasDocComment @70
+              reference: <testLibraryFragment>::@class::C::@constructor::hasDocComment
+              element: <none>
+              documentationComment: /// Comment 1.\n/// Comment 2.
+              codeOffset: 34
+              codeLength: 54
+              periodOffset: 69
+              nameEnd: 83
+            hasAnnotation @106
+              reference: <testLibraryFragment>::@class::C::@constructor::hasAnnotation
+              element: <none>
+              metadata
+                Annotation
+                  atSign: @ @92
+                  name: SimpleIdentifier
+                    token: Object @93
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @99
+                    rightParenthesis: ) @100
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+              codeOffset: 92
+              codeLength: 32
+              periodOffset: 105
+              nameEnd: 119
+            annotationThenComment @176
+              reference: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
+              element: <none>
+              documentationComment: /// Comment 1.\n/// Comment 2.
+              metadata
+                Annotation
+                  atSign: @ @128
+                  name: SimpleIdentifier
+                    token: Object @129
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @135
+                    rightParenthesis: ) @136
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+              codeOffset: 128
+              codeLength: 74
+              periodOffset: 175
+              nameEnd: 197
+            commentThenAnnotation @254
+              reference: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
+              element: <none>
+              documentationComment: /// Comment 1.\n/// Comment 2.
+              metadata
+                Annotation
+                  atSign: @ @240
+                  name: SimpleIdentifier
+                    token: Object @241
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @247
+                    rightParenthesis: ) @248
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+              codeOffset: 206
+              codeLength: 74
+              periodOffset: 253
+              nameEnd: 275
+            commentAroundAnnotation @332
+              reference: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
+              element: <none>
+              documentationComment: /// Comment 2.
+              metadata
+                Annotation
+                  atSign: @ @301
+                  name: SimpleIdentifier
+                    token: Object @302
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @308
+                    rightParenthesis: ) @309
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+              codeOffset: 301
+              codeLength: 59
+              periodOffset: 331
+              nameEnd: 355
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 362
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+        raw
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::raw
+        hasDocComment
+          reference: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::hasDocComment
+        hasAnnotation
+          reference: <none>
+          metadata
+            Annotation
+              atSign: @ @92
+              name: SimpleIdentifier
+                token: Object @93
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @99
+                rightParenthesis: ) @100
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::hasAnnotation
+        annotationThenComment
+          reference: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @128
+              name: SimpleIdentifier
+                token: Object @129
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @135
+                rightParenthesis: ) @136
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
+        commentThenAnnotation
+          reference: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @240
+              name: SimpleIdentifier
+                token: Object @241
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @247
+                rightParenthesis: ) @248
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
+        commentAroundAnnotation
+          reference: <none>
+          documentationComment: /// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @301
+              name: SimpleIdentifier
+                token: Object @302
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @308
+                rightParenthesis: ) @309
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
 ''');
   }
 
@@ -827,16 +1150,183 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
+          constructors
+            factory new @20
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
+              codeOffset: 12
+              codeLength: 23
+            factory raw @49
+              reference: <testLibraryFragment>::@class::C::@constructor::raw
+              element: <none>
+              codeOffset: 39
+              codeLength: 27
+              periodOffset: 48
+              nameEnd: 52
+            factory hasDocComment @114
+              reference: <testLibraryFragment>::@class::C::@constructor::hasDocComment
+              element: <none>
+              documentationComment: /// Comment 1.\n/// Comment 2.
+              codeOffset: 70
+              codeLength: 71
+              periodOffset: 113
+              nameEnd: 127
+            factory hasAnnotation @167
+              reference: <testLibraryFragment>::@class::C::@constructor::hasAnnotation
+              element: <none>
+              metadata
+                Annotation
+                  atSign: @ @145
+                  name: SimpleIdentifier
+                    token: Object @146
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @152
+                    rightParenthesis: ) @153
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+              codeOffset: 145
+              codeLength: 49
+              periodOffset: 166
+              nameEnd: 180
+            factory annotationThenComment @254
+              reference: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
+              element: <none>
+              documentationComment: /// Comment 1.\n/// Comment 2.
+              metadata
+                Annotation
+                  atSign: @ @198
+                  name: SimpleIdentifier
+                    token: Object @199
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @205
+                    rightParenthesis: ) @206
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+              codeOffset: 198
+              codeLength: 91
+              periodOffset: 253
+              nameEnd: 275
+            factory commentThenAnnotation @349
+              reference: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
+              element: <none>
+              documentationComment: /// Comment 1.\n/// Comment 2.
+              metadata
+                Annotation
+                  atSign: @ @327
+                  name: SimpleIdentifier
+                    token: Object @328
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @334
+                    rightParenthesis: ) @335
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+              codeOffset: 293
+              codeLength: 91
+              periodOffset: 348
+              nameEnd: 370
+            factory commentAroundAnnotation @444
+              reference: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
+              element: <none>
+              documentationComment: /// Comment 2.
+              metadata
+                Annotation
+                  atSign: @ @405
+                  name: SimpleIdentifier
+                    token: Object @406
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @412
+                    rightParenthesis: ) @413
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+              codeOffset: 405
+              codeLength: 76
+              periodOffset: 443
+              nameEnd: 467
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 483
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        factory new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+        factory raw
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::raw
+        factory hasDocComment
+          reference: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::hasDocComment
+        factory hasAnnotation
+          reference: <none>
+          metadata
+            Annotation
+              atSign: @ @145
+              name: SimpleIdentifier
+                token: Object @146
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @152
+                rightParenthesis: ) @153
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::hasAnnotation
+        factory annotationThenComment
+          reference: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @198
+              name: SimpleIdentifier
+                token: Object @199
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @205
+                rightParenthesis: ) @206
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
+        factory commentThenAnnotation
+          reference: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @327
+              name: SimpleIdentifier
+                token: Object @328
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @334
+                rightParenthesis: ) @335
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
+        factory commentAroundAnnotation
+          reference: <none>
+          documentationComment: /// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @405
+              name: SimpleIdentifier
+                token: Object @406
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @412
+                rightParenthesis: ) @413
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
 ''');
   }
 
@@ -976,29 +1466,79 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       extensions
         extension Raw @22
           reference: <testLibraryFragment>::@extension::Raw
+          element: <testLibraryFragment>::@extension::Raw
         extension HasDocComment @75
           reference: <testLibraryFragment>::@extension::HasDocComment
+          element: <testLibraryFragment>::@extension::HasDocComment
         extension HasAnnotation @118
           reference: <testLibraryFragment>::@extension::HasAnnotation
+          element: <testLibraryFragment>::@extension::HasAnnotation
         extension AnnotationThenComment @191
           reference: <testLibraryFragment>::@extension::AnnotationThenComment
+          element: <testLibraryFragment>::@extension::AnnotationThenComment
         extension CommentThenAnnotation @272
           reference: <testLibraryFragment>::@extension::CommentThenAnnotation
+          element: <testLibraryFragment>::@extension::CommentThenAnnotation
         extension CommentAroundAnnotation @353
           reference: <testLibraryFragment>::@extension::CommentAroundAnnotation
+          element: <testLibraryFragment>::@extension::CommentAroundAnnotation
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 10
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  extensions
+    extension Raw
+      reference: <testLibraryFragment>::@extension::Raw
+      codeOffset: 12
+      codeLength: 21
+      firstFragment: <testLibraryFragment>::@extension::Raw
+    extension HasDocComment
+      reference: <testLibraryFragment>::@extension::HasDocComment
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      codeOffset: 35
+      codeLength: 61
+      firstFragment: <testLibraryFragment>::@extension::HasDocComment
+    extension HasAnnotation
+      reference: <testLibraryFragment>::@extension::HasAnnotation
+      codeOffset: 98
+      codeLength: 41
+      firstFragment: <testLibraryFragment>::@extension::HasAnnotation
+    extension AnnotationThenComment
+      reference: <testLibraryFragment>::@extension::AnnotationThenComment
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      codeOffset: 141
+      codeLength: 79
+      firstFragment: <testLibraryFragment>::@extension::AnnotationThenComment
+    extension CommentThenAnnotation
+      reference: <testLibraryFragment>::@extension::CommentThenAnnotation
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      codeOffset: 222
+      codeLength: 79
+      firstFragment: <testLibraryFragment>::@extension::CommentThenAnnotation
+    extension CommentAroundAnnotation
+      reference: <testLibraryFragment>::@extension::CommentAroundAnnotation
+      documentationComment: /// Comment 2.
+      codeOffset: 318
+      codeLength: 66
+      firstFragment: <testLibraryFragment>::@extension::CommentAroundAnnotation
 ''');
   }
 
@@ -1125,16 +1665,181 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
+          fields
+            withInit @16
+              reference: <testLibraryFragment>::@class::C::@field::withInit
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::withInit
+              setter2: <testLibraryFragment>::@class::C::@setter::withInit
+            withoutInit @37
+              reference: <testLibraryFragment>::@class::C::@field::withoutInit
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::withoutInit
+              setter2: <testLibraryFragment>::@class::C::@setter::withoutInit
+            multiWithInit @57
+              reference: <testLibraryFragment>::@class::C::@field::multiWithInit
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::multiWithInit
+              setter2: <testLibraryFragment>::@class::C::@setter::multiWithInit
+            multiWithoutInit @76
+              reference: <testLibraryFragment>::@class::C::@field::multiWithoutInit
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::multiWithoutInit
+              setter2: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
+            multiWithInit2 @94
+              reference: <testLibraryFragment>::@class::C::@field::multiWithInit2
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::multiWithInit2
+              setter2: <testLibraryFragment>::@class::C::@setter::multiWithInit2
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
+          getters
+            get withInit @-1
+              reference: <testLibraryFragment>::@class::C::@getter::withInit
+              element: <none>
+            get withoutInit @-1
+              reference: <testLibraryFragment>::@class::C::@getter::withoutInit
+              element: <none>
+            get multiWithInit @-1
+              reference: <testLibraryFragment>::@class::C::@getter::multiWithInit
+              element: <none>
+            get multiWithoutInit @-1
+              reference: <testLibraryFragment>::@class::C::@getter::multiWithoutInit
+              element: <none>
+            get multiWithInit2 @-1
+              reference: <testLibraryFragment>::@class::C::@getter::multiWithInit2
+              element: <none>
+          setters
+            set withInit= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::withInit
+              element: <none>
+              parameters
+                _withInit @-1
+                  element: <none>
+            set withoutInit= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::withoutInit
+              element: <none>
+              parameters
+                _withoutInit @-1
+                  element: <none>
+            set multiWithInit= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::multiWithInit
+              element: <none>
+              parameters
+                _multiWithInit @-1
+                  element: <none>
+            set multiWithoutInit= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
+              element: <none>
+              parameters
+                _multiWithoutInit @-1
+                  element: <none>
+            set multiWithInit2= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::multiWithInit2
+              element: <none>
+              parameters
+                _multiWithInit2 @-1
+                  element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 115
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        withInit
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::withInit
+          getter: <none>
+          setter: <none>
+        withoutInit
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::withoutInit
+          getter: <none>
+          setter: <none>
+        multiWithInit
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::multiWithInit
+          getter: <none>
+          setter: <none>
+        multiWithoutInit
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::multiWithoutInit
+          getter: <none>
+          setter: <none>
+        multiWithInit2
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::multiWithInit2
+          getter: <none>
+          setter: <none>
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        synthetic get withInit
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::withInit
+        synthetic get withoutInit
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::withoutInit
+        synthetic get multiWithInit
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::multiWithInit
+        synthetic get multiWithoutInit
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::multiWithoutInit
+        synthetic get multiWithInit2
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::multiWithInit2
+      setters
+        synthetic set withInit=
+          reference: <none>
+          parameters
+            requiredPositional _withInit
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::withInit
+        synthetic set withoutInit=
+          reference: <none>
+          parameters
+            requiredPositional _withoutInit
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::withoutInit
+        synthetic set multiWithInit=
+          reference: <none>
+          parameters
+            requiredPositional _multiWithInit
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::multiWithInit
+        synthetic set multiWithoutInit=
+          reference: <none>
+          parameters
+            requiredPositional _multiWithoutInit
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
+        synthetic set multiWithInit2=
+          reference: <none>
+          parameters
+            requiredPositional _multiWithInit2
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::multiWithInit2
 ''');
   }
 
@@ -1455,16 +2160,331 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
+          fields
+            hasDocComment @50
+              reference: <testLibraryFragment>::@class::C::@field::hasDocComment
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::hasDocComment
+              setter2: <testLibraryFragment>::@class::C::@setter::hasDocComment
+            hasDocComment2 @65
+              reference: <testLibraryFragment>::@class::C::@field::hasDocComment2
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::hasDocComment2
+              setter2: <testLibraryFragment>::@class::C::@setter::hasDocComment2
+            hasAnnotation @100
+              reference: <testLibraryFragment>::@class::C::@field::hasAnnotation
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::hasAnnotation
+              setter2: <testLibraryFragment>::@class::C::@setter::hasAnnotation
+            hasAnnotation2 @115
+              reference: <testLibraryFragment>::@class::C::@field::hasAnnotation2
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::hasAnnotation2
+              setter2: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
+            annotationThenComment @184
+              reference: <testLibraryFragment>::@class::C::@field::annotationThenComment
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::annotationThenComment
+              setter2: <testLibraryFragment>::@class::C::@setter::annotationThenComment
+            annotationThenComment2 @207
+              reference: <testLibraryFragment>::@class::C::@field::annotationThenComment2
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::annotationThenComment2
+              setter2: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
+            commentThenAnnotation @284
+              reference: <testLibraryFragment>::@class::C::@field::commentThenAnnotation
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation
+              setter2: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
+            commentThenAnnotation2 @307
+              reference: <testLibraryFragment>::@class::C::@field::commentThenAnnotation2
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation2
+              setter2: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
+            commentAroundAnnotation @384
+              reference: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation
+              setter2: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
+            commentAroundAnnotation2 @409
+              reference: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation2
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2
+              setter2: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
+          getters
+            get hasDocComment @-1
+              reference: <testLibraryFragment>::@class::C::@getter::hasDocComment
+              element: <none>
+            get hasDocComment2 @-1
+              reference: <testLibraryFragment>::@class::C::@getter::hasDocComment2
+              element: <none>
+            get hasAnnotation @-1
+              reference: <testLibraryFragment>::@class::C::@getter::hasAnnotation
+              element: <none>
+            get hasAnnotation2 @-1
+              reference: <testLibraryFragment>::@class::C::@getter::hasAnnotation2
+              element: <none>
+            get annotationThenComment @-1
+              reference: <testLibraryFragment>::@class::C::@getter::annotationThenComment
+              element: <none>
+            get annotationThenComment2 @-1
+              reference: <testLibraryFragment>::@class::C::@getter::annotationThenComment2
+              element: <none>
+            get commentThenAnnotation @-1
+              reference: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation
+              element: <none>
+            get commentThenAnnotation2 @-1
+              reference: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation2
+              element: <none>
+            get commentAroundAnnotation @-1
+              reference: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation
+              element: <none>
+            get commentAroundAnnotation2 @-1
+              reference: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2
+              element: <none>
+          setters
+            set hasDocComment= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::hasDocComment
+              element: <none>
+              parameters
+                _hasDocComment @-1
+                  element: <none>
+            set hasDocComment2= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::hasDocComment2
+              element: <none>
+              parameters
+                _hasDocComment2 @-1
+                  element: <none>
+            set hasAnnotation= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::hasAnnotation
+              element: <none>
+              parameters
+                _hasAnnotation @-1
+                  element: <none>
+            set hasAnnotation2= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
+              element: <none>
+              parameters
+                _hasAnnotation2 @-1
+                  element: <none>
+            set annotationThenComment= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::annotationThenComment
+              element: <none>
+              parameters
+                _annotationThenComment @-1
+                  element: <none>
+            set annotationThenComment2= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
+              element: <none>
+              parameters
+                _annotationThenComment2 @-1
+                  element: <none>
+            set commentThenAnnotation= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
+              element: <none>
+              parameters
+                _commentThenAnnotation @-1
+                  element: <none>
+            set commentThenAnnotation2= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
+              element: <none>
+              parameters
+                _commentThenAnnotation2 @-1
+                  element: <none>
+            set commentAroundAnnotation= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
+              element: <none>
+              parameters
+                _commentAroundAnnotation @-1
+                  element: <none>
+            set commentAroundAnnotation2= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
+              element: <none>
+              parameters
+                _commentAroundAnnotation2 @-1
+                  element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 436
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        hasDocComment
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::hasDocComment
+          getter: <none>
+          setter: <none>
+        hasDocComment2
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::hasDocComment2
+          getter: <none>
+          setter: <none>
+        hasAnnotation
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::hasAnnotation
+          getter: <none>
+          setter: <none>
+        hasAnnotation2
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::hasAnnotation2
+          getter: <none>
+          setter: <none>
+        annotationThenComment
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::annotationThenComment
+          getter: <none>
+          setter: <none>
+        annotationThenComment2
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::annotationThenComment2
+          getter: <none>
+          setter: <none>
+        commentThenAnnotation
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::commentThenAnnotation
+          getter: <none>
+          setter: <none>
+        commentThenAnnotation2
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::commentThenAnnotation2
+          getter: <none>
+          setter: <none>
+        commentAroundAnnotation
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation
+          getter: <none>
+          setter: <none>
+        commentAroundAnnotation2
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation2
+          getter: <none>
+          setter: <none>
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        synthetic get hasDocComment
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::hasDocComment
+        synthetic get hasDocComment2
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::hasDocComment2
+        synthetic get hasAnnotation
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::hasAnnotation
+        synthetic get hasAnnotation2
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::hasAnnotation2
+        synthetic get annotationThenComment
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::annotationThenComment
+        synthetic get annotationThenComment2
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::annotationThenComment2
+        synthetic get commentThenAnnotation
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation
+        synthetic get commentThenAnnotation2
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation2
+        synthetic get commentAroundAnnotation
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation
+        synthetic get commentAroundAnnotation2
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2
+      setters
+        synthetic set hasDocComment=
+          reference: <none>
+          parameters
+            requiredPositional _hasDocComment
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::hasDocComment
+        synthetic set hasDocComment2=
+          reference: <none>
+          parameters
+            requiredPositional _hasDocComment2
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::hasDocComment2
+        synthetic set hasAnnotation=
+          reference: <none>
+          parameters
+            requiredPositional _hasAnnotation
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::hasAnnotation
+        synthetic set hasAnnotation2=
+          reference: <none>
+          parameters
+            requiredPositional _hasAnnotation2
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
+        synthetic set annotationThenComment=
+          reference: <none>
+          parameters
+            requiredPositional _annotationThenComment
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::annotationThenComment
+        synthetic set annotationThenComment2=
+          reference: <none>
+          parameters
+            requiredPositional _annotationThenComment2
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
+        synthetic set commentThenAnnotation=
+          reference: <none>
+          parameters
+            requiredPositional _commentThenAnnotation
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
+        synthetic set commentThenAnnotation2=
+          reference: <none>
+          parameters
+            requiredPositional _commentThenAnnotation2
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
+        synthetic set commentAroundAnnotation=
+          reference: <none>
+          parameters
+            requiredPositional _commentAroundAnnotation
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
+        synthetic set commentAroundAnnotation2=
+          reference: <none>
+          parameters
+            requiredPositional _commentAroundAnnotation2
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
 ''');
   }
 
@@ -1592,6 +2612,141 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        raw @5
+          reference: <testLibraryFragment>::@function::raw
+          element: <none>
+        hasDocComment @50
+          reference: <testLibraryFragment>::@function::hasDocComment
+          element: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+        hasAnnotation @85
+          reference: <testLibraryFragment>::@function::hasAnnotation
+          element: <none>
+          metadata
+            Annotation
+              atSign: @ @70
+              name: SimpleIdentifier
+                token: Object @71
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @77
+                rightParenthesis: ) @78
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        annotationThenComment @150
+          reference: <testLibraryFragment>::@function::annotationThenComment
+          element: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @105
+              name: SimpleIdentifier
+                token: Object @106
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @112
+                rightParenthesis: ) @113
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        commentThenAnnotation @223
+          reference: <testLibraryFragment>::@function::commentThenAnnotation
+          element: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @208
+              name: SimpleIdentifier
+                token: Object @209
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @215
+                rightParenthesis: ) @216
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        commentAroundAnnotation @296
+          reference: <testLibraryFragment>::@function::commentAroundAnnotation
+          element: <none>
+          documentationComment: /// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @266
+              name: SimpleIdentifier
+                token: Object @267
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @273
+                rightParenthesis: ) @274
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+  functions
+    raw
+      reference: <none>
+      returnType: void
+    hasDocComment
+      reference: <none>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      returnType: void
+    hasAnnotation
+      reference: <none>
+      metadata
+        Annotation
+          atSign: @ @70
+          name: SimpleIdentifier
+            token: Object @71
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @77
+            rightParenthesis: ) @78
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      returnType: void
+    annotationThenComment
+      reference: <none>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      metadata
+        Annotation
+          atSign: @ @105
+          name: SimpleIdentifier
+            token: Object @106
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @112
+            rightParenthesis: ) @113
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      returnType: void
+    commentThenAnnotation
+      reference: <none>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      metadata
+        Annotation
+          atSign: @ @208
+          name: SimpleIdentifier
+            token: Object @209
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @215
+            rightParenthesis: ) @216
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      returnType: void
+    commentAroundAnnotation
+      reference: <none>
+      documentationComment: /// Comment 2.
+      metadata
+        Annotation
+          atSign: @ @266
+          name: SimpleIdentifier
+            token: Object @267
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @273
+            rightParenthesis: ) @274
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      returnType: void
 ''');
   }
 
@@ -1731,16 +2886,171 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
+          methods
+            raw @17
+              reference: <testLibraryFragment>::@class::C::@method::raw
+              element: <none>
+              codeOffset: 12
+              codeLength: 13
+            hasDocComment @68
+              reference: <testLibraryFragment>::@class::C::@method::hasDocComment
+              element: <none>
+              documentationComment: /// Comment 1.\n/// Comment 2.
+              codeOffset: 29
+              codeLength: 57
+            hasAnnotation @107
+              reference: <testLibraryFragment>::@class::C::@method::hasAnnotation
+              element: <none>
+              metadata
+                Annotation
+                  atSign: @ @90
+                  name: SimpleIdentifier
+                    token: Object @91
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @97
+                    rightParenthesis: ) @98
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+              codeOffset: 90
+              codeLength: 35
+            annotationThenComment @180
+              reference: <testLibraryFragment>::@class::C::@method::annotationThenComment
+              element: <none>
+              documentationComment: /// Comment 1.\n/// Comment 2.
+              metadata
+                Annotation
+                  atSign: @ @129
+                  name: SimpleIdentifier
+                    token: Object @130
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @136
+                    rightParenthesis: ) @137
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+              codeOffset: 129
+              codeLength: 77
+            commentThenAnnotation @261
+              reference: <testLibraryFragment>::@class::C::@method::commentThenAnnotation
+              element: <none>
+              documentationComment: /// Comment 1.\n/// Comment 2.
+              metadata
+                Annotation
+                  atSign: @ @244
+                  name: SimpleIdentifier
+                    token: Object @245
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @251
+                    rightParenthesis: ) @252
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+              codeOffset: 210
+              codeLength: 77
+            commentAroundAnnotation @342
+              reference: <testLibraryFragment>::@class::C::@method::commentAroundAnnotation
+              element: <none>
+              documentationComment: /// Comment 2.
+              metadata
+                Annotation
+                  atSign: @ @308
+                  name: SimpleIdentifier
+                    token: Object @309
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @315
+                    rightParenthesis: ) @316
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+              codeOffset: 308
+              codeLength: 62
   classes
     class C
       reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 372
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      methods
+        raw
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::raw
+        hasDocComment
+          reference: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          firstFragment: <testLibraryFragment>::@class::C::@method::hasDocComment
+        hasAnnotation
+          reference: <none>
+          metadata
+            Annotation
+              atSign: @ @90
+              name: SimpleIdentifier
+                token: Object @91
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @97
+                rightParenthesis: ) @98
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          firstFragment: <testLibraryFragment>::@class::C::@method::hasAnnotation
+        annotationThenComment
+          reference: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @129
+              name: SimpleIdentifier
+                token: Object @130
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @136
+                rightParenthesis: ) @137
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          firstFragment: <testLibraryFragment>::@class::C::@method::annotationThenComment
+        commentThenAnnotation
+          reference: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @244
+              name: SimpleIdentifier
+                token: Object @245
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @251
+                rightParenthesis: ) @252
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          firstFragment: <testLibraryFragment>::@class::C::@method::commentThenAnnotation
+        commentAroundAnnotation
+          reference: <none>
+          documentationComment: /// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @308
+              name: SimpleIdentifier
+                token: Object @309
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @315
+                rightParenthesis: ) @316
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          firstFragment: <testLibraryFragment>::@class::C::@method::commentAroundAnnotation
 ''');
   }
 
@@ -1792,6 +3102,35 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        main @0
+          reference: <testLibraryFragment>::@function::main
+          element: <none>
+          parameters
+            default a @10
+              reference: <testLibraryFragment>::@function::main::@parameter::a
+              element: <none>
+            default b @21
+              reference: <testLibraryFragment>::@function::main::@parameter::b
+              element: <none>
+            default c @28
+              reference: <testLibraryFragment>::@function::main::@parameter::c
+              element: <none>
+  functions
+    main
+      reference: <none>
+      parameters
+        optionalNamed a
+          reference: <none>
+          type: int
+        optionalNamed b
+          reference: <none>
+          type: int
+        optionalNamed c
+          reference: <none>
+          type: int
+      returnType: dynamic
 ''');
   }
 
@@ -1854,6 +3193,76 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        main @0
+          reference: <testLibraryFragment>::@function::main
+          element: <none>
+          parameters
+            a @19
+              element: <none>
+              metadata
+                Annotation
+                  atSign: @ @5
+                  name: SimpleIdentifier
+                    token: Object @6
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @12
+                    rightParenthesis: ) @13
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+            b @26
+              element: <none>
+            c @43
+              element: <none>
+              metadata
+                Annotation
+                  atSign: @ @29
+                  name: SimpleIdentifier
+                    token: Object @30
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @36
+                    rightParenthesis: ) @37
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+  functions
+    main
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: int
+          metadata
+            Annotation
+              atSign: @ @5
+              name: SimpleIdentifier
+                token: Object @6
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @12
+                rightParenthesis: ) @13
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        requiredPositional b
+          reference: <none>
+          type: int
+        requiredPositional c
+          reference: <none>
+          type: int
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: Object @30
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @36
+                rightParenthesis: ) @37
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+      returnType: dynamic
 ''');
   }
 
@@ -1968,6 +3377,163 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        withInit @4
+          reference: <testLibraryFragment>::@topLevelVariable::withInit
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::withInit
+          setter2: <testLibraryFragment>::@setter::withInit
+        withoutInit @31
+          reference: <testLibraryFragment>::@topLevelVariable::withoutInit
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::withoutInit
+          setter2: <testLibraryFragment>::@setter::withoutInit
+        multiWithInit @49
+          reference: <testLibraryFragment>::@topLevelVariable::multiWithInit
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::multiWithInit
+          setter2: <testLibraryFragment>::@setter::multiWithInit
+        multiWithoutInit @68
+          reference: <testLibraryFragment>::@topLevelVariable::multiWithoutInit
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::multiWithoutInit
+          setter2: <testLibraryFragment>::@setter::multiWithoutInit
+        multiWithInit2 @86
+          reference: <testLibraryFragment>::@topLevelVariable::multiWithInit2
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::multiWithInit2
+          setter2: <testLibraryFragment>::@setter::multiWithInit2
+      getters
+        get withInit @-1
+          reference: <testLibraryFragment>::@getter::withInit
+          element: <none>
+        get withoutInit @-1
+          reference: <testLibraryFragment>::@getter::withoutInit
+          element: <none>
+        get multiWithInit @-1
+          reference: <testLibraryFragment>::@getter::multiWithInit
+          element: <none>
+        get multiWithoutInit @-1
+          reference: <testLibraryFragment>::@getter::multiWithoutInit
+          element: <none>
+        get multiWithInit2 @-1
+          reference: <testLibraryFragment>::@getter::multiWithInit2
+          element: <none>
+      setters
+        set withInit= @-1
+          reference: <testLibraryFragment>::@setter::withInit
+          element: <none>
+          parameters
+            _withInit @-1
+              element: <none>
+        set withoutInit= @-1
+          reference: <testLibraryFragment>::@setter::withoutInit
+          element: <none>
+          parameters
+            _withoutInit @-1
+              element: <none>
+        set multiWithInit= @-1
+          reference: <testLibraryFragment>::@setter::multiWithInit
+          element: <none>
+          parameters
+            _multiWithInit @-1
+              element: <none>
+        set multiWithoutInit= @-1
+          reference: <testLibraryFragment>::@setter::multiWithoutInit
+          element: <none>
+          parameters
+            _multiWithoutInit @-1
+              element: <none>
+        set multiWithInit2= @-1
+          reference: <testLibraryFragment>::@setter::multiWithInit2
+          element: <none>
+          parameters
+            _multiWithInit2 @-1
+              element: <none>
+  topLevelVariables
+    withInit
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::withInit
+      getter: <none>
+      setter: <none>
+    withoutInit
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::withoutInit
+      getter: <none>
+      setter: <none>
+    multiWithInit
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::multiWithInit
+      getter: <none>
+      setter: <none>
+    multiWithoutInit
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::multiWithoutInit
+      getter: <none>
+      setter: <none>
+    multiWithInit2
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::multiWithInit2
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get withInit
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::withInit
+    synthetic static get withoutInit
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::withoutInit
+    synthetic static get multiWithInit
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::multiWithInit
+    synthetic static get multiWithoutInit
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::multiWithoutInit
+    synthetic static get multiWithInit2
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::multiWithInit2
+  setters
+    synthetic static set withInit=
+      reference: <none>
+      parameters
+        requiredPositional _withInit
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::withInit
+    synthetic static set withoutInit=
+      reference: <none>
+      parameters
+        requiredPositional _withoutInit
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::withoutInit
+    synthetic static set multiWithInit=
+      reference: <none>
+      parameters
+        requiredPositional _multiWithInit
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::multiWithInit
+    synthetic static set multiWithoutInit=
+      reference: <none>
+      parameters
+        requiredPositional _multiWithoutInit
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::multiWithoutInit
+    synthetic static set multiWithInit2=
+      reference: <none>
+      parameters
+        requiredPositional _multiWithInit2
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::multiWithInit2
 ''');
   }
 
@@ -2276,6 +3842,409 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        hasDocComment @34
+          reference: <testLibraryFragment>::@topLevelVariable::hasDocComment
+          element: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          getter2: <testLibraryFragment>::@getter::hasDocComment
+          setter2: <testLibraryFragment>::@setter::hasDocComment
+        hasDocComment2 @49
+          reference: <testLibraryFragment>::@topLevelVariable::hasDocComment2
+          element: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          getter2: <testLibraryFragment>::@getter::hasDocComment2
+          setter2: <testLibraryFragment>::@setter::hasDocComment2
+        hasAnnotation @80
+          reference: <testLibraryFragment>::@topLevelVariable::hasAnnotation
+          element: <none>
+          metadata
+            Annotation
+              atSign: @ @66
+              name: SimpleIdentifier
+                token: Object @67
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @73
+                rightParenthesis: ) @74
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          getter2: <testLibraryFragment>::@getter::hasAnnotation
+          setter2: <testLibraryFragment>::@setter::hasAnnotation
+        hasAnnotation2 @95
+          reference: <testLibraryFragment>::@topLevelVariable::hasAnnotation2
+          element: <none>
+          metadata
+            Annotation
+              atSign: @ @66
+              name: SimpleIdentifier
+                token: Object @67
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @73
+                rightParenthesis: ) @74
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          getter2: <testLibraryFragment>::@getter::hasAnnotation2
+          setter2: <testLibraryFragment>::@setter::hasAnnotation2
+        annotationThenComment @156
+          reference: <testLibraryFragment>::@topLevelVariable::annotationThenComment
+          element: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @112
+              name: SimpleIdentifier
+                token: Object @113
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @119
+                rightParenthesis: ) @120
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          getter2: <testLibraryFragment>::@getter::annotationThenComment
+          setter2: <testLibraryFragment>::@setter::annotationThenComment
+        annotationThenComment2 @179
+          reference: <testLibraryFragment>::@topLevelVariable::annotationThenComment2
+          element: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @112
+              name: SimpleIdentifier
+                token: Object @113
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @119
+                rightParenthesis: ) @120
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          getter2: <testLibraryFragment>::@getter::annotationThenComment2
+          setter2: <testLibraryFragment>::@setter::annotationThenComment2
+        commentThenAnnotation @248
+          reference: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation
+          element: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @234
+              name: SimpleIdentifier
+                token: Object @235
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @241
+                rightParenthesis: ) @242
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          getter2: <testLibraryFragment>::@getter::commentThenAnnotation
+          setter2: <testLibraryFragment>::@setter::commentThenAnnotation
+        commentThenAnnotation2 @271
+          reference: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation2
+          element: <none>
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @234
+              name: SimpleIdentifier
+                token: Object @235
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @241
+                rightParenthesis: ) @242
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          getter2: <testLibraryFragment>::@getter::commentThenAnnotation2
+          setter2: <testLibraryFragment>::@setter::commentThenAnnotation2
+        commentAroundAnnotation @340
+          reference: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation
+          element: <none>
+          documentationComment: /// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @311
+              name: SimpleIdentifier
+                token: Object @312
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @318
+                rightParenthesis: ) @319
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          getter2: <testLibraryFragment>::@getter::commentAroundAnnotation
+          setter2: <testLibraryFragment>::@setter::commentAroundAnnotation
+        commentAroundAnnotation2 @365
+          reference: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation2
+          element: <none>
+          documentationComment: /// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @311
+              name: SimpleIdentifier
+                token: Object @312
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @318
+                rightParenthesis: ) @319
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+          getter2: <testLibraryFragment>::@getter::commentAroundAnnotation2
+          setter2: <testLibraryFragment>::@setter::commentAroundAnnotation2
+      getters
+        get hasDocComment @-1
+          reference: <testLibraryFragment>::@getter::hasDocComment
+          element: <none>
+        get hasDocComment2 @-1
+          reference: <testLibraryFragment>::@getter::hasDocComment2
+          element: <none>
+        get hasAnnotation @-1
+          reference: <testLibraryFragment>::@getter::hasAnnotation
+          element: <none>
+        get hasAnnotation2 @-1
+          reference: <testLibraryFragment>::@getter::hasAnnotation2
+          element: <none>
+        get annotationThenComment @-1
+          reference: <testLibraryFragment>::@getter::annotationThenComment
+          element: <none>
+        get annotationThenComment2 @-1
+          reference: <testLibraryFragment>::@getter::annotationThenComment2
+          element: <none>
+        get commentThenAnnotation @-1
+          reference: <testLibraryFragment>::@getter::commentThenAnnotation
+          element: <none>
+        get commentThenAnnotation2 @-1
+          reference: <testLibraryFragment>::@getter::commentThenAnnotation2
+          element: <none>
+        get commentAroundAnnotation @-1
+          reference: <testLibraryFragment>::@getter::commentAroundAnnotation
+          element: <none>
+        get commentAroundAnnotation2 @-1
+          reference: <testLibraryFragment>::@getter::commentAroundAnnotation2
+          element: <none>
+      setters
+        set hasDocComment= @-1
+          reference: <testLibraryFragment>::@setter::hasDocComment
+          element: <none>
+          parameters
+            _hasDocComment @-1
+              element: <none>
+        set hasDocComment2= @-1
+          reference: <testLibraryFragment>::@setter::hasDocComment2
+          element: <none>
+          parameters
+            _hasDocComment2 @-1
+              element: <none>
+        set hasAnnotation= @-1
+          reference: <testLibraryFragment>::@setter::hasAnnotation
+          element: <none>
+          parameters
+            _hasAnnotation @-1
+              element: <none>
+        set hasAnnotation2= @-1
+          reference: <testLibraryFragment>::@setter::hasAnnotation2
+          element: <none>
+          parameters
+            _hasAnnotation2 @-1
+              element: <none>
+        set annotationThenComment= @-1
+          reference: <testLibraryFragment>::@setter::annotationThenComment
+          element: <none>
+          parameters
+            _annotationThenComment @-1
+              element: <none>
+        set annotationThenComment2= @-1
+          reference: <testLibraryFragment>::@setter::annotationThenComment2
+          element: <none>
+          parameters
+            _annotationThenComment2 @-1
+              element: <none>
+        set commentThenAnnotation= @-1
+          reference: <testLibraryFragment>::@setter::commentThenAnnotation
+          element: <none>
+          parameters
+            _commentThenAnnotation @-1
+              element: <none>
+        set commentThenAnnotation2= @-1
+          reference: <testLibraryFragment>::@setter::commentThenAnnotation2
+          element: <none>
+          parameters
+            _commentThenAnnotation2 @-1
+              element: <none>
+        set commentAroundAnnotation= @-1
+          reference: <testLibraryFragment>::@setter::commentAroundAnnotation
+          element: <none>
+          parameters
+            _commentAroundAnnotation @-1
+              element: <none>
+        set commentAroundAnnotation2= @-1
+          reference: <testLibraryFragment>::@setter::commentAroundAnnotation2
+          element: <none>
+          parameters
+            _commentAroundAnnotation2 @-1
+              element: <none>
+  topLevelVariables
+    hasDocComment
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::hasDocComment
+      getter: <none>
+      setter: <none>
+    hasDocComment2
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::hasDocComment2
+      getter: <none>
+      setter: <none>
+    hasAnnotation
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::hasAnnotation
+      getter: <none>
+      setter: <none>
+    hasAnnotation2
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::hasAnnotation2
+      getter: <none>
+      setter: <none>
+    annotationThenComment
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::annotationThenComment
+      getter: <none>
+      setter: <none>
+    annotationThenComment2
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::annotationThenComment2
+      getter: <none>
+      setter: <none>
+    commentThenAnnotation
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation
+      getter: <none>
+      setter: <none>
+    commentThenAnnotation2
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation2
+      getter: <none>
+      setter: <none>
+    commentAroundAnnotation
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation
+      getter: <none>
+      setter: <none>
+    commentAroundAnnotation2
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation2
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get hasDocComment
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::hasDocComment
+    synthetic static get hasDocComment2
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::hasDocComment2
+    synthetic static get hasAnnotation
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::hasAnnotation
+    synthetic static get hasAnnotation2
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::hasAnnotation2
+    synthetic static get annotationThenComment
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::annotationThenComment
+    synthetic static get annotationThenComment2
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::annotationThenComment2
+    synthetic static get commentThenAnnotation
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::commentThenAnnotation
+    synthetic static get commentThenAnnotation2
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::commentThenAnnotation2
+    synthetic static get commentAroundAnnotation
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::commentAroundAnnotation
+    synthetic static get commentAroundAnnotation2
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::commentAroundAnnotation2
+  setters
+    synthetic static set hasDocComment=
+      reference: <none>
+      parameters
+        requiredPositional _hasDocComment
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::hasDocComment
+    synthetic static set hasDocComment2=
+      reference: <none>
+      parameters
+        requiredPositional _hasDocComment2
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::hasDocComment2
+    synthetic static set hasAnnotation=
+      reference: <none>
+      parameters
+        requiredPositional _hasAnnotation
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::hasAnnotation
+    synthetic static set hasAnnotation2=
+      reference: <none>
+      parameters
+        requiredPositional _hasAnnotation2
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::hasAnnotation2
+    synthetic static set annotationThenComment=
+      reference: <none>
+      parameters
+        requiredPositional _annotationThenComment
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::annotationThenComment
+    synthetic static set annotationThenComment2=
+      reference: <none>
+      parameters
+        requiredPositional _annotationThenComment2
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::annotationThenComment2
+    synthetic static set commentThenAnnotation=
+      reference: <none>
+      parameters
+        requiredPositional _commentThenAnnotation
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::commentThenAnnotation
+    synthetic static set commentThenAnnotation2=
+      reference: <none>
+      parameters
+        requiredPositional _commentThenAnnotation2
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::commentThenAnnotation2
+    synthetic static set commentAroundAnnotation=
+      reference: <none>
+      parameters
+        requiredPositional _commentAroundAnnotation
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::commentAroundAnnotation
+    synthetic static set commentAroundAnnotation2=
+      reference: <none>
+      parameters
+        requiredPositional _commentAroundAnnotation2
+          reference: <none>
+          type: int
+      firstFragment: <testLibraryFragment>::@setter::commentAroundAnnotation2
 ''');
   }
 
@@ -2325,16 +4294,48 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
+              element: <none>
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
+      functions
+        f @19
+          reference: <testLibraryFragment>::@function::f
+          element: <none>
+          typeParameters
+            U @21
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       codeOffset: 0
       codeLength: 13
+      typeParameters
+        T
+          codeOffset: 8
+          codeLength: 1
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  functions
+    f
+      reference: <none>
+      typeParameters
+        U
+          codeOffset: 21
+          codeLength: 13
+          bound: num
+      returnType: void
 ''');
   }
 
@@ -2370,14 +4371,31 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          constructors
+            new @12
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
+            named @21
+              reference: <testLibraryFragment>::@class::A::@constructor::named
+              element: <none>
+              periodOffset: 20
+              nameEnd: 26
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+        named
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::named
 ''');
   }
 
@@ -2410,14 +4428,30 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          constructors
+            new @12
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
+              parameters
+                a @18
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        new
+          reference: <none>
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
 
@@ -2465,14 +4499,59 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          fields
+            foo @16
+              reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
+              setter2: <testLibraryFragment>::@class::A::@setter::foo
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
+          getters
+            get foo @-1
+              reference: <testLibraryFragment>::@class::A::@getter::foo
+              element: <none>
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::foo
+              element: <none>
+              parameters
+                _foo @-1
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        foo
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          getter: <none>
+          setter: <none>
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
+      setters
+        synthetic set foo=
+          reference: <none>
+          parameters
+            requiredPositional _foo
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
 
@@ -2512,14 +4591,42 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          fields
+            foo @-1
+              reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
+          getters
+            get foo @20
+              reference: <testLibraryFragment>::@class::A::@getter::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic foo
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          getter: <none>
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        get foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
 ''');
   }
 
@@ -2560,14 +4667,43 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
+          methods
+            foo @17
+              reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
+              typeParameters
+                T @21
+                  element: <none>
+              parameters
+                a @28
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      methods
+        foo
+          reference: <none>
+          typeParameters
+            T
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
 
@@ -2610,14 +4746,49 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          fields
+            foo @-1
+              reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
+              setter2: <testLibraryFragment>::@class::A::@setter::foo
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
+          setters
+            set foo= @16
+              reference: <testLibraryFragment>::@class::A::@setter::foo
+              element: <none>
+              parameters
+                x @24
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic foo
+          reference: <none>
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          setter: <none>
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      setters
+        set foo=
+          reference: <none>
+          parameters
+            requiredPositional x
+              reference: <none>
+              type: int
+          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
 ''');
   }
 
@@ -2648,14 +4819,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
+              element: <none>
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
 
@@ -2683,9 +4868,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E
+          element: <testLibraryFragment>::@extension::E
+          typeParameters
+            T @12
+              element: <none>
+  extensions
+    extension E
+      reference: <testLibraryFragment>::@extension::E
+      typeParameters
+        T
+      firstFragment: <testLibraryFragment>::@extension::E
 ''');
   }
 
@@ -2718,6 +4914,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          element: <none>
+          parameters
+            f @12
+              element: <none>
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional f
+          reference: <none>
+          type: void Function<U>(int)
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+      returnType: void
 ''');
   }
 
@@ -2751,6 +4967,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          element: <none>
+          parameters
+            default f @22
+              reference: <testLibraryFragment>::@function::f::@parameter::f
+              element: <none>
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredNamed f
+          reference: <none>
+          type: void Function<U>(int)
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+      returnType: void
 ''');
   }
 
@@ -2778,6 +5015,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          element: <none>
+          typeParameters
+            T @7
+              element: <none>
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+      returnType: void
 ''');
   }
 
@@ -2806,6 +5057,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
+          typeParameters
+            T @15
+              element: <none>
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function()
 ''');
   }
 
@@ -2834,6 +5099,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
+          typeParameters
+            T @10
+              element: <none>
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function()
 ''');
   }
 
@@ -2862,13 +5141,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
+          typeParameters
+            T @8
+              element: <none>
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
-      enclosingElement2: <testLibrary>
+      typeParameters
+        T
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -2901,6 +5186,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic foo @-1
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::foo
+      getters
+        get foo @8
+          reference: <testLibraryFragment>::@getter::foo
+          element: <none>
+  topLevelVariables
+    synthetic foo
+      reference: <none>
+      type: int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      getter: <none>
+  getters
+    static get foo
+      reference: <none>
+      firstFragment: <testLibraryFragment>::@getter::foo
 ''');
   }
 }

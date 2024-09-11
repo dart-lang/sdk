@@ -62,10 +62,10 @@ bool samePackage(Uri? uri1, Uri? uri2) {
 class ImplementationImports extends LintRule {
   ImplementationImports()
       : super(
-            name: 'implementation_imports',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'implementation_imports',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.implementation_imports;

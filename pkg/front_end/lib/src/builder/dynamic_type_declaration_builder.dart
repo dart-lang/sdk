@@ -4,10 +4,11 @@
 
 library fasta.dynamic_type_builder;
 
-import 'package:kernel/ast.dart' show DartType;
+import 'package:kernel/ast.dart' show DartType, Nullability;
 
 import 'declaration_builders.dart';
 import 'library_builder.dart';
+import 'type_builder.dart';
 
 class DynamicTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   DynamicTypeDeclarationBuilder(
@@ -16,4 +17,11 @@ class DynamicTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
 
   @override
   String get debugName => "DynamicTypeDeclarationBuilder";
+
+  @override
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    return Nullability.nullable;
+  }
 }

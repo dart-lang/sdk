@@ -166,10 +166,10 @@ class DirectivesOrdering extends LintRule {
 
   DirectivesOrdering()
       : super(
-            name: 'directives_ordering',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'directives_ordering',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<LintCode> get lintCodes => allCodes;
@@ -339,7 +339,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkSectionInOrder(
-      Set<AstNode> lintedNodes, Iterable<NamespaceDirective> nodes) {
+      Set<AstNode> lintedNodes, Iterable<UriBasedDirective> nodes) {
     if (nodes.isEmpty) return;
 
     var previousUri = nodes.first.uri.stringValue;

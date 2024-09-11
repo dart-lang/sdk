@@ -1870,10 +1870,6 @@ Fragment StreamingFlowGraphBuilder::Goto(JoinEntryInstr* destination) {
   return flow_graph_builder_->Goto(destination);
 }
 
-Fragment StreamingFlowGraphBuilder::CheckBoolean(TokenPosition position) {
-  return flow_graph_builder_->CheckBoolean(position);
-}
-
 Fragment StreamingFlowGraphBuilder::CheckArgumentType(
     LocalVariable* variable,
     const AbstractType& type) {
@@ -1955,7 +1951,6 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
       if (NeedsDebugStepCheck(stack(), position)) {
         instructions = DebugStepCheck(position) + instructions;
       }
-      instructions += CheckBoolean(position);
       instructions += Constant(Bool::True());
       Value* right_value = Pop();
       Value* left_value = Pop();
@@ -3570,7 +3565,6 @@ Fragment StreamingFlowGraphBuilder::BuildNot(TokenPosition* p) {
   TokenPosition operand_position = TokenPosition::kNoSource;
   Fragment instructions =
       BuildExpression(&operand_position);  // read expression.
-  instructions += CheckBoolean(operand_position);
   instructions += BooleanNegate();
   return instructions;
 }
@@ -3641,16 +3635,6 @@ Fragment StreamingFlowGraphBuilder::TranslateLogicalExpressionForValue(
     // Arbitrary expression on the right hand side. Translate it for value.
     TokenPosition position = TokenPosition::kNoSource;
     right_value += BuildExpression(&position);  // read expression.
-
-    // Check if the top of the stack is known to be a non-nullable boolean.
-    // Note that in strong mode we know that any value that reaches here
-    // is at least a nullable boolean - so there is no need to compare
-    // with true like in Dart 1.
-    Definition* top = stack()->definition();
-    const bool is_bool = top->IsStrictCompare() || top->IsBooleanNegate();
-    if (!is_bool) {
-      right_value += CheckBoolean(position);
-    }
     if (negated) {
       right_value += BooleanNegate();
     }
@@ -4280,10 +4264,15 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildLet(TokenPosition* p) {
+  const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
+
   const TokenPosition position = ReadPosition();  // read position.
   if (p != nullptr) *p = position;
-  Fragment instructions = BuildVariableDeclaration(nullptr);  // read variable.
-  instructions += BuildExpression();                          // read body.
+  Fragment instructions;
+  instructions += EnterScope(offset);
+  instructions += BuildVariableDeclaration(nullptr);  // read variable.
+  instructions += BuildExpression();                  // read body.
+  instructions += ExitScope(offset);
   return instructions;
 }
 
@@ -4638,7 +4627,6 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
 
   instructions += EvaluateAssertion();
   instructions += RecordCoverage(condition_start_offset);
-  instructions += CheckBoolean(condition_start_offset);
   instructions += Constant(Bool::True());
   instructions += BranchIfEqual(&then, &otherwise);
 

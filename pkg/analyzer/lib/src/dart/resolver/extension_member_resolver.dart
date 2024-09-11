@@ -84,7 +84,7 @@ class ExtensionMemberResolver {
   /// returns [ResolutionResult.ambiguous].
   ResolutionResult findExtension(
       DartType type, SyntacticEntity nameEntity, Name name) {
-    var extensions = _resolver.definingLibrary.accessibleExtensions
+    var extensions = _resolver.libraryFragment.accessibleExtensions
         .havingMemberWithBaseName(name)
         .applicableTo(
           targetLibrary: _resolver.definingLibrary,
@@ -96,12 +96,20 @@ class ExtensionMemberResolver {
     }
 
     if (extensions.length == 1) {
-      return extensions[0].asResolutionResult;
+      var instantiated = extensions[0];
+      _resolver.libraryFragment.scope.notifyExtensionUsed(
+        instantiated.extension,
+      );
+      return instantiated.asResolutionResult;
     }
 
     var mostSpecific = _chooseMostSpecific(extensions);
     if (mostSpecific.length == 1) {
-      return mostSpecific.first.asResolutionResult;
+      var instantiated = mostSpecific.first;
+      _resolver.libraryFragment.scope.notifyExtensionUsed(
+        instantiated.extension,
+      );
+      return instantiated.asResolutionResult;
     }
 
     // The most specific extension is ambiguous.

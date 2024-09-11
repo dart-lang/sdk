@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
@@ -47,6 +48,10 @@ class AbstractRefactoringContext {
   late final Selection? selection = resolvedUnitResult.unit
       .select(offset: selectionOffset, length: selectionLength);
 
+  /// Capabilities of the client that will handle the edits resulting from this
+  /// refactor.
+  final LspClientCapabilities? clientCapabilities;
+
   /// The helper used to efficiently access resolved units.
   late final AnalysisSessionHelper sessionHelper =
       AnalysisSessionHelper(session);
@@ -60,6 +65,7 @@ class AbstractRefactoringContext {
     required this.startSessions,
     required this.resolvedLibraryResult,
     required this.resolvedUnitResult,
+    required this.clientCapabilities,
     required this.selectionOffset,
     required this.selectionLength,
     required this.includeExperimental,
@@ -96,6 +102,7 @@ class RefactoringContext extends AbstractRefactoringContext {
     required super.startSessions,
     required super.resolvedLibraryResult,
     required super.resolvedUnitResult,
+    required super.clientCapabilities,
     required super.selectionOffset,
     required super.selectionLength,
     required super.includeExperimental,

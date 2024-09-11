@@ -2123,7 +2123,9 @@ class _HttpClientConnection {
           "Connection closed before response was received",
           uri: _currentUri));
       _nextResponseCompleter = null;
-      close();
+      if (!closed) {
+        _close();
+      }
     });
   }
 
@@ -2281,7 +2283,7 @@ class _HttpClientConnection {
     _socket.destroy();
   }
 
-  void close() {
+  void _close() {
     closed = true;
     _httpClient._connectionClosed(this);
     _streamFuture!
@@ -2362,7 +2364,7 @@ class _HttpClientConnection {
     assert(_idleTimer == null);
     _idleTimer = Timer(_httpClient.idleTimeout, () {
       _idleTimer = null;
-      close();
+      _close();
     });
   }
 }

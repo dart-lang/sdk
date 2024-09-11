@@ -2517,10 +2517,6 @@ InternalProblemLabelUsageInVariablesDeclaration:
   problemMessage: "Unexpected usage of label inside declaration of variables."
   severity: INTERNAL_PROBLEM
 
-InternalProblemUnfinishedTypeVariable:
-  problemMessage: "Unfinished type variable '#name' found in non-source library '#uri'."
-  severity: INTERNAL_PROBLEM
-
 InternalProblemUnsupportedNullability:
   problemMessage: "Unsupported nullability value '#string' on type '#type'."
   severity: INTERNAL_PROBLEM
@@ -5705,9 +5701,9 @@ JsInteropExportNoExportableMembers:
   problemMessage: "Class '#name' has no exportable members in the class or the inheritance chain."
   correctionMessage: "Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain."
 
-JsInteropIsAInvalidType:
-  problemMessage: "Type argument '#type' needs to be an interop 'ExtensionType'."
-  correctionMessage: "Use a valid interop extension type as the type argument instead."
+JsInteropIsAInvalidTypeVariable:
+  problemMessage: "Type argument '#type' provided to 'isA' cannot be a type variable and must be an interop extension type that can be determined at compile-time."
+  correctionMessage: "Use a valid interop extension type that can be determined at compile-time as the type argument instead."
 
 JsInteropIsAObjectLiteralType:
   problemMessage: "Type argument '#type' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check."

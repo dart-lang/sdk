@@ -10,6 +10,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_augmentation.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_augmented.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/handler_connect_to_dtd.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_reanalyze.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_super.dart';
@@ -118,6 +119,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     AugmentationHandler.new,
     AugmentedHandler.new,
     CodeLensHandler.new,
+    ConnectToDtdHandler.new,
     DartTextDocumentContentProviderHandler.new,
     DocumentColorHandler.new,
     DocumentColorPresentationHandler.new,

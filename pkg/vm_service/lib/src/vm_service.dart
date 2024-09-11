@@ -27,7 +27,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.15.0';
+const String vmServiceVersion = '4.16.0';
 
 /// @optional
 const String optional = 'optional';
@@ -1929,6 +1929,11 @@ enum RPCErrorKind {
   /// Application specific error code.
   kServerError(code: -32000, message: 'Application error'),
 
+  /// Service connection disposed.
+  ///
+  /// This may indicate the connection was closed while a request was in-flight.
+  kConnectionDisposed(code: -32010, message: 'Service connection disposed'),
+
   /// The JSON sent is not a valid Request object.
   kInvalidRequest(code: -32600, message: 'Invalid request object'),
 
@@ -3770,6 +3775,13 @@ class Event extends Response {
   @optional
   String? status;
 
+  /// The reason why reloading the sources in the isolate group associated with
+  /// this event failed.
+  ///
+  /// Only provided for events of kind IsolateReload.
+  @optional
+  String? reloadFailureReason;
+
   /// LogRecord data.
   ///
   /// This is provided for the Logging event.
@@ -3859,6 +3871,7 @@ class Event extends Response {
     this.updatedStreams,
     this.atAsyncSuspension,
     this.status,
+    this.reloadFailureReason,
     this.logRecord,
     this.service,
     this.method,
@@ -3907,6 +3920,7 @@ class Event extends Response {
         : List<String>.from(json['updatedStreams']);
     atAsyncSuspension = json['atAsyncSuspension'];
     status = json['status'];
+    reloadFailureReason = json['reloadFailureReason'];
     logRecord = createServiceObject(json['logRecord'], const ['LogRecord'])
         as LogRecord?;
     service = json['service'];
@@ -3963,6 +3977,8 @@ class Event extends Response {
         if (atAsyncSuspension case final atAsyncSuspensionValue?)
           'atAsyncSuspension': atAsyncSuspensionValue,
         if (status case final statusValue?) 'status': statusValue,
+        if (reloadFailureReason case final reloadFailureReasonValue?)
+          'reloadFailureReason': reloadFailureReasonValue,
         if (logRecord?.toJson() case final logRecordValue?)
           'logRecord': logRecordValue,
         if (service case final serviceValue?) 'service': serviceValue,

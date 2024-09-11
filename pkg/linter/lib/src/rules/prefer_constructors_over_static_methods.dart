@@ -49,10 +49,10 @@ bool _hasNewInvocation(DartType returnType, FunctionBody body) =>
 class PreferConstructorsOverStaticMethods extends LintRule {
   PreferConstructorsOverStaticMethods()
       : super(
-            name: 'prefer_constructors_over_static_methods',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_constructors_over_static_methods',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>
