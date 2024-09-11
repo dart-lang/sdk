@@ -40,9 +40,6 @@ class RemoveReturnType extends ResolvedCorrectionProducer {
       if (executable.returnType == null) {
         return;
       }
-      if (executable.isSetter) {
-        return;
-      }
       insertBeforeEntity = executable.propertyKeyword ?? executable.name;
       returnType = executable.returnType;
     } else {
