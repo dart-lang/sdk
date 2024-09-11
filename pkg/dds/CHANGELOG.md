@@ -3,6 +3,9 @@
   failing because the service connection was closed. This value is not currently
   used but is provided for clients to handle in preperation for a future release
   that will use it to avoid clients having to read error messages.
+- Loosened type of `google3WorkspaceRoot` parameter to `DartDevelopmentServiceLauncher.start`
+  from `Uri?` to `Object?`. This parameter will eventually be changed to `String?`, but will
+  allow both `Uri?` and `String?` values for now.
 
 # 4.2.6
 - [DAP] Fixed an issue where "Service connection disposed" errors may go unhandled during termination/shutdown.

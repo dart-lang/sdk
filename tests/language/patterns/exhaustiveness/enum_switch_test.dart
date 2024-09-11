@@ -268,3 +268,22 @@ void unreachableCase5(Enum e) {
       break;
   }
 }
+
+void unreachableDefault(Enum e) {
+  switch (e) /* Ok */ {
+    case Enum.a:
+      print('a');
+      break;
+    case Enum.b:
+      print('b');
+      break;
+    case Enum.c:
+      print('c');
+      break;
+    default: // Unreachable
+//  ^^^^^^^
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
+      print('default');
+      break;
+  }
+}

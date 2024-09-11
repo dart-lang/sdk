@@ -231,11 +231,15 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementList(
           'extensionTypes', e, e.extensionTypes, _writeInstanceElement);
       _writeElementList('mixins', e, e.mixins, _writeInstanceElement);
+      _writeElementList(
+          'typeAliases', e, e.typeAliases, _writeTypeAliasElement);
 
       _writeElementList('topLevelVariables', e, e.topLevelVariables,
           _writeTopLevelVariableElement);
       _writeElementList('getters', e, e.getters, _writeGetterElement);
       _writeElementList('setters', e, e.setters, _writeSetterElement);
+      _writeElementList(
+          'functions', e, e.functions, _writeTopLevelFunctionElement);
 
       if (configuration.withExportScope) {
         _sink.writelnWithIndent('exportedReferences');
@@ -306,7 +310,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.writeIndentedLine(() {
       _sink.writeIf(e.isSynthetic, 'synthetic ');
-      // _sink.writeIf(e.isExternal, 'external ');
+      _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.isFactory, 'factory ');
       expect(e.isAbstract, isFalse);
@@ -1182,7 +1186,8 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeInstanceFragment,
       );
       _writeFragmentList('mixins', f, f.mixins2, _writeInstanceFragment);
-      // _writeFragmentList('typeAliases', f, f.typeAliases, _writeTypeAliasElement);
+      _writeFragmentList(
+          'typeAliases', f, f.typeAliases, _writeTypeAliasFragment);
       _writeFragmentList(
         'topLevelVariables',
         f,
@@ -1201,7 +1206,8 @@ class _Element2Writer extends _AbstractElementWriter {
         f.setters,
         _writeSetterFragment,
       );
-      // _writeElementList('functions', f, f.functions, _writeFunctionElement);
+      _writeFragmentList(
+          'functions', f, f.functions, _writeTopLevelFunctionFragment);
     });
   }
 
@@ -1510,7 +1516,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
-      // _sink.writeIf(e.isExternal, 'external ');
+      _sink.writeIf(e.isExternal, 'external ');
 
       _writeElementName(e);
     });
@@ -1710,6 +1716,64 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
+  void _writeTopLevelFunctionElement(TopLevelFunctionElement e) {
+    expect(e.isStatic, isTrue);
+
+    _sink.writeIndentedLine(() {
+      // _sink.writeIf(e.isAugmentation, 'augment ');
+      _sink.writeIf(e.isExternal, 'external ');
+      _writeElementName(e);
+      // _writeBodyModifiers(e);
+    });
+
+    _sink.withIndent(() {
+      _writeElementReference('reference', e);
+      _writeDocumentation(e.documentationComment);
+      _writeMetadata(e.metadata);
+      _writeSinceSdkVersion(e.sinceSdkVersion);
+      // _writeCodeRange(e);
+      _writeElementList(
+          'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
+      _writeElementList(
+          'parameters', e, e.parameters2, _writeFormalParameterElement);
+      _writeType('returnType', e.returnType);
+      _writeMacroDiagnostics(e);
+      // _writeAugmentationTarget(e);
+      // _writeAugmentation(e);
+    });
+
+    _assertNonSyntheticElementSelf(e);
+  }
+
+  void _writeTopLevelFunctionFragment(TopLevelFunctionFragment f) {
+    // expect(e.isStatic, isTrue);
+
+    _sink.writeIndentedLine(() {
+      // _sink.writeIf(e.isAugmentation, 'augment ');
+      // _sink.writeIf(e.isExternal, 'external ');
+      _writeFragmentName(f);
+      // _writeBodyModifiers(e);
+    });
+
+    _sink.withIndent(() {
+      _writeFragmentReference('reference', f);
+      _writeDocumentation(f.documentationComment);
+      _writeMetadata(f.metadata);
+      _writeSinceSdkVersion(f.sinceSdkVersion);
+      // _writeCodeRange(e);
+      _writeFragmentList(
+          'typeParameters', f, f.typeParameters2, _writeTypeParameterFragment);
+      _writeFragmentList(
+          'parameters', f, f.parameters2, _writeFormalParameterFragment);
+      // _writeType('returnType', e.returnType);
+      // _writeMacroDiagnostics(e);
+      // _writeAugmentationTarget(e);
+      // _writeAugmentation(e);
+    });
+
+    // _assertNonSyntheticElementSelf(f);
+  }
+
   void _writeTopLevelVariableElement(TopLevelVariableElement2 e) {
     DartType type = e.type;
     expect(type, isNotNull);
@@ -1834,6 +1898,82 @@ class _Element2Writer extends _AbstractElementWriter {
     //     });
     //   }
     // }
+  }
+
+  void _writeTypeAliasElement(TypeAliasElement2 e) {
+    _sink.writeIndentedLine(() {
+      // _sink.writeIf(e.isAugmentation, 'augment ');
+      // _sink.writeIf(e.isFunctionTypeAliasBased, 'functionTypeAliasBased ');
+      _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
+      _writeElementName(e);
+    });
+
+    _sink.withIndent(() {
+      _writeElementReference('reference', e);
+      _writeDocumentation(e.documentationComment);
+      _writeMetadata(e.metadata);
+      _writeSinceSdkVersion(e.sinceSdkVersion);
+      // _writeCodeRange(e);
+      _writeElementList(
+          'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
+
+      var aliasedType = e.aliasedType;
+      _writeType('aliasedType', aliasedType);
+
+      // var aliasedElement = e.aliasedElement2;
+      // if (aliasedElement is GenericFunctionTypeElementImpl) {
+      //   _sink.writelnWithIndent('aliasedElement: GenericFunctionTypeElement');
+      //   _sink.withIndent(() {
+      //     _writeElementList('typeParameters', aliasedElement, aliasedElement.typeParameters2, _writeTypeParameterElement);
+      //     _writeElementList('', aliasedElement, aliasedElement.parameters2, _writeFormalParameterElement);
+      //     _writeType('returnType', aliasedElement.returnType);
+      //   });
+      // }
+
+      _writeMacroDiagnostics(e);
+      // _writeAugmentationTarget(e);
+      // _writeAugmentation(e);
+    });
+
+    _assertNonSyntheticElementSelf(e);
+  }
+
+  void _writeTypeAliasFragment(TypeAliasFragment f) {
+    _sink.writeIndentedLine(() {
+      // _sink.writeIf(e.isAugmentation, 'augment ');
+      // _sink.writeIf(e.isFunctionTypeAliasBased, 'functionTypeAliasBased ');
+      // _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
+      _writeFragmentName(f);
+    });
+
+    _sink.withIndent(() {
+      _writeFragmentReference('reference', f);
+      _writeDocumentation(f.documentationComment);
+      _writeMetadata(f.metadata);
+      _writeSinceSdkVersion(f.sinceSdkVersion);
+      // _writeCodeRange(e);
+      _writeFragmentList(
+          'typeParameters', f, f.typeParameters2, _writeTypeParameterFragment);
+
+      // var aliasedType = e.aliasedType;
+      // _writeType('aliasedType', aliasedType);
+
+      // var aliasedElement = e.aliasedElement2;
+      // if (aliasedElement is GenericFunctionTypeElementImpl) {
+      //   _sink.writelnWithIndent('aliasedElement: GenericFunctionTypeElement');
+      //   _sink.withIndent(() {
+      //     _writeElementList('typeParameters', aliasedElement, aliasedElement.typeParameters2, _writeTypeParameterElement);
+      //     _writeElementList('', aliasedElement, aliasedElement.parameters2, _writeFormalParameterElement);
+      //     _writeType('returnType', aliasedElement.returnType);
+      //   });
+      // }
+
+      // _writeMacroDiagnostics(e);
+      // _writeAugmentationTarget(e);
+      // _writeAugmentation(e);
+    });
+
+    // _assertNonSyntheticElementSelf(e);
   }
 
   void _writeTypeParameterElement(TypeParameterElement2 e) {

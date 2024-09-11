@@ -766,13 +766,7 @@ String _diffWithFileUris(Uri file1, Uri file2,
     {String label = '', bool commented = true, bool trimHeaders = true}) {
   final file1Path = file1.toFilePath();
   final file2Path = file2.toFilePath();
-  final diffArgs = [
-    '-du',
-    '--width=120',
-    '--expand-tabs',
-    file1Path,
-    file2Path
-  ];
+  final diffArgs = ['-u', '--width=120', '--expand-tabs', file1Path, file2Path];
   _debugPrint("Running diff with 'diff ${diffArgs.join(' ')}'.", label: label);
   final diffProcess = Process.runSync('diff', diffArgs);
   final errOutput = diffProcess.stderr as String;

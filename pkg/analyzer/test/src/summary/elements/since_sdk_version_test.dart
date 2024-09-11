@@ -862,6 +862,19 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      functions
+        foo @46
+          reference: dart:foo::<fragment>::@function::foo
+          sinceSdkVersion: 2.15.0
+        bar @61
+          reference: dart:foo::<fragment>::@function::bar
+  functions
+    foo
+      reference: <none>
+      returnType: void
+    bar
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -891,6 +904,14 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      functions
+        foo @54
+          reference: dart:foo::<fragment>::@function::foo
+          sinceSdkVersion: 2.15.3-dev.7
+  functions
+    foo
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -920,6 +941,14 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      functions
+        foo @48
+          reference: dart:foo::<fragment>::@function::foo
+          sinceSdkVersion: 2.15.3
+  functions
+    foo
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -948,6 +977,13 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      functions
+        foo @44
+          reference: dart:foo::<fragment>::@function::foo
+  functions
+    foo
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -981,6 +1017,14 @@ library
   sinceSdkVersion: 2.15.0
   fragments
     dart:foo::<fragment>
+      functions
+        foo @56
+          reference: dart:foo::<fragment>::@function::foo
+          sinceSdkVersion: 2.15.0
+  functions
+    foo
+      reference: <none>
+      returnType: void
 ''');
   }
 
@@ -1018,6 +1062,25 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      functions
+        f @31
+          reference: dart:foo::<fragment>::@function::f
+          parameters
+            p1 @37
+            default p2 @67
+              reference: dart:foo::<fragment>::@function::f::@parameter::p2
+              sinceSdkVersion: 2.15.0
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional p1
+          reference: <none>
+          type: int
+        optionalNamed p2
+          reference: <none>
+          type: int?
+      returnType: void
 ''');
   }
 
@@ -1054,6 +1117,24 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      functions
+        f @31
+          reference: dart:foo::<fragment>::@function::f
+          parameters
+            p1 @37
+            default p2 @67
+              sinceSdkVersion: 2.15.0
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional p1
+          reference: <none>
+          type: int
+        optionalPositional p2
+          reference: <none>
+          type: int?
+      returnType: void
 ''');
   }
 
@@ -1082,6 +1163,14 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      typeAliases
+        A @49
+          reference: dart:foo::<fragment>::@typeAlias::A
+          sinceSdkVersion: 2.15.0
+  typeAliases
+    A
+      reference: <none>
+      aliasedType: List<int>
 ''');
   }
 

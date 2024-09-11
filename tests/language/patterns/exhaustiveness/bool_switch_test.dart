@@ -169,3 +169,19 @@ void unreachableCase3(bool? b) {
       break;
   }
 }
+
+void unreachableDefault(bool b) {
+  switch (b) /* Ok */ {
+    case true:
+      print('true');
+      break;
+    case false:
+      print('false');
+      break;
+    default: // Unreachable
+//  ^^^^^^^
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
+      print('default');
+      break;
+  }
+}

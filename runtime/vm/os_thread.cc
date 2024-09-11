@@ -57,10 +57,6 @@ OSThread::OSThread()
   ASSERT(stack_base_ > GetCurrentStackPointer());
   ASSERT(stack_limit_ < GetCurrentStackPointer());
   RELEASE_ASSERT(HasStackHeadroom());
-
-#if defined(SUPPORT_TIMELINE)
-  UpdateTimelineTrackMetadata(*this);
-#endif  // defined(SUPPORT_TIMELINE)
 }
 
 OSThread* OSThread::CreateOSThread() {

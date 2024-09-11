@@ -54,12 +54,12 @@ void main() {
 +    Expect.equals(2, hotRestartGeneration);
    }).then((_) {
 -    Expect.equals(1, hotRestartGeneration);
--  });
++    Expect.equals(2, hotRestartGeneration);
+   });
 -  Future.delayed(Duration(seconds: 5), () {
 -    throw Exception('Future from main.1.dart before hot restart. '
 -        'This should never run.');
-+    Expect.equals(2, hotRestartGeneration);
-   });
+-  });
 -
    hotRestart();
  }

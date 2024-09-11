@@ -3449,10 +3449,6 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
     implements ExecutableElement2 {
   @override
   ExecutableElement2 get baseElement => this;
-
-  @override
-  // TODO(brianwilkerson): Does this make sense for an element?
-  bool get isExternal => throw UnimplementedError();
 }
 
 /// A concrete implementation of an [ExtensionElement].
@@ -4390,6 +4386,15 @@ mixin FragmentedExecutableElementMixin<E extends ExecutableFragment>
   bool get isExtensionTypeMember =>
       (firstFragment as ExecutableElementImpl).isExtensionTypeMember;
 
+  bool get isExternal {
+    for (var fragment in _fragments) {
+      if ((fragment as ExecutableElementImpl).isExternal) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool get isStatic => (firstFragment as ExecutableElementImpl).isStatic;
 
   List<FormalParameterElement> get parameters2 => firstFragment.parameters2
@@ -4405,8 +4410,10 @@ mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
   List<FormalParameterElement> get parameters2 {
     var fragment = firstFragment;
     return switch (fragment) {
-      FunctionTypedElementImpl(:var parameters) =>
-        parameters.cast<FormalParameterElement>(),
+      FunctionTypedElementImpl(:var parameters) => parameters
+          .map((fragment) => (fragment as FormalParameterFragment).element
+              as FormalParameterElement)
+          .toList(),
       ExecutableElementImpl(:var parameters) => parameters
           .map((fragment) => (fragment as FormalParameterFragment).element
               as FormalParameterElement)
@@ -4438,8 +4445,7 @@ mixin FragmentedTypeParameterizedElementMixin<
     var fragment = firstFragment;
     if (fragment is TypeParameterizedElementMixin) {
       return fragment.typeParameters
-          .map((fragment) => (fragment as TypeParameterFragment).element
-              as TypeParameterElement2)
+          .map((fragment) => (fragment as TypeParameterFragment).element)
           .toList();
     }
     return const [];
@@ -4449,7 +4455,13 @@ mixin FragmentedTypeParameterizedElementMixin<
 /// A concrete implementation of a [FunctionElement].
 class FunctionElementImpl extends ExecutableElementImpl
     with AugmentableElement<FunctionElementImpl>
-    implements FunctionElement, FunctionTypedElementImpl {
+    implements
+        FunctionElement,
+        FunctionTypedElementImpl,
+        TopLevelFunctionFragment {
+  /// The element corresponding to this fragment.
+  TopLevelFunctionElement? _element;
+
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
   FunctionElementImpl(super.name, super.offset);
@@ -4462,11 +4474,33 @@ class FunctionElementImpl extends ExecutableElementImpl
   ExecutableElement get declaration => this;
 
   @override
-  Element2 get element => throw UnsupportedError('This is not a fragment');
+  TopLevelFunctionElement get element {
+    if (_element != null) {
+      return _element!;
+    }
+    TopLevelFunctionFragment firstFragment = this;
+    var previousFragment = firstFragment.previousFragment;
+    while (previousFragment != null) {
+      firstFragment = previousFragment;
+      previousFragment = firstFragment.previousFragment;
+    }
+    // As a side-effect of creating the element, all of the fragments in the
+    // chain will have their `_element` set to the newly created element.
+    return TopLevelFunctionElementImpl(firstFragment as FunctionElementImpl);
+  }
+
+  set element(TopLevelFunctionElement element) => _element = element;
 
   @override
-  Fragment? get enclosingFragment =>
+  Fragment? get enclosingFragment {
+    if (enclosingElement3 is CompilationUnitElement) {
+      // TODO(augmentations): Support the fragment chain.
+      return enclosingElement3 as LibraryFragment;
+    } else {
+      // Local functions cannot be augmented.
       throw UnsupportedError('This is not a fragment');
+    }
+  }
 
   @override
   bool get isDartCoreIdentical {
@@ -4482,10 +4516,10 @@ class FunctionElementImpl extends ExecutableElementImpl
   ElementKind get kind => ElementKind.FUNCTION;
 
   @override
-  Fragment? get nextFragment {
+  TopLevelFunctionFragment? get nextFragment {
     if (enclosingElement3 is CompilationUnitElement) {
       // TODO(augmentations): Support the fragment chain.
-      throw UnsupportedError('The fragment chain is not yet supported');
+      return null;
     } else {
       // Local functions cannot be augmented.
       throw UnsupportedError('This is not a fragment');
@@ -4493,10 +4527,10 @@ class FunctionElementImpl extends ExecutableElementImpl
   }
 
   @override
-  Fragment? get previousFragment {
+  TopLevelFunctionFragment? get previousFragment {
     if (enclosingElement3 is CompilationUnitElement) {
       // TODO(augmentations): Support the fragment chain.
-      throw UnsupportedError('The fragment chain is not yet supported');
+      return null;
     } else {
       // Local functions cannot be augmented.
       throw UnsupportedError('This is not a fragment');
@@ -5604,7 +5638,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<TopLevelFunctionElement> get functions {
     var declarations = <TopLevelFunctionElement>{};
     for (var unit in units) {
-      declarations.addAll(unit._functions.cast<TopLevelFunctionElement>());
+      declarations.addAll(unit._functions.map((fragment) =>
+          (fragment as TopLevelFunctionFragment).element
+              as TopLevelFunctionElement));
     }
     return declarations.toList();
   }
@@ -5804,8 +5840,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<TypeAliasElement2> get typeAliases {
     var declarations = <TypeAliasElement2>{};
     for (var unit in units) {
-      declarations.addAll(unit._mixins
-          .map((element) => element.augmented as TypeAliasElement2));
+      declarations.addAll(unit._typeAliases
+          .map((fragment) => (fragment as TypeAliasFragment).element));
     }
     return declarations.toList();
   }
@@ -6550,8 +6586,7 @@ mixin MaybeAugmentedInstanceElementMixin
 
   @override
   List<TypeParameterElement2> get typeParameters2 => declaration.typeParameters
-      .map((fragment) =>
-          (fragment as TypeParameterFragment).element as TypeParameterElement2)
+      .map((fragment) => (fragment as TypeParameterFragment).element)
       .toList();
 
   @override
@@ -8706,6 +8741,44 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
   }
 }
 
+class TopLevelFunctionElementImpl extends ExecutableElementImpl2
+    with
+        FragmentedExecutableElementMixin<TopLevelFunctionFragment>,
+        FragmentedFunctionTypedElementMixin<TopLevelFunctionFragment>,
+        FragmentedTypeParameterizedElementMixin<TopLevelFunctionFragment>,
+        FragmentedAnnotatableElementMixin<TopLevelFunctionFragment>,
+        FragmentedElementMixin<TopLevelFunctionFragment>
+    implements TopLevelFunctionElement {
+  @override
+  final FunctionElementImpl firstFragment;
+
+  TopLevelFunctionElementImpl(this.firstFragment) {
+    FunctionElementImpl? fragment = firstFragment;
+    while (fragment != null) {
+      fragment.element = this;
+      fragment = fragment.nextFragment as FunctionElementImpl?;
+    }
+  }
+
+  @override
+  TopLevelFunctionElement get baseElement => this;
+
+  @override
+  Element2? get enclosingElement2 => firstFragment._enclosingElement?.library2;
+
+  @override
+  bool get isDartCoreIdentical => firstFragment.isDartCoreIdentical;
+
+  @override
+  bool get isEntryPoint => firstFragment.isEntryPoint;
+
+  @override
+  ElementKind get kind => ElementKind.FUNCTION;
+
+  @override
+  String? get name => firstFragment.name;
+}
+
 /// A concrete implementation of a [TopLevelVariableElement].
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     with AugmentableElement<TopLevelVariableElementImpl>
@@ -8837,7 +8910,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         TypeParameterizedElementMixin,
         AugmentableElement<TypeAliasElementImpl>,
         MacroTargetElement
-    implements TypeAliasElement {
+    implements TypeAliasElement, TypeAliasFragment {
   /// Is `true` if the element has direct or indirect reference to itself
   /// from anywhere except a class element or type parameter bounds.
   bool hasSelfReference = false;
@@ -8849,6 +8922,9 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   ElementImpl? _aliasedElement;
   DartType? _aliasedType;
+
+  /// The element corresponding to this fragment.
+  TypeAliasElement2? _element;
 
   TypeAliasElementImpl(String super.name, super.nameOffset);
 
@@ -8881,8 +8957,22 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   String get displayName => name;
 
   @override
-  TypeAliasElement2 get element =>
-      throw UnsupportedError('This is not a fragment');
+  TypeAliasElement2 get element {
+    if (_element != null) {
+      return _element!;
+    }
+    TypeAliasFragment firstFragment = this;
+    var previousFragment = firstFragment.previousFragment;
+    while (previousFragment != null) {
+      firstFragment = previousFragment;
+      previousFragment = firstFragment.previousFragment;
+    }
+    // As a side-effect of creating the element, all of the fragments in the
+    // chain will have their `_element` set to the newly created element.
+    return TypeAliasElementImpl2(firstFragment as TypeAliasElementImpl);
+  }
+
+  set element(TypeAliasElement2 element) => _element = element;
 
   @Deprecated('Use enclosingElement3 instead')
   @override
@@ -8895,7 +8985,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   @override
   LibraryFragment? get enclosingFragment =>
-      throw UnsupportedError('This is not a fragment');
+      enclosingElement3 as LibraryFragment;
 
   /// Returns whether this alias is a "proper rename" of [aliasedClass], as
   /// defined in the constructor-tearoffs specification.
@@ -8957,14 +9047,12 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   }
 
   @override
-  TypeAliasFragment? get nextFragment =>
-      // TODO(augmentations): Support the fragment chain.
-      throw UnsupportedError('The fragment chain is not yet supported');
+  // TODO(augmentations): Support the fragment chain.
+  TypeAliasFragment? get nextFragment => null;
 
   @override
-  TypeAliasFragment? get previousFragment =>
-      // TODO(augmentations): Support the fragment chain.
-      throw UnsupportedError('The fragment chain is not yet supported');
+  // TODO(augmentations): Support the fragment chain.
+  TypeAliasFragment? get previousFragment => null;
 
   /// Instantiates this type alias with its type parameters as arguments.
   DartType get rawType {
@@ -9074,6 +9162,59 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       nullabilitySuffix: nullabilitySuffix,
     );
   }
+}
+
+class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
+    with
+        FragmentedAnnotatableElementMixin<TypeAliasFragment>,
+        FragmentedElementMixin<TypeAliasFragment>
+    implements TypeAliasElement2 {
+  @override
+  final TypeAliasElementImpl firstFragment;
+
+  TypeAliasElementImpl2(this.firstFragment) {
+    TypeAliasElementImpl? fragment = firstFragment;
+    while (fragment != null) {
+      fragment.element = this;
+      fragment = fragment.nextFragment as TypeAliasElementImpl?;
+    }
+  }
+
+  @override
+  Element2? get aliasedElement2 =>
+      (firstFragment.aliasedElement as Fragment?)?.element;
+
+  @override
+  DartType get aliasedType => firstFragment.aliasedType;
+
+  @override
+  TypeAliasElementImpl2 get baseElement => this;
+
+  @override
+  LibraryElement2 get enclosingElement2 =>
+      firstFragment.library as LibraryElement2;
+
+  @override
+  bool get isSimplyBounded => firstFragment.isSimplyBounded;
+
+  @override
+  ElementKind get kind => ElementKind.TYPE_ALIAS;
+
+  @override
+  String? get name => firstFragment.name;
+
+  @override
+  List<TypeParameterElement2> get typeParameters2 =>
+      firstFragment.typeParameters2
+          .map((fragment) => fragment.element)
+          .toList();
+
+  @override
+  DartType instantiate(
+          {required List<DartType> typeArguments,
+          required NullabilitySuffix nullabilitySuffix}) =>
+      firstFragment.instantiate(
+          typeArguments: typeArguments, nullabilitySuffix: nullabilitySuffix);
 }
 
 abstract class TypeDefiningElementImpl2 extends ElementImpl2

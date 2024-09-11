@@ -1824,6 +1824,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   WarningCode.UNREACHABLE_SWITCH_CASE: [
     RemoveDeadCode.new,
   ],
+  WarningCode.UNREACHABLE_SWITCH_DEFAULT: [
+    RemoveDeadCode.new,
+  ],
   WarningCode.UNUSED_CATCH_CLAUSE: [
     RemoveUnusedCatchClause.new,
   ],

@@ -444,6 +444,7 @@ class AnalyzerError implements Comparable<AnalyzerError> {
     'unnecessary_null_assert_pattern',
     'unnecessary_null_check_pattern',
     'unreachable_switch_case',
+    'unreachable_switch_default',
   };
 
   /// The set of hints which must be expected in a test. Any hint not specified

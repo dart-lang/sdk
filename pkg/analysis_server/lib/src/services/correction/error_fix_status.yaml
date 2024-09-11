@@ -3739,6 +3739,8 @@ WarningCode.UNNECESSARY_WILDCARD_PATTERN:
   status: hasFix
 WarningCode.UNREACHABLE_SWITCH_CASE:
   status: hasFix
+WarningCode.UNREACHABLE_SWITCH_DEFAULT:
+  status: hasFix
 WarningCode.UNUSED_CATCH_CLAUSE:
   status: hasFix
 WarningCode.UNUSED_CATCH_STACK:

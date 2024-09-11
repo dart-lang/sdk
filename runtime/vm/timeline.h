@@ -901,9 +901,9 @@ class TimelineEventRecorder : public MallocAllocated {
   void FinishBlock(TimelineEventBlock* block);
   // This function must be called at least once for each thread that corresponds
   // to a track in the trace.
-  void AddTrackMetadataBasedOnThread(const intptr_t process_id,
-                                     const intptr_t trace_id,
-                                     const char* thread_name);
+  virtual void AddTrackMetadataBasedOnThread(const intptr_t process_id,
+                                             const intptr_t trace_id,
+                                             const char* thread_name);
   void AddAsyncTrackMetadataBasedOnEvent(const TimelineEvent& event);
 
  protected:
@@ -1274,6 +1274,10 @@ class TimelineEventFileRecorder : public TimelineEventFileRecorderBase {
   virtual ~TimelineEventFileRecorder();
 
   const char* name() const final { return FILE_RECORDER_NAME; }
+
+  virtual void AddTrackMetadataBasedOnThread(const intptr_t process_id,
+                                             const intptr_t trace_id,
+                                             const char* thread_name);
 
  private:
   void DrainImpl(const TimelineEvent& event) final;

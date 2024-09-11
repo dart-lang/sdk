@@ -2110,6 +2110,17 @@ TimelineEventFileRecorder::~TimelineEventFileRecorder() {
   Write("]\n");
 }
 
+void TimelineEventFileRecorder::AddTrackMetadataBasedOnThread(
+    const intptr_t process_id,
+    const intptr_t trace_id,
+    const char* thread_name) {
+  TimelineEvent* event = new TimelineEvent();
+  event->Metadata("thread_name");
+  event->SetNumArguments(1);
+  event->CopyArgument(0, "name", thread_name);
+  CompleteEvent(event);
+}
+
 void TimelineEventFileRecorder::DrainImpl(const TimelineEvent& event) {
   JSONWriter writer;
   if (first_) {

@@ -1378,6 +1378,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f::@def::0
+        f @17
+          reference: <testLibraryFragment>::@function::f::@def::1
+          parameters
+            a @23
+        f @34
+          reference: <testLibraryFragment>::@function::f::@def::2
+          parameters
+            default b @41
+            default c @51
+  functions
+    f
+      reference: <none>
+      returnType: void
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: int
+      returnType: void
+    f
+      reference: <none>
+      parameters
+        optionalPositional b
+          reference: <none>
+          type: int
+        optionalPositional c
+          reference: <none>
+          type: double
+      returnType: void
 ''');
   }
 
@@ -1410,6 +1443,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            default a @12
+              reference: <testLibraryFragment>::@function::f::@parameter::a::@def::0
+            default a @22
+              reference: <testLibraryFragment>::@function::f::@parameter::a::@def::1
+  functions
+    f
+      reference: <none>
+      parameters
+        optionalNamed a
+          reference: <none>
+          type: int
+        optionalNamed a
+          reference: <none>
+          type: double
+      returnType: void
 ''');
   }
 
@@ -1456,6 +1508,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F::@def::0
+        F @31
+          reference: <testLibraryFragment>::@typeAlias::F::@def::1
+        F @54
+          reference: <testLibraryFragment>::@typeAlias::F::@def::2
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: void Function()
+    F
+      reference: <none>
+      aliasedType: void Function(int)
+    F
+      reference: <none>
+      aliasedType: void Function([int, double])
 ''');
   }
 

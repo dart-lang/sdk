@@ -173,6 +173,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @30
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: int Function(int, String)
 ''');
   }
 
@@ -203,6 +210,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            p @37
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional p
+          reference: <none>
+          type: int Function(int, String) Function(num)
+          parameters
+            requiredPositional c
+              reference: <none>
+              type: num
+      returnType: void
 ''');
   }
 
@@ -231,6 +255,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+  typeAliases
+    F
+      reference: <none>
+      aliasedType: void Function(String) Function(int)
 ''');
   }
 
@@ -313,6 +344,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            p @37
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional p
+          reference: <none>
+          type: int Function(int, String)
+      returnType: void
 ''');
   }
 
@@ -1386,6 +1430,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F1 @8
+          reference: <testLibraryFragment>::@typeAlias::F1
+        F2 @43
+          reference: <testLibraryFragment>::@typeAlias::F2
+          typeParameters
+            V2 @46
+  typeAliases
+    F1
+      reference: <none>
+      aliasedType: dynamic Function<V1>(V1 Function())
+    F2
+      reference: <none>
+      typeParameters
+        V2
+      aliasedType: V2 Function()
 ''');
   }
 }

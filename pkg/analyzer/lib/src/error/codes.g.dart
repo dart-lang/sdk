@@ -7543,6 +7543,15 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const WarningCode UNREACHABLE_SWITCH_DEFAULT = WarningCode(
+    'UNREACHABLE_SWITCH_DEFAULT',
+    "This default clause is covered by the previous cases.",
+    correctionMessage:
+        "Try removing the default clause, or restructuring the preceding "
+        "patterns.",
+  );
+
   ///  Parameters:
   ///  0: the name of the exception variable
   static const WarningCode UNUSED_CATCH_CLAUSE = WarningCode(

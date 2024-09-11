@@ -1722,6 +1722,9 @@ library
           reference: <testLibraryFragment>::@setter::t2
           parameters
             _t2 @-1
+      functions
+        getC @56
+          reference: <testLibraryFragment>::@function::getC
   classes
     class I
       reference: <testLibraryFragment>::@class::I
@@ -1791,6 +1794,10 @@ library
           reference: <none>
           type: int
       firstFragment: <testLibraryFragment>::@setter::t2
+  functions
+    getC
+      reference: <none>
+      returnType: C
 ''');
   }
 
@@ -1890,6 +1897,11 @@ library
           reference: <testLibraryFragment>::@setter::uFuture
           parameters
             _uFuture @-1
+      functions
+        fValue @25
+          reference: <testLibraryFragment>::@function::fValue
+        fFuture @53
+          reference: <testLibraryFragment>::@function::fFuture
   topLevelVariables
     uValue
       reference: <none>
@@ -1925,6 +1937,13 @@ library
           reference: <none>
           type: Future<int> Function()
       firstFragment: <testLibraryFragment>::@setter::uFuture
+  functions
+    fValue
+      reference: <none>
+      returnType: int
+    fFuture
+      reference: <none>
+      returnType: Future<int>
 ''');
   }
 
@@ -2927,6 +2946,13 @@ library
               reference: <testLibraryFragment>::@class::X::@setter::t23
               parameters
                 _t23 @-1
+      functions
+        newA @332
+          reference: <testLibraryFragment>::@function::newA
+        newB @353
+          reference: <testLibraryFragment>::@function::newB
+        newC @374
+          reference: <testLibraryFragment>::@function::newC
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3208,6 +3234,16 @@ library
               reference: <none>
               type: int
           firstFragment: <testLibraryFragment>::@class::X::@setter::t23
+  functions
+    newA
+      reference: <none>
+      returnType: A
+    newB
+      reference: <none>
+      returnType: B
+    newC
+      reference: <none>
+      returnType: C
 ''');
   }
 
@@ -5035,6 +5071,9 @@ library
           reference: <testLibraryFragment>::@setter::x
           parameters
             _x @-1
+      functions
+        f @57
+          reference: <testLibraryFragment>::@function::f
   classes
     class I
       reference: <testLibraryFragment>::@class::I
@@ -5088,6 +5127,10 @@ library
           reference: <none>
           type: bool
       firstFragment: <testLibraryFragment>::@setter::x
+  functions
+    f
+      reference: <none>
+      returnType: C
 ''');
   }
 
@@ -5727,6 +5770,11 @@ library
           reference: <testLibraryFragment>::@setter::vNoTypeArgument
           parameters
             _vNoTypeArgument @-1
+      functions
+        f @2
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @4
   topLevelVariables
     vHasTypeArgument
       reference: <none>
@@ -5762,6 +5810,12 @@ library
           reference: <none>
           type: dynamic
       firstFragment: <testLibraryFragment>::@setter::vNoTypeArgument
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+      returnType: T
 ''');
   }
 
@@ -5848,6 +5902,11 @@ library
           reference: <testLibraryFragment>::@setter::vWrongArgumentType
           parameters
             _vWrongArgumentType @-1
+      functions
+        f @7
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            p @13
   topLevelVariables
     vOkArgumentType
       reference: <none>
@@ -5883,6 +5942,14 @@ library
           reference: <none>
           type: String
       firstFragment: <testLibraryFragment>::@setter::vWrongArgumentType
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional p
+          reference: <none>
+          type: int
+      returnType: String
 ''');
   }
 
@@ -6260,6 +6327,11 @@ library
           reference: <testLibraryFragment>::@setter::r_instanceClassMethod
           parameters
             _r_instanceClassMethod @-1
+      functions
+        topLevelFunction @7
+          reference: <testLibraryFragment>::@function::topLevelFunction
+          parameters
+            p @28
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -6465,6 +6537,14 @@ library
           reference: <none>
           type: String Function(int)
       firstFragment: <testLibraryFragment>::@setter::r_instanceClassMethod
+  functions
+    topLevelFunction
+      reference: <none>
+      parameters
+        requiredPositional p
+          reference: <none>
+          type: int
+      returnType: String
 ''');
   }
 
@@ -7193,6 +7273,9 @@ library
           reference: <testLibraryFragment>::@setter::h
           parameters
             _h @-1
+      functions
+        f @8
+          reference: <testLibraryFragment>::@function::f
   topLevelVariables
     s
       reference: <none>
@@ -7228,6 +7311,10 @@ library
           reference: <none>
           type: int
       firstFragment: <testLibraryFragment>::@setter::h
+  functions
+    f
+      reference: <none>
+      returnType: dynamic
 ''');
   }
 
@@ -16019,6 +16106,11 @@ library
               reference: <testLibraryFragment>::@class::B::@getter::x
             get y @131
               reference: <testLibraryFragment>::@class::B::@getter::y
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -16080,6 +16172,12 @@ library
         get y
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@getter::y
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: dynamic Function()
 ''');
   }
 

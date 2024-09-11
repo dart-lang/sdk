@@ -888,6 +888,7 @@ import 'unqualified_reference_to_non_local_static_member_test.dart'
 import 'unqualified_reference_to_static_member_of_extended_type_test.dart'
     as unqualified_reference_to_static_member_of_extended_type;
 import 'unreachable_switch_case_test.dart' as unreachable_switch_case;
+import 'unreachable_switch_default_test.dart' as unreachable_switch_default;
 import 'unused_catch_clause_test.dart' as unused_catch_clause;
 import 'unused_catch_stack_test.dart' as unused_catch_stack;
 import 'unused_element_test.dart' as unused_element;
@@ -1500,6 +1501,7 @@ main() {
     unqualified_reference_to_non_local_static_member.main();
     unqualified_reference_to_static_member_of_extended_type.main();
     unreachable_switch_case.main();
+    unreachable_switch_default.main();
     unused_catch_clause.main();
     unused_catch_stack.main();
     unused_element.main();

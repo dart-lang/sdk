@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class DuplicateExportTest extends PubPackageResolutionTest {
-  test_duplicateExport() async {
+  test_library_duplicateExport() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 class B {}
@@ -29,7 +29,7 @@ export 'lib1.dart';
     ]);
   }
 
-  test_duplicateExport_differentShow() async {
+  test_library_duplicateExport_differentShow() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 class B {}
@@ -40,7 +40,7 @@ export 'lib1.dart' show B;
 ''');
   }
 
-  test_duplicateExport_sameShow() async {
+  test_library_duplicateExport_sameShow() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 class B {}
@@ -52,11 +52,29 @@ export 'lib1.dart' show A;
       error(WarningCode.DUPLICATE_EXPORT, 34, 11),
     ]);
   }
+
+  test_part_duplicateExport() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export 'dart:math';
+export 'dart:math';
+''');
+
+    await assertErrorsInFile2(a, []);
+
+    await assertErrorsInFile2(b, [
+      error(WarningCode.DUPLICATE_EXPORT, 45, 11),
+    ]);
+  }
 }
 
 @reflectiveTest
 class DuplicateImportTest extends PubPackageResolutionTest {
-  test_duplicateImport_absolute_absolute() async {
+  test_library_duplicateImport_absolute_absolute() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
@@ -71,7 +89,7 @@ final a = A();
     ]);
   }
 
-  test_duplicateImport_relative_absolute() async {
+  test_library_duplicateImport_relative_absolute() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
@@ -86,7 +104,7 @@ final a = A();
     ]);
   }
 
-  test_duplicateImport_relative_relative() async {
+  test_library_duplicateImport_relative_relative() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
@@ -101,7 +119,7 @@ final a = A();
     ]);
   }
 
-  test_importsHaveIdenticalShowHide() async {
+  test_library_importsHaveIdenticalShowHide() async {
     var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
 library lib1;
 class A {}
@@ -121,7 +139,7 @@ M.A a = M.A();
     ]);
   }
 
-  test_oneImportHasHide() async {
+  test_library_oneImportHasHide() async {
     var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
 library lib1;
 class A {}
@@ -138,7 +156,7 @@ B b = B();
     await assertErrorsInFile2(lib2, []);
   }
 
-  test_oneImportHasShow() async {
+  test_library_oneImportHasShow() async {
     var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
 library lib1;
 class A {}
@@ -157,7 +175,7 @@ B b = B();
     await assertErrorsInFile2(lib2, []);
   }
 
-  test_oneImportUsesAs() async {
+  test_library_oneImportUsesAs() async {
     var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
 library lib1;
 class A {}''');
@@ -174,7 +192,7 @@ one.A a2 = one.A();
     await assertErrorsInFile2(lib2, []);
   }
 
-  test_twoDuplicateImports() async {
+  test_library_twoDuplicateImports() async {
     var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
 library lib1;
 class A {}''');
@@ -191,6 +209,25 @@ A a = A();
     await assertErrorsInFile2(lib2, [
       error(WarningCode.DUPLICATE_IMPORT, 38, 11),
       error(WarningCode.DUPLICATE_IMPORT, 58, 11),
+    ]);
+  }
+
+  test_part_duplicateImport() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import 'dart:math';
+import 'dart:math';
+void f(Random _) {}
+''');
+
+    await assertErrorsInFile2(a, []);
+
+    await assertErrorsInFile2(b, [
+      error(WarningCode.DUPLICATE_IMPORT, 45, 11),
     ]);
   }
 }

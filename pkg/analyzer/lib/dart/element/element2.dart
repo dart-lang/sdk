@@ -1570,11 +1570,17 @@ abstract class TopLevelFunctionElement
   bool get isEntryPoint;
 }
 
-///
-/// Clients may not extend, implement or mix-in this class.
 /// The portion of a [TopLevelFunctionElement] contributed by a single
 /// declaration.
-abstract class TopLevelFunctionFragment implements ExecutableFragment {}
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class TopLevelFunctionFragment implements ExecutableFragment {
+  @override
+  TopLevelFunctionFragment? get nextFragment;
+
+  @override
+  TopLevelFunctionFragment? get previousFragment;
+}
 
 /// A top-level variable.
 ///
@@ -1695,6 +1701,9 @@ abstract class TypeParameterElement2 implements TypeDefiningElement2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeParameterFragment implements TypeDefiningFragment {
+  @override
+  TypeParameterElement2 get element;
+
   @override
   TypeParameterFragment? get nextFragment;
 

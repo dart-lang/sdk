@@ -2489,6 +2489,134 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        raw @5
+          reference: <testLibraryFragment>::@function::raw
+        hasDocComment @50
+          reference: <testLibraryFragment>::@function::hasDocComment
+          documentationComment: /// Comment 1.\n/// Comment 2.
+        hasAnnotation @85
+          reference: <testLibraryFragment>::@function::hasAnnotation
+          metadata
+            Annotation
+              atSign: @ @70
+              name: SimpleIdentifier
+                token: Object @71
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @77
+                rightParenthesis: ) @78
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        annotationThenComment @150
+          reference: <testLibraryFragment>::@function::annotationThenComment
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @105
+              name: SimpleIdentifier
+                token: Object @106
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @112
+                rightParenthesis: ) @113
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        commentThenAnnotation @223
+          reference: <testLibraryFragment>::@function::commentThenAnnotation
+          documentationComment: /// Comment 1.\n/// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @208
+              name: SimpleIdentifier
+                token: Object @209
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @215
+                rightParenthesis: ) @216
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        commentAroundAnnotation @296
+          reference: <testLibraryFragment>::@function::commentAroundAnnotation
+          documentationComment: /// Comment 2.
+          metadata
+            Annotation
+              atSign: @ @266
+              name: SimpleIdentifier
+                token: Object @267
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @273
+                rightParenthesis: ) @274
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+  functions
+    raw
+      reference: <none>
+      returnType: void
+    hasDocComment
+      reference: <none>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      returnType: void
+    hasAnnotation
+      reference: <none>
+      metadata
+        Annotation
+          atSign: @ @70
+          name: SimpleIdentifier
+            token: Object @71
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @77
+            rightParenthesis: ) @78
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      returnType: void
+    annotationThenComment
+      reference: <none>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      metadata
+        Annotation
+          atSign: @ @105
+          name: SimpleIdentifier
+            token: Object @106
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @112
+            rightParenthesis: ) @113
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      returnType: void
+    commentThenAnnotation
+      reference: <none>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      metadata
+        Annotation
+          atSign: @ @208
+          name: SimpleIdentifier
+            token: Object @209
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @215
+            rightParenthesis: ) @216
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      returnType: void
+    commentAroundAnnotation
+      reference: <none>
+      documentationComment: /// Comment 2.
+      metadata
+        Annotation
+          atSign: @ @266
+          name: SimpleIdentifier
+            token: Object @267
+            staticElement: dart:core::<fragment>::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @273
+            rightParenthesis: ) @274
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+      returnType: void
 ''');
   }
 
@@ -2835,6 +2963,30 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        main @0
+          reference: <testLibraryFragment>::@function::main
+          parameters
+            default a @10
+              reference: <testLibraryFragment>::@function::main::@parameter::a
+            default b @21
+              reference: <testLibraryFragment>::@function::main::@parameter::b
+            default c @28
+              reference: <testLibraryFragment>::@function::main::@parameter::c
+  functions
+    main
+      reference: <none>
+      parameters
+        optionalNamed a
+          reference: <none>
+          type: int
+        optionalNamed b
+          reference: <none>
+          type: int
+        optionalNamed c
+          reference: <none>
+          type: int
+      returnType: dynamic
 ''');
   }
 
@@ -2897,6 +3049,71 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        main @0
+          reference: <testLibraryFragment>::@function::main
+          parameters
+            a @19
+              metadata
+                Annotation
+                  atSign: @ @5
+                  name: SimpleIdentifier
+                    token: Object @6
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @12
+                    rightParenthesis: ) @13
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+            b @26
+            c @43
+              metadata
+                Annotation
+                  atSign: @ @29
+                  name: SimpleIdentifier
+                    token: Object @30
+                    staticElement: dart:core::<fragment>::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @36
+                    rightParenthesis: ) @37
+                  element: dart:core::<fragment>::@class::Object::@constructor::new
+  functions
+    main
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: int
+          metadata
+            Annotation
+              atSign: @ @5
+              name: SimpleIdentifier
+                token: Object @6
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @12
+                rightParenthesis: ) @13
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+        requiredPositional b
+          reference: <none>
+          type: int
+        requiredPositional c
+          reference: <none>
+          type: int
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: Object @30
+                staticElement: dart:core::<fragment>::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @36
+                rightParenthesis: ) @37
+              element: dart:core::<fragment>::@class::Object::@constructor::new
+      returnType: dynamic
 ''');
   }
 
@@ -3874,6 +4091,11 @@ library
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+      functions
+        f @19
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            U @21
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3888,6 +4110,15 @@ library
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  functions
+    f
+      reference: <none>
+      typeParameters
+        U
+          codeOffset: 21
+          codeLength: 13
+          bound: num
+      returnType: void
 ''');
   }
 
@@ -4425,6 +4656,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            f @12
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional f
+          reference: <none>
+          type: void Function<U>(int)
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+      returnType: void
 ''');
   }
 
@@ -4458,6 +4706,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            default f @22
+              reference: <testLibraryFragment>::@function::f::@parameter::f
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredNamed f
+          reference: <none>
+          type: void Function<U>(int)
+          parameters
+            requiredPositional a
+              reference: <none>
+              type: int
+      returnType: void
 ''');
   }
 
@@ -4485,6 +4751,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @7
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+      returnType: void
 ''');
   }
 
@@ -4513,6 +4790,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @13
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @15
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function()
 ''');
   }
 
@@ -4541,6 +4829,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      typeAliases
+        F @8
+          reference: <testLibraryFragment>::@typeAlias::F
+          typeParameters
+            T @10
+  typeAliases
+    F
+      reference: <none>
+      typeParameters
+        T
+      aliasedType: void Function()
 ''');
   }
 

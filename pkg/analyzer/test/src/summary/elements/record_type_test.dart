@@ -381,6 +381,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            b @38
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional b
+          reference: <none>
+          type: void Function((int, String))
+      returnType: void
 ''');
   }
 
@@ -408,6 +421,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @32
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: (int, String) Function()
+      returnType: void
 ''');
   }
 
@@ -435,6 +461,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @5
+          reference: <testLibraryFragment>::@function::f
+          parameters
+            a @21
+  functions
+    f
+      reference: <none>
+      parameters
+        requiredPositional a
+          reference: <none>
+          type: (int, String)
+      returnType: void
 ''');
   }
 
@@ -459,6 +498,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @3
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: ()
 ''');
   }
 
@@ -486,6 +532,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @9
+          reference: <testLibraryFragment>::@function::f
+          typeParameters
+            T @11
+  functions
+    f
+      reference: <none>
+      typeParameters
+        T
+      returnType: (int, T)
 ''');
   }
 
@@ -510,6 +567,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @24
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: (int, String, {bool c})
 ''');
   }
 
@@ -534,6 +598,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @20
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: ({int a, String b})
 ''');
   }
 
@@ -558,6 +629,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @32
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: ((int, String), (bool, double))
 ''');
   }
 
@@ -582,6 +660,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @15
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: (int, String)?
 ''');
   }
 
@@ -606,6 +691,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @14
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: (int, String)
 ''');
   }
 
@@ -630,6 +722,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      functions
+        f @7
+          reference: <testLibraryFragment>::@function::f
+  functions
+    f
+      reference: <none>
+      returnType: (int,)
 ''');
   }
 
