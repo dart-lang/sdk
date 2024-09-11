@@ -213,6 +213,7 @@ class OSThread : public BaseThread {
   static bool IsThreadInList(ThreadId id);
 
   static void DisableOSThreadCreation();
+  static bool CanCreateOSThreads();
   static void EnableOSThreadCreation();
 
   static constexpr intptr_t kStackSizeBufferMax = (16 * KB * kWordSize);

@@ -11,13 +11,14 @@
 #include "vm/lockers.h"
 #include "vm/message.h"
 #include "vm/os_thread.h"
+#include "vm/port.h"
 #include "vm/port_set.h"
 #include "vm/thread_pool.h"
 
 namespace dart {
 
 // A MessageHandler is an entity capable of accepting messages.
-class MessageHandler {
+class MessageHandler : public PortHandler {
  protected:
   MessageHandler();
 
@@ -30,9 +31,6 @@ class MessageHandler {
   static const char* MessageStatusString(MessageStatus status);
 
   virtual ~MessageHandler();
-
-  // Allow subclasses to provide a handler name.
-  virtual const char* name() const;
 
   typedef uword CallbackData;
   typedef MessageStatus (*StartCallback)(CallbackData data);
@@ -85,15 +83,7 @@ class MessageHandler {
   bool HasMessages();
 
   // Whether to keep this message handler alive or whether it should shutdown.
-  virtual bool KeepAliveLocked() {
-    // By default we keep alive until the message handler was asked to shutdown
-    // via [RequestDeletion].
-    return !delete_me_;
-  }
-
-  // Requests deletion of this message handler when the next task
-  // completes.
-  void RequestDeletion();
+  virtual bool KeepAliveLocked() { return true; }
 
   bool paused() const { return paused_ > 0; }
 
@@ -161,39 +151,7 @@ class MessageHandler {
     friend class MessageHandler;
   };
 
-#if defined(DEBUG)
-  // Check that it is safe to access this message handler.
-  //
-  // For example, if this MessageHandler is an isolate, then it is
-  // only safe to access it when the MessageHandler is the current
-  // isolate.
-  virtual void CheckAccess() const;
-#endif
-
  protected:
-  // ------------ START PortMap API ------------
-  // These functions should only be called from the PortMap.
-
-  // Does this message handler correspond to the current isolate?
-  virtual bool IsCurrentIsolate() const { return false; }
-
-  // Return Isolate to which this message handler corresponds to.
-  virtual Isolate* isolate() const { return nullptr; }
-
-  // Posts a message on this handler's message queue.
-  // If before_events is true, then the message is enqueued before any pending
-  // events, but after any pending isolate library events.
-  void PostMessage(std::unique_ptr<Message> message,
-                   bool before_events = false);
-
-  // Notifies this handler that a port is being closed.
-  void ClosePort(Dart_Port port);
-
-  // Notifies this handler that all ports are being closed.
-  void CloseAllPorts();
-
-  // ------------ END PortMap API ------------
-
   // Custom message notification.  Optionally provided by subclass.
   virtual void MessageNotify(Message::Priority priority);
 
@@ -208,6 +166,12 @@ class MessageHandler {
   // TODO(iposva): Set a local field before entering MessageHandler methods.
   Thread* thread() const { return Thread::Current(); }
 
+  // Posts a message on this handler's message queue.
+  // If before_events is true, then the message is enqueued before any pending
+  // events, but after any pending isolate library events.
+  void PostMessage(std::unique_ptr<Message> message,
+                   bool before_events = false) override;
+
  private:
   template <typename GCVisitorType>
   friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
@@ -215,7 +179,28 @@ class MessageHandler {
   friend class MessageHandlerTestPeer;
   friend class MessageHandlerTask;
 
-  struct PortSetEntry : public PortSet<PortSetEntry>::Entry {};
+  // ------------ START PortMap API ------------
+  // These functions should only be called from the PortMap.
+  // Implementaion of PortHandler API.
+
+  const char* name() const override;
+
+  void OnPortClosed(Dart_Port port) override;
+
+  void Shutdown() override {
+    // Nothing to do.
+  }
+
+  // Return Isolate to which this message handler corresponds to.
+  Isolate* isolate() const override { return nullptr; }
+
+  PortSet<PortSetEntry>* ports(PortMap::Locker& locker) override {
+    return &ports_;
+  }
+
+  // Notifies this handler that all ports are being closed.
+  void OnAllPortsClosed();
+  // ------------ END PortMap API ------------
 
   // Called by MessageHandlerTask to process our task queue.
   void TaskCallback();
@@ -254,8 +239,11 @@ class MessageHandler {
   // thread.
   bool oob_message_handling_allowed_;
   bool paused_for_messages_;
-  PortSet<PortSetEntry>
-      ports_;  // Only accessed by [PortMap], protected by [PortMap]s lock.
+
+  // Only accessed by [PortMap], protected by [PortMap]s lock. See ports()
+  // getter.
+  PortSet<PortSetEntry> ports_;
+
   intptr_t paused_;  // The number of pause messages received.
 #if !defined(PRODUCT)
   bool should_pause_on_start_;
@@ -268,7 +256,6 @@ class MessageHandler {
   int64_t paused_timestamp_;
 #endif
   bool task_running_;
-  bool delete_me_;
   ThreadPool* pool_;
   StartCallback start_callback_;
   EndCallback end_callback_;
