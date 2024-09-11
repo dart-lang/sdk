@@ -100,6 +100,12 @@ external int incrementSize(int a);
 @Native<WChar Function(WChar)>()
 external int incrementWchar(int a);
 
+@Native<Pointer<Pointer<Int64>> Function()>()
+external Pointer<Pointer<Int64>> getPointerOfPointer();
+
+@Native<Pointer<Int64> Function(Int64)>()
+external Pointer<Int64> allocateInt64(int a);
+
 final class MyStruct extends Struct {
   @Double()
   external double x;
@@ -150,8 +156,9 @@ void main() {
   toggleBool();
   Expect.equals(boolReturn(789), false);
 
-  final Pointer<MyStruct> structPointer = getStruct();
-  final MyStruct struct = structPointer.ref;
+  final Pointer<dynamic> structPointer = getStruct();
+  Expect.isTrue(structPointer is Pointer<MyStruct>);
+  final MyStruct struct = (structPointer as Pointer<MyStruct>).ref;
   Expect.equals(struct.x, 1.0);
   Expect.equals(struct.y, 2);
   // Structs are Dart objects that are views on top of actual memory (which may
@@ -182,6 +189,12 @@ void main() {
 
   Expect.equals(sqrtDouble(1e300), 1e150);
   Expect.equals(sqrtFloat(1e10), 1e5);
+
+  final Pointer<Pointer<Int64>> pointerToPointerToInt64 = getPointerOfPointer();
+  Expect.equals(pointerToPointerToInt64.value.value, 123);
+
+  pointerToPointerToInt64.value = allocateInt64(456);
+  Expect.equals(pointerToPointerToInt64.value.value, 456);
 }
 
 // Don't crash on an unused `Native.addressOf`.
