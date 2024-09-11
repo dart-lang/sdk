@@ -729,6 +729,27 @@ void f() {}
     });
   }
 
+  Future<void> test_multiple_import_directives_partFile() async {
+    var content = """
+part/*[0*/ of 'part.dart';
+
+import 'dart:async';
+
+// We can have comments
+import 'package:a/b.dart';
+import 'package:b/c.dart';
+
+import '../a.dart';/*0]*/
+
+void f() {}
+""";
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.DIRECTIVES,
+    });
+  }
+
   Future<void> test_nested_function() async {
     var content = '''
 // Content before
