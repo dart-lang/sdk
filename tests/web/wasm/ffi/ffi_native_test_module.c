@@ -25,6 +25,21 @@ void clearStruct(struct MyStruct* s) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+int64_t* allocateInt64(int64_t i) {
+    int64_t *ptr = malloc(sizeof(int64_t));
+    *ptr = i;
+    return ptr;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int64_t** getPointerOfPointer() {
+    int64_t *ptr = allocateInt64(123);
+    int64_t **ptrOfPtr = malloc(sizeof(int64_t*));
+    *ptrOfPtr = ptr;
+    return ptrOfPtr;
+}
+
+EMSCRIPTEN_KEEPALIVE
 void empty() {}
 
 EMSCRIPTEN_KEEPALIVE
