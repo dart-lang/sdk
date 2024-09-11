@@ -221,12 +221,6 @@ CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME:
     We could rename the type parameter, this is purely local operation.
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION:
   status: noFix
-CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
-  status: needsFix
-  notes: |-
-    The fix is to add `import augment`.
-CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY:
-  status: noFix
 CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER:
   status: noFix
 CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER:
@@ -517,8 +511,6 @@ CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
 CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
   status: needsFix
   since: 2.15
-CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT:
-  status: hasFix
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
   status: noFix
   notes: |-
@@ -836,10 +828,6 @@ CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:
   status: hasFix
 CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY:
   status: hasFix
-CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION:
-  status: needsFix
-  notes: |-
-    Remove the import.
 CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES:
   status: noFix
 CompileTimeErrorCode.INCONSISTENT_INHERITANCE:
@@ -1844,19 +1832,21 @@ HintCode.MACRO_INFO:
   status: noFix
 HintCode.UNNECESSARY_IMPORT:
   status: hasFix
-HintCode.UNREACHABLE_SWITCH_CASE:
+LintCode.always_declare_return_types_of_functions:
   status: hasFix
-LintCode.always_declare_return_types:
+LintCode.always_declare_return_types_of_methods:
   status: hasFix
 LintCode.always_put_control_body_on_new_line:
   status: hasFix
 LintCode.always_put_required_named_parameters_first:
   status: hasFix
-LintCode.always_require_non_null_named_parameters:
-  status: noFix
-  notes: |-
-    Removed.
-LintCode.always_specify_types:
+LintCode.always_specify_types_add_type:
+  status: hasFix
+LintCode.always_specify_types_replace_keyword:
+  status: hasFix
+LintCode.always_specify_types_specify_type:
+  status: hasFix
+LintCode.always_specify_types_split_to_types:
   status: hasFix
 LintCode.always_use_package_imports:
   status: hasFix
@@ -1866,10 +1856,6 @@ LintCode.annotate_redeclares:
   status: hasFix
 LintCode.avoid_annotating_with_dynamic:
   status: hasFix
-LintCode.avoid_as:
-  status: noFix
-  notes: |-
-    Removed.
 LintCode.avoid_bool_literals_in_conditional_expressions:
   status: needsFix
   notes: |-
@@ -1943,15 +1929,9 @@ LintCode.avoid_renaming_method_parameters:
   status: hasFix
 LintCode.avoid_return_types_on_setters:
   status: hasFix
-LintCode.avoid_returning_null:
-  status: noFix
-  notes: |-
-    Deprecated.
-LintCode.avoid_returning_null_for_future:
-  status: noFix
-  notes: |-
-    Removed.
-LintCode.avoid_returning_null_for_void:
+LintCode.avoid_returning_null_for_void_from_function:
+  status: hasFix
+LintCode.avoid_returning_null_for_void_from_method:
   status: hasFix
 LintCode.avoid_returning_this:
   status: noFix
@@ -1985,9 +1965,6 @@ LintCode.avoid_types_on_closure_parameters:
   status: hasFix
 LintCode.avoid_unnecessary_containers:
   status: hasFix
-LintCode.avoid_unstable_final_fields:
-  status: noFix
-  notes: This lint is deprecated.
 LintCode.avoid_unused_constructor_parameters:
   status: hasFix
 LintCode.avoid_void_async:
@@ -2039,17 +2016,31 @@ LintCode.dangling_library_doc_comments:
   status: hasFix
 LintCode.depend_on_referenced_packages:
   status: needsFix
-LintCode.deprecated_consistency:
+LintCode.deprecated_consistency_constructor:
   status: needsFix
   notes: |-
     The fix is to either remove deprecated or to add it in the missing places.
-LintCode.deprecated_member_use_from_same_package:
+LintCode.deprecated_consistency_field:
+  status: needsFix
+  notes: |-
+    The fix is to either remove deprecated or to add it in the missing places.
+LintCode.deprecated_consistency_parameter:
+  status: needsFix
+  notes: |-
+    The fix is to either remove deprecated or to add it in the missing places.
+LintCode.deprecated_member_use_from_same_package_without_message:
   status: hasFix
 LintCode.deprecated_member_use_from_same_package_with_message:
   status: hasFix
 LintCode.diagnostic_describe_all_properties:
   status: hasFix
-LintCode.directives_ordering:
+LintCode.directives_ordering_alphabetical:
+  status: hasFix
+LintCode.directives_ordering_dart:
+  status: hasFix
+LintCode.directives_ordering_exports:
+  status: hasFix
+LintCode.directives_ordering_package_before_relative:
   status: hasFix
 LintCode.discarded_futures:
   status: hasFix
@@ -2066,10 +2057,6 @@ LintCode.empty_constructor_bodies:
   status: hasFix
 LintCode.empty_statements:
   status: hasFix
-LintCode.enable_null_safety:
-  status: noFix
-  notes: |-
-    Removed.
 LintCode.eol_at_end_of_file:
   status: hasFix
 LintCode.erase_dart_type_extension_types:
@@ -2096,20 +2083,24 @@ LintCode.implicit_reopen:
   status: hasFix
 LintCode.invalid_case_patterns:
   status: hasFix
-LintCode.invalid_runtime_check_with_js_interop_types:
-  status: needsFix
+LintCode.invalid_runtime_check_with_js_interop_types_dart_as_js:
+  status: needsEvaluation
   notes: |-
     The fix is dependent on the specific types that are being used. In some
     cases, the type test is incorrect and has no fix besides removing the test.
     In other cases, JS interop helpers may be used to do the type test instead.
-LintCode.invariant_booleans:
-  status: noFix
-  notes: |-
-    Removed.
-LintCode.iterable_contains_unrelated_type:
-  status: noFix
-  notes: |-
-    Removed.
+LintCode.invalid_runtime_check_with_js_interop_types_dart_is_js:
+  status: needsEvaluation
+LintCode.invalid_runtime_check_with_js_interop_types_js_as_dart:
+  status: needsEvaluation
+LintCode.invalid_runtime_check_with_js_interop_types_js_as_incompatible_js:
+  status: needsEvaluation
+LintCode.invalid_runtime_check_with_js_interop_types_js_is_dart:
+  status: needsEvaluation
+LintCode.invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js:
+  status: needsEvaluation
+LintCode.invalid_runtime_check_with_js_interop_types_js_is_unrelated_js:
+  status: needsEvaluation
 LintCode.join_return_with_assignment:
   status: needsFix
 LintCode.leading_newlines_in_multiline_strings:
@@ -2132,10 +2123,6 @@ LintCode.library_private_types_in_public_api:
     to make the private type public, which (sort of) requires a refactoring.
 LintCode.lines_longer_than_80_chars:
   status: noFix
-LintCode.list_remove_unrelated_type:
-  status: noFix
-  notes: |-
-    Removed.
 LintCode.literal_only_boolean_expressions:
   status: noFix
 LintCode.matching_super_parameters:
@@ -2231,10 +2218,6 @@ LintCode.prefer_asserts_in_initializer_lists:
     The fix is to move the assert to the initializer list.
 LintCode.prefer_asserts_with_message:
   status: noFix
-LintCode.prefer_bool_in_asserts:
-  status: noFix
-  notes: |-
-    Removed.
 LintCode.prefer_collection_literals:
   status: hasFix
 LintCode.prefer_conditional_assignment:
@@ -2251,19 +2234,21 @@ LintCode.prefer_constructors_over_static_methods:
   status: needsFix
   notes: |-
     The fix is to rewrite the static method as a factory constructor.
-LintCode.prefer_contains:
+LintCode.prefer_contains_always_false:
+  status: hasFix
+LintCode.prefer_contains_always_true:
+  status: hasFix
+LintCode.prefer_contains_use_contains:
   status: hasFix
 LintCode.prefer_double_quotes:
   status: hasFix
-LintCode.prefer_equal_for_default_values:
-  status: noFix
-  notes: |-
-    Removed.
 LintCode.prefer_expression_function_bodies:
   status: hasFix
 LintCode.prefer_final_fields:
   status: hasFix
-LintCode.prefer_final_in_for_each:
+LintCode.prefer_final_in_for_each_pattern:
+  status: hasFix
+LintCode.prefer_final_in_for_each_variable:
   status: hasFix
 LintCode.prefer_final_locals:
   status: hasFix
@@ -2285,13 +2270,21 @@ LintCode.prefer_if_null_operators:
   status: hasFix
 LintCode.prefer_initializing_formals:
   status: hasFix
-LintCode.prefer_inlined_adds:
+LintCode.prefer_inlined_adds_multiple:
+  status: hasFix
+LintCode.prefer_inlined_adds_single:
   status: hasFix
 LintCode.prefer_int_literals:
   status: hasFix
 LintCode.prefer_interpolation_to_compose_strings:
   status: hasFix
-LintCode.prefer_is_empty:
+LintCode.prefer_is_empty_always_false:
+  status: hasFix
+LintCode.prefer_is_empty_always_true:
+  status: hasFix
+LintCode.prefer_is_empty_use_is_empty:
+  status: hasFix
+LintCode.prefer_is_empty_use_is_not_empty:
   status: hasFix
 LintCode.prefer_is_not_empty:
   status: hasFix
@@ -2315,7 +2308,9 @@ LintCode.prefer_single_quotes:
   status: hasFix
 LintCode.prefer_spread_collections:
   status: hasFix
-LintCode.prefer_typing_uninitialized_variables:
+LintCode.prefer_typing_uninitialized_variables_for_field:
+  status: hasFix
+LintCode.prefer_typing_uninitialized_variables_for_local_variable:
   status: hasFix
 LintCode.prefer_void_to_null:
   status: hasFix
@@ -2328,6 +2323,8 @@ LintCode.provide_deprecation_message:
 LintCode.public_member_api_docs:
   status: noFix
 LintCode.recursive_getters:
+  status: noFix
+LintCode.removed_lint:
   status: noFix
 LintCode.require_trailing_commas:
   status: hasFix
@@ -2349,10 +2346,8 @@ LintCode.sort_pub_dependencies:
   status: needsFix
 LintCode.sort_unnamed_constructors_first:
   status: hasFix
-LintCode.super_goes_last:
-  status: noFix
-  notes: |-
-    Removed.
+LintCode.specify_nonobvious_local_variable_types:
+  status: hasFix
 LintCode.test_types_in_equals:
   status: noFix
 LintCode.throw_in_finally:
@@ -2381,7 +2376,9 @@ LintCode.unnecessary_const:
   status: hasFix
 LintCode.unnecessary_constructor_name:
   status: hasFix
-LintCode.unnecessary_final:
+LintCode.unnecessary_final_with_type:
+  status: hasFix
+LintCode.unnecessary_final_without_type:
   status: hasFix
 LintCode.unnecessary_getters_setters:
   status: hasFix
@@ -2425,9 +2422,9 @@ LintCode.unnecessary_to_list_in_spreads:
   status: hasFix
 LintCode.unreachable_from_main:
   status: hasFix
-LintCode.unrelated_type_equality_checks_expression:
+LintCode.unrelated_type_equality_checks_in_expression:
   status: needsEvaluation
-LintCode.unrelated_type_equality_checks_pattern:
+LintCode.unrelated_type_equality_checks_in_pattern:
   status: needsEvaluation
 LintCode.unsafe_html_attribute:
   status: noFix
@@ -2477,10 +2474,12 @@ LintCode.use_string_buffers:
     It isn't clear that this occurs often enough to justify the cost.
 LintCode.use_string_in_part_of_directives:
   status: hasFix
-LintCode.use_super_parameters:
-  status: hasFix
 LintCode.use_test_throws_matchers:
   status: needsFix
+LintCode.use_super_parameters_multiple:
+  status: hasFix
+LintCode.use_super_parameters_single:
+  status: hasFix
 LintCode.use_to_and_as_if_applicable:
   status: noFix
   notes: |-
@@ -3138,6 +3137,10 @@ ParserErrorCode.OUT_OF_ORDER_CLAUSES:
     so that each variant has enough information.
 ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE:
   status: hasFix
+ParserErrorCode.PART_OF_NAME:
+  status: needsFix
+  notes: |-
+    Convert to URI.
 ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD:
   status: noFix
 ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:
@@ -3716,9 +3719,13 @@ WarningCode.UNNECESSARY_NO_SUCH_METHOD:
   status: needsFix
   notes: |-
     Remove the noSuchMethod implementation.
-WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE:
+WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE:
   status: hasFix
-WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE:
+WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE:
+  status: hasFix
+WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE:
+  status: hasFix
+WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE:
   status: hasFix
 WarningCode.UNNECESSARY_QUESTION_MARK:
   status: hasFix
@@ -3729,6 +3736,10 @@ WarningCode.UNNECESSARY_TYPE_CHECK_FALSE:
 WarningCode.UNNECESSARY_TYPE_CHECK_TRUE:
   status: hasFix
 WarningCode.UNNECESSARY_WILDCARD_PATTERN:
+  status: hasFix
+WarningCode.UNREACHABLE_SWITCH_CASE:
+  status: hasFix
+WarningCode.UNREACHABLE_SWITCH_DEFAULT:
   status: hasFix
 WarningCode.UNUSED_CATCH_CLAUSE:
   status: hasFix
