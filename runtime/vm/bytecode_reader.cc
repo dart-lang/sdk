@@ -2050,7 +2050,6 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
 
 void BytecodeReaderHelper::ReadLibraryDeclaration(
     const Library& library,
-    bool lookup_classes,
     const GrowableObjectArray& pending_classes) {
   // Library flags, must be in sync with LibraryDeclaration constants in
   // pkg/dart2bytecode/lib/declarations.dart.
@@ -2089,18 +2088,10 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(
       cls.set_is_declared_in_bytecode(true);
       library.set_toplevel_class(cls);
     } else {
-      if (lookup_classes) {
-        cls = library.LookupClassAllowPrivate(name);
-      }
-      if (lookup_classes && !cls.IsNull()) {
-        ASSERT(!cls.is_declaration_loaded());
-        cls.set_script(script);
-      } else {
-        cls = Class::New(library, name, script, TokenPosition::kNoSource,
-                         /*register_class=*/true);
-        cls.set_is_declared_in_bytecode(true);
-        library.AddClass(cls);
-      }
+      cls = Class::New(library, name, script, TokenPosition::kNoSource,
+                       /*register_class=*/true);
+      cls.set_is_declared_in_bytecode(true);
+      library.AddClass(cls);
     }
 
     BytecodeLoader* loader = thread_->bytecode_loader();
@@ -2119,25 +2110,34 @@ void BytecodeReaderHelper::ReadLibraryDeclarations(intptr_t num_libraries) {
   auto& pending_classes =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
 
+  // Verify that libraries in the dynamic module are not loaded yet.
+  {
+    AlternativeReadingScope alt(&reader_, reader_.offset());
+    for (intptr_t i = 0; i < num_libraries; ++i) {
+      uri ^= ReadObject();
+      reader_.ReadUInt();  // Skip library offset.
+
+      library = Library::LookupLibrary(thread_, uri);
+      if (!library.IsNull()) {
+        const String& msg = String::Handle(String::NewFormatted(
+            "Unable to load dynamic module: library \'%s\' is already loaded",
+            uri.ToCString()));
+        Exceptions::ThrowStateError(msg);
+      }
+    }
+  }
+
   for (intptr_t i = 0; i < num_libraries; ++i) {
     uri ^= ReadObject();
     const intptr_t library_offset =
         bytecode_component_->GetLibrariesOffset() + reader_.ReadUInt();
 
-    bool lookup_classes = true;
-    library = Library::LookupLibrary(thread_, uri);
-    if (library.IsNull()) {
-      lookup_classes = false;
-      library = Library::New(uri);
-      library.Register(thread_);
-    }
-
-    if (library.Loaded()) {
-      continue;
-    }
+    library = Library::New(uri);
+    library.Register(thread_);
+    ASSERT(!library.Loaded());
 
     AlternativeReadingScope alt(&reader_, library_offset);
-    ReadLibraryDeclaration(library, lookup_classes, pending_classes);
+    ReadLibraryDeclaration(library, pending_classes);
   }
 
   auto& cls = Class::Handle(Z);
