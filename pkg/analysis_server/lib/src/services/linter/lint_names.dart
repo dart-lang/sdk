@@ -10,6 +10,8 @@ abstract final class LintNames {
       'always_put_control_body_on_new_line';
   static const String always_put_required_named_parameters_first =
       'always_put_required_named_parameters_first';
+  static const String always_require_non_null_named_parameters =
+      'always_require_non_null_named_parameters';
   static const String always_specify_types = 'always_specify_types';
   static const String always_use_package_imports = 'always_use_package_imports';
   static const String annotate_overrides = 'annotate_overrides';
@@ -36,6 +38,8 @@ abstract final class LintNames {
       'avoid_renaming_method_parameters';
   static const String avoid_return_types_on_setters =
       'avoid_return_types_on_setters';
+  static const String avoid_returning_null_for_future =
+      'avoid_returning_null_for_future';
   static const String avoid_returning_null_for_void =
       'avoid_returning_null_for_void';
   static const String avoid_single_cascade_in_expression_statements =
@@ -62,6 +66,8 @@ abstract final class LintNames {
       'dangling_library_doc_comments';
   static const String deprecated_member_use_from_same_package =
       'deprecated_member_use_from_same_package';
+  static const String deprecated_member_use_from_same_package_with_message =
+      'deprecated_member_use_from_same_package_with_message';
   static const String diagnostic_describe_all_properties =
       'diagnostic_describe_all_properties';
   static const String directives_ordering = 'directives_ordering';
@@ -148,8 +154,6 @@ abstract final class LintNames {
   static const String sort_constructors_first = 'sort_constructors_first';
   static const String sort_unnamed_constructors_first =
       'sort_unnamed_constructors_first';
-  static const String specify_nonobvious_local_variable_types =
-      'specify_nonobvious_local_variable_types';
   static const String type_annotate_public_apis = 'type_annotate_public_apis';
   static const String type_init_formals = 'type_init_formals';
   static const String type_literal_in_constant_pattern =
@@ -189,6 +193,7 @@ abstract final class LintNames {
       'unnecessary_to_list_in_spreads';
   static const String unnecessary_this = 'unnecessary_this';
   static const String unreachable_from_main = 'unreachable_from_main';
+  static const String use_colored_box = 'use_colored_box';
   static const String use_decorated_box = 'use_decorated_box';
   static const String use_enums = 'use_enums';
   static const String use_full_hex_values_for_flutter_colors =

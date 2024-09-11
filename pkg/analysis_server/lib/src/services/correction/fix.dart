@@ -1727,6 +1727,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     "Return 'Stream<{0}>'",
   );
+  static const REPLACE_CONTAINER_WITH_COLORED_BOX = FixKind(
+    'dart.fix.replace.containerWithColoredBox',
+    DartFixKindPriority.standard,
+    "Replace with 'ColoredBox'",
+  );
+  static const REPLACE_CONTAINER_WITH_COLORED_BOX_MULTI = FixKind(
+    'dart.fix.replace.containerWithColoredBox.multi',
+    DartFixKindPriority.inFile,
+    "Replace with 'ColoredBox' everywhere in file",
+  );
   static const REPLACE_CONTAINER_WITH_SIZED_BOX = FixKind(
     'dart.fix.replace.containerWithSizedBox',
     DartFixKindPriority.standard,
