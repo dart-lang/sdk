@@ -440,7 +440,7 @@ Future<void> runTests(List<String> args) async {
     var inexactBuilds = <String, String>{};
     var previousFileName = "previous.json";
     var flakyFileName = "flaky.json";
-    var downloadNumber = 0;
+    var downloadNumber = needsMerge ? 0 : 1;
 
     // Download the previous results and flakiness info from cloud storage.
     for (var builder in builders) {
