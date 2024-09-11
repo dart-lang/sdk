@@ -379,6 +379,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
+      _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -392,7 +393,8 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.writelnWithIndent('nameEnd: $nameEnd');
       }
 
-      // _writeParameterElements(f.parameters);
+      _writeFragmentList(
+          'parameters', f, f.parameters2, _writeFormalParameterFragment);
 
       _writeList(
         'constantInitializers',
@@ -635,6 +637,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
+      _writeElementReference('element', f.element);
       // _writeDocumentation(f.documentationComment);
       // _writeMetadata(f.metadata);
       // _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -695,7 +698,8 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
       // _writeCodeRange(e);
-      // _writeTypeParameterElements(e.typeParameters2);
+      _writeElementList(
+          'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
       _writeElementList(
           'parameters', e, e.parameters2, _writeFormalParameterElement);
       // _writeConstantInitializer(e);
@@ -743,12 +747,13 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
+      _writeElementReference('element', f.element);
       // _writeType('type', f.type);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
       // _writeCodeRange(f);
       // _writeTypeParameterElements(e.typeParameters);
-      // _writeFragmentList('parameters', e, e.parameters, _writeFormalParameterFragments);
+      // _writeFragmentList('parameters', f, f.parameters2, _writeFormalParameterFragments);
       // _writeConstantInitializer(e);
       // _writeNonSyntheticElement(e);
       // _writeFieldFormalParameterField(e);
@@ -960,6 +965,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
+      _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -1126,6 +1132,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
+      _writeElementReference('element', f.element);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
 
@@ -1154,6 +1161,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeElementReference('element', f.element);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
 
@@ -1561,6 +1569,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
+      _writeElementReference('element', f.element);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
       _writeDocumentation(f.documentationComment);
@@ -1693,12 +1702,13 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
+      _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
       // _writeCodeRange(f);
 
-      // expect(f.typeParameters2, isEmpty);
+      expect(f.typeParameters2, isEmpty);
       _writeFragmentList(
           'parameters', f, f.parameters2, _writeFormalParameterFragment);
       // _writeReturnType(f.returnType);
@@ -1757,6 +1767,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
+      _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -1868,6 +1879,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
+      _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -1948,6 +1960,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
+      _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
@@ -2008,6 +2021,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeElementReference('element', f.element);
       // _writeCodeRange(e);
 
       // var bound = e.bound;

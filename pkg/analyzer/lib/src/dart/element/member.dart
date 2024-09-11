@@ -205,7 +205,8 @@ abstract class ExecutableMember extends Member
   String get displayName => declaration.displayName;
 
   @override
-  Element2 get element => (declaration as ExecutableElementImpl).element;
+  ExecutableElement2 get element =>
+      (declaration as ExecutableElementImpl).element;
 
   @override
   Fragment? get enclosingFragment =>

@@ -172,7 +172,10 @@ abstract class ClassElement2 implements InterfaceElement2 {
 /// body), or a mixin application (without a class body).
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ClassFragment implements InterfaceFragment {}
+abstract class ClassFragment implements InterfaceFragment {
+  @override
+  ClassElement2 get element;
+}
 
 /// An element representing a constructor defined by a class, enum, or extension
 /// type.
@@ -400,6 +403,9 @@ abstract class EnumElement2 implements InterfaceElement2 {
 abstract class EnumFragment implements InterfaceFragment {
   /// The constants defined by this fragment of the enum.
   List<FieldElement2> get constants2;
+
+  @override
+  EnumElement2 get element;
 }
 
 /// An element representing an executable object, including functions, methods,
@@ -440,6 +446,9 @@ abstract class ExecutableElement2 implements FunctionTypedElement2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExecutableFragment implements FunctionTypedFragment {
+  @override
+  ExecutableElement2 get element;
+
   /// Whether the body is marked as being asynchronous.
   bool get isAsynchronous;
 
@@ -468,7 +477,10 @@ abstract class ExtensionElement2 implements InstanceElement2 {
 /// declaration.
 ///
 /// Clients may not extend, implement, or mix-in this class.
-abstract class ExtensionFragment implements InstanceFragment {}
+abstract class ExtensionFragment implements InstanceFragment {
+  @override
+  ExtensionElement2 get element;
+}
 
 /// An extension type.
 ///
@@ -491,6 +503,9 @@ abstract class ExtensionTypeElement2 implements InterfaceElement2 {
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class ExtensionTypeFragment implements InterfaceFragment {
+  @override
+  ExtensionTypeElement2 get element;
+
   ConstructorFragment get primaryConstructor2;
 
   /// The representation of this extension.
@@ -537,8 +552,10 @@ abstract class FieldFormalParameterElement2 implements FormalParameterElement {
 /// declaration.
 ///
 /// Clients may not extend, implement, or mix-in this class.
-abstract class FieldFormalParameterFragment
-    implements FormalParameterFragment {}
+abstract class FieldFormalParameterFragment implements FormalParameterFragment {
+  @override
+  FieldFormalParameterElement2 get element;
+}
 
 /// The portion of a [FieldElement2] contributed by a single declaration.
 ///
@@ -653,6 +670,9 @@ abstract class FormalParameterElement
 abstract class FormalParameterFragment
     implements PromotableFragment, _Annotatable {
   @override
+  FormalParameterElement get element;
+
+  @override
   FormalParameterFragment? get nextFragment;
 
   @override
@@ -731,6 +751,9 @@ abstract class FunctionTypedElement2 implements TypeParameterizedElement2 {
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class FunctionTypedFragment implements TypeParameterizedFragment {
+  @override
+  FunctionTypedElement2 get element;
+
   /// The parameters defined by this fragment.
   List<FormalParameterFragment> get parameters2;
 }
@@ -785,6 +808,11 @@ abstract class GetterFragment implements ExecutableFragment {
   /// The setter that corresponds to (has the same name as) this getter, or
   /// `null` if there is no corresponding setter.
   SetterFragment? get correspondingSetter2;
+
+  // TODO(brianwilkerson): This should override `element` to be more specific,
+  //  but can't because the Impl class supports both getters and setters.
+  // @override
+  // GetterElement get element;
 
   /// The field or top-level variable associated with this getter.
   ///
@@ -928,6 +956,9 @@ abstract class InterfaceFragment implements InstanceFragment {
   ///
   /// The list is empty for [MixinFragment].
   List<ConstructorFragment> get constructors2;
+
+  @override
+  InterfaceElement2 get element;
 
   /// The interfaces that are implemented by this fragment.
   List<InterfaceType> get interfaces;
@@ -1126,6 +1157,9 @@ abstract class LibraryFragment implements Fragment, _Annotatable {
   List<ClassFragment> get classes2;
 
   @override
+  LibraryElement2 get element;
+
+  @override
   LibraryFragment? get enclosingFragment;
 
   /// The fragments of the enums declared in this fragment.
@@ -1317,6 +1351,9 @@ abstract class MixinElement2 implements InterfaceElement2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinFragment implements InterfaceFragment {
+  @override
+  MixinElement2 get element;
+
   /// The superclass constraints defined for this mixin.
   ///
   /// If the declaration does not have an `on` clause, then the list will
@@ -1401,7 +1438,10 @@ abstract class PromotableElement2 implements VariableElement2 {}
 /// The portion of a [PromotableElement2] contributed by a single declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PromotableFragment implements VariableFragment {}
+abstract class PromotableFragment implements VariableFragment {
+  @override
+  PromotableElement2 get element;
+}
 
 /// A variable that has an associated getter and possibly a setter. Note that
 /// explicitly defined variables implicitly define a synthetic getter and that
@@ -1447,6 +1487,9 @@ abstract class PropertyInducingElement2
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingFragment
     implements VariableFragment, _Annotatable {
+  @override
+  PropertyInducingElement2 get element;
+
   /// The getter associated with this variable.
   ///
   /// If this variable was explicitly defined (is not synthetic) then the
@@ -1524,6 +1567,11 @@ abstract class SetterFragment implements ExecutableFragment {
   /// `null` if there is no corresponding getter.
   GetterFragment? get correspondingGetter2;
 
+  // TODO(brianwilkerson): This should override `element` to be more specific,
+  //  but can't because the Impl class supports both getters and setters.
+  // @override
+  // SetterElement get element;
+
   /// The field or top-level variable associated with this setter.
   ///
   /// If this setter was explicitly defined (is not synthetic) then the variable
@@ -1550,8 +1598,10 @@ abstract class SuperFormalParameterElement2 implements FormalParameterElement {
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class SuperFormalParameterFragment
-    implements FormalParameterFragment {}
+abstract class SuperFormalParameterFragment implements FormalParameterFragment {
+  @override
+  SuperFormalParameterElement2 get element;
+}
 
 /// A top-level function.
 ///
@@ -1576,6 +1626,9 @@ abstract class TopLevelFunctionElement
 /// Clients may not extend, implement or mix-in this class.
 abstract class TopLevelFunctionFragment implements ExecutableFragment {
   @override
+  TopLevelFunctionElement get element;
+
+  @override
   TopLevelFunctionFragment? get nextFragment;
 
   @override
@@ -1598,6 +1651,9 @@ abstract class TopLevelVariableElement2 implements PropertyInducingElement2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TopLevelVariableFragment implements PropertyInducingFragment {
+  @override
+  TopLevelVariableElement2 get element;
+
   @override
   TopLevelVariableFragment? get nextFragment;
 
@@ -1670,7 +1726,10 @@ abstract class TypeDefiningElement2
 /// The portion of a [TypeDefiningElement2] contributed by a single declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeDefiningFragment implements Fragment, _Annotatable {}
+abstract class TypeDefiningFragment implements Fragment, _Annotatable {
+  @override
+  TypeDefiningElement2 get element;
+}
 
 /// A type parameter.
 ///
@@ -1734,6 +1793,9 @@ abstract class TypeParameterizedElement2 implements Element2, _Annotatable {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeParameterizedFragment implements Fragment, _Annotatable {
+  @override
+  TypeParameterizedElement2 get element;
+
   /// The type parameters declared by this fragment directly.
   ///
   /// This does not include type parameters that are declared by any enclosing
@@ -1801,6 +1863,9 @@ abstract class VariableElement2 implements Element2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class VariableFragment implements Fragment {
+  @override
+  VariableElement2 get element;
+
   /// Whether the variable was declared with the 'const' modifier.
   bool get isConst;
 
