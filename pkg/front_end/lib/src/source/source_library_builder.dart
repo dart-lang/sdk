@@ -92,7 +92,48 @@ import 'type_parameter_scope_builder.dart';
 
 part 'source_compilation_unit.dart';
 
+/// Enum that define what state a source library is in, in terms of how far
+/// in the compilation it has progressed. This is used to document and assert
+/// the requirements of individual methods within the [SourceLibraryBuilder].
+enum SourceLibraryBuilderState {
+  /// The builder is in its initial state.
+  ///
+  /// In this state a builder is not known a library yet.
+  initial,
+
+  /// The builder has resolved to be a library.
+  ///
+  /// Parts never reach this state.
+  resolvedParts,
+
+  /// Scopes have been built for the library.
+  scopesBuilt,
+
+  /// Type in the outline have been resolved.
+  resolvedTypes,
+
+  /// Default types of type parameters have been computed.
+  defaultTypesComputed,
+
+  /// Type parameters have been checked for cyclic dependencies and their
+  /// nullability have been computed.
+  typeVariablesFinished,
+  ;
+
+  bool operator <(SourceLibraryBuilderState other) => index < other.index;
+
+  // Coverage-ignore(suite): Not run.
+  bool operator <=(SourceLibraryBuilderState other) => index <= other.index;
+
+  // Coverage-ignore(suite): Not run.
+  bool operator >(SourceLibraryBuilderState other) => index > other.index;
+
+  bool operator >=(SourceLibraryBuilderState other) => index >= other.index;
+}
+
 class SourceLibraryBuilder extends LibraryBuilderImpl {
+  SourceLibraryBuilderState _state = SourceLibraryBuilderState.initial;
+
   late final SourceCompilationUnit compilationUnit;
 
   LookupScope _importScope;
@@ -316,6 +357,49 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isAugmenting: origin != null,
         isUnsupported: isUnsupported,
         loader: loader);
+  }
+
+  SourceLibraryBuilderState get state => _state;
+
+  void set state(SourceLibraryBuilderState value) {
+    assert(
+        _state < value,
+        // Coverage-ignore(suite): Not run.
+        "State $value has already been reached at $_state in $this.");
+    assert(
+        _state.index + 1 == value.index,
+        // Coverage-ignore(suite): Not run.
+        _state.index + 1 < SourceLibraryBuilderState.values.length
+            ? "Expected state "
+                "${SourceLibraryBuilderState.values[_state.index + 1]} "
+                "to follow from $_state, trying to set next state to $value "
+                "in $this."
+            : "No more states expected to follow from $_state, trying to set "
+                "next state to $value in $this.");
+    _state = value;
+  }
+
+  bool checkState(
+      {List<SourceLibraryBuilderState>? required,
+      List<SourceLibraryBuilderState>? pending}) {
+    if (required != null) {
+      for (SourceLibraryBuilderState requiredState in required) {
+        assert(
+            state >= requiredState,
+            // Coverage-ignore(suite): Not run.
+            "State $requiredState required, but found $state in $this.");
+      }
+    }
+    if (pending != null) {
+      for (SourceLibraryBuilderState pendingState in pending) {
+        assert(
+            state < pendingState,
+            // Coverage-ignore(suite): Not run.
+            "State $pendingState must not have been reached, "
+            "but found $state in $this.");
+      }
+    }
+    return true;
   }
 
   /// `true` if this is an augmentation library.
@@ -737,6 +821,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void buildScopes(LibraryBuilder coreLibrary) {
+    assert(checkState(required: [SourceLibraryBuilderState.resolvedParts]));
+
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
     if (augmentationLibraries != null) {
@@ -758,11 +844,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         augmentationLibrary.applyAugmentations();
       }
     }
+
+    state = SourceLibraryBuilderState.scopesBuilt;
   }
 
   /// Resolves all unresolved types in [unresolvedNamedTypes]. The list of types
   /// is cleared when done.
   int resolveTypes() {
+    assert(checkState(required: [SourceLibraryBuilderState.scopesBuilt]));
     int typeCount = 0;
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
@@ -778,6 +867,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       typeCount += part.resolveTypes(this);
     }
 
+    state = SourceLibraryBuilderState.resolvedTypes;
     return typeCount;
   }
 
@@ -1451,6 +1541,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// that were instantiated in this library.
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
       TypeBuilder bottomType, ClassBuilder objectClass) {
+    assert(checkState(
+        required: [SourceLibraryBuilderState.resolvedTypes],
+        pending: [SourceLibraryBuilderState.typeVariablesFinished]));
     int count = 0;
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
@@ -1465,6 +1558,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     count += compilationUnit.computeDefaultTypes(
         dynamicType, nullType, bottomType, objectClass);
 
+    state = SourceLibraryBuilderState.defaultTypesComputed;
     return count;
   }
 

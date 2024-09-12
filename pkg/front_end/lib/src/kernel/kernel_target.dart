@@ -63,7 +63,8 @@ import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_field_builder.dart';
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/source_library_builder.dart'
+    show SourceLibraryBuilder, SourceLibraryBuilderState;
 import '../source/source_loader.dart'
     show CompilationPhaseForProblemReporting, SourceLoader;
 import '../type_inference/type_schema.dart';
@@ -387,6 +388,7 @@ class KernelTarget {
       // we instead apply them directly here.
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         augmentationLibrary.compilationUnit.createLibrary();
+        augmentationLibrary.state = SourceLibraryBuilderState.resolvedParts;
       }
       loader.buildScopes(augmentationLibraries);
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
@@ -404,6 +406,14 @@ class KernelTarget {
   /// Builds [augmentationLibraries] to the state expected after applying phase
   /// 2 macros.
   void _buildForPhase2(List<SourceLibraryBuilder> augmentationLibraries) {
+    benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.enterPhase(BenchmarkPhases.outline_computeVariances);
+    loader.computeVariances(augmentationLibraries);
+
+    loader.computeDefaultTypes(augmentationLibraries, dynamicType, nullType,
+        bottomType, objectClassBuilder);
+
     loader.finishTypeVariables(
         augmentationLibraries, objectClassBuilder, dynamicType);
     for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
@@ -501,8 +511,8 @@ class KernelTarget {
       benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_computeDefaultTypes);
-      loader.computeDefaultTypes(
-          dynamicType, nullType, bottomType, objectClassBuilder);
+      loader.computeDefaultTypes(loader.sourceLibraryBuilders, dynamicType,
+          nullType, bottomType, objectClassBuilder);
 
       if (macroApplications != null) {
         // Coverage-ignore-block(suite): Not run.

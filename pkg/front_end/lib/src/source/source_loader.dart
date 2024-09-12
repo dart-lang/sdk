@@ -94,7 +94,8 @@ import 'source_library_builder.dart'
         InvalidLanguageVersion,
         LanguageVersion,
         LibraryAccess,
-        SourceLibraryBuilder;
+        SourceLibraryBuilder,
+        SourceLibraryBuilderState;
 import 'source_procedure_builder.dart';
 import 'stack_listener_impl.dart' show offsetForToken;
 
@@ -1477,6 +1478,10 @@ severity: $severity
     for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
       _compilationUnits.remove(augmentationLibrary.fileUri);
       augmentationLibrary.origin.addAugmentationLibrary(augmentationLibrary);
+      augmentationLibrary.state = SourceLibraryBuilderState.resolvedParts;
+    }
+    for (SourceLibraryBuilder sourceLibrary in sourceLibraries) {
+      sourceLibrary.state = SourceLibraryBuilderState.resolvedParts;
     }
     _sourceLibraryBuilders = sourceLibraries;
     assert(
@@ -1910,6 +1915,10 @@ severity: $severity
       }
     }
 
+    for (SourceLibraryBuilder libraryBuilder in libraryBuilders) {
+      libraryBuilder.state = SourceLibraryBuilderState.typeVariablesFinished;
+    }
+
     ticker.logMs("Resolved ${sortedTypeVariables.length} type-variable bounds");
   }
 
@@ -1922,10 +1931,14 @@ severity: $severity
     ticker.logMs("Computed variances of $count type variables");
   }
 
-  void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
-      TypeBuilder bottomType, ClassBuilder objectClass) {
+  void computeDefaultTypes(
+      List<SourceLibraryBuilder> libraryBuilders,
+      TypeBuilder dynamicType,
+      TypeBuilder nullType,
+      TypeBuilder bottomType,
+      ClassBuilder objectClass) {
     int count = 0;
-    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+    for (SourceLibraryBuilder library in libraryBuilders) {
       count += library.computeDefaultTypes(
           dynamicType, nullType, bottomType, objectClass);
     }

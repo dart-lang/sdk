@@ -923,7 +923,9 @@ class SourceCompilationUnitImpl
 
         Iterator<SourceMemberBuilder> iterator = declaration.nameSpace
             .filteredConstructorIterator<SourceMemberBuilder>(
-                includeDuplicates: false, includeAugmentations: true);
+                parent: declaration,
+                includeDuplicates: false,
+                includeAugmentations: true);
         while (iterator.moveNext()) {
           processSourceMemberBuilder(iterator.current,
               inErrorRecovery: issues.isNotEmpty);
@@ -975,7 +977,9 @@ class SourceCompilationUnitImpl
 
         Iterator<SourceMemberBuilder> iterator = declaration.nameSpace
             .filteredConstructorIterator<SourceMemberBuilder>(
-                includeDuplicates: false, includeAugmentations: true);
+                parent: declaration,
+                includeDuplicates: false,
+                includeAugmentations: true);
         while (iterator.moveNext()) {
           processSourceMemberBuilder(iterator.current,
               inErrorRecovery: issues.isNotEmpty);
