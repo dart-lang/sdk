@@ -277,11 +277,11 @@ abstract class Element2 {
   /// The children of this element.
   ///
   /// There is no guarantee of the order in which the children will be returned.
-  /// For example, they are not guaranteed to be in lexical order.
+  /// In particular, they are not guaranteed to be in lexical order.
   List<Element2> get children2;
 
-  /// The display name of this element, or empty string if the element does not
-  /// have a name.
+  /// The display name of this element, or an empty string if the element does
+  /// not have a name.
   ///
   /// In most cases the name and the display name are the same. They differ in
   /// cases such as setters where the `name` of some setter (`set s(x)`) is `s=`
@@ -693,7 +693,7 @@ abstract class Fragment {
   /// The children of this fragment.
   ///
   /// There is no guarantee of the order in which the children will be returned.
-  /// For example, they are not guaranteed to be in lexical order.
+  /// In particular, they are not guaranteed to be in lexical order.
   List<Fragment> get children3;
 
   /// The element composed from this fragment and possibly other fragments.
@@ -1009,7 +1009,7 @@ abstract class LibraryElement2 implements Element2, _Annotatable, _Fragmented {
   /// The classes defined in this library.
   ///
   /// There is no guarantee of the order in which the classes will be returned.
-  /// For example, they are not guaranteed to be in lexical order.
+  /// In particular, they are not guaranteed to be in lexical order.
   List<ClassElement2> get classes;
 
   /// The entry point for this library.
@@ -1023,13 +1023,15 @@ abstract class LibraryElement2 implements Element2, _Annotatable, _Fragmented {
   /// The enums defined in this library.
   ///
   /// There is no guarantee of the order in which the enums will be returned.
-  /// For example, they are not guaranteed to be in lexical order.
+  /// In particular, they are not guaranteed to be in lexical order.
   List<EnumElement2> get enums;
 
   /// The libraries that are exported from this library.
   ///
   /// There is no guarantee of the order in which the libraries will be
-  /// returned. For example, they are not guaranteed to be in lexical order.
+  /// returned. In particular, they are not guaranteed to be in lexical order.
+  // TODO(brianwilkerson): Consider removing this from the public API. It isn't
+  //  clear that it's useful, given that it ignores hide and show clauses.
   List<LibraryElement2> get exportedLibraries2;
 
   /// The export [Namespace] of this library.
@@ -1038,13 +1040,13 @@ abstract class LibraryElement2 implements Element2, _Annotatable, _Fragmented {
   /// The extensions defined in this library.
   ///
   /// There is no guarantee of the order in which the extensions will be
-  /// returned. For example, they are not guaranteed to be in lexical order.
+  /// returned. In particular, they are not guaranteed to be in lexical order.
   List<ExtensionElement2> get extensions;
 
   /// The extension types defined in this library.
   ///
   /// There is no guarantee of the order in which the extension types will be
-  /// returned. For example, they are not guaranteed to be in lexical order.
+  /// returned. In particular, they are not guaranteed to be in lexical order.
   List<ExtensionTypeElement2> get extensionTypes;
 
   /// The set of features available to this library.
@@ -1060,13 +1062,13 @@ abstract class LibraryElement2 implements Element2, _Annotatable, _Fragmented {
   /// The functions defined in this library.
   ///
   /// There is no guarantee of the order in which the functions will be
-  /// returned. For example, they are not guaranteed to be in lexical order.
+  /// returned. In particular, they are not guaranteed to be in lexical order.
   List<TopLevelFunctionElement> get functions;
 
   /// The getters defined in this library.
   ///
   /// There is no guarantee of the order in which the getters will be returned.
-  /// For example, they are not guaranteed to be in lexical order.
+  /// In particular, they are not guaranteed to be in lexical order.
   List<GetterElement> get getters;
 
   /// The identifier that uniquely identifies this element among the children
@@ -1098,7 +1100,7 @@ abstract class LibraryElement2 implements Element2, _Annotatable, _Fragmented {
   /// The mixins defined in this library.
   ///
   /// There is no guarantee of the order in which the mixins will be returned.
-  /// For example, they are not guaranteed to be in lexical order.
+  /// In particular, they are not guaranteed to be in lexical order.
   List<MixinElement2> get mixins;
 
   /// The public [Namespace] of this library.
@@ -1107,19 +1109,20 @@ abstract class LibraryElement2 implements Element2, _Annotatable, _Fragmented {
   /// The setters defined in this library.
   ///
   /// There is no guarantee of the order in which the setters will be returned.
-  /// For example, they are not guaranteed to be in lexical order.
+  /// In particular, they are not guaranteed to be in lexical order.
   List<SetterElement> get setters;
 
   /// The top level variables defined in this library.
   ///
   /// There is no guarantee of the order in which the top level variables will
-  /// be returned. For example, they are not guaranteed to be in lexical order.
+  /// be returned. In particular, they are not guaranteed to be in lexical
+  /// order.
   List<TopLevelVariableElement2> get topLevelVariables;
 
   /// The type aliases defined in this library.
   ///
   /// There is no guarantee of the order in which the type aliases will be
-  /// returned. For example, they are not guaranteed to be in lexical order.
+  /// returned. In particular, they are not guaranteed to be in lexical order.
   List<TypeAliasElement2> get typeAliases;
 
   /// The [TypeProvider] that is used in this library.
@@ -1172,6 +1175,8 @@ abstract class LibraryFragment implements Fragment, _Annotatable {
   List<ExtensionTypeFragment> get extensionTypes2;
 
   /// The `part` directives within this fragment.
+  // TODO(brianwilkerson): Rename this, `libraryExports2`, and `libraryImports2`
+  //  to be consistent with each other.
   List<LibraryFragmentInclude> get fragmentIncludes;
 
   /// The fragments of the top-level functions declared in this fragment.
@@ -1667,7 +1672,7 @@ abstract class TopLevelVariableFragment implements PropertyInducingFragment {
 abstract class TypeAliasElement2
     implements TypeParameterizedElement2, TypeDefiningElement2 {
   /// If the aliased type has structure, return the corresponding element.
-  /// For example it could be [GenericFunctionTypeElement].
+  /// For example, it could be [GenericFunctionTypeElement].
   ///
   /// If there is no structure, return `null`.
   Element2? get aliasedElement2;
