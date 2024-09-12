@@ -291,7 +291,7 @@ List<Element> _computePath(engine.Element element) {
   var path = <Element>[];
 
   if (element is engine.PrefixElement) {
-    element = element.enclosingElement.definingCompilationUnit;
+    element = element.enclosingElement3;
   }
 
   for (var e in element.withAncestors) {

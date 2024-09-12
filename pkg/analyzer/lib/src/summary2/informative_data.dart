@@ -92,11 +92,9 @@ class InformativeDataApplier {
     var unitReader = SummaryDataReader(unitInfoBytes);
     var unitInfo = _InfoUnit(_infoDeclarationStore, unitReader);
 
-    var enclosing = unitElement.enclosingElement;
-    if (enclosing is LibraryElementImpl) {
-      if (identical(enclosing.definingCompilationUnit, unitElement)) {
-        _applyToLibrary(enclosing, unitInfo);
-      }
+    var libraryElement = unitElement.library;
+    if (identical(libraryElement.definingCompilationUnit, unitElement)) {
+      _applyToLibrary(libraryElement, unitInfo);
     }
 
     unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);

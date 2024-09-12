@@ -4356,7 +4356,7 @@ library
   topLevelVariables
     const x
       reference: <none>
-      type: InvalidType
+      type: int
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       getter: <none>
   getters
@@ -4401,7 +4401,7 @@ library
   topLevelVariables
     const x
       reference: <none>
-      type: InvalidType
+      type: int
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       getter: <none>
   getters
@@ -4452,12 +4452,12 @@ library
   topLevelVariables
     const x
       reference: <none>
-      type: InvalidType
+      type: int
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       getter: <none>
     const y
       reference: <none>
-      type: InvalidType
+      type: int
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::y
       getter: <none>
   getters
@@ -4504,7 +4504,7 @@ library
   topLevelVariables
     const x
       reference: <none>
-      type: InvalidType
+      type: Type
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       getter: <none>
   getters
@@ -4965,7 +4965,7 @@ library
           name: PrefixedIdentifier
             prefix: SimpleIdentifier
               token: prefix0 @78
-              staticElement: <null>
+              staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
               staticType: null
             period: . @85
             identifier: SimpleIdentifier
@@ -4977,7 +4977,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @87
             rightParenthesis: ) @88
-          element: package:test/a.dart::<fragment>::@class::A
+          element: package:test/a.dart::<fragment>::@class::A::@constructor::new
       returnType: void
 ''');
   }
@@ -5074,7 +5074,7 @@ library
           name: PrefixedIdentifier
             prefix: SimpleIdentifier
               token: prefix0 @78
-              staticElement: <null>
+              staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
               staticType: null
             period: . @85
             identifier: SimpleIdentifier
@@ -5086,7 +5086,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @87
             rightParenthesis: ) @88
-          element: package:test/a.dart::<fragment>::@class::A
+          element: package:test/a.dart::<fragment>::@class::A::@constructor::new
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
 ''');
   }
@@ -5141,7 +5141,7 @@ library
           name: PrefixedIdentifier
             prefix: SimpleIdentifier
               token: prefix0 @78
-              staticElement: <null>
+              staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
               staticType: null
             period: . @85
             identifier: SimpleIdentifier
@@ -5153,7 +5153,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @87
             rightParenthesis: ) @88
-          element: package:test/a.dart::<fragment>::@class::A
+          element: package:test/a.dart::<fragment>::@class::A::@constructor::new
       parameters
         requiredPositional _
           reference: <none>
@@ -5212,16 +5212,16 @@ library
               name: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: prefix0 @86
-                  staticElement: <null>
+                  staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
                   staticType: null
                 period: . @93
                 identifier: SimpleIdentifier
                   token: a @94
-                  staticElement: <null>
+                  staticElement: package:test/a.dart::<fragment>::@getter::a
                   staticType: null
-                staticElement: <null>
+                staticElement: package:test/a.dart::<fragment>::@getter::a
                 staticType: null
-              element: <null>
+              element: package:test/a.dart::<fragment>::@getter::a
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
 ''');
   }

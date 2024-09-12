@@ -1296,7 +1296,7 @@ class LibraryReader {
     for (var import in containerUnit.libraryImports_unresolved) {
       var prefixElement = import.prefix?.element;
       if (prefixElement is PrefixElementImpl) {
-        prefixElement.enclosingElement = containerLibrary;
+        prefixElement.enclosingElement = containerUnit;
         prefixElement.enclosingElement3 = containerUnit;
       }
     }
@@ -1564,6 +1564,7 @@ class LibraryReader {
         } else {
           property = TopLevelVariableElementImpl(name, -1)
             ..enclosingElement = enclosingElement
+            ..enclosingElement3 = enclosingElement
             ..reference = reference
             ..isSynthetic = true;
           reference.element ??= property;
@@ -1575,6 +1576,7 @@ class LibraryReader {
         } else {
           property = FieldElementImpl(name, -1)
             ..enclosingElement = enclosingElement
+            ..enclosingElement3 = enclosingElement
             ..reference = reference
             ..isStatic = accessor.isStatic
             ..isSynthetic = true;
