@@ -973,4 +973,28 @@ void f() {
 ''');
     await assertNoFix();
   }
+
+  Future<void> test_functionType_method_inside_conditional_operator() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? m3 : (v) => v);
+  }
+
+  void m2(int Function(int) f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? m3 : (v) => v);
+  }
+
+  void m2(int Function(int) f) {}
+
+  int m3(int p1) {
+  }
+}
+''');
+  }
 }
