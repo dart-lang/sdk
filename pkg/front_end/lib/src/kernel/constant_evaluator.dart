@@ -1327,7 +1327,8 @@ class ConstantsTransformer extends RemovingTransformer {
         expressionType is InvalidType
             ? const NeverType.nonNullable()
             : expressionType);
-    List<Space> cases = [];
+    List<bool> caseIsGuarded = [];
+    List<Space> caseSpaces = [];
     PatternConverter patternConverter = new PatternConverter(
         currentLibrary.languageVersion,
         _exhaustivenessCache!,
@@ -1335,8 +1336,9 @@ class ConstantsTransformer extends RemovingTransformer {
         hasPrimitiveEquality: (Constant constant) => constantEvaluator
             .hasPrimitiveEqual(constant, staticTypeContext: staticTypeContext));
     for (PatternGuard patternGuard in patternGuards) {
-      cases.add(patternConverter.createRootSpace(type, patternGuard.pattern,
-          hasGuard: patternGuard.guard != null));
+      caseIsGuarded.add(patternGuard.guard != null);
+      caseSpaces
+          .add(patternConverter.createRootSpace(type, patternGuard.pattern));
     }
     List<CaseUnreachability>? caseUnreachabilities = retainDataForTesting
         ?
@@ -1344,7 +1346,7 @@ class ConstantsTransformer extends RemovingTransformer {
         []
         : null;
     NonExhaustiveness? nonExhaustiveness = computeExhaustiveness(
-        _exhaustivenessCache!, type, cases,
+        _exhaustivenessCache!, type, caseIsGuarded, caseSpaces,
         caseUnreachabilities: caseUnreachabilities);
     NonExhaustiveness? reportedNonExhaustiveness;
     if (nonExhaustiveness != null && !hasDefault && mustBeExhaustive) {
@@ -1367,7 +1369,7 @@ class ConstantsTransformer extends RemovingTransformer {
       _exhaustivenessDataForTesting.switchResults[replacement] =
           new ExhaustivenessResult(
               type,
-              cases,
+              caseSpaces,
               patternGuards.map((c) => c.fileOffset).toList(),
               {
                 for (CaseUnreachability caseUnreachability

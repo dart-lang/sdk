@@ -2259,6 +2259,10 @@ final class CaseClauseImpl extends AstNodeImpl implements CaseClause {
   }
 }
 
+sealed class CaseNodeImpl implements AstNode {
+  GuardedPatternImpl get guardedPattern;
+}
+
 /// A cast pattern.
 ///
 ///    castPattern ::=
@@ -16472,7 +16476,7 @@ abstract final class SwitchExpressionCase implements AstNode {
 
 final class SwitchExpressionCaseImpl extends AstNodeImpl
     with AstNodeWithNameScopeMixin
-    implements SwitchExpressionCase {
+    implements SwitchExpressionCase, CaseNodeImpl {
   @override
   final GuardedPatternImpl guardedPattern;
 
@@ -16695,7 +16699,7 @@ abstract final class SwitchPatternCase implements SwitchMember {
 }
 
 final class SwitchPatternCaseImpl extends SwitchMemberImpl
-    implements SwitchPatternCase {
+    implements SwitchPatternCase, CaseNodeImpl {
   @override
   final GuardedPatternImpl guardedPattern;
 
