@@ -1046,13 +1046,13 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
 
       return request.close();
     }).then((response) {
-      Future<WebSocket> error(String message) {
+      Future<WebSocket> error(String message, [int? httpStatusCode]) {
         // Flush data.
         response.detachSocket().then((socket) {
           socket.destroy();
         });
         return Future<WebSocket>.error(
-            WebSocketException(message), callerStackTrace);
+            WebSocketException(message, httpStatusCode), callerStackTrace);
       }
 
       var connectionHeader = response.headers[HttpHeaders.connectionHeader];
@@ -1061,7 +1061,8 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
           !connectionHeader.any((value) => value.toLowerCase() == "upgrade") ||
           response.headers.value(HttpHeaders.upgradeHeader)!.toLowerCase() !=
               "websocket") {
-        return error("Connection to '$uri' was not upgraded to websocket");
+        return error("Connection to '$uri' was not upgraded to websocket",
+            response.statusCode);
       }
       String? accept = response.headers.value("Sec-WebSocket-Accept");
       if (accept == null) {

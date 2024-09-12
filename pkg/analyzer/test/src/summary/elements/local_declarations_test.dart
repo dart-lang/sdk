@@ -42,9 +42,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -80,12 +82,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             new @12
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -130,15 +135,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
           methods
             m @12
               reference: <testLibraryFragment>::@class::C::@method::m
+              element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -182,13 +191,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         synthetic g @-1
           reference: <testLibraryFragment>::@topLevelVariable::g
+          element: <none>
           getter2: <testLibraryFragment>::@getter::g
       getters
         get g @4
           reference: <testLibraryFragment>::@getter::g
+          element: <none>
   topLevelVariables
     synthetic g
       reference: <none>
@@ -234,12 +246,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             new @12
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -288,15 +303,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
           methods
             m @12
               reference: <testLibraryFragment>::@class::C::@method::m
+              element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -339,9 +358,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         main @0
           reference: <testLibraryFragment>::@function::main
+          element: <none>
   functions
     main
       reference: <none>

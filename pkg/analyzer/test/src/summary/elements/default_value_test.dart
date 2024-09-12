@@ -60,20 +60,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
           methods
             X @21
               reference: <testLibraryFragment>::@class::A::@method::X
+              element: <none>
               parameters
                 default a @32
                   reference: <testLibraryFragment>::@class::A::@method::X::@parameter::a
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -182,31 +188,45 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class X @57
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X
           fields
             f @71
               reference: <testLibraryFragment>::@class::X::@field::f
+              element: <none>
               getter2: <testLibraryFragment>::@class::X::@getter::f
           constructors
             const new @82
               reference: <testLibraryFragment>::@class::X::@constructor::new
+              element: <none>
+              parameters
+                default this.f @90
+                  reference: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
+                  element: <none>
           getters
             get f @-1
               reference: <testLibraryFragment>::@class::X::@getter::f
+              element: <none>
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @15
+              element: <none>
       functions
         defaultF @30
           reference: <testLibraryFragment>::@function::defaultF
+          element: <none>
           typeParameters
             T @39
+              element: <none>
           parameters
             v @44
+              element: <none>
   classes
     class X
       reference: <testLibraryFragment>::@class::X
@@ -331,25 +351,33 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @34
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
           methods
             foo @45
               reference: <testLibraryFragment>::@class::B::@method::foo
+              element: <none>
               parameters
                 default a @50
                   reference: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -405,11 +433,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             g @8
+              element: <none>
   functions
     f
       reference: <none>
@@ -465,11 +496,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             default compare @22
+              element: <none>
   functions
     f
       reference: <none>
@@ -535,12 +569,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             default x @28
               reference: <testLibraryFragment>::@function::f::@parameter::x
+              element: <none>
   functions
     f
       reference: <none>
@@ -604,12 +641,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             default x @28
               reference: <testLibraryFragment>::@function::f::@parameter::x
+              element: <none>
   functions
     f
       reference: <none>
@@ -658,12 +698,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             default x @20
               reference: <testLibraryFragment>::@function::f::@parameter::x
+              element: <none>
   functions
     f
       reference: <none>
@@ -713,12 +756,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             default x @20
               reference: <testLibraryFragment>::@function::f::@parameter::x
+              element: <none>
   functions
     f
       reference: <none>
@@ -780,22 +826,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       extensions
         extension E @21
           reference: <testLibraryFragment>::@extension::E
+          element: <testLibraryFragment>::@extension::E
           methods
             f @44
               reference: <testLibraryFragment>::@extension::E::@method::f
+              element: <none>
             g @65
               reference: <testLibraryFragment>::@extension::E::@method::g
+              element: <none>
               parameters
                 default p @75
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -886,25 +939,34 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           typeParameters
             T1 @8
+              element: <none>
             T2 @12
+              element: <none>
           constructors
             const new @26
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class C @39
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
           methods
             foo @50
               reference: <testLibraryFragment>::@class::C::@method::foo
+              element: <none>
               parameters
                 default b @70
+                  element: <none>
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -994,21 +1056,31 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           typeParameters
             T @8
+              element: <none>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class C @34
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           typeParameters
             T @36
+              element: <none>
           constructors
             const new @49
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
+              parameters
+                default b @57
+                  element: <none>
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -1110,28 +1182,41 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @17
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @29
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           typeParameters
             T @31
+              element: <none>
           constructors
             const new @60
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class C @73
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           typeParameters
             T @75
+              element: <none>
           constructors
             const new @114
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
+              parameters
+                default a @122
+                  element: <none>
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
@@ -1223,21 +1308,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           typeParameters
             T @8
+              element: <none>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
       functions
         foo @33
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
           typeParameters
             T @37
+              element: <none>
           parameters
             default b @46
+              element: <none>
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -1326,26 +1418,35 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           typeParameters
             T @8
+              element: <none>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class C @34
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
           methods
             foo @45
               reference: <testLibraryFragment>::@class::C::@method::foo
+              element: <none>
               typeParameters
                 T @49
+                  element: <none>
               parameters
                 default b @58
+                  element: <none>
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -1446,29 +1547,40 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           typeParameters
             T1 @8
+              element: <none>
             T2 @12
+              element: <none>
           constructors
             const new @26
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class C @39
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           typeParameters
             E1 @41
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
           methods
             foo @54
               reference: <testLibraryFragment>::@class::C::@method::foo
+              element: <none>
               typeParameters
                 E2 @58
+                  element: <none>
               parameters
                 default b @73
+                  element: <none>
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -1567,26 +1679,35 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           typeParameters
             T @8
+              element: <none>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class C @34
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           typeParameters
             T @36
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
           methods
             foo @48
               reference: <testLibraryFragment>::@class::C::@method::foo
+              element: <none>
               parameters
                 default b @58
+                  element: <none>
   classes
     class B
       reference: <testLibraryFragment>::@class::B

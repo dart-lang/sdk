@@ -671,6 +671,7 @@ class Server {
 
     var arguments = <String>[
       '--disable-dart-dev',
+      '--no-dds',
     ];
     //
     // Add VM arguments.

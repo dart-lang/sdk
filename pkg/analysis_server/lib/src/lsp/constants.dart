@@ -181,6 +181,9 @@ abstract final class CustomSemanticTokenModifiers {
   /// to class names that are not constructors.
   static const constructor = SemanticTokenModifiers('constructor');
 
+  /// A modifier applied to wildcards.
+  static const wildcard = SemanticTokenModifiers('wildcard');
+
   /// A modifier applied to escape characters within a string to allow coloring
   /// them differently.
   static const escape = SemanticTokenModifiers('escape');
@@ -221,6 +224,7 @@ abstract final class CustomSemanticTokenModifiers {
     escape,
     interpolation,
     void_,
+    wildcard,
   ];
 }
 

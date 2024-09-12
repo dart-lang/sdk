@@ -151,14 +151,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         Raw @8
           reference: <testLibraryFragment>::@typeAlias::Raw
+          element: <none>
         HasDocComment @54
           reference: <testLibraryFragment>::@typeAlias::HasDocComment
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
         HasAnnotation @90
           reference: <testLibraryFragment>::@typeAlias::HasAnnotation
+          element: <none>
           metadata
             Annotation
               atSign: @ @72
@@ -172,6 +176,7 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
         AnnotationThenComment @156
           reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -186,6 +191,7 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
         CommentThenAnnotation @230
           reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -200,6 +206,7 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
         CommentAroundAnnotation @304
           reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
+          element: <none>
           documentationComment: /// Comment 2.
           metadata
             Annotation
@@ -412,14 +419,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         Raw @8
           reference: <testLibraryFragment>::@typeAlias::Raw
+          element: <none>
         HasDocComment @65
           reference: <testLibraryFragment>::@typeAlias::HasDocComment
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
         HasAnnotation @112
           reference: <testLibraryFragment>::@typeAlias::HasAnnotation
+          element: <none>
           metadata
             Annotation
               atSign: @ @94
@@ -433,6 +444,7 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
         AnnotationThenComment @189
           reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -447,6 +459,7 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
         CommentThenAnnotation @274
           reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -461,6 +474,7 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
         CommentAroundAnnotation @359
           reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
+          element: <none>
           documentationComment: /// Comment 2.
           metadata
             Annotation
@@ -604,11 +618,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @15
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -658,15 +675,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F1 @13
           reference: <testLibraryFragment>::@typeAlias::F1
+          element: <none>
           typeParameters
             T @16
+              element: <none>
         F2 @39
           reference: <testLibraryFragment>::@typeAlias::F2
+          element: <none>
           typeParameters
             T @42
+              element: <none>
   typeAliases
     F1
       reference: <none>
@@ -721,15 +743,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F2 @14
           reference: <testLibraryFragment>::@typeAlias::F2
+          element: <none>
           typeParameters
             T @17
+              element: <none>
         F1 @36
           reference: <testLibraryFragment>::@typeAlias::F1
+          element: <none>
           typeParameters
             T @39
+              element: <none>
   typeAliases
     F2
       reference: <none>
@@ -769,11 +796,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @12
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -808,11 +838,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @16
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @18
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -859,15 +892,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F1 @10
           reference: <testLibraryFragment>::@typeAlias::F1
+          element: <none>
           typeParameters
             T @13
+              element: <none>
         F2 @33
           reference: <testLibraryFragment>::@typeAlias::F2
+          element: <none>
           typeParameters
             T @36
+              element: <none>
   typeAliases
     F1
       reference: <none>
@@ -925,15 +963,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F1 @13
           reference: <testLibraryFragment>::@typeAlias::F1
+          element: <none>
           typeParameters
             T @16
+              element: <none>
         F2 @38
           reference: <testLibraryFragment>::@typeAlias::F2
+          element: <none>
           typeParameters
             T @41
+              element: <none>
   typeAliases
     F1
       reference: <none>
@@ -976,11 +1019,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @12
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -1030,15 +1076,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F1 @10
           reference: <testLibraryFragment>::@typeAlias::F1
+          element: <none>
           typeParameters
             T @13
+              element: <none>
         F2 @33
           reference: <testLibraryFragment>::@typeAlias::F2
+          element: <none>
           typeParameters
             T @36
+              element: <none>
   typeAliases
     F1
       reference: <none>
@@ -1081,11 +1132,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @15
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -1149,11 +1203,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             X @10
+              element: <none>
   typeAliases
     notSimplyBounded F
       reference: <none>
@@ -1192,11 +1249,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
         G @34
           reference: <testLibraryFragment>::@typeAlias::G
+          element: <none>
   typeAliases
     notSimplyBounded F
       reference: <none>
@@ -1229,9 +1289,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     notSimplyBounded F
       reference: <none>
@@ -1265,11 +1327,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     notSimplyBounded F
       reference: <none>
@@ -1305,11 +1370,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -1341,9 +1409,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     F
       reference: <none>
@@ -1375,11 +1445,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     notSimplyBounded F
       reference: <none>
@@ -1410,9 +1483,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     notSimplyBounded F
       reference: <none>
@@ -1463,14 +1538,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
       functions
         f @42
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             a @46
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -1518,9 +1597,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     F
       reference: <none>
@@ -1556,11 +1637,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -1610,15 +1694,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F1 @8
           reference: <testLibraryFragment>::@typeAlias::F1
+          element: <none>
           typeParameters
             T @11
+              element: <none>
         F2 @42
           reference: <testLibraryFragment>::@typeAlias::F2
+          element: <none>
           typeParameters
             T @45
+              element: <none>
   typeAliases
     F1
       reference: <none>
@@ -1658,11 +1747,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -1697,11 +1789,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -1748,15 +1843,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F1 @8
           reference: <testLibraryFragment>::@typeAlias::F1
+          element: <none>
           typeParameters
             T @11
+              element: <none>
         F2 @38
           reference: <testLibraryFragment>::@typeAlias::F2
+          element: <none>
           typeParameters
             T @41
+              element: <none>
   typeAliases
     F1
       reference: <none>
@@ -1814,15 +1914,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F1 @8
           reference: <testLibraryFragment>::@typeAlias::F1
+          element: <none>
           typeParameters
             T @11
+              element: <none>
         F2 @42
           reference: <testLibraryFragment>::@typeAlias::F2
+          element: <none>
           typeParameters
             T @45
+              element: <none>
   typeAliases
     F1
       reference: <none>
@@ -1874,17 +1979,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       typeAliases
         F @19
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @21
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1937,13 +2047,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
         G @37
           reference: <testLibraryFragment>::@typeAlias::G
+          element: <none>
           typeParameters
             T @39
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -1984,11 +2098,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -2038,15 +2155,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F1 @8
           reference: <testLibraryFragment>::@typeAlias::F1
+          element: <none>
           typeParameters
             T @11
+              element: <none>
         F2 @38
           reference: <testLibraryFragment>::@typeAlias::F2
+          element: <none>
           typeParameters
             T @41
+              element: <none>
   typeAliases
     F1
       reference: <none>
@@ -2089,11 +2211,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -2126,11 +2251,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -2175,15 +2303,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
         B @41
           reference: <testLibraryFragment>::@typeAlias::B
+          element: <none>
           typeParameters
             T @43
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -2221,11 +2354,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -2265,15 +2401,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
         B @36
           reference: <testLibraryFragment>::@typeAlias::B
+          element: <none>
           typeParameters
             T @38
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -2311,11 +2452,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -2355,15 +2499,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
         B @48
           reference: <testLibraryFragment>::@typeAlias::B
+          element: <none>
           typeParameters
             T @50
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -2401,11 +2550,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -2438,11 +2590,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -2475,11 +2630,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -2522,11 +2680,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -2603,30 +2764,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @43
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           fields
             f @58
               reference: <testLibraryFragment>::@class::A::@field::f
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::f
               setter2: <testLibraryFragment>::@class::A::@setter::f
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
           getters
             get f @-1
               reference: <testLibraryFragment>::@class::A::@getter::f
+              element: <none>
           setters
             set f= @-1
               reference: <testLibraryFragment>::@class::A::@setter::f
+              element: <none>
               parameters
                 _f @-1
+                  element: <none>
       typeAliases
         Foo @8
           reference: <testLibraryFragment>::@typeAlias::Foo
+          element: <none>
           typeParameters
             S @12
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -2709,17 +2879,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @38
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           typeParameters
             T @40
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2778,17 +2953,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @36
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           typeParameters
             T @38
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2844,17 +3024,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @32
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           typeParameters
             T @34
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2903,12 +3088,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @10
+              element: <none>
             U @23
+              element: <none>
   typeAliases
     notSimplyBounded F
       reference: <none>
@@ -2946,9 +3135,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @68
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           documentationComment: /**\n * Docs\n */
   typeAliases
     F
@@ -2998,17 +3189,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @27
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           typeParameters
             T @29
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -3064,17 +3260,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @21
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           typeParameters
             T @23
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -3119,11 +3320,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @15
+              element: <none>
   typeAliases
     notSimplyBounded F
       reference: <none>
@@ -3156,9 +3360,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     F
       reference: <none>
@@ -3189,11 +3395,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @15
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -3244,9 +3453,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     F
       reference: <none>
@@ -3285,12 +3496,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             A @10
+              element: <none>
             B @13
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -3324,9 +3539,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     F
       reference: <none>
@@ -3357,9 +3574,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     F
       reference: <none>
@@ -3393,11 +3612,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -3432,9 +3654,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     F
       reference: <none>
@@ -3469,9 +3693,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     F
       reference: <none>
@@ -3499,9 +3725,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @12
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     F
       reference: <none>
@@ -3532,11 +3760,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @12
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -3566,9 +3797,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     F
       reference: <none>
@@ -3596,9 +3829,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     F
       reference: <none>
@@ -3634,12 +3869,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @12
+              element: <none>
             U @15
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -3689,18 +3928,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class D @55
           reference: <testLibraryFragment>::@class::D
+          element: <testLibraryFragment>::@class::D
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+              element: <none>
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @12
+              element: <none>
             U @30
+              element: <none>
   classes
     class D
       reference: <testLibraryFragment>::@class::D
@@ -3746,11 +3991,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @15
+              element: <none>
   typeAliases
     notSimplyBounded F
       reference: <none>
@@ -3786,11 +4034,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @15
+              element: <none>
   typeAliases
     notSimplyBounded F
       reference: <none>
@@ -3830,12 +4081,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @12
+              element: <none>
             U @31
+              element: <none>
   typeAliases
     notSimplyBounded F
       reference: <none>
@@ -3876,12 +4131,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @12
+              element: <none>
             U @25
+              element: <none>
   typeAliases
     notSimplyBounded F
       reference: <none>
@@ -3962,22 +4221,30 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A1 @8
           reference: <testLibraryFragment>::@typeAlias::A1
+          element: <none>
         A2 @38
           reference: <testLibraryFragment>::@typeAlias::A2
+          element: <none>
           typeParameters
             R @41
+              element: <none>
       functions
         f1 @65
           reference: <testLibraryFragment>::@function::f1
+          element: <none>
           parameters
             a @71
+              element: <none>
         f2 @82
           reference: <testLibraryFragment>::@function::f2
+          element: <none>
           parameters
             a @93
+              element: <none>
   typeAliases
     A1
       reference: <none>
@@ -4061,23 +4328,32 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A1 @8
           reference: <testLibraryFragment>::@typeAlias::A1
+          element: <none>
         A2 @32
           reference: <testLibraryFragment>::@typeAlias::A2
+          element: <none>
           typeParameters
             T @35
+              element: <none>
             U @38
+              element: <none>
       functions
         f1 @59
           reference: <testLibraryFragment>::@function::f1
+          element: <none>
           parameters
             a @65
+              element: <none>
         f2 @76
           reference: <testLibraryFragment>::@function::f2
+          element: <none>
           parameters
             a @95
+              element: <none>
   typeAliases
     A1
       reference: <none>
@@ -4170,17 +4446,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
             U @13
+              element: <none>
       functions
         f @31
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             a @48
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -4242,18 +4524,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
       functions
         f @23
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           typeParameters
             U @25
+              element: <none>
           parameters
             a @33
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -4342,25 +4630,34 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @32
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @34
+              element: <none>
             U @37
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @49
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4450,34 +4747,46 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @28
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @30
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @42
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class C @53
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
         class D @64
           reference: <testLibraryFragment>::@class::D
+          element: <testLibraryFragment>::@class::D
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+              element: <none>
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4584,34 +4893,46 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @28
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @30
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @42
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class C @53
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
         class D @64
           reference: <testLibraryFragment>::@class::D
+          element: <testLibraryFragment>::@class::D
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+              element: <none>
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4681,15 +5002,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @25
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4734,15 +5059,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4812,29 +5141,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @35
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class C @46
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           typeParameters
             U @48
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4916,25 +5255,33 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @35
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class C @46
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5008,22 +5355,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @26
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @28
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @40
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5106,27 +5460,36 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @29
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @65
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
       mixins
         mixin M1 @41
           reference: <testLibraryFragment>::@mixin::M1
+          element: <testLibraryFragment>::@mixin::M1
         mixin M2 @53
           reference: <testLibraryFragment>::@mixin::M2
+          element: <testLibraryFragment>::@mixin::M2
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5222,27 +5585,36 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @29
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @65
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
       mixins
         mixin M1 @41
           reference: <testLibraryFragment>::@mixin::M1
+          element: <testLibraryFragment>::@mixin::M1
         mixin M2 @53
           reference: <testLibraryFragment>::@mixin::M2
+          element: <testLibraryFragment>::@mixin::M2
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5308,15 +5680,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @25
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5377,25 +5753,32 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @26
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @28
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @40
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int}
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5473,27 +5856,35 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @26
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @38
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int}
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5554,15 +5945,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5618,22 +6013,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @29
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class D @41
           reference: <testLibraryFragment>::@class::D
+          element: <testLibraryFragment>::@class::D
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+              element: <none>
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5703,25 +6105,32 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @29
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class D @41
           reference: <testLibraryFragment>::@class::D
+          element: <testLibraryFragment>::@class::D
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+              element: <none>
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int?}
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5778,15 +6187,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @25
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5831,15 +6244,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5884,14 +6301,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
       functions
         f @26
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             a @30
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -5942,14 +6363,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @24
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
       functions
         f @38
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             a @42
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -5996,14 +6421,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
       functions
         f @22
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             a @26
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -6050,14 +6479,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
       functions
         f @23
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             a @27
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -6109,16 +6542,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
       functions
         f @33
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             a @45
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -6168,14 +6606,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
       functions
         f @24
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             a @28
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -6220,14 +6662,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
       functions
         f @25
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             a @29
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -6286,20 +6732,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
       functions
         f1 @23
           reference: <testLibraryFragment>::@function::f1
+          element: <none>
           parameters
             a @28
+              element: <none>
         f2 @39
           reference: <testLibraryFragment>::@function::f2
+          element: <none>
           parameters
             a @49
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -6370,20 +6823,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @10
+              element: <none>
       functions
         f1 @24
           reference: <testLibraryFragment>::@function::f1
+          element: <none>
           parameters
             a @29
+              element: <none>
         f2 @40
           reference: <testLibraryFragment>::@function::f2
+          element: <none>
           parameters
             a @50
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -6440,14 +6900,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
       functions
         f @23
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             a @27
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -6486,9 +6950,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     notSimplyBounded F
       reference: <none>
@@ -6519,11 +6985,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
+          element: <none>
         g @7
           reference: <testLibraryFragment>::@function::g
+          element: <none>
   functions
     f
       reference: <none>
@@ -6593,15 +7062,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @21
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -6657,15 +7130,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       functions
         A @20
           reference: <testLibraryFragment>::@function::A
+          element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
+          element: <none>
   typeAliases
     A
       reference: <none>
@@ -6726,19 +7203,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic A @-1
           reference: <testLibraryFragment>::@topLevelVariable::A
+          element: <none>
           getter2: <testLibraryFragment>::@getter::A
       getters
         get A @23
           reference: <testLibraryFragment>::@getter::A
+          element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
+          element: <none>
   typeAliases
     A
       reference: <none>
@@ -6796,12 +7278,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
+          element: <none>
   typeAliases
     A
       reference: <none>
@@ -6863,21 +7348,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic A @-1
           reference: <testLibraryFragment>::@topLevelVariable::A
+          element: <none>
           setter2: <testLibraryFragment>::@setter::A
       setters
         set A= @19
           reference: <testLibraryFragment>::@setter::A
+          element: <none>
           parameters
             _ @25
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
+          element: <none>
   typeAliases
     A
       reference: <none>
@@ -6948,15 +7439,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       typeAliases
         A @23
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
+          element: <none>
   typeAliases
     A
       reference: <none>
