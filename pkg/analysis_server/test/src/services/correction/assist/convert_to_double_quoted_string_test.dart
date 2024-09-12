@@ -123,9 +123,9 @@ void f() {
   print('''a""\"c''');
 }
 """);
-    await assertHasAssistAt("'a", '''
+    await assertHasAssistAt("'a", r'''
 void f() {
-  print("""a\\"\\"\\"c""");
+  print("""a\"\"\"c""");
 }
 ''');
   }
