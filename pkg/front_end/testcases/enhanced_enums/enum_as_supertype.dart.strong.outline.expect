@@ -34,6 +34,7 @@ class EA extends self::_EA&_Enum&A /*isEnum*/  {
   static const field core::List<self::EA> values = const <self::EA>[self::EA::element];
   enum-element static const field self::EA element = const self::EA::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::EA
+    : super self::_EA&_Enum&A::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "EA.${this.{core::_Enum::_name}{core::String}}";
@@ -55,6 +56,7 @@ class EB extends self::_EB&_Enum&B /*isEnum*/  {
   static const field core::List<self::EB> values = const <self::EB>[self::EB::element];
   enum-element static const field self::EB element = const self::EB::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::EB
+    : super self::_EB&_Enum&B::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "EB.${this.{core::_Enum::_name}{core::String}}";
@@ -74,6 +76,7 @@ class EM extends self::_EM&_Enum&M /*isEnum*/  {
   static const field core::List<self::EM> values = const <self::EM>[self::EM::element];
   enum-element static const field self::EM element = const self::EM::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::EM
+    : super self::_EM&_Enum&M::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "EM.${this.{core::_Enum::_name}{core::String}}";
@@ -93,6 +96,7 @@ class EN extends self::_EN&_Enum&N /*isEnum*/  {
   static const field core::List<self::EN> values = const <self::EN>[self::EN::element];
   enum-element static const field self::EN element = const self::EN::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::EN
+    : super self::_EN&_Enum&N::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "EN.${this.{core::_Enum::_name}{core::String}}";
@@ -104,12 +108,12 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:10:6 -> ListConstant(const <EA>[const EA{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:10:18 -> InstanceConstant(const EA{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:17:6 -> ListConstant(const <EB>[const EB{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:17:18 -> InstanceConstant(const EB{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:24:6 -> ListConstant(const <EM>[const EM{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:24:18 -> InstanceConstant(const EM{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:31:6 -> ListConstant(const <EN>[const EN{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:31:18 -> InstanceConstant(const EN{})
-Extra constant evaluation: evaluated: 32, effectively constant: 8
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:10:6 -> ListConstant(const <EA>[const EA{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:10:18 -> InstanceConstant(const EA{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:17:6 -> ListConstant(const <EB>[const EB{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:17:18 -> InstanceConstant(const EB{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:24:6 -> ListConstant(const <EM>[const EM{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:24:18 -> InstanceConstant(const EM{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:31:6 -> ListConstant(const <EN>[const EN{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:31:18 -> InstanceConstant(const EN{_Enum.index: 0, _Enum._name: "element"})
+Extra constant evaluation: evaluated: 40, effectively constant: 8

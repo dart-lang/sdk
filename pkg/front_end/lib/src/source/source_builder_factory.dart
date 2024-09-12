@@ -2005,6 +2005,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       // into the outline. In case of super-parameters language feature, the
       // super initializers are required to infer the types of super parameters.
       constructorBuilder.beginInitializers =
+          // TODO(johnniwinther): Avoid using a dummy token to ensure building
+          // of constant constructors in the outline phase.
           beginInitializers ?? new Token.eof(-1);
     }
     return constructorBuilder;

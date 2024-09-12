@@ -378,6 +378,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   libraryName: libraryName),
               forAbstractClassOrEnumOrMixin: true,
               isSynthetic: true);
+      // Trick the constructor to be built during the outline phase.
+      // TODO(johnniwinther): Avoid relying on [beginInitializers] to ensure
+      // building constructors creation during the outline phase.
+      synthesizedDefaultConstructorBuilder!.beginInitializers =
+          new Token.eof(-1);
       synthesizedDefaultConstructorBuilder!
           .registerInitializedField(valuesBuilder);
       nameSpace.addConstructor("", synthesizedDefaultConstructorBuilder!);

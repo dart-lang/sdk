@@ -1,0 +1,40 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → void
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+abstract class HasSomeField extends core::Object /*isMixinDeclaration*/  {
+  abstract get someField() → core::String;
+}
+abstract class _SomeEnum&_Enum&HasSomeField = core::_Enum with self2::HasSomeField /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self2::_SomeEnum&_Enum&HasSomeField
+    : super core::_Enum::•(index, _name)
+    ;
+  abstract mixin-stub get someField() → core::String; -> self2::HasSomeField::someField
+}
+class SomeEnum extends self2::_SomeEnum&_Enum&HasSomeField /*isEnum*/  {
+  static const field core::List<self2::SomeEnum> values = const <self2::SomeEnum>[self2::SomeEnum::value];
+  enum-element static const field self2::SomeEnum value = const self2::SomeEnum::•(0, "value");
+  const synthetic constructor •(core::int #index, core::String #name) → self2::SomeEnum
+    : super self2::_SomeEnum&_Enum&HasSomeField::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "SomeEnum.${this.{core::_Enum::_name}{core::String}}";
+  @core::override
+  get someField() → core::String
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///main_lib.dart:12:4 -> InstanceConstant(const _Override{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///main_lib.dart:9:6 -> ListConstant(const <SomeEnum>[const SomeEnum{_Enum.index: 0.0, _Enum._name: "value"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:10:3 -> InstanceConstant(const SomeEnum{_Enum.index: 0.0, _Enum._name: "value"})
+Extra constant evaluation: evaluated: 10, effectively constant: 3

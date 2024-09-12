@@ -19,6 +19,7 @@ class E extends self::_E&_Enum&M1 /*isEnum*/  {
   enum-element static const field self::E e2 = const self::E::•(1, "e2");
   enum-element static const field self::E e3 = const self::E::•(2, "e3");
   const synthetic constructor •(core::int #index, core::String #name) → self::E
+    : super self::_E&_Enum&M1::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
@@ -30,8 +31,8 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///issue48303.dart:9:6 -> ListConstant(const <E>[const E{}, const E{}, const E{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48303.dart:10:3 -> InstanceConstant(const E{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48303.dart:11:3 -> InstanceConstant(const E{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48303.dart:12:3 -> InstanceConstant(const E{})
-Extra constant evaluation: evaluated: 11, effectively constant: 4
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue48303.dart:9:6 -> ListConstant(const <E>[const E{_Enum.index: 0, _Enum._name: "e1"}, const E{_Enum.index: 1, _Enum._name: "e2"}, const E{_Enum.index: 2, _Enum._name: "e3"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48303.dart:10:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "e1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48303.dart:11:3 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "e2"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue48303.dart:12:3 -> InstanceConstant(const E{_Enum.index: 2, _Enum._name: "e3"})
+Extra constant evaluation: evaluated: 13, effectively constant: 4

@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "main_lib.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → void {
+  const mai::SomeEnum a = #C3;
+  final mai::SomeEnum b = mai::SomeEnum::value;
+  core::print("a == b: ${a =={core::Object::==}{(core::Object) → core::bool} b}");
+  core::print("a hash: ${a.{core::Object::hashCode}{core::int}}");
+  core::print("b hash: ${b.{core::Object::hashCode}{core::int}}");
+}
+
+constants  {
+  #C1 = 0.0
+  #C2 = "value"
+  #C3 = mai::SomeEnum {index:#C1, _name:#C2}
+}

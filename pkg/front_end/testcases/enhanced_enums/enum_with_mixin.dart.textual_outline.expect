@@ -1,0 +1,14 @@
+mixin HasSomeField {
+  String get someField;
+}
+
+enum SomeEnum with HasSomeField {
+  value;
+
+  @override
+  String get someField => 'field';
+}
+
+enum NormalEnum {
+  value;
+}
