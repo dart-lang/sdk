@@ -13,25 +13,71 @@ import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
+import '../fragment/fragment.dart';
 import 'name_scheme.dart';
 import 'source_extension_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
+import 'source_type_alias_builder.dart';
+
+sealed class _Added {
+  _AddBuilder getAddBuilder(Builder parent);
+}
+
+class _AddedBuilder implements _Added {
+  final _AddBuilder builder;
+
+  _AddedBuilder(this.builder);
+
+  @override
+  _AddBuilder getAddBuilder(Builder parent) => builder;
+}
+
+class _AddedFragment implements _Added {
+  final Fragment fragment;
+
+  _AddedFragment(this.fragment);
+
+  @override
+  _AddBuilder getAddBuilder(Builder parent) {
+    Fragment fragment = this.fragment;
+    switch (fragment) {
+      case TypedefFragment():
+        SourceTypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
+            metadata: fragment.metadata,
+            name: fragment.name,
+            typeVariables: fragment.typeVariables,
+            type: fragment.type,
+            enclosingLibraryBuilder: parent as SourceLibraryBuilder,
+            fileUri: fragment.fileUri,
+            fileOffset: fragment.fileOffset,
+            reference: fragment.reference);
+        fragment.builder = typedefBuilder;
+        return new _AddBuilder(fragment.name, typedefBuilder, fragment.fileUri,
+            fragment.fileOffset);
+    }
+  }
+}
 
 class LibraryNameSpaceBuilder {
   final Map<String, List<Builder>> augmentations = {};
 
   final Map<String, List<Builder>> setterAugmentations = {};
 
-  List<_AddBuilder> _addedBuilders = [];
+  List<_Added> _added = [];
 
   void addBuilder(
       String name, Builder declaration, Uri fileUri, int charOffset) {
-    _addedBuilders.add(new _AddBuilder(name, declaration, fileUri, charOffset));
+    _added.add(new _AddedBuilder(
+        new _AddBuilder(name, declaration, fileUri, charOffset)));
+  }
+
+  void addFragment(Fragment fragment) {
+    _added.add(new _AddedFragment(fragment));
   }
 
   void includeBuilders(LibraryNameSpaceBuilder other) {
-    _addedBuilders.addAll(other._addedBuilders);
+    _added.addAll(other._added);
   }
 
   NameSpace toNameSpace(
@@ -151,7 +197,8 @@ class LibraryNameSpaceBuilder {
       members[name] = declaration;
     }
 
-    for (_AddBuilder addBuilder in _addedBuilders) {
+    for (_Added added in _added) {
+      _AddBuilder addBuilder = added.getAddBuilder(_parent);
       _addBuilder(addBuilder.name, addBuilder.declaration, addBuilder.fileUri,
           addBuilder.charOffset);
     }
@@ -224,7 +271,7 @@ sealed class DeclarationFragment {
   final int nameOffset;
   final LookupScope typeParameterScope;
   final DeclarationBuilderScope bodyScope = new DeclarationBuilderScope();
-  final List<_AddBuilder> _addedBuilders = [];
+  final List<_Added> _added = [];
 
   List<SourceFieldBuilder>? primaryConstructorFields;
 
@@ -249,13 +296,19 @@ sealed class DeclarationFragment {
 
   void addBuilder(
       String name, Builder declaration, Uri fileUri, int charOffset) {
-    _addedBuilders.add(new _AddBuilder(name, declaration, fileUri, charOffset));
+    _added.add(new _AddedBuilder(
+        new _AddBuilder(name, declaration, fileUri, charOffset)));
+  }
+
+  // Coverage-ignore(suite): Not run.
+  void addFragment(Fragment fragment) {
+    _added.add(new _AddedFragment(fragment));
   }
 
   DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder(
       NominalParameterNameSpace? nominalParameterNameSpace) {
     return new DeclarationNameSpaceBuilder._(
-        name, nominalParameterNameSpace, _addedBuilders);
+        name, nominalParameterNameSpace, _added);
   }
 }
 
@@ -416,15 +469,15 @@ class _AddBuilder {
 class DeclarationNameSpaceBuilder {
   final String _name;
   final NominalParameterNameSpace? _nominalParameterNameSpace;
-  final List<_AddBuilder> _addedBuilders;
+  final List<_Added> _added;
 
   DeclarationNameSpaceBuilder.empty()
       : _name = '',
         _nominalParameterNameSpace = null,
-        _addedBuilders = const [];
+        _added = const [];
 
   DeclarationNameSpaceBuilder._(
-      this._name, this._nominalParameterNameSpace, this._addedBuilders);
+      this._name, this._nominalParameterNameSpace, this._added);
 
   void _addBuilder(
       ProblemReporting problemReporting,
@@ -522,9 +575,10 @@ class DeclarationNameSpaceBuilder {
     Map<String, MemberBuilder> setables = {};
     Map<String, MemberBuilder> constructors = {};
 
-    for (_AddBuilder addedBuilder in _addedBuilders) {
+    for (_Added added in _added) {
+      _AddBuilder addBuilder = added.getAddBuilder(parent);
       _addBuilder(
-          problemReporting, getables, setables, constructors, addedBuilder);
+          problemReporting, getables, setables, constructors, addBuilder);
     }
 
     void setParent(MemberBuilder? member) {

@@ -51,6 +51,7 @@ import '../builder/omitted_type_builder.dart';
 import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
+import '../fragment/fragment.dart';
 import '../util/local_stack.dart';
 import 'builder_factory.dart';
 import 'name_scheme.dart';
@@ -66,7 +67,6 @@ import 'source_function_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_procedure_builder.dart';
-import 'source_type_alias_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
@@ -1029,7 +1029,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _constructorReferences.clear();
 
-    _addBuilderInternal(name, enumBuilder, charOffset,
+    _addBuilder(name, enumBuilder, charOffset,
         getterReference: referencesFromIndexedClass?.cls.reference);
 
     offsetMap.registerNamedDeclaration(identifier, enumBuilder);
@@ -1170,7 +1170,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _constructorReferences.clear();
 
-    _addBuilderInternal(className, classBuilder, nameOffset,
+    _addBuilder(className, classBuilder, nameOffset,
         getterReference: _indexedContainer?.reference);
     offsetMap.registerNamedDeclaration(identifier, classBuilder);
   }
@@ -1448,7 +1448,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
-        _addBuilderInternal(fullname, application, charOffset,
+        _addBuilder(fullname, application, charOffset,
             getterReference: referencesFromIndexedClass?.cls.reference);
         supertype = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             application, const NullabilityBuilder.omitted(),
@@ -1528,7 +1528,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     declarationFragment.bodyScope.declarationBuilder = extensionBuilder;
     _constructorReferences.clear();
 
-    _addBuilderInternal(extensionBuilder.name, extensionBuilder, nameOffset,
+    _addBuilder(extensionBuilder.name, extensionBuilder, nameOffset,
         getterReference: referenceFrom?.reference);
     if (identifier != null) {
       offsetMap.registerNamedDeclaration(identifier, extensionBuilder);
@@ -1593,7 +1593,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         extensionTypeDeclarationBuilder;
     _constructorReferences.clear();
 
-    _addBuilderInternal(extensionTypeDeclarationBuilder.name,
+    _addBuilder(extensionTypeDeclarationBuilder.name,
         extensionTypeDeclarationBuilder, identifier.nameOffset,
         getterReference: indexedContainer?.reference);
     offsetMap.registerNamedDeclaration(
@@ -1614,16 +1614,19 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       }
     }
     Typedef? referenceFrom = indexedLibrary?.lookupTypedef(name);
-    TypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
-        metadata, name, typeVariables, type, _parent, charOffset,
-        referenceFrom: referenceFrom);
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
         ownerName: name, allowNameConflict: true);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endTypedef();
-    _addBuilderInternal(name, typedefBuilder, charOffset,
-        getterReference: referenceFrom?.reference);
+    _addFragment(new TypedefFragment(
+        metadata: metadata,
+        name: name,
+        typeVariables: typeVariables,
+        type: type,
+        fileUri: _compilationUnit.fileUri,
+        fileOffset: charOffset,
+        reference: referenceFrom?.reference));
   }
 
   @override
@@ -1991,7 +1994,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _problemReporting, typeVariables,
         ownerName: constructorBuilder.name, allowNameConflict: true);
     // TODO(johnniwinther): There is no way to pass the tear off reference here.
-    _addBuilderInternal(constructorName, constructorBuilder, charOffset,
+    _addBuilder(constructorName, constructorBuilder, charOffset,
         getterReference: constructorReference);
     if (nativeMethodName != null) {
       _addNativeMethod(constructorBuilder);
@@ -2166,7 +2169,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _problemReporting, typeVariables,
         ownerName: identifier.name, allowNameConflict: true);
 
-    _addBuilderInternal(procedureName, procedureBuilder, charOffset,
+    _addBuilder(procedureName, procedureBuilder, charOffset,
         getterReference: constructorReference);
     if (nativeMethodName != null) {
       _addNativeMethod(procedureBuilder);
@@ -2363,7 +2366,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
         ownerName: procedureBuilder.name, allowNameConflict: true);
-    _addBuilderInternal(name, procedureBuilder, charOffset,
+    _addBuilder(name, procedureBuilder, charOffset,
         getterReference: procedureReference);
     if (nativeMethodName != null) {
       _addNativeMethod(procedureBuilder);
@@ -2540,7 +2543,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         lateSetterReference: lateSetterReference,
         initializerToken: initializerToken,
         constInitializerToken: constInitializerToken);
-    _addBuilderInternal(name, fieldBuilder, charOffset,
+    _addBuilder(name, fieldBuilder, charOffset,
         getterReference: fieldGetterReference,
         setterReference: fieldSetterReference);
     return fieldBuilder;
@@ -2790,7 +2793,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     return _compilationUnit.loader.inferableTypes.addInferableType();
   }
 
-  void _addBuilderInternal(String name, Builder declaration, int charOffset,
+  void _addBuilder(String name, Builder declaration, int charOffset,
       {Reference? getterReference, Reference? setterReference}) {
     if (getterReference != null) {
       loader.buildersCreatedWithReferences[getterReference] = declaration;
@@ -2798,28 +2801,31 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     if (setterReference != null) {
       loader.buildersCreatedWithReferences[setterReference] = declaration;
     }
-    _addBuilder(name, declaration, charOffset);
-  }
-
-  void _addBuilder(String name, Builder declaration, int charOffset) {
     if (_declarationFragments.isEmpty) {
-      _addBuilderToLibrary(name, declaration, charOffset);
+      _libraryNameSpaceBuilder.addBuilder(
+          name, declaration, _compilationUnit.fileUri, charOffset);
     } else {
-      _addBuilderToDeclaration(name, declaration, charOffset);
+      _declarationFragments.current
+          .addBuilder(name, declaration, _compilationUnit.fileUri, charOffset);
     }
   }
 
-  void _addBuilderToLibrary(String name, Builder declaration, int charOffset) {
-    assert(_declarationFragments.isEmpty);
-    _libraryNameSpaceBuilder.addBuilder(
-        name, declaration, _compilationUnit.fileUri, charOffset);
-  }
-
-  void _addBuilderToDeclaration(
-      String name, Builder declaration, int charOffset) {
-    assert(_declarationFragments.hasCurrent);
-    _declarationFragments.current
-        .addBuilder(name, declaration, _compilationUnit.fileUri, charOffset);
+  void _addFragment(Fragment fragment,
+      {Reference? getterReference, Reference? setterReference}) {
+    if (getterReference != null) {
+      // Coverage-ignore-block(suite): Not run.
+      loader.fragmentsCreatedWithReferences[getterReference] = fragment;
+    }
+    if (setterReference != null) {
+      // Coverage-ignore-block(suite): Not run.
+      loader.fragmentsCreatedWithReferences[setterReference] = fragment;
+    }
+    if (_declarationFragments.isEmpty) {
+      _libraryNameSpaceBuilder.addFragment(fragment);
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      _declarationFragments.current.addFragment(fragment);
+    }
   }
 
   @override
