@@ -993,7 +993,7 @@ abstract class JoinPatternVariableElement2 implements PatternVariableElement2 {
 abstract class LabelElement2 implements Element2 {
   @override
   // TODO(brianwilkerson): We shouldn't be inheriting this member.
-  ExecutableElement2 get enclosingElement2;
+  ExecutableElement2? get enclosingElement2;
 
   /// The function in which the variable is defined.
   ExecutableFragment get enclosingFunction;
