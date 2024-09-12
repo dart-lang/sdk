@@ -808,7 +808,7 @@ class BytecodeGenerator extends RecursiveVisitor {
           _genConstructorInitializers(node);
         }
         if (node.isExternal) {
-          _unimplemented(node, 'external member');
+          _genNoSuchMethodForExternal(node);
         } else {
           _generateNode(node.function?.body);
           // BytecodeAssembler eliminates this bytecode if it is unreachable.
@@ -938,6 +938,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   late Procedure throwNewAssertionError =
       libraryIndex.getProcedure('dart:core', '_AssertionError', '_throwNew');
+
+  late Procedure throwNewNoSuchMethodError =
+      libraryIndex.getProcedure('dart:core', 'NoSuchMethodError', '_throwNew');
 
   late Procedure allocateInvocationMirror = libraryIndex.getProcedure(
       'dart:core', '_InvocationMirror', '_allocateInvocationMirror');
@@ -2726,6 +2729,22 @@ class BytecodeGenerator extends RecursiveVisitor {
     _genDirectCall(target, objectTable.getArgDescHandle(2), 2);
   }
 
+  void _genNoSuchMethodForExternal(Member node) {
+    if (node.isInstanceMember) {
+      _genPushReceiver(); // receiver.
+    } else {
+      asm.emitPushNull();
+    }
+    asm.emitPushConstant(cp.addString(node.name.text)); // memberName.
+    asm.emitPushInt(0); // invocationType.
+    asm.emitPushInt(0); // typeArgumentsLength.
+    asm.emitPushNull(); // typeArguments.
+    asm.emitPushNull(); // arguments.
+    asm.emitPushNull(); // argumentNames.
+    _genDirectCall(
+        throwNewNoSuchMethodError, objectTable.getArgDescHandle(7), 7);
+  }
+
   @override
   void defaultTreeNode(Node node) => throw new UnsupportedOperationError(
       'Unsupported node ${node.runtimeType}');
@@ -4432,12 +4451,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     } else {
       throw 'Unexpected ${enclosingFunction!.dartAsyncMarker}';
     }
-  }
-
-  void _unimplemented(TreeNode node, String what) {
-    print('Unimplemented $what at ${node.location}');
-    asm.emitTrap();
-    asm.isUnreachable = false;
   }
 }
 

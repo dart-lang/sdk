@@ -1897,6 +1897,15 @@ LintCode.avoid_final_parameters:
     The fix is to remove the `final` keyword.
 LintCode.avoid_function_literals_in_foreach_calls:
   status: hasFix
+LintCode.avoid_futureor_void:
+  status: noFix
+  notes: |-
+    The type 'FutureOr<void>' is inherently problematic, but there is
+    no replacement for this type which will always be the best choice.
+    'Future<void>?' is usually a very good choice, but it might create
+    a need for some implementation changes, or it might be a breaking
+    change. Another possibility is to use 'void', but this could also
+    be breaking.
 LintCode.avoid_implementing_value_types:
   status: noFix
   notes: |-

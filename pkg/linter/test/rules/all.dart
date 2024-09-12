@@ -33,6 +33,7 @@ import 'avoid_field_initializers_in_non_const_classes_test.dart'
 import 'avoid_final_parameters_test.dart' as avoid_final_parameters;
 import 'avoid_function_literals_in_foreach_calls_test.dart'
     as avoid_function_literals_in_foreach_calls;
+import 'avoid_futureor_void_test.dart' as avoid_futureor_void;
 import 'avoid_implementing_value_types_test.dart'
     as avoid_implementing_value_types;
 import 'avoid_init_to_null_test.dart' as avoid_init_to_null;
@@ -327,6 +328,7 @@ void main() {
   avoid_field_initializers_in_non_const_classes.main();
   avoid_final_parameters.main();
   avoid_function_literals_in_foreach_calls.main();
+  avoid_futureor_void.main();
   avoid_implementing_value_types.main();
   avoid_init_to_null.main();
   avoid_js_rounded_ints.main();

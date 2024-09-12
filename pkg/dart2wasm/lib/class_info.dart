@@ -56,6 +56,7 @@ class FieldIndex {
   static const syncStarIteratorYieldStarIterable = 4;
   static const recordFieldBase = 2;
   static const jsStringImplRef = 2;
+  static const ffiPointerAddress = 3;
 
   static void validate(Translator translator) {
     void check(Class cls, String name, int expectedIndex) {
@@ -116,6 +117,7 @@ class FieldIndex {
         FieldIndex.syncStarIteratorCurrent);
     check(translator.syncStarIteratorClass, "_yieldStarIterable",
         FieldIndex.syncStarIteratorYieldStarIterable);
+    check(translator.ffiPointerClass, "_address", FieldIndex.ffiPointerAddress);
   }
 }
 

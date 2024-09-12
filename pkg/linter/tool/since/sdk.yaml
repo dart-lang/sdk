@@ -21,6 +21,7 @@ avoid_field_initializers_in_const_classes: 2.0.0
 avoid_final_parameters: 2.16.0
 avoid_function_literals_in_foreach_calls: 2.0.0
 avoid_implementing_value_types: 2.1.0
+avoid_futureor_void: 3.6.0-wip
 avoid_init_to_null: 2.0.0
 avoid_js_rounded_ints: 2.0.0
 avoid_multiple_declarations_per_line: 2.13.0

@@ -130,7 +130,6 @@ class SelectorInfo {
       }
       assert(returns.length <= outputSets.length);
       inputSets[0].add(translator.translateType(receiver));
-      ensureBoxed[0] = member.enclosingClass != translator.ffiPointerClass;
       for (int i = 0; i < positional.length; i++) {
         DartType type = positional[i];
         inputSets[1 + i].add(translator.translateType(type));
