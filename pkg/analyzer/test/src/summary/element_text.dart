@@ -2396,40 +2396,9 @@ class _ElementWriter extends _AbstractElementWriter {
 
   void _writeEnclosingElement(ElementImpl e) {
     _elementPrinter.writeNamedElement(
-      'enclosingElement',
-      // ignore: deprecated_member_use_from_same_package
-      e.enclosingElement,
+      'enclosingElement3',
+      e.enclosingElement3,
     );
-
-    switch (e) {
-      case CompilationUnitElementImpl():
-        if (identical(e.library.definingCompilationUnit, e)) {
-          expect(e.enclosingElement3, isNull);
-        } else {
-          expect(
-            e.enclosingElement3,
-            TypeMatcher<CompilationUnitElementImpl>(),
-          );
-          _elementPrinter.writeNamedElement(
-            'enclosingElement3',
-            e.enclosingElement3,
-          );
-        }
-      case LibraryImportElementImpl():
-      case LibraryExportElementImpl():
-      case PartElementImpl():
-      case PrefixElementImpl():
-        expect(
-          e.enclosingElement3,
-          TypeMatcher<CompilationUnitElementImpl>(),
-        );
-        _elementPrinter.writeNamedElement(
-          'enclosingElement3',
-          e.enclosingElement3,
-        );
-      default:
-        expect(e.enclosingElement3, same(e.enclosingElement3));
-    }
   }
 
   void _writeExportNamespace(LibraryElement e) {

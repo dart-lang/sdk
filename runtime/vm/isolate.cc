@@ -1069,25 +1069,23 @@ class IsolateMessageHandler : public MessageHandler {
   explicit IsolateMessageHandler(Isolate* isolate);
   ~IsolateMessageHandler();
 
-  const char* name() const;
-  void MessageNotify(Message::Priority priority);
-  MessageStatus HandleMessage(std::unique_ptr<Message> message);
+  const char* name() const override;
+  void MessageNotify(Message::Priority priority) override;
+  MessageStatus HandleMessage(std::unique_ptr<Message> message) override;
 #ifndef PRODUCT
-  void NotifyPauseOnStart();
-  void NotifyPauseOnExit();
+  void NotifyPauseOnStart() override;
+  void NotifyPauseOnExit() override;
 #endif  // !PRODUCT
 
 #if defined(DEBUG)
   // Check that it is safe to access this handler.
-  void CheckAccess() const;
+  void CheckAccess() const override;
 #endif
-  bool IsCurrentIsolate() const;
-  virtual Isolate* isolate() const { return isolate_; }
-  virtual IsolateGroup* isolate_group() const { return isolate_->group(); }
 
-  virtual bool KeepAliveLocked() {
-    // If the message handler was asked to shutdown we shut down.
-    if (!MessageHandler::KeepAliveLocked()) return false;
+  Isolate* isolate() const override { return isolate_; }
+  IsolateGroup* isolate_group() const { return isolate_->group(); }
+
+  bool KeepAliveLocked() override {
     // Otherwise we only stay alive as long as there's active receive ports, or
     // there are FFI callbacks keeping the isolate alive.
     return isolate_->HasLivePorts() || isolate_->HasOpenNativeCallables();
@@ -1350,7 +1348,9 @@ bool Isolate::HasPendingMessages() {
 
 MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     std::unique_ptr<Message> message) {
-  ASSERT(IsCurrentIsolate());
+#ifdef DEBUG
+  CheckAccess();
+#endif
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
@@ -1498,13 +1498,9 @@ void IsolateMessageHandler::NotifyPauseOnExit() {
 
 #if defined(DEBUG)
 void IsolateMessageHandler::CheckAccess() const {
-  ASSERT(IsCurrentIsolate());
+  ASSERT(isolate() == Isolate::Current());
 }
 #endif
-
-bool IsolateMessageHandler::IsCurrentIsolate() const {
-  return (I == Isolate::Current());
-}
 
 static MessageHandler::MessageStatus StoreError(Thread* thread,
                                                 const Error& error) {

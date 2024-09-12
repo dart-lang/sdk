@@ -470,7 +470,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_type_alias_builder.dart": (
-    hitCount: 46,
+    hitCount: 47,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/fragment.dart": (
+    hitCount: 26,
     missCount: 0,
   ),
   // 100.0%.

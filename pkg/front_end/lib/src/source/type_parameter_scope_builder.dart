@@ -15,7 +15,10 @@ import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import 'name_scheme.dart';
+import 'source_class_builder.dart';
+import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
+import 'source_extension_type_declaration_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_type_alias_builder.dart';
@@ -55,6 +58,25 @@ class _AddedFragment implements _Added {
         fragment.builder = typedefBuilder;
         return new _AddBuilder(fragment.name, typedefBuilder, fragment.fileUri,
             fragment.fileOffset);
+      case ExtensionFragment():
+        SourceExtensionBuilder extensionBuilder = new SourceExtensionBuilder(
+            metadata: fragment.metadata,
+            modifiers: fragment.modifiers,
+            extensionName: fragment.extensionName,
+            typeParameters: fragment.typeParameters,
+            onType: fragment.onType,
+            typeParameterScope: fragment.typeParameterScope,
+            nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
+            enclosingLibraryBuilder: parent as SourceLibraryBuilder,
+            fileUri: fragment.fileUri,
+            startOffset: fragment.startOffset,
+            nameOffset: fragment.nameOffset,
+            endOffset: fragment.endOffset,
+            reference: fragment.reference);
+        fragment.builder = extensionBuilder;
+        fragment.bodyScope.declarationBuilder = extensionBuilder;
+        return new _AddBuilder(fragment.name, extensionBuilder,
+            fragment.fileUri, fragment.fileOffset);
     }
   }
 }
@@ -267,8 +289,8 @@ enum DeclarationFragmentKind {
   extensionTypeDeclaration,
 }
 
-sealed class DeclarationFragment {
-  final int nameOffset;
+abstract class DeclarationFragment {
+  final Uri fileUri;
   final LookupScope typeParameterScope;
   final DeclarationBuilderScope bodyScope = new DeclarationBuilderScope();
   final List<_Added> _added = [];
@@ -277,10 +299,14 @@ sealed class DeclarationFragment {
 
   final List<NominalVariableBuilder>? typeParameters;
 
-  DeclarationFragment(
-      this.nameOffset, this.typeParameters, this.typeParameterScope);
+  final NominalParameterNameSpace _nominalParameterNameSpace;
+
+  DeclarationFragment(this.fileUri, this.typeParameters,
+      this.typeParameterScope, this._nominalParameterNameSpace);
 
   String get name;
+
+  int get fileOffset;
 
   ContainerName get containerName;
 
@@ -289,6 +315,8 @@ sealed class DeclarationFragment {
   DeclarationFragmentKind get kind;
 
   bool declaresConstConstructor = false;
+
+  DeclarationBuilder get builder;
 
   void addPrimaryConstructorField(SourceFieldBuilder builder) {
     (primaryConstructorFields ??= []).add(builder);
@@ -305,10 +333,9 @@ sealed class DeclarationFragment {
     _added.add(new _AddedFragment(fragment));
   }
 
-  DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder(
-      NominalParameterNameSpace? nominalParameterNameSpace) {
+  DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder() {
     return new DeclarationNameSpaceBuilder._(
-        name, nominalParameterNameSpace, _added);
+        name, _nominalParameterNameSpace, _added);
   }
 }
 
@@ -316,11 +343,31 @@ class ClassFragment extends DeclarationFragment {
   @override
   final String name;
 
+  final int nameOffset;
+
   final ClassName _className;
 
-  ClassFragment(this.name, super.nameOffset, super.typeParameters,
-      super.typeParameterScope)
+  SourceClassBuilder? _builder;
+
+  ClassFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
+      super.typeParameterScope, super._nominalParameterNameSpace)
       : _className = new ClassName(name);
+
+  @override
+  int get fileOffset => nameOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  SourceClassBuilder get builder {
+    assert(_builder != null, "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  // Coverage-ignore(suite): Not run.
+  void set builder(SourceClassBuilder value) {
+    assert(_builder == null, "Builder has already been computed for $this.");
+    _builder = value;
+  }
 
   @override
   ContainerName get containerName => _className;
@@ -331,17 +378,41 @@ class ClassFragment extends DeclarationFragment {
   @override
   // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind => DeclarationFragmentKind.classDeclaration;
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
 }
 
 class MixinFragment extends DeclarationFragment {
   @override
   final String name;
 
+  final int nameOffset;
+
   final ClassName _className;
 
-  MixinFragment(this.name, super.nameOffset, super.typeParameters,
-      super.typeParameterScope)
+  SourceClassBuilder? _builder;
+
+  MixinFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
+      super.typeParameterScope, super._nominalParameterNameSpace)
       : _className = new ClassName(name);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get fileOffset => nameOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  SourceClassBuilder get builder {
+    assert(_builder != null, "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  // Coverage-ignore(suite): Not run.
+  void set builder(SourceClassBuilder value) {
+    assert(_builder == null, "Builder has already been computed for $this.");
+    _builder = value;
+  }
 
   @override
   ContainerName get containerName => _className;
@@ -352,17 +423,41 @@ class MixinFragment extends DeclarationFragment {
   @override
   // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind => DeclarationFragmentKind.mixinDeclaration;
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
 }
 
 class EnumFragment extends DeclarationFragment {
   @override
   final String name;
 
+  final int nameOffset;
+
   final ClassName _className;
 
-  EnumFragment(this.name, super.nameOffset, super.typeParameters,
-      super.typeParameterScope)
+  SourceEnumBuilder? _builder;
+
+  EnumFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
+      super.typeParameterScope, super._nominalParameterNameSpace)
       : _className = new ClassName(name);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get fileOffset => nameOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  SourceEnumBuilder get builder {
+    assert(_builder != null, "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  // Coverage-ignore(suite): Not run.
+  void set builder(SourceEnumBuilder value) {
+    assert(_builder == null, "Builder has already been computed for $this.");
+    _builder = value;
+  }
 
   @override
   ContainerName get containerName => _className;
@@ -373,77 +468,46 @@ class EnumFragment extends DeclarationFragment {
   @override
   // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind => DeclarationFragmentKind.enumDeclaration;
-}
-
-class ExtensionFragment extends DeclarationFragment {
-  final ExtensionName extensionName;
-
-  /// The type of `this` in instance methods declared in extension declarations.
-  ///
-  /// Instance methods declared in extension declarations methods are extended
-  /// with a synthesized parameter of this type.
-  TypeBuilder? _extensionThisType;
-
-  ExtensionFragment(String? name, super.nameOffset, super.typeParameters,
-      super.typeParameterScope)
-      : extensionName = name != null
-            ? new FixedExtensionName(name)
-            : new UnnamedExtensionName();
 
   @override
-  String get name => extensionName.name;
-
-  @override
-  ContainerName get containerName => extensionName;
-
-  @override
-  ContainerType get containerType => ContainerType.Extension;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  DeclarationFragmentKind get kind =>
-      DeclarationFragmentKind.extensionDeclaration;
-
-  /// Registers the 'extension this type' of the extension declaration prepared
-  /// for by this builder.
-  ///
-  /// See [extensionThisType] for terminology.
-  void registerExtensionThisType(TypeBuilder type) {
-    assert(_extensionThisType == null,
-        "Extension this type has already been set.");
-    _extensionThisType = type;
-  }
-
-  /// Returns the 'extension this type' of the extension declaration prepared
-  /// for by this builder.
-  ///
-  /// The 'extension this type' is the type mentioned in the on-clause of the
-  /// extension declaration. For instance `B` in this extension declaration:
-  ///
-  ///     extension A on B {
-  ///       B method() => this;
-  ///     }
-  ///
-  /// The 'extension this type' is the type if `this` expression in instance
-  /// methods declared in extension declarations.
-  TypeBuilder get extensionThisType {
-    assert(
-        _extensionThisType != null,
-        // Coverage-ignore(suite): Not run.
-        "DeclarationBuilder.extensionThisType has not been set on $this.");
-    return _extensionThisType!;
-  }
+  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
 }
 
 class ExtensionTypeFragment extends DeclarationFragment {
   @override
   final String name;
 
+  final int nameOffset;
+
   final ClassName _className;
 
-  ExtensionTypeFragment(this.name, super.nameOffset, super.typeParameters,
-      super.typeParameterScope)
+  SourceExtensionTypeDeclarationBuilder? _builder;
+
+  ExtensionTypeFragment(
+      this.name,
+      super.fileUri,
+      this.nameOffset,
+      super.typeParameters,
+      super.typeParameterScope,
+      super._nominalParameterNameSpace)
       : _className = new ClassName(name);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get fileOffset => nameOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  SourceExtensionTypeDeclarationBuilder get builder {
+    assert(_builder != null, "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  // Coverage-ignore(suite): Not run.
+  void set builder(SourceExtensionTypeDeclarationBuilder value) {
+    assert(_builder == null, "Builder has already been computed for $this.");
+    _builder = value;
+  }
 
   @override
   ContainerName get containerName => _className;
@@ -455,6 +519,9 @@ class ExtensionTypeFragment extends DeclarationFragment {
   // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind =>
       DeclarationFragmentKind.extensionTypeDeclaration;
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
 }
 
 class _AddBuilder {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:front_end/src/source/type_parameter_scope_builder.dart';
 import 'package:kernel/ast.dart';
 
 import '../base/export.dart';
@@ -22,6 +23,7 @@ import 'source_function_builder.dart';
 class OffsetMap {
   final Uri uri;
   final Map<int, DeclarationBuilder> _declarations = {};
+  final Map<int, DeclarationFragment> _declarationFragments = {};
   final Map<int, SourceFieldBuilder> _fields = {};
   final Map<int, SourceFunctionBuilder> _constructors = {};
   final Map<int, SourceFunctionBuilder> _procedures = {};
@@ -80,23 +82,31 @@ class OffsetMap {
         _parts[partKeyword.charOffset], '<part>', partKeyword.charOffset);
   }
 
+  void registerNamedDeclarationFragment(
+      Identifier identifier, DeclarationFragment fragment) {
+    _declarationFragments[identifier.nameOffset] = fragment;
+  }
+
   void registerNamedDeclaration(
       Identifier identifier, DeclarationBuilder builder) {
     _declarations[identifier.nameOffset] = builder;
   }
 
   DeclarationBuilder lookupNamedDeclaration(Identifier identifier) {
-    return _checkBuilder(_declarations[identifier.nameOffset], identifier.name,
+    return _checkBuilder(
+        _declarations[identifier.nameOffset] ??
+            _declarationFragments[identifier.nameOffset]?.builder,
+        identifier.name,
         identifier.nameOffset);
   }
 
   void registerUnnamedDeclaration(
-      Token beginToken, DeclarationBuilder builder) {
-    _declarations[beginToken.charOffset] = builder;
+      Token beginToken, DeclarationFragment fragment) {
+    _declarationFragments[beginToken.charOffset] = fragment;
   }
 
   DeclarationBuilder lookupUnnamedDeclaration(Token beginToken) {
-    return _checkBuilder(_declarations[beginToken.charOffset],
+    return _checkBuilder(_declarationFragments[beginToken.charOffset]?.builder,
         '<unnamed-declaration>', beginToken.charOffset);
   }
 

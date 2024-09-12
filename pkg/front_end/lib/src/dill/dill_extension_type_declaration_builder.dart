@@ -39,6 +39,7 @@ class DillExtensionTypeDeclarationBuilder
             /* modifiers*/ 0,
             _extensionTypeDeclaration.name,
             parent,
+            _extensionTypeDeclaration.fileUri,
             _extensionTypeDeclaration.fileOffset) {
     _scope = new NameSpaceLookupScope(_nameSpace, ScopeKind.declaration,
         "extension type ${_extensionTypeDeclaration.name}",

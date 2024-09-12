@@ -159,6 +159,12 @@ void OSThread::Join(ThreadJoinId id) {
   ASSERT(res == WAIT_OBJECT_0);
 }
 
+void OSThread::Detach(ThreadJoinId id) {
+  HANDLE handle = static_cast<HANDLE>(id);
+  ASSERT(handle != nullptr);
+  CloseHandle(handle);
+}
+
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
   COMPILE_ASSERT(sizeof(id) <= sizeof(intptr_t));
   return static_cast<intptr_t>(id);

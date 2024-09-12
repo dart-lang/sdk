@@ -16,10 +16,13 @@ bool isExhaustive(ObjectPropertyLookup fieldLookup, Space valueSpace,
   return checkExhaustiveness(fieldLookup, valueSpace, caseSpaces) == null;
 }
 
-/// Checks the [cases] representing a series of switch cases to see if they
+/// Checks the [caseSpaces] representing a series of switch cases to see if they
 /// exhaustively cover all possible values of the matched [valueType]. Also
 /// checks to see if any case can't be matched because it's covered by previous
 /// cases.
+///
+/// [caseIsGuarded] should be a list of booleans indicating whether each case in
+/// [caseSpaces] has an associated `when` clause.
 ///
 /// If any unreachable cases are found, information about them is appended to
 /// [caseUnreachabilities]. (If `null` is passed for [caseUnreachabilities],
@@ -33,29 +36,34 @@ bool isExhaustive(ObjectPropertyLookup fieldLookup, Space valueSpace,
 /// that an error should be reported; the caller still must check whether the
 /// switch has a `default` clause and whether the scrutinee type is an "always
 /// exhaustive" type.
-NonExhaustiveness? computeExhaustiveness(
-    ObjectPropertyLookup fieldLookup, StaticType valueType, List<Space> cases,
+NonExhaustiveness? computeExhaustiveness(ObjectPropertyLookup fieldLookup,
+    StaticType valueType, List<bool> caseIsGuarded, List<Space> caseSpaces,
     {List<CaseUnreachability>? caseUnreachabilities}) {
   _Checker checker = new _Checker(fieldLookup);
 
   Space valuePattern = new Space(const Path.root(), valueType);
-  List<List<Space>> caseRows = cases.map((space) => [space]).toList();
+  List<List<Space>> caseRows = [];
 
-  if (caseUnreachabilities != null) {
-    for (int i = 1; i < caseRows.length; i++) {
+  for (int i = 0; i < caseSpaces.length; i++) {
+    late List<Space> caseRow = [caseSpaces[i]];
+    if (caseUnreachabilities != null && i > 0) {
       // See if this case is covered by previous ones.
-      if (checker._unmatched(caseRows.sublist(0, i), caseRows[i],
+      if (checker._unmatched(caseRows, caseRow,
               returnMultipleWitnesses: false) ==
           null) {
-        caseUnreachabilities.add(new CaseUnreachability(valueType, cases, i));
+        caseUnreachabilities
+            .add(new CaseUnreachability(valueType, caseSpaces, i));
       }
+    }
+    if (!caseIsGuarded[i]) {
+      caseRows.add(caseRow);
     }
   }
 
   List<Witness>? witnesses = checker._unmatched(caseRows, [valuePattern],
       returnMultipleWitnesses: true);
   if (witnesses != null) {
-    return new NonExhaustiveness(valueType, cases, witnesses);
+    return new NonExhaustiveness(valueType, caseSpaces, witnesses);
   } else {
     return null;
   }

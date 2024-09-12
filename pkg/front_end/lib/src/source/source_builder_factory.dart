@@ -59,7 +59,6 @@ import 'offset_map.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
-import 'source_extension_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
@@ -186,7 +185,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginClassDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
     _declarationFragments.push(new ClassFragment(
-        name, charOffset, typeVariables, _typeScopes.current.lookupScope));
+        name,
+        _compilationUnit.fileUri,
+        charOffset,
+        typeVariables,
+        _typeScopes.current.lookupScope,
+        _nominalParameterNameSpaces.current));
   }
 
   @override
@@ -230,7 +234,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginMixinDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
     _declarationFragments.push(new MixinFragment(
-        name, charOffset, typeVariables, _typeScopes.current.lookupScope));
+        name,
+        _compilationUnit.fileUri,
+        charOffset,
+        typeVariables,
+        _typeScopes.current.lookupScope,
+        _nominalParameterNameSpaces.current));
   }
 
   @override
@@ -313,7 +322,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginEnumDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
     _declarationFragments.push(new EnumFragment(
-        name, charOffset, typeVariables, _typeScopes.current.lookupScope));
+        name,
+        _compilationUnit.fileUri,
+        charOffset,
+        typeVariables,
+        _typeScopes.current.lookupScope,
+        _nominalParameterNameSpaces.current));
   }
 
   @override
@@ -372,7 +386,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginExtensionDeclaration(String? name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
     _declarationFragments.push(new ExtensionFragment(
-        name, charOffset, typeVariables, _typeScopes.current.lookupScope));
+        name,
+        _compilationUnit.fileUri,
+        charOffset,
+        typeVariables,
+        _typeScopes.current.lookupScope,
+        _nominalParameterNameSpaces.current));
   }
 
   @override
@@ -404,7 +423,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginExtensionTypeDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
     _declarationFragments.push(new ExtensionTypeFragment(
-        name, charOffset, typeVariables, _typeScopes.current.lookupScope));
+        name,
+        _compilationUnit.fileUri,
+        charOffset,
+        typeVariables,
+        _typeScopes.current.lookupScope,
+        _nominalParameterNameSpaces.current));
   }
 
   @override
@@ -991,8 +1015,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         ownerName: name, allowNameConflict: false);
 
     LookupScope typeParameterScope = declarationFragment.typeParameterScope;
-    DeclarationNameSpaceBuilder nameSpaceBuilder = declarationFragment
-        .toDeclarationNameSpaceBuilder(nominalParameterNameSpace);
+    DeclarationNameSpaceBuilder nameSpaceBuilder =
+        declarationFragment.toDeclarationNameSpaceBuilder();
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
         metadata,
         name,
@@ -1121,8 +1145,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     LookupScope typeParameterScope = declarationFragment.typeParameterScope;
 
-    DeclarationNameSpaceBuilder nameSpaceBuilder = declarationFragment
-        .toDeclarationNameSpaceBuilder(nominalParameterNameSpace);
+    DeclarationNameSpaceBuilder nameSpaceBuilder =
+        declarationFragment.toDeclarationNameSpaceBuilder();
 
     if (isMixinDeclaration) {
       modifiers = abstractMask;
@@ -1502,38 +1526,29 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
         ownerName: name, allowNameConflict: false);
 
-    LookupScope typeParameterScope = declarationFragment.typeParameterScope;
-    DeclarationNameSpaceBuilder nameSpaceBuilder = declarationFragment
-        .toDeclarationNameSpaceBuilder(nominalParameterNameSpace);
-
     Extension? referenceFrom;
-    ExtensionName extensionName = declarationFragment.extensionName;
     if (name != null) {
       referenceFrom = indexedLibrary?.lookupExtension(name);
     }
 
-    ExtensionBuilder extensionBuilder = new SourceExtensionBuilder(
-        metadata,
-        modifiers,
-        extensionName,
-        typeVariables,
-        type,
-        typeParameterScope,
-        nameSpaceBuilder,
-        _parent,
-        startOffset,
-        nameOffset,
-        endOffset,
-        referenceFrom);
-    declarationFragment.bodyScope.declarationBuilder = extensionBuilder;
+    declarationFragment.metadata = metadata;
+    declarationFragment.modifiers = modifiers;
+    declarationFragment.onType = type;
+    declarationFragment.startOffset = startOffset;
+    declarationFragment.nameOffset = nameOffset;
+    declarationFragment.endOffset = endOffset;
+    declarationFragment.reference = referenceFrom?.reference;
+
     _constructorReferences.clear();
 
-    _addBuilder(extensionBuilder.name, extensionBuilder, nameOffset,
+    _addFragment(declarationFragment,
         getterReference: referenceFrom?.reference);
+
     if (identifier != null) {
-      offsetMap.registerNamedDeclaration(identifier, extensionBuilder);
+      offsetMap.registerNamedDeclarationFragment(
+          identifier, declarationFragment);
     } else {
-      offsetMap.registerUnnamedDeclaration(beginToken, extensionBuilder);
+      offsetMap.registerUnnamedDeclaration(beginToken, declarationFragment);
     }
   }
 
@@ -1559,8 +1574,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         ownerName: name, allowNameConflict: false);
 
     LookupScope typeParameterScope = declarationFragment.typeParameterScope;
-    DeclarationNameSpaceBuilder nameSpaceBuilder = declarationFragment
-        .toDeclarationNameSpaceBuilder(nominalParameterNameSpace);
+    DeclarationNameSpaceBuilder nameSpaceBuilder =
+        declarationFragment.toDeclarationNameSpaceBuilder();
 
     IndexedContainer? indexedContainer =
         indexedLibrary?.lookupIndexedExtensionTypeDeclaration(name);
@@ -2258,7 +2273,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
               .withArguments(enclosingDeclaration.name)
               .withLocation(
                   _compilationUnit.importUri,
-                  enclosingDeclaration.nameOffset,
+                  enclosingDeclaration.fileOffset,
                   enclosingDeclaration.name.length)
         ]);
 
@@ -2813,7 +2828,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void _addFragment(Fragment fragment,
       {Reference? getterReference, Reference? setterReference}) {
     if (getterReference != null) {
-      // Coverage-ignore-block(suite): Not run.
       loader.fragmentsCreatedWithReferences[getterReference] = fragment;
     }
     if (setterReference != null) {

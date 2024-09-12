@@ -182,6 +182,11 @@ void OSThread::Join(ThreadJoinId id) {
   VALIDATE_PTHREAD_RESULT(result);
 }
 
+void OSThread::Detach(ThreadJoinId id) {
+  int result = pthread_detach(id);
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
   COMPILE_ASSERT(sizeof(id) <= sizeof(intptr_t));
   return static_cast<intptr_t>(id);

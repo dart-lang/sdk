@@ -3788,6 +3788,11 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
     case kUnboxedDouble: {
       const FpuRegister result = locs()->out(0).fpu_reg();
       __ SmiUntag(box);
+      // cvtsi2sd only writes to the lower part of the register and leaves upper
+      // bits intact. This creates false dependency and causes performance
+      // problems for subsequent uses of the XMM register. To break the
+      // dependency XORPS is recommended.
+      __ xorps(result, result);
       __ OBJ(cvtsi2sd)(result, box);
       break;
     }
@@ -4793,6 +4798,11 @@ LocationSummary* Int32ToDoubleInstr::MakeLocationSummary(Zone* zone,
 void Int32ToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   FpuRegister result = locs()->out(0).fpu_reg();
+  // cvtsi2sd only writes to the lower part of the register and leaves upper
+  // bits intact. This creates false dependency and causes performance
+  // problems for subsequent uses of the XMM register. To break the
+  // dependency XORPS is recommended.
+  __ xorps(result, result);
   __ cvtsi2sdl(result, value);
 }
 
@@ -4811,10 +4821,20 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   FpuRegister result = locs()->out(0).fpu_reg();
   __ SmiUntag(value);
+  // cvtsi2sd only writes to the lower part of the register and leaves upper
+  // bits intact. This creates false dependency and causes performance
+  // problems for subsequent uses of the XMM register. To break the
+  // dependency XORPS is recommended.
+  __ xorps(result, result);
   __ OBJ(cvtsi2sd)(result, value);
 }
 
 DEFINE_BACKEND(Int64ToDouble, (FpuRegister result, Register value)) {
+  // cvtsi2sd only writes to the lower part of the register and leaves upper
+  // bits intact. This creates false dependency and causes performance
+  // problems for subsequent uses of the XMM register. To break the
+  // dependency XORPS is recommended.
+  __ xorps(result, result);
   __ cvtsi2sdq(result, value);
 }
 
@@ -5349,6 +5369,11 @@ void HashDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler::Label hash_double;
 
+  // cvtsi2sd only writes to the lower part of the register and leaves upper
+  // bits intact. This creates false dependency and causes performance
+  // problems for subsequent uses of the XMM register. To break the
+  // dependency XORPS is recommended.
+  __ xorps(temp_fpu_reg, temp_fpu_reg);
   __ cvttsd2siq(RAX, value);
   __ cvtsi2sdq(temp_fpu_reg, RAX);
   __ comisd(value, temp_fpu_reg);

@@ -3626,7 +3626,8 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_ImplicitConstructorClosure, 0);
+    BYTECODE(VMInternal_ImplicitConstructorClosure, D_F);
+
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
@@ -3641,13 +3642,51 @@ SwitchDispatch:
         InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
     ObjectPtr* argv = FrameArguments(FP, argc);
 
+    // Reserve space for the result (instance).
+    *++SP = null_value;
+    ASSERT(SP == FP);
+
+    // Reserve space for receiver.
+    *++SP = null_value;
+    ObjectPtr* call_base = SP;
+    // Copy arguments.
+    for (intptr_t i = receiver_idx + 1; i < argc; i++) {
+      *++SP = argv[i];
+    }
+
     ClassPtr cls = Function::Owner(target);
     TypeParametersPtr type_params = cls->untag()->type_parameters();
-    TypeArgumentsPtr type_args =
-        (type_params == null_value)
-            ? TypeArguments::null()
-            : ((type_args_len > 0) ? TypeArguments::RawCast(argv[0])
-                                   : type_params->untag()->defaults());
+    TypeArgumentsPtr type_args;
+    if (type_params == null_value) {
+      if (type_args_len > 0) {
+        SP[1] = function;
+        goto NoSuchMethodFromPrologue;
+      }
+      type_args = TypeArguments::null();
+    } else {
+      TypeArgumentsPtr delayed_type_arguments =
+          Closure::RawCast(argv[receiver_idx])
+              ->untag()
+              ->delayed_type_arguments();
+      if (delayed_type_arguments != Object::empty_type_arguments().ptr()) {
+        if (type_args_len > 0) {
+          SP[1] = function;
+          goto NoSuchMethodFromPrologue;
+        }
+        type_args = delayed_type_arguments;
+      } else {
+        if (type_args_len > 0) {
+          if (type_args_len !=
+              Smi::Value(type_params->untag()->names()->untag()->length())) {
+            SP[1] = function;
+            goto NoSuchMethodFromPrologue;
+          }
+          type_args = TypeArguments::RawCast(argv[0]);
+        } else {
+          type_args = type_params->untag()->defaults();
+        }
+      }
+    }
 
     SP[1] = target;    // Save target.
     SP[2] = argdesc_;  // Save arguments descriptor.
@@ -3656,9 +3695,8 @@ SwitchDispatch:
     SP[3] = cls;
     SP[4] = type_args;
     Exit(thread, FP, SP + 5, pc);
-    INVOKE_RUNTIME(DRT_AllocateObject,
-                   NativeArguments(thread, 2, SP + 3, argv + receiver_idx));
-
+    INVOKE_RUNTIME(DRT_AllocateObject, NativeArguments(thread, 2, SP + 3, FP));
+    call_base[0] = FP[0];  // Copy receiver.
     argdesc_ = Array::RawCast(SP[2]);
 
     if (type_args_len > 0) {
@@ -3672,7 +3710,12 @@ SwitchDispatch:
       argdesc_ = Array::RawCast(SP[2]);
     }
 
-    goto TailCallSP1;
+    ObjectPtr* call_top = SP + 1;
+    if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
+      HANDLE_EXCEPTION;
+    }
+
+    DISPATCH();
   }
 
   {

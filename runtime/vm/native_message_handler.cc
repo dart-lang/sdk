@@ -5,6 +5,7 @@
 #include "vm/native_message_handler.h"
 
 #include <memory>
+#include <utility>
 
 #include "vm/dart_api_message.h"
 #include "vm/isolate.h"
@@ -15,12 +16,11 @@
 namespace dart {
 
 NativeMessageHandler::NativeMessageHandler(const char* name,
-                                           Dart_NativeMessageHandler func)
-    : name_(Utils::StrDup(name)), func_(func) {}
+                                           Dart_NativeMessageHandler func,
+                                           intptr_t max_concurrency)
+    : name_(Utils::StrDup(name)), func_(func), pool_(max_concurrency) {}
 
-NativeMessageHandler::~NativeMessageHandler() {
-  free(name_);
-}
+NativeMessageHandler::~NativeMessageHandler() {}
 
 #if defined(DEBUG)
 void NativeMessageHandler::CheckAccess() const {
@@ -28,19 +28,44 @@ void NativeMessageHandler::CheckAccess() const {
 }
 #endif
 
-MessageHandler::MessageStatus NativeMessageHandler::HandleMessage(
-    std::unique_ptr<Message> message) {
+namespace {
+class HandleMessage : public ThreadPool::Task {
+ public:
+  HandleMessage(Dart_NativeMessageHandler handler,
+                std::unique_ptr<Message> message)
+      : handler_(handler), message_(std::move(message)) {
+    ASSERT(handler != nullptr);
+  }
+
+  virtual void Run() {
+    ApiNativeScope scope;
+    Dart_CObject* object = ReadApiMessage(scope.zone(), message_.get());
+    handler_(message_->dest_port(), object);
+  }
+
+ private:
+  Dart_NativeMessageHandler handler_;
+  std::unique_ptr<Message> message_;
+
+  DISALLOW_COPY_AND_ASSIGN(HandleMessage);
+};
+}  // namespace
+
+void NativeMessageHandler::PostMessage(std::unique_ptr<Message> message,
+                                       bool before_events /* = false */) {
   if (message->IsOOB()) {
-    // We currently do not use OOB messages for native ports.
     UNREACHABLE();
   }
-  // We create a native scope for handling the message.
-  // All allocation of objects for decoding the message is done in the
-  // zone associated with this scope.
-  ApiNativeScope scope;
-  Dart_CObject* object = ReadApiMessage(scope.zone(), message.get());
-  (*func())(message->dest_port(), object);
-  return kOK;
+
+  pool_.Run<HandleMessage>(func_, std::move(message));
+}
+
+void NativeMessageHandler::RequestDeletion(NativeMessageHandler* handler) {
+  ThreadPool::RequestShutdown(&handler->pool_, [handler]() { delete handler; });
+}
+
+void NativeMessageHandler::Shutdown() {
+  pool_.Shutdown();
 }
 
 }  // namespace dart

@@ -137,6 +137,9 @@ features:
   enhanced-parts:
     help: "Generalize parts to be nested and have exports/imports."
 
+  unquoted-imports:
+    help: "Shorter import syntax."
+
   augmentations:
     help: "Augmentations - enhancing declarations from outside"
 

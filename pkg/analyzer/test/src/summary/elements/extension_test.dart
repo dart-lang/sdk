@@ -30,11 +30,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       extensions
         E @34
           reference: <testLibraryFragment>::@extension::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           documentationComment: /// aaa\n/// bbbb\n/// cc
           extendedType: int
 ----------------------------------------
@@ -66,16 +66,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       extensions
         E @10
           reference: <testLibraryFragment>::@extension::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           fields
             static const x @36
               reference: <testLibraryFragment>::@extension::E::@field::x
-              enclosingElement: <testLibraryFragment>::@extension::E
+              enclosingElement3: <testLibraryFragment>::@extension::E
               type: int
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -85,7 +85,7 @@ library
           accessors
             synthetic static get x @-1
               reference: <testLibraryFragment>::@extension::E::@getter::x
-              enclosingElement: <testLibraryFragment>::@extension::E
+              enclosingElement3: <testLibraryFragment>::@extension::E
               returnType: int
 ----------------------------------------
 library
@@ -133,11 +133,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       extensions
         E @10
           reference: <testLibraryFragment>::@extension::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @12
               bound: num
@@ -176,11 +176,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       extensions
         E @10
           reference: <testLibraryFragment>::@extension::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @12
               defaultType: dynamic
@@ -224,11 +224,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       extensions
         E @31
           reference: <testLibraryFragment>::@extension::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           metadata
             Annotation
               atSign: @ @16
@@ -252,7 +252,7 @@ library
           fields
             static const foo @65
               reference: <testLibraryFragment>::@extension::E::@field::foo
-              enclosingElement: <testLibraryFragment>::@extension::E
+              enclosingElement3: <testLibraryFragment>::@extension::E
               type: int
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -262,12 +262,12 @@ library
           accessors
             synthetic static get foo @-1
               reference: <testLibraryFragment>::@extension::E::@getter::foo
-              enclosingElement: <testLibraryFragment>::@extension::E
+              enclosingElement3: <testLibraryFragment>::@extension::E
               returnType: int
           methods
             bar @88
               reference: <testLibraryFragment>::@extension::E::@method::bar
-              enclosingElement: <testLibraryFragment>::@extension::E
+              enclosingElement3: <testLibraryFragment>::@extension::E
               metadata
                 Annotation
                   atSign: @ @76
@@ -280,7 +280,7 @@ library
       topLevelVariables
         static const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
           constantInitializer
@@ -290,7 +290,7 @@ library
       accessors
         synthetic static get foo @-1
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
@@ -405,19 +405,19 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class A @22
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
       extensions
         E @50
           reference: <testLibraryFragment>::@extension::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           metadata
             Annotation
               atSign: @ @27
@@ -440,7 +440,7 @@ library
       topLevelVariables
         static const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: dynamic
           shouldUseTypeForInitializerInference: false
           constantInitializer
@@ -450,7 +450,7 @@ library
       accessors
         synthetic static get a @-1
           reference: <testLibraryFragment>::@getter::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
 ----------------------------------------
 library
@@ -517,22 +517,22 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       extensions
         E @10
           reference: <testLibraryFragment>::@extension::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           fields
             synthetic foo @-1
               reference: <testLibraryFragment>::@extension::E::@field::foo
-              enclosingElement: <testLibraryFragment>::@extension::E
+              enclosingElement3: <testLibraryFragment>::@extension::E
               type: int
               nonSynthetic: <testLibraryFragment>::@extension::E::@getter::foo
           accessors
             get foo @31
               reference: <testLibraryFragment>::@extension::E::@getter::foo
-              enclosingElement: <testLibraryFragment>::@extension::E
+              enclosingElement3: <testLibraryFragment>::@extension::E
               returnType: int
               nonSynthetic: <testLibraryFragment>::@extension::E::@getter::foo
 ----------------------------------------
@@ -584,22 +584,22 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       extensions
         E @10
           reference: <testLibraryFragment>::@extension::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           fields
             synthetic foo @-1
               reference: <testLibraryFragment>::@extension::E::@field::foo
-              enclosingElement: <testLibraryFragment>::@extension::E
+              enclosingElement3: <testLibraryFragment>::@extension::E
               type: int
               nonSynthetic: <testLibraryFragment>::@extension::E::@setter::foo
           accessors
             set foo= @27
               reference: <testLibraryFragment>::@extension::E::@setter::foo
-              enclosingElement: <testLibraryFragment>::@extension::E
+              enclosingElement3: <testLibraryFragment>::@extension::E
               parameters
                 requiredPositional value @35
                   type: int
@@ -677,42 +677,38 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           augmented
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       parts
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
         augment A @54
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       extensions
         augment A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
   exportedReferences
     declared <testLibraryFragment>::@extension::A
@@ -787,49 +783,45 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       parts
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
         augment A @54
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           extendedType: InvalidType
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           methods
             foo1 @65
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::foo1
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: void
           augmented
             methods
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::foo1
               <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       extensions
         augment A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
             foo2 @47
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               returnType: void
 ----------------------------------------
 library
@@ -901,23 +893,22 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             static foo @49
               reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_0
@@ -927,13 +918,13 @@ library
           accessors
             synthetic static get foo @-1
               reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
             synthetic static set foo= @-1
               reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               parameters
                 requiredPositional _foo @-1
                   type: int
@@ -947,17 +938,16 @@ library
               <testLibraryFragment>::@extension::A::@getter::foo
               <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           fields
             augment static foo @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_1
@@ -1064,28 +1054,26 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
         A @40
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             static foo @64
               reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_0
@@ -1095,13 +1083,13 @@ library
           accessors
             synthetic static get foo @-1
               reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
             synthetic static set foo= @-1
               reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               parameters
                 requiredPositional _foo @-1
                   type: int
@@ -1115,35 +1103,33 @@ library
               <testLibraryFragment>::@extension::A::@getter::foo
               <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           fields
             augment static foo @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_1
               augmentationTarget: <testLibraryFragment>::@extension::A::@field::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             augment static foo @64
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_2
@@ -1266,28 +1252,26 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
         A @40
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             static foo @64
               reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_0
@@ -1297,14 +1281,14 @@ library
           accessors
             synthetic static get foo @-1
               reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
             synthetic static set foo= @-1
               reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               parameters
                 requiredPositional _foo @-1
                   type: int
@@ -1318,34 +1302,32 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
               <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           accessors
             augment static get foo @68
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
               id: getter_1
               variable: field_0
               augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             augment static foo @64
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_1
@@ -1468,28 +1450,26 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
         A @40
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             static foo @64
               reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_0
@@ -1499,13 +1479,13 @@ library
           accessors
             synthetic static get foo @-1
               reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
             synthetic static set foo= @-1
               reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               parameters
                 requiredPositional _foo @-1
                   type: int
@@ -1520,18 +1500,17 @@ library
               <testLibraryFragment>::@extension::A::@getter::foo
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           accessors
             augment static set foo= @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               parameters
                 requiredPositional _ @72
                   type: int
@@ -1540,17 +1519,16 @@ library
               variable: field_0
               augmentationTarget: <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             augment static foo @64
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_1
@@ -1667,23 +1645,22 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             static foo @49
               reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_0
@@ -1693,13 +1670,13 @@ library
           accessors
             synthetic static get foo @-1
               reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
             synthetic static set foo= @-1
               reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               parameters
                 requiredPositional _foo @-1
                   type: int
@@ -1713,17 +1690,16 @@ library
               <testLibraryFragment>::@extension::A::@getter::foo
               <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           fields
             augment static foo @67
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               type: double
               shouldUseTypeForInitializerInference: true
               id: field_1
@@ -1823,23 +1799,22 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             synthetic static foo @-1
               reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               id: field_0
               getter: getter_0
@@ -1847,7 +1822,7 @@ library
           accessors
             static get foo @53
               reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
@@ -1857,17 +1832,16 @@ library
             accessors
               <testLibraryFragment>::@extension::A::@getter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           fields
             augment static foo @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_1
@@ -1948,23 +1922,22 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             static foo1 @49
               reference: <testLibraryFragment>::@extension::A::@field::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_0
@@ -1973,13 +1946,13 @@ library
           accessors
             synthetic static get foo1 @-1
               reference: <testLibraryFragment>::@extension::A::@getter::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
             synthetic static set foo1= @-1
               reference: <testLibraryFragment>::@extension::A::@setter::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               parameters
                 requiredPositional _foo1 @-1
                   type: int
@@ -1996,17 +1969,16 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           fields
             static foo2 @56
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_1
@@ -2015,13 +1987,13 @@ library
           accessors
             synthetic static get foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
               id: getter_1
               variable: field_1
             synthetic static set foo2= @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               parameters
                 requiredPositional _foo2 @-1
                   type: int
@@ -2148,30 +2120,29 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             synthetic foo1 @-1
               reference: <testLibraryFragment>::@extension::A::@field::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               id: field_0
               getter: getter_0
           accessors
             get foo1 @46
               reference: <testLibraryFragment>::@extension::A::@getter::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
@@ -2183,24 +2154,23 @@ library
               <testLibraryFragment>::@extension::A::@getter::foo1
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           fields
             synthetic foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               type: int
               id: field_1
               getter: getter_1
           accessors
             get foo2 @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
               id: getter_1
               variable: field_1
@@ -2291,17 +2261,16 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T1 @27
               defaultType: dynamic
@@ -2310,14 +2279,14 @@ library
           fields
             synthetic foo1 @-1
               reference: <testLibraryFragment>::@extension::A::@field::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: T1
               id: field_0
               getter: getter_0
           accessors
             abstract get foo1 @49
               reference: <testLibraryFragment>::@extension::A::@getter::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: T1
               id: getter_0
               variable: field_0
@@ -2333,12 +2302,11 @@ library
                 base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
                 augmentationSubstitution: {T2: T1}
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
             covariant T2 @41
               defaultType: dynamic
@@ -2346,14 +2314,14 @@ library
           fields
             synthetic foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               type: T2
               id: field_1
               getter: getter_1
           accessors
             abstract get foo2 @56
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: T2
               id: getter_1
               variable: field_1
@@ -2452,23 +2420,22 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             static foo @49
               reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_0
@@ -2477,14 +2444,14 @@ library
           accessors
             synthetic static get foo @-1
               reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
             synthetic static set foo= @-1
               reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               parameters
                 requiredPositional _foo @-1
                   type: int
@@ -2498,17 +2465,16 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
               <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           accessors
             augment static get foo @68
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
               id: getter_1
               variable: field_0
@@ -2615,28 +2581,26 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
         A @40
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             static foo @64
               reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_0
@@ -2645,14 +2609,14 @@ library
           accessors
             synthetic static get foo @-1
               reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
             synthetic static set foo= @-1
               reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               parameters
                 requiredPositional _foo @-1
                   type: int
@@ -2666,35 +2630,33 @@ library
               <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
               <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           accessors
             augment static get foo @68
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
               id: getter_1
               variable: field_0
               augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           accessors
             augment static get foo @68
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               returnType: int
               id: getter_2
               variable: field_0
@@ -2809,43 +2771,42 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             synthetic foo1 @-1
               reference: <testLibraryFragment>::@extension::A::@field::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               id: field_0
               getter: getter_0
             synthetic foo2 @-1
               reference: <testLibraryFragment>::@extension::A::@field::foo2
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               id: field_1
               getter: getter_1
           accessors
             get foo1 @46
               reference: <testLibraryFragment>::@extension::A::@getter::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
             get foo2 @67
               reference: <testLibraryFragment>::@extension::A::@getter::foo2
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_1
               variable: field_1
@@ -2857,17 +2818,16 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
               <testLibraryFragment>::@extension::A::@getter::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           accessors
             augment get foo1 @61
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
               id: getter_2
               variable: field_0
@@ -2972,35 +2932,33 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
         A @40
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             synthetic foo @-1
               reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               id: field_0
               getter: getter_0
           accessors
             get foo @61
               reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
@@ -3011,35 +2969,33 @@ library
             accessors
               <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           accessors
             augment get foo @61
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
               id: getter_1
               variable: field_0
               augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           accessors
             augment get foo @61
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               returnType: int
               id: getter_2
               variable: field_0
@@ -3135,40 +3091,38 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
             foo @43
               reference: <testLibraryFragment>::@extension::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: void
           augmented
             methods
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
               <testLibraryFragment>::@extension::A::@method::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           methods
             bar @50
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: void
 ----------------------------------------
 library
@@ -3236,45 +3190,43 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
             foo1 @43
               reference: <testLibraryFragment>::@extension::A::@method::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: void
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
             foo2 @60
               reference: <testLibraryFragment>::@extension::A::@method::foo2
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: void
           augmented
             methods
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
               <testLibraryFragment>::@extension::A::@method::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           methods
             augment foo1 @58
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@extension::A::@method::foo1
 ----------------------------------------
@@ -3355,62 +3307,58 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
             foo @43
               reference: <testLibraryFragment>::@extension::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: void
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
           augmented
             methods
               <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       parts
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
         augment A @54
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           methods
             augment foo @73
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@extension::A::@method::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       extensions
         augment A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
             augment foo @55
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               returnType: void
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
 ----------------------------------------
@@ -3493,17 +3441,16 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @27
               defaultType: dynamic
@@ -3512,7 +3459,7 @@ library
           methods
             foo @43
               reference: <testLibraryFragment>::@extension::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: T
           augmented
             methods
@@ -3521,12 +3468,11 @@ library
                 augmentationSubstitution: {T2: T}
               <testLibraryFragment>::@extension::A::@method::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
             covariant T2 @41
               defaultType: dynamic
@@ -3534,7 +3480,7 @@ library
           methods
             bar @52
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: T2
 ----------------------------------------
 library
@@ -3609,17 +3555,16 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @27
               defaultType: dynamic
@@ -3628,7 +3573,7 @@ library
           methods
             foo @43
               reference: <testLibraryFragment>::@extension::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: T
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
           augmented
@@ -3637,12 +3582,11 @@ library
                 base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
                 augmentationSubstitution: {T2: T}
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
             covariant T2 @41
               defaultType: dynamic
@@ -3650,7 +3594,7 @@ library
           methods
             augment foo @60
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: T2
               augmentationTarget: <testLibraryFragment>::@extension::A::@method::foo
 ----------------------------------------
@@ -3726,28 +3670,27 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
             foo @43
               reference: <testLibraryFragment>::@extension::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: void
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
             bar @59
               reference: <testLibraryFragment>::@extension::A::@method::bar
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: void
           augmented
             methods
@@ -3756,12 +3699,11 @@ library
                 base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
                 augmentationSubstitution: {T: InvalidType}
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
             covariant T @41
               defaultType: dynamic
@@ -3769,7 +3711,7 @@ library
           methods
             augment foo @61
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@extension::A::@method::foo
 ----------------------------------------
@@ -3846,30 +3788,29 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             synthetic foo1 @-1
               reference: <testLibraryFragment>::@extension::A::@field::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               id: field_0
               setter: setter_0
           accessors
             set foo1= @42
               reference: <testLibraryFragment>::@extension::A::@setter::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               parameters
                 requiredPositional _ @51
                   type: int
@@ -3884,24 +3825,23 @@ library
               <testLibraryFragment>::@extension::A::@setter::foo1
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           fields
             synthetic foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               type: int
               id: field_1
               setter: setter_1
           accessors
             set foo2= @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               parameters
                 requiredPositional _ @58
                   type: int
@@ -4009,23 +3949,22 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             static foo @49
               reference: <testLibraryFragment>::@extension::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_0
@@ -4034,13 +3973,13 @@ library
           accessors
             synthetic static get foo @-1
               reference: <testLibraryFragment>::@extension::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               returnType: int
               id: getter_0
               variable: field_0
             synthetic static set foo= @-1
               reference: <testLibraryFragment>::@extension::A::@setter::foo
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               parameters
                 requiredPositional _foo @-1
                   type: int
@@ -4055,17 +3994,16 @@ library
               <testLibraryFragment>::@extension::A::@getter::foo
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           accessors
             augment static set foo= @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               parameters
                 requiredPositional _ @72
                   type: int
@@ -4170,36 +4108,35 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       extensions
         A @25
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             synthetic foo1 @-1
               reference: <testLibraryFragment>::@extension::A::@field::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               id: field_0
               setter: setter_0
             synthetic foo2 @-1
               reference: <testLibraryFragment>::@extension::A::@field::foo2
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               type: int
               id: field_1
               setter: setter_1
           accessors
             set foo1= @42
               reference: <testLibraryFragment>::@extension::A::@setter::foo1
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               parameters
                 requiredPositional _ @51
                   type: int
@@ -4209,7 +4146,7 @@ library
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
             set foo2= @63
               reference: <testLibraryFragment>::@extension::A::@setter::foo2
-              enclosingElement: <testLibraryFragment>::@extension::A
+              enclosingElement3: <testLibraryFragment>::@extension::A
               parameters
                 requiredPositional _ @72
                   type: int
@@ -4224,17 +4161,16 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
               <testLibraryFragment>::@extension::A::@setter::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
           accessors
             augment set foo1= @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               parameters
                 requiredPositional _ @66
                   type: int
@@ -4356,38 +4292,34 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
         A @41
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
         augment class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTargetAny: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
         augment class A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTargetAny: <testLibraryFragment>::@extension::A
 ----------------------------------------
 library
@@ -4459,40 +4391,36 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
       extensions
         A @41
           reference: <testLibraryFragment>::@extension::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: int
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           augmented
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
         augment class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTargetAny: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       extensions
         augment A @40
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
 ----------------------------------------
 library

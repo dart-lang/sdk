@@ -1244,8 +1244,8 @@ abstract class AstCodeGenerator
   void visitWhileStatement(WhileStatement node) {
     w.Label block = b.block();
     w.Label loop = b.loop();
-    branchIf(node.condition, block, negated: true);
     allocateContext(node);
+    branchIf(node.condition, block, negated: true);
     visitStatement(node.body);
     b.br(loop);
     b.end();

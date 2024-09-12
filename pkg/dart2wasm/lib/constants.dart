@@ -1032,12 +1032,13 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     final List<Constant> arguments = constant.positional.toList();
     arguments.addAll(constant.named.values);
 
+    bool lazy = false;
     for (Constant argument in arguments) {
-      ensureConstant(argument);
+      lazy |= ensureConstant(argument)?.isLazy ?? false;
     }
 
-    return createConstant(constant, recordClassInfo.nonNullableType,
-        lazy: false, (b) {
+    return createConstant(constant, recordClassInfo.nonNullableType, lazy: lazy,
+        (b) {
       b.i32_const(recordClassInfo.classId);
       b.i32_const(initialIdentityHash);
       for (Constant argument in arguments) {

@@ -307,6 +307,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 19),
       experimentReleasedVersion: const Version(2, 19));
 
+  static const ExperimentalFlag unquotedImports = const ExperimentalFlag(
+      name: 'unquoted-imports',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
   static const ExperimentalFlag variance = const ExperimentalFlag(
       name: 'variance',
       isEnabledByDefault: false,
@@ -498,6 +506,10 @@ class GlobalFeatures {
   GlobalFeature get unnamedLibraries => _unnamedLibraries ??=
       _computeGlobalFeature(ExperimentalFlag.unnamedLibraries);
 
+  GlobalFeature? _unquotedImports;
+  GlobalFeature get unquotedImports => _unquotedImports ??=
+      _computeGlobalFeature(ExperimentalFlag.unquotedImports);
+
   GlobalFeature? _variance;
   GlobalFeature get variance =>
       _variance ??= _computeGlobalFeature(ExperimentalFlag.variance);
@@ -685,6 +697,11 @@ class LibraryFeatures {
       _unnamedLibraries ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.unnamedLibraries, canonicalUri, libraryVersion);
 
+  LibraryFeature? _unquotedImports;
+  LibraryFeature get unquotedImports =>
+      _unquotedImports ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.unquotedImports, canonicalUri, libraryVersion);
+
   LibraryFeature? _variance;
   LibraryFeature get variance =>
       _variance ??= globalFeatures._computeLibraryFeature(
@@ -761,6 +778,8 @@ class LibraryFeatures {
         return tripleShift;
       case shared.ExperimentalFlag.unnamedLibraries:
         return unnamedLibraries;
+      case shared.ExperimentalFlag.unquotedImports:
+        return unquotedImports;
       case shared.ExperimentalFlag.variance:
         return variance;
       case shared.ExperimentalFlag.wildcardVariables:
@@ -835,6 +854,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.tripleShift;
     case "unnamed-libraries":
       return ExperimentalFlag.unnamedLibraries;
+    case "unquoted-imports":
+      return ExperimentalFlag.unquotedImports;
     case "variance":
       return ExperimentalFlag.variance;
     case "wildcard-variables":
@@ -899,6 +920,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift.isEnabledByDefault,
   ExperimentalFlag.unnamedLibraries:
       ExperimentalFlag.unnamedLibraries.isEnabledByDefault,
+  ExperimentalFlag.unquotedImports:
+      ExperimentalFlag.unquotedImports.isEnabledByDefault,
   ExperimentalFlag.variance: ExperimentalFlag.variance.isEnabledByDefault,
   ExperimentalFlag.wildcardVariables:
       ExperimentalFlag.wildcardVariables.isEnabledByDefault,
@@ -950,6 +973,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.testExperiment: ExperimentalFlag.testExperiment,
   shared.ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift,
   shared.ExperimentalFlag.unnamedLibraries: ExperimentalFlag.unnamedLibraries,
+  shared.ExperimentalFlag.unquotedImports: ExperimentalFlag.unquotedImports,
   shared.ExperimentalFlag.variance: ExperimentalFlag.variance,
   shared.ExperimentalFlag.wildcardVariables: ExperimentalFlag.wildcardVariables,
 };
