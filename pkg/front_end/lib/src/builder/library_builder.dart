@@ -240,8 +240,13 @@ abstract class SourceCompilationUnit implements CompilationUnit {
       Map<NominalVariableBuilder, SourceLibraryBuilder> nominalVariables,
       Map<StructuralVariableBuilder, SourceLibraryBuilder> structuralVariables);
 
+  /// Adds [prefixBuilder] to library name space.
+  ///
+  /// Returns `true` if the prefix name was new to the name space. Otherwise the
+  /// prefix was merged with an existing prefix of the same name.
   // TODO(johnniwinther): Remove this.
-  Builder addBuilder(String name, Builder declaration, int charOffset);
+  bool addPrefixBuilder(
+      String name, PrefixBuilder prefixBuilder, int charOffset);
 
   int resolveTypes(ProblemReporting problemReporting);
 }

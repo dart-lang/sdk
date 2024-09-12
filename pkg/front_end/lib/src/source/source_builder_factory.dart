@@ -2788,11 +2788,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     return _compilationUnit.loader.inferableTypes.addInferableType();
   }
 
-  @override
-  Builder addBuilder(String name, Builder declaration, int charOffset) {
-    return _addBuilderToLibrary(name, declaration, charOffset);
-  }
-
   void _addBuilderInternal(String name, Builder declaration, int charOffset,
       {Reference? getterReference, Reference? setterReference}) {
     if (getterReference != null) {
@@ -2812,10 +2807,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
   }
 
-  Builder _addBuilderToLibrary(
-      String name, Builder declaration, int charOffset) {
+  void _addBuilderToLibrary(String name, Builder declaration, int charOffset) {
     assert(_declarationFragments.isEmpty);
-    return _libraryNameSpaceBuilder.addBuilder(_parent, _problemReporting, name,
+    _libraryNameSpaceBuilder.addBuilder(_parent, _problemReporting, name,
         declaration, _compilationUnit.fileUri, charOffset);
   }
 

@@ -11,7 +11,6 @@ import '../base/configuration.dart' show Configuration;
 import '../base/export.dart';
 import '../base/identifiers.dart' show Identifier;
 import '../base/import.dart';
-import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -497,8 +496,6 @@ abstract class BuilderFactory {
 
   void registerUnboundStructuralVariables(
       List<StructuralVariableBuilder> variableBuilders);
-
-  Builder addBuilder(String name, Builder declaration, int charOffset);
 }
 
 class NominalVariableCopy {

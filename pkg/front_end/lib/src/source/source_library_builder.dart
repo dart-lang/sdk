@@ -1068,15 +1068,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // Coverage-ignore(suite): Not run.
   void becomeCoreLibrary() {
     if (nameSpace.lookupLocalMember("dynamic", setter: false) == null) {
-      compilationUnit.addBuilder("dynamic",
-          new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1), -1);
+      nameSpace.addLocalMember("dynamic",
+          new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1),
+          setter: false);
     }
     if (nameSpace.lookupLocalMember("Never", setter: false) == null) {
-      compilationUnit.addBuilder(
+      nameSpace.addLocalMember(
           "Never",
           new NeverTypeDeclarationBuilder(
               const NeverType.nonNullable(), this, -1),
-          -1);
+          setter: false);
     }
     assert(nameSpace.lookupLocalMember("Null", setter: false) != null,
         "No class 'Null' found in dart:core.");

@@ -1111,7 +1111,52 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  Builder addBuilder(String name, Builder declaration, int charOffset) {
-    return _builderFactory.addBuilder(name, declaration, charOffset);
+  bool addPrefixBuilder(
+      String name, PrefixBuilder prefixBuilder, int charOffset) {
+    Builder? existing = _nameSpace.lookupLocalMember(name, setter: false);
+    ProblemReporting _problemReporting = this;
+    if (existing is PrefixBuilder) {
+      assert(existing.next is! PrefixBuilder);
+      Builder? deferred;
+      Builder? other;
+      if (prefixBuilder.deferred) {
+        deferred = prefixBuilder;
+        other = existing;
+      } else if (existing.deferred) {
+        deferred = existing;
+        other = prefixBuilder;
+      }
+      if (deferred != null) {
+        // Coverage-ignore-block(suite): Not run.
+        _problemReporting.addProblem(
+            templateDeferredPrefixDuplicated.withArguments(name),
+            deferred.charOffset,
+            noLength,
+            fileUri,
+            context: [
+              templateDeferredPrefixDuplicatedCause
+                  .withArguments(name)
+                  .withLocation(fileUri, other!.charOffset, noLength)
+            ]);
+      }
+      existing.mergeScopes(prefixBuilder, _problemReporting, _nameSpace,
+          uriOffset: new UriOffset(fileUri, charOffset));
+      return false;
+    } else if (isDuplicatedDeclaration(existing, prefixBuilder)) {
+      String fullName = name;
+      _problemReporting.addProblem(
+          templateDuplicatedDeclaration.withArguments(fullName),
+          charOffset,
+          fullName.length,
+          prefixBuilder.fileUri,
+          context: <LocatedMessage>[
+            templateDuplicatedDeclarationCause
+                .withArguments(fullName)
+                .withLocation(
+                    existing!.fileUri!, existing.charOffset, fullName.length)
+          ]);
+    }
+    _nameSpace.addLocalMember(name, prefixBuilder, setter: false);
+    return true;
   }
 }

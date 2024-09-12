@@ -106,9 +106,8 @@ class Import {
       }
     }
     if (prefixBuilder != null) {
-      Builder? existing = importer.addBuilder(
-          prefixBuilder!.name, prefixBuilder!, prefixCharOffset);
-      if (existing == prefixBuilder) {
+      if (importer.addPrefixBuilder(
+          prefixBuilder!.name, prefixBuilder!, prefixCharOffset)) {
         importer.addToScope(prefix!, prefixBuilder!, prefixCharOffset, true);
       }
     }

@@ -36,7 +36,7 @@ class LibraryNameSpaceBuilder {
         getables: _members, setables: _setters, extensions: _extensions);
   }
 
-  Builder addBuilder(
+  void addBuilder(
       SourceLibraryBuilder _parent,
       ProblemReporting _problemReporting,
       String name,
@@ -47,17 +47,19 @@ class LibraryNameSpaceBuilder {
         declaration.isUnnamedExtension) {
       declaration.parent = _parent;
       _extensions.add(declaration);
-      return declaration;
+      return;
     }
 
     if (declaration is MemberBuilder) {
       declaration.parent = _parent;
     } else if (declaration is TypeDeclarationBuilder) {
       declaration.parent = _parent;
-    } else if (declaration is PrefixBuilder) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (declaration is PrefixBuilder) {
       assert(declaration.parent == _parent);
     } else {
-      return unhandled(
+      unhandled(
           "${declaration.runtimeType}", "addBuilder", charOffset, fileUri);
     }
 
@@ -72,7 +74,7 @@ class LibraryNameSpaceBuilder {
 
     Builder? existing = members[name];
 
-    if (existing == declaration) return declaration;
+    if (existing == declaration) return;
 
     if (declaration.next != null && declaration.next != existing) {
       unexpected(
@@ -82,7 +84,10 @@ class LibraryNameSpaceBuilder {
           declaration.fileUri);
     }
     declaration.next = existing;
-    if (declaration is PrefixBuilder && existing is PrefixBuilder) {
+    if (declaration is PrefixBuilder &&
+        // Coverage-ignore(suite): Not run.
+        existing is PrefixBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       assert(existing.next is! PrefixBuilder);
       Builder? deferred;
       Builder? other;
@@ -94,7 +99,6 @@ class LibraryNameSpaceBuilder {
         other = declaration;
       }
       if (deferred != null) {
-        // Coverage-ignore-block(suite): Not run.
         _problemReporting.addProblem(
             templateDeferredPrefixDuplicated.withArguments(name),
             deferred.charOffset,
@@ -108,7 +112,7 @@ class LibraryNameSpaceBuilder {
       }
       existing.mergeScopes(declaration, _problemReporting, _nameSpace,
           uriOffset: new UriOffset(fileUri, charOffset));
-      return existing;
+      return;
     } else if (isDuplicatedDeclaration(existing, declaration)) {
       String fullName = name;
       _problemReporting.addProblem(
@@ -138,7 +142,7 @@ class LibraryNameSpaceBuilder {
         // TODO(cstefantsova): Report an error.
       }
     }
-    return members[name] = declaration;
+    members[name] = declaration;
   }
 
   void includeBuilders(
