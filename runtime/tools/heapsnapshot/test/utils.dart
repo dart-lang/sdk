@@ -30,7 +30,6 @@ class Testee {
     final processArgs = [
       ...Platform.executableArguments,
       '--disable-dart-dev',
-      '--no-dds',
       '--disable-service-auth-codes',
       '--enable-vm-service:0',
       '--pause-isolates-on-exit',

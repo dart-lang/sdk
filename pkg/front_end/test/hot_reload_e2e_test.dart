@@ -95,7 +95,9 @@ abstract class TestCase {
       '--enable-vm-service=0', // Note: use 0 to avoid port collisions.
       '--pause_isolates_on_start',
       '--disable-service-auth-codes',
-      '--no-dds',
+      // TODO(bkonyi): The service isolate starts before DartDev has a chance
+      // to spawn DDS. We should suppress the Observatory message until DDS
+      // starts (#42727).
       '--disable-dart-dev',
       outputUri.toFilePath()
     ];
