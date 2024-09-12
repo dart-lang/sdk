@@ -503,6 +503,7 @@ main() {
         "--pause-isolates-on-exit",
         "--enable-vm-service:0",
         "--disable-service-auth-codes",
+        "--disable-dart-dev",
         list.path
       ]);
 
@@ -606,6 +607,7 @@ main() {
         "--pause-isolates-on-exit",
         "--enable-vm-service:0",
         "--disable-service-auth-codes",
+        "--disable-dart-dev",
         list.path
       ]);
 
@@ -871,6 +873,7 @@ main() {
         "--pause-isolates-on-exit",
         "--enable-vm-service:0",
         "--disable-service-auth-codes",
+        "--disable-dart-dev",
         list.path
       ]);
 
@@ -952,6 +955,7 @@ main() {
         '--enable-vm-service=0', // Note: use 0 to avoid port collisions.
         '--pause_isolates_on_start',
         '--disable-service-auth-codes',
+        '--disable-dart-dev',
         outputFile.path
       ];
       final vm = await Process.start(Platform.resolvedExecutable, vmArgs);
@@ -1359,6 +1363,7 @@ main() {
         "--pause-isolates-on-start",
         "--enable-vm-service:0",
         "--disable-service-auth-codes",
+        "--disable-dart-dev",
         scriptOrDill.path
       ]);
 
