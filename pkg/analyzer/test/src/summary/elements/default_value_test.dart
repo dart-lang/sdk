@@ -28,22 +28,22 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @8
               defaultType: dynamic
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
           methods
             abstract X @21
               reference: <testLibraryFragment>::@class::A::@method::X
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               parameters
                 optionalNamed default a @32
                   reference: <testLibraryFragment>::@class::A::@method::X::@parameter::a
@@ -118,15 +118,15 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class X @57
           reference: <testLibraryFragment>::@class::X
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           fields
             final f @71
               reference: <testLibraryFragment>::@class::X::@field::f
-              enclosingElement: <testLibraryFragment>::@class::X
+              enclosingElement3: <testLibraryFragment>::@class::X
               type: void Function(dynamic)
                 alias: <testLibraryFragment>::@typeAlias::F
                   typeArguments
@@ -134,7 +134,7 @@ library
           constructors
             const @82
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::X
+              enclosingElement3: <testLibraryFragment>::@class::X
               parameters
                 optionalNamed default final this.f @90
                   reference: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
@@ -155,7 +155,7 @@ library
           accessors
             synthetic get f @-1
               reference: <testLibraryFragment>::@class::X::@getter::f
-              enclosingElement: <testLibraryFragment>::@class::X
+              enclosingElement3: <testLibraryFragment>::@class::X
               returnType: void Function(dynamic)
                 alias: <testLibraryFragment>::@typeAlias::F
                   typeArguments
@@ -175,7 +175,7 @@ library
       functions
         defaultF @30
           reference: <testLibraryFragment>::@function::defaultF
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @39
               defaultType: dynamic
@@ -289,29 +289,29 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @8
               defaultType: dynamic
           constructors
             const @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
         class B @34
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
           methods
             foo @45
               reference: <testLibraryFragment>::@class::B::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
               parameters
                 optionalNamed default a @50
                   reference: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
@@ -416,11 +416,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional g @8
               type: dynamic Function({dynamic a})
@@ -466,11 +466,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             optionalPositional default compare @22
               type: int Function(InvalidType, InvalidType)
@@ -528,11 +528,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             optionalNamed default x @28
               reference: <testLibraryFragment>::@function::f::@parameter::x
@@ -599,11 +599,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             optionalNamed default x @28
               reference: <testLibraryFragment>::@function::f::@parameter::x
@@ -671,11 +671,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             optionalNamed default x @20
               reference: <testLibraryFragment>::@function::f::@parameter::x
@@ -728,11 +728,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             optionalNamed default x @20
               reference: <testLibraryFragment>::@function::f::@parameter::x
@@ -790,28 +790,28 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
       extensions
         E @21
           reference: <testLibraryFragment>::@extension::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: A
           methods
             static f @44
               reference: <testLibraryFragment>::@extension::E::@method::f
-              enclosingElement: <testLibraryFragment>::@extension::E
+              enclosingElement3: <testLibraryFragment>::@extension::E
               returnType: void
             static g @65
               reference: <testLibraryFragment>::@extension::E::@method::g
-              enclosingElement: <testLibraryFragment>::@extension::E
+              enclosingElement3: <testLibraryFragment>::@extension::E
               parameters
                 optionalPositional default p @75
                   type: Object
@@ -890,11 +890,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T1 @8
               defaultType: dynamic
@@ -903,18 +903,18 @@ library
           constructors
             const @26
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
         class C @39
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
           methods
             foo @50
               reference: <testLibraryFragment>::@class::C::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
               parameters
                 optionalPositional default b @70
                   type: B<int, double>
@@ -1011,28 +1011,28 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @8
               defaultType: dynamic
           constructors
             const @21
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
         class C @34
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @36
               defaultType: dynamic
           constructors
             const @49
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
               parameters
                 optionalPositional default b @57
                   type: B<T>
@@ -1123,21 +1123,21 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         abstract class A @15
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @17
               defaultType: dynamic
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
         class B @29
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @31
               defaultType: dynamic
@@ -1146,10 +1146,10 @@ library
           constructors
             const @60
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
         class C @73
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @75
               defaultType: dynamic
@@ -1158,7 +1158,7 @@ library
           constructors
             const @114
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
               parameters
                 optionalPositional default a @122
                   type: A<T>
@@ -1265,22 +1265,22 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @8
               defaultType: dynamic
           constructors
             const @21
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
       functions
         foo @33
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @37
               defaultType: dynamic
@@ -1368,29 +1368,29 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @8
               defaultType: dynamic
           constructors
             const @21
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
         class C @34
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
           methods
             foo @45
               reference: <testLibraryFragment>::@class::C::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
               typeParameters
                 covariant T @49
                   defaultType: dynamic
@@ -1492,11 +1492,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T1 @8
               defaultType: dynamic
@@ -1505,21 +1505,21 @@ library
           constructors
             const @26
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
         class C @39
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant E1 @41
               defaultType: dynamic
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
           methods
             foo @54
               reference: <testLibraryFragment>::@class::C::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
               typeParameters
                 covariant E2 @58
                   defaultType: dynamic
@@ -1629,32 +1629,32 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class B @6
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @8
               defaultType: dynamic
           constructors
             const @21
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
         class C @34
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @36
               defaultType: dynamic
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
           methods
             foo @48
               reference: <testLibraryFragment>::@class::C::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
               parameters
                 optionalPositional default b @58
                   type: B<T>

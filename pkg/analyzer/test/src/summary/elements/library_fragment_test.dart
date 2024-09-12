@@ -39,30 +39,25 @@ library
   reference: <testLibrary>
   libraryExports
     dart:io
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         dart:io
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         dart:math
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
 ----------------------------------------
 library
@@ -96,19 +91,16 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         dart:math
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           metadata
             Annotation
@@ -147,30 +139,25 @@ library
   reference: <testLibrary>
   libraryImports
     dart:io
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         dart:io
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryImports
         dart:math
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
 ----------------------------------------
 library
@@ -208,19 +195,16 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryImports
         dart:math
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           metadata
             Annotation

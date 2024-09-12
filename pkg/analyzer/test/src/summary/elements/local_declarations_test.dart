@@ -31,11 +31,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
 ----------------------------------------
 library
@@ -68,15 +68,15 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             @12
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -116,19 +116,19 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
           methods
             m @12
               reference: <testLibraryFragment>::@class::C::@method::m
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
               returnType: dynamic
 ----------------------------------------
 library
@@ -175,16 +175,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static g @-1
           reference: <testLibraryFragment>::@topLevelVariable::g
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: dynamic
       accessors
         static get g @4
           reference: <testLibraryFragment>::@getter::g
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
 ----------------------------------------
 library
@@ -232,15 +232,15 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             @12
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -284,19 +284,19 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
           methods
             m @12
               reference: <testLibraryFragment>::@class::C::@method::m
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
               returnType: dynamic
 ----------------------------------------
 library
@@ -347,11 +347,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         main @0
           reference: <testLibraryFragment>::@function::main
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
 ----------------------------------------
 library

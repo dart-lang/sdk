@@ -29,20 +29,18 @@ library
   reference: <testLibrary>
   libraryImports
     dart:async
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         dart:async
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         f @28 async
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: Future<dynamic>
 ----------------------------------------
 library
@@ -73,20 +71,18 @@ library
   reference: <testLibrary>
   libraryImports
     dart:async
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         dart:async
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         f @28 async*
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: Stream<dynamic>
 ----------------------------------------
 library
@@ -120,11 +116,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @60
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           documentationComment: /**\n * Docs\n */
           returnType: dynamic
 ----------------------------------------
@@ -154,11 +150,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         main @0
           reference: <testLibraryFragment>::@function::main
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
 ----------------------------------------
 library
@@ -185,15 +181,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
@@ -212,17 +206,15 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       combinators
         hide: main
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           combinators
             hide: main
@@ -248,20 +240,18 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       functions
         main @16
           reference: <testLibrary>::@fragment::package:test/a.dart::@function::main
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: dynamic
 ----------------------------------------
 library
@@ -293,11 +283,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         external f @9
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
 ----------------------------------------
 library
@@ -342,11 +332,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional x @13
               type: dynamic
@@ -385,11 +375,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional final this.a @16
               type: int
@@ -429,11 +419,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             optionalNamed default final this.a @17
               reference: <testLibraryFragment>::@function::f::@parameter::a
@@ -479,11 +469,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional final this.a @16
               type: int Function(int)
@@ -528,11 +518,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional final x @8
               type: dynamic
@@ -569,11 +559,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             optionalNamed default x @3
               reference: <testLibraryFragment>::@function::f::@parameter::x
@@ -612,11 +602,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             optionalPositional default x @3
               type: dynamic
@@ -653,11 +643,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional x @2
               type: dynamic
@@ -694,11 +684,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional g @2
               type: dynamic Function(dynamic, dynamic)
@@ -747,11 +737,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional g @6
               type: int Function()
@@ -788,11 +778,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional g @7
               type: void Function()
@@ -829,11 +819,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional i @6
               type: int
@@ -872,11 +862,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @7
               defaultType: dynamic
@@ -923,11 +913,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional a @9
               type: InvalidType
@@ -964,11 +954,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional x @2
               type: dynamic
@@ -1012,11 +1002,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
 ----------------------------------------
 library
@@ -1045,11 +1035,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @2
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: InvalidType
 ----------------------------------------
 library
@@ -1076,11 +1066,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: void
 ----------------------------------------
 library
@@ -1109,11 +1099,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @4
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
@@ -1142,11 +1132,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @2
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @4
               defaultType: dynamic
@@ -1181,11 +1171,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @7
               defaultType: dynamic
@@ -1252,11 +1242,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @7
               bound: num
@@ -1295,11 +1285,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @7
               defaultType: dynamic
@@ -1334,15 +1324,15 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
         g @7
           reference: <testLibraryFragment>::@function::g
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
 ----------------------------------------
 library
@@ -1375,15 +1365,15 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class main @6
           reference: <testLibraryFragment>::@class::main
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::main::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::main
+              enclosingElement3: <testLibraryFragment>::@class::main
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -1418,18 +1408,18 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class alias main @6
           reference: <testLibraryFragment>::@class::main
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: C
           mixins
             D
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::main::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::main
+              enclosingElement3: <testLibraryFragment>::@class::main
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -1440,18 +1430,18 @@ library
               superConstructor: <testLibraryFragment>::@class::C::@constructor::new
         class C @29
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
         class D @40
           reference: <testLibraryFragment>::@class::D
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::D
+              enclosingElement3: <testLibraryFragment>::@class::D
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -1524,15 +1514,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
@@ -1551,15 +1539,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
@@ -1578,16 +1564,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static main @-1
           reference: <testLibraryFragment>::@topLevelVariable::main
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: dynamic
       accessors
         static get main @4
           reference: <testLibraryFragment>::@getter::main
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
 ----------------------------------------
 library
@@ -1625,15 +1611,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
@@ -1652,7 +1636,7 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       typeAliases
         functionTypeAliasBased main @8
           reference: <testLibraryFragment>::@typeAlias::main
@@ -1684,15 +1668,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
@@ -1711,20 +1693,20 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static main @4
           reference: <testLibraryFragment>::@topLevelVariable::main
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: dynamic
       accessors
         synthetic static get main @-1
           reference: <testLibraryFragment>::@getter::main
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
         synthetic static set main= @-1
           reference: <testLibraryFragment>::@setter::main
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _main @-1
               type: dynamic
@@ -1782,15 +1764,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
@@ -1854,103 +1834,91 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a1.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a1.dart
         part_1
           uri: package:test/a2.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a2.dart
       functions
         foo @37
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: void
           augmentation: <testLibrary>::@fragment::package:test/a1.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a1.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       parts
         part_2
           uri: package:test/a11.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
           unit: <testLibrary>::@fragment::package:test/a11.dart
         part_3
           uri: package:test/a12.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
           unit: <testLibrary>::@fragment::package:test/a12.dart
       functions
         augment foo @68
           reference: <testLibrary>::@fragment::package:test/a1.dart::@functionAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a1.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
           returnType: void
           augmentationTarget: <testLibraryFragment>::@function::foo
           augmentation: <testLibrary>::@fragment::package:test/a11.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a11.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
       functions
         augment foo @32
           reference: <testLibrary>::@fragment::package:test/a11.dart::@functionAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a11.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a11.dart
           returnType: void
           augmentationTarget: <testLibrary>::@fragment::package:test/a1.dart::@functionAugmentation::foo
           augmentation: <testLibrary>::@fragment::package:test/a12.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a12.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
       functions
         augment foo @32
           reference: <testLibrary>::@fragment::package:test/a12.dart::@functionAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a12.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a12.dart
           returnType: void
           augmentationTarget: <testLibrary>::@fragment::package:test/a11.dart::@functionAugmentation::foo
           augmentation: <testLibrary>::@fragment::package:test/a2.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a2.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       parts
         part_4
           uri: package:test/a21.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
           unit: <testLibrary>::@fragment::package:test/a21.dart
         part_5
           uri: package:test/a22.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
           unit: <testLibrary>::@fragment::package:test/a22.dart
       functions
         augment foo @68
           reference: <testLibrary>::@fragment::package:test/a2.dart::@functionAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a2.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
           returnType: void
           augmentationTarget: <testLibrary>::@fragment::package:test/a12.dart::@functionAugmentation::foo
           augmentation: <testLibrary>::@fragment::package:test/a21.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a21.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
       functions
         augment foo @32
           reference: <testLibrary>::@fragment::package:test/a21.dart::@functionAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a21.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a21.dart
           returnType: void
           augmentationTarget: <testLibrary>::@fragment::package:test/a2.dart::@functionAugmentation::foo
           augmentation: <testLibrary>::@fragment::package:test/a22.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a22.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
       functions
         augment foo @32
           reference: <testLibrary>::@fragment::package:test/a22.dart::@functionAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a22.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a22.dart
           returnType: void
           augmentationTarget: <testLibrary>::@fragment::package:test/a21.dart::@functionAugmentation::foo
 ----------------------------------------
@@ -2057,28 +2025,26 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       classes
         class foo @22
           reference: <testLibraryFragment>::@class::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::foo::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::foo
+              enclosingElement3: <testLibraryFragment>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       functions
         augment foo @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
           augmentationTargetAny: <testLibraryFragment>::@class::foo
 ----------------------------------------
@@ -2138,26 +2104,24 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       functions
         foo @20
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: void
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       functions
         augment foo @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
           augmentationTarget: <testLibraryFragment>::@function::foo
   exportedReferences
@@ -2216,25 +2180,23 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       functions
         foo @26
           reference: <testLibrary>::@fragment::package:test/a.dart::@function::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
         augment foo @48
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@function::foo
   exportedReferences
@@ -2293,30 +2255,28 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
       accessors
         static get foo @24
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       functions
         augment foo @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
           augmentationTargetAny: <testLibraryFragment>::@getter::foo
 ----------------------------------------
@@ -2380,33 +2340,31 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
       accessors
         static set foo= @20
           reference: <testLibraryFragment>::@setter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _ @28
               type: int
           returnType: void
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       functions
         augment foo @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
           augmentationTargetAny: <testLibraryFragment>::@setter::foo
 ----------------------------------------
@@ -2477,38 +2435,36 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         static foo @20
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
       accessors
         synthetic static get foo @-1
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
         synthetic static set foo= @-1
           reference: <testLibraryFragment>::@setter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _foo @-1
               type: int
           returnType: void
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       functions
         augment foo @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: void
           augmentationTargetAny: <testLibraryFragment>::@getter::foo
 ----------------------------------------
@@ -2591,24 +2547,22 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       classes
         class foo @21
           reference: <testLibraryFragment>::@class::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
         augment static get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
           id: getter_0
           variable: <null>
@@ -2673,25 +2627,23 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       functions
         foo @20
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: void
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
         augment static get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
           id: getter_0
           variable: <null>
@@ -2755,35 +2707,33 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           id: variable_0
           getter: getter_0
       accessors
         static get foo @23
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
           id: getter_0
           variable: variable_0
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
         augment static get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
           id: getter_1
           variable: variable_0
@@ -2855,20 +2805,18 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
         augment static get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
           id: getter_0
           variable: <null>
@@ -2920,24 +2868,23 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           id: variable_0
           setter: setter_0
       accessors
         static set foo= @19
           reference: <testLibraryFragment>::@setter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _ @27
               type: int
@@ -2945,12 +2892,11 @@ library
           id: setter_0
           variable: variable_0
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
         augment static get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
           id: getter_0
           variable: <null>
@@ -3032,17 +2978,16 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         static foo @19
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_0
@@ -3051,14 +2996,14 @@ library
       accessors
         synthetic static get foo @-1
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
           id: getter_0
           variable: variable_0
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
         synthetic static set foo= @-1
           reference: <testLibraryFragment>::@setter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _foo @-1
               type: int
@@ -3066,12 +3011,11 @@ library
           id: setter_0
           variable: variable_0
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
         augment static get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
           id: getter_1
           variable: variable_0
@@ -3165,28 +3109,26 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       classes
         class foo @21
           reference: <testLibraryFragment>::@class::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::foo::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::foo
+              enclosingElement3: <testLibraryFragment>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
         augment static set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _ @41
               type: int
@@ -3268,34 +3210,32 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           id: variable_0
           getter: getter_0
       accessors
         static get foo @23
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
           id: getter_0
           variable: variable_0
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
         augment static set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _ @41
               type: int
@@ -3379,20 +3319,18 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
         augment static set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _ @41
               type: int
@@ -3453,24 +3391,23 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           id: variable_0
           setter: setter_0
       accessors
         static set foo= @19
           reference: <testLibraryFragment>::@setter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _ @27
               type: int
@@ -3479,12 +3416,11 @@ library
           variable: variable_0
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
         augment static set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _ @41
               type: int
@@ -3570,17 +3506,16 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         static foo @19
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_0
@@ -3589,13 +3524,13 @@ library
       accessors
         synthetic static get foo @-1
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
           id: getter_0
           variable: variable_0
         synthetic static set foo= @-1
           reference: <testLibraryFragment>::@setter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _foo @-1
               type: int
@@ -3604,12 +3539,11 @@ library
           variable: variable_0
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       accessors
         augment static set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _ @41
               type: int
