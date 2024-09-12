@@ -200,6 +200,7 @@ class OSThread : public BaseThread {
   static void SetThreadLocal(ThreadLocalKey key, uword value);
   static intptr_t GetMaxStackSize();
   static void Join(ThreadJoinId id);
+  static void Detach(ThreadJoinId id);
   static intptr_t ThreadIdToIntPtr(ThreadId id);
   static ThreadId ThreadIdFromIntPtr(intptr_t id);
 
@@ -213,6 +214,7 @@ class OSThread : public BaseThread {
   static bool IsThreadInList(ThreadId id);
 
   static void DisableOSThreadCreation();
+  static bool CanCreateOSThreads();
   static void EnableOSThreadCreation();
 
   static constexpr intptr_t kStackSizeBufferMax = (16 * KB * kWordSize);
