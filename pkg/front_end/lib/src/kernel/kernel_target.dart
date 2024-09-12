@@ -353,6 +353,11 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_buildNameSpaces);
+      loader.buildNameSpaces(loader.sourceLibraryBuilders);
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_becomeCoreLibrary);
       loader.coreLibrary.becomeCoreLibrary();
 
@@ -390,6 +395,7 @@ class KernelTarget {
         augmentationLibrary.compilationUnit.createLibrary();
         augmentationLibrary.state = SourceLibraryBuilderState.resolvedParts;
       }
+      loader.buildNameSpaces(augmentationLibraries);
       loader.buildScopes(augmentationLibraries);
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         augmentationLibrary.applyAugmentations();

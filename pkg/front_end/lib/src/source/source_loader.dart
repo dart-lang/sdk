@@ -1516,6 +1516,13 @@ severity: $severity
     ticker.logMs("Applied augmentations");
   }
 
+  void buildNameSpaces(Iterable<SourceLibraryBuilder> sourceLibraryBuilders) {
+    for (SourceLibraryBuilder sourceLibraryBuilder in sourceLibraryBuilders) {
+      sourceLibraryBuilder.buildNameSpace();
+    }
+    ticker.logMs("Built name spaces");
+  }
+
   void buildScopes(Iterable<SourceLibraryBuilder> sourceLibraryBuilders) {
     for (SourceLibraryBuilder sourceLibraryBuilder in sourceLibraryBuilders) {
       sourceLibraryBuilder.buildScopes(coreLibrary);
@@ -1528,9 +1535,8 @@ severity: $severity
     Set<LibraryBuilder> exporters = new Set<LibraryBuilder>();
     Set<LibraryBuilder> exportees = new Set<LibraryBuilder>();
     for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
-        sourceLibrary.buildInitialScopes();
+      if (library is SourceLibraryBuilder) {
+        library.buildInitialScopes();
       }
       if (library.exporters.isNotEmpty) {
         exportees.add(library);
@@ -1568,9 +1574,8 @@ severity: $severity
       }
     } while (wasChanged);
     for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
-        sourceLibrary.addImportsToScope();
+      if (library is SourceLibraryBuilder) {
+        library.addImportsToScope();
       }
     }
     for (LibraryBuilder exportee in exportees) {

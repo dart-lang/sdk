@@ -142,6 +142,9 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// compilation unit itself.
   Uri get originImportUri;
 
+  @override
+  SourceLibraryBuilder get libraryBuilder;
+
   LibraryFeatures get libraryFeatures;
 
   /// Returns `true` if the compilation unit is part of a `dart:` library.
@@ -158,6 +161,8 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   Uri? get partOfUri;
 
   List<MetadataBuilder>? get metadata;
+
+  LookupScope get scope;
 
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications);

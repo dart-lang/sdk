@@ -2809,8 +2809,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   void _addBuilderToLibrary(String name, Builder declaration, int charOffset) {
     assert(_declarationFragments.isEmpty);
-    _libraryNameSpaceBuilder.addBuilder(_parent, _problemReporting, name,
-        declaration, _compilationUnit.fileUri, charOffset);
+    _libraryNameSpaceBuilder.addBuilder(
+        name, declaration, _compilationUnit.fileUri, charOffset);
   }
 
   void _addBuilderToDeclaration(

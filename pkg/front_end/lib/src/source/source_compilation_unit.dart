@@ -80,6 +80,8 @@ class SourceCompilationUnitImpl
   @override
   final bool isUnsupported;
 
+  late final LookupScope _scope;
+
   SourceCompilationUnitImpl(this._sourceLibraryBuilder,
       LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       {required this.importUri,
@@ -101,6 +103,9 @@ class SourceCompilationUnitImpl
         _packageUri = packageUri,
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _importNameSpace = importNameSpace {
+    _scope = new SourceLibraryBuilderScope(
+        this, ScopeKind.typeParameters, 'library');
+
     // TODO(johnniwinther): Create these in [createOutlineBuilder].
     _builderFactoryResult = _builderFactory = new BuilderFactoryImpl(
         compilationUnit: this,
@@ -401,7 +406,8 @@ class SourceCompilationUnitImpl
   @override
   Uri? get partOfUri => _builderFactoryResult.partOfUri;
 
-  LookupScope get _scope => _sourceLibraryBuilder.scope;
+  @override
+  LookupScope get scope => _scope;
 
   NameSpace get _nameSpace => _sourceLibraryBuilder.nameSpace;
 
@@ -568,14 +574,12 @@ class SourceCompilationUnitImpl
 
   void _becomePart(SourceLibraryBuilder libraryBuilder,
       LibraryNameSpaceBuilder libraryNameSpaceBuilder) {
-    libraryNameSpaceBuilder.includeBuilders(
-        libraryBuilder, libraryBuilder, fileUri, _libraryNameSpaceBuilder);
+    libraryNameSpaceBuilder.includeBuilders(_libraryNameSpaceBuilder);
     _libraryName.reference = libraryBuilder.libraryName.reference;
 
     // TODO(johnniwinther): Avoid these. The compilation unit should not have
     // a name space and its import scope should be nested within its parent's
     // import scope.
-    _sourceLibraryBuilder._nameSpace = libraryBuilder.nameSpace;
     _sourceLibraryBuilder._importScope = libraryBuilder.importScope;
 
     // TODO(ahe): Include metadata from part?

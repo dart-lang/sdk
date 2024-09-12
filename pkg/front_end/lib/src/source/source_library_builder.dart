@@ -106,8 +106,17 @@ enum SourceLibraryBuilderState {
   /// Parts never reach this state.
   resolvedParts,
 
+  /// The name space has been built for the library.
+  nameSpaceBuilt,
+
   /// Scopes have been built for the library.
   scopesBuilt,
+
+  /// Initial export scope derived from the name space has been built.
+  initialExportScopesBuilt,
+
+  /// Full export scope has been built.
+  exportScopesBuilt,
 
   /// Type in the outline have been resolved.
   resolvedTypes,
@@ -138,9 +147,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   LookupScope _importScope;
 
-  late final LookupScope _scope;
+  final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
-  NameSpace _nameSpace;
+  NameSpace? _nameSpace;
 
   final NameSpace _exportNameSpace;
 
@@ -273,7 +282,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     importScope = new FixedLookupScope(
         ScopeKind.typeParameters, 'omitted-types',
         getables: omittedTypes, parent: importScope);
-    NameSpace libraryNameSpace = libraryNameSpaceBuilder.toNameSpace();
     NameSpace exportNameSpace = origin?.exportNameSpace ?? new NameSpaceImpl();
     return new SourceLibraryBuilder._(
         loader: loader,
@@ -285,7 +293,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         libraryNameSpaceBuilder: libraryNameSpaceBuilder,
         importNameSpace: importNameSpace,
         importScope: importScope,
-        libraryNameSpace: libraryNameSpace,
         exportNameSpace: exportNameSpace,
         origin: origin,
         library: library,
@@ -310,7 +317,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       required NameSpace importNameSpace,
       required LookupScope importScope,
-      required NameSpace libraryNameSpace,
       required NameSpace exportNameSpace,
       required SourceLibraryBuilder? origin,
       required this.library,
@@ -327,7 +333,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         _immediateOrigin = origin,
         _nameOrigin = nameOrigin,
         _importScope = importScope,
-        _nameSpace = libraryNameSpace,
+        _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _exportNameSpace = exportNameSpace,
         super(fileUri) {
     assert(
@@ -343,8 +349,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // Coverage-ignore(suite): Not run.
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
-    _scope = new SourceLibraryBuilderScope(
-        this, ScopeKind.typeParameters, 'library');
     compilationUnit = new SourceCompilationUnitImpl(
         this, libraryNameSpaceBuilder,
         importUri: importUri,
@@ -474,12 +478,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  LookupScope get scope => _scope;
+  LookupScope get scope => compilationUnit.scope;
 
   LookupScope get importScope => _importScope;
 
   @override
-  NameSpace get nameSpace => _nameSpace;
+  NameSpace get nameSpace {
+    assert(
+        _nameSpace != null, // Coverage-ignore(suite): Not run.
+        "Name space has not being computed for $this.");
+    return _nameSpace!;
+  }
 
   @override
   NameSpace get exportNameSpace => _exportNameSpace;
@@ -736,19 +745,38 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void buildInitialScopes() {
+    assert(checkState(required: [SourceLibraryBuilderState.scopesBuilt]));
+
     NameIterator iterator = nameSpace.filteredNameIterator(
         includeDuplicates: false, includeAugmentations: false);
     UriOffset uriOffset = new UriOffset(fileUri, TreeNode.noOffset);
     while (iterator.moveNext()) {
       addToExportScope(iterator.name, iterator.current, uriOffset: uriOffset);
     }
-  }
 
-  void addImportsToScope() {
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
     if (augmentationLibraries != null) {
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        // Augmentation libraries don't have their own export scope.
+        augmentationLibrary.state =
+            SourceLibraryBuilderState.initialExportScopesBuilt;
+      }
+    }
+
+    state = SourceLibraryBuilderState.initialExportScopesBuilt;
+  }
+
+  void addImportsToScope() {
+    assert(checkState(
+        required: [SourceLibraryBuilderState.initialExportScopesBuilt]));
+
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        // Augmentation libraries don't have their own export scope.
+        // TODO(johnniwinther): Do we need this?
         augmentationLibrary.addImportsToScope();
       }
     }
@@ -822,10 +850,31 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
+
+    state = SourceLibraryBuilderState.exportScopesBuilt;
+  }
+
+  void buildNameSpace() {
+    assert(checkState(required: [SourceLibraryBuilderState.resolvedParts]));
+
+    assert(
+        _nameSpace == null, // Coverage-ignore(suite): Not run.
+        "Name space has already being computed for $this.");
+    _nameSpace = _libraryNameSpaceBuilder.toNameSpace(this, this);
+
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.buildNameSpace();
+      }
+    }
+
+    state = SourceLibraryBuilderState.nameSpaceBuilt;
   }
 
   void buildScopes(LibraryBuilder coreLibrary) {
-    assert(checkState(required: [SourceLibraryBuilderState.resolvedParts]));
+    assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
@@ -855,7 +904,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// Resolves all unresolved types in [unresolvedNamedTypes]. The list of types
   /// is cleared when done.
   int resolveTypes() {
-    assert(checkState(required: [SourceLibraryBuilderState.scopesBuilt]));
+    assert(checkState(required: [SourceLibraryBuilderState.exportScopesBuilt]));
     int typeCount = 0;
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
@@ -1067,6 +1116,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   // Coverage-ignore(suite): Not run.
   void becomeCoreLibrary() {
+    assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
+
     if (nameSpace.lookupLocalMember("dynamic", setter: false) == null) {
       nameSpace.addLocalMember("dynamic",
           new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1),
@@ -2206,7 +2257,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void forEachExtensionInScope(void Function(ExtensionBuilder) f) {
     if (_extensionsInScope == null) {
       _extensionsInScope = <ExtensionBuilder>{};
-      _scope.forEachExtension((e) {
+      scope.forEachExtension((e) {
         _extensionsInScope!.add(e);
       });
       Iterator<PrefixBuilder> iterator = nameSpace.filteredIterator(
