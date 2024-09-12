@@ -1040,9 +1040,13 @@ class FrontendCompiler implements CompilerInterface {
     );
 
     if (_compilerOptions.target!.name == 'dartdevc') {
-      await writeJavaScriptBundle(results, _kernelBinaryFilename,
-          _options['filesystem-scheme'], _options['dartdevc-module-format'],
-          fullComponent: false);
+      try {
+        await writeJavaScriptBundle(results, _kernelBinaryFilename,
+            _options['filesystem-scheme'], _options['dartdevc-module-format'],
+            fullComponent: false);
+      } catch (e) {
+        errors.add(e.toString());
+      }
     } else {
       await writeDillFile(results, _kernelBinaryFilename,
           incrementalSerializer: _generator.incrementalSerializer);
