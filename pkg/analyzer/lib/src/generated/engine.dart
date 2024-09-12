@@ -189,7 +189,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   FeatureSet nonPackageFeatureSet = ExperimentStatus();
 
   @override
-  List<String> enabledPluginNames = const <String>[];
+  List<String> enabledLegacyPluginNames = const <String>[];
 
   /// Return `true` if timing data should be gathered during execution.
   bool enableTiming = false;
@@ -254,7 +254,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   AnalysisOptionsImpl.from(AnalysisOptions options) {
     codeStyleOptions = options.codeStyleOptions;
     contextFeatures = options.contextFeatures;
-    enabledPluginNames = options.enabledPluginNames;
+    enabledLegacyPluginNames = options.enabledLegacyPluginNames;
     errorProcessors = options.errorProcessors;
     excludePatterns = options.excludePatterns;
     lint = options.lint;
@@ -278,6 +278,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _contextFeatures = featureSet as ExperimentStatus;
     nonPackageFeatureSet = featureSet;
   }
+
+  @override
+  @Deprecated("Use 'enabledLegacyPluginNames' instead")
+  List<String> get enabledPluginNames => enabledLegacyPluginNames;
 
   @override
   List<ErrorProcessor> get errorProcessors =>
@@ -353,10 +357,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
         buffer.addString(lintRule.name);
       }
 
-      // Append plugin names.
-      buffer.addInt(enabledPluginNames.length);
-      for (String enabledPluginName in enabledPluginNames) {
-        buffer.addString(enabledPluginName);
+      // Append legacy plugin names.
+      buffer.addInt(enabledLegacyPluginNames.length);
+      for (var enabledLegacyPluginName in enabledLegacyPluginNames) {
+        buffer.addString(enabledLegacyPluginName);
       }
 
       // Hash and convert to Uint32List.

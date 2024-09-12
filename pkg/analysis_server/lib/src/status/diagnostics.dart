@@ -167,7 +167,7 @@ _CollectedOptionsData _collectOptionsData(AnalysisDriver driver) {
   if (driver.analysisContext?.allAnalysisOptions case var allAnalysisOptions?) {
     for (var analysisOptions in allAnalysisOptions) {
       collectedData.lints.addAll(analysisOptions.lintRules.map((e) => e.name));
-      collectedData.plugins.addAll(analysisOptions.enabledPluginNames);
+      collectedData.plugins.addAll(analysisOptions.enabledLegacyPluginNames);
     }
   }
   return collectedData;
