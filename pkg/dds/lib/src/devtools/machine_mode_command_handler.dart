@@ -272,7 +272,7 @@ class MachineModeCommandHandler {
           _devToolsUsage = null;
         }
         break;
-      case apiSetActiveSurvey:
+      case SurveyApi.setActiveSurvey:
         _devToolsUsage!.activeSurvey = value;
         DevToolsUtils.printOutput(
           'DevTools Survey',
@@ -286,7 +286,7 @@ class MachineModeCommandHandler {
           machineMode: machineMode,
         );
         break;
-      case apiGetSurveyActionTaken:
+      case SurveyApi.getSurveyActionTaken:
         DevToolsUtils.printOutput(
           'DevTools Survey',
           {
@@ -299,7 +299,7 @@ class MachineModeCommandHandler {
           machineMode: machineMode,
         );
         break;
-      case apiSetSurveyActionTaken:
+      case SurveyApi.setSurveyActionTaken:
         _devToolsUsage!.surveyActionTaken = jsonDecode(value);
         DevToolsUtils.printOutput(
           'DevTools Survey',
@@ -313,7 +313,7 @@ class MachineModeCommandHandler {
           machineMode: machineMode,
         );
         break;
-      case apiGetSurveyShownCount:
+      case SurveyApi.getSurveyShownCount:
         DevToolsUtils.printOutput(
           'DevTools Survey',
           {
@@ -326,7 +326,7 @@ class MachineModeCommandHandler {
           machineMode: machineMode,
         );
         break;
-      case apiIncrementSurveyShownCount:
+      case SurveyApi.incrementSurveyShownCount:
         _devToolsUsage!.incrementSurveyShownCount();
         DevToolsUtils.printOutput(
           'DevTools Survey',

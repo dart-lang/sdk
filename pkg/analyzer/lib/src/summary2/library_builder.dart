@@ -513,6 +513,7 @@ class LibraryBuilder with MacroApplicationsContainer {
           uri,
           _macroResults.flattenedToList,
         );
+        // TODO(scheglov): Replace when the framework is migrated.
         return code?.replaceAll(
           'augment library ',
           'part of ',
@@ -861,6 +862,7 @@ class LibraryBuilder with MacroApplicationsContainer {
           uri,
           results,
         );
+        // TODO(scheglov): Replace when the framework is migrated.
         return code?.replaceAll(
           'augment library ',
           'part of ',

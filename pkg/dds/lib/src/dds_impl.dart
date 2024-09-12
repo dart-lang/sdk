@@ -10,7 +10,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:devtools_shared/devtools_extensions_io.dart';
-import 'package:devtools_shared/devtools_shared.dart' show DTDConnectionInfo;
+import 'package:devtools_shared/devtools_shared.dart' show DtdInfo;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
@@ -379,10 +379,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
           dds: this,
           buildDir: buildDir,
           notFoundHandler: notFoundHandler,
-          dtd: (
-            uri: _hostedDartToolingDaemon?.uri,
-            secret: _hostedDartToolingDaemon?.secret
-          ),
+          dtd: _hostedDartToolingDaemon,
           devtoolsExtensionsManager: ExtensionsManager(),
         ) as FutureOr<Response> Function(Request);
       }
@@ -512,9 +509,9 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   }
 
   @override
-  DTDConnectionInfo? get hostedDartToolingDaemon => _hostedDartToolingDaemon;
+  DtdInfo? get hostedDartToolingDaemon => _hostedDartToolingDaemon;
 
-  DTDConnectionInfo? _hostedDartToolingDaemon;
+  DtdInfo? _hostedDartToolingDaemon;
 
   final bool _ipv6;
 

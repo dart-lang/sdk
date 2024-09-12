@@ -74,6 +74,13 @@ DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message) {
 DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
                                          Dart_NativeMessageHandler handler,
                                          bool handle_concurrently) {
+  return Dart_NewConcurrentNativePort(name, handler, /*max_concurrency=*/1);
+}
+
+DART_EXPORT Dart_Port
+Dart_NewConcurrentNativePort(const char* name,
+                             Dart_NativeMessageHandler handler,
+                             intptr_t max_concurrency) {
   if (name == nullptr) {
     name = "<UnnamedNativePort>";
   }
@@ -88,15 +95,9 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
   // Start the native port without a current isolate.
   IsolateLeaveScope saver(Isolate::Current());
 
-  NativeMessageHandler* nmh = new NativeMessageHandler(name, handler);
+  NativeMessageHandler* nmh =
+      new NativeMessageHandler(name, handler, max_concurrency);
   Dart_Port port_id = PortMap::CreatePort(nmh);
-  if (port_id != ILLEGAL_PORT) {
-    if (!nmh->Run(Dart::thread_pool(), nullptr, nullptr, 0)) {
-      PortMap::ClosePort(port_id);
-      nmh->RequestDeletion();
-      port_id = ILLEGAL_PORT;
-    }
-  }
   Dart::ResetActiveApiCall();
   return port_id;
 }
@@ -105,10 +106,11 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
   // Close the native port without a current isolate.
   IsolateLeaveScope saver(Isolate::Current());
 
-  MessageHandler* handler = nullptr;
+  PortHandler* handler = nullptr;
   const bool was_closed = PortMap::ClosePort(native_port_id, &handler);
   if (was_closed) {
-    handler->RequestDeletion();
+    NativeMessageHandler::RequestDeletion(
+        static_cast<NativeMessageHandler*>(handler));
   }
   return was_closed;
 }

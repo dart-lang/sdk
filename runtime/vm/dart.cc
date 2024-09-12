@@ -702,6 +702,7 @@ char* Dart::Cleanup() {
                  UptimeMillis());
   }
   DartInitializationState::SetUnInitialized();
+  PortMap::Shutdown();
   thread_pool_->Shutdown();
   delete thread_pool_;
   thread_pool_ = nullptr;

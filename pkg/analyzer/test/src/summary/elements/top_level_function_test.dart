@@ -49,11 +49,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         dart:async
       functions
         f @28
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -91,11 +93,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         dart:async
       functions
         f @28
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -128,9 +132,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @60
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           documentationComment: /**\n * Docs\n */
   functions
     f
@@ -159,9 +165,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         main @0
           reference: <testLibraryFragment>::@function::main
+          element: <none>
   functions
     main
       reference: <none>
@@ -192,6 +200,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -222,6 +231,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -259,12 +269,15 @@ library
   name: my.lib
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       functions
         main @16
           reference: <testLibrary>::@fragment::package:test/a.dart::@function::main
+          element: <none>
   functions
     main
       reference: <none>
@@ -291,9 +304,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @9
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     external f
       reference: <none>
@@ -341,11 +356,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             x @13
+              element: <none>
   functions
     f
       reference: <none>
@@ -382,11 +400,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             this.a @16
+              element: <none>
   functions
     f
       reference: <none>
@@ -428,12 +449,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             default this.a @17
               reference: <testLibraryFragment>::@function::f::@parameter::a
+              element: <none>
   functions
     f
       reference: <none>
@@ -473,11 +497,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             this.a @16
+              element: <none>
   functions
     f
       reference: <none>
@@ -515,11 +542,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             x @8
+              element: <none>
   functions
     f
       reference: <none>
@@ -554,12 +584,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             default x @3
               reference: <testLibraryFragment>::@function::f::@parameter::x
+              element: <none>
   functions
     f
       reference: <none>
@@ -593,11 +626,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             default x @3
+              element: <none>
   functions
     f
       reference: <none>
@@ -631,11 +667,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             x @2
+              element: <none>
   functions
     f
       reference: <none>
@@ -674,11 +713,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             g @2
+              element: <none>
   functions
     f
       reference: <none>
@@ -719,11 +761,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             g @6
+              element: <none>
   functions
     f
       reference: <none>
@@ -757,11 +802,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             g @7
+              element: <none>
   functions
     f
       reference: <none>
@@ -795,11 +843,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             i @6
+              element: <none>
   functions
     f
       reference: <none>
@@ -838,13 +889,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           typeParameters
             T @7
+              element: <none>
           parameters
             a @12
+              element: <none>
   functions
     f
       reference: <none>
@@ -882,11 +937,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             a @9
+              element: <none>
   functions
     f
       reference: <none>
@@ -922,12 +980,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             x @2
+              element: <none>
             y @5
+              element: <none>
   functions
     f
       reference: <none>
@@ -961,9 +1023,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -992,9 +1056,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @2
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -1021,9 +1087,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -1052,9 +1120,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @4
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -1086,11 +1156,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @2
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           typeParameters
             T @4
+              element: <none>
   functions
     f
       reference: <none>
@@ -1130,14 +1203,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           typeParameters
             T @7
+              element: <none>
             U @10
+              element: <none>
           parameters
             x @15
+              element: <none>
   functions
     f
       reference: <none>
@@ -1189,11 +1267,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           typeParameters
             T @7
+              element: <none>
   functions
     f
       reference: <none>
@@ -1228,11 +1309,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           typeParameters
             T @7
+              element: <none>
   functions
     f
       reference: <none>
@@ -1265,11 +1349,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
+          element: <none>
         g @7
           reference: <testLibraryFragment>::@function::g
+          element: <none>
   functions
     f
       reference: <none>
@@ -1302,12 +1389,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class main @6
           reference: <testLibraryFragment>::@class::main
+          element: <testLibraryFragment>::@class::main
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::main::@constructor::new
+              element: <none>
   classes
     class main
       reference: <testLibraryFragment>::@class::main
@@ -1367,12 +1457,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class main @6
           reference: <testLibraryFragment>::@class::main
+          element: <testLibraryFragment>::@class::main
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::main::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -1383,14 +1476,18 @@ library
               superConstructor: <testLibraryFragment>::@class::C::@constructor::new
         class C @29
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
         class D @40
           reference: <testLibraryFragment>::@class::D
+          element: <testLibraryFragment>::@class::D
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+              element: <none>
   classes
     class alias main
       reference: <testLibraryFragment>::@class::main
@@ -1442,6 +1539,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -1468,6 +1566,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -1495,13 +1594,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         synthetic main @-1
           reference: <testLibraryFragment>::@topLevelVariable::main
+          element: <none>
           getter2: <testLibraryFragment>::@getter::main
       getters
         get main @4
           reference: <testLibraryFragment>::@getter::main
+          element: <none>
   topLevelVariables
     synthetic main
       reference: <none>
@@ -1538,6 +1640,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -1561,9 +1664,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         main @8
           reference: <testLibraryFragment>::@typeAlias::main
+          element: <none>
   typeAliases
     main
       reference: <none>
@@ -1594,6 +1699,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -1628,19 +1734,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         main @4
           reference: <testLibraryFragment>::@topLevelVariable::main
+          element: <none>
           getter2: <testLibraryFragment>::@getter::main
           setter2: <testLibraryFragment>::@setter::main
       getters
         get main @-1
           reference: <testLibraryFragment>::@getter::main
+          element: <none>
       setters
         set main= @-1
           reference: <testLibraryFragment>::@setter::main
+          element: <none>
           parameters
             _main @-1
+              element: <none>
   topLevelVariables
     main
       reference: <none>
@@ -1686,6 +1797,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 }
@@ -1846,45 +1958,59 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a1.dart
       functions
         foo @37
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
     <testLibrary>::@fragment::package:test/a1.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
       functions
         foo @68
           reference: <testLibrary>::@fragment::package:test/a1.dart::@functionAugmentation::foo
+          element: <none>
     <testLibrary>::@fragment::package:test/a11.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a1.dart
       nextFragment: <testLibrary>::@fragment::package:test/a12.dart
       functions
         foo @32
           reference: <testLibrary>::@fragment::package:test/a11.dart::@functionAugmentation::foo
+          element: <none>
     <testLibrary>::@fragment::package:test/a12.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a11.dart
       nextFragment: <testLibrary>::@fragment::package:test/a2.dart
       functions
         foo @32
           reference: <testLibrary>::@fragment::package:test/a12.dart::@functionAugmentation::foo
+          element: <none>
     <testLibrary>::@fragment::package:test/a2.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/a21.dart
       functions
         foo @68
           reference: <testLibrary>::@fragment::package:test/a2.dart::@functionAugmentation::foo
+          element: <none>
     <testLibrary>::@fragment::package:test/a21.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a2.dart
       nextFragment: <testLibrary>::@fragment::package:test/a22.dart
       functions
         foo @32
           reference: <testLibrary>::@fragment::package:test/a21.dart::@functionAugmentation::foo
+          element: <none>
     <testLibrary>::@fragment::package:test/a22.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a21.dart
       functions
         foo @32
           reference: <testLibrary>::@fragment::package:test/a22.dart::@functionAugmentation::foo
+          element: <none>
   functions
     foo
       reference: <none>
@@ -1960,18 +2086,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class foo @22
           reference: <testLibraryFragment>::@class::foo
+          element: <testLibraryFragment>::@class::foo
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::foo::@constructor::new
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       functions
         foo @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
+          element: <none>
   classes
     class foo
       reference: <testLibraryFragment>::@class::foo
@@ -2038,15 +2169,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       functions
         foo @20
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       functions
         foo @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
+          element: <none>
   functions
     foo
       reference: <none>
@@ -2111,14 +2246,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       functions
         foo @26
           reference: <testLibrary>::@fragment::package:test/a.dart::@function::foo
+          element: <none>
         foo @48
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
+          element: <none>
   functions
     foo
       reference: <none>
@@ -2185,19 +2324,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
           getter2: <testLibraryFragment>::@getter::foo
       getters
         get foo @24
           reference: <testLibraryFragment>::@getter::foo
+          element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       functions
         foo @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
+          element: <none>
   topLevelVariables
     synthetic foo
       reference: <none>
@@ -2270,21 +2414,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
           setter2: <testLibraryFragment>::@setter::foo
       setters
         set foo= @20
           reference: <testLibraryFragment>::@setter::foo
+          element: <none>
           parameters
             _ @28
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       functions
         foo @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
+          element: <none>
   topLevelVariables
     synthetic foo
       reference: <none>
@@ -2366,25 +2516,32 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         foo @20
           reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
         get foo @-1
           reference: <testLibraryFragment>::@getter::foo
+          element: <none>
       setters
         set foo= @-1
           reference: <testLibraryFragment>::@setter::foo
+          element: <none>
           parameters
             _foo @-1
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       functions
         foo @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
+          element: <none>
   topLevelVariables
     foo
       reference: <none>
@@ -2465,15 +2622,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class foo @21
           reference: <testLibraryFragment>::@class::foo
+          element: <testLibraryFragment>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       getters
         augment get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
+          element: <none>
   classes
     class foo
       reference: <testLibraryFragment>::@class::foo
@@ -2544,15 +2705,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       functions
         foo @20
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       getters
         augment get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
+          element: <none>
   getters
     static get foo
       reference: <none>
@@ -2632,20 +2797,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
           getter2: <testLibraryFragment>::@getter::foo
       getters
         get foo @23
           reference: <testLibraryFragment>::@getter::foo
+          element: <none>
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       getters
         augment get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
+          element: <none>
           previousFragment: <testLibraryFragment>::@getter::foo
   topLevelVariables
     synthetic foo
@@ -2709,12 +2879,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       getters
         augment get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
+          element: <none>
   getters
     static get foo
       reference: <none>
@@ -2791,21 +2964,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
           setter2: <testLibraryFragment>::@setter::foo
       setters
         set foo= @19
           reference: <testLibraryFragment>::@setter::foo
+          element: <none>
           parameters
             _ @27
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       getters
         augment get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
+          element: <none>
   topLevelVariables
     synthetic foo
       reference: <none>
@@ -2908,26 +3087,33 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         foo @19
           reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
         get foo @-1
           reference: <testLibraryFragment>::@getter::foo
+          element: <none>
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
       setters
         set foo= @-1
           reference: <testLibraryFragment>::@setter::foo
+          element: <none>
           parameters
             _foo @-1
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       getters
         augment get foo @37
           reference: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
+          element: <none>
           previousFragment: <testLibraryFragment>::@getter::foo
   topLevelVariables
     foo
@@ -3017,20 +3203,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class foo @21
           reference: <testLibraryFragment>::@class::foo
+          element: <testLibraryFragment>::@class::foo
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::foo::@constructor::new
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       setters
         augment set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
+          element: <none>
           parameters
             _ @41
+              element: <none>
   classes
     class foo
       reference: <testLibraryFragment>::@class::foo
@@ -3120,21 +3312,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
           getter2: <testLibraryFragment>::@getter::foo
       getters
         get foo @23
           reference: <testLibraryFragment>::@getter::foo
+          element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       setters
         augment set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
+          element: <none>
           parameters
             _ @41
+              element: <none>
   topLevelVariables
     synthetic foo
       reference: <none>
@@ -3208,14 +3406,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       setters
         augment set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
+          element: <none>
           parameters
             _ @41
+              element: <none>
   setters
     static set foo=
       reference: <none>
@@ -3299,24 +3501,31 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
           setter2: <testLibraryFragment>::@setter::foo
       setters
         set foo= @19
           reference: <testLibraryFragment>::@setter::foo
+          element: <none>
           parameters
             _ @27
+              element: <none>
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       setters
         augment set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
+          element: <none>
           parameters
             _ @41
+              element: <none>
           previousFragment: <testLibraryFragment>::@setter::foo
   topLevelVariables
     synthetic foo
@@ -3419,28 +3628,36 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         foo @19
           reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
         get foo @-1
           reference: <testLibraryFragment>::@getter::foo
+          element: <none>
       setters
         set foo= @-1
           reference: <testLibraryFragment>::@setter::foo
+          element: <none>
           parameters
             _foo @-1
+              element: <none>
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       setters
         augment set foo= @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
+          element: <none>
           parameters
             _ @41
+              element: <none>
           previousFragment: <testLibraryFragment>::@setter::foo
   topLevelVariables
     foo

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'common/test_helper.dart';
 import 'get_supported_protocols_common.dart';
 
@@ -13,9 +11,6 @@ final tests = <VMTest>[
       'VM Service',
       'DDS',
     ],
-    // See https://github.com/dart-lang/sdk/issues/54841
-    expectMissingProtocol:
-        Platform.script.toString().endsWith('out.aotsnapshot'),
   ),
 ];
 

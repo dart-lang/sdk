@@ -158,37 +158,50 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class Raw @6
           reference: <testLibraryFragment>::@class::Raw
+          element: <testLibraryFragment>::@class::Raw
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::Raw::@constructor::new
+              element: <none>
         class HasDocComment @50
           reference: <testLibraryFragment>::@class::HasDocComment
+          element: <testLibraryFragment>::@class::HasDocComment
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::HasDocComment::@constructor::new
+              element: <none>
         class HasAnnotation @84
           reference: <testLibraryFragment>::@class::HasAnnotation
+          element: <testLibraryFragment>::@class::HasAnnotation
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
+              element: <none>
         class AnnotationThenComment @148
           reference: <testLibraryFragment>::@class::AnnotationThenComment
+          element: <testLibraryFragment>::@class::AnnotationThenComment
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
+              element: <none>
         class CommentThenAnnotation @220
           reference: <testLibraryFragment>::@class::CommentThenAnnotation
+          element: <testLibraryFragment>::@class::CommentThenAnnotation
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
+              element: <none>
         class CommentAroundAnnotation @292
           reference: <testLibraryFragment>::@class::CommentAroundAnnotation
+          element: <testLibraryFragment>::@class::CommentAroundAnnotation
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
+              element: <none>
   classes
     class Raw
       reference: <testLibraryFragment>::@class::Raw
@@ -481,22 +494,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @18
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class Raw @30
           reference: <testLibraryFragment>::@class::Raw
+          element: <testLibraryFragment>::@class::Raw
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::Raw::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -506,9 +526,11 @@ library
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
         class HasDocComment @91
           reference: <testLibraryFragment>::@class::HasDocComment
+          element: <testLibraryFragment>::@class::HasDocComment
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::HasDocComment::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -518,9 +540,11 @@ library
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
         class HasAnnotation @142
           reference: <testLibraryFragment>::@class::HasAnnotation
+          element: <testLibraryFragment>::@class::HasAnnotation
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -530,9 +554,11 @@ library
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
         class AnnotationThenComment @223
           reference: <testLibraryFragment>::@class::AnnotationThenComment
+          element: <testLibraryFragment>::@class::AnnotationThenComment
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -542,9 +568,11 @@ library
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
         class CommentThenAnnotation @312
           reference: <testLibraryFragment>::@class::CommentThenAnnotation
+          element: <testLibraryFragment>::@class::CommentThenAnnotation
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -554,9 +582,11 @@ library
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
         class CommentAroundAnnotation @401
           reference: <testLibraryFragment>::@class::CommentAroundAnnotation
+          element: <testLibraryFragment>::@class::CommentAroundAnnotation
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -795,22 +825,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             new @12
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
               codeOffset: 12
               codeLength: 4
             raw @22
               reference: <testLibraryFragment>::@class::C::@constructor::raw
+              element: <none>
               codeOffset: 20
               codeLength: 10
               periodOffset: 21
               nameEnd: 25
             hasDocComment @70
               reference: <testLibraryFragment>::@class::C::@constructor::hasDocComment
+              element: <none>
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 34
               codeLength: 54
@@ -818,6 +853,7 @@ library
               nameEnd: 83
             hasAnnotation @106
               reference: <testLibraryFragment>::@class::C::@constructor::hasAnnotation
+              element: <none>
               metadata
                 Annotation
                   atSign: @ @92
@@ -835,6 +871,7 @@ library
               nameEnd: 119
             annotationThenComment @176
               reference: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
+              element: <none>
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -853,6 +890,7 @@ library
               nameEnd: 197
             commentThenAnnotation @254
               reference: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
+              element: <none>
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -871,6 +909,7 @@ library
               nameEnd: 275
             commentAroundAnnotation @332
               reference: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
+              element: <none>
               documentationComment: /// Comment 2.
               metadata
                 Annotation
@@ -1111,22 +1150,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             factory new @20
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
               codeOffset: 12
               codeLength: 23
             factory raw @49
               reference: <testLibraryFragment>::@class::C::@constructor::raw
+              element: <none>
               codeOffset: 39
               codeLength: 27
               periodOffset: 48
               nameEnd: 52
             factory hasDocComment @114
               reference: <testLibraryFragment>::@class::C::@constructor::hasDocComment
+              element: <none>
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 70
               codeLength: 71
@@ -1134,6 +1178,7 @@ library
               nameEnd: 127
             factory hasAnnotation @167
               reference: <testLibraryFragment>::@class::C::@constructor::hasAnnotation
+              element: <none>
               metadata
                 Annotation
                   atSign: @ @145
@@ -1151,6 +1196,7 @@ library
               nameEnd: 180
             factory annotationThenComment @254
               reference: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
+              element: <none>
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -1169,6 +1215,7 @@ library
               nameEnd: 275
             factory commentThenAnnotation @349
               reference: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
+              element: <none>
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -1187,6 +1234,7 @@ library
               nameEnd: 370
             factory commentAroundAnnotation @444
               reference: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
+              element: <none>
               documentationComment: /// Comment 2.
               metadata
                 Annotation
@@ -1418,25 +1466,34 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       extensions
         extension Raw @22
           reference: <testLibraryFragment>::@extension::Raw
+          element: <testLibraryFragment>::@extension::Raw
         extension HasDocComment @75
           reference: <testLibraryFragment>::@extension::HasDocComment
+          element: <testLibraryFragment>::@extension::HasDocComment
         extension HasAnnotation @118
           reference: <testLibraryFragment>::@extension::HasAnnotation
+          element: <testLibraryFragment>::@extension::HasAnnotation
         extension AnnotationThenComment @191
           reference: <testLibraryFragment>::@extension::AnnotationThenComment
+          element: <testLibraryFragment>::@extension::AnnotationThenComment
         extension CommentThenAnnotation @272
           reference: <testLibraryFragment>::@extension::CommentThenAnnotation
+          element: <testLibraryFragment>::@extension::CommentThenAnnotation
         extension CommentAroundAnnotation @353
           reference: <testLibraryFragment>::@extension::CommentAroundAnnotation
+          element: <testLibraryFragment>::@extension::CommentAroundAnnotation
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1608,65 +1665,88 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           fields
             withInit @16
               reference: <testLibraryFragment>::@class::C::@field::withInit
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::withInit
               setter2: <testLibraryFragment>::@class::C::@setter::withInit
             withoutInit @37
               reference: <testLibraryFragment>::@class::C::@field::withoutInit
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::withoutInit
               setter2: <testLibraryFragment>::@class::C::@setter::withoutInit
             multiWithInit @57
               reference: <testLibraryFragment>::@class::C::@field::multiWithInit
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithInit
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithInit
             multiWithoutInit @76
               reference: <testLibraryFragment>::@class::C::@field::multiWithoutInit
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithoutInit
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
             multiWithInit2 @94
               reference: <testLibraryFragment>::@class::C::@field::multiWithInit2
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithInit2
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithInit2
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
           getters
             get withInit @-1
               reference: <testLibraryFragment>::@class::C::@getter::withInit
+              element: <none>
             get withoutInit @-1
               reference: <testLibraryFragment>::@class::C::@getter::withoutInit
+              element: <none>
             get multiWithInit @-1
               reference: <testLibraryFragment>::@class::C::@getter::multiWithInit
+              element: <none>
             get multiWithoutInit @-1
               reference: <testLibraryFragment>::@class::C::@getter::multiWithoutInit
+              element: <none>
             get multiWithInit2 @-1
               reference: <testLibraryFragment>::@class::C::@getter::multiWithInit2
+              element: <none>
           setters
             set withInit= @-1
               reference: <testLibraryFragment>::@class::C::@setter::withInit
+              element: <none>
               parameters
                 _withInit @-1
+                  element: <none>
             set withoutInit= @-1
               reference: <testLibraryFragment>::@class::C::@setter::withoutInit
+              element: <none>
               parameters
                 _withoutInit @-1
+                  element: <none>
             set multiWithInit= @-1
               reference: <testLibraryFragment>::@class::C::@setter::multiWithInit
+              element: <none>
               parameters
                 _multiWithInit @-1
+                  element: <none>
             set multiWithoutInit= @-1
               reference: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
+              element: <none>
               parameters
                 _multiWithoutInit @-1
+                  element: <none>
             set multiWithInit2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::multiWithInit2
+              element: <none>
               parameters
                 _multiWithInit2 @-1
+                  element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2080,115 +2160,158 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           fields
             hasDocComment @50
               reference: <testLibraryFragment>::@class::C::@field::hasDocComment
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::hasDocComment
               setter2: <testLibraryFragment>::@class::C::@setter::hasDocComment
             hasDocComment2 @65
               reference: <testLibraryFragment>::@class::C::@field::hasDocComment2
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::hasDocComment2
               setter2: <testLibraryFragment>::@class::C::@setter::hasDocComment2
             hasAnnotation @100
               reference: <testLibraryFragment>::@class::C::@field::hasAnnotation
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::hasAnnotation
               setter2: <testLibraryFragment>::@class::C::@setter::hasAnnotation
             hasAnnotation2 @115
               reference: <testLibraryFragment>::@class::C::@field::hasAnnotation2
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::hasAnnotation2
               setter2: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
             annotationThenComment @184
               reference: <testLibraryFragment>::@class::C::@field::annotationThenComment
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::annotationThenComment
               setter2: <testLibraryFragment>::@class::C::@setter::annotationThenComment
             annotationThenComment2 @207
               reference: <testLibraryFragment>::@class::C::@field::annotationThenComment2
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::annotationThenComment2
               setter2: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
             commentThenAnnotation @284
               reference: <testLibraryFragment>::@class::C::@field::commentThenAnnotation
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation
               setter2: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
             commentThenAnnotation2 @307
               reference: <testLibraryFragment>::@class::C::@field::commentThenAnnotation2
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation2
               setter2: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
             commentAroundAnnotation @384
               reference: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation
               setter2: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
             commentAroundAnnotation2 @409
               reference: <testLibraryFragment>::@class::C::@field::commentAroundAnnotation2
+              element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2
               setter2: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
           getters
             get hasDocComment @-1
               reference: <testLibraryFragment>::@class::C::@getter::hasDocComment
+              element: <none>
             get hasDocComment2 @-1
               reference: <testLibraryFragment>::@class::C::@getter::hasDocComment2
+              element: <none>
             get hasAnnotation @-1
               reference: <testLibraryFragment>::@class::C::@getter::hasAnnotation
+              element: <none>
             get hasAnnotation2 @-1
               reference: <testLibraryFragment>::@class::C::@getter::hasAnnotation2
+              element: <none>
             get annotationThenComment @-1
               reference: <testLibraryFragment>::@class::C::@getter::annotationThenComment
+              element: <none>
             get annotationThenComment2 @-1
               reference: <testLibraryFragment>::@class::C::@getter::annotationThenComment2
+              element: <none>
             get commentThenAnnotation @-1
               reference: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation
+              element: <none>
             get commentThenAnnotation2 @-1
               reference: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation2
+              element: <none>
             get commentAroundAnnotation @-1
               reference: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation
+              element: <none>
             get commentAroundAnnotation2 @-1
               reference: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2
+              element: <none>
           setters
             set hasDocComment= @-1
               reference: <testLibraryFragment>::@class::C::@setter::hasDocComment
+              element: <none>
               parameters
                 _hasDocComment @-1
+                  element: <none>
             set hasDocComment2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::hasDocComment2
+              element: <none>
               parameters
                 _hasDocComment2 @-1
+                  element: <none>
             set hasAnnotation= @-1
               reference: <testLibraryFragment>::@class::C::@setter::hasAnnotation
+              element: <none>
               parameters
                 _hasAnnotation @-1
+                  element: <none>
             set hasAnnotation2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
+              element: <none>
               parameters
                 _hasAnnotation2 @-1
+                  element: <none>
             set annotationThenComment= @-1
               reference: <testLibraryFragment>::@class::C::@setter::annotationThenComment
+              element: <none>
               parameters
                 _annotationThenComment @-1
+                  element: <none>
             set annotationThenComment2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
+              element: <none>
               parameters
                 _annotationThenComment2 @-1
+                  element: <none>
             set commentThenAnnotation= @-1
               reference: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
+              element: <none>
               parameters
                 _commentThenAnnotation @-1
+                  element: <none>
             set commentThenAnnotation2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
+              element: <none>
               parameters
                 _commentThenAnnotation2 @-1
+                  element: <none>
             set commentAroundAnnotation= @-1
               reference: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
+              element: <none>
               parameters
                 _commentAroundAnnotation @-1
+                  element: <none>
             set commentAroundAnnotation2= @-1
               reference: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
+              element: <none>
               parameters
                 _commentAroundAnnotation2 @-1
+                  element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -2489,14 +2612,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         raw @5
           reference: <testLibraryFragment>::@function::raw
+          element: <none>
         hasDocComment @50
           reference: <testLibraryFragment>::@function::hasDocComment
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
         hasAnnotation @85
           reference: <testLibraryFragment>::@function::hasAnnotation
+          element: <none>
           metadata
             Annotation
               atSign: @ @70
@@ -2510,6 +2637,7 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
         annotationThenComment @150
           reference: <testLibraryFragment>::@function::annotationThenComment
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -2524,6 +2652,7 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
         commentThenAnnotation @223
           reference: <testLibraryFragment>::@function::commentThenAnnotation
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -2538,6 +2667,7 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
         commentAroundAnnotation @296
           reference: <testLibraryFragment>::@function::commentAroundAnnotation
+          element: <none>
           documentationComment: /// Comment 2.
           metadata
             Annotation
@@ -2756,24 +2886,30 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
           methods
             raw @17
               reference: <testLibraryFragment>::@class::C::@method::raw
+              element: <none>
               codeOffset: 12
               codeLength: 13
             hasDocComment @68
               reference: <testLibraryFragment>::@class::C::@method::hasDocComment
+              element: <none>
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 29
               codeLength: 57
             hasAnnotation @107
               reference: <testLibraryFragment>::@class::C::@method::hasAnnotation
+              element: <none>
               metadata
                 Annotation
                   atSign: @ @90
@@ -2789,6 +2925,7 @@ library
               codeLength: 35
             annotationThenComment @180
               reference: <testLibraryFragment>::@class::C::@method::annotationThenComment
+              element: <none>
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -2805,6 +2942,7 @@ library
               codeLength: 77
             commentThenAnnotation @261
               reference: <testLibraryFragment>::@class::C::@method::commentThenAnnotation
+              element: <none>
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
@@ -2821,6 +2959,7 @@ library
               codeLength: 77
             commentAroundAnnotation @342
               reference: <testLibraryFragment>::@class::C::@method::commentAroundAnnotation
+              element: <none>
               documentationComment: /// Comment 2.
               metadata
                 Annotation
@@ -2963,16 +3102,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         main @0
           reference: <testLibraryFragment>::@function::main
+          element: <none>
           parameters
             default a @10
               reference: <testLibraryFragment>::@function::main::@parameter::a
+              element: <none>
             default b @21
               reference: <testLibraryFragment>::@function::main::@parameter::b
+              element: <none>
             default c @28
               reference: <testLibraryFragment>::@function::main::@parameter::c
+              element: <none>
   functions
     main
       reference: <none>
@@ -3049,11 +3193,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         main @0
           reference: <testLibraryFragment>::@function::main
+          element: <none>
           parameters
             a @19
+              element: <none>
               metadata
                 Annotation
                   atSign: @ @5
@@ -3066,7 +3213,9 @@ library
                     rightParenthesis: ) @13
                   element: dart:core::<fragment>::@class::Object::@constructor::new
             b @26
+              element: <none>
             c @43
+              element: <none>
               metadata
                 Annotation
                   atSign: @ @29
@@ -3228,59 +3377,80 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         withInit @4
           reference: <testLibraryFragment>::@topLevelVariable::withInit
+          element: <none>
           getter2: <testLibraryFragment>::@getter::withInit
           setter2: <testLibraryFragment>::@setter::withInit
         withoutInit @31
           reference: <testLibraryFragment>::@topLevelVariable::withoutInit
+          element: <none>
           getter2: <testLibraryFragment>::@getter::withoutInit
           setter2: <testLibraryFragment>::@setter::withoutInit
         multiWithInit @49
           reference: <testLibraryFragment>::@topLevelVariable::multiWithInit
+          element: <none>
           getter2: <testLibraryFragment>::@getter::multiWithInit
           setter2: <testLibraryFragment>::@setter::multiWithInit
         multiWithoutInit @68
           reference: <testLibraryFragment>::@topLevelVariable::multiWithoutInit
+          element: <none>
           getter2: <testLibraryFragment>::@getter::multiWithoutInit
           setter2: <testLibraryFragment>::@setter::multiWithoutInit
         multiWithInit2 @86
           reference: <testLibraryFragment>::@topLevelVariable::multiWithInit2
+          element: <none>
           getter2: <testLibraryFragment>::@getter::multiWithInit2
           setter2: <testLibraryFragment>::@setter::multiWithInit2
       getters
         get withInit @-1
           reference: <testLibraryFragment>::@getter::withInit
+          element: <none>
         get withoutInit @-1
           reference: <testLibraryFragment>::@getter::withoutInit
+          element: <none>
         get multiWithInit @-1
           reference: <testLibraryFragment>::@getter::multiWithInit
+          element: <none>
         get multiWithoutInit @-1
           reference: <testLibraryFragment>::@getter::multiWithoutInit
+          element: <none>
         get multiWithInit2 @-1
           reference: <testLibraryFragment>::@getter::multiWithInit2
+          element: <none>
       setters
         set withInit= @-1
           reference: <testLibraryFragment>::@setter::withInit
+          element: <none>
           parameters
             _withInit @-1
+              element: <none>
         set withoutInit= @-1
           reference: <testLibraryFragment>::@setter::withoutInit
+          element: <none>
           parameters
             _withoutInit @-1
+              element: <none>
         set multiWithInit= @-1
           reference: <testLibraryFragment>::@setter::multiWithInit
+          element: <none>
           parameters
             _multiWithInit @-1
+              element: <none>
         set multiWithoutInit= @-1
           reference: <testLibraryFragment>::@setter::multiWithoutInit
+          element: <none>
           parameters
             _multiWithoutInit @-1
+              element: <none>
         set multiWithInit2= @-1
           reference: <testLibraryFragment>::@setter::multiWithInit2
+          element: <none>
           parameters
             _multiWithInit2 @-1
+              element: <none>
   topLevelVariables
     withInit
       reference: <none>
@@ -3672,19 +3842,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         hasDocComment @34
           reference: <testLibraryFragment>::@topLevelVariable::hasDocComment
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
           getter2: <testLibraryFragment>::@getter::hasDocComment
           setter2: <testLibraryFragment>::@setter::hasDocComment
         hasDocComment2 @49
           reference: <testLibraryFragment>::@topLevelVariable::hasDocComment2
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
           getter2: <testLibraryFragment>::@getter::hasDocComment2
           setter2: <testLibraryFragment>::@setter::hasDocComment2
         hasAnnotation @80
           reference: <testLibraryFragment>::@topLevelVariable::hasAnnotation
+          element: <none>
           metadata
             Annotation
               atSign: @ @66
@@ -3700,6 +3874,7 @@ library
           setter2: <testLibraryFragment>::@setter::hasAnnotation
         hasAnnotation2 @95
           reference: <testLibraryFragment>::@topLevelVariable::hasAnnotation2
+          element: <none>
           metadata
             Annotation
               atSign: @ @66
@@ -3715,6 +3890,7 @@ library
           setter2: <testLibraryFragment>::@setter::hasAnnotation2
         annotationThenComment @156
           reference: <testLibraryFragment>::@topLevelVariable::annotationThenComment
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -3731,6 +3907,7 @@ library
           setter2: <testLibraryFragment>::@setter::annotationThenComment
         annotationThenComment2 @179
           reference: <testLibraryFragment>::@topLevelVariable::annotationThenComment2
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -3747,6 +3924,7 @@ library
           setter2: <testLibraryFragment>::@setter::annotationThenComment2
         commentThenAnnotation @248
           reference: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -3763,6 +3941,7 @@ library
           setter2: <testLibraryFragment>::@setter::commentThenAnnotation
         commentThenAnnotation2 @271
           reference: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation2
+          element: <none>
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -3779,6 +3958,7 @@ library
           setter2: <testLibraryFragment>::@setter::commentThenAnnotation2
         commentAroundAnnotation @340
           reference: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation
+          element: <none>
           documentationComment: /// Comment 2.
           metadata
             Annotation
@@ -3795,6 +3975,7 @@ library
           setter2: <testLibraryFragment>::@setter::commentAroundAnnotation
         commentAroundAnnotation2 @365
           reference: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation2
+          element: <none>
           documentationComment: /// Comment 2.
           metadata
             Annotation
@@ -3812,65 +3993,95 @@ library
       getters
         get hasDocComment @-1
           reference: <testLibraryFragment>::@getter::hasDocComment
+          element: <none>
         get hasDocComment2 @-1
           reference: <testLibraryFragment>::@getter::hasDocComment2
+          element: <none>
         get hasAnnotation @-1
           reference: <testLibraryFragment>::@getter::hasAnnotation
+          element: <none>
         get hasAnnotation2 @-1
           reference: <testLibraryFragment>::@getter::hasAnnotation2
+          element: <none>
         get annotationThenComment @-1
           reference: <testLibraryFragment>::@getter::annotationThenComment
+          element: <none>
         get annotationThenComment2 @-1
           reference: <testLibraryFragment>::@getter::annotationThenComment2
+          element: <none>
         get commentThenAnnotation @-1
           reference: <testLibraryFragment>::@getter::commentThenAnnotation
+          element: <none>
         get commentThenAnnotation2 @-1
           reference: <testLibraryFragment>::@getter::commentThenAnnotation2
+          element: <none>
         get commentAroundAnnotation @-1
           reference: <testLibraryFragment>::@getter::commentAroundAnnotation
+          element: <none>
         get commentAroundAnnotation2 @-1
           reference: <testLibraryFragment>::@getter::commentAroundAnnotation2
+          element: <none>
       setters
         set hasDocComment= @-1
           reference: <testLibraryFragment>::@setter::hasDocComment
+          element: <none>
           parameters
             _hasDocComment @-1
+              element: <none>
         set hasDocComment2= @-1
           reference: <testLibraryFragment>::@setter::hasDocComment2
+          element: <none>
           parameters
             _hasDocComment2 @-1
+              element: <none>
         set hasAnnotation= @-1
           reference: <testLibraryFragment>::@setter::hasAnnotation
+          element: <none>
           parameters
             _hasAnnotation @-1
+              element: <none>
         set hasAnnotation2= @-1
           reference: <testLibraryFragment>::@setter::hasAnnotation2
+          element: <none>
           parameters
             _hasAnnotation2 @-1
+              element: <none>
         set annotationThenComment= @-1
           reference: <testLibraryFragment>::@setter::annotationThenComment
+          element: <none>
           parameters
             _annotationThenComment @-1
+              element: <none>
         set annotationThenComment2= @-1
           reference: <testLibraryFragment>::@setter::annotationThenComment2
+          element: <none>
           parameters
             _annotationThenComment2 @-1
+              element: <none>
         set commentThenAnnotation= @-1
           reference: <testLibraryFragment>::@setter::commentThenAnnotation
+          element: <none>
           parameters
             _commentThenAnnotation @-1
+              element: <none>
         set commentThenAnnotation2= @-1
           reference: <testLibraryFragment>::@setter::commentThenAnnotation2
+          element: <none>
           parameters
             _commentThenAnnotation2 @-1
+              element: <none>
         set commentAroundAnnotation= @-1
           reference: <testLibraryFragment>::@setter::commentAroundAnnotation
+          element: <none>
           parameters
             _commentAroundAnnotation @-1
+              element: <none>
         set commentAroundAnnotation2= @-1
           reference: <testLibraryFragment>::@setter::commentAroundAnnotation2
+          element: <none>
           parameters
             _commentAroundAnnotation2 @-1
+              element: <none>
   topLevelVariables
     hasDocComment
       reference: <none>
@@ -4083,19 +4294,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       functions
         f @19
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           typeParameters
             U @21
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4154,14 +4371,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             new @12
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
             named @21
               reference: <testLibraryFragment>::@class::A::@constructor::named
+              element: <none>
               periodOffset: 20
               nameEnd: 26
   classes
@@ -4207,12 +4428,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             new @12
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
+              parameters
+                a @18
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4272,25 +4499,32 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           fields
             foo @16
               reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::foo
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
+              element: <none>
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4357,19 +4591,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           fields
             foo @-1
               reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
           getters
             get foo @20
               reference: <testLibraryFragment>::@class::A::@getter::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4428,19 +4667,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
           methods
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
               typeParameters
                 T @21
+                  element: <none>
               parameters
                 a @28
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4501,21 +4746,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           fields
             foo @-1
               reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
           setters
             set foo= @16
               reference: <testLibraryFragment>::@class::A::@setter::foo
+              element: <none>
               parameters
                 x @24
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4568,14 +4819,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -4613,11 +4868,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E
+          element: <testLibraryFragment>::@extension::E
           typeParameters
             T @12
+              element: <none>
   extensions
     extension E
       reference: <testLibraryFragment>::@extension::E
@@ -4656,11 +4914,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             f @12
+              element: <none>
   functions
     f
       reference: <none>
@@ -4706,12 +4967,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             default f @22
               reference: <testLibraryFragment>::@function::f::@parameter::f
+              element: <none>
   functions
     f
       reference: <none>
@@ -4751,11 +5015,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           typeParameters
             T @7
+              element: <none>
   functions
     f
       reference: <none>
@@ -4790,11 +5057,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @15
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -4829,11 +5099,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
           typeParameters
             T @10
+              element: <none>
   typeAliases
     F
       reference: <none>
@@ -4868,11 +5141,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           typeParameters
             T @8
+              element: <none>
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -4910,13 +5186,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
           getter2: <testLibraryFragment>::@getter::foo
       getters
         get foo @8
           reference: <testLibraryFragment>::@getter::foo
+          element: <none>
   topLevelVariables
     synthetic foo
       reference: <none>

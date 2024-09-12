@@ -137,7 +137,9 @@ ${argParser.usage}
       if (dds.devToolsUri != null) 'devToolsUri': dds.devToolsUri.toString(),
       if (dtdInfo != null)
         'dtd': {
-          'uri': dtdInfo.uri,
+          // For DDS-hosted DTD, there's only ever a local URI since there
+          // is no mechanism for exposing URIs.
+          'uri': dtdInfo.localUri.toString(),
         },
     }));
   } catch (e, st) {

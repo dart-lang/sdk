@@ -134,63 +134,86 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @17
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class C @28
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
         class D @39
           reference: <testLibraryFragment>::@class::D
+          element: <testLibraryFragment>::@class::D
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+              element: <none>
       mixins
         mixin M @51
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           typeParameters
             T @53
+              element: <none>
             U @68
+              element: <none>
           fields
             f @101
               reference: <testLibraryFragment>::@mixin::M::@field::f
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::M::@getter::f
               setter2: <testLibraryFragment>::@mixin::M::@setter::f
             g @-1
               reference: <testLibraryFragment>::@mixin::M::@field::g
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::M::@getter::g
             s @-1
               reference: <testLibraryFragment>::@mixin::M::@field::s
+              element: <none>
               setter2: <testLibraryFragment>::@mixin::M::@setter::s
           getters
             get f @-1
               reference: <testLibraryFragment>::@mixin::M::@getter::f
+              element: <none>
             get g @112
               reference: <testLibraryFragment>::@mixin::M::@getter::g
+              element: <none>
           setters
             set f= @-1
               reference: <testLibraryFragment>::@mixin::M::@setter::f
+              element: <none>
               parameters
                 _f @-1
+                  element: <none>
             set s= @126
               reference: <testLibraryFragment>::@mixin::M::@setter::s
+              element: <none>
               parameters
                 v @132
+                  element: <none>
           methods
             m @144
               reference: <testLibraryFragment>::@mixin::M::@method::m
+              element: <none>
               parameters
                 v @153
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -303,9 +326,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @11
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
   mixins
     base mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -349,16 +374,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           fields
             x @18
               reference: <testLibraryFragment>::@mixin::M::@field::x
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::M::@getter::x
           getters
             get x @-1
               reference: <testLibraryFragment>::@mixin::M::@getter::x
+              element: <none>
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -426,16 +455,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           fields
             foo @-1
               reference: <testLibraryFragment>::@mixin::M::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             get foo @25
               reference: <testLibraryFragment>::@mixin::M::@getter::foo
+              element: <none>
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -491,16 +524,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           fields
             foo @-1
               reference: <testLibraryFragment>::@mixin::M::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             get foo @25
               reference: <testLibraryFragment>::@mixin::M::@getter::foo
+              element: <none>
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -556,16 +593,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           fields
             foo @-1
               reference: <testLibraryFragment>::@mixin::M::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             get foo @25
               reference: <testLibraryFragment>::@mixin::M::@getter::foo
+              element: <none>
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -607,9 +648,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -670,27 +713,35 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @42
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int}
       mixins
         mixin M @20
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           typeParameters
             U @22
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -794,21 +845,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @20
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           typeParameters
             T @22
+              element: <none>
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -818,9 +876,11 @@ library
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
         class C @51
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -957,28 +1017,38 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A1 @6
           reference: <testLibraryFragment>::@class::A1
+          element: <testLibraryFragment>::@class::A1
           typeParameters
             T @9
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A1::@constructor::new
+              element: <none>
         class A2 @21
           reference: <testLibraryFragment>::@class::A2
+          element: <testLibraryFragment>::@class::A2
           typeParameters
             T @24
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A2::@constructor::new
+              element: <none>
         class B @36
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           typeParameters
             T @38
+              element: <none>
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -988,14 +1058,18 @@ library
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
         class Base @75
           reference: <testLibraryFragment>::@class::Base
+          element: <testLibraryFragment>::@class::Base
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::Base::@constructor::new
+              element: <none>
         class C @108
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -1105,28 +1179,37 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class C @57
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int Function(String)}
       mixins
         mixin M @20
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           typeParameters
             T @22
+              element: <none>
             U @25
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1209,27 +1292,35 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @17
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class C @57
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: List<int>}
       mixins
         mixin M @29
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           typeParameters
             T @31
+              element: <none>
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
@@ -1329,19 +1420,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
+          element: <testLibraryFragment>::@class::I
           typeParameters
             X @8
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::I::@constructor::new
+              element: <none>
         class A @66
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -1355,12 +1452,16 @@ library
       mixins
         mixin M1 @20
           reference: <testLibraryFragment>::@mixin::M1
+          element: <testLibraryFragment>::@mixin::M1
           typeParameters
             T @23
+              element: <none>
         mixin M2 @43
           reference: <testLibraryFragment>::@mixin::M2
+          element: <testLibraryFragment>::@mixin::M2
           typeParameters
             T @46
+              element: <none>
   classes
     class I
       reference: <testLibraryFragment>::@class::I
@@ -1465,33 +1566,44 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class S @62
           reference: <testLibraryFragment>::@class::S
+          element: <testLibraryFragment>::@class::S
           typeParameters
             T3 @64
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::S::@constructor::new
+              element: <none>
         class X @78
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
+              element: <none>
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::S::@constructor::new
                 substitution: {T3: String}
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           typeParameters
             T @8
+              element: <none>
             U @11
+              element: <none>
       typeAliases
         M2 @34
           reference: <testLibraryFragment>::@typeAlias::M2
+          element: <none>
           typeParameters
             T2 @37
+              element: <none>
   classes
     class S
       reference: <testLibraryFragment>::@class::S
@@ -1607,37 +1719,50 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class S @88
           reference: <testLibraryFragment>::@class::S
+          element: <testLibraryFragment>::@class::S
           typeParameters
             T4 @90
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::S::@constructor::new
+              element: <none>
         class X @104
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
+              element: <none>
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::S::@constructor::new
                 substitution: {T4: String}
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           typeParameters
             T @8
+              element: <none>
             U @11
+              element: <none>
       typeAliases
         M2 @34
           reference: <testLibraryFragment>::@typeAlias::M2
+          element: <none>
           typeParameters
             T2 @37
+              element: <none>
         M3 @64
           reference: <testLibraryFragment>::@typeAlias::M3
+          element: <none>
           typeParameters
             T3 @67
+              element: <none>
   classes
     class S
       reference: <testLibraryFragment>::@class::S
@@ -1736,24 +1861,31 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
         class C @45
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
       extensionTypes
         extension type B @26
           reference: <testLibraryFragment>::@extensionType::B
+          element: <testLibraryFragment>::@extensionType::B
           fields
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
+              element: <none>
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
+              element: <none>
       mixins
         mixin M @56
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1816,12 +1948,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           methods
             foo @22 invokesSuperSelf
               reference: <testLibraryFragment>::@mixin::M::@method::foo
+              element: <none>
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -1873,18 +2008,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       mixins
         mixin B @17
           reference: <testLibraryFragment>::@mixin::B
+          element: <testLibraryFragment>::@mixin::B
           methods
             A @33
               reference: <testLibraryFragment>::@mixin::B::@method::A
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1945,18 +2085,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           fields
             foo @-1
               reference: <testLibraryFragment>::@mixin::M::@field::foo
+              element: <none>
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
           setters
             set foo= @21
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
+              element: <none>
               parameters
                 _ @29
+                  element: <none>
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -2019,18 +2164,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           fields
             foo @-1
               reference: <testLibraryFragment>::@mixin::M::@field::foo
+              element: <none>
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
           setters
             set foo= @21
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
+              element: <none>
               parameters
                 _ @29
+                  element: <none>
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -2105,24 +2255,31 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
         class C @45
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
       extensionTypes
         extension type B @26
           reference: <testLibraryFragment>::@extensionType::B
+          element: <testLibraryFragment>::@extensionType::B
           fields
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
+              element: <none>
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
+              element: <none>
       mixins
         mixin M @56
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -2178,11 +2335,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           typeParameters
             T @11
+              element: <none>
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -2217,11 +2377,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           typeParameters
             T @12
+              element: <none>
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -2256,11 +2419,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           typeParameters
             T @14
+              element: <none>
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -2299,13 +2465,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
           typeParameters
             T @14
+              element: <none>
             U @20
+              element: <none>
             V @27
+              element: <none>
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -2360,12 +2531,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @17
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -2432,14 +2606,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
         class B @33
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
       mixins
         mixin M @17
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -2541,24 +2719,30 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       mixins
         mixin A @50
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @32
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
   mixins
     mixin A
@@ -2658,33 +2842,43 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0
+          element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@constructor::new
+              element: <none>
           methods
             foo1 @47
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@method::foo1
+              element: <none>
         class A @66
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
+              element: <none>
           methods
             foo2 @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@method::foo2
+              element: <none>
         class A @104
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
           methods
             foo3 @115
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
+              element: <none>
   classes
     class A
       reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0
@@ -2801,29 +2995,37 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin B @21
           reference: <testLibraryFragment>::@mixin::B
+          element: <testLibraryFragment>::@mixin::B
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       mixins
         mixin A @50
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
           methods
             foo1 @61
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@method::foo1
+              element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @32
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           methods
             foo2 @43
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@method::foo2
+              element: <none>
   mixins
     mixin B
       reference: <testLibraryFragment>::@mixin::B
@@ -2938,34 +3140,43 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo @31
               reference: <testLibraryFragment>::@mixin::A::@field::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
+              element: <none>
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           fields
             foo @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@field::foo
   mixins
     mixin A
@@ -3120,47 +3331,59 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @36
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo @46
               reference: <testLibraryFragment>::@mixin::A::@field::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
+              element: <none>
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
           fields
             foo @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@field::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo @53
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+              element: <none>
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
   mixins
     mixin A
@@ -3315,47 +3538,59 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @36
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo @46
               reference: <testLibraryFragment>::@mixin::A::@field::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
           getters
             augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo @53
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@field::foo
   mixins
     mixin A
@@ -3513,49 +3748,62 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @36
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo @46
               reference: <testLibraryFragment>::@mixin::A::@field::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
+              element: <none>
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
           setters
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
+              element: <none>
               parameters
                 _ @61
+                  element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo @53
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@field::foo
   mixins
     mixin A
@@ -3678,34 +3926,43 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo @31
               reference: <testLibraryFragment>::@mixin::A::@field::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
+              element: <none>
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           fields
             foo @56
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@field::foo
   mixins
     mixin A
@@ -3818,28 +4075,35 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
           getters
             get foo @35
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           fields
             foo @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@field::foo
   mixins
     mixin A
@@ -3972,43 +4236,55 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo1 @31
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo1
           getters
             get foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo1
+              element: <none>
           setters
             set foo1= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
+              element: <none>
               parameters
                 _foo1 @-1
+                  element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           fields
             foo2 @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+              element: <none>
               getter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
               setter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
           getters
             get foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+              element: <none>
           setters
             set foo2= @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
+              element: <none>
               parameters
                 _foo2 @-1
+                  element: <none>
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
@@ -4175,47 +4451,61 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           typeParameters
             T1 @23
+              element: <none>
           fields
             foo1 @34
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo1
           getters
             get foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo1
+              element: <none>
           setters
             set foo1= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
+              element: <none>
               parameters
                 _foo1 @-1
+                  element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           typeParameters
             T2 @37
+              element: <none>
           fields
             foo2 @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+              element: <none>
               getter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
               setter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
           getters
             get foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+              element: <none>
           setters
             set foo2= @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
+              element: <none>
               parameters
                 _foo2 @-1
+                  element: <none>
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
@@ -4350,31 +4640,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
           getters
             get foo1 @35
               reference: <testLibraryFragment>::@mixin::A::@getter::foo1
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           fields
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+              element: <none>
               getter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
           getters
             get foo2 @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+              element: <none>
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
@@ -4500,35 +4798,45 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           typeParameters
             T1 @23
+              element: <none>
           fields
             foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
           getters
             get foo1 @38
               reference: <testLibraryFragment>::@mixin::A::@getter::foo1
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           typeParameters
             T2 @37
+              element: <none>
           fields
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+              element: <none>
               getter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
           getters
             get foo2 @52
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+              element: <none>
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
@@ -4651,34 +4959,43 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo @31
               reference: <testLibraryFragment>::@mixin::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           getters
             augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@getter::foo
   mixins
     mixin A
@@ -4833,47 +5150,59 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @36
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo @46
               reference: <testLibraryFragment>::@mixin::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
           getters
             augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@getter::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           getters
             augment get foo @57
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
+              element: <none>
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
   mixins
     mixin A
@@ -4999,33 +5328,42 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
             foo2 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo2
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo2
           getters
             get foo1 @35
               reference: <testLibraryFragment>::@mixin::A::@getter::foo1
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo1
             get foo2 @56
               reference: <testLibraryFragment>::@mixin::A::@getter::foo2
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           getters
             augment get foo1 @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo1
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@getter::foo1
   mixins
     mixin A
@@ -5167,41 +5505,51 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @36
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
           getters
             get foo @50
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
           getters
             augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@getter::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           getters
             augment get foo @57
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
+              element: <none>
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
   mixins
     mixin A
@@ -5296,28 +5644,36 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class I1 @46
           reference: <testLibraryFragment>::@class::I1
+          element: <testLibraryFragment>::@class::I1
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::I1::@constructor::new
+              element: <none>
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class I2 @60
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::I2
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+              element: <none>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
   classes
     class I1
@@ -5450,42 +5806,54 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class I1 @46
           reference: <testLibraryFragment>::@class::I1
+          element: <testLibraryFragment>::@class::I1
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::I1::@constructor::new
+              element: <none>
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class I2 @75
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::I2
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+              element: <none>
       mixins
         mixin A @50
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class I3 @57
           reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+          element: <testLibrary>::@fragment::package:test/b.dart::@class::I3
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
+              element: <none>
       mixins
         mixin A @32
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
   classes
     class I1
@@ -5584,23 +5952,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           methods
             foo @32
               reference: <testLibraryFragment>::@mixin::A::@method::foo
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           methods
             bar @46
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@method::bar
+              element: <none>
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
@@ -5690,26 +6064,33 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           methods
             foo1 @32
               reference: <testLibraryFragment>::@mixin::A::@method::foo1
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo1
             foo2 @49
               reference: <testLibraryFragment>::@mixin::A::@method::foo2
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           methods
             augment foo1 @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo1
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@method::foo1
   mixins
     mixin A
@@ -5824,37 +6205,46 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           methods
             foo @32
               reference: <testLibraryFragment>::@mixin::A::@method::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       mixins
         mixin A @50
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
           methods
             augment foo @69
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@method::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @32
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           methods
             augment foo @51
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@methodAugmentation::foo
+              element: <none>
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
   mixins
     mixin A
@@ -5943,27 +6333,35 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           typeParameters
             T @23
+              element: <none>
           methods
             foo @32
               reference: <testLibraryFragment>::@mixin::A::@method::foo
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           typeParameters
             T2 @37
+              element: <none>
           methods
             bar @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@method::bar
+              element: <none>
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
@@ -6057,28 +6455,36 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           typeParameters
             T @23
+              element: <none>
           methods
             foo @32
               reference: <testLibraryFragment>::@mixin::A::@method::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           typeParameters
             T2 @37
+              element: <none>
           methods
             augment foo @56
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@method::foo
   mixins
     mixin A
@@ -6173,28 +6579,36 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           methods
             foo @32
               reference: <testLibraryFragment>::@mixin::A::@method::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
             bar @48
               reference: <testLibraryFragment>::@mixin::A::@method::bar
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           typeParameters
             T @37
+              element: <none>
           methods
             augment foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@method::foo
   mixins
     mixin A
@@ -6306,35 +6720,45 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
+              element: <none>
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo1
           setters
             set foo1= @31
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
+              element: <none>
               parameters
                 _ @40
+                  element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           fields
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+              element: <none>
               setter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
           setters
             set foo2= @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
+              element: <none>
               parameters
                 _ @54
+                  element: <none>
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
@@ -6466,36 +6890,46 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo @31
               reference: <testLibraryFragment>::@mixin::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
+              element: <none>
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           setters
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
+              element: <none>
               parameters
                 _ @61
+                  element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@setter::foo
   mixins
     mixin A
@@ -6630,39 +7064,51 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
             foo1 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
+              element: <none>
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo1
             foo2 @-1
               reference: <testLibraryFragment>::@mixin::A::@field::foo2
+              element: <none>
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo2
           setters
             set foo1= @31
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
+              element: <none>
               parameters
                 _ @40
+                  element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
             set foo2= @52
               reference: <testLibraryFragment>::@mixin::A::@setter::foo2
+              element: <none>
               parameters
                 _ @61
+                  element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           setters
             augment set foo1= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
+              element: <none>
               parameters
                 _ @62
+                  element: <none>
               previousFragment: <testLibraryFragment>::@mixin::A::@setter::foo1
   mixins
     mixin A
@@ -6769,28 +7215,36 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class B1 @38
           reference: <testLibraryFragment>::@class::B1
+          element: <testLibraryFragment>::@class::B1
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B1::@constructor::new
+              element: <none>
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B2 @52
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B2
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::B2
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B2::@constructor::new
+              element: <none>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
   classes
     class B1
@@ -6920,42 +7374,54 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class I1 @38
           reference: <testLibraryFragment>::@class::I1
+          element: <testLibraryFragment>::@class::I1
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::I1::@constructor::new
+              element: <none>
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class I2 @67
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::I2
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+              element: <none>
       mixins
         mixin A @50
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class I3 @49
           reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+          element: <testLibrary>::@fragment::package:test/b.dart::@class::I3
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
+              element: <none>
       mixins
         mixin A @32
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
   classes
     class I1
@@ -7048,22 +7514,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B @51
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::B
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
+              element: <none>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
   classes
     class B
@@ -7161,35 +7633,46 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class I1 @41
           reference: <testLibraryFragment>::@class::I1
+          element: <testLibraryFragment>::@class::I1
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::I1::@constructor::new
+              element: <none>
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           typeParameters
             T @23
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class I2 @60
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::I2
           typeParameters
             E @63
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+              element: <none>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           typeParameters
             T2 @37
+              element: <none>
   classes
     class I1
       reference: <testLibraryFragment>::@class::I1
@@ -7288,21 +7771,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @37
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+          element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
   classes
     class A
       reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
@@ -7395,25 +7884,32 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @37
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
+              element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
   classes
     class A
@@ -7509,24 +8005,30 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
       mixins
         mixin B @39
           reference: <testLibraryFragment>::@mixin::B
+          element: <testLibraryFragment>::@mixin::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin B @35
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
+          element: <testLibraryFragment>::@mixin::B
           previousFragment: <testLibraryFragment>::@mixin::B
           methods
             foo @41
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@method::foo
+              element: <none>
               parameters
                 a @45
+                  element: <none>
   mixins
     mixin B
       reference: <testLibraryFragment>::@mixin::B
@@ -7621,23 +8123,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       mixins
         mixin B @22
           reference: <testLibraryFragment>::@mixin::B
+          element: <testLibraryFragment>::@mixin::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
           methods
             foo @28
               reference: <testLibraryFragment>::@mixin::B::@method::foo
+              element: <none>
               parameters
                 a @32
+                  element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       mixins
         mixin B @52
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
+          element: <testLibraryFragment>::@mixin::B
           previousFragment: <testLibraryFragment>::@mixin::B
   mixins
     mixin B
@@ -7729,23 +8237,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       mixins
         mixin B @22
           reference: <testLibraryFragment>::@mixin::B
+          element: <testLibraryFragment>::@mixin::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
           methods
             foo @28
               reference: <testLibraryFragment>::@mixin::B::@method::foo
+              element: <none>
               parameters
                 a @32
+                  element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       mixins
         mixin B @52
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
+          element: <testLibraryFragment>::@mixin::B
           previousFragment: <testLibraryFragment>::@mixin::B
   mixins
     mixin B
@@ -7853,31 +8367,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
       mixins
         mixin B @39
           reference: <testLibraryFragment>::@mixin::B
+          element: <testLibraryFragment>::@mixin::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
           methods
             foo @50
               reference: <testLibraryFragment>::@mixin::B::@method::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
               parameters
                 a @54
+                  element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin B @35
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
+          element: <testLibraryFragment>::@mixin::B
           previousFragment: <testLibraryFragment>::@mixin::B
           methods
             augment foo @49
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@mixin::B::@method::foo
               parameters
                 a @53
+                  element: <none>
   mixins
     mixin B
       reference: <testLibraryFragment>::@mixin::B
@@ -7944,16 +8466,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @26
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @40
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
   mixins
     base mixin A
@@ -8005,15 +8531,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class I @30
           reference: <testLibraryFragment>::@class::I
+          element: <testLibraryFragment>::@class::I
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::I::@constructor::new
+              element: <none>
       mixins
         mixin A @6
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
   classes
     class I
       reference: <testLibraryFragment>::@class::I
@@ -8068,15 +8598,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class B @22
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
       mixins
         mixin A @6
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -8151,21 +8685,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           typeParameters
             T @23
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           typeParameters
             T @37
+              element: <none>
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A

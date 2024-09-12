@@ -155,58 +155,77 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A::@def::0
+          element: <testLibraryFragment>::@class::A::@def::0
           fields
             f01 @25
               reference: <testLibraryFragment>::@class::A::@def::0::@field::f01
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@def::0::@getter::f01
             f02 @49
               reference: <testLibraryFragment>::@class::A::@def::0::@field::f02
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@def::0::@getter::f02
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@def::0::@constructor::new
+              element: <none>
           getters
             get f01 @-1
               reference: <testLibraryFragment>::@class::A::@def::0::@getter::f01
+              element: <none>
             get f02 @-1
               reference: <testLibraryFragment>::@class::A::@def::0::@getter::f02
+              element: <none>
         class A @69
           reference: <testLibraryFragment>::@class::A::@def::1
+          element: <testLibraryFragment>::@class::A::@def::1
           fields
             f11 @88
               reference: <testLibraryFragment>::@class::A::@def::1::@field::f11
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@def::1::@getter::f11
             f12 @112
               reference: <testLibraryFragment>::@class::A::@def::1::@field::f12
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@def::1::@getter::f12
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@def::1::@constructor::new
+              element: <none>
           getters
             get f11 @-1
               reference: <testLibraryFragment>::@class::A::@def::1::@getter::f11
+              element: <none>
             get f12 @-1
               reference: <testLibraryFragment>::@class::A::@def::1::@getter::f12
+              element: <none>
         class A @132
           reference: <testLibraryFragment>::@class::A::@def::2
+          element: <testLibraryFragment>::@class::A::@def::2
           fields
             f21 @151
               reference: <testLibraryFragment>::@class::A::@def::2::@field::f21
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@def::2::@getter::f21
             f22 @175
               reference: <testLibraryFragment>::@class::A::@def::2::@field::f22
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@def::2::@getter::f22
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@def::2::@constructor::new
+              element: <none>
           getters
             get f21 @-1
               reference: <testLibraryFragment>::@class::A::@def::2::@getter::f21
+              element: <none>
             get f22 @-1
               reference: <testLibraryFragment>::@class::A::@def::2::@getter::f22
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A::@def::0
@@ -321,16 +340,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             named @14
               reference: <testLibraryFragment>::@class::A::@constructor::named::@def::0
+              element: <none>
               periodOffset: 13
               nameEnd: 19
             named @27
               reference: <testLibraryFragment>::@class::A::@constructor::named::@def::1
+              element: <none>
               periodOffset: 26
               nameEnd: 32
   classes
@@ -421,35 +444,46 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           fields
             foo @16
               reference: <testLibraryFragment>::@class::A::@field::foo::@def::0
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::foo::@def::0
               setter2: <testLibraryFragment>::@class::A::@setter::foo::@def::0
             foo @30
               reference: <testLibraryFragment>::@class::A::@field::foo::@def::1
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::foo::@def::1
               setter2: <testLibraryFragment>::@class::A::@setter::foo::@def::1
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo::@def::0
+              element: <none>
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo::@def::1
+              element: <none>
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo::@def::0
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo::@def::1
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -533,17 +567,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
           methods
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo::@def::0
+              element: <none>
             foo @33
               reference: <testLibraryFragment>::@class::A::@method::foo::@def::1
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -639,22 +678,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @17
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
         class X @28
           reference: <testLibraryFragment>::@class::X::@def::0
+          element: <testLibraryFragment>::@class::X::@def::0
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@def::0::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -665,9 +711,11 @@ library
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class X @48
           reference: <testLibraryFragment>::@class::X::@def::1
+          element: <testLibraryFragment>::@class::X::@def::1
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@def::1::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -679,6 +727,7 @@ library
       mixins
         mixin M @68
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -913,56 +962,75 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E::@def::0
+          element: <testLibraryFragment>::@enum::E::@def::0
           fields
             enumConstant a @8
               reference: <testLibraryFragment>::@enum::E::@def::0::@field::a
+              element: <none>
               getter2: <testLibraryFragment>::@enum::E::@def::0::@getter::a
             enumConstant b @11
               reference: <testLibraryFragment>::@enum::E::@def::0::@field::b
+              element: <none>
               getter2: <testLibraryFragment>::@enum::E::@def::0::@getter::b
             values @-1
               reference: <testLibraryFragment>::@enum::E::@def::0::@field::values
+              element: <none>
               getter2: <testLibraryFragment>::@enum::E::@def::0::@getter::values
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@enum::E::@def::0::@constructor::new
+              element: <none>
           getters
             get a @-1
               reference: <testLibraryFragment>::@enum::E::@def::0::@getter::a
+              element: <none>
             get b @-1
               reference: <testLibraryFragment>::@enum::E::@def::0::@getter::b
+              element: <none>
             get values @-1
               reference: <testLibraryFragment>::@enum::E::@def::0::@getter::values
+              element: <none>
         enum E @19
           reference: <testLibraryFragment>::@enum::E::@def::1
+          element: <testLibraryFragment>::@enum::E::@def::1
           fields
             enumConstant c @22
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::c
+              element: <none>
               getter2: <testLibraryFragment>::@enum::E::@def::1::@getter::c
             enumConstant d @25
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::d
+              element: <none>
               getter2: <testLibraryFragment>::@enum::E::@def::1::@getter::d
             enumConstant e @28
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::e
+              element: <none>
               getter2: <testLibraryFragment>::@enum::E::@def::1::@getter::e
             values @-1
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::values
+              element: <none>
               getter2: <testLibraryFragment>::@enum::E::@def::1::@getter::values
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@enum::E::@def::1::@constructor::new
+              element: <none>
           getters
             get c @-1
               reference: <testLibraryFragment>::@enum::E::@def::1::@getter::c
+              element: <none>
             get d @-1
               reference: <testLibraryFragment>::@enum::E::@def::1::@getter::d
+              element: <none>
             get e @-1
               reference: <testLibraryFragment>::@enum::E::@def::1::@getter::e
+              element: <none>
             get values @-1
               reference: <testLibraryFragment>::@enum::E::@def::1::@getter::values
+              element: <none>
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E::@def::0
@@ -1114,39 +1182,51 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E::@def::0
+          element: <testLibraryFragment>::@extension::E::@def::0
         extension E @32
           reference: <testLibraryFragment>::@extension::E::@def::1
+          element: <testLibraryFragment>::@extension::E::@def::1
           fields
             x @56
               reference: <testLibraryFragment>::@extension::E::@def::1::@field::x
+              element: <none>
               getter2: <testLibraryFragment>::@extension::E::@def::1::@getter::x
               setter2: <testLibraryFragment>::@extension::E::@def::1::@setter::x
           getters
             get x @-1
               reference: <testLibraryFragment>::@extension::E::@def::1::@getter::x
+              element: <none>
           setters
             set x= @-1
               reference: <testLibraryFragment>::@extension::E::@def::1::@setter::x
+              element: <none>
               parameters
                 _x @-1
+                  element: <none>
         extension E @71
           reference: <testLibraryFragment>::@extension::E::@def::2
+          element: <testLibraryFragment>::@extension::E::@def::2
           fields
             y @95
               reference: <testLibraryFragment>::@extension::E::@def::2::@field::y
+              element: <none>
               getter2: <testLibraryFragment>::@extension::E::@def::2::@getter::y
               setter2: <testLibraryFragment>::@extension::E::@def::2::@setter::y
           getters
             get y @-1
               reference: <testLibraryFragment>::@extension::E::@def::2::@getter::y
+              element: <none>
           setters
             set y= @-1
               reference: <testLibraryFragment>::@extension::E::@def::2::@setter::y
+              element: <none>
               parameters
                 _y @-1
+                  element: <none>
   extensions
     extension E
       reference: <testLibraryFragment>::@extension::E::@def::0
@@ -1265,31 +1345,46 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       extensionTypes
         extension type E @15
           reference: <testLibraryFragment>::@extensionType::E::@def::0
+          element: <testLibraryFragment>::@extensionType::E::@def::0
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::E::@def::0::@field::it
+              element: <none>
               getter2: <testLibraryFragment>::@extensionType::E::@def::0::@getter::it
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new
+              element: <none>
+              parameters
+                this.it @21
+                  element: <none>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::E::@def::0::@getter::it
+              element: <none>
         extension type E @43
           reference: <testLibraryFragment>::@extensionType::E::@def::1
+          element: <testLibraryFragment>::@extensionType::E::@def::1
           fields
             it @52
               reference: <testLibraryFragment>::@extensionType::E::@def::1::@field::it
+              element: <none>
               getter2: <testLibraryFragment>::@extensionType::E::@def::1::@getter::it
           constructors
             new @43
               reference: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new
+              element: <none>
+              parameters
+                this.it @52
+                  element: <none>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::E::@def::1::@getter::it
+              element: <none>
   extensionTypes
     extension type E
       reference: <testLibraryFragment>::@extensionType::E::@def::0
@@ -1378,18 +1473,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f::@def::0
+          element: <none>
         f @17
           reference: <testLibraryFragment>::@function::f::@def::1
+          element: <none>
           parameters
             a @23
+              element: <none>
         f @34
           reference: <testLibraryFragment>::@function::f::@def::2
+          element: <none>
           parameters
             default b @41
+              element: <none>
             default c @51
+              element: <none>
   functions
     f
       reference: <none>
@@ -1443,14 +1545,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             default a @12
               reference: <testLibraryFragment>::@function::f::@parameter::a::@def::0
+              element: <none>
             default a @22
               reference: <testLibraryFragment>::@function::f::@parameter::a::@def::1
+              element: <none>
   functions
     f
       reference: <none>
@@ -1508,13 +1614,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F::@def::0
+          element: <none>
         F @31
           reference: <testLibraryFragment>::@typeAlias::F::@def::1
+          element: <none>
         F @54
           reference: <testLibraryFragment>::@typeAlias::F::@def::2
+          element: <none>
   typeAliases
     F
       reference: <none>
@@ -1602,39 +1712,51 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin A @6
           reference: <testLibraryFragment>::@mixin::A::@def::0
+          element: <testLibraryFragment>::@mixin::A::@def::0
         mixin A @17
           reference: <testLibraryFragment>::@mixin::A::@def::1
+          element: <testLibraryFragment>::@mixin::A::@def::1
           fields
             x @27
               reference: <testLibraryFragment>::@mixin::A::@def::1::@field::x
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::A::@def::1::@getter::x
               setter2: <testLibraryFragment>::@mixin::A::@def::1::@setter::x
           getters
             get x @-1
               reference: <testLibraryFragment>::@mixin::A::@def::1::@getter::x
+              element: <none>
           setters
             set x= @-1
               reference: <testLibraryFragment>::@mixin::A::@def::1::@setter::x
+              element: <none>
               parameters
                 _x @-1
+                  element: <none>
         mixin A @38
           reference: <testLibraryFragment>::@mixin::A::@def::2
+          element: <testLibraryFragment>::@mixin::A::@def::2
           fields
             y @48
               reference: <testLibraryFragment>::@mixin::A::@def::2::@field::y
+              element: <none>
               getter2: <testLibraryFragment>::@mixin::A::@def::2::@getter::y
               setter2: <testLibraryFragment>::@mixin::A::@def::2::@setter::y
           getters
             get y @-1
               reference: <testLibraryFragment>::@mixin::A::@def::2::@getter::y
+              element: <none>
           setters
             set y= @-1
               reference: <testLibraryFragment>::@mixin::A::@def::2::@setter::y
+              element: <none>
               parameters
                 _y @-1
+                  element: <none>
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A::@def::0
@@ -1794,44 +1916,59 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         x @5
           reference: <testLibraryFragment>::@topLevelVariable::x::@def::0
+          element: <none>
           getter2: <testLibraryFragment>::@getter::x::@def::0
           setter2: <testLibraryFragment>::@setter::x::@def::0
         x @12
           reference: <testLibraryFragment>::@topLevelVariable::x::@def::1
+          element: <none>
           getter2: <testLibraryFragment>::@getter::x::@def::1
           setter2: <testLibraryFragment>::@setter::x::@def::1
         final x @21
           reference: <testLibraryFragment>::@topLevelVariable::x::@def::2
+          element: <none>
           getter2: <testLibraryFragment>::@getter::x::@def::2
         x @32
           reference: <testLibraryFragment>::@topLevelVariable::x::@def::3
+          element: <none>
           getter2: <testLibraryFragment>::@getter::x::@def::3
           setter2: <testLibraryFragment>::@setter::x::@def::2
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x::@def::0
+          element: <none>
         get x @-1
           reference: <testLibraryFragment>::@getter::x::@def::1
+          element: <none>
         get x @-1
           reference: <testLibraryFragment>::@getter::x::@def::2
+          element: <none>
         get x @-1
           reference: <testLibraryFragment>::@getter::x::@def::3
+          element: <none>
       setters
         set x= @-1
           reference: <testLibraryFragment>::@setter::x::@def::0
+          element: <none>
           parameters
             _x @-1
+              element: <none>
         set x= @-1
           reference: <testLibraryFragment>::@setter::x::@def::1
+          element: <none>
           parameters
             _x @-1
+              element: <none>
         set x= @-1
           reference: <testLibraryFragment>::@setter::x::@def::2
+          element: <none>
           parameters
             _x @-1
+              element: <none>
   topLevelVariables
     x
       reference: <none>
@@ -1932,15 +2069,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
           getter2: <testLibraryFragment>::@getter::foo::@def::1
       getters
         get foo @8
           reference: <testLibraryFragment>::@getter::foo::@def::0
+          element: <none>
         get foo @26
           reference: <testLibraryFragment>::@getter::foo::@def::1
+          element: <none>
   topLevelVariables
     synthetic foo
       reference: <none>
@@ -2001,19 +2142,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
           setter2: <testLibraryFragment>::@setter::foo::@def::1
       setters
         set foo= @4
           reference: <testLibraryFragment>::@setter::foo::@def::0
+          element: <none>
           parameters
             _ @12
+              element: <none>
         set foo= @22
           reference: <testLibraryFragment>::@setter::foo::@def::1
+          element: <none>
           parameters
             _ @33
+              element: <none>
   topLevelVariables
     synthetic foo
       reference: <none>

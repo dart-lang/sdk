@@ -49,19 +49,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         f @16
           reference: <testLibraryFragment>::@topLevelVariable::f
+          element: <none>
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
         get f @-1
           reference: <testLibraryFragment>::@getter::f
+          element: <none>
       setters
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
+          element: <none>
           parameters
             _f @-1
+              element: <none>
   topLevelVariables
     f
       reference: <none>
@@ -117,19 +122,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         f @17
           reference: <testLibraryFragment>::@topLevelVariable::f
+          element: <none>
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
         get f @-1
           reference: <testLibraryFragment>::@getter::f
+          element: <none>
       setters
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
+          element: <none>
           parameters
             _f @-1
+              element: <none>
   topLevelVariables
     f
       reference: <none>
@@ -173,9 +183,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @30
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -210,11 +222,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             p @37
+              element: <none>
   functions
     f
       reference: <none>
@@ -255,9 +270,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
+          element: <none>
   typeAliases
     F
       reference: <none>
@@ -296,15 +313,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
           methods
             m @42
               reference: <testLibraryFragment>::@class::C::@method::m
+              element: <none>
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -344,11 +365,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             p @37
+              element: <none>
   functions
     f
       reference: <none>
@@ -393,19 +417,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         v @30
           reference: <testLibraryFragment>::@topLevelVariable::v
+          element: <none>
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
+          element: <none>
       setters
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
+          element: <none>
           parameters
             _v @-1
+              element: <none>
   topLevelVariables
     v
       reference: <none>
@@ -509,19 +538,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @64
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -634,17 +669,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       topLevelVariables
         v @62
           reference: <testLibraryFragment>::@topLevelVariable::v
+          element: <none>
           metadata
             Annotation
               atSign: @ @29
@@ -692,11 +732,14 @@ library
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
+          element: <none>
       setters
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
+          element: <none>
           parameters
             _v @-1
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -820,21 +863,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
+          element: <none>
           getter2: <testLibraryFragment>::@getter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -949,21 +998,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
+          element: <none>
           getter2: <testLibraryFragment>::@getter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1078,21 +1133,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
+          element: <none>
           getter2: <testLibraryFragment>::@getter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1201,21 +1262,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
+          element: <none>
           getter2: <testLibraryFragment>::@getter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1265,11 +1332,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       mixins
         mixin B @6
           reference: <testLibraryFragment>::@mixin::B
+          element: <testLibraryFragment>::@mixin::B
           typeParameters
             X @8
+              element: <none>
   mixins
     mixin B
       reference: <testLibraryFragment>::@mixin::B
@@ -1337,19 +1407,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
         class B @31
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -1363,6 +1439,7 @@ library
       mixins
         mixin M @20
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1430,13 +1507,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       typeAliases
         F1 @8
           reference: <testLibraryFragment>::@typeAlias::F1
+          element: <none>
         F2 @43
           reference: <testLibraryFragment>::@typeAlias::F2
+          element: <none>
           typeParameters
             V2 @46
+              element: <none>
   typeAliases
     F1
       reference: <none>
