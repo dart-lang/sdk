@@ -35,9 +35,9 @@ class Usage<T extends Reference> {
       );
 
   Map<String, dynamic> toJson(
-    List<Identifier> identifiers,
-    List<String> uris,
-    List<Constant> constants,
+    Map<Identifier, int> identifiers,
+    Map<String, int> uris,
+    Map<Constant, int> constants,
   ) =>
       {
         'definition': definition.toJson(identifiers, uris),

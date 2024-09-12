@@ -99,7 +99,11 @@ class DartdevRunner extends CommandRunner<int> {
     final nativeAssetsExperimentEnabled =
         nativeAssetsEnabled(vmEnabledExperiments);
     if (nativeAssetsExperimentEnabled) {
-      addCommand(BuildCommand(verbose: verbose));
+      final recordUseExperimentEnabled = recordUseEnabled(vmEnabledExperiments);
+      addCommand(BuildCommand(
+        verbose: verbose,
+        recordUseEnabled: recordUseExperimentEnabled,
+      ));
     }
     addCommand(CompileCommand(
       verbose: verbose,

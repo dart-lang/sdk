@@ -7017,11 +7017,8 @@ DefaultInSwitchExpression:
       default => 'other'
     };
 
-ResourceIdentifiersNotStatic:
-  problemMessage: "Resource identifier pragma can be used on a static method only."
-
-ResourceIdentifiersMultiple:
-  problemMessage: "Only one resource identifier pragma can be used at a time."
+RecordUseCannotBePlacedHere:
+  problemMessage: "`RecordUse` annotation cannot be placed on this element."
 
 WasmImportOrExportInUserCode:
   problemMessage: "Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code."

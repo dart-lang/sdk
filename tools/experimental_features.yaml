@@ -125,7 +125,7 @@ features:
   native-assets:
     help: "Compile and bundle native assets."
 
-  resource-identifiers:
+  record-use:
     help: "Output arguments used by static functions."
 
   wildcard-variables:

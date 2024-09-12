@@ -15,7 +15,11 @@ sealed class Reference {
 
   const Reference({this.loadingUnit, required this.location});
 
-  Map<String, dynamic> toJson(List<String> uris, List<Constant> constants) => {
+  Map<String, dynamic> toJson(
+    Map<String, int> uris,
+    Map<Constant, int> constants,
+  ) =>
+      {
         'loadingUnit': loadingUnit,
         '@': location.toJson(uris: uris),
       };
@@ -59,7 +63,10 @@ final class CallReference extends Reference {
   }
 
   @override
-  Map<String, dynamic> toJson(List<String> uris, List<Constant> constants) {
+  Map<String, dynamic> toJson(
+    Map<String, int> uris,
+    Map<Constant, int> constants,
+  ) {
     final argumentJson = arguments?.toJson(constants) ?? {};
     return {
       if (argumentJson.isNotEmpty) 'arguments': argumentJson,
@@ -108,7 +115,11 @@ final class InstanceReference extends Reference {
   }
 
   @override
-  Map<String, dynamic> toJson(List<String> uris, List<Constant> constants) => {
+  Map<String, dynamic> toJson(
+    Map<String, int> uris,
+    Map<Constant, int> constants,
+  ) =>
+      {
         'instanceConstant': instanceConstant.toJson(constants),
         ...super.toJson(uris, constants),
       };

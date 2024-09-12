@@ -18,15 +18,15 @@ final class InstanceConstant {
   ) {
     return InstanceConstant(
       fields: (json['fields'] as Map<String, dynamic>).map(
-        (key, value) => MapEntry(key, constants[value as int]),
+        (key, constantIndex) => MapEntry(key, constants[constantIndex as int]),
       ),
     );
   }
 
-  Map<String, dynamic> toJson(List<Constant> constants) => {
+  Map<String, dynamic> toJson(Map<Constant, int> constants) => {
         if (fields.isNotEmpty)
-          'fields': fields
-              .map((key, value) => MapEntry(key, constants.indexOf(value))),
+          'fields': fields.map((name, constantIndex) =>
+              MapEntry(name, constants[constantIndex]!)),
       };
 
   @override

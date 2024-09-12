@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart';
+
 import '../helper.dart';
 import '../public/arguments.dart';
 import '../public/constant.dart';
@@ -22,7 +24,7 @@ class UsageRecord {
   });
 
   factory UsageRecord.fromJson(Map<String, dynamic> json) {
-    final uris = json['uris'] as List<String>;
+    final uris = (json['uris'] as List).cast<String>();
 
     final identifiers = (json['ids'] as List)
         .whereType<Map<String, dynamic>>()
@@ -66,9 +68,10 @@ class UsageRecord {
     final identifiers = <Identifier>{
       ...calls.map((call) => call.definition.identifier),
       ...instances.map((instance) => instance.definition.identifier),
-    }.toList();
+    }.asMapToIndices;
+
     final uris = <String>{
-      ...identifiers.map((e) => e.uri),
+      ...identifiers.keys.map((e) => e.uri),
       ...calls.expand((call) => [
             call.definition.location.uri,
             ...call.references.map((reference) => reference.location.uri),
@@ -77,7 +80,7 @@ class UsageRecord {
             instance.definition.location.uri,
             ...instance.references.map((reference) => reference.location.uri),
           ]),
-    }.toList();
+    }.asMapToIndices;
 
     final constants = {
       ...calls.expand((e) => e.references
@@ -87,12 +90,15 @@ class UsageRecord {
       ...instances
           .expand((element) => element.references)
           .expand((e) => e.instanceConstant.fields.values)
-    }.flatten().toList();
+    }.flatten().asMapToIndices;
     return {
       'metadata': metadata.toJson(),
-      'uris': uris,
-      'ids': identifiers.map((identifier) => identifier.toJson(uris)).toList(),
-      'constants': constants.map((e) => e.toJson(constants)).toList(),
+      'uris': uris.keys.toList(),
+      'ids': identifiers.keys
+          .map((identifier) => identifier.toJson(uris))
+          .toList(),
+      'constants':
+          constants.keys.map((constant) => constant.toJson(constants)).toList(),
       if (calls.isNotEmpty)
         'calls': calls
             .map((reference) => reference.toJson(identifiers, uris, constants))
@@ -131,4 +137,10 @@ extension on Iterable<Constant> {
     }
     return constants;
   }
+}
+
+extension _PrivateIterableExtension<T> on Iterable<T> {
+  Map<T, int> get asMapToIndices => Map.fromEntries(
+        mapIndexed((index, uri) => MapEntry(uri, index)),
+      );
 }

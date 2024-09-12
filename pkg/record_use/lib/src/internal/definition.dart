@@ -35,11 +35,11 @@ class Definition {
   }
 
   Map<String, dynamic> toJson(
-    List<Identifier> identifiers,
-    List<String> uris,
+    Map<Identifier, int> identifiers,
+    Map<String, int> uris,
   ) =>
       {
-        'id': identifiers.indexOf(identifier),
+        'id': identifiers[identifier]!,
         '@': location.toJson(),
         'loadingUnit': loadingUnit,
       };

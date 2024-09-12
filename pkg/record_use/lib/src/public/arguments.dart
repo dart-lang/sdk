@@ -31,7 +31,7 @@ class Arguments {
     );
   }
 
-  Map<String, dynamic> toJson(List<Constant> constants) {
+  Map<String, dynamic> toJson(Map<Constant, int> constants) {
     final hasConst =
         constArguments.named.isNotEmpty || constArguments.positional.isNotEmpty;
     final hasNonConst = nonConstArguments.named.isNotEmpty ||
@@ -70,22 +70,24 @@ class ConstArguments {
   ) =>
       ConstArguments(
         positional: json['positional'] != null
-            ? (json['positional'] as Map<String, dynamic>).map((key, value) =>
-                MapEntry(int.parse(key), constants[value as int]))
+            ? (json['positional'] as Map<String, dynamic>).map((position,
+                    constantIndex) =>
+                MapEntry(int.parse(position), constants[constantIndex as int]))
             : {},
         named: json['named'] != null
-            ? (json['named'] as Map<String, dynamic>)
-                .map((key, value) => MapEntry(key, constants[value as int]))
+            ? (json['named'] as Map<String, dynamic>).map(
+                (name, constantIndex) =>
+                    MapEntry(name, constants[constantIndex as int]))
             : {},
       );
 
-  Map<String, dynamic> toJson(List<Constant> constants) => {
+  Map<String, dynamic> toJson(Map<Constant, int> constants) => {
         if (positional.isNotEmpty)
-          'positional': positional.map((key, value) =>
-              MapEntry(key.toString(), constants.indexOf(value))),
+          'positional': positional.map((position, constantIndex) =>
+              MapEntry(position.toString(), constants[constantIndex]!)),
         if (named.isNotEmpty)
-          'named': named
-              .map((key, value) => MapEntry(key, constants.indexOf(value))),
+          'named': named.map((name, constantIndex) =>
+              MapEntry(name, constants[constantIndex]!)),
       };
 
   @override
@@ -111,9 +113,10 @@ class NonConstArguments {
 
   factory NonConstArguments.fromJson(Map<String, dynamic> json) =>
       NonConstArguments(
-        positional:
-            json['positional'] != null ? json['positional'] as List<int> : [],
-        named: json['named'] != null ? json['named'] as List<String> : [],
+        positional: json['positional'] != null
+            ? (json['positional'] as List).cast()
+            : <int>[],
+        named: json['named'] != null ? (json['named'] as List).cast() : [],
       );
 
   Map<String, dynamic> toJson() => {

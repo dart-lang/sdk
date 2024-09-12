@@ -22,9 +22,9 @@ class Location {
     );
   }
 
-  Map<String, dynamic> toJson({List<String>? uris}) {
+  Map<String, dynamic> toJson({Map<String, int>? uris}) {
     return {
-      if (uris != null) 'uri': uris.indexOf(uri),
+      if (uris != null) 'uri': uris[uri]!,
       'line': line,
       'column': column,
     };
