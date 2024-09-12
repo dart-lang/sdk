@@ -48,7 +48,6 @@ import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
-import '../builder/prefix_builder.dart';
 import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
@@ -2872,10 +2871,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   List<Part> get parts => _parts;
-
-  @override
-  List<PrefixBuilder>? get prefixBuilders =>
-      _libraryNameSpaceBuilder.prefixBuilders;
 
   @override
   void registerUnresolvedStructuralVariables(

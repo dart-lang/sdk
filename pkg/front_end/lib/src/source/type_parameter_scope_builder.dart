@@ -29,9 +29,6 @@ class LibraryNameSpaceBuilder {
 
   final Map<String, List<Builder>> setterAugmentations = {};
 
-  /// List of [PrefixBuilder]s for imports with prefixes.
-  List<PrefixBuilder>? _prefixBuilders;
-
   late final NameSpace _nameSpace;
 
   LibraryNameSpaceBuilder() {
@@ -140,9 +137,6 @@ class LibraryNameSpaceBuilder {
       } else {
         // TODO(cstefantsova): Report an error.
       }
-    } else if (declaration is PrefixBuilder) {
-      _prefixBuilders ??= <PrefixBuilder>[];
-      _prefixBuilders!.add(declaration);
     }
     return members[name] = declaration;
   }
@@ -208,8 +202,6 @@ class LibraryNameSpaceBuilder {
       }
     }
   }
-
-  List<PrefixBuilder>? get prefixBuilders => _prefixBuilders;
 
   NameSpace toNameSpace() => _nameSpace;
 }

@@ -216,10 +216,6 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   int finishDeferredLoadTearOffs(Library library);
 
-  void forEachExtensionInScope(void Function(ExtensionBuilder) f);
-
-  void clearExtensionsInScopeCache();
-
   /// This method instantiates type parameters to their bounds in some cases
   /// where they were omitted by the programmer and not provided by the type
   /// inference.  The method returns the number of distinct type variables

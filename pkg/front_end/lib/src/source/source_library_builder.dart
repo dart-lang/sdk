@@ -234,6 +234,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // TODO(johnniwinther): Remove this.
   final Map<String, List<Builder>>? setterAugmentations;
 
+  /// Set of extension declarations in scope. This is computed lazily in
+  /// [forEachExtensionInScope].
+  Set<ExtensionBuilder>? _extensionsInScope;
+
   factory SourceLibraryBuilder(
       {required Uri importUri,
       required Uri fileUri,
@@ -2199,12 +2203,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void forEachExtensionInScope(void Function(ExtensionBuilder) f) {
-    compilationUnit.forEachExtensionInScope(f);
+    if (_extensionsInScope == null) {
+      _extensionsInScope = <ExtensionBuilder>{};
+      _scope.forEachExtension((e) {
+        _extensionsInScope!.add(e);
+      });
+      Iterator<PrefixBuilder> iterator = nameSpace.filteredIterator(
+          includeDuplicates: false, includeAugmentations: false);
+      while (iterator.moveNext()) {
+        iterator.current.forEachExtension((e) {
+          _extensionsInScope!.add(e);
+        });
+      }
+    }
+    _extensionsInScope!.forEach(f);
   }
 
   // Coverage-ignore(suite): Not run.
   void clearExtensionsInScopeCache() {
-    compilationUnit.clearExtensionsInScopeCache();
+    _extensionsInScope = null;
   }
 
   void registerBoundsCheck(

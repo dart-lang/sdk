@@ -35,10 +35,6 @@ class SourceCompilationUnitImpl
   @override
   final List<Export> exporters = <Export>[];
 
-  /// Set of extension declarations in scope. This is computed lazily in
-  /// [forEachExtensionInScope].
-  Set<ExtensionBuilder>? _extensionsInScope;
-
   /// The language version of this library as defined by the language version
   /// of the package it belongs to, if present, or the current language version
   /// otherwise.
@@ -773,32 +769,6 @@ class SourceCompilationUnitImpl
 
   @override
   String? get name => _builderFactoryResult.name;
-
-  @override
-  void forEachExtensionInScope(void Function(ExtensionBuilder) f) {
-    if (_extensionsInScope == null) {
-      _extensionsInScope = <ExtensionBuilder>{};
-      _scope.forEachExtension((e) {
-        _extensionsInScope!.add(e);
-      });
-      List<PrefixBuilder>? prefixBuilders =
-          _builderFactoryResult.prefixBuilders;
-      if (prefixBuilders != null) {
-        for (PrefixBuilder prefix in prefixBuilders) {
-          prefix.forEachExtension((e) {
-            _extensionsInScope!.add(e);
-          });
-        }
-      }
-    }
-    _extensionsInScope!.forEach(f);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void clearExtensionsInScopeCache() {
-    _extensionsInScope = null;
-  }
 
   @override
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,

@@ -20,7 +20,6 @@ import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
-import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart';
@@ -43,9 +42,6 @@ abstract class BuilderFactoryResult {
   List<Import> get imports;
 
   List<Export> get exports;
-
-  /// List of [PrefixBuilder]s for imports with prefixes.
-  List<PrefixBuilder>? get prefixBuilders;
 
   List<MetadataBuilder>? get metadata;
 
