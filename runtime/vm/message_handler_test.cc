@@ -18,8 +18,8 @@ class MessageHandlerTestPeer {
   void PostMessage(std::unique_ptr<Message> message) {
     handler_->PostMessage(std::move(message));
   }
-  void OnPortClosed(Dart_Port port) { handler_->OnPortClosed(port); }
-  void OnAllPortsClosed() { handler_->OnAllPortsClosed(); }
+  void ClosePort(Dart_Port port) { handler_->ClosePort(port); }
+  void CloseAllPorts() { handler_->CloseAllPorts(); }
 
   MessageQueue* queue() const { return handler_->queue_; }
   MessageQueue* oob_queue() const { return handler_->oob_queue_; }
@@ -193,7 +193,7 @@ VM_UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
   }
 
   // Delete all pending messages.
-  handler_peer.OnAllPortsClosed();
+  handler_peer.CloseAllPorts();
 }
 
 VM_UNIT_TEST_CASE(MessageHandler_ClosePort) {
@@ -207,20 +207,20 @@ VM_UNIT_TEST_CASE(MessageHandler_ClosePort) {
   Message* raw_message2 = message.get();
   handler_peer.PostMessage(std::move(message));
 
-  handler_peer.OnPortClosed(1);
+  handler_peer.ClosePort(1);
 
   // Closing the port does not drop the messages from the queue.
   EXPECT(raw_message1 == handler_peer.queue()->Dequeue().get());
   EXPECT(raw_message2 == handler_peer.queue()->Dequeue().get());
 }
 
-VM_UNIT_TEST_CASE(MessageHandler_OnAllPortsClosed) {
+VM_UNIT_TEST_CASE(MessageHandler_CloseAllPorts) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
   handler_peer.PostMessage(BlankMessage(1, Message::kNormalPriority));
   handler_peer.PostMessage(BlankMessage(2, Message::kNormalPriority));
 
-  handler_peer.OnAllPortsClosed();
+  handler_peer.CloseAllPorts();
 
   // All messages are dropped from the queue.
   EXPECT(nullptr == handler_peer.queue()->Dequeue());
@@ -269,7 +269,7 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_ProcessOOBAfterError) {
   Dart_Port* ports = handler.port_buffer();
   EXPECT_EQ(port2, ports[0]);  // oob_message1, error
   EXPECT_EQ(port3, ports[1]);  // oob_message2, ok
-  handler_peer.OnAllPortsClosed();
+  handler_peer.CloseAllPorts();
 }
 
 VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
@@ -302,7 +302,7 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
     MessageHandler::AcquiredQueues aq(&handler);
     EXPECT(aq.oob_queue()->Length() == 0);
   }
-  handler_peer.OnAllPortsClosed();
+  handler_peer.CloseAllPorts();
 }
 
 VM_UNIT_TEST_CASE(MessageHandler_HandleOOBMessages) {
@@ -323,7 +323,7 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleOOBMessages) {
   Dart_Port* ports = handler.port_buffer();
   EXPECT_EQ(port3, ports[0]);
   EXPECT_EQ(port4, ports[1]);
-  handler_peer.OnAllPortsClosed();
+  handler_peer.CloseAllPorts();
 }
 
 struct ThreadStartInfo {

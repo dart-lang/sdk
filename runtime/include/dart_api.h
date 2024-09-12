@@ -57,14 +57,14 @@
 #endif
 
 #if __GNUC__
-#define DART_API_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
-#define DART_API_DEPRECATED(msg) __attribute__((deprecated(msg)))
+#define DART_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+#define DART_DEPRECATED(msg) __attribute__((deprecated(msg)))
 #elif _MSC_VER
-#define DART_API_WARN_UNUSED_RESULT _Check_return_
-#define DART_API_DEPRECATED(msg) __declspec(deprecated(msg))
+#define DART_WARN_UNUSED_RESULT _Check_return_
+#define DART_DEPRECATED(msg) __declspec(deprecated(msg))
 #else
-#define DART_API_WARN_UNUSED_RESULT
-#define DART_API_DEPRECATED(msg)
+#define DART_WARN_UNUSED_RESULT
+#define DART_DEPRECATED(msg)
 #endif
 
 /*
@@ -1000,7 +1000,7 @@ typedef struct {
  * \return NULL if initialization is successful. Returns an error message
  *   otherwise. The caller is responsible for freeing the error message.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT char* Dart_Initialize(
+DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Initialize(
     Dart_InitializeParams* params);
 
 /**
@@ -1012,7 +1012,7 @@ DART_EXPORT DART_API_WARN_UNUSED_RESULT char* Dart_Initialize(
  * NOTE: This function must not be called on a thread that was created by the VM
  * itself.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT char* Dart_Cleanup(void);
+DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Cleanup(void);
 
 /**
  * Sets command line flags. Should be called before Dart_Initialize.
@@ -1025,9 +1025,8 @@ DART_EXPORT DART_API_WARN_UNUSED_RESULT char* Dart_Cleanup(void);
  *
  * NOTE: This call does not store references to the passed in c-strings.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT char* Dart_SetVMFlags(
-    int argc,
-    const char** argv);
+DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_SetVMFlags(int argc,
+                                                          const char** argv);
 
 /**
  * Returns true if the named VM flag is of boolean type, specified, and set to
@@ -1481,7 +1480,7 @@ DART_EXPORT void Dart_ExitIsolate(void);
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
                     intptr_t* vm_snapshot_data_size,
                     uint8_t** isolate_snapshot_data_buffer,
@@ -1511,7 +1510,7 @@ DART_EXPORT bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size);
  * \return NULL if successful. Returns an error message otherwise. The caller
  * is responsible for freeing the error message.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT char* Dart_IsolateMakeRunnable(
+DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_IsolateMakeRunnable(
     Dart_Isolate isolate);
 
 /*
@@ -1681,7 +1680,7 @@ DART_EXPORT Dart_Handle Dart_GetStickyError(void);
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle Dart_HandleMessage(void);
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_HandleMessage(void);
 
 /**
  * Handles any pending messages for the vm service for the current
@@ -1721,7 +1720,7 @@ DART_EXPORT bool Dart_HasServiceMessages(void);
  *   exception or other error occurs while processing messages, an
  *   error handle is returned.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle Dart_RunLoop(void);
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_RunLoop(void);
 
 /**
  * Lets the VM run message processing for the isolate.
@@ -1741,7 +1740,7 @@ DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle Dart_RunLoop(void);
  *   of its message loop. If not successful the caller retains ownership of the
  *   isolate.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT bool Dart_RunLoopAsync(
+DART_EXPORT DART_WARN_UNUSED_RESULT bool Dart_RunLoopAsync(
     bool errors_are_fatal,
     Dart_Port on_error_port,
     Dart_Port on_exit_port,
@@ -2786,7 +2785,7 @@ DART_EXPORT Dart_Handle Dart_GetDataFromByteBuffer(Dart_Handle byte_buffer);
  *   then the new object. If an error occurs during execution, then an
  *   error handle is returned.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_New(Dart_Handle type,
          Dart_Handle constructor_name,
          int number_of_arguments,
@@ -2800,8 +2799,7 @@ Dart_New(Dart_Handle type,
  * \return The new object. If an error occurs during execution, then an
  *   error handle is returned.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
-Dart_Allocate(Dart_Handle type);
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_Allocate(Dart_Handle type);
 
 /**
  * Allocate a new object without invoking a constructor, and sets specified
@@ -2842,7 +2840,7 @@ Dart_AllocateWithNativeFields(Dart_Handle type,
  *   successfully, then the return value is returned. If an error
  *   occurs during execution, then an error handle is returned.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_Invoke(Dart_Handle target,
             Dart_Handle name,
             int number_of_arguments,
@@ -2858,7 +2856,7 @@ Dart_Invoke(Dart_Handle target,
  *   invoking the closure is returned. If an error occurs during
  *   execution, then an error handle is returned.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_InvokeClosure(Dart_Handle closure,
                    int number_of_arguments,
                    Dart_Handle* arguments);
@@ -2883,7 +2881,7 @@ Dart_InvokeClosure(Dart_Handle closure,
  *   successfully, then the object is returned. If an error
  *   occurs during execution, then an error handle is returned.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_InvokeConstructor(Dart_Handle object,
                        Dart_Handle name,
                        int number_of_arguments,
@@ -2909,7 +2907,7 @@ Dart_InvokeConstructor(Dart_Handle object,
  * \return If no error occurs, then the value of the field is
  *   returned. Otherwise an error handle is returned.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_GetField(Dart_Handle container, Dart_Handle name);
 
 /**
@@ -2932,7 +2930,7 @@ Dart_GetField(Dart_Handle container, Dart_Handle name);
  *
  * \return A valid handle if no error occurs.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_SetField(Dart_Handle container, Dart_Handle name, Dart_Handle value);
 
 /*
@@ -3507,7 +3505,7 @@ Dart_SetDeferredLoadHandler(Dart_DeferredLoadHandler handler);
  * Requires the current isolate to be the same current isolate during the
  * invocation of the Dart_DeferredLoadHandler.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_DeferredLoadComplete(intptr_t loading_unit_id,
                           const uint8_t* snapshot_data,
                           const uint8_t* snapshot_instructions);
@@ -3524,7 +3522,7 @@ Dart_DeferredLoadComplete(intptr_t loading_unit_id,
  * Requires the current isolate to be the same current isolate during the
  * invocation of the Dart_DeferredLoadHandler.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_DeferredLoadCompleteError(intptr_t loading_unit_id,
                                const char* error_message,
                                bool transient);
@@ -3540,7 +3538,7 @@ Dart_DeferredLoadCompleteError(intptr_t loading_unit_id,
  *
  * \return A handle to the root library, or an error.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadScriptFromKernel(const uint8_t* kernel_buffer, intptr_t kernel_size);
 
 /**
@@ -3708,10 +3706,10 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library,
  *
  * \return A handle to the main library of the compilation unit, or an error.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadLibraryFromKernel(const uint8_t* kernel_buffer,
                            intptr_t kernel_buffer_size);
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadLibrary(Dart_Handle kernel_buffer);
 
 /**
@@ -3727,7 +3725,7 @@ Dart_LoadLibrary(Dart_Handle kernel_buffer);
  * \return Success if all classes have been finalized and deferred library
  *   futures are completed. Otherwise, returns an error.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_FinalizeLoading(bool complete_futures);
 
 /*
@@ -3996,12 +3994,12 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
  *
  *  \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                     void* callback_data,
                                     bool stripped,
                                     void* debug_callback_data);
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsAssemblies(
     Dart_CreateLoadingUnitCallback next_callback,
     void* next_callback_data,
@@ -4036,12 +4034,12 @@ Dart_CreateAppAOTSnapshotAsAssemblies(
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                                void* callback_data,
                                bool stripped,
                                void* debug_callback_data);
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
                                 void* next_callback_data,
                                 bool stripped,
@@ -4054,7 +4052,7 @@ Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
  *  not strip DWARF information from the generated assembly or allow for
  *  separate debug information.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                    void* callback_data);
 
@@ -4065,7 +4063,7 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle Dart_SortClasses(void);
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_SortClasses(void);
 
 /**
  *  Creates a snapshot that caches compiled code and type feedback for faster
@@ -4088,7 +4086,7 @@ DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle Dart_SortClasses(void);
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
@@ -4103,7 +4101,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
  * \return Returns an error handler if the VM was built in a mode that does not
  * support obfuscation.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_GetObfuscationMap(uint8_t** buffer, intptr_t* buffer_length);
 
 /**

@@ -21,7 +21,6 @@ class PortSet {
 
   struct Entry : public MallocAllocated {
     Entry() : port(kFreePort) {}
-    explicit Entry(Dart_Port port) : port(port) {}
 
     // Free entries have set this to 0.
     Dart_Port port;

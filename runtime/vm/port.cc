@@ -52,9 +52,9 @@ Dart_Port PortMap::AllocatePort() {
   return result;
 }
 
-Dart_Port PortMap::CreatePort(PortHandler* handler) {
+Dart_Port PortMap::CreatePort(MessageHandler* handler) {
   ASSERT(handler != nullptr);
-  PortMap::Locker ml;
+  MutexLocker ml(mutex_);
   if (ports_ == nullptr) {
     return ILLEGAL_PORT;
   }
@@ -64,28 +64,35 @@ Dart_Port PortMap::CreatePort(PortHandler* handler) {
 #endif
 
   const Dart_Port port = AllocatePort();
-  if (auto ports = handler->ports(ml)) {
-    ports->Insert(PortHandler::PortSetEntry{port});
-  }
-  ports_->Insert(Entry{port, handler});
+
+  // The MessageHandler::ports_ is only accessed by [PortMap], it is guarded
+  // by the [PortMap::mutex_] we already hold.
+  MessageHandler::PortSetEntry isolate_entry;
+  isolate_entry.port = port;
+  handler->ports_.Insert(isolate_entry);
+
+  Entry entry;
+  entry.port = port;
+  entry.handler = handler;
+  ports_->Insert(entry);
 
   if (FLAG_trace_isolates) {
     OS::PrintErr(
         "[+] Opening port: \n"
         "\thandler:    %s\n"
         "\tport:       %" Pd64 "\n",
-        handler->name(), port);
+        handler->name(), entry.port);
   }
 
-  return port;
+  return entry.port;
 }
 
-bool PortMap::ClosePort(Dart_Port port, PortHandler** port_handler) {
-  if (port_handler != nullptr) *port_handler = nullptr;
+bool PortMap::ClosePort(Dart_Port port, MessageHandler** message_handler) {
+  if (message_handler != nullptr) *message_handler = nullptr;
 
-  PortHandler* handler = nullptr;
+  MessageHandler* handler = nullptr;
   {
-    PortMap::Locker ml;
+    MutexLocker ml(mutex_);
     if (ports_ == nullptr) {
       return false;
     }
@@ -101,33 +108,33 @@ bool PortMap::ClosePort(Dart_Port port, PortHandler** port_handler) {
     handler->CheckAccess();
 #endif
 
+    // Delete the port entry before releasing the lock to avoid holding the lock
+    // while flushing the messages below.
     it.Delete();
     ports_->Rebalance();
 
-    if (auto ports = handler->ports(ml)) {
-      auto isolate_it = ports->TryLookup(port);
-      ASSERT(isolate_it != ports->end());
-      isolate_it.Delete();
-      ports->Rebalance();
-    }
+    // The MessageHandler::ports_ is only accessed by [PortMap], it is guarded
+    // by the [PortMap::mutex_] we already hold.
+    auto isolate_it = handler->ports_.TryLookup(port);
+    ASSERT(isolate_it != handler->ports_.end());
+    isolate_it.Delete();
+    handler->ports_.Rebalance();
   }
-  handler->OnPortClosed(port);
-  if (port_handler != nullptr) *port_handler = handler;
+  handler->ClosePort(port);
+  if (message_handler != nullptr) *message_handler = handler;
   return true;
 }
 
 void PortMap::ClosePorts(MessageHandler* handler) {
   {
-    PortMap::Locker ml;
+    MutexLocker ml(mutex_);
     if (ports_ == nullptr) {
       return;
     }
-
-    auto ports = handler->ports(ml);
-    ASSERT(ports != nullptr);
-
-    for (auto isolate_it = ports->begin(); isolate_it != ports->end();
-         ++isolate_it) {
+    // The MessageHandler::ports_ is only accessed by [PortMap], it is guarded
+    // by the [PortMap::mutex_] we already hold.
+    for (auto isolate_it = handler->ports_.begin();
+         isolate_it != handler->ports_.end(); ++isolate_it) {
       auto it = ports_->TryLookup((*isolate_it).port);
       ASSERT(it != ports_->end());
       Entry entry = *it;
@@ -136,10 +143,10 @@ void PortMap::ClosePorts(MessageHandler* handler) {
       it.Delete();
       isolate_it.Delete();
     }
-    ASSERT(ports->IsEmpty());
+    ASSERT(handler->ports_.IsEmpty());
     ports_->Rebalance();
   }
-  handler->OnAllPortsClosed();
+  handler->CloseAllPorts();
 }
 
 bool PortMap::PostMessage(std::unique_ptr<Message> message,
@@ -154,7 +161,7 @@ bool PortMap::PostMessage(std::unique_ptr<Message> message,
     message->DropFinalizers();
     return false;
   }
-  auto handler = (*it).handler;
+  MessageHandler* handler = (*it).handler;
   ASSERT(handler != nullptr);
   handler->PostMessage(std::move(message), before_events);
   return true;
@@ -182,7 +189,7 @@ Isolate* PortMap::GetIsolate(Dart_Port id) {
     return nullptr;
   }
 
-  auto handler = (*it).handler;
+  MessageHandler* handler = (*it).handler;
   return handler->isolate();
 }
 
@@ -197,7 +204,7 @@ Dart_Port PortMap::GetOriginId(Dart_Port id) {
     return ILLEGAL_PORT;
   }
 
-  auto handler = (*it).handler;
+  MessageHandler* handler = (*it).handler;
   Isolate* isolate = handler->isolate();
   if (isolate == nullptr) {
     // Message handler is a native port instead of an isolate.
@@ -248,13 +255,6 @@ void PortMap::Init() {
   }
   if (ports_ == nullptr) {
     ports_ = new PortSet<Entry>();
-  }
-}
-
-void PortMap::Shutdown() {
-  // Tell all handlers which are running their own thread pools to shutdown.
-  for (auto& entry : *ports_) {
-    entry.handler->Shutdown();
   }
 }
 
@@ -316,13 +316,5 @@ void PortMap::DebugDumpForMessageHandler(MessageHandler* handler) {
     }
   }
 }
-
-PortHandler::~PortHandler() {}
-
-#if defined(DEBUG)
-void PortHandler::CheckAccess() const {
-  // By default there is no checking.
-}
-#endif
 
 }  // namespace dart

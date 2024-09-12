@@ -11,7 +11,6 @@
 #include "vm/allocation.h"
 #include "vm/globals.h"
 #include "vm/json_stream.h"
-#include "vm/lockers.h"
 #include "vm/port_set.h"
 #include "vm/random.h"
 
@@ -21,17 +20,17 @@ class Isolate;
 class Message;
 class MessageHandler;
 class Mutex;
-class PortHandler;
 
 class PortMap : public AllStatic {
  public:
   // Allocate a port for the provided handler and return its VM-global id.
-  static Dart_Port CreatePort(PortHandler* handler);
+  static Dart_Port CreatePort(MessageHandler* handler);
 
   // Close the port with id. All pending messages will be dropped.
   //
   // Returns true if the port is successfully closed.
-  static bool ClosePort(Dart_Port id, PortHandler** port_handler = nullptr);
+  static bool ClosePort(Dart_Port id,
+                        MessageHandler** message_handler = nullptr);
 
   // Close all the ports for the provided handler.
   static void ClosePorts(MessageHandler* handler);
@@ -59,7 +58,6 @@ class PortMap : public AllStatic {
                                                    IsolateGroup* group);
 
   static void Init();
-  static void Shutdown();
   static void Cleanup();
 
   static void PrintPortsForMessageHandler(MessageHandler* handler,
@@ -67,18 +65,11 @@ class PortMap : public AllStatic {
 
   static void DebugDumpForMessageHandler(MessageHandler* handler);
 
-  class Locker : public MutexLocker {
-   public:
-    Locker() : MutexLocker(PortMap::mutex_) {}
-  };
-
  private:
   struct Entry : public PortSet<Entry>::Entry {
     Entry() : handler(nullptr) {}
-    Entry(Dart_Port port, PortHandler* handler)
-        : PortSet<Entry>::Entry(port), handler(handler) {}
 
-    PortHandler* handler;
+    MessageHandler* handler;
   };
 
   // Allocate a new unique port.
@@ -90,54 +81,6 @@ class PortMap : public AllStatic {
   static PortSet<Entry>* ports_;
 
   static Random* prng_;
-};
-
-// An object handling messages dispatched to one or more ports in the |PortMap|.
-class PortHandler {
- public:
-  virtual ~PortHandler();
-
-  virtual const char* name() const = 0;
-
-  // Notify the handler that a port previously associated with it is
-  // now closed.
-  virtual void OnPortClosed(Dart_Port port) = 0;
-
-#if defined(DEBUG)
-  // Check that it is safe to access this port handler.
-  //
-  // For example, if this |PortHandler| is an isolate, then it is
-  // only safe to access it when it is the current isolate.
-  virtual void CheckAccess() const;
-#endif
-
-  // Return Isolate to which this message handler corresponds to.
-  virtual Isolate* isolate() const = 0;
-
-  // Ask the handler to shutdown, e.g. stop associated thread pools if any.
-  virtual void Shutdown() = 0;
-
-  // Posts a message on this handler's message queue.
-  // If before_events is true, then the message is enqueued before any pending
-  // events, but after any pending isolate library events.
-  virtual void PostMessage(std::unique_ptr<Message> message,
-                           bool before_events = false) = 0;
-
- protected:
-  struct PortSetEntry : public PortSet<PortSetEntry>::Entry {
-    PortSetEntry() : Entry() {}
-    explicit PortSetEntry(Dart_Port port) : Entry(port) {}
-  };
-
- private:
-  friend class PortMap;
-
-  // Returns set of ports associate with this handler if
-  // handler supports multiple ports or |nullptr| otherwise.
-  //
-  // Only |PortMap| is expected to call this method under locked
-  // PortMap::mutex_.
-  virtual PortSet<PortSetEntry>* ports(PortMap::Locker& locker) = 0;
 };
 
 }  // namespace dart
