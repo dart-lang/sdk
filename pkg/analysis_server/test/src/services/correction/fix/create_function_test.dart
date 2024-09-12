@@ -596,20 +596,20 @@ void myUndefinedFunction() {
 
   Future<void> test_functionType_inside_conditional_operator() async {
     await resolveTestCode('''
-void m1(int i) {
-  m2(i == 0 ? m3 : (v) => v);
+void f1(int i) {
+  f2(i == 0 ? f3 : (v) => v);
 }
 
-void m2(int Function(int) f) {}
+void f2(int Function(int) f) {}
 ''');
     await assertHasFix('''
-void m1(int i) {
-  m2(i == 0 ? m3 : (v) => v);
+void f1(int i) {
+  f2(i == 0 ? f3 : (v) => v);
 }
 
-void m2(int Function(int) f) {}
+void f2(int Function(int) f) {}
 
-int m3(int p1) {
+int f3(int p1) {
 }
 ''');
   }
