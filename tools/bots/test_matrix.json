@@ -1331,7 +1331,8 @@
           "arguments": [
             "--dart-dynamic-modules",
             "runtime",
-            "runtime_precompiled"
+            "runtime_precompiled",
+            "utils/gen_kernel"
           ]
         },
         {
@@ -1343,6 +1344,17 @@
           ],
           "fileset": "vm",
           "shards": 5
+        },
+        {
+          "name": "dynamic module tests",
+          "script": "out/DebugX64/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dynamic_modules/test/runner/main.dart",
+            "-nvm-aot-dyn-${system}-${mode}-${arch}",
+            "-raot",
+            "--verbose"
+          ]
         }
       ]
     },
@@ -1876,6 +1888,17 @@
             "-nddc-${system}-chrome",
             "--verbose",
             "--use-sdk"
+          ]
+        },
+        {
+          "name": "ddc dynamic module tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dynamic_modules/test/runner/main.dart",
+            "-nddc-${system}-chrome",
+            "-rddc",
+            "--verbose"
           ]
         },
         {

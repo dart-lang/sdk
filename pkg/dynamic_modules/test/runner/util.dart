@@ -25,8 +25,29 @@ Uri repoRoot = (() {
 })();
 
 String _outFolder = Platform.isMacOS ? 'xcodebuild' : 'out';
-String configuration =
-    Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
+
+String configuration = () {
+  var env = Platform.environment['DART_CONFIGURATION'];
+  if (env != null) return env;
+  var folderSegments = _dartBin.resolve('.').pathSegments;
+  for (int i = folderSegments.length - 1; i > 0; i--) {
+    if (folderSegments[i] == _outFolder) {
+      var candidate = folderSegments[i + 1];
+      if (candidate.startsWith('Debug') ||
+          candidate.startsWith('Release') ||
+          candidate.startsWith('Product')) {
+        return candidate;
+      }
+    }
+  }
+  return 'ReleaseX64';
+}();
+
+// See also utils/gen_kernel/BUILD.gn:
+// dartaotruntime has dart_product_config applied to it and is built in product
+// mode in both release and product builds.
+bool get useProduct => !configuration.startsWith('Debug');
+
 String buildFolder = '$_outFolder/$configuration/';
 String arch = Abi.current().toString().split('_')[1];
 String _d8Path = (() {
@@ -58,13 +79,15 @@ Uri ddcModuleLoaderJs =
     repoRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
 
 Uri genKernelSnapshot =
-    _dartBin.resolve('snapshots/gen_kernel_aot.dart.snapshot');
+    buildRootUri.resolve('gen/gen_kernel_aot.dart.snapshot');
+Uri genSnapshotBin =
+    buildRootUri.resolve(useProduct ? 'gen_snapshot_product' : 'gen_snapshot');
 Uri dart2bytecodeSnapshot =
-    _dartBin.resolve('snapshots/dart2bytecode.dart.snapshot');
-Uri aotRuntimeBin =
-    Uri.parse(Platform.resolvedExecutable).resolve('dartaotruntime');
-Uri vmPlatformDill =
-    _dartBin.resolve('../lib/_internal/vm_platform_strong_product.dill');
+    buildRootUri.resolve('gen/dart2bytecode.dart.snapshot');
+Uri aotRuntimeBin = buildRootUri.resolve(useProduct
+    ? 'dart_precompiled_runtime_product'
+    : 'dart_precompiled_runtime');
+Uri vmPlatformDill = buildRootUri.resolve('vm_platform_strong.dill');
 
 // Encodes test results in the format expected by Dart's CI infrastructure.
 class TestResultOutcome {
