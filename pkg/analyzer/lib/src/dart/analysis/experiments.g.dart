@@ -50,6 +50,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.test_experiment: ExperimentalFeatures.test_experiment,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
   EnableString.unnamed_libraries: ExperimentalFeatures.unnamed_libraries,
+  EnableString.unquoted_imports: ExperimentalFeatures.unquoted_imports,
   EnableString.variance: ExperimentalFeatures.variance,
   EnableString.wildcard_variables: ExperimentalFeatures.wildcard_variables,
 };
@@ -149,6 +150,9 @@ class EnableString {
 
   /// String to enable the experiment "unnamed-libraries"
   static const String unnamed_libraries = 'unnamed-libraries';
+
+  /// String to enable the experiment "unquoted-imports"
+  static const String unquoted_imports = 'unquoted-imports';
 
   /// String to enable the experiment "variance"
   static const String variance = 'variance';
@@ -474,8 +478,18 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.19.0'),
   );
 
-  static final variance = ExperimentalFeature(
+  static final unquoted_imports = ExperimentalFeature(
     index: 31,
+    enableString: EnableString.unquoted_imports,
+    isEnabledByDefault: IsEnabledByDefault.unquoted_imports,
+    isExpired: IsExpired.unquoted_imports,
+    documentation: 'Shorter import syntax.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final variance = ExperimentalFeature(
+    index: 32,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -485,7 +499,7 @@ class ExperimentalFeatures {
   );
 
   static final wildcard_variables = ExperimentalFeature(
-    index: 32,
+    index: 33,
     enableString: EnableString.wildcard_variables,
     isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
     isExpired: IsExpired.wildcard_variables,
@@ -592,6 +606,9 @@ class IsEnabledByDefault {
   /// Default state of the experiment "unnamed-libraries"
   static const bool unnamed_libraries = true;
 
+  /// Default state of the experiment "unquoted-imports"
+  static const bool unquoted_imports = false;
+
   /// Default state of the experiment "variance"
   static const bool variance = false;
 
@@ -695,6 +712,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "unnamed-libraries"
   static const bool unnamed_libraries = true;
+
+  /// Expiration status of the experiment "unquoted-imports"
+  static const bool unquoted_imports = false;
 
   /// Expiration status of the experiment "variance"
   static const bool variance = false;
@@ -808,6 +828,9 @@ mixin _CurrentState {
   /// Current state for the flag "unnamed-libraries"
   bool get unnamed_libraries =>
       isEnabled(ExperimentalFeatures.unnamed_libraries);
+
+  /// Current state for the flag "unquoted-imports"
+  bool get unquoted_imports => isEnabled(ExperimentalFeatures.unquoted_imports);
 
   /// Current state for the flag "variance"
   bool get variance => isEnabled(ExperimentalFeatures.variance);

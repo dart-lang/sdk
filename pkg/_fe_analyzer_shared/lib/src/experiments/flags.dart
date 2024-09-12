@@ -227,6 +227,13 @@ enum ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 19),
       experimentReleasedVersion: const Version(2, 19)),
 
+  unquotedImports(
+      name: 'unquoted-imports',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
+
   variance(
       name: 'variance',
       isEnabledByDefault: false,
