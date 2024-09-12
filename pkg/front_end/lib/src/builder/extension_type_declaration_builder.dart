@@ -38,9 +38,14 @@ abstract class ExtensionTypeDeclarationBuilderImpl
     extends DeclarationBuilderImpl
     with DeclarationBuilderMixin
     implements ExtensionTypeDeclarationBuilder {
-  ExtensionTypeDeclarationBuilderImpl(List<MetadataBuilder>? metadata,
-      int modifiers, String name, LibraryBuilder parent, int charOffset)
-      : super(metadata, modifiers, name, parent, charOffset);
+  ExtensionTypeDeclarationBuilderImpl(
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      String name,
+      LibraryBuilder parent,
+      Uri fileUri,
+      int fileOffset)
+      : super(metadata, modifiers, name, parent, fileUri, fileOffset);
 
   @override
   DartType buildAliasedTypeWithBuiltArguments(

@@ -100,7 +100,7 @@ class SourceExtensionTypeDeclarationBuilder
                 typeParameters),
             reference: indexedContainer?.reference)
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, name, parent, nameOffset) {}
+        super(metadata, modifiers, name, parent, parent.fileUri, nameOffset) {}
 
   @override
   LookupScope get scope => _scope;

@@ -197,7 +197,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             startCharOffset, nameOffset, charEndOffset, indexedClass,
             isAugmentation: isAugmentation),
         isAugmentation = isAugmentation,
-        super(metadata, modifiers, name, parent, nameOffset) {
+        super(metadata, modifiers, name, parent, parent.fileUri, nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 
