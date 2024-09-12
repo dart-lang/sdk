@@ -94,7 +94,8 @@ import 'source_library_builder.dart'
         InvalidLanguageVersion,
         LanguageVersion,
         LibraryAccess,
-        SourceLibraryBuilder;
+        SourceLibraryBuilder,
+        SourceLibraryBuilderState;
 import 'source_procedure_builder.dart';
 import 'stack_listener_impl.dart' show offsetForToken;
 
@@ -1477,6 +1478,10 @@ severity: $severity
     for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
       _compilationUnits.remove(augmentationLibrary.fileUri);
       augmentationLibrary.origin.addAugmentationLibrary(augmentationLibrary);
+      augmentationLibrary.state = SourceLibraryBuilderState.resolvedParts;
+    }
+    for (SourceLibraryBuilder sourceLibrary in sourceLibraries) {
+      sourceLibrary.state = SourceLibraryBuilderState.resolvedParts;
     }
     _sourceLibraryBuilders = sourceLibraries;
     assert(
@@ -1511,6 +1516,13 @@ severity: $severity
     ticker.logMs("Applied augmentations");
   }
 
+  void buildNameSpaces(Iterable<SourceLibraryBuilder> sourceLibraryBuilders) {
+    for (SourceLibraryBuilder sourceLibraryBuilder in sourceLibraryBuilders) {
+      sourceLibraryBuilder.buildNameSpace();
+    }
+    ticker.logMs("Built name spaces");
+  }
+
   void buildScopes(Iterable<SourceLibraryBuilder> sourceLibraryBuilders) {
     for (SourceLibraryBuilder sourceLibraryBuilder in sourceLibraryBuilders) {
       sourceLibraryBuilder.buildScopes(coreLibrary);
@@ -1523,9 +1535,8 @@ severity: $severity
     Set<LibraryBuilder> exporters = new Set<LibraryBuilder>();
     Set<LibraryBuilder> exportees = new Set<LibraryBuilder>();
     for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
-        sourceLibrary.buildInitialScopes();
+      if (library is SourceLibraryBuilder) {
+        library.buildInitialScopes();
       }
       if (library.exporters.isNotEmpty) {
         exportees.add(library);
@@ -1563,9 +1574,8 @@ severity: $severity
       }
     } while (wasChanged);
     for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
-        sourceLibrary.addImportsToScope();
+      if (library is SourceLibraryBuilder) {
+        library.addImportsToScope();
       }
     }
     for (LibraryBuilder exportee in exportees) {
@@ -1910,6 +1920,10 @@ severity: $severity
       }
     }
 
+    for (SourceLibraryBuilder libraryBuilder in libraryBuilders) {
+      libraryBuilder.state = SourceLibraryBuilderState.typeVariablesFinished;
+    }
+
     ticker.logMs("Resolved ${sortedTypeVariables.length} type-variable bounds");
   }
 
@@ -1922,10 +1936,14 @@ severity: $severity
     ticker.logMs("Computed variances of $count type variables");
   }
 
-  void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
-      TypeBuilder bottomType, ClassBuilder objectClass) {
+  void computeDefaultTypes(
+      List<SourceLibraryBuilder> libraryBuilders,
+      TypeBuilder dynamicType,
+      TypeBuilder nullType,
+      TypeBuilder bottomType,
+      ClassBuilder objectClass) {
     int count = 0;
-    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+    for (SourceLibraryBuilder library in libraryBuilders) {
       count += library.computeDefaultTypes(
           dynamicType, nullType, bottomType, objectClass);
     }

@@ -29,8 +29,9 @@ class BuildCommand extends DartdevCommand {
   static const String outputOptionName = 'output';
   static const String formatOptionName = 'format';
   static const int genericErrorExitCode = 255;
+  final bool recordUseEnabled;
 
-  BuildCommand({bool verbose = false})
+  BuildCommand({bool verbose = false, required this.recordUseEnabled})
       : super(cmdName, 'Build a Dart application including native assets.',
             verbose) {
     argParser
@@ -162,7 +163,10 @@ class BuildCommand extends DartdevCommand {
     final tempDir = Directory.systemTemp.createTempSync();
     try {
       final packageConfig = await packageConfigUri(sourceUri);
-      final resources = path.join(tempDir.path, 'resources.json');
+      String? recordedUsagesPath;
+      if (recordUseEnabled) {
+        recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
+      }
       final generator = KernelGenerator(
         kind: format,
         sourceFile: sourceUri.toFilePath(),
@@ -177,12 +181,13 @@ class BuildCommand extends DartdevCommand {
       );
 
       final snapshotGenerator = await generator.generate(
-        resourcesFile: resources,
+        recordedUsagesFile: recordedUsagesPath,
       );
 
       // Start linking here.
       final linkResult = await nativeAssetsBuildRunner.link(
-        resourceIdentifiers: Uri.file(resources),
+        resourceIdentifiers:
+            recordUseEnabled ? Uri.file(recordedUsagesPath!) : null,
         workingDirectory: workingDirectory,
         target: target,
         linkModePreference: LinkModePreferenceImpl.dynamic,

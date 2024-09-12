@@ -247,7 +247,6 @@ main() {
     "Dart_NewListOfType",
     "Dart_NewListOfTypeFilled",
     "Dart_NewNativePort",
-    "Dart_NewConcurrentNativePort",
     "Dart_NewPersistentHandle",
     "Dart_NewSendPort",
     "Dart_NewSendPortEx",

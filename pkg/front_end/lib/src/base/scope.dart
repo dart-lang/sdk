@@ -434,16 +434,16 @@ class CompilationUnitScope extends BaseNameSpaceLookupScope {
 }
 
 class SourceLibraryBuilderScope extends BaseNameSpaceLookupScope {
-  final SourceLibraryBuilder _libraryBuilder;
+  final SourceCompilationUnit _compilationUnit;
 
   SourceLibraryBuilderScope(
-      this._libraryBuilder, super.kind, super.classNameOrDebugName);
+      this._compilationUnit, super.kind, super.classNameOrDebugName);
 
   @override
-  NameSpace get _nameSpace => _libraryBuilder.nameSpace;
+  NameSpace get _nameSpace => _compilationUnit.libraryBuilder.nameSpace;
 
   @override
-  LookupScope? get _parent => _libraryBuilder.importScope;
+  LookupScope? get _parent => _compilationUnit.libraryBuilder.importScope;
 }
 
 abstract class ConstructorScope {

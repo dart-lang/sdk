@@ -48,7 +48,6 @@ import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
-import '../builder/prefix_builder.dart';
 import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
@@ -2006,6 +2005,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       // into the outline. In case of super-parameters language feature, the
       // super initializers are required to infer the types of super parameters.
       constructorBuilder.beginInitializers =
+          // TODO(johnniwinther): Avoid using a dummy token to ensure building
+          // of constant constructors in the outline phase.
           beginInitializers ?? new Token.eof(-1);
     }
     return constructorBuilder;
@@ -2789,11 +2790,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     return _compilationUnit.loader.inferableTypes.addInferableType();
   }
 
-  @override
-  Builder addBuilder(String name, Builder declaration, int charOffset) {
-    return _addBuilderToLibrary(name, declaration, charOffset);
-  }
-
   void _addBuilderInternal(String name, Builder declaration, int charOffset,
       {Reference? getterReference, Reference? setterReference}) {
     if (getterReference != null) {
@@ -2813,11 +2809,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
   }
 
-  Builder _addBuilderToLibrary(
-      String name, Builder declaration, int charOffset) {
+  void _addBuilderToLibrary(String name, Builder declaration, int charOffset) {
     assert(_declarationFragments.isEmpty);
-    return _libraryNameSpaceBuilder.addBuilder(_parent, _problemReporting, name,
-        declaration, _compilationUnit.fileUri, charOffset);
+    _libraryNameSpaceBuilder.addBuilder(
+        name, declaration, _compilationUnit.fileUri, charOffset);
   }
 
   void _addBuilderToDeclaration(
@@ -2872,10 +2867,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   List<Part> get parts => _parts;
-
-  @override
-  List<PrefixBuilder>? get prefixBuilders =>
-      _libraryNameSpaceBuilder.prefixBuilders;
 
   @override
   void registerUnresolvedStructuralVariables(

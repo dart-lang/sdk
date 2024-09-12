@@ -954,10 +954,8 @@ RequiredNamedParameterHasDefaultValueError/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueError/example: Fail
 RequiredNamedParameterHasDefaultValueWarning/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueWarning/example: Fail
-ResourceIdentifiersMultiple/analyzerCode: Fail
-ResourceIdentifiersMultiple/example: Fail
-ResourceIdentifiersNotStatic/analyzerCode: Fail
-ResourceIdentifiersNotStatic/example: Fail
+RecordUseCannotBePlacedHere/analyzerCode: Fail
+RecordUseCannotBePlacedHere/example: Fail
 RestPatternInMapPattern/analyzerCode: Fail
 RestPatternMoreThanOne/analyzerCode: Fail
 RethrowNotCatch/example: Fail

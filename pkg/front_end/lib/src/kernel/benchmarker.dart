@@ -161,6 +161,7 @@ enum BenchmarkPhases {
 
   outline_kernelBuildOutlines,
   outline_resolveParts,
+  outline_buildNameSpaces,
   outline_becomeCoreLibrary,
   outline_buildScopes,
   outline_computeMacroDeclarations,

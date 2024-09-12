@@ -19,199 +19,144 @@ import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 
 class LibraryNameSpaceBuilder {
-  final Map<String, Builder> _members = {};
-
-  final Map<String, MemberBuilder> _setters = {};
-
-  final Set<ExtensionBuilder> _extensions = {};
-
   final Map<String, List<Builder>> augmentations = {};
 
   final Map<String, List<Builder>> setterAugmentations = {};
 
-  /// List of [PrefixBuilder]s for imports with prefixes.
-  List<PrefixBuilder>? _prefixBuilders;
+  List<_AddBuilder> _addedBuilders = [];
 
-  late final NameSpace _nameSpace;
-
-  LibraryNameSpaceBuilder() {
-    _nameSpace = new NameSpaceImpl(
-        getables: _members, setables: _setters, extensions: _extensions);
+  void addBuilder(
+      String name, Builder declaration, Uri fileUri, int charOffset) {
+    _addedBuilders.add(new _AddBuilder(name, declaration, fileUri, charOffset));
   }
 
-  Builder addBuilder(
-      SourceLibraryBuilder _parent,
-      ProblemReporting _problemReporting,
-      String name,
-      Builder declaration,
-      Uri fileUri,
-      int charOffset) {
-    if (declaration is SourceExtensionBuilder &&
-        declaration.isUnnamedExtension) {
-      declaration.parent = _parent;
-      _extensions.add(declaration);
-      return declaration;
-    }
+  void includeBuilders(LibraryNameSpaceBuilder other) {
+    _addedBuilders.addAll(other._addedBuilders);
+  }
 
-    if (declaration is MemberBuilder) {
-      declaration.parent = _parent;
-    } else if (declaration is TypeDeclarationBuilder) {
-      declaration.parent = _parent;
-    } else if (declaration is PrefixBuilder) {
-      assert(declaration.parent == _parent);
-    } else {
-      return unhandled(
-          "${declaration.runtimeType}", "addBuilder", charOffset, fileUri);
-    }
+  NameSpace toNameSpace(
+      SourceLibraryBuilder _parent, ProblemReporting _problemReporting) {
+    Map<String, Builder> getables = {};
 
-    assert(
-        !(declaration is FunctionBuilder &&
-            (declaration.isConstructor || declaration.isFactory)),
-        // Coverage-ignore(suite): Not run.
-        "Unexpected constructor in library: $declaration.");
+    Map<String, MemberBuilder> setables = {};
 
-    Map<String, Builder> members =
-        declaration.isSetter ? _setters : this._members;
+    Set<ExtensionBuilder> extensions = {};
 
-    Builder? existing = members[name];
+    NameSpace nameSpace = new NameSpaceImpl(
+        getables: getables, setables: setables, extensions: extensions);
 
-    if (existing == declaration) return declaration;
-
-    if (declaration.next != null && declaration.next != existing) {
-      unexpected(
-          "${declaration.next!.fileUri}@${declaration.next!.charOffset}",
-          "${existing?.fileUri}@${existing?.charOffset}",
-          declaration.charOffset,
-          declaration.fileUri);
-    }
-    declaration.next = existing;
-    if (declaration is PrefixBuilder && existing is PrefixBuilder) {
-      assert(existing.next is! PrefixBuilder);
-      Builder? deferred;
-      Builder? other;
-      if (declaration.deferred) {
-        deferred = declaration;
-        other = existing;
-      } else if (existing.deferred) {
-        deferred = existing;
-        other = declaration;
+    void _addBuilder(
+        String name, Builder declaration, Uri fileUri, int charOffset) {
+      if (declaration is SourceExtensionBuilder &&
+          declaration.isUnnamedExtension) {
+        declaration.parent = _parent;
+        extensions.add(declaration);
+        return;
       }
-      if (deferred != null) {
+
+      if (declaration is MemberBuilder) {
+        declaration.parent = _parent;
+      } else if (declaration is TypeDeclarationBuilder) {
+        declaration.parent = _parent;
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (declaration is PrefixBuilder) {
+        assert(declaration.parent == _parent);
+      } else {
+        unhandled(
+            "${declaration.runtimeType}", "addBuilder", charOffset, fileUri);
+      }
+
+      assert(
+          !(declaration is FunctionBuilder &&
+              (declaration.isConstructor || declaration.isFactory)),
+          // Coverage-ignore(suite): Not run.
+          "Unexpected constructor in library: $declaration.");
+
+      Map<String, Builder> members = declaration.isSetter ? setables : getables;
+
+      Builder? existing = members[name];
+
+      if (existing == declaration) return;
+
+      if (declaration.next != null &&
+          // Coverage-ignore(suite): Not run.
+          declaration.next != existing) {
+        unexpected(
+            "${declaration.next!.fileUri}@${declaration.next!.charOffset}",
+            "${existing?.fileUri}@${existing?.charOffset}",
+            declaration.charOffset,
+            declaration.fileUri);
+      }
+      declaration.next = existing;
+      if (declaration is PrefixBuilder &&
+          // Coverage-ignore(suite): Not run.
+          existing is PrefixBuilder) {
         // Coverage-ignore-block(suite): Not run.
+        assert(existing.next is! PrefixBuilder);
+        Builder? deferred;
+        Builder? other;
+        if (declaration.deferred) {
+          deferred = declaration;
+          other = existing;
+        } else if (existing.deferred) {
+          deferred = existing;
+          other = declaration;
+        }
+        if (deferred != null) {
+          _problemReporting.addProblem(
+              templateDeferredPrefixDuplicated.withArguments(name),
+              deferred.charOffset,
+              noLength,
+              fileUri,
+              context: [
+                templateDeferredPrefixDuplicatedCause
+                    .withArguments(name)
+                    .withLocation(fileUri, other!.charOffset, noLength)
+              ]);
+        }
+        existing.mergeScopes(declaration, _problemReporting, nameSpace,
+            uriOffset: new UriOffset(fileUri, charOffset));
+        return;
+      } else if (isDuplicatedDeclaration(existing, declaration)) {
+        String fullName = name;
         _problemReporting.addProblem(
-            templateDeferredPrefixDuplicated.withArguments(name),
-            deferred.charOffset,
-            noLength,
-            fileUri,
-            context: [
-              templateDeferredPrefixDuplicatedCause
-                  .withArguments(name)
-                  .withLocation(fileUri, other!.charOffset, noLength)
+            templateDuplicatedDeclaration.withArguments(fullName),
+            charOffset,
+            fullName.length,
+            declaration.fileUri!,
+            context: <LocatedMessage>[
+              templateDuplicatedDeclarationCause
+                  .withArguments(fullName)
+                  .withLocation(
+                      existing!.fileUri!, existing.charOffset, fullName.length)
             ]);
-      }
-      existing.mergeScopes(declaration, _problemReporting, _nameSpace,
-          uriOffset: new UriOffset(fileUri, charOffset));
-      return existing;
-    } else if (isDuplicatedDeclaration(existing, declaration)) {
-      String fullName = name;
-      _problemReporting.addProblem(
-          templateDuplicatedDeclaration.withArguments(fullName),
-          charOffset,
-          fullName.length,
-          declaration.fileUri!,
-          context: <LocatedMessage>[
-            templateDuplicatedDeclarationCause
-                .withArguments(fullName)
-                .withLocation(
-                    existing!.fileUri!, existing.charOffset, fullName.length)
-          ]);
-    } else if (declaration.isExtension) {
-      // We add the extension declaration to the extension scope only if its
-      // name is unique. Only the first of duplicate extensions is accessible
-      // by name or by resolution and the remaining are dropped for the output.
-      _extensions.add(declaration as SourceExtensionBuilder);
-    } else if (declaration.isAugment) {
-      if (existing != null) {
-        if (declaration.isSetter) {
-          (setterAugmentations[name] ??= []).add(declaration);
+      } else if (declaration.isExtension) {
+        // We add the extension declaration to the extension scope only if its
+        // name is unique. Only the first of duplicate extensions is accessible
+        // by name or by resolution and the remaining are dropped for the
+        // output.
+        extensions.add(declaration as SourceExtensionBuilder);
+      } else if (declaration.isAugment) {
+        if (existing != null) {
+          if (declaration.isSetter) {
+            (setterAugmentations[name] ??= []).add(declaration);
+          } else {
+            (augmentations[name] ??= []).add(declaration);
+          }
         } else {
-          (augmentations[name] ??= []).add(declaration);
+          // TODO(cstefantsova): Report an error.
         }
-      } else {
-        // TODO(cstefantsova): Report an error.
       }
-    } else if (declaration is PrefixBuilder) {
-      _prefixBuilders ??= <PrefixBuilder>[];
-      _prefixBuilders!.add(declaration);
+      members[name] = declaration;
     }
-    return members[name] = declaration;
+
+    for (_AddBuilder addBuilder in _addedBuilders) {
+      _addBuilder(addBuilder.name, addBuilder.declaration, addBuilder.fileUri,
+          addBuilder.charOffset);
+    }
+    return nameSpace;
   }
-
-  void includeBuilders(
-      SourceLibraryBuilder _parent,
-      ProblemReporting _problemReporting,
-      Uri fileUri,
-      LibraryNameSpaceBuilder other) {
-    List<(String, Builder)> builders = [];
-    for (MapEntry<String, Builder> entry in other._members.entries) {
-      builders.add((entry.key, entry.value));
-    }
-    for (MapEntry<String, Builder> entry in other._setters.entries) {
-      builders.add((entry.key, entry.value));
-    }
-    for (Builder builder in other._extensions) {
-      if (builder is SourceExtensionBuilder && builder.isUnnamedExtension) {
-        // The name is bogus and not used by [addBuilder].
-        builders.add((builder.name, builder));
-      }
-    }
-    for (var (String name, Builder declaration) in builders) {
-      if (declaration.next != null) {
-        List<Builder> duplicated = <Builder>[];
-        while (declaration.next != null) {
-          duplicated.add(declaration);
-          declaration = declaration.next!;
-        }
-        duplicated.add(declaration);
-        // Handle duplicated declarations in the part.
-        //
-        // Duplicated declarations are handled by creating a linked list
-        // using the `next` field. This is preferred over making all scope
-        // entries be a `List<Declaration>`.
-        //
-        // We maintain the linked list so that the last entry is easy to
-        // recognize (it's `next` field is null). This means that it is
-        // reversed with respect to source code order. Since kernel doesn't
-        // allow duplicated declarations, we ensure that we only add the
-        // first declaration to the kernel tree.
-        //
-        // Since the duplicated declarations are stored in reverse order, we
-        // iterate over them in reverse order as this is simpler and
-        // normally not a problem. However, in this case we need to call
-        // [addBuilder] in source order as it would otherwise create cycles.
-        //
-        // We also need to be careful preserving the order of the links. The
-        // part library still keeps these declarations in its scope so that
-        // DietListener can find them.
-        for (int i = duplicated.length - 1; i >= 0; i--) {
-          Builder declaration = duplicated[i];
-          // No reference: There should be no duplicates when using
-          // references.
-          addBuilder(_parent, _problemReporting, name, declaration, fileUri,
-              declaration.charOffset);
-        }
-      } else {
-        // No reference: The part is in the same loader so the reference
-        // - if needed - was already added.
-        addBuilder(_parent, _problemReporting, name, declaration, fileUri,
-            declaration.charOffset);
-      }
-    }
-  }
-
-  List<PrefixBuilder>? get prefixBuilders => _prefixBuilders;
-
-  NameSpace toNameSpace() => _nameSpace;
 }
 
 class NominalParameterScope extends AbstractTypeParameterScope {

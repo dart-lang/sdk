@@ -142,6 +142,9 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// compilation unit itself.
   Uri get originImportUri;
 
+  @override
+  SourceLibraryBuilder get libraryBuilder;
+
   LibraryFeatures get libraryFeatures;
 
   /// Returns `true` if the compilation unit is part of a `dart:` library.
@@ -158,6 +161,8 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   Uri? get partOfUri;
 
   List<MetadataBuilder>? get metadata;
+
+  LookupScope get scope;
 
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications);
@@ -216,10 +221,6 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   int finishDeferredLoadTearOffs(Library library);
 
-  void forEachExtensionInScope(void Function(ExtensionBuilder) f);
-
-  void clearExtensionsInScopeCache();
-
   /// This method instantiates type parameters to their bounds in some cases
   /// where they were omitted by the programmer and not provided by the type
   /// inference.  The method returns the number of distinct type variables
@@ -244,8 +245,13 @@ abstract class SourceCompilationUnit implements CompilationUnit {
       Map<NominalVariableBuilder, SourceLibraryBuilder> nominalVariables,
       Map<StructuralVariableBuilder, SourceLibraryBuilder> structuralVariables);
 
+  /// Adds [prefixBuilder] to library name space.
+  ///
+  /// Returns `true` if the prefix name was new to the name space. Otherwise the
+  /// prefix was merged with an existing prefix of the same name.
   // TODO(johnniwinther): Remove this.
-  Builder addBuilder(String name, Builder declaration, int charOffset);
+  bool addPrefixBuilder(
+      String name, PrefixBuilder prefixBuilder, int charOffset);
 
   int resolveTypes(ProblemReporting problemReporting);
 }

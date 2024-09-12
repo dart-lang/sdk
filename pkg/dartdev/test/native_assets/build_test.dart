@@ -233,6 +233,78 @@ void main(List<String> args) {
       );
     });
   });
+
+  test('Tree-shaking: No assets are dropped', timeout: longTimeout, () async {
+    await recordUseTest('drop_dylib_recording', (dartAppUri) async {
+      // First try using all symbols, so no assets are treeshaken.
+      await runDart(
+        arguments: [
+          '--enable-experiment=native-assets,record-use',
+          'build',
+          'bin/drop_dylib_recording_all.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: true,
+      );
+
+      // The build directory exists
+      final allDirectory =
+          Directory.fromUri(dartAppUri.resolve('bin/drop_dylib_recording_all'));
+      expect(allDirectory.existsSync(), true);
+
+      // No assets have been treeshaken
+      final addLib =
+          OSImpl.current.libraryFileName('add', DynamicLoadingBundledImpl());
+      final mulitplyLib = OSImpl.current
+          .libraryFileName('multiply', DynamicLoadingBundledImpl());
+      expect(
+        File.fromUri(allDirectory.uri.resolve('lib/$addLib')).existsSync(),
+        true,
+      );
+      expect(
+        File.fromUri(allDirectory.uri.resolve('lib/$mulitplyLib')).existsSync(),
+        true,
+      );
+    });
+  });
+
+  test('Tree-shaking: An asset is dropped', timeout: longTimeout, () async {
+    await recordUseTest('drop_dylib_recording', (dartAppUri) async {
+      final addLib =
+          OSImpl.current.libraryFileName('add', DynamicLoadingBundledImpl());
+      final mulitplyLib = OSImpl.current
+          .libraryFileName('multiply', DynamicLoadingBundledImpl());
+      // Now try using the add symbol only, so the multiply library is
+      // tree-shaken.
+      await runDart(
+        arguments: [
+          '--enable-experiment=native-assets,record-use',
+          'build',
+          'bin/drop_dylib_recording_shake.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: true,
+      );
+
+      // The build directory exists
+      final shakeDirectory = Directory.fromUri(
+          dartAppUri.resolve('bin/drop_dylib_recording_shake'));
+      expect(shakeDirectory.existsSync(), true);
+
+      // The multiply asset has been treeshaken
+      expect(
+        File.fromUri(shakeDirectory.uri.resolve('lib/$addLib')).existsSync(),
+        true,
+      );
+      expect(
+        File.fromUri(shakeDirectory.uri.resolve('lib/$mulitplyLib'))
+            .existsSync(),
+        false,
+      );
+    });
+  });
 }
 
 Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {

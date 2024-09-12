@@ -1012,8 +1012,6 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
           prefix: null,
           combinators: null,
           deferred: false);
-
-      dartDocTestLibrary.addImportsToScope();
     } else {
       throw "Got ${libraryBuilder.runtimeType}";
     }

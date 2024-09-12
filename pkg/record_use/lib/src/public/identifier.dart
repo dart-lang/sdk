@@ -20,8 +20,8 @@ class Identifier {
         name: json['name'] as String,
       );
 
-  Map<String, dynamic> toJson(List<String> uris) => {
-        'uri': uris.indexOf(uri),
+  Map<String, dynamic> toJson(Map<String, int> uris) => {
+        'uri': uris[uri]!,
         if (parent != null) 'parent': parent,
         'name': name,
       };

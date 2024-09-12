@@ -235,6 +235,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
 
+  static const ExperimentalFlag recordUse = const ExperimentalFlag(
+      name: 'record-use',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
   static const ExperimentalFlag records = const ExperimentalFlag(
       name: 'records',
       isEnabledByDefault: true,
@@ -242,14 +250,6 @@ class ExperimentalFlag {
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
-
-  static const ExperimentalFlag resourceIdentifiers = const ExperimentalFlag(
-      name: 'resource-identifiers',
-      isEnabledByDefault: false,
-      isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag sealedClass = const ExperimentalFlag(
       name: 'sealed-class',
@@ -462,13 +462,13 @@ class GlobalFeatures {
   GlobalFeature get patterns =>
       _patterns ??= _computeGlobalFeature(ExperimentalFlag.patterns);
 
+  GlobalFeature? _recordUse;
+  GlobalFeature get recordUse =>
+      _recordUse ??= _computeGlobalFeature(ExperimentalFlag.recordUse);
+
   GlobalFeature? _records;
   GlobalFeature get records =>
       _records ??= _computeGlobalFeature(ExperimentalFlag.records);
-
-  GlobalFeature? _resourceIdentifiers;
-  GlobalFeature get resourceIdentifiers => _resourceIdentifiers ??=
-      _computeGlobalFeature(ExperimentalFlag.resourceIdentifiers);
 
   GlobalFeature? _sealedClass;
   GlobalFeature get sealedClass =>
@@ -640,15 +640,15 @@ class LibraryFeatures {
       _patterns ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.patterns, canonicalUri, libraryVersion);
 
+  LibraryFeature? _recordUse;
+  LibraryFeature get recordUse =>
+      _recordUse ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.recordUse, canonicalUri, libraryVersion);
+
   LibraryFeature? _records;
   LibraryFeature get records =>
       _records ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.records, canonicalUri, libraryVersion);
-
-  LibraryFeature? _resourceIdentifiers;
-  LibraryFeature get resourceIdentifiers =>
-      _resourceIdentifiers ??= globalFeatures._computeLibraryFeature(
-          ExperimentalFlag.resourceIdentifiers, canonicalUri, libraryVersion);
 
   LibraryFeature? _sealedClass;
   LibraryFeature get sealedClass =>
@@ -743,10 +743,10 @@ class LibraryFeatures {
         return nullAwareElements;
       case shared.ExperimentalFlag.patterns:
         return patterns;
+      case shared.ExperimentalFlag.recordUse:
+        return recordUse;
       case shared.ExperimentalFlag.records:
         return records;
-      case shared.ExperimentalFlag.resourceIdentifiers:
-        return resourceIdentifiers;
       case shared.ExperimentalFlag.sealedClass:
         return sealedClass;
       case shared.ExperimentalFlag.setLiterals:
@@ -817,10 +817,10 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.nullAwareElements;
     case "patterns":
       return ExperimentalFlag.patterns;
+    case "record-use":
+      return ExperimentalFlag.recordUse;
     case "records":
       return ExperimentalFlag.records;
-    case "resource-identifiers":
-      return ExperimentalFlag.resourceIdentifiers;
     case "sealed-class":
       return ExperimentalFlag.sealedClass;
     case "set-literals":
@@ -886,9 +886,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.nullAwareElements:
       ExperimentalFlag.nullAwareElements.isEnabledByDefault,
   ExperimentalFlag.patterns: ExperimentalFlag.patterns.isEnabledByDefault,
+  ExperimentalFlag.recordUse: ExperimentalFlag.recordUse.isEnabledByDefault,
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
-  ExperimentalFlag.resourceIdentifiers:
-      ExperimentalFlag.resourceIdentifiers.isEnabledByDefault,
   ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass.isEnabledByDefault,
   ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals.isEnabledByDefault,
   ExperimentalFlag.spreadCollections:
@@ -942,9 +941,8 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
       ExperimentalFlag.nonfunctionTypeAliases,
   shared.ExperimentalFlag.nullAwareElements: ExperimentalFlag.nullAwareElements,
   shared.ExperimentalFlag.patterns: ExperimentalFlag.patterns,
+  shared.ExperimentalFlag.recordUse: ExperimentalFlag.recordUse,
   shared.ExperimentalFlag.records: ExperimentalFlag.records,
-  shared.ExperimentalFlag.resourceIdentifiers:
-      ExperimentalFlag.resourceIdentifiers,
   shared.ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass,
   shared.ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals,
   shared.ExperimentalFlag.spreadCollections: ExperimentalFlag.spreadCollections,

@@ -15,7 +15,9 @@ dependencies:
   crypto: any
   front_end: any
   kernel: any
+  record_use: any
   package_config: any
+  pub_semver: any
   yaml: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.

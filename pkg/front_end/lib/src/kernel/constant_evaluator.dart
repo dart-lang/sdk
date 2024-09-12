@@ -46,7 +46,7 @@ import '../type_inference/matching_cache.dart';
 import '../type_inference/matching_expressions.dart';
 import 'constant_int_folder.dart';
 import 'exhaustiveness.dart';
-import 'resource_identifier.dart' as ResourceIdentifiers;
+import 'record_use.dart' as RecordUse;
 import 'static_weak_references.dart' show StaticWeakReferences;
 
 part 'constant_collection_builders.dart';
@@ -352,11 +352,14 @@ class ConstantsTransformer extends RemovingTransformer {
             parent, constantEvaluator.errorReporter);
       }
       final Iterable<InstanceConstant> resourceAnnotations =
-          ResourceIdentifiers.findResourceAnnotations(parent);
+          RecordUse.findRecordUseAnnotation(parent);
       if (resourceAnnotations.isNotEmpty) {
         // Coverage-ignore-block(suite): Not run.
-        ResourceIdentifiers.validateResourceIdentifierDeclaration(
-            parent, constantEvaluator.errorReporter, resourceAnnotations);
+        RecordUse.validateRecordUseDeclaration(
+          parent,
+          constantEvaluator.errorReporter,
+          resourceAnnotations,
+        );
       }
     }
   }

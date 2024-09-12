@@ -1,0 +1,59 @@
+{
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.1.0"
+  },
+  "uris": [
+    "complex.dart"
+  ],
+  "ids": [
+    {
+      "uri": 0,
+      "parent": "OtherClass",
+      "name": "generate"
+    }
+  ],
+  "constants": [
+    {
+      "type": "int",
+      "value": 42
+    }
+  ],
+  "calls": [
+    {
+      "definition": {
+        "id": 0,
+        "@": {
+          "line": 30,
+          "column": 25
+        },
+        "loadingUnit": "1"
+      },
+      "references": [
+        {
+          "arguments": {
+            "const": {
+              "positional": {
+                "4": 0
+              }
+            },
+            "nonConst": {
+              "positional": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "loadingUnit": "1",
+          "@": {
+            "uri": 0,
+            "line": 20,
+            "column": 18
+          }
+        }
+      ]
+    }
+  ]
+}

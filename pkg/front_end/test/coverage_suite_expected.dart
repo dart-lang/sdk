@@ -684,7 +684,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 0,
   ),
   // 100.0%.
-  "package:front_end/src/kernel/resource_identifier.dart": (
+  "package:front_end/src/kernel/record_use.dart": (
     hitCount: 15,
     missCount: 0,
   ),

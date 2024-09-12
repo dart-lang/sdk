@@ -240,10 +240,6 @@ bool OSThread::IsThreadInList(ThreadId id) {
   return false;
 }
 
-bool OSThread::CanCreateOSThreads() {
-  return creation_enabled_;
-}
-
 void OSThread::DisableOSThreadCreation() {
   MutexLocker ml(thread_list_lock_);
   creation_enabled_ = false;
