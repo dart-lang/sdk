@@ -1,0 +1,86 @@
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'assist_processor.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(InvertConditionalExpressionTest);
+  });
+}
+
+@reflectiveTest
+class InvertConditionalExpressionTest extends AssistProcessorTest {
+  @override
+  AssistKind get kind => DartAssistKind.INVERT_CONDITIONAL_EXPRESSION;
+
+  Future<void> test_thenStatement_elseStatement_on_question() async {
+    await resolveTestCode('''
+void f() {
+  true /*caret*/? 0 : 1;
+}
+''');
+    await assertHasAssist('''
+void f() {
+  false ? 1 : 0;
+}
+''');
+  }
+
+  Future<void> test_thenStatement_elseStatement_on_colon() async {
+    await resolveTestCode('''
+void f() {
+  true ? 0 /*caret*/: 1;
+}
+''');
+    await assertHasAssist('''
+void f() {
+  false ? 1 : 0;
+}
+''');
+  }
+
+  Future<void> test_thenStatement_elseStatement_on_condition() async {
+    await resolveTestCode('''
+void f() {
+  /*caret*/true ? 0 : 1;
+}
+''');
+    await assertHasAssist('''
+void f() {
+  false ? 1 : 0;
+}
+''');
+  }
+
+  Future<void> test_thenStatement_elseStatement_on_then() async {
+    await resolveTestCode('''
+void f() {
+  true ? /*caret*/0 : 1;
+}
+''');
+    await assertHasAssist('''
+void f() {
+  false ? 1 : 0;
+}
+''');
+  }
+
+  Future<void> test_thenStatement_elseStatement_on_else() async {
+    await resolveTestCode('''
+void f() {
+  true ? 0 : /*caret*/1;
+}
+''');
+    await assertHasAssist('''
+void f() {
+  false ? 1 : 0;
+}
+''');
+  }
+}
