@@ -165,18 +165,21 @@ class A {
     await assertNoAssist();
   }
 
-  Future<void> test_method_setter_lint_avoidReturnTypesOnSetters() async {
-    createAnalysisOptionsFile(lints: [
-      LintNames.avoid_return_types_on_setters,
-    ]);
+  Future<void> test_method_setter_with_return() async {
     await resolveTestCode('''
 class A {
-  set /*caret*/foo(int a) {
+  void set /*caret*/foo(int a) {
     if (a == 0) return;
   }
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+class A {
+  set foo(int a) {
+    if (a == 0) return;
+  }
+}
+''');
   }
 
   Future<void> test_topLevelFunction_block() async {
@@ -228,16 +231,16 @@ set /*caret*/foo(int a) {
     await assertNoAssist();
   }
 
-  Future<void>
-      test_topLevelFunction_setter_lint_avoidReturnTypesOnSetters() async {
-    createAnalysisOptionsFile(lints: [
-      LintNames.avoid_return_types_on_setters,
-    ]);
+  Future<void> test_topLevelFunction_setter_with_return() async {
     await resolveTestCode('''
+void set /*caret*/foo(int a) {
+  if (a == 0) return;
+}
+''');
+    await assertHasAssist('''
 set /*caret*/foo(int a) {
   if (a == 0) return;
 }
 ''');
-    await assertNoAssist();
   }
 }

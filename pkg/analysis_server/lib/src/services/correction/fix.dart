@@ -1347,6 +1347,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Remove invalid returned values in file',
   );
+  static const REMOVE_RETURN_TYPE = FixKind(
+    'dart.fix.remove.returnType',
+    DartFixKindPriority.standard,
+    'Remove invalid return type',
+  );
+  static const REMOVE_RETURN_TYPE_MULTI = FixKind(
+    'dart.fix.remove.returnType.multi',
+    DartFixKindPriority.inFile,
+    'Remove invalid return type in file',
+  );
   static const REMOVE_THIS_EXPRESSION = FixKind(
     'dart.fix.remove.thisExpression',
     DartFixKindPriority.standard,

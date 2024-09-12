@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveReturnType extends ResolvedCorrectionProducer {
@@ -21,27 +23,43 @@ class RemoveReturnType extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.REMOVE_RETURN_TYPE;
 
   @override
+  FixKind get fixKind => DartFixKind.REMOVE_RETURN_TYPE;
+
+  @override
+  FixKind? get multiFixKind => DartFixKind.REMOVE_RETURN_TYPE_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     Token? insertBeforeEntity;
     TypeAnnotation? returnType;
-    var executable = node;
-    if (executable is MethodDeclaration && executable.name == token) {
+    AstNode? executable;
+    if (_isExecutableNode(node)) {
+      executable = node;
+    } else if (node is NamedType && _isExecutableNode(node.parent)) {
+      executable = node.parent!;
+      returnType = node as NamedType;
+    }
+
+    if (executable == null) {
+      return;
+    }
+
+    if ((executable is MethodDeclaration) &&
+        ((executable.name == token) || (returnType != null))) {
       if (executable.returnType == null) {
-        return;
-      }
-      if (executable.isSetter) {
         return;
       }
       insertBeforeEntity = executable.operatorKeyword ??
           executable.propertyKeyword ??
           executable.name;
-      returnType = executable.returnType;
-    } else if (executable is FunctionDeclaration && executable.name == token) {
+      returnType ??= executable.returnType;
+    } else if ((executable is FunctionDeclaration) &&
+        ((executable.name == token) || (returnType != null))) {
       if (executable.returnType == null) {
         return;
       }
       insertBeforeEntity = executable.propertyKeyword ?? executable.name;
-      returnType = executable.returnType;
+      returnType ??= executable.returnType;
     } else {
       return;
     }
@@ -56,5 +74,10 @@ class RemoveReturnType extends ResolvedCorrectionProducer {
         insertBeforeEntity!.offset,
       ));
     });
+  }
+
+  // Helper function to check if the node is a method or function declaration
+  bool _isExecutableNode(AstNode? node) {
+    return node is MethodDeclaration || node is FunctionDeclaration;
   }
 }

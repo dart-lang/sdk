@@ -162,6 +162,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_parentheses_
 import 'package:analysis_server/src/services/correction/dart/remove_print.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_required.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_to_list.dart';
@@ -1215,6 +1216,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
     CreateClass.new,
     CreateMixin.new,
+  ],
+  CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER: [
+    RemoveReturnType.new,
   ],
   CompileTimeErrorCode.NOT_A_TYPE: [
     ChangeTo.classOrMixin,
