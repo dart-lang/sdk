@@ -223,23 +223,45 @@ Fragment BaseFlowGraphBuilder::Return(TokenPosition position) {
   return instructions.closed();
 }
 
+bool BaseFlowGraphBuilder::ShouldOmitStackOverflowChecks(
+    bool optimizing,
+    const Function& function) {
+  if (!optimizing) {
+    return false;  // Retain all checks.
+  }
+
+  // Omit CheckStackOverflow if vm:unsafe:no-interrupts is present.
+  Object& options = Object::Handle();
+  return Library::FindPragma(dart::Thread::Current(),
+                             /*only_core=*/false, function,
+                             Symbols::vm_unsafe_no_interrupts(),
+                             /*multiple=*/false, &options);
+}
+
 Fragment BaseFlowGraphBuilder::CheckStackOverflow(TokenPosition position,
                                                   intptr_t stack_depth,
                                                   intptr_t loop_depth) {
+  const auto deopt_id = GetNextDeoptId();
+  // Consume deopt_id and check if we should omit this overflow check.
+  // When performing an OSR we need to keep the OSR target in the graph
+  // for |BlockEntryInstr::FindOsrEntryAndRelink|.
+  if (should_omit_stack_overflow_checks() && (deopt_id != osr_id_)) {
+    return Fragment();
+  }
   return Fragment(new (Z) CheckStackOverflowInstr(
-      InstructionSource(position), stack_depth, loop_depth, GetNextDeoptId(),
+      InstructionSource(position), stack_depth, loop_depth, deopt_id,
       CheckStackOverflowInstr::kOsrAndPreemption));
 }
 
 Fragment BaseFlowGraphBuilder::CheckStackOverflowInPrologue(
     TokenPosition position) {
+  auto check = CheckStackOverflow(position, 0, 0);
   if (IsInlining()) {
-    // If we are inlining don't actually attach the stack check.  We must still
+    // If we are inlining don't actually attach the stack check. We must still
     // create the stack check in order to allocate a deopt id.
-    CheckStackOverflow(position, 0, 0);
     return Fragment();
   }
-  return CheckStackOverflow(position, 0, 0);
+  return check;
 }
 
 Fragment BaseFlowGraphBuilder::Constant(const Object& value) {

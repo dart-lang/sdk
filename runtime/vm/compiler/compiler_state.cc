@@ -175,6 +175,34 @@ const Field& CompilerState::CompoundTypedDataBaseField() {
   return *compound_typed_data_base_field_;
 }
 
+static bool IsMarkedWithNoBoundsChecks(const Function& function) {
+  Object& options = Object::Handle();
+  return Library::FindPragma(dart::Thread::Current(),
+                             /*only_core=*/false, function,
+                             Symbols::vm_unsafe_no_bounds_checks(),
+                             /*multiple=*/false, &options);
+}
+
+FunctionPragmas::FunctionPragmas(const Function& function)
+    : function(function),
+      unsafe_no_bounds_checks(IsMarkedWithNoBoundsChecks(function)) {}
+
+const FunctionPragmas& CompilerState::PragmasOf(const Function& function) {
+  if (cached_pragmas_ == nullptr) {
+    Zone* zone = thread()->zone();
+    cached_pragmas_ = new (zone) CachedPragmasMap(zone);
+  }
+
+  auto result = cached_pragmas_->LookupValue(&function);
+  if (result == nullptr) {
+    Zone* zone = thread()->zone();
+    result = new (zone) FunctionPragmas(Function::Handle(zone, function.ptr()));
+    cached_pragmas_->Insert(result);
+  }
+
+  return *result;
+}
+
 void CompilerState::ReportCrash() {
   OS::PrintErr("=== Crash occurred when compiling %s in %s mode in %s pass\n",
                function() != nullptr ? function()->ToFullyQualifiedCString()

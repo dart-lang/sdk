@@ -1567,23 +1567,19 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DontDelayIntoLoop) {
 
 ISOLATE_UNIT_TEST_CASE(CheckStackOverflowElimination_NoInterruptsPragma) {
   const char* kScript = R"(
-    @pragma('vm:prefer-inline')
-    int bar(int n) {
-      print(''); // Side-effectful operation
-      var sum = 0;
-      for (int i = 0; i < n; i++) {
-        sum += i;
-      }
-      return sum;
-    }
-
     @pragma('vm:unsafe:no-interrupts')
-    int test() {
+    @pragma('vm:prefer-inline')
+    int baz() {
       int result = 0;
       for (int i = 0; i < 10; i++) {
-        result ^= bar(i);
+        print("");
+        result ^= i;
       }
       return result;
+    }
+
+    int test() {
+      return baz();
     }
   )";
 
@@ -1594,7 +1590,8 @@ ISOLATE_UNIT_TEST_CASE(CheckStackOverflowElimination_NoInterruptsPragma) {
   auto flow_graph = pipeline.RunPasses({});
   for (auto block : flow_graph->postorder()) {
     for (auto instr : block->instructions()) {
-      EXPECT_PROPERTY(instr, !it.IsCheckStackOverflow());
+      EXPECT_PROPERTY(instr, !it.IsCheckStackOverflow() ||
+                                 it.previous()->IsFunctionEntry());
     }
   }
 }
@@ -1604,12 +1601,17 @@ ISOLATE_UNIT_TEST_CASE(BoundsCheckElimination_Pragma) {
     import 'dart:typed_data';
 
     @pragma('vm:unsafe:no-bounds-checks')
-    int test(Uint8List list) {
+    @pragma('vm:prefer-inline')
+    int foo(Uint8List list) {
       int result = 0;
       for (int i = 0; i < 10; i++) {
         result = list[i];
       }
       return result;
+    }
+
+    int test(Uint8List list) {
+      return foo(list);
     }
   )";
 
