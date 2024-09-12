@@ -557,11 +557,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   result = Dart_SetDeferredLoadHandler(Loader::DeferredLoadHandler);
   CHECK_RESULT(result);
 
-  // We do not spawn the external dds process in the following scenarios:
-  // - The DartDev CLI is disabled and VM service is enabled.
-  // - DDS is disabled.
-  bool wait_for_dds_to_advertise_service =
-      !(Options::disable_dart_dev() || Options::disable_dds());
+  // We do not spawn the external dds process if DDS is explicitly disabled.
+  bool wait_for_dds_to_advertise_service = !Options::disable_dds();
   bool serve_devtools =
       Options::enable_devtools() || !Options::disable_devtools();
   // Load embedder specific bits and return.

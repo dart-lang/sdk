@@ -41,6 +41,7 @@ library
   documentationComment: /**\n * aaa\n * bbb\n */
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -59,6 +60,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -76,6 +78,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -103,6 +106,7 @@ library
   documentationComment: /// aaa\n/// bbb
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -126,6 +130,7 @@ library
   name: foo.bar
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -146,6 +151,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -169,6 +175,7 @@ library
   name: foo.bar
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 }

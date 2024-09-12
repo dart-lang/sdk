@@ -169,7 +169,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE: SemanticTokenTypes.property,
   HighlightRegionType.TOP_LEVEL_VARIABLE: SemanticTokenTypes.property,
   HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION:
-      SemanticTokenTypes.property,
+      SemanticTokenTypes.variable,
   HighlightRegionType.TYPE_ALIAS: SemanticTokenTypes.type,
   HighlightRegionType.TYPE_NAME_DYNAMIC: SemanticTokenTypes.type,
   HighlightRegionType.TYPE_PARAMETER: SemanticTokenTypes.typeParameter,

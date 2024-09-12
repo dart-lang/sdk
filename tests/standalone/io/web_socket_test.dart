@@ -300,6 +300,7 @@ class SecurityConfiguration {
       });
 
       Future<WebSocket?>.value(createClient(server.port)).catchError((error) {
+        Expect.equals(HttpStatus.notFound, error.httpStatusCode);
         server.close();
       });
     });

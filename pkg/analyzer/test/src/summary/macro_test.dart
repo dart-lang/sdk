@@ -199,15 +199,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/order.dart
       classes
         class A1 @70
           reference: <testLibraryFragment>::@class::A1
+          element: <testLibraryFragment>::@class::A1
         class A2 @125
           reference: <testLibraryFragment>::@class::A2
+          element: <testLibraryFragment>::@class::A2
         class A3 @222
           reference: <testLibraryFragment>::@class::A3
+          element: <testLibraryFragment>::@class::A3
   classes
     class A1
       reference: <testLibraryFragment>::@class::A1
@@ -378,15 +382,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/order.dart
       classes
         class A1 @64
           reference: <testLibraryFragment>::@class::A1
+          element: <testLibraryFragment>::@class::A1
         class A2 @113
           reference: <testLibraryFragment>::@class::A2
+          element: <testLibraryFragment>::@class::A2
         class A3 @198
           reference: <testLibraryFragment>::@class::A3
+          element: <testLibraryFragment>::@class::A3
   classes
     class A1
       reference: <testLibraryFragment>::@class::A1
@@ -556,15 +564,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/order.dart
       classes
         class A1 @65
           reference: <testLibraryFragment>::@class::A1
+          element: <testLibraryFragment>::@class::A1
         class A2 @115
           reference: <testLibraryFragment>::@class::A2
+          element: <testLibraryFragment>::@class::A2
         class A3 @202
           reference: <testLibraryFragment>::@class::A3
+          element: <testLibraryFragment>::@class::A3
   classes
     class A1
       reference: <testLibraryFragment>::@class::A1
@@ -664,15 +676,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/order.dart
       classes
         class A1 @65
           reference: <testLibraryFragment>::@class::A1
+          element: <testLibraryFragment>::@class::A1
         class A2 @115
           reference: <testLibraryFragment>::@class::A2
+          element: <testLibraryFragment>::@class::A2
         class A3 @165
           reference: <testLibraryFragment>::@class::A3
+          element: <testLibraryFragment>::@class::A3
   classes
     class A1
       reference: <testLibraryFragment>::@class::A1
@@ -1043,11 +1059,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/arguments_text.dart
       classes
         class A @76
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3120,31 +3138,41 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @66
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           fields
             f @82
               reference: <testLibraryFragment>::@class::A::@field::f
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::f
           getters
             get f @-1
               reference: <testLibraryFragment>::@class::A::@getter::f
+              element: <none>
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             named @57
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+              element: <none>
               periodOffset: 56
               nameEnd: 62
+              parameters
+                this.f @68
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3240,24 +3268,32 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @65
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             named @57
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+              element: <none>
               periodOffset: 56
               nameEnd: 62
+              parameters
+                a @67
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3341,22 +3377,30 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @59
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             new @55
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
+              element: <none>
+              parameters
+                a @61
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3456,32 +3500,40 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @62
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+              element: <none>
               getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
               setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+              element: <none>
           setters
             set foo= @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3583,26 +3635,32 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+              element: <none>
               getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
           getters
             get foo @63
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3691,24 +3749,30 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @73
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           methods
             foo @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+              element: <none>
               parameters
                 a @70
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3802,28 +3866,35 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+              element: <none>
               setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
           setters
             set foo= @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+              element: <none>
               parameters
                 a @67
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5669,6 +5740,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
@@ -5676,12 +5748,15 @@ library
       classes
         class B @71
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
+          element: <testLibraryFragment>::@class::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -5755,17 +5830,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @64
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       functions
         foo @40
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -5858,21 +5937,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @64
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       topLevelVariables
         final x @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+          element: <none>
           getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
       getters
         get x @-1
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
+          element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -6002,14 +6086,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @42
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
@@ -6019,15 +6106,18 @@ library
       classes
         class A @91
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             named @131
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+              element: <none>
               periodOffset: 130
               nameEnd: 136
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
             augment named @152
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
+              element: <none>
               periodOffset: 151
               nameEnd: 157
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
@@ -6167,14 +6257,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @36
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
@@ -6187,24 +6280,30 @@ library
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @166
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
               setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
             foo @193
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
+              element: <none>
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           getters
             get foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+              element: <none>
           setters
             set foo= @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -6345,14 +6444,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
@@ -6365,17 +6467,21 @@ library
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+              element: <none>
               getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
           getters
             get foo @180
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
             augment get foo @211
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
+              element: <none>
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
   classes
     class A
@@ -6494,14 +6600,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
@@ -6514,13 +6623,16 @@ library
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           methods
             foo @176
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
             augment foo @205
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+              element: <none>
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
   classes
     class A
@@ -6653,14 +6765,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
@@ -6673,21 +6788,27 @@ library
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+              element: <none>
               setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
           setters
             set foo= @173
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+              element: <none>
               parameters
                 value @189
+                  element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
             augment set foo= @216
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
+              element: <none>
               parameters
                 value @232
+                  element: <none>
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
   classes
     class A
@@ -6880,11 +7001,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @78
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -6935,14 +7058,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @44
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @93
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -6990,11 +7116,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @76
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -7062,17 +7190,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @56
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -7153,11 +7285,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/a.dart
       classes
         class A @35
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -7212,11 +7346,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       functions
         f @59
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -7266,6 +7402,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
   macroDiagnostics
@@ -7339,12 +7476,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
         package:test/a.dart
       classes
         class X @84
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X
   classes
     class X
       reference: <testLibraryFragment>::@class::X
@@ -7412,12 +7551,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
         package:test/a.dart
       classes
         class X @82
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X
   classes
     class X
       reference: <testLibraryFragment>::@class::X
@@ -7473,11 +7614,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @62
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -7544,16 +7687,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @97
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
               typeParameters
                 T @101
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -7623,15 +7770,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @80
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @82
+              element: <none>
             U @85
+              element: <none>
             V @88
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -7695,14 +7847,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             new @70
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
               macroDiagnostics
                 MacroDiagnostic
                   message: MacroDiagnosticMessage
@@ -7783,18 +7938,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           fields
             foo @80
               reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -7865,13 +8024,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       functions
         foo @79
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
           typeParameters
             T @83
+              element: <none>
   functions
     foo
       reference: <none>
@@ -7936,14 +8098,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @75
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -8005,11 +8170,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       mixins
         mixin A @62
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
@@ -8073,13 +8240,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       mixins
         mixin A @80
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A
           typeParameters
             T @82
+              element: <none>
   mixins
     mixin A
       reference: <testLibraryFragment>::@mixin::A
@@ -8143,13 +8313,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       typeAliases
         A @82
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
           typeParameters
             T @84
+              element: <none>
   typeAliases
     A
       reference: <none>
@@ -8213,14 +8386,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @56
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @67
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -8283,11 +8459,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @78
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -8359,18 +8537,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           fields
             foo @102
               reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -8451,17 +8633,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       functions
         foo @93
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
           parameters
             a @101
+              element: <none>
             default b @113
               reference: <testLibraryFragment>::@function::foo::@parameter::b
+              element: <none>
             default c @122
               reference: <testLibraryFragment>::@function::foo::@parameter::c
+              element: <none>
   functions
     foo
       reference: <none>
@@ -8538,14 +8725,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       functions
         foo @98
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
           parameters
             a @106
+              element: <none>
             b @116
+              element: <none>
   functions
     foo
       reference: <none>
@@ -8612,11 +8803,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       functions
         foo @76
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
   functions
     foo
       reference: <none>
@@ -8679,11 +8872,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       functions
         foo @144
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
   functions
     foo
       reference: <none>
@@ -8746,11 +8941,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       functions
         foo @139
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
   functions
     foo
       reference: <none>
@@ -8812,11 +9009,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       functions
         foo @103
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
   functions
     foo
       reference: <none>
@@ -8876,11 +9075,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       functions
         foo @88
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
   functions
     foo
       reference: <none>
@@ -8952,18 +9153,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           fields
             foo @98
               reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -9038,13 +9243,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       functions
         foo @98
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
           parameters
             a @102
+              element: <none>
   functions
     foo
       reference: <none>
@@ -9108,11 +9316,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       functions
         foo @72
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
   functions
     foo
       reference: <none>
@@ -9178,14 +9388,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @90
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -9255,15 +9468,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       topLevelVariables
         final foo @80
           reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
           getter2: <testLibraryFragment>::@getter::foo
       getters
         get foo @-1
           reference: <testLibraryFragment>::@getter::foo
+          element: <none>
   topLevelVariables
     final foo
       reference: <none>
@@ -9329,11 +9545,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       functions
         foo @86
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
   functions
     foo
       reference: <none>
@@ -9400,14 +9618,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       typeAliases
         A @35
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
       functions
         foo @98
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
   typeAliases
     A
       reference: <none>
@@ -9485,17 +9706,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @116
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
               parameters
                 a @124
+                  element: <none>
                 b @134
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -9572,14 +9798,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @94
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -9646,11 +9875,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       functions
         foo @114
           reference: <testLibraryFragment>::@function::foo
+          element: <none>
   functions
     foo
       reference: <none>
@@ -9725,18 +9956,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           fields
             foo @145
               reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -9821,18 +10056,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           fields
             foo @138
               reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -9901,11 +10140,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       typeAliases
         A @81
           reference: <testLibraryFragment>::@typeAlias::A
+          element: <none>
   typeAliases
     A
       reference: <none>
@@ -9982,16 +10223,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @62
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @73
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
             bar @89
               reference: <testLibraryFragment>::@class::A::@method::bar
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10053,11 +10298,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @61
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10112,11 +10359,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @60
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10171,11 +10420,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @63
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10238,11 +10489,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @68
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10309,14 +10562,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             new @76
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
               macroDiagnostics
                 MacroDiagnostic
                   message: MacroDiagnosticMessage
@@ -10418,24 +10674,30 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           fields
             foo @80
               reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::foo
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
+              element: <none>
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
+              element: <none>
               parameters
                 _foo @-1
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10524,14 +10786,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @81
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10598,11 +10863,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10662,11 +10929,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @55
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10724,11 +10993,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @55
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10791,11 +11062,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @61
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10827,12 +11100,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @12
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -10885,12 +11161,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @23
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -10901,6 +11180,7 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
   classes
     class alias A
       reference: <testLibraryFragment>::@class::A
@@ -11004,16 +11284,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
         class B @125
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/test.dart
@@ -11023,8 +11307,10 @@ library
       classes
         class C @86
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
         class B @105
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
+          element: <testLibraryFragment>::@class::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class A
@@ -11097,14 +11383,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @74
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -11217,14 +11506,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @74
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -11300,20 +11592,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @85
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensions
         extension B @45
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@extension::B
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@extension::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -11381,14 +11678,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @91
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -11452,14 +11752,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @74
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -11523,14 +11826,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @80
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -11596,14 +11902,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @78
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -11669,14 +11978,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @77
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -11742,14 +12054,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @79
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -11815,14 +12130,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @80
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -11888,14 +12206,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @78
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -11988,29 +12309,37 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @87
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
       enums
         enum B @104
           reference: <testLibraryFragment>::@enum::B
+          element: <testLibraryFragment>::@enum::B
           fields
             enumConstant v @107
               reference: <testLibraryFragment>::@enum::B::@field::v
+              element: <none>
               getter2: <testLibraryFragment>::@enum::B::@getter::v
             values @-1
               reference: <testLibraryFragment>::@enum::B::@field::values
+              element: <none>
               getter2: <testLibraryFragment>::@enum::B::@getter::values
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::B::@getter::v
+              element: <none>
             get values @-1
               reference: <testLibraryFragment>::@enum::B::@getter::values
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -12099,14 +12428,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @89
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -12172,14 +12504,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @95
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -12268,26 +12603,32 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           methods
             foo @82
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           methods
             augment foo @68
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+              element: <none>
               previousFragment: <testLibraryFragment>::@class::A::@method::foo
   classes
     class A
@@ -12354,14 +12695,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @81
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -12427,14 +12771,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @78
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -12500,14 +12847,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @80
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -12573,14 +12923,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           methods
             foo @84
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -12734,26 +13087,33 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/auto_to_string.dart
       classes
         class A @53
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           fields
             foo @69
               reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::foo
             bar @86
               reference: <testLibraryFragment>::@class::A::@field::bar
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::bar
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
+              element: <none>
             get bar @-1
               reference: <testLibraryFragment>::@class::A::@getter::bar
+              element: <none>
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         dart:core
@@ -12763,13 +13123,16 @@ library
       classes
         class A @81
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           methods
             toString @122
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toString
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
             augment toString @159
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+              element: <none>
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toString
   classes
     class A
@@ -12954,26 +13317,33 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/json_serializable.dart
       classes
         class A @60
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           fields
             foo @76
               reference: <testLibraryFragment>::@class::A::@field::foo
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::foo
             bar @93
               reference: <testLibraryFragment>::@class::A::@field::bar
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::bar
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
+              element: <none>
             get bar @-1
               reference: <testLibraryFragment>::@class::A::@getter::bar
+              element: <none>
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/json_serializable.dart
@@ -12986,24 +13356,35 @@ library
       classes
         class A @138
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             external fromJson @177
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
+              element: <none>
               periodOffset: 176
               nameEnd: 185
+              parameters
+                json @231
+                  element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
             augment fromJson @336
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
+              element: <none>
               periodOffset: 335
               nameEnd: 344
+              parameters
+                json @390
+                  element: <none>
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
           methods
             toJson @314
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
+              element: <none>
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
             augment toJson @547
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+              element: <none>
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
   classes
     class A
@@ -17928,17 +18309,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -18011,23 +18396,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @73
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -18118,6 +18509,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
@@ -18127,17 +18519,22 @@ library
       classes
         class A @84
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -18228,6 +18625,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
@@ -18237,17 +18635,22 @@ library
       classes
         class A @90
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -18330,17 +18733,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @61
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -18560,17 +18967,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @35
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -18690,13 +19101,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/b.dart
       classes
         class X @35
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
@@ -18706,11 +19120,14 @@ library
       classes
         class MyClass @83
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
           methods
             foo @100
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo
+              element: <none>
               parameters
                 _ @114
+                  element: <none>
   classes
     class X
       reference: <testLibraryFragment>::@class::X
@@ -19129,13 +19546,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class X @37
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
@@ -19145,8 +19565,10 @@ library
       classes
         class A @104
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A
         class B @116
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
   classes
     class X
       reference: <testLibraryFragment>::@class::X
@@ -19390,6 +19812,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
@@ -19397,11 +19820,14 @@ library
       classes
         class B @78
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class X @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X
   classes
     class B
       reference: <testLibraryFragment>::@class::B
@@ -20128,17 +20554,21 @@ library
   reference: package:other/other.dart
   fragments
     package:other/other.dart::<fragment>
+      element: package:other/other.dart
       nextFragment: package:other/other.dart::@fragment::package:other/other.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @74
           reference: package:other/other.dart::<fragment>::@class::A
+          element: package:other/other.dart::<fragment>::@class::A
     package:other/other.dart::@fragment::package:other/other.macro.dart
+      element: package:other/other.dart
       previousFragment: package:other/other.dart::<fragment>
       classes
         class B @43
           reference: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B
+          element: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B
   classes
     class A
       reference: package:other/other.dart::<fragment>::@class::A

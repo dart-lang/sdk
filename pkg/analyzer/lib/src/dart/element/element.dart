@@ -284,6 +284,9 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
+  ClassElement2 get element => super.element as ClassElement2;
+
+  @override
   set fields(List<FieldElementImpl> fields) {
     assert(!isMixinApplication);
     super.fields = fields;
@@ -3222,6 +3225,9 @@ class EnumElementImpl extends InterfaceElementImpl
   List<FieldElement2> get constants2 => constants.cast<FieldElement2>();
 
   @override
+  EnumElement2 get element => super.element as EnumElement2;
+
+  @override
   ElementKind get kind => ElementKind.ENUM;
 
   ConstFieldElementImpl? get valuesField {
@@ -3497,6 +3503,9 @@ class ExtensionElementImpl extends InstanceElementImpl
   String get displayName => name ?? '';
 
   @override
+  ExtensionElement2 get element => super.element as ExtensionElement2;
+
+  @override
   DartType get extendedType {
     return augmented.extendedType;
   }
@@ -3609,6 +3618,9 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
     }
     return null;
   }
+
+  @override
+  ExtensionTypeElement2 get element => super.element as ExtensionTypeElement2;
 
   @override
   ElementKind get kind {
@@ -3831,7 +3843,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 /// A [ParameterElementImpl] that has the additional information of the
 /// [FieldElement] associated with the parameter.
 class FieldFormalParameterElementImpl extends ParameterElementImpl
-    implements FieldFormalParameterElement {
+    implements FieldFormalParameterElement, FieldFormalParameterFragment {
   @override
   FieldElement? field;
 
@@ -3842,6 +3854,10 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
     required super.nameOffset,
     required super.parameterKind,
   });
+
+  @override
+  FieldFormalParameterElement2 get element =>
+      super.element as FieldFormalParameterElement2;
 
   /// Initializing formals are visible only in the "formal parameter
   /// initializer scope", which is the current scope of the initializer list
@@ -3858,6 +3874,22 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitFieldFormalParameterElement(this);
+
+  @override
+  FormalParameterElement _createElement(
+          FormalParameterFragment firstFragment) =>
+      FieldFormalParameterElementImpl2(firstFragment as ParameterElementImpl);
+}
+
+class FieldFormalParameterElementImpl2 extends FormalParameterElementImpl
+    implements FieldFormalParameterElement2 {
+  FieldFormalParameterElementImpl2(super.firstFragment);
+
+  @override
+  FieldElement2? get field2 =>
+      ((firstFragment as FieldFormalParameterElementImpl).field
+              as FieldFragment)
+          .element;
 }
 
 class FormalParameterElementImpl extends PromotableElementImpl2
@@ -4397,9 +4429,8 @@ mixin FragmentedExecutableElementMixin<E extends ExecutableFragment>
 
   bool get isStatic => (firstFragment as ExecutableElementImpl).isStatic;
 
-  List<FormalParameterElement> get parameters2 => firstFragment.parameters2
-      .map((fragment) => fragment.element as FormalParameterElement)
-      .toList();
+  List<FormalParameterElement> get parameters2 =>
+      firstFragment.parameters2.map((fragment) => fragment.element).toList();
 }
 
 mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
@@ -4411,12 +4442,10 @@ mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
     var fragment = firstFragment;
     return switch (fragment) {
       FunctionTypedElementImpl(:var parameters) => parameters
-          .map((fragment) => (fragment as FormalParameterFragment).element
-              as FormalParameterElement)
+          .map((fragment) => (fragment as FormalParameterFragment).element)
           .toList(),
       ExecutableElementImpl(:var parameters) => parameters
-          .map((fragment) => (fragment as FormalParameterFragment).element
-              as FormalParameterElement)
+          .map((fragment) => (fragment as FormalParameterFragment).element)
           .toList(),
       _ => throw UnsupportedError(
           'Cannot get parameters for ${fragment.runtimeType}'),
@@ -4710,8 +4739,7 @@ class GetterElementImpl extends ExecutableElementImpl2
   String? get name => firstFragment.name;
 
   @override
-  PropertyInducingElement2? get variable3 =>
-      firstFragment.variable2?.element as PropertyInducingElement2?;
+  PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
 }
 
 /// A concrete implementation of a [HideElementCombinator].
@@ -5638,9 +5666,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<TopLevelFunctionElement> get functions {
     var declarations = <TopLevelFunctionElement>{};
     for (var unit in units) {
-      declarations.addAll(unit._functions.map((fragment) =>
-          (fragment as TopLevelFunctionFragment).element
-              as TopLevelFunctionElement));
+      declarations.addAll(unit._functions
+          .map((fragment) => (fragment as TopLevelFunctionFragment).element));
     }
     return declarations.toList();
   }
@@ -5829,9 +5856,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<TopLevelVariableElement2> get topLevelVariables {
     var declarations = <TopLevelVariableElement2>{};
     for (var unit in units) {
-      declarations.addAll(unit._variables.map((fragment) =>
-          (fragment as TopLevelVariableFragment).element
-              as TopLevelVariableElement2));
+      declarations.addAll(unit._variables
+          .map((fragment) => (fragment as TopLevelVariableFragment).element));
     }
     return declarations.toList();
   }
@@ -7045,6 +7071,9 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
+  MixinElement2 get element => super.element as MixinElement2;
+
+  @override
   bool get isBase {
     return hasModifier(Modifier.BASE);
   }
@@ -7774,7 +7803,7 @@ class ParameterElementImpl extends VariableElementImpl
     }
     // As a side-effect of creating the element, all of the fragments in the
     // chain will have their `_element` set to the newly created element.
-    return FormalParameterElementImpl(firstFragment as ParameterElementImpl);
+    return _createElement(firstFragment);
   }
 
   set element(FormalParameterElement element) => _element = element;
@@ -7868,6 +7897,10 @@ class ParameterElementImpl extends VariableElementImpl
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameter(this);
   }
+
+  FormalParameterElement _createElement(
+          FormalParameterFragment firstFragment) =>
+      FormalParameterElementImpl(firstFragment as ParameterElementImpl);
 }
 
 /// The parameter of an implicit setter.
@@ -8657,8 +8690,7 @@ class SetterElementImpl extends ExecutableElementImpl2
   String? get name => firstFragment.name;
 
   @override
-  PropertyInducingElement2? get variable3 =>
-      firstFragment.variable2?.element as PropertyInducingElement2?;
+  PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
 }
 
 /// A concrete implementation of a [ShowElementCombinator].
@@ -8688,7 +8720,7 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 }
 
 class SuperFormalParameterElementImpl extends ParameterElementImpl
-    implements SuperFormalParameterElement {
+    implements SuperFormalParameterElement, SuperFormalParameterFragment {
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   SuperFormalParameterElementImpl({
@@ -8696,6 +8728,10 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
     required super.nameOffset,
     required super.parameterKind,
   });
+
+  @override
+  SuperFormalParameterElement2 get element =>
+      super.element as SuperFormalParameterElement2;
 
   /// Super parameters are visible only in the initializer list scope,
   /// and introduce final variables.
@@ -8739,6 +8775,22 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
         .toList()
         .indexOf(this);
   }
+
+  @override
+  FormalParameterElement _createElement(
+          FormalParameterFragment firstFragment) =>
+      SuperFormalParameterElementImpl2(firstFragment as ParameterElementImpl);
+}
+
+class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
+    implements SuperFormalParameterElement2 {
+  SuperFormalParameterElementImpl2(super.firstFragment);
+
+  @override
+  FormalParameterElement? get superConstructorParameter2 =>
+      ((firstFragment as SuperFormalParameterElementImpl)
+              .superConstructorParameter as FormalParameterFragment?)
+          ?.element;
 }
 
 class TopLevelFunctionElementImpl extends ExecutableElementImpl2

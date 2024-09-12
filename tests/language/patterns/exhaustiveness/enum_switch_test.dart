@@ -2,27 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-enum Enum { a, b, c }
+enum E { a, b, c }
 
-void exhaustiveSwitch(Enum e) {
+void exhaustiveSwitch(E e) {
   switch (e) /* Ok */ {
-    case Enum.a:
+    case E.a:
       print('a');
       break;
-    case Enum.b:
+    case E.b:
       print('b');
       break;
-    case Enum.c:
+    case E.c:
       print('c');
       break;
   }
 }
 
-const a1 = Enum.a;
-const b1 = Enum.b;
-const c1 = Enum.c;
+const a1 = E.a;
+const b1 = E.b;
+const c1 = E.c;
 
-void exhaustiveSwitchAliasedBefore(Enum e) {
+void exhaustiveSwitchAliasedBefore(E e) {
   switch (e) /* Ok */ {
     case a1:
       print('a');
@@ -36,7 +36,7 @@ void exhaustiveSwitchAliasedBefore(Enum e) {
   }
 }
 
-void exhaustiveSwitchAliasedAfter(Enum e) {
+void exhaustiveSwitchAliasedAfter(E e) {
   switch (e) /* Ok */ {
     case a2:
       print('a');
@@ -50,70 +50,70 @@ void exhaustiveSwitchAliasedAfter(Enum e) {
   }
 }
 
-const a2 = Enum.a;
-const b2 = Enum.b;
-const c2 = Enum.c;
+const a2 = E.a;
+const b2 = E.b;
+const c2 = E.c;
 
-void nonExhaustiveSwitch1(Enum e) {
+void nonExhaustiveSwitch1(E e) {
   switch (e) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'Enum' is not exhaustively matched by the switch cases since it doesn't match 'Enum.c'.
-    case Enum.a:
+// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.c'.
+    case E.a:
       print('a');
       break;
-    case Enum.b:
+    case E.b:
       print('b');
       break;
   }
 }
 
-void nonExhaustiveSwitch2(Enum e) {
+void nonExhaustiveSwitch2(E e) {
   switch (e) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'Enum' is not exhaustively matched by the switch cases since it doesn't match 'Enum.b'.
-    case Enum.a:
+// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.b'.
+    case E.a:
       print('a');
       break;
-    case Enum.c:
+    case E.c:
       print('c');
       break;
   }
 }
 
-void nonExhaustiveSwitch3(Enum e) {
+void nonExhaustiveSwitch3(E e) {
   switch (e) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'Enum' is not exhaustively matched by the switch cases since it doesn't match 'Enum.a'.
-    case Enum.b:
+// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.a'.
+    case E.b:
       print('b');
       break;
-    case Enum.c:
+    case E.c:
       print('c');
       break;
   }
 }
 
-void nonExhaustiveSwitch4(Enum e) {
+void nonExhaustiveSwitch4(E e) {
   switch (e) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'Enum' is not exhaustively matched by the switch cases since it doesn't match 'Enum.a'.
-    case Enum.b:
+// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.a'.
+    case E.b:
       print('b');
       break;
   }
 }
 
-void nonExhaustiveSwitchWithDefault(Enum e) {
+void nonExhaustiveSwitchWithDefault(E e) {
   switch (e) /* Ok */ {
-    case Enum.b:
+    case E.b:
       print('b');
       break;
     default:
@@ -122,15 +122,15 @@ void nonExhaustiveSwitchWithDefault(Enum e) {
   }
 }
 
-void exhaustiveNullableSwitch(Enum? e) {
+void exhaustiveNullableSwitch(E? e) {
   switch (e) /* Ok */ {
-    case Enum.a:
+    case E.a:
       print('a');
       break;
-    case Enum.b:
+    case E.b:
       print('b');
       break;
-    case Enum.c:
+    case E.c:
       print('c');
       break;
     case null:
@@ -139,34 +139,34 @@ void exhaustiveNullableSwitch(Enum? e) {
   }
 }
 
-void nonExhaustiveNullableSwitch1(Enum? e) {
+void nonExhaustiveNullableSwitch1(E? e) {
   switch (e) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'Enum?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
-    case Enum.a:
+// [cfe] The type 'E?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
+    case E.a:
       print('a');
       break;
-    case Enum.b:
+    case E.b:
       print('b');
       break;
-    case Enum.c:
+    case E.c:
       print('c');
       break;
   }
 }
 
-void nonExhaustiveNullableSwitch2(Enum? e) {
+void nonExhaustiveNullableSwitch2(E? e) {
   switch (e) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'Enum?' is not exhaustively matched by the switch cases since it doesn't match 'Enum.b'.
-    case Enum.a:
+// [cfe] The type 'E?' is not exhaustively matched by the switch cases since it doesn't match 'E.b'.
+    case E.a:
       print('a');
       break;
-    case Enum.c:
+    case E.c:
       print('c');
       break;
     case null:
@@ -175,38 +175,38 @@ void nonExhaustiveNullableSwitch2(Enum? e) {
   }
 }
 
-void unreachableCase1(Enum e) {
+void unreachableCase1(E e) {
   switch (e) /* Ok */ {
-    case Enum.a:
+    case E.a:
       print('a1');
       break;
-    case Enum.b:
+    case E.b:
       print('b');
       break;
-    case Enum.a: // Unreachable
+    case E.a: // Unreachable
 //  ^^^^
 // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('a2');
       break;
-    case Enum.c:
+    case E.c:
       print('c');
       break;
   }
 }
 
-void unreachableCase2(Enum e) {
+void unreachableCase2(E e) {
   switch (e) /* Non-exhaustive */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'Enum' is not exhaustively matched by the switch cases since it doesn't match 'Enum.c'.
-    case Enum.a:
+// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.c'.
+    case E.a:
       print('a1');
       break;
-    case Enum.b:
+    case E.b:
       print('b');
       break;
-    case Enum.a: // Unreachable
+    case E.a: // Unreachable
 //  ^^^^
 // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('a2');
@@ -214,16 +214,16 @@ void unreachableCase2(Enum e) {
   }
 }
 
-void unreachableCase3(Enum e) {
+void unreachableCase3(E e) {
   // TODO(johnniwinther): Should we avoid the unreachable error here?
   switch (e) /* Error */ {
-    case Enum.a:
+    case E.a:
       print('a');
       break;
-    case Enum.b:
+    case E.b:
       print('b');
       break;
-    case Enum.c:
+    case E.c:
       print('c');
       break;
     case null: // Unreachable
@@ -232,15 +232,15 @@ void unreachableCase3(Enum e) {
   }
 }
 
-void unreachableCase4(Enum? e) {
+void unreachableCase4(E? e) {
   switch (e) /* Ok */ {
-    case Enum.a:
+    case E.a:
       print('a');
       break;
-    case Enum.b:
+    case E.b:
       print('b');
       break;
-    case Enum.c:
+    case E.c:
       print('c');
       break;
     case null:
@@ -254,30 +254,30 @@ void unreachableCase4(Enum? e) {
   }
 }
 
-void unreachableCase5(Enum e) {
+void unreachableCase5(E e) {
   switch (e) /* Ok */ {
-    case Enum.a:
+    case E.a:
       print('a1');
       break;
-    case Enum.b:
-    case Enum.a: // Unreachable
+    case E.b:
+    case E.a: // Unreachable
 //  ^^^^
 // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
-    case Enum.c:
+    case E.c:
       print('c');
       break;
   }
 }
 
-void unreachableDefault(Enum e) {
+void unreachableDefault(E e) {
   switch (e) /* Ok */ {
-    case Enum.a:
+    case E.a:
       print('a');
       break;
-    case Enum.b:
+    case E.b:
       print('b');
       break;
-    case Enum.c:
+    case E.c:
       print('c');
       break;
     default: // Unreachable

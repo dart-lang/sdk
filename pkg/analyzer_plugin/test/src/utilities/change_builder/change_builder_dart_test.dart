@@ -2407,6 +2407,87 @@ void functionAfter() {
     expect(cache[classElement], resolvedLibUnit.libraryElement);
   }
 
+  /// If `importElementLibrary` adds a pending import 'a.dart' and a subsequent
+  /// call adds 'b.dart' that also exports the required element from 'b.dart'
+  /// then the now-redundant 'a.dart' should be removed.
+
+  Future<void> test_importElementLibrary_replacesPendingImports() async {
+    var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
+
+    // 'a.dart' exports just A.
+    var resolvedAUnit =
+        await resolveContent('/home/test/lib/a.dart', 'class A {}');
+
+    // 'all.dart' exports both A and B.
+    var resolvedAllUnit = await resolveContent('/home/test/lib/all.dart', '''
+export 'a.dart';
+class B {}
+''');
+
+    var classA = FindNode(resolvedAUnit.content, resolvedAUnit.unit)
+        .classDeclaration('A')
+        .declaredElement!;
+    var classB = FindNode(resolvedAllUnit.content, resolvedAllUnit.unit)
+        .classDeclaration('B')
+        .declaredElement!;
+
+    var cache = <Element, LibraryElement?>{};
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
+      var builderImpl = builder as DartFileEditBuilderImpl;
+      await builderImpl.importElementLibrary(classA, resultCache: cache);
+      await builderImpl.importElementLibrary(classB, resultCache: cache);
+    });
+
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(edits[0].replacement,
+        equalsIgnoringWhitespace("import 'package:test/all.dart';\n"));
+  }
+
+  /// [test_importElementLibrary_replacesPendingImports] verifies that
+  /// `importElementLibrary` can replace pending imports, but it must not do so
+  /// if they were added explicitly (and not to satisfy a given [Element]).
+  Future<void>
+      test_importElementLibrary_replacesPendingImports_unlessImportedExplicitly() async {
+    var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
+
+    // 'a.dart' exports just A.
+    var resolvedAUnit =
+        await resolveContent('/home/test/lib/a.dart', 'class A {}');
+
+    // 'all.dart' exports both A and B.
+    var resolvedAllUnit = await resolveContent('/home/test/lib/all.dart', '''
+export 'a.dart';
+class B {}
+''');
+
+    var classA = FindNode(resolvedAUnit.content, resolvedAUnit.unit)
+        .classDeclaration('A')
+        .declaredElement!;
+    var classB = FindNode(resolvedAllUnit.content, resolvedAllUnit.unit)
+        .classDeclaration('B')
+        .declaredElement!;
+
+    var cache = <Element, LibraryElement?>{};
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
+      var builderImpl = builder as DartFileEditBuilderImpl;
+      // Explicitly add 'a.dart' in addition to locating it for elements.
+      builderImpl.importLibrary(Uri.parse('package:test/a.dart'));
+      await builderImpl.importElementLibrary(classA, resultCache: cache);
+      await builderImpl.importElementLibrary(classB, resultCache: cache);
+    });
+
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    // Expect 'a.dart' was not removed, because it was added explicitly.
+    expect(edits[0].replacement, equalsIgnoringWhitespace('''
+import 'package:test/a.dart';
+import 'package:test/all.dart';
+        '''));
+  }
+
   Future<void> test_importElementLibrary_sdkElement() async {
     var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
 

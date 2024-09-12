@@ -69,8 +69,10 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
 ''');
   }
@@ -121,8 +123,10 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
 ''');
   }
@@ -173,10 +177,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       libraryImports
         dart:io
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         dart:math
@@ -229,8 +235,10 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         dart:math

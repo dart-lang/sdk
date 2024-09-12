@@ -52,19 +52,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           fields
             x @32
               reference: <testLibraryFragment>::@class::A::@field::x
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::A::@getter::x
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -123,19 +128,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           fields
             x @18
               reference: <testLibraryFragment>::@class::A::@field::x
+              element: <none>
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::A::@getter::x
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -191,17 +201,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
           methods
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
               parameters
                 a @35
+                  element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -252,15 +267,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
           methods
             foo @26
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -304,14 +323,18 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
           typeParameters
             T @8
+              element: <none>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -347,9 +370,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       extensions
         extension IntStringExtension @10
           reference: <testLibraryFragment>::@extension::IntStringExtension
+          element: <testLibraryFragment>::@extension::IntStringExtension
   extensions
     extension IntStringExtension
       reference: <testLibraryFragment>::@extension::IntStringExtension
@@ -381,11 +406,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             b @38
+              element: <none>
   functions
     f
       reference: <none>
@@ -421,11 +449,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             a @32
+              element: <none>
   functions
     f
       reference: <none>
@@ -461,11 +492,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           parameters
             a @21
+              element: <none>
   functions
     f
       reference: <none>
@@ -498,9 +532,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @3
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -532,11 +568,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @9
           reference: <testLibraryFragment>::@function::f
+          element: <none>
           typeParameters
             T @11
+              element: <none>
   functions
     f
       reference: <none>
@@ -567,9 +606,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @24
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -598,9 +639,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @20
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -629,9 +672,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @32
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -660,9 +705,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @15
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -691,9 +738,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @14
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -722,9 +771,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       functions
         f @7
           reference: <testLibraryFragment>::@function::f
+          element: <none>
   functions
     f
       reference: <none>
@@ -758,13 +809,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         final x @20
           reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
           getter2: <testLibraryFragment>::@getter::x
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x
+          element: <none>
   topLevelVariables
     final x
       reference: <none>
@@ -805,13 +859,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         final x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
           getter2: <testLibraryFragment>::@getter::x
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x
+          element: <none>
   topLevelVariables
     final x
       reference: <none>
@@ -883,13 +940,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         const x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
           getter2: <testLibraryFragment>::@getter::x
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x
+          element: <none>
   topLevelVariables
     const x
       reference: <none>
@@ -957,13 +1017,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       topLevelVariables
         const x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
           getter2: <testLibraryFragment>::@getter::x
       getters
         get x @-1
           reference: <testLibraryFragment>::@getter::x
+          element: <none>
   topLevelVariables
     const x
       reference: <none>

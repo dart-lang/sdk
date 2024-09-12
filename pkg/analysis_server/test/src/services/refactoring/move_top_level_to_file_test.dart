@@ -316,9 +316,6 @@ class A {}
     // Put the file in tool/ so we can use a package: import for the file
     // above but get a relative import back to src.
     mainFilePath = join(projectFolderPath, 'tool', 'main.dart');
-    // TODO(dantup): Make these URIs getters to avoid setting these twice in
-    //  each test.
-    mainFileUri = pathContext.toUri(mainFilePath);
 
     newFile(libFilePath, 'mixin PackageMixin {};');
     var originalSource = '''

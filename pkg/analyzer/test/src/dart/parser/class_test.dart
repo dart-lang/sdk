@@ -17,7 +17,6 @@ main() {
 class ClassDeclarationParserTest extends ParserDiagnosticsTest {
   test_augment_constructor_named() {
     var parseResult = parseStringWithErrors(r'''
-augment library 'a.dart';
 augment class A {
   augment A.named();
 }

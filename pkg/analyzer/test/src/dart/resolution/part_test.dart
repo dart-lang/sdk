@@ -684,29 +684,6 @@ PartDirective
 ''');
   }
 
-  test_inLibrary_withSource_notPart_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-''');
-
-    await assertErrorsInCode(r'''
-part 'a.dart';
-''', [
-      error(CompileTimeErrorCode.PART_OF_NON_PART, 5, 8),
-    ]);
-
-    var node = findNode.singlePartDirective;
-    assertResolvedNodeText(node, r'''
-PartDirective
-  partKeyword: part
-  uri: SimpleStringLiteral
-    literal: 'a.dart'
-  semicolon: ;
-  element: DirectiveUriWithSource
-    source: package:test/a.dart
-''');
-  }
-
   test_inLibrary_withSource_notPart_library() async {
     newFile('$testPackageLibPath/a.dart', '');
 

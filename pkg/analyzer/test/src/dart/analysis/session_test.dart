@@ -735,46 +735,6 @@ class B {}
     );
   }
 
-  test_getUnitElement_augmentationKnown_inLibrary() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-class A {}
-class B {}
-''');
-
-    newFile(testFile.path, r'''
-part 'a.dart';
-''');
-
-    await _assertFileUnitElementResultText(a, r'''
-unitElementResult
-  path: /home/test/lib/a.dart
-  uri: package:test/a.dart
-  element
-    reference: root::package:test/test.dart::@fragment::package:test/a.dart
-    library: root::package:test/test.dart
-    classes: A, B
-''');
-  }
-
-  test_getUnitElement_augmentationKnown_notInLibrary() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-class A {}
-class B {}
-''');
-
-    await _assertFileUnitElementResultText(a, r'''
-unitElementResult
-  path: /home/test/lib/a.dart
-  uri: package:test/a.dart
-  element
-    reference: root::package:test/a.dart::@fragment::package:test/a.dart
-    library: root::package:test/a.dart
-    classes: A, B
-''');
-  }
-
   test_getUnitElement_inconsistent() async {
     var test = newFile(testFile.path, '');
     var session = contextFor(test).currentSession;
