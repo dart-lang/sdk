@@ -273,12 +273,8 @@ class SuggestionBuilder {
 
   /// Add a suggestion for an enum [constant]. If the enum can only be
   /// referenced using a prefix, then the [prefix] should be provided.
-  void suggestEnumConstant(FieldElement constant,
+  void suggestEnumConstant(FieldElement constant, String completion,
       {String? prefix, int? relevance}) {
-    var constantName = constant.name;
-    var enumElement = constant.enclosingElement3;
-    var enumName = enumElement.name;
-    var completion = '$enumName.$constantName';
     relevance ??= relevanceComputer.computeTopLevelRelevance(constant,
         elementType: constant.type, isNotImportedLibrary: isNotImportedLibrary);
     _addBuilder(
@@ -615,20 +611,20 @@ class SuggestionBuilder {
   void suggestNamedRecordField(RecordTypeNamedField field,
       {required bool appendColon,
       required bool appendComma,
-      int? replacementLength}) {
-    var name = field.name;
-    var type = field.type.getDisplayString();
+      int? replacementLength,
+      String? completion,
+      int? selectionOffset}) {
+    if (completion == null || selectionOffset == null) {
+      completion = field.name;
+      if (appendColon) {
+        completion += ': ';
+      }
+      selectionOffset = completion.length;
 
-    var completion = name;
-    if (appendColon) {
-      completion += ': ';
+      if (appendComma) {
+        completion += ',';
+      }
     }
-    var selectionOffset = completion.length;
-
-    if (appendComma) {
-      completion += ',';
-    }
-
     _addSuggestion(
       CompletionSuggestion(
         CompletionSuggestionKind.NAMED_ARGUMENT,
@@ -638,8 +634,8 @@ class SuggestionBuilder {
         0,
         false,
         false,
-        parameterName: name,
-        parameterType: type,
+        parameterName: field.name,
+        parameterType: field.type.getDisplayString(),
         replacementLength: replacementLength,
       ),
     );
@@ -806,14 +802,14 @@ class SuggestionBuilder {
   /// If the enclosing element can only be referenced using a prefix, then
   /// the [prefix] should be provided.
   void suggestStaticField(FieldElement element,
-      {String? prefix, int? relevance}) {
+      {String? prefix, int? relevance, String? completion}) {
     assert(element.isStatic);
     var enclosingPrefix = '';
     var enclosingName = _enclosingClassOrExtensionName(element);
     if (enclosingName != null) {
       enclosingPrefix = '$enclosingName.';
     }
-    var completion = enclosingPrefix + element.name;
+    completion ??= enclosingPrefix + element.name;
     if (_couldMatch(completion, prefix)) {
       relevance ??= relevanceComputer.computeTopLevelRelevance(element,
           elementType: element.type,
@@ -876,52 +872,39 @@ class SuggestionBuilder {
         accessor.enclosingElement3 is CompilationUnitElement,
         'Enclosing element of ${accessor.runtimeType} is '
         '${accessor.enclosingElement3.runtimeType}.');
-    if (accessor.isSynthetic) {
-      // Avoid visiting a field twice. All fields induce a getter, but only
-      // non-final fields induce a setter, so we don't add a suggestion for a
-      // synthetic setter.
-      if (accessor.isGetter) {
-        var variable = accessor.variable2;
-        if (variable is TopLevelVariableElement) {
-          suggestTopLevelVariable(variable);
-        }
-      }
-    } else {
-      var completion = _getCompletionString(accessor);
-      if (completion == null) return;
-      if (_couldMatch(completion, prefix)) {
-        var type = _getPropertyAccessorType(accessor);
-        var featureComputer = request.featureComputer;
-        var contextType =
-            featureComputer.contextTypeFeature(request.contextType, type);
-        var elementKind = _computeElementKind(accessor);
-        var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
-        var isConstant = _preferConstants
-            ? featureComputer.isConstantFeature(accessor)
-            : 0.0;
-        var startsWithDollar =
-            featureComputer.startsWithDollarFeature(accessor.name);
-        var superMatches = 0.0;
-        relevance ??= relevanceComputer.computeScore(
-          contextType: contextType,
-          elementKind: elementKind,
-          hasDeprecated: hasDeprecated,
-          isConstant: isConstant,
-          isNotImported: request.featureComputer
-              .isNotImportedFeature(isNotImportedLibrary),
-          startsWithDollar: startsWithDollar,
-          superMatches: superMatches,
-        );
-        _addBuilder(
-          _createCompletionSuggestionBuilder(
-            accessor,
-            kind: CompletionSuggestionKind.IDENTIFIER,
-            prefix: prefix,
-            relevance: relevance,
-            isNotImported: isNotImportedLibrary,
-          ),
-        );
-      }
+    var completion = _getCompletionString(accessor);
+    if (completion == null) return;
+    if (_couldMatch(completion, prefix)) {
+      var type = _getPropertyAccessorType(accessor);
+      var featureComputer = request.featureComputer;
+      var contextType =
+          featureComputer.contextTypeFeature(request.contextType, type);
+      var elementKind = _computeElementKind(accessor);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+      var isConstant =
+          _preferConstants ? featureComputer.isConstantFeature(accessor) : 0.0;
+      var startsWithDollar =
+          featureComputer.startsWithDollarFeature(accessor.name);
+      var superMatches = 0.0;
+      relevance ??= relevanceComputer.computeScore(
+        contextType: contextType,
+        elementKind: elementKind,
+        hasDeprecated: hasDeprecated,
+        isConstant: isConstant,
+        isNotImported:
+            request.featureComputer.isNotImportedFeature(isNotImportedLibrary),
+        startsWithDollar: startsWithDollar,
+        superMatches: superMatches,
+      );
+      _addBuilder(
+        _createCompletionSuggestionBuilder(
+          accessor,
+          kind: CompletionSuggestionKind.IDENTIFIER,
+          prefix: prefix,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+        ),
+      );
     }
   }
 

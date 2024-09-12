@@ -882,8 +882,8 @@ class DeclarationHelper {
             matcherScore: matcherScore),
         MixinElement() => MixinSuggestion(
             importData: null, element: element, matcherScore: matcherScore),
-        PropertyAccessorElement() => TopLevelPropertyAccessSuggestion(
-            importData: null, element: element, matcherScore: matcherScore),
+        PropertyAccessorElement() =>
+          _createSuggestionFromTopLevelProperty(element, matcherScore),
         TopLevelVariableElement() => TopLevelVariableSuggestion(
             importData: null, element: element, matcherScore: matcherScore),
         TypeAliasElement() => TypeAliasSuggestion(
@@ -1419,6 +1419,26 @@ class DeclarationHelper {
     return true;
   }
 
+  ImportableSuggestion? _createSuggestionFromTopLevelProperty(
+      PropertyAccessorElement element, double matcherScore,
+      {ImportData? importData}) {
+    if (element.isSynthetic) {
+      if (element.isGetter) {
+        var variable = element.variable2;
+        if (variable is TopLevelVariableElement) {
+          return TopLevelVariableSuggestion(
+              importData: importData,
+              element: variable,
+              matcherScore: matcherScore);
+        }
+      }
+    } else {
+      return TopLevelPropertyAccessSuggestion(
+          importData: importData, element: element, matcherScore: matcherScore);
+    }
+    return null;
+  }
+
   /// Returns `true` if the [identifier] is a wildcard (a single `_`).
   bool _isWildcard(String? identifier) => identifier == '_';
 
@@ -1938,11 +1958,12 @@ class DeclarationHelper {
       }
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
-        var suggestion = TopLevelPropertyAccessSuggestion(
-            importData: importData,
-            element: element,
-            matcherScore: matcherScore);
-        collector.addSuggestion(suggestion);
+        var suggestion = _createSuggestionFromTopLevelProperty(
+            element, matcherScore,
+            importData: importData);
+        if (suggestion != null) {
+          collector.addSuggestion(suggestion);
+        }
       }
     }
   }
