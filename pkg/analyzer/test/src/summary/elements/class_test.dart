@@ -10813,7 +10813,9 @@ class C {
   int get foo => 0;
 }
 ''');
-    configuration.withPropertyLinking = true;
+    configuration
+      ..withAugmentedWithoutAugmentation = true
+      ..withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -10827,7 +10829,7 @@ library
           enclosingElement3: <testLibraryFragment>
           fields
             foo @16
-              reference: <testLibraryFragment>::@class::C::@field::foo
+              reference: <testLibraryFragment>::@class::C::@field::foo::@def::0
               enclosingElement3: <testLibraryFragment>::@class::C
               type: int
               shouldUseTypeForInitializerInference: true
@@ -10835,7 +10837,7 @@ library
               getter: getter_0
               setter: setter_0
             synthetic foo @-1
-              reference: <testLibraryFragment>::@class::C::@field::foo
+              reference: <testLibraryFragment>::@class::C::@field::foo::@def::1
               enclosingElement3: <testLibraryFragment>::@class::C
               type: int
               id: field_1
@@ -10866,6 +10868,14 @@ library
               returnType: int
               id: getter_1
               variable: field_1
+          augmented
+            fields
+              <testLibraryFragment>::@class::C::@field::foo::@def::0
+              <testLibraryFragment>::@class::C::@field::foo::@def::1
+            accessors
+              <testLibraryFragment>::@class::C::@getter::foo::@def::0
+              <testLibraryFragment>::@class::C::@getter::foo::@def::1
+              <testLibraryFragment>::@class::C::@setter::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -10878,12 +10888,12 @@ library
           element: <testLibraryFragment>::@class::C
           fields
             foo @16
-              reference: <testLibraryFragment>::@class::C::@field::foo
+              reference: <testLibraryFragment>::@class::C::@field::foo::@def::0
               element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::foo::@def::0
               setter2: <testLibraryFragment>::@class::C::@setter::foo
             foo @-1
-              reference: <testLibraryFragment>::@class::C::@field::foo
+              reference: <testLibraryFragment>::@class::C::@field::foo::@def::1
               element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::foo::@def::1
           constructors
@@ -10912,13 +10922,13 @@ library
         foo
           reference: <none>
           type: int
-          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          firstFragment: <testLibraryFragment>::@class::C::@field::foo::@def::0
           getter: <none>
           setter: <none>
         synthetic foo
           reference: <none>
           type: int
-          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          firstFragment: <testLibraryFragment>::@class::C::@field::foo::@def::1
           getter: <none>
       constructors
         synthetic new
@@ -10949,7 +10959,9 @@ class C {
   set foo(int _) {}
 }
 ''');
-    configuration.withPropertyLinking = true;
+    configuration
+      ..withAugmentedWithoutAugmentation = true
+      ..withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -10963,7 +10975,7 @@ library
           enclosingElement3: <testLibraryFragment>
           fields
             foo @16
-              reference: <testLibraryFragment>::@class::C::@field::foo
+              reference: <testLibraryFragment>::@class::C::@field::foo::@def::0
               enclosingElement3: <testLibraryFragment>::@class::C
               type: int
               shouldUseTypeForInitializerInference: true
@@ -10971,7 +10983,7 @@ library
               getter: getter_0
               setter: setter_0
             synthetic foo @-1
-              reference: <testLibraryFragment>::@class::C::@field::foo
+              reference: <testLibraryFragment>::@class::C::@field::foo::@def::1
               enclosingElement3: <testLibraryFragment>::@class::C
               type: int
               id: field_1
@@ -11005,6 +11017,14 @@ library
               returnType: void
               id: setter_1
               variable: field_1
+          augmented
+            fields
+              <testLibraryFragment>::@class::C::@field::foo::@def::0
+              <testLibraryFragment>::@class::C::@field::foo::@def::1
+            accessors
+              <testLibraryFragment>::@class::C::@getter::foo
+              <testLibraryFragment>::@class::C::@setter::foo::@def::0
+              <testLibraryFragment>::@class::C::@setter::foo::@def::1
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -11017,12 +11037,12 @@ library
           element: <testLibraryFragment>::@class::C
           fields
             foo @16
-              reference: <testLibraryFragment>::@class::C::@field::foo
+              reference: <testLibraryFragment>::@class::C::@field::foo::@def::0
               element: <none>
               getter2: <testLibraryFragment>::@class::C::@getter::foo
               setter2: <testLibraryFragment>::@class::C::@setter::foo::@def::0
             foo @-1
-              reference: <testLibraryFragment>::@class::C::@field::foo
+              reference: <testLibraryFragment>::@class::C::@field::foo::@def::1
               element: <none>
               setter2: <testLibraryFragment>::@class::C::@setter::foo::@def::1
           constructors
@@ -11054,13 +11074,13 @@ library
         foo
           reference: <none>
           type: int
-          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          firstFragment: <testLibraryFragment>::@class::C::@field::foo::@def::0
           getter: <none>
           setter: <none>
         synthetic foo
           reference: <none>
           type: int
-          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          firstFragment: <testLibraryFragment>::@class::C::@field::foo::@def::1
           setter: <none>
       constructors
         synthetic new

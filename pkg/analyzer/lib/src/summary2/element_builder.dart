@@ -1381,23 +1381,42 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           accessorElement.isSetter && property.setter == null;
     }
 
-    PropertyInducingElementImpl property;
+    PropertyInducingElementImpl? property;
     if (enclosingElement is CompilationUnitElement) {
-      var reference = enclosingRef.getChild('@topLevelVariable').getChild(name);
-      var existing = reference.element;
-      if (existing is TopLevelVariableElementImpl && canUseExisting(existing)) {
-        property = existing;
-      } else {
+      // Try to find the variable to attach the accessor.
+      var containerRef = enclosingRef.getChild('@topLevelVariable');
+      for (var reference in containerRef.getChildrenByName(name)) {
+        var existing = reference.element;
+        if (existing is TopLevelVariableElementImpl &&
+            canUseExisting(existing)) {
+          property = existing;
+          break;
+        }
+      }
+
+      // If no variable, add a new one.
+      // In error cases could be a duplicate.
+      if (property == null) {
+        var reference = containerRef.addChild(name);
         var variable = property = TopLevelVariableElementImpl(name, -1)
           ..isSynthetic = true;
         _enclosingContext.addTopLevelVariableSynthetic(reference, variable);
       }
     } else {
-      var reference = enclosingRef.getChild('@field').getChild(name);
-      var existing = reference.element;
-      if (existing is FieldElementImpl && canUseExisting(existing)) {
-        property = existing;
-      } else {
+      // Try to find the variable to attach the accessor.
+      var containerRef = enclosingRef.getChild('@field');
+      for (var reference in containerRef.getChildrenByName(name)) {
+        var existing = reference.element;
+        if (existing is FieldElementImpl && canUseExisting(existing)) {
+          property = existing;
+          break;
+        }
+      }
+
+      // If no variable, add a new one.
+      // In error cases could be a duplicate.
+      if (property == null) {
+        var reference = containerRef.addChild(name);
         var field = property = FieldElementImpl(name, -1)
           ..isStatic = accessorElement.isStatic
           ..isSynthetic = true;
