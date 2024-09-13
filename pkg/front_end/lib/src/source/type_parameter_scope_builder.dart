@@ -698,6 +698,7 @@ class TypeScope {
     return typeCount;
   }
 
+  // Coverage-ignore(suite): Not run.
   bool get isEmpty => _unresolvedNamedTypes.isEmpty && _childScopes.isEmpty;
 
   @override

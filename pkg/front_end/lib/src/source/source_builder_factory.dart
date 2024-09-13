@@ -114,6 +114,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   /// inferred types in the original code.
   final Map<String, Builder>? _omittedTypeDeclarationBuilders;
 
+  /// Map from mixin application classes to their mixin types.
+  ///
+  /// This is used to check that super access in mixin declarations have a
+  /// concrete target.
   Map<SourceClassBuilder, TypeBuilder>? _mixinApplications = {};
 
   final List<NominalVariableBuilder> _unboundNominalVariables = [];
@@ -124,7 +128,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   final LibraryName libraryName;
 
-  final LookupScope _scope;
+  final LookupScope _compilationUnitScope;
 
   /// Index for building unique lowered names for wildcard variables.
   int wildcardVariableIndex = 0;
@@ -155,7 +159,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _problemReporting = problemReporting,
         _parent = parent,
-        _scope = scope,
+        _compilationUnitScope = scope,
         libraryName = libraryName,
         indexedLibrary = indexedLibrary,
         _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders,
@@ -675,28 +679,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         "Unexpected type scope: $typeVariableScope.");
   }
 
-  void beginUnnamedMixinApplication() {
-    NominalParameterNameSpace nominalParameterNameSpace =
-        new NominalParameterNameSpace();
-    _nominalParameterNameSpaces.push(nominalParameterNameSpace);
-    _typeScopes.push(new TypeScope(
-        TypeScopeKind.unnamedMixinApplication,
-        new NominalParameterScope(
-            _typeScopes.current.lookupScope, nominalParameterNameSpace),
-        _typeScopes.current));
-  }
-
-  void endUnnamedMixinApplication() {
-    TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.unnamedMixinApplication,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected type scope: $typeVariableScope.");
-    assert(
-        typeVariableScope.isEmpty, // Coverage-ignore(suite): Not run.
-        "Unexpected type scope: $typeVariableScope");
-  }
-
   @override
   void checkStacks() {
     assert(
@@ -1016,20 +998,31 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     LookupScope typeParameterScope = declarationFragment.typeParameterScope;
     DeclarationNameSpaceBuilder nameSpaceBuilder =
         declarationFragment.toDeclarationNameSpaceBuilder();
+
+    assert(
+        _mixinApplications != null, "Late registration of mixin application.");
+
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
         metadata,
         name,
         typeVariables,
         loader.target.underscoreEnumType,
-        _applyMixins(
-            loader.target.underscoreEnumType,
-            supertypeBuilder,
-            startCharOffset,
-            charOffset,
-            charEndOffset,
-            name,
-            /* isMixinDeclaration = */
-            false,
+        applyMixins(
+            unboundNominalVariables: _unboundNominalVariables,
+            compilationUnitScope: _compilationUnitScope,
+            problemReporting: _problemReporting,
+            objectTypeBuilder: loader.target.objectType,
+            enclosingLibraryBuilder: _parent,
+            fileUri: _compilationUnit.fileUri,
+            indexedLibrary: indexedLibrary,
+            supertype: loader.target.underscoreEnumType,
+            mixinApplicationBuilder: supertypeBuilder,
+            mixinApplications: _mixinApplications!,
+            startCharOffset: startCharOffset,
+            charOffset: charOffset,
+            charEndOffset: charEndOffset,
+            subclassName: name,
+            isMixinDeclaration: false,
             typeVariables: typeVariables,
             isMacro: false,
             isSealed: false,
@@ -1037,7 +1030,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             isInterface: false,
             isFinal: false,
             isAugmentation: false,
-            isMixinClass: false),
+            isMixinClass: false,
+            addBuilder: _addBuilder),
         interfaceBuilders,
         enumConstantInfos,
         _parent,
@@ -1153,13 +1147,31 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     if (declarationFragment.declaresConstConstructor) {
       modifiers |= declaresConstConstructorMask;
     }
+
+    assert(
+        _mixinApplications != null, "Late registration of mixin application.");
+
     SourceClassBuilder classBuilder = new SourceClassBuilder(
         metadata,
         modifiers,
         className,
         typeVariables,
-        _applyMixins(supertype, mixins, startOffset, nameOffset, endOffset,
-            className, isMixinDeclaration,
+        applyMixins(
+            unboundNominalVariables: _unboundNominalVariables,
+            compilationUnitScope: _compilationUnitScope,
+            problemReporting: _problemReporting,
+            objectTypeBuilder: loader.target.objectType,
+            enclosingLibraryBuilder: _parent,
+            fileUri: _compilationUnit.fileUri,
+            indexedLibrary: indexedLibrary,
+            supertype: supertype,
+            mixinApplicationBuilder: mixins,
+            mixinApplications: _mixinApplications!,
+            startCharOffset: startOffset,
+            charOffset: nameOffset,
+            charEndOffset: endOffset,
+            subclassName: className,
+            isMixinDeclaration: isMixinDeclaration,
             typeVariables: typeVariables,
             isMacro: false,
             isSealed: false,
@@ -1168,7 +1180,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             isFinal: false,
             // TODO(johnniwinther): How can we support class with mixins?
             isAugmentation: false,
-            isMixinClass: false),
+            isMixinClass: false,
+            addBuilder: _addBuilder),
         interfaces,
         // TODO(johnniwinther): Add the `on` clause types of a mixin declaration
         // here.
@@ -1226,8 +1239,26 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isMixinClass}) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNamedMixinApplication(name);
-    supertype = _applyMixins(supertype, mixinApplication, startCharOffset,
-        charOffset, charEndOffset, name, false,
+
+    assert(
+        _mixinApplications != null, "Late registration of mixin application.");
+
+    supertype = applyMixins(
+        unboundNominalVariables: _unboundNominalVariables,
+        compilationUnitScope: _compilationUnitScope,
+        problemReporting: _problemReporting,
+        objectTypeBuilder: loader.target.objectType,
+        enclosingLibraryBuilder: _parent,
+        fileUri: _compilationUnit.fileUri,
+        indexedLibrary: indexedLibrary,
+        supertype: supertype,
+        mixinApplicationBuilder: mixinApplication,
+        mixinApplications: _mixinApplications!,
+        startCharOffset: startCharOffset,
+        charOffset: charOffset,
+        charEndOffset: charEndOffset,
+        subclassName: name,
+        isMixinDeclaration: false,
         metadata: metadata,
         name: name,
         typeVariables: typeVariables,
@@ -1239,21 +1270,29 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         isInterface: isInterface,
         isFinal: isFinal,
         isAugmentation: isAugmentation,
-        isMixinClass: isMixinClass)!;
+        isMixinClass: isMixinClass,
+        addBuilder: _addBuilder)!;
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
         ownerName: supertype.declaration!.name, allowNameConflict: false);
   }
 
-  TypeBuilder? _applyMixins(
-      TypeBuilder? supertype,
-      MixinApplicationBuilder? mixinApplications,
-      int startCharOffset,
-      int charOffset,
-      int charEndOffset,
-      String subclassName,
-      bool isMixinDeclaration,
-      {List<MetadataBuilder>? metadata,
+  static TypeBuilder? applyMixins(
+      {required ProblemReporting problemReporting,
+      required SourceLibraryBuilder enclosingLibraryBuilder,
+      required List<NominalVariableBuilder> unboundNominalVariables,
+      required TypeBuilder? supertype,
+      required MixinApplicationBuilder? mixinApplicationBuilder,
+      required int startCharOffset,
+      required int charOffset,
+      required int charEndOffset,
+      required String subclassName,
+      required bool isMixinDeclaration,
+      required IndexedLibrary? indexedLibrary,
+      required LookupScope compilationUnitScope,
+      required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
+      required Uri fileUri,
+      List<MetadataBuilder>? metadata,
       String? name,
       List<NominalVariableBuilder>? typeVariables,
       int modifiers = 0,
@@ -1264,19 +1303,22 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isInterface,
       required bool isFinal,
       required bool isAugmentation,
-      required bool isMixinClass}) {
+      required bool isMixinClass,
+      required TypeBuilder objectTypeBuilder,
+      required void Function(String name, Builder declaration, int charOffset,
+              {Reference? getterReference})
+          addBuilder}) {
     if (name == null) {
       // The following parameters should only be used when building a named
       // mixin application.
       if (metadata != null) {
-        unhandled("metadata", "unnamed mixin application", charOffset,
-            _compilationUnit.fileUri);
+        unhandled("metadata", "unnamed mixin application", charOffset, fileUri);
       } else if (interfaces != null) {
-        unhandled("interfaces", "unnamed mixin application", charOffset,
-            _compilationUnit.fileUri);
+        unhandled(
+            "interfaces", "unnamed mixin application", charOffset, fileUri);
       }
     }
-    if (mixinApplications != null) {
+    if (mixinApplicationBuilder != null) {
       // Documentation below assumes the given mixin application is in one of
       // these forms:
       //
@@ -1293,7 +1335,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       /// 1. `S with M1`.
       /// 2. `(S with M1) with M2`.
       /// 3. `((S with M1) with M2) with M3`.
-      supertype ??= loader.target.objectType;
+      supertype ??= objectTypeBuilder;
 
       /// The variable part of the mixin application's synthetic name. It
       /// starts out as the name of the superclass, but is only used after it
@@ -1347,10 +1389,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       /// Iterate over the mixins from left to right. At the end of each
       /// iteration, a new [supertype] is computed that is the mixin
       /// application of [supertype] with the current mixin.
-      for (int i = 0; i < mixinApplications.mixins.length; i++) {
-        TypeBuilder mixin = mixinApplications.mixins[i];
+      for (int i = 0; i < mixinApplicationBuilder.mixins.length; i++) {
+        TypeBuilder mixin = mixinApplicationBuilder.mixins[i];
         isNamedMixinApplication =
-            name != null && mixin == mixinApplications.mixins.last;
+            name != null && mixin == mixinApplicationBuilder.mixins.last;
         bool isGeneric = false;
         if (!isNamedMixinApplication) {
           if (typeVariableNames != null) {
@@ -1377,10 +1419,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           // Otherwise, we pass the fresh type variables to the mixin
           // application in the same order as they're declared on the subclass.
           if (isGeneric) {
-            beginUnnamedMixinApplication();
+            NominalParameterNameSpace nominalParameterNameSpace =
+                new NominalParameterNameSpace();
 
             NominalVariableCopy nominalVariableCopy = copyTypeVariables(
-                typeVariables,
+                enclosingLibraryBuilder, unboundNominalVariables, typeVariables,
                 kind: TypeVariableKind.extensionSynthesized,
                 instanceTypeVariableAccess:
                     InstanceTypeVariableAccessState.Allowed)!;
@@ -1392,8 +1435,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             Map<NominalVariableBuilder, TypeBuilder> substitutionMap =
                 nominalVariableCopy.substitutionMap;
 
-            endUnnamedMixinApplication();
-
             applicationTypeArguments = [];
             for (NominalVariableBuilder typeVariable in typeVariables!) {
               TypeBuilder applicationTypeArgument =
@@ -1404,14 +1445,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                       // the class that extend the anonymous mixin application.
                       typeVariable,
                       const NullabilityBuilder.omitted(),
-                      fileUri: _compilationUnit.fileUri,
+                      fileUri: fileUri,
                       charOffset: charOffset,
                       instanceTypeVariableAccess:
                           InstanceTypeVariableAccessState.Allowed);
               applicationTypeArguments.add(applicationTypeArgument);
             }
-            _nominalParameterNameSpaces.pop().addTypeVariables(
-                _problemReporting, applicationTypeVariables,
+            nominalParameterNameSpace.addTypeVariables(
+                problemReporting, applicationTypeVariables,
                 ownerName: fullname, allowNameConflict: true);
             if (supertype != null) {
               supertype = new SynthesizedTypeBuilder(
@@ -1429,11 +1470,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         IndexedClass? referencesFromIndexedClass;
         if (indexedLibrary != null) {
           referencesFromIndexedClass =
-              indexedLibrary!.lookupIndexedClass(fullname);
+              indexedLibrary.lookupIndexedClass(fullname);
         }
 
         LookupScope typeParameterScope =
-            TypeParameterScope.fromList(_scope, typeVariables);
+            TypeParameterScope.fromList(compilationUnitScope, typeVariables);
         DeclarationNameSpaceBuilder nameSpaceBuilder =
             new DeclarationNameSpaceBuilder.empty();
         SourceClassBuilder application = new SourceClassBuilder(
@@ -1453,7 +1494,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             // No `on` clause types.
             typeParameterScope,
             nameSpaceBuilder,
-            _parent,
+            enclosingLibraryBuilder,
             <ConstructorReferenceBuilder>[],
             computedStartCharOffset,
             charOffset,
@@ -1471,33 +1512,21 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
-        _addBuilder(fullname, application, charOffset,
+        addBuilder(fullname, application, charOffset,
             getterReference: referencesFromIndexedClass?.cls.reference);
         supertype = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             application, const NullabilityBuilder.omitted(),
             arguments: applicationTypeArguments,
-            fileUri: _compilationUnit.fileUri,
+            fileUri: fileUri,
             charOffset: charOffset,
             instanceTypeVariableAccess:
                 InstanceTypeVariableAccessState.Allowed);
-        _registerMixinApplication(application, mixin);
+        mixinApplications[application] = mixin;
       }
       return supertype;
     } else {
       return supertype;
     }
-  }
-
-  /// Registers that [mixinApplication] is a mixin application introduced by
-  /// the [mixedInType] in a with-clause.
-  ///
-  /// This is used to check that super access in mixin declarations have a
-  /// concrete target.
-  void _registerMixinApplication(
-      SourceClassBuilder mixinApplication, TypeBuilder mixedInType) {
-    assert(
-        _mixinApplications != null, "Late registration of mixin application.");
-    _mixinApplications![mixinApplication] = mixedInType;
   }
 
   @override
@@ -1661,8 +1690,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       switch (declarationFragment) {
         case ExtensionFragment():
         case ExtensionTypeFragment():
-          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
-              declarationFragment.typeParameters,
+          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(_parent,
+              _unboundNominalVariables, declarationFragment.typeParameters,
               kind: TypeVariableKind.extensionSynthesized,
               instanceTypeVariableAccess:
                   InstanceTypeVariableAccessState.Allowed);
@@ -1683,8 +1712,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     } else if (!isStatic) {
       switch (declarationFragment) {
         case ExtensionFragment():
-          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
-              declarationFragment.typeParameters,
+          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(_parent,
+              _unboundNominalVariables, declarationFragment.typeParameters,
               kind: TypeVariableKind.extensionSynthesized,
               instanceTypeVariableAccess:
                   InstanceTypeVariableAccessState.Allowed);
@@ -1717,8 +1746,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           }
           formals = synthesizedFormals;
         case ExtensionTypeFragment():
-          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
-              declarationFragment.typeParameters,
+          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(_parent,
+              _unboundNominalVariables, declarationFragment.typeParameters,
               kind: TypeVariableKind.extensionSynthesized,
               instanceTypeVariableAccess:
                   InstanceTypeVariableAccessState.Allowed);
@@ -1856,8 +1885,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isConst}) {
     beginConstructor();
     endConstructor();
-    NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
-        _declarationFragments.current.typeParameters,
+    NominalVariableCopy? nominalVariableCopy = copyTypeVariables(_parent,
+        _unboundNominalVariables, _declarationFragments.current.typeParameters,
         kind: TypeVariableKind.extensionSynthesized,
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
     List<NominalVariableBuilder>? typeVariables =
@@ -2099,7 +2128,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           staticMask | modifiers,
           returnType,
           procedureName,
-          typeVariables = copyTypeVariables(enclosingDeclaration.typeParameters,
+          typeVariables = copyTypeVariables(_parent, _unboundNominalVariables,
+                  enclosingDeclaration.typeParameters,
                   kind: TypeVariableKind.function,
                   instanceTypeVariableAccess:
                       InstanceTypeVariableAccessState.Allowed)
@@ -2123,7 +2153,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           staticMask | modifiers,
           returnType,
           procedureName,
-          typeVariables = copyTypeVariables(enclosingDeclaration.typeParameters,
+          typeVariables = copyTypeVariables(_parent, _unboundNominalVariables,
+                  enclosingDeclaration.typeParameters,
                   kind: TypeVariableKind.function,
                   instanceTypeVariableAccess:
                       InstanceTypeVariableAccessState.Allowed)
@@ -2719,8 +2750,15 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     return builder;
   }
 
-  @override
-  NominalVariableCopy? copyTypeVariables(
+  /// Creates a [NominalVariableCopy] object containing a copy of
+  /// [oldVariableBuilders] into the scope of [declaration].
+  ///
+  /// This is used for adding copies of class type parameters to factory
+  /// methods and unnamed mixin applications, and for adding copies of
+  /// extension type parameters to extension instance methods.
+  static NominalVariableCopy? copyTypeVariables(
+      Builder _parent,
+      List<NominalVariableBuilder> _unboundNominalVariables,
       List<NominalVariableBuilder>? oldVariableBuilders,
       {required TypeVariableKind kind,
       required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
