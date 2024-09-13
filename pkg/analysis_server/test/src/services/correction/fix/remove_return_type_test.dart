@@ -11,7 +11,32 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveReturnTypeTest);
+    defineReflectiveTests(RemoveReturnTypeBulkTest);
   });
+}
+
+@reflectiveTest
+class RemoveReturnTypeBulkTest extends BulkFixProcessorTest {
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class A {
+  dynamic set foo(int a) {
+  }
+}
+
+dynamic set foo(int a) {
+}
+''');
+    await assertHasFix('''
+class A {
+  set foo(int a) {
+  }
+}
+
+set foo(int a) {
+}
+''');
+  }
 }
 
 @reflectiveTest
