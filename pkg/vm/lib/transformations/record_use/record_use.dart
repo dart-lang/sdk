@@ -13,6 +13,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:record_use/record_use_internal.dart';
 import 'package:vm/metadata/loading_units.dart';
 import 'package:vm/transformations/record_use/record_call.dart';
+import 'package:vm/transformations/record_use/record_instance.dart';
 
 /// Collect calls to methods annotated with `@RecordUse`.
 ///
@@ -36,11 +37,16 @@ ast.Component transformComponent(
   final loadingUnits = loadingMetadata.mapping[component]?.loadingUnits ?? [];
 
   final staticCallRecorder = StaticCallRecorder(source, loadingUnits);
+  final instanceUseRecorder = InstanceUseRecorder(source, loadingUnits);
   component.accept(_RecordUseVisitor(
     staticCallRecorder,
+    instanceUseRecorder,
   ));
 
-  final usages = _usages(staticCallRecorder.callsForMethod.values, []);
+  final usages = _usages(
+    staticCallRecorder.callsForMethod.values,
+    instanceUseRecorder.instancesForClass.values,
+  );
   var usagesStorageFormat = usages.toJson();
   File.fromUri(recordedUsagesFile).writeAsStringSync(
     JsonEncoder.withIndent('  ').convert(usagesStorageFormat),
@@ -51,7 +57,12 @@ ast.Component transformComponent(
 
 class _RecordUseVisitor extends ast.RecursiveVisitor {
   final StaticCallRecorder staticCallRecorder;
-  _RecordUseVisitor(this.staticCallRecorder);
+  final InstanceUseRecorder instanceUseRecorder;
+
+  _RecordUseVisitor(
+    this.staticCallRecorder,
+    this.instanceUseRecorder,
+  );
 
   @override
   void visitStaticInvocation(ast.StaticInvocation node) {
@@ -62,6 +73,11 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
   @override
   void visitConstantExpression(ast.ConstantExpression node) {
     staticCallRecorder.recordTearoff(node);
+
+    final parent = node.parent;
+    if (parent is ast.Annotatable && parent.annotations.contains(node)) {
+      instanceUseRecorder.recordAnnotationUse(node);
+    }
     super.visitConstantExpression(node);
   }
 }
@@ -120,14 +136,14 @@ Never _unsupported(String constantType) =>
     throw UnsupportedError('$constantType is not supported for recording.');
 
 extension RecordUseLocation on ast.Location {
-  Location recordLocation(String uri) => Location(
-        uri: uri,
+  Location recordLocation(Uri source) => Location(
+        uri: relativizeUri(source, this.file, Platform.isWindows),
         line: line,
         column: column,
       );
 }
 
-String getIdentifierUri(ast.Library library, Uri source) {
+String getImportUri(ast.Library library, Uri source) {
   String file;
   final importUri = library.importUri;
   if (importUri.isScheme('file')) {

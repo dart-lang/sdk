@@ -19,6 +19,7 @@
       "definition": {
         "id": 0,
         "@": {
+          "uri": 0,
           "line": 15,
           "column": 10
         },

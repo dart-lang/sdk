@@ -860,7 +860,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(
         _nameSpace == null, // Coverage-ignore(suite): Not run.
         "Name space has already being computed for $this.");
-    _nameSpace = _libraryNameSpaceBuilder.toNameSpace(this, this);
+
+    assert(
+        _mixinApplications != null, "Late registration of mixin application.");
+
+    _nameSpace = _libraryNameSpaceBuilder.toNameSpace(
+        problemReporting: this,
+        enclosingLibraryBuilder: this,
+        mixinApplications: _mixinApplications!,
+        unboundNominalVariables: _unboundNominalVariables);
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
@@ -1251,8 +1259,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
+  /// Map from mixin application classes to their mixin types.
+  ///
+  /// This is used to check that super access in mixin declarations have a
+  /// concrete target.
+  Map<SourceClassBuilder, TypeBuilder>? _mixinApplications = {};
+
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications) {
+    assert(_mixinApplications != null,
+        "Mixin applications have already been processed.");
+    mixinApplications.addAll(_mixinApplications!);
+    _mixinApplications = null;
+
     compilationUnit.takeMixinApplications(mixinApplications);
     for (SourceCompilationUnit part in parts) {
       part.takeMixinApplications(mixinApplications);
@@ -1545,6 +1564,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
+  final List<NominalVariableBuilder> _unboundNominalVariables = [];
+
   /// Adds all unbound nominal variables to [nominalVariables] and unbound
   /// structural variables to [structuralVariables], mapping them to this
   /// library.
@@ -1569,6 +1590,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       part.collectUnboundTypeVariables(
           this, nominalVariables, structuralVariables);
     }
+    for (NominalVariableBuilder builder in _unboundNominalVariables) {
+      nominalVariables[builder] = this;
+    }
+    _unboundNominalVariables.clear();
   }
 
   /// Computes variances of type parameters on typedefs.

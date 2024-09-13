@@ -13,18 +13,17 @@ class Location {
     required this.column,
   });
 
-  factory Location.fromJson(
-      Map<String, dynamic> map, String? uri, List<String>? uris) {
+  factory Location.fromJson(Map<String, dynamic> map, List<String> uris) {
     return Location(
-      uri: uri ?? uris![map['uri'] as int],
+      uri: uris[map['uri'] as int],
       line: map['line'] as int,
       column: map['column'] as int,
     );
   }
 
-  Map<String, dynamic> toJson({Map<String, int>? uris}) {
+  Map<String, dynamic> toJson(Map<String, int> uris) {
     return {
-      if (uris != null) 'uri': uris[uri]!,
+      'uri': uris[uri]!,
       'line': line,
       'column': column,
     };

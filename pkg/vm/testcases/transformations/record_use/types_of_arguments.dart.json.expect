@@ -72,6 +72,7 @@
       "definition": {
         "id": 0,
         "@": {
+          "uri": 0,
           "line": 22,
           "column": 17
         },

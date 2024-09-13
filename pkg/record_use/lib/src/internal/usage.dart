@@ -28,6 +28,7 @@ class Usage<T extends Reference> {
         definition: Definition.fromJson(
           json['definition'] as Map<String, dynamic>,
           identifiers,
+          uris,
         ),
         references: (json['references'] as List)
             .map((x) => constr(x as Map<String, dynamic>, uris, constants))

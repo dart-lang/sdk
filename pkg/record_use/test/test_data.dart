@@ -6,13 +6,13 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:record_use/record_use_internal.dart';
 
 final callId = Identifier(
-  uri: Uri.parse('file://lib/_internal/js_runtime/lib/js_helper.dart')
+  importUri: Uri.parse('file://lib/_internal/js_runtime/lib/js_helper.dart')
       .toString(),
   parent: 'MyClass',
   name: 'get:loadDeferredLibrary',
 );
 final instanceId = Identifier(
-  uri: Uri.parse('file://lib/_internal/js_runtime/lib/js_helper.dart')
+  importUri: Uri.parse('file://lib/_internal/js_runtime/lib/js_helper.dart')
       .toString(),
   name: 'MyAnnotation',
 );
@@ -168,13 +168,14 @@ final recordedUsesJson = '''{
       "value": {"key": 11}
     },
     {"type": "int", "value": 42},
-    {"type": "Null"}
+    {"type": "Null"},
+    {"type": "Instance", "value": {"a": 13, "b": 14}}
   ],
   "calls": [
     {
       "definition": {
         "id": 0,
-        "@": {"line": 12, "column": 67},
+        "@": {"uri": 0, "line": 12, "column": 67},
         "loadingUnit": "part_15.js"
       },
       "references": [
@@ -209,14 +210,12 @@ final recordedUsesJson = '''{
     {
       "definition": {
         "id": 1,
-        "@": {"line": 15, "column": 30},
+        "@": {"uri": 0, "line": 15, "column": 30},
         "loadingUnit": null
       },
       "references": [
         {
-          "instanceConstant": {
-            "fields": {"a": 13, "b": 14}
-          },
+          "instanceConstant": 15,
           "loadingUnit": "3",
           "@": {"uri": 0, "line": 40, "column": 30}
         }
@@ -232,7 +231,7 @@ final recordedUsesJson2 = '''{
   },
   "uris": [
     "package:drop_dylib_recording/src/drop_dylib_recording.dart",
-    "drop_dylib_recording_shake.dart"
+    "drop_dylib_recording_calls.dart"
   ],
   "ids": [
     {
@@ -251,6 +250,7 @@ final recordedUsesJson2 = '''{
       "definition": {
         "id": 0,
         "@": {
+          "uri": 0, 
           "line": 10,
           "column": 6
         },

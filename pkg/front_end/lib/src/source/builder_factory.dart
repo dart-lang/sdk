@@ -483,17 +483,6 @@ abstract class BuilderFactory {
       int charOffset,
       Uri fileUri);
 
-  /// Creates a [NominalVariableCopy] object containing a copy of
-  /// [oldVariableBuilders] into the scope of [declaration].
-  ///
-  /// This is used for adding copies of class type parameters to factory
-  /// methods and unnamed mixin applications, and for adding copies of
-  /// extension type parameters to extension instance methods.
-  NominalVariableCopy? copyTypeVariables(
-      List<NominalVariableBuilder>? oldVariableBuilders,
-      {required TypeVariableKind kind,
-      required InstanceTypeVariableAccessState instanceTypeVariableAccess});
-
   void registerUnboundStructuralVariables(
       List<StructuralVariableBuilder> variableBuilders);
 }

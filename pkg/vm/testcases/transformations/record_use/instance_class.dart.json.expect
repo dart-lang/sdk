@@ -4,46 +4,45 @@
     "version": "0.1.0"
   },
   "uris": [
-    "simple.dart"
+    "instance_class.dart"
   ],
   "ids": [
     {
       "uri": 0,
-      "parent": "SomeClass",
-      "name": "someStaticMethod"
+      "name": "MyClass"
     }
   ],
   "constants": [
     {
       "type": "int",
       "value": 42
+    },
+    {
+      "type": "Instance",
+      "value": {
+        "i": 0
+      }
     }
   ],
-  "calls": [
+  "instances": [
     {
       "definition": {
         "id": 0,
         "@": {
           "uri": 0,
-          "line": 13,
-          "column": 10
+          "line": 15,
+          "column": 7
         },
         "loadingUnit": "1"
       },
       "references": [
         {
-          "arguments": {
-            "const": {
-              "positional": {
-                "0": 0
-              }
-            }
-          },
+          "instanceConstant": 1,
           "loadingUnit": "1",
           "@": {
             "uri": 0,
-            "line": 8,
-            "column": 19
+            "line": 11,
+            "column": 2
           }
         }
       ]

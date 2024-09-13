@@ -278,7 +278,8 @@ class CleanupAnnotations extends RecursiveVisitor {
   /// We do not want to eliminate
   /// * `pragma`s
   /// * Protobuf annotations
-  /// * `RecordUse` annotations
+  /// * Annotations needed for tree shaking of non-Dart assets via
+  ///   package:record_use
   ///
   /// as we need these later in the pipeline.
   bool _keepAnnotation(Expression annotation) {
@@ -288,8 +289,9 @@ class CleanupAnnotations extends RecursiveVisitor {
         final cls = constant.classNode;
         final usesProtobufAnnotation =
             protobufHandler?.usesAnnotationClass(cls) ?? false;
-        bool usesRecordUse = RecordUse.isRecordUse(cls);
-        return cls == pragmaClass || usesProtobufAnnotation || usesRecordUse;
+        return cls == pragmaClass ||
+            usesProtobufAnnotation ||
+            RecordUse.isBeingRecorded(cls);
       }
     }
     return false;

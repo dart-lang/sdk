@@ -25,14 +25,26 @@ Iterable<InstanceConstant> findRecordUseAnnotation(Annotatable node) =>
 // Coverage-ignore(suite): Not run.
 final Uri _metaLibraryUri = new Uri(scheme: 'package', path: 'meta/meta.dart');
 
-bool isRecordUse(Class classNode) =>
-    classNode.name == 'RecordUse' &&
+// Coverage-ignore(suite): Not run.
+bool isRecordUse(Class cls) =>
+    cls.name == 'RecordUse' &&
     // Coverage-ignore(suite): Not run.
-    classNode.enclosingLibrary.importUri == _metaLibraryUri;
+    cls.enclosingLibrary.importUri == _metaLibraryUri;
+
+// Coverage-ignore(suite): Not run.
+bool isBeingRecorded(Class cls) => isRecordUse(cls) || hasRecordUse(cls);
+
+/// If [cls] annotation is in turn annotated by a recording annotation.
+// Coverage-ignore(suite): Not run.
+bool hasRecordUse(Class cls) => cls.annotations
+    .whereType<ConstantExpression>()
+    .map((e) => e.constant)
+    .whereType<InstanceConstant>()
+    .any((annotation) => isRecordUse(annotation.classNode));
 
 // Coverage-ignore(suite): Not run.
 /// Report if the resource annotations is placed on anything but a static
-/// method.
+/// method or a class without a const constructor.
 void validateRecordUseDeclaration(
   Annotatable node,
   ErrorReporter errorReporter,
@@ -40,7 +52,10 @@ void validateRecordUseDeclaration(
 ) {
   final bool onNonStaticMethod =
       node is! Procedure || !node.isStatic || node.kind != ProcedureKind.Method;
-  if (onNonStaticMethod) {
+
+  final bool onClassWithoutConstConstructor = node is! Class ||
+      !node.constructors.any((constructor) => constructor.isConst);
+  if (onNonStaticMethod && onClassWithoutConstConstructor) {
     errorReporter.report(messageRecordUseCannotBePlacedHere.withLocation(
         node.location!.file, node.fileOffset, 1));
   }
