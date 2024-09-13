@@ -53,7 +53,7 @@ class ImportedTable extends Table implements Import {
   final String name;
 
   /// Functions to be inserted via the elements section.
-  final Map<BaseFunction, int> setElements = {};
+  final Map<int, BaseFunction> setElements = {};
 
   ImportedTable(super.enclosingModule, this.module, this.name,
       super.finalizableIndex, super.type, super.minSize, super.maxSize);

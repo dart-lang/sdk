@@ -286,13 +286,13 @@ class ElementSection extends Section {
     }
     for (final table in importedTables) {
       final entries = [...table.setElements.entries]
-        ..sort((a, b) => a.value.compareTo(b.value));
+        ..sort((a, b) => a.key.compareTo(b.key));
 
       _Element? current;
       int lastIndex = -2;
       for (final entry in entries) {
-        final function = entry.key;
-        final index = entry.value;
+        final index = entry.key;
+        final function = entry.value;
         if (index != lastIndex + 1) {
           current = _Element(table, index);
           elements.add(current);

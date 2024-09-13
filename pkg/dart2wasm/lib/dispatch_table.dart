@@ -530,8 +530,8 @@ class DispatchTable {
           } else {
             // This will generate the imported table if it doesn't already
             // exist.
-            (getWasmTable(targetModule) as w.ImportedTable).setElements[fun] =
-                i;
+            (getWasmTable(targetModule) as w.ImportedTable).setElements[i] =
+                fun;
           }
         }
       }

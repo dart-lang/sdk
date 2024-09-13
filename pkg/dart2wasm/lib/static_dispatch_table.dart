@@ -77,8 +77,8 @@ class StaticDispatchTableForSignature {
         _definedWasmTable.setElement(index, fun);
       } else {
         // This will generate the imported table if it doesn't already exist.
-        (getWasmTable(targetModule) as w.ImportedTable).setElements[fun] =
-            index;
+        (getWasmTable(targetModule) as w.ImportedTable).setElements[index] =
+            fun;
       }
     });
 
