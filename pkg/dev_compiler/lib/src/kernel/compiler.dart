@@ -732,18 +732,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Certain RTIs must be emitted during RTI normalization. We cache these
     // eagerly with 'findType' (without normalization) to avoid infinite loops.
     // See normalization functions in: sdk/lib/_internal/js_shared/lib/rti.dart
-    var prerequisiteRtiTypes = [
-      _coreTypes.objectLegacyRawType,
-      _coreTypes.objectNullableRawType,
-      NeverType.legacy()
-    ];
-    prerequisiteRtiTypes.forEach((type) {
-      var recipe = _typeRecipeGenerator
-          .recipeInEnvironment(type, EmptyTypeEnvironment())
-          .recipe;
-      _moduleItems.add(js.call('#.findType("$recipe")',
-          [_emitLibraryName(_rtiLibrary)]).toStatement());
-    });
+    if (_isBuildingSdk) {
+      var prerequisiteRtiTypes = [
+        _coreTypes.objectLegacyRawType,
+        _coreTypes.objectNullableRawType,
+        NeverType.legacy()
+      ];
+      prerequisiteRtiTypes.forEach((type) {
+        var recipe = _typeRecipeGenerator
+            .recipeInEnvironment(type, EmptyTypeEnvironment())
+            .recipe;
+        _moduleItems.add(js.call('#.findType("$recipe")',
+            [_emitLibraryName(_rtiLibrary)]).toStatement());
+      });
+    }
 
     // Visit directives (for exports)
     libraries.forEach(_emitExports);
