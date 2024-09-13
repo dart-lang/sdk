@@ -1060,7 +1060,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  AnalysisSession get session => enclosingElement.session;
+  AnalysisSession get session => library.session;
 
   @override
   List<SetterFragment> get setters => accessors
@@ -1455,7 +1455,7 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
 
   @override
   Element2? get enclosingElement2 =>
-      (firstFragment._enclosingElement as InstanceFragment).element;
+      (firstFragment._enclosingElement3 as InstanceFragment).element;
 
   @override
   bool get isConst => firstFragment.isConst;
@@ -2266,7 +2266,7 @@ abstract class ElementImpl implements Element, Element2 {
 
   @override
   AnalysisContext get context {
-    return _enclosingElement!.context;
+    return library!.context;
   }
 
   @override
@@ -2294,7 +2294,7 @@ abstract class ElementImpl implements Element, Element2 {
 
   @override
   Element2? get enclosingElement2 {
-    var candidate = _enclosingElement;
+    var candidate = _enclosingElement3;
     if (candidate is CompilationUnitElementImpl ||
         candidate is AugmentableElement) {
       throw UnsupportedError('Cannot get an enclosingElement2 for a fragment');
@@ -2313,7 +2313,7 @@ abstract class ElementImpl implements Element, Element2 {
   /// Return the enclosing unit element (which might be the same as `this`), or
   /// `null` if this element is not contained in any compilation unit.
   CompilationUnitElementImpl get enclosingUnit {
-    return _enclosingElement!.enclosingUnit;
+    return _enclosingElement3!.enclosingUnit;
   }
 
   @override
@@ -2922,6 +2922,13 @@ abstract class ElementImpl implements Element, Element2 {
 
   @override
   E? thisOrAncestorOfType2<E extends Element2>() {
+    if (E == LibraryElement2 || E == LibraryElementImpl) {
+      if (enclosingElement3 case LibraryElementImpl library) {
+        return library as E;
+      }
+      return thisOrAncestorOfType<CompilationUnitElementImpl>()?.library as E?;
+    }
+
     Element2 element = this;
     while (element is! E) {
       var ancestor = element.enclosingElement2;
@@ -3798,7 +3805,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 
   @override
   Element2? get enclosingElement2 =>
-      (firstFragment._enclosingElement as InstanceFragment).element;
+      (firstFragment._enclosingElement3 as InstanceFragment).element;
 
   @override
   GetterElement? get getter => firstFragment.getter?.element as GetterElement?;
@@ -3926,7 +3933,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
 
   @override
   Element2? get enclosingElement2 =>
-      (firstFragment._enclosingElement as Fragment).element;
+      (firstFragment._enclosingElement3 as Fragment).element;
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
@@ -7264,7 +7271,7 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 
   @override
   Element2? get enclosingElement2 =>
-      (firstFragment._enclosingElement as InstanceFragment).element;
+      (firstFragment._enclosingElement3 as InstanceFragment).element;
 
   @override
   bool get isOperator => firstFragment.isOperator;
@@ -9084,7 +9091,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
   TopLevelFunctionElement get baseElement => this;
 
   @override
-  Element2? get enclosingElement2 => firstFragment._enclosingElement?.library2;
+  Element2? get enclosingElement2 => firstFragment._enclosingElement3?.library2;
 
   @override
   bool get isDartCoreIdentical => firstFragment.isDartCoreIdentical;
@@ -9744,7 +9751,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
 
   @override
   Element2? get enclosingElement2 =>
-      (firstFragment._enclosingElement as Fragment).element;
+      (firstFragment._enclosingElement3 as Fragment).element;
 
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;

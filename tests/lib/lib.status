@@ -96,6 +96,7 @@ js/type_parameter_lowering_test: SkipByDesign # Issue 42085. CSP policy disallow
 [ $jscl ]
 js/export/static_interop_mock/proto_test: SkipByDesign # Uses dart:html.
 js/static_interop_test/constants_test: SkipByDesign # Uses dart:html.
+js/static_interop_test/cross_origin_test: SkipByDesign # Uses the DOM.
 js/static_interop_test/futurevaluetype_test: SkipByDesign # Uses dart:html.
 js/static_interop_test/import/import_test: SkipByDesign # TODO(srujzs): This test uses the file system to load a module. Since the test runner doesn't start an HTTP server for commandline JS shells, I don't think this is supported.
 js/static_interop_test/supertype_transform_test: SkipByDesign # Uses dart:html.

@@ -346,15 +346,16 @@ class AnalysisDriver {
     return libraryContext.elementFactory.analysisSession;
   }
 
-  /// Return a set of the names of all the plugins enabled in analysis options
-  /// in this driver.
-  Set<String> get enabledPluginNames {
-    // We currently only support plugins enabled at the very root of a context
-    // (and we create contexts for any analysis options that changes plugins
-    // from its parent context).
+  /// The set of legacy plugin names enabled in analysis options in this driver.
+  Set<String> get enabledLegacyPluginNames {
+    // We currently only support legacy plugins enabled at the very root of a
+    // context (and we create contexts for any analysis options that changes
+    // plugins from its parent context).
     var rootOptionsFile = analysisContext?.contextRoot.optionsFile;
     return rootOptionsFile != null
-        ? getAnalysisOptionsForFile(rootOptionsFile).enabledPluginNames.toSet()
+        ? getAnalysisOptionsForFile(rootOptionsFile)
+            .enabledLegacyPluginNames
+            .toSet()
         : const {};
   }
 

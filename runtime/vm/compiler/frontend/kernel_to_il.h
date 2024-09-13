@@ -573,7 +573,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Zone* zone_;
 
   ParsedFunction* parsed_function_;
-  const bool optimizing_;
   ZoneGrowableArray<const ICData*>& ic_data_array_;
 
   intptr_t next_function_id_;
