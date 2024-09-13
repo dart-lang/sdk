@@ -7,13 +7,13 @@ import 'package:yaml/yaml.dart';
 
 import 'util/path_utils.dart';
 
-MessagesData messagesYaml = () {
+final MessagesData messagesYaml = () {
   var doc = loadYamlNode(readFile(_messagesYamlPath));
   if (doc is! YamlMap) throw StateError('messages.yaml is not a map');
   return MessagesData(doc);
 }();
 
-var _messagesYamlPath = pathRelativeToPackageRoot(['messages.yaml']);
+final String _messagesYamlPath = pathRelativeToPackageRoot(['messages.yaml']);
 
 extension type MessagesData(YamlMap _map) {
   Map<String, Set<String>> get categoryMappings {
