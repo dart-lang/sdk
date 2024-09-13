@@ -2057,9 +2057,11 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
       RepresentationUtils::RepresentationOfArrayElement(class_id());
   if (RepresentationUtils::IsUnboxedInteger(rep)) {
     if (rep == kUnboxedUint8 || rep == kUnboxedInt8) {
-      // TODO(fschneider): Add location constraint for byte registers (RAX,
-      // RBX, RCX, RDX) instead of using a fixed register.
-      locs->set_in(2, LocationFixedRegisterOrSmiConstant(value(), RAX));
+      if (IsClampedTypedDataBaseClassId(class_id())) {
+        locs->set_in(2, LocationWritableRegisterOrSmiConstant(value()));
+      } else {
+        locs->set_in(2, LocationRegisterOrSmiConstant(value()));
+      }
     } else {
       locs->set_in(2, Location::RequiresRegister());
     }
@@ -2128,18 +2130,18 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       __ movb(element_address, compiler::Immediate(static_cast<int8_t>(value)));
     } else {
-      const Register storedValueReg = locs()->in(2).reg();
+      const Register value = locs()->in(2).reg();
       compiler::Label store_value, store_0xff;
-      __ CompareImmediate(storedValueReg, compiler::Immediate(0xFF));
+      __ CompareImmediate(value, compiler::Immediate(0xFF));
       __ j(BELOW_EQUAL, &store_value, compiler::Assembler::kNearJump);
       // Clamp to 0x0 or 0xFF respectively.
       __ j(GREATER, &store_0xff);
-      __ xorq(storedValueReg, storedValueReg);
+      __ xorq(value, value);
       __ jmp(&store_value, compiler::Assembler::kNearJump);
       __ Bind(&store_0xff);
-      __ LoadImmediate(storedValueReg, compiler::Immediate(0xFF));
+      __ LoadImmediate(value, compiler::Immediate(0xFF));
       __ Bind(&store_value);
-      __ movb(element_address, ByteRegisterOf(storedValueReg));
+      __ movb(element_address, ByteRegisterOf(value));
     }
   } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
     if (rep == kUnboxedUint8 || rep == kUnboxedInt8) {
