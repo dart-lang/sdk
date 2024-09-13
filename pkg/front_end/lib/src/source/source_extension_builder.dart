@@ -93,7 +93,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
-    _nameSpace = _nameSpaceBuilder.buildNameSpace(libraryBuilder, this,
+    _nameSpace = _nameSpaceBuilder.buildNameSpace(
+        loader: libraryBuilder.loader,
+        problemReporting: libraryBuilder,
+        enclosingLibraryBuilder: libraryBuilder,
+        declarationBuilder: this,
         includeConstructors: false);
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension ${extensionName.name}",

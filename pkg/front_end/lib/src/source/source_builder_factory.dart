@@ -988,68 +988,32 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // Nested declaration began in `OutlineBuilder.beginEnum`.
     endEnumDeclaration(name);
 
-    DeclarationFragment declarationFragment = _declarationFragments.pop();
+    EnumFragment declarationFragment =
+        _declarationFragments.pop() as EnumFragment;
 
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
     nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
         ownerName: name, allowNameConflict: false);
 
-    LookupScope typeParameterScope = declarationFragment.typeParameterScope;
-    DeclarationNameSpaceBuilder nameSpaceBuilder =
-        declarationFragment.toDeclarationNameSpaceBuilder();
-
-    assert(
-        _mixinApplications != null, "Late registration of mixin application.");
-
-    SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
-        metadata,
-        name,
-        typeVariables,
-        loader.target.underscoreEnumType,
-        applyMixins(
-            unboundNominalVariables: _unboundNominalVariables,
-            compilationUnitScope: _compilationUnitScope,
-            problemReporting: _problemReporting,
-            objectTypeBuilder: loader.target.objectType,
-            enclosingLibraryBuilder: _parent,
-            fileUri: _compilationUnit.fileUri,
-            indexedLibrary: indexedLibrary,
-            supertype: loader.target.underscoreEnumType,
-            mixinApplicationBuilder: supertypeBuilder,
-            mixinApplications: _mixinApplications!,
-            startCharOffset: startCharOffset,
-            charOffset: charOffset,
-            charEndOffset: charEndOffset,
-            subclassName: name,
-            isMixinDeclaration: false,
-            typeVariables: typeVariables,
-            isMacro: false,
-            isSealed: false,
-            isBase: false,
-            isInterface: false,
-            isFinal: false,
-            isAugmentation: false,
-            isMixinClass: false,
-            addBuilder: _addBuilder),
-        interfaceBuilders,
-        enumConstantInfos,
-        _parent,
-        new List<ConstructorReferenceBuilder>.of(_constructorReferences),
-        startCharOffset,
-        charOffset,
-        charEndOffset,
-        referencesFromIndexedClass,
-        typeParameterScope,
-        nameSpaceBuilder);
-    declarationFragment.bodyScope.declarationBuilder = enumBuilder;
+    declarationFragment.compilationUnitScope = _compilationUnitScope;
+    declarationFragment.metadata = metadata;
+    declarationFragment.supertypeBuilder = supertypeBuilder;
+    declarationFragment.interfaces = interfaceBuilders;
+    declarationFragment.enumConstantInfos = enumConstantInfos;
+    declarationFragment.constructorReferences =
+        new List<ConstructorReferenceBuilder>.of(_constructorReferences);
+    declarationFragment.startCharOffset = startCharOffset;
+    declarationFragment.charOffset = charOffset;
+    declarationFragment.charEndOffset = charEndOffset;
+    declarationFragment.indexedLibrary = indexedLibrary;
+    declarationFragment.indexedClass = referencesFromIndexedClass;
 
     _constructorReferences.clear();
 
-    _addBuilder(name, enumBuilder, charOffset,
-        getterReference: referencesFromIndexedClass?.cls.reference);
+    _addFragment(declarationFragment);
 
-    offsetMap.registerNamedDeclaration(identifier, enumBuilder);
+    offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
 
   @override
@@ -1190,6 +1154,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         nameSpaceBuilder,
         _parent,
         new List<ConstructorReferenceBuilder>.of(_constructorReferences),
+        _compilationUnit.fileUri,
         startOffset,
         nameOffset,
         endOffset,
@@ -1496,6 +1461,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             nameSpaceBuilder,
             enclosingLibraryBuilder,
             <ConstructorReferenceBuilder>[],
+            fileUri,
             computedStartCharOffset,
             charOffset,
             charEndOffset,
