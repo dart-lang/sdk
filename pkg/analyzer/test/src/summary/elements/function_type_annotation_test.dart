@@ -69,23 +69,19 @@ library
               element: <none>
   topLevelVariables
     f
-      reference: <none>
-      type: void Function()
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
+      type: void Function()
       getter: <none>
       setter: <none>
   getters
     synthetic static get f
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::f
   setters
     synthetic static set f=
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@setter::f
       parameters
         requiredPositional _f
-          reference: <none>
           type: void Function()
-      firstFragment: <testLibraryFragment>::@setter::f
 ''');
   }
 
@@ -142,23 +138,19 @@ library
               element: <none>
   topLevelVariables
     f
-      reference: <none>
-      type: void Function()?
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
+      type: void Function()?
       getter: <none>
       setter: <none>
   getters
     synthetic static get f
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::f
   setters
     synthetic static set f=
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@setter::f
       parameters
         requiredPositional _f
-          reference: <none>
           type: void Function()?
-      firstFragment: <testLibraryFragment>::@setter::f
 ''');
   }
 
@@ -190,7 +182,7 @@ library
           element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       returnType: int Function(int, String)
 ''');
   }
@@ -232,14 +224,12 @@ library
               element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       parameters
         requiredPositional p
-          reference: <none>
           type: int Function(int, String) Function(num)
           parameters
             requiredPositional c
-              reference: <none>
               type: num
       returnType: void
 ''');
@@ -277,7 +267,7 @@ library
           element: <none>
   typeAliases
     F
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@typeAlias::F
       aliasedType: void Function(String) Function(int)
 ''');
   }
@@ -328,15 +318,12 @@ library
               element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
@@ -375,10 +362,9 @@ library
               element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       parameters
         requiredPositional p
-          reference: <none>
           type: int Function(int, String)
       returnType: void
 ''');
@@ -437,23 +423,19 @@ library
               element: <none>
   topLevelVariables
     v
-      reference: <none>
-      type: int Function(int, String)
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      type: int Function(int, String)
       getter: <none>
       setter: <none>
   getters
     synthetic static get v
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::v
   setters
     synthetic static set v=
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@setter::v
       parameters
         requiredPositional _v
-          reference: <none>
           type: int Function(int, String)
-      firstFragment: <testLibraryFragment>::@setter::v
 ''');
   }
 
@@ -559,20 +541,16 @@ library
               element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
   }
@@ -742,33 +720,27 @@ library
               element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
     v
-      reference: <none>
-      type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      type: int
       getter: <none>
       setter: <none>
   getters
     synthetic static get v
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::v
   setters
     synthetic static set v=
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@setter::v
       parameters
         requiredPositional _v
-          reference: <none>
           type: int
-      firstFragment: <testLibraryFragment>::@setter::v
 ''');
   }
 
@@ -886,23 +858,19 @@ library
           element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
     const v
-      reference: <none>
-      type: A<String Function({int? a})>
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      type: A<String Function({int? a})>
       getter: <none>
   getters
     synthetic static get v
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::v
 ''');
   }
@@ -1021,23 +989,19 @@ library
           element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
     const v
-      reference: <none>
-      type: A<String Function([int?])>
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      type: A<String Function([int?])>
       getter: <none>
   getters
     synthetic static get v
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::v
 ''');
   }
@@ -1156,23 +1120,19 @@ library
           element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
     const v
-      reference: <none>
-      type: A<String Function({required int a})>
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      type: A<String Function({required int a})>
       getter: <none>
   getters
     synthetic static get v
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::v
 ''');
   }
@@ -1285,23 +1245,19 @@ library
           element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
     const v
-      reference: <none>
-      type: A<String Function(int)>
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      type: A<String Function(int)>
       getter: <none>
   getters
     synthetic static get v
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::v
 ''');
   }
@@ -1342,11 +1298,10 @@ library
               element: <none>
   mixins
     mixin B
-      reference: <testLibraryFragment>::@mixin::B
+      firstFragment: <testLibraryFragment>::@mixin::B
       typeParameters
         X
           bound: void Function()
-      firstFragment: <testLibraryFragment>::@mixin::B
       superclassConstraints
         Object
 ''');
@@ -1442,26 +1397,21 @@ library
           element: <testLibraryFragment>::@mixin::M
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class alias B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<void Function()>
       constructors
         synthetic new
-          reference: <none>
-          superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          superConstructor: <none>
   mixins
     mixin M
-      reference: <testLibraryFragment>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -1520,10 +1470,10 @@ library
               element: <none>
   typeAliases
     F1
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@typeAlias::F1
       aliasedType: dynamic Function<V1>(V1 Function())
     F2
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@typeAlias::F2
       typeParameters
         V2
       aliasedType: V2 Function()

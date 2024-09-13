@@ -49,7 +49,7 @@ library
           element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       returnType: dynamic
 ''');
   }
@@ -93,11 +93,9 @@ library
               element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
@@ -150,15 +148,12 @@ library
               element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
@@ -203,13 +198,11 @@ library
           element: <none>
   topLevelVariables
     synthetic g
-      reference: <none>
-      type: dynamic
       firstFragment: <testLibraryFragment>::@topLevelVariable::g
+      type: dynamic
       getter: <none>
   getters
     static get g
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::g
 ''');
   }
@@ -257,11 +250,9 @@ library
               element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
@@ -318,15 +309,12 @@ library
               element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
@@ -365,7 +353,7 @@ library
           element: <none>
   functions
     main
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::main
       returnType: dynamic
 ''');
   }

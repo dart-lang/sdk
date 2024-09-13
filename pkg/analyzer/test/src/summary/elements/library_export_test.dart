@@ -281,11 +281,9 @@ library
               element: <none>
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
@@ -524,11 +522,9 @@ library
               element: <none>
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
   exportedReferences
     exported[(0, 0), (0, 1)] package:test/a.dart::<fragment>::@class::A
@@ -878,14 +874,12 @@ library
               superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
         synthetic new
-          reference: <none>
-          superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          superConstructor: <none>
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -950,14 +944,12 @@ library
               superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
         synthetic new
-          reference: <none>
-          superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          superConstructor: <none>
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -1022,14 +1014,12 @@ library
               superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
         synthetic new
-          reference: <none>
-          superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          superConstructor: <none>
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -1162,18 +1152,14 @@ library
               element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@class::B
@@ -1291,11 +1277,9 @@ library
       previousFragment: <testLibrary>::@fragment::package:test/d.dart
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A
@@ -1388,11 +1372,9 @@ library
       previousFragment: <testLibraryFragment>
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A1
@@ -1480,11 +1462,9 @@ library
       previousFragment: <testLibraryFragment>
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A1
@@ -1577,12 +1557,10 @@ library
           element: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
   mixins
     mixin A
-      reference: <testLibraryFragment>::@mixin::A
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
     mixin B
-      reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
       superclassConstraints
         Object
@@ -1708,25 +1686,19 @@ library
               element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
     class B
-      reference: <testLibrary>::@fragment::package:test/b.dart::@class::B
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::B
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::B::@constructor::new
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@class::A
@@ -1834,11 +1806,9 @@ library
       previousFragment: <testLibrary>::@fragment::package:test/c.dart
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A
@@ -1931,23 +1901,19 @@ library
               element: <none>
   topLevelVariables
     a
-      reference: <none>
-      type: int
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
+      type: int
       getter: <none>
       setter: <none>
   getters
     synthetic static get a
-      reference: <none>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::a
   setters
     synthetic static set a=
-      reference: <none>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::a
       parameters
         requiredPositional _a
-          reference: <none>
           type: int
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::a
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::a
@@ -2024,13 +1990,11 @@ library
           element: <none>
   topLevelVariables
     const a
-      reference: <none>
-      type: int
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
+      type: int
       getter: <none>
   getters
     synthetic static get a
-      reference: <none>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::a
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a

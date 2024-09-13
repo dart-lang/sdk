@@ -82,22 +82,19 @@ library
                   element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         abstract X
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@method::X
           parameters
             optionalNamed a
-              reference: <none>
+              firstFragment: <testLibraryFragment>::@class::A::@method::X::@parameter::a
               type: List<T>
-          firstFragment: <testLibraryFragment>::@class::A::@method::X
 ''');
   }
 
@@ -229,46 +226,41 @@ library
               element: <none>
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
       fields
         final f
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::X::@field::f
           type: void Function(dynamic)
             alias: <testLibraryFragment>::@typeAlias::F
               typeArguments
                 dynamic
-          firstFragment: <testLibraryFragment>::@class::X::@field::f
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::X::@constructor::new
           parameters
             optionalNamed final f
-              reference: <none>
+              firstFragment: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
               type: void Function(dynamic)
                 alias: <testLibraryFragment>::@typeAlias::F
                   typeArguments
                     dynamic
-          firstFragment: <testLibraryFragment>::@class::X::@constructor::new
       getters
         synthetic get f
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@getter::f
   typeAliases
     F
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@typeAlias::F
       typeParameters
         T
       aliasedType: void Function(T)
   functions
     defaultF
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::defaultF
       typeParameters
         T
       parameters
         requiredPositional v
-          reference: <none>
           type: T
       returnType: void
 ''');
@@ -380,29 +372,24 @@ library
                   element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         foo
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@method::foo
           parameters
             optionalNamed a
-              reference: <none>
+              firstFragment: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
               type: dynamic
-          firstFragment: <testLibraryFragment>::@class::B::@method::foo
 ''');
   }
 
@@ -443,14 +430,12 @@ library
               element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       parameters
         requiredPositional g
-          reference: <none>
           type: dynamic Function({dynamic a})
           parameters
             optionalNamed a
-              reference: <none>
               type: dynamic
       returnType: void
 ''');
@@ -506,10 +491,9 @@ library
               element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       parameters
         optionalPositional compare
-          reference: <none>
           type: int Function(InvalidType, InvalidType)
             alias: dart:core::<fragment>::@typeAlias::Comparator
               typeArguments
@@ -580,10 +564,10 @@ library
               element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       parameters
         optionalNamed x
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@function::f::@parameter::x
           type: ({int f1, bool f2})
       returnType: void
 ''');
@@ -652,10 +636,10 @@ library
               element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       parameters
         optionalNamed x
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@function::f::@parameter::x
           type: ({int f1, bool f2})
       returnType: void
 ''');
@@ -709,10 +693,10 @@ library
               element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       parameters
         optionalNamed x
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@function::f::@parameter::x
           type: (int, bool)
       returnType: void
 ''');
@@ -767,10 +751,10 @@ library
               element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       parameters
         optionalNamed x
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@function::f::@parameter::x
           type: (int, bool)
       returnType: void
 ''');
@@ -851,27 +835,21 @@ library
                   element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   extensions
     extension E
-      reference: <testLibraryFragment>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       methods
         static f
-          reference: <none>
           firstFragment: <testLibraryFragment>::@extension::E::@method::f
         static g
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@extension::E::@method::g
           parameters
             optionalPositional p
-              reference: <none>
               type: Object
-          firstFragment: <testLibraryFragment>::@extension::E::@method::g
 ''');
   }
 
@@ -969,30 +947,24 @@ library
                   element: <none>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
+      firstFragment: <testLibraryFragment>::@class::B
       typeParameters
         T1
         T2
-      firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         foo
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::foo
           parameters
             optionalPositional b
-              reference: <none>
               type: B<int, double>
-          firstFragment: <testLibraryFragment>::@class::C::@method::foo
 ''');
   }
 
@@ -1083,27 +1055,22 @@ library
                   element: <none>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
+      firstFragment: <testLibraryFragment>::@class::B
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class C
-      reference: <testLibraryFragment>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::C
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           parameters
             optionalPositional b
-              reference: <none>
               type: B<T>
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -1219,36 +1186,29 @@ library
                   element: <none>
   classes
     abstract class A
-      reference: <testLibraryFragment>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
-      reference: <testLibraryFragment>::@class::B
+      firstFragment: <testLibraryFragment>::@class::B
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class C
-      reference: <testLibraryFragment>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::C
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           parameters
             optionalPositional a
-              reference: <none>
               type: A<T>
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -1332,22 +1292,19 @@ library
               element: <none>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
+      firstFragment: <testLibraryFragment>::@class::B
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
   functions
     foo
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::foo
       typeParameters
         T
       parameters
         optionalPositional b
-          reference: <none>
           type: B<T>
       returnType: void
 ''');
@@ -1449,31 +1406,25 @@ library
                   element: <none>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
+      firstFragment: <testLibraryFragment>::@class::B
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         foo
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::foo
           typeParameters
             T
           parameters
             optionalPositional b
-              reference: <none>
               type: B<T>
-          firstFragment: <testLibraryFragment>::@class::C::@method::foo
 ''');
   }
 
@@ -1583,34 +1534,28 @@ library
                   element: <none>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
+      firstFragment: <testLibraryFragment>::@class::B
       typeParameters
         T1
         T2
-      firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class C
-      reference: <testLibraryFragment>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         E1
-      firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         foo
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::foo
           typeParameters
             E2
           parameters
             optionalPositional b
-              reference: <none>
               type: B<E1, E2>
-          firstFragment: <testLibraryFragment>::@class::C::@method::foo
 ''');
   }
 
@@ -1710,31 +1655,25 @@ library
                   element: <none>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
+      firstFragment: <testLibraryFragment>::@class::B
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::B
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class C
-      reference: <testLibraryFragment>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         foo
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::foo
           parameters
             optionalPositional b
-              reference: <none>
               type: B<T>
-          firstFragment: <testLibraryFragment>::@class::C::@method::foo
 ''');
   }
 }
