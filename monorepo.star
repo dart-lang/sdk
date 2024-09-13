@@ -211,12 +211,12 @@ monorepo_builder("flutter-linux-host_profile", "profile", "flutter-engine")
 monorepo_builder("flutter-linux-host_release", "release", "flutter-engine")
 monorepo_builder("flutter-linux-wasm_release", "wasm", "flutter-web")
 
-def monorepo_tester(name, short_name, console):
+def monorepo_tester(name, short_name, console, recipe = "engine_v2/tester"):
     dart.ci_sandbox_builder(
         name = name,
         channels = [],
         dimensions = {"pool": "dart.tests"},
-        executable = dart.flutter_recipe("engine_v2/tester"),
+        executable = dart.flutter_recipe(recipe),
         execution_timeout = 90 * time.minute,
         notifies = None,
         priority = priority.normal,
@@ -237,7 +237,7 @@ def monorepo_tester(name, short_name, console):
     dart.try_builder(
         name,
         bucket = "try.monorepo",
-        executable = dart.flutter_recipe("engine_v2/tester"),
+        executable = dart.flutter_recipe(recipe),
         execution_timeout = 90 * time.minute,
         dimensions = {"pool": "dart.tests"},
         on_cq = False,
@@ -261,3 +261,9 @@ monorepo_tester("flutter-linux-web-tests-5", "wt5", "flutter-web")
 monorepo_tester("flutter-linux-web-tests-6", "wt6", "flutter-web")
 monorepo_tester("flutter-linux-web-tests-7-last", "wt7", "flutter-web")
 monorepo_tester("flutter-linux-web-tool-tests", "wtool", "flutter-web")
+monorepo_tester(
+    "flutter-linux-chrome-dart2wasm-skwasm-ui",
+    "skwasm-ui",
+    "flutter-web",
+    recipe = "engine_v2/tester_engine",
+)
