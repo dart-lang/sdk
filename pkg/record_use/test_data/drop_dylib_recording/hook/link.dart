@@ -8,9 +8,21 @@ import 'dart:io';
 import 'package:native_assets_cli/native_assets_cli.dart';
 import 'package:record_use/record_use.dart';
 
-final id = const Identifier(
-  uri: 'package:drop_dylib_recording/src/drop_dylib_recording.dart',
-  name: 'getMathMethod',
+final callIdAdd = const Identifier(
+  importUri: 'package:drop_dylib_recording/src/drop_dylib_recording.dart',
+  parent: 'MyMath',
+  name: 'add',
+);
+
+final callIdMultiply = const Identifier(
+  importUri: 'package:drop_dylib_recording/src/drop_dylib_recording.dart',
+  parent: 'MyMath',
+  name: 'multiply',
+);
+
+final instanceId = const Identifier(
+  importUri: 'package:drop_dylib_recording/src/drop_dylib_recording.dart',
+  name: 'RecordCallToC',
 );
 
 void main(List<String> arguments) async {
@@ -23,37 +35,41 @@ void main(List<String> arguments) async {
     print('''
 Received ${config.assets.length} assets: ${config.assets.map((e) => e.id)}.
 ''');
-    final f = File.fromUri(config.outputDirectory.resolve('debug.txt'))
-      ..createSync();
-    f.writeAsStringSync(config.assets
-        .map(
-          (e) => e.id,
-        )
-        .join('\n'));
-    f.writeAsStringSync('\nnow', mode: FileMode.append);
 
-    if (usages.hasNonConstArguments(id)) {
-      //Keep all assets
-      output.addAssets(config.assets);
-      f.writeAsStringSync('\nhasNonConstargs', mode: FileMode.append);
+    final symbols = <String>{};
+    final argumentsFile =
+        await File.fromUri(config.outputDirectory.resolve('arguments.txt'))
+          ..create();
 
-      f.writeAsStringSync(
-          '\n${usages.argumentsTo(id)!.first.nonConstArguments.toJson()}',
-          mode: FileMode.append);
-    } else {
-      f.writeAsStringSync('\nno-hasNonConstargs', mode: FileMode.append);
-      //Tree-shake unused assets
-      final arguments = usages.argumentsTo(id) ?? [];
-      for (final argument in arguments) {
-        f.writeAsStringSync('\nArg: $argument', mode: FileMode.append);
-        final symbol =
-            (argument.constArguments.positional[0] as StringConstant).value;
-        f.writeAsStringSync('\nsymbol: $symbol', mode: FileMode.append);
-
-        output.addAssets(
-          config.assets.where((asset) => asset.id.endsWith(symbol)),
-        );
+    final dataLines = <String>[];
+    //Tree-shake unused assets using calls
+    for (var callId in [callIdAdd, callIdMultiply]) {
+      var arguments = usages.argumentsTo(callId);
+      if (arguments?.isNotEmpty ?? false) {
+        final argument =
+            (arguments!.first.constArguments.positional[0] as IntConstant)
+                .value;
+        dataLines.add('Argument to "${callId.name}": $argument');
+        symbols.add(callId.name);
       }
+    }
+
+    argumentsFile.writeAsStringSync(dataLines.join('\n'));
+
+    //Tree-shake unused assets
+    final instances = usages.instancesOf(instanceId) ?? [];
+    for (final instance in instances) {
+      final symbol =
+          (instance.instanceConstant.fields.values.first as StringConstant)
+              .value;
+
+      symbols.add(symbol);
+    }
+
+    for (var symbol in symbols) {
+      output.addAssets(
+        config.assets.where((asset) => asset.id.endsWith(symbol)),
+      );
     }
 
     print('''

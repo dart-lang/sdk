@@ -8,6 +8,7 @@ export 'src/public/constant.dart'
     show
         BoolConstant,
         Constant,
+        InstanceConstant,
         IntConstant,
         ListConstant,
         MapConstant,
@@ -15,7 +16,6 @@ export 'src/public/constant.dart'
         PrimitiveConstant,
         StringConstant;
 export 'src/public/identifier.dart' show Identifier;
-export 'src/public/instance_constant.dart' show InstanceConstant;
 export 'src/public/location.dart' show Location;
 export 'src/public/metadata.dart' show Metadata;
 //Not exporting `Reference` as it is not used in the API

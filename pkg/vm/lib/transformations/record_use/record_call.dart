@@ -53,10 +53,7 @@ class StaticCallRecorder {
       ),
     );
     return CallReference(
-      location: node.location!.recordLocation(getIdentifierUri(
-        enclosingLibrary(node)!,
-        source,
-      )),
+      location: node.location!.recordLocation(source),
       arguments: Arguments(nonConstArguments: nonConstArguments),
     );
   }
@@ -92,10 +89,7 @@ class StaticCallRecorder {
     final namedGrouped = _groupByNull(namedArguments);
 
     return CallReference(
-      location: node.location!.recordLocation(getIdentifierUri(
-        enclosingLibrary(node)!,
-        source,
-      )),
+      location: node.location!.recordLocation(source),
       loadingUnit: loadingUnitForNode(node, _loadingUnits).toString(),
       arguments: Arguments(
         constArguments: ConstArguments(
@@ -132,15 +126,15 @@ class StaticCallRecorder {
 
   Definition _definitionFromMember(ast.Member target) {
     final enclosingLibrary = target.enclosingLibrary;
-    String file = getIdentifierUri(enclosingLibrary, source);
+    String file = getImportUri(enclosingLibrary, source);
 
     return Definition(
       identifier: Identifier(
-        uri: file,
+        importUri: file,
         parent: target.enclosingClass?.name,
         name: target.name.text,
       ),
-      location: target.location!.recordLocation(file),
+      location: target.location!.recordLocation(source),
       loadingUnit:
           loadingUnitForNode(enclosingLibrary, _loadingUnits).toString(),
     );

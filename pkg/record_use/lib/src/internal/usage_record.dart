@@ -71,7 +71,7 @@ class UsageRecord {
     }.asMapToIndices;
 
     final uris = <String>{
-      ...identifiers.keys.map((e) => e.uri),
+      ...identifiers.keys.map((e) => e.importUri),
       ...calls.expand((call) => [
             call.definition.location.uri,
             ...call.references.map((reference) => reference.location.uri),
@@ -87,9 +87,10 @@ class UsageRecord {
           .map((e) => e.arguments?.constArguments)
           .whereType<ConstArguments>()
           .expand((e) => {...e.named.values, ...e.positional.values})),
-      ...instances
-          .expand((element) => element.references)
-          .expand((e) => e.instanceConstant.fields.values)
+      ...instances.expand((element) => element.references).expand((e) => {
+            ...e.instanceConstant.fields.values,
+            e.instanceConstant,
+          })
     }.flatten().asMapToIndices;
     return {
       'metadata': metadata.toJson(),

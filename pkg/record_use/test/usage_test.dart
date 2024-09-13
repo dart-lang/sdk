@@ -30,7 +30,7 @@ void main() {
 
   test('Specific API calls', () {
     final callId = Identifier(
-      uri: Uri.parse('file://lib/_internal/js_runtime/lib/js_helper.dart')
+      importUri: Uri.parse('file://lib/_internal/js_runtime/lib/js_helper.dart')
           .toString(),
       parent: 'MyClass',
       name: 'get:loadDeferredLibrary',
@@ -75,7 +75,7 @@ void main() {
 
   test('Specific API instances', () {
     final instanceId = Identifier(
-      uri: Uri.parse('file://lib/_internal/js_runtime/lib/js_helper.dart')
+      importUri: Uri.parse('file://lib/_internal/js_runtime/lib/js_helper.dart')
           .toString(),
       name: 'MyAnnotation',
     );
@@ -88,7 +88,7 @@ void main() {
         instanceConstant: const InstanceConstant(
           fields: {'a': IntConstant(42), 'b': NullConstant()},
         ),
-        location: Location(uri: instanceId.uri, line: 40, column: 30),
+        location: Location(uri: instanceId.importUri, line: 40, column: 30),
         loadingUnit: 3.toString(),
       ),
     );
@@ -96,7 +96,7 @@ void main() {
 
   test('HasNonConstInstance', () {
     final id = const Identifier(
-      uri: 'package:drop_dylib_recording/src/drop_dylib_recording.dart',
+      importUri: 'package:drop_dylib_recording/src/drop_dylib_recording.dart',
       name: 'getMathMethod',
     );
 

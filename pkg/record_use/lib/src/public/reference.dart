@@ -4,7 +4,6 @@
 
 import 'arguments.dart';
 import 'constant.dart';
-import 'instance_constant.dart';
 import 'location.dart';
 
 sealed class Reference {
@@ -21,7 +20,7 @@ sealed class Reference {
   ) =>
       {
         'loadingUnit': loadingUnit,
-        '@': location.toJson(uris: uris),
+        '@': location.toJson(uris),
       };
 
   @override
@@ -57,8 +56,7 @@ final class CallReference extends Reference {
               json['arguments'] as Map<String, dynamic>, constants)
           : null,
       loadingUnit: json['loadingUnit'] as String?,
-      location:
-          Location.fromJson(json['@'] as Map<String, dynamic>, null, uris),
+      location: Location.fromJson(json['@'] as Map<String, dynamic>, uris),
     );
   }
 
@@ -101,16 +99,10 @@ final class InstanceReference extends Reference {
     List<Constant> constants,
   ) {
     return InstanceReference(
-      instanceConstant: InstanceConstant.fromJson(
-        json['instanceConstant'] as Map<String, dynamic>,
-        constants,
-      ),
+      instanceConstant:
+          constants[json['instanceConstant'] as int] as InstanceConstant,
       loadingUnit: json['loadingUnit'] as String?,
-      location: Location.fromJson(
-        json['@'] as Map<String, dynamic>,
-        null,
-        uris,
-      ),
+      location: Location.fromJson(json['@'] as Map<String, dynamic>, uris),
     );
   }
 
@@ -120,7 +112,7 @@ final class InstanceReference extends Reference {
     Map<Constant, int> constants,
   ) =>
       {
-        'instanceConstant': instanceConstant.toJson(constants),
+        'instanceConstant': constants[instanceConstant]!,
         ...super.toJson(uris, constants),
       };
 

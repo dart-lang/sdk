@@ -23,6 +23,9 @@ sealed class Constant {
         MapConstant._type => MapConstant(
             (value['value'] as Map<String, dynamic>)
                 .map((key, value) => MapEntry(key, constants[value as int]))),
+        InstanceConstant._type => InstanceConstant(
+            fields: (value['value'] as Map<String, dynamic>)
+                .map((key, value) => MapEntry(key, constants[value as int]))),
         String() =>
           throw UnimplementedError('This type is not a supported constant'),
       };
@@ -132,6 +135,45 @@ final class MapConstant<T extends Constant> extends Constant {
         _type,
         value.map((key, constant) => MapEntry(key, constants[constant]!)),
       );
+}
+
+final class InstanceConstant extends Constant {
+  static const _type = 'Instance';
+
+  final Map<String, Constant> fields;
+
+  const InstanceConstant({
+    required this.fields,
+  });
+
+  factory InstanceConstant.fromJson(
+    Map<String, dynamic> json,
+    List<Constant> constants,
+  ) {
+    return InstanceConstant(
+      fields: json.map((key, constantIndex) =>
+          MapEntry(key, constants[constantIndex as int])),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson(Map<Constant, int> constants) => _toJson(
+        _type,
+        fields.isNotEmpty
+            ? fields.map((name, constantIndex) =>
+                MapEntry(name, constants[constantIndex]!))
+            : null,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is InstanceConstant && deepEquals(other.fields, fields);
+  }
+
+  @override
+  int get hashCode => deepHash(fields);
 }
 
 Map<String, dynamic> _toJson(String type, Object? value) {
