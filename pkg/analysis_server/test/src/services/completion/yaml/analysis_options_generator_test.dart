@@ -150,7 +150,7 @@ linter:
     var completion = assertSuggestion('annotate_overrides');
     expect(
       completion.docComplete,
-      contains('**DO** annotate overridden methods and fields'),
+      contains('Annotate overridden members.'),
     );
   }
 

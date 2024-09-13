@@ -1135,7 +1135,7 @@ library
       enclosingElement3: <null>
       topLevelVariables
         static foo @4
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::0
           enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
@@ -1143,7 +1143,7 @@ library
           getter: getter_0
           setter: setter_0
         synthetic static foo @-1
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::1
           enclosingElement3: <testLibraryFragment>
           type: int
           id: variable_1
@@ -1178,12 +1178,12 @@ library
       element: <testLibrary>
       topLevelVariables
         foo @4
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::0
           element: <none>
           getter2: <testLibraryFragment>::@getter::foo::@def::0
           setter2: <testLibraryFragment>::@setter::foo
         synthetic foo @-1
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::1
           element: <none>
           getter2: <testLibraryFragment>::@getter::foo::@def::1
       getters
@@ -1204,13 +1204,13 @@ library
     foo
       reference: <none>
       type: int
-      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo::@def::0
       getter: <none>
       setter: <none>
     synthetic foo
       reference: <none>
       type: int
-      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo::@def::1
       getter: <none>
   getters
     synthetic static get foo
@@ -1245,7 +1245,7 @@ library
       enclosingElement3: <null>
       topLevelVariables
         static foo @4
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::0
           enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
@@ -1253,7 +1253,7 @@ library
           getter: getter_0
           setter: setter_0
         synthetic static foo @-1
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::1
           enclosingElement3: <testLibraryFragment>
           type: int
           id: variable_1
@@ -1291,12 +1291,12 @@ library
       element: <testLibrary>
       topLevelVariables
         foo @4
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::0
           element: <none>
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo::@def::0
         synthetic foo @-1
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::1
           element: <none>
           setter2: <testLibraryFragment>::@setter::foo::@def::1
       getters
@@ -1320,13 +1320,13 @@ library
     foo
       reference: <none>
       type: int
-      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo::@def::0
       getter: <none>
       setter: <none>
     synthetic foo
       reference: <none>
       type: int
-      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo::@def::1
       setter: <none>
   getters
     synthetic static get foo

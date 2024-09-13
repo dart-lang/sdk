@@ -195,6 +195,10 @@ abstract class LintRule {
 
   /// Description (in markdown format) suitable for display in a detailed lint
   /// description.
+  ///
+  /// This property is deprecated and will be removed in a future release.
+  @Deprecated('Use .description for a short description and consider placing '
+      'long-form documentation on an external website.')
   final String details;
 
   /// Short description suitable for display in console output.
@@ -213,7 +217,7 @@ abstract class LintRule {
     required this.name,
     this.categories = const <String>{},
     required this.description,
-    required this.details,
+    this.details = '',
     State? state,
   }) : state = state ?? State.stable();
 

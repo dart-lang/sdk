@@ -1531,8 +1531,6 @@ class LibraryReader {
     List<PropertyInducingElement> properties,
     String containerRefName,
   ) {
-    var containerRef = enclosingReference.getChild(containerRefName);
-
     var accessorCount = _reader.readUInt30();
     for (var i = 0; i < accessorCount; i++) {
       var accessor = _readPropertyAccessorElement(
@@ -1546,6 +1544,9 @@ class LibraryReader {
         continue;
       }
 
+      // Read the property reference.
+      var propertyReference = _readReference();
+
       var name = accessor.displayName;
       var isGetter = accessor.isGetter;
 
@@ -1555,8 +1556,7 @@ class LibraryReader {
       }
 
       PropertyInducingElementImpl property;
-      var reference = containerRef.getChild(name);
-      var existing = reference.element;
+      var existing = propertyReference.element;
       if (enclosingElement is CompilationUnitElementImpl) {
         if (existing is TopLevelVariableElementImpl &&
             canUseExisting(existing)) {
@@ -1565,9 +1565,9 @@ class LibraryReader {
           property = TopLevelVariableElementImpl(name, -1)
             ..enclosingElement = enclosingElement
             ..enclosingElement3 = enclosingElement
-            ..reference = reference
+            ..reference = propertyReference
             ..isSynthetic = true;
-          reference.element ??= property;
+          propertyReference.element ??= property;
           properties.add(property);
         }
       } else {
@@ -1577,10 +1577,10 @@ class LibraryReader {
           property = FieldElementImpl(name, -1)
             ..enclosingElement = enclosingElement
             ..enclosingElement3 = enclosingElement
-            ..reference = reference
+            ..reference = propertyReference
             ..isStatic = accessor.isStatic
             ..isSynthetic = true;
-          reference.element ??= property;
+          propertyReference.element ??= property;
           properties.add(property);
         }
       }

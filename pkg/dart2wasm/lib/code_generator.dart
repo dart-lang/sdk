@@ -2433,7 +2433,7 @@ abstract class AstCodeGenerator
         ParameterInfo.fromLocalFunction(decl.function), 1,
         typeArguments: arguments.types, named: arguments.named);
     b.comment("Local call of ${decl.variable.name}");
-    b.call(lambda.function);
+    translator.callFunction(lambda.function, b);
     return translator.outputOrVoid(lambda.function.type.outputs);
   }
 
@@ -3878,14 +3878,14 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
         b.if_(const [], [global.type.type]);
         b.global_get(global);
         b.else_();
-        b.call(initFunction);
+        translator.callFunction(initFunction, b);
         b.end();
       } else {
         // Null signals uninitialized
         w.Label block = b.block(const [], [initFunction.type.outputs.single]);
         b.global_get(global);
         b.br_on_non_null(block);
-        b.call(initFunction);
+        translator.callFunction(initFunction, b);
         b.end();
       }
     }

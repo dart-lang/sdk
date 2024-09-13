@@ -58,7 +58,7 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
     b.ref_null(translator.topInfo.struct); // await value
     b.ref_null(translator.topInfo.struct); // error value
     b.ref_null(translator.stackTraceInfo.repr.struct); // stack trace
-    b.call(resumeFun);
+    translator.callFunction(resumeFun, b);
     b.drop(); // drop null
 
     // (3) Return the completer's future.

@@ -990,6 +990,7 @@ class StandardTestSuite extends TestSuite {
         var weakNullSafetyErrors =
             testFile.ddcOptions.contains('--weak-null-safety-errors');
         var ddcModuleFormat = args.contains('--modules=ddc');
+        var canaryMode = args.contains('--canary');
         content = ddcHtml(
             nameNoExt,
             nameFromModuleRootNoExt,
@@ -1001,7 +1002,8 @@ class StandardTestSuite extends TestSuite {
             nativeNonNullAsserts,
             jsInteropNonNullAsserts,
             weakNullSafetyErrors,
-            ddcModuleFormat: ddcModuleFormat);
+            ddcModuleFormat: ddcModuleFormat,
+            canaryMode: canaryMode);
       } else {
         throw UnsupportedError(
             'Unexpected compiler in browser test: ${configuration.compiler}');
