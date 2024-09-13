@@ -900,7 +900,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       constants.instantiateConstant(b, typeArgs, typeArgsListLocal.type);
       b.local_get(posArgsListLocal);
       b.local_get(namedArgsListLocal);
-      b.call(tearOffClosure.dynamicCallEntry);
+      translator.callFunction(tearOffClosure.dynamicCallEntry, b);
       b.end();
 
       return function;
@@ -929,7 +929,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         for (int i = 1; i < signature.inputs.length; i++) {
           b.local_get(function.locals[i]);
         }
-        b.call(tearOffFunction);
+        translator.callFunction(tearOffFunction, b);
         b.end();
         return function;
       }

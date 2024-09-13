@@ -841,16 +841,14 @@ class IsCheckerCodeGenerator implements CodeGenerator {
       w.Local typeArguments =
           b.addLocal(translator.types.typeArrayExpectedType);
       b.local_get(operand);
-      b.call(translator.functions
-          .getFunction(translator.objectGetTypeArguments.reference));
+      translator.callReference(translator.objectGetTypeArguments.reference, b);
       b.local_set(typeArguments);
       for (int i = 0; i < argumentCount; ++i) {
         b.local_get(typeArguments);
         b.i32_const(i);
         b.array_get(translator.types.typeArrayArrayType);
         b.local_get(paramLocals[1 + i]);
-        b.call(translator.functions
-            .getFunction(translator.isTypeSubtype.reference));
+        translator.callReference(translator.isTypeSubtype.reference, b);
         {
           b.local_set(boolTemp);
           final w.Label okBlock = b.block(const [], const []);
