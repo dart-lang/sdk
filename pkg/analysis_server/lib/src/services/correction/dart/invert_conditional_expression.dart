@@ -23,16 +23,23 @@ class InvertConditionalExpression extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     ConditionalExpression? conditionalExpression;
-    if (node is ConditionalExpression) {
-      conditionalExpression = node as ConditionalExpression;
-    } else if (node.parent is ConditionalExpression) {
-      conditionalExpression = node.parent as ConditionalExpression;
-    } else {
+    conditionalExpression = node.thisOrAncestorOfType<ConditionalExpression>();
+    if (conditionalExpression == null) {
       return;
     }
 
     var condition = conditionalExpression.condition;
     var invertedCondition = utils.invertCondition(condition);
+    if (condition is ParenthesizedExpression) {
+      // If the condition had parentheses, then the inverted condition
+      // must also have parentheses, only when the final inverted condition
+      // contains white space. We don't want to add parentheses if the
+      // condition is not parenthesized.
+      var expression = condition.expression;
+      if (expression is BinaryExpression || expression is IsExpression) {
+        invertedCondition = '($invertedCondition)';
+      }
+    }
 
     var thenCode = utils.getNodeText(conditionalExpression.thenExpression);
     var elseCode = utils.getNodeText(conditionalExpression.elseExpression);
