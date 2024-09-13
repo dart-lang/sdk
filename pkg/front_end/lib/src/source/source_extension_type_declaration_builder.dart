@@ -79,28 +79,31 @@ class SourceExtensionTypeDeclarationBuilder
   Nullability? _nullability;
 
   SourceExtensionTypeDeclarationBuilder(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      String name,
-      this.typeParameters,
-      this.interfaceBuilders,
-      this.typeParameterScope,
-      this._nameSpaceBuilder,
-      SourceLibraryBuilder parent,
-      this.constructorReferences,
-      int startOffset,
-      int nameOffset,
-      int endOffset,
-      this.indexedContainer,
-      this.representationFieldBuilder)
+      {required List<MetadataBuilder>? metadata,
+      required int modifiers,
+      required String name,
+      required this.typeParameters,
+      required this.interfaceBuilders,
+      required this.typeParameterScope,
+      required DeclarationNameSpaceBuilder nameSpaceBuilder,
+      required SourceLibraryBuilder enclosingLibraryBuilder,
+      required this.constructorReferences,
+      required Uri fileUri,
+      required int startOffset,
+      required int nameOffset,
+      required int endOffset,
+      required this.indexedContainer,
+      required this.representationFieldBuilder})
       : _extensionTypeDeclaration = new ExtensionTypeDeclaration(
             name: name,
-            fileUri: parent.fileUri,
+            fileUri: fileUri,
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
                 typeParameters),
             reference: indexedContainer?.reference)
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, name, parent, parent.fileUri, nameOffset) {}
+        _nameSpaceBuilder = nameSpaceBuilder,
+        super(metadata, modifiers, name, enclosingLibraryBuilder, fileUri,
+            nameOffset);
 
   @override
   LookupScope get scope => _scope;

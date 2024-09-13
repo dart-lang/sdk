@@ -4,13 +4,16 @@
 
 import 'package:front_end/src/source/source_type_alias_builder.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/reference_from_index.dart';
 
 import '../builder/builder.dart';
+import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../source/name_scheme.dart';
 import '../source/source_extension_builder.dart';
+import '../source/source_extension_type_declaration_builder.dart';
 import '../source/type_parameter_scope_builder.dart';
 
 sealed class Fragment {
@@ -146,6 +149,68 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
         "DeclarationBuilder.extensionThisType has not been set on $this.");
     return _extensionThisType!;
   }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
+}
+
+class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
+  @override
+  final String name;
+
+  final int nameOffset;
+
+  final ClassName _className;
+
+  late final List<MetadataBuilder>? metadata;
+  late final int modifiers;
+  late final List<TypeBuilder>? interfaces;
+  late final List<ConstructorReferenceBuilder> constructorReferences;
+  late final int startOffset;
+  late final int endOffset;
+  late final IndexedContainer? indexedContainer;
+  late final Reference? reference;
+
+  SourceExtensionTypeDeclarationBuilder? _builder;
+
+  ExtensionTypeFragment(
+      this.name,
+      super.fileUri,
+      this.nameOffset,
+      super.typeParameters,
+      super.typeParameterScope,
+      super._nominalParameterNameSpace)
+      : _className = new ClassName(name);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get fileOffset => nameOffset;
+
+  @override
+  SourceExtensionTypeDeclarationBuilder get builder {
+    assert(
+        _builder != null, // Coverage-ignore(suite): Not run.
+        "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(SourceExtensionTypeDeclarationBuilder value) {
+    assert(
+        _builder == null, // Coverage-ignore(suite): Not run.
+        "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  ContainerName get containerName => _className;
+
+  @override
+  ContainerType get containerType => ContainerType.ExtensionType;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DeclarationFragmentKind get kind =>
+      DeclarationFragmentKind.extensionTypeDeclaration;
 
   @override
   String toString() => '$runtimeType($name,$fileUri,$fileOffset)';

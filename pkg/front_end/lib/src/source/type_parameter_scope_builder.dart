@@ -77,6 +77,35 @@ class _AddedFragment implements _Added {
         fragment.bodyScope.declarationBuilder = extensionBuilder;
         return new _AddBuilder(fragment.name, extensionBuilder,
             fragment.fileUri, fragment.fileOffset);
+      case ExtensionTypeFragment():
+        List<SourceFieldBuilder>? primaryConstructorFields =
+            fragment.primaryConstructorFields;
+        SourceFieldBuilder? representationFieldBuilder;
+        if (primaryConstructorFields != null &&
+            primaryConstructorFields.isNotEmpty) {
+          representationFieldBuilder = primaryConstructorFields.first;
+        }
+        SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+            new SourceExtensionTypeDeclarationBuilder(
+                metadata: fragment.metadata,
+                modifiers: fragment.modifiers,
+                name: fragment.name,
+                typeParameters: fragment.typeParameters,
+                interfaceBuilders: fragment.interfaces,
+                typeParameterScope: fragment.typeParameterScope,
+                nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
+                enclosingLibraryBuilder: parent as SourceLibraryBuilder,
+                constructorReferences: fragment.constructorReferences,
+                fileUri: fragment.fileUri,
+                startOffset: fragment.startOffset,
+                nameOffset: fragment.nameOffset,
+                endOffset: fragment.endOffset,
+                indexedContainer: fragment.indexedContainer,
+                representationFieldBuilder: representationFieldBuilder);
+        fragment.builder = extensionTypeDeclarationBuilder;
+        fragment.bodyScope.declarationBuilder = extensionTypeDeclarationBuilder;
+        return new _AddBuilder(fragment.name, extensionTypeDeclarationBuilder,
+            fragment.fileUri, fragment.fileOffset);
     }
   }
 }
@@ -468,57 +497,6 @@ class EnumFragment extends DeclarationFragment {
   @override
   // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind => DeclarationFragmentKind.enumDeclaration;
-
-  @override
-  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
-}
-
-class ExtensionTypeFragment extends DeclarationFragment {
-  @override
-  final String name;
-
-  final int nameOffset;
-
-  final ClassName _className;
-
-  SourceExtensionTypeDeclarationBuilder? _builder;
-
-  ExtensionTypeFragment(
-      this.name,
-      super.fileUri,
-      this.nameOffset,
-      super.typeParameters,
-      super.typeParameterScope,
-      super._nominalParameterNameSpace)
-      : _className = new ClassName(name);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  int get fileOffset => nameOffset;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  SourceExtensionTypeDeclarationBuilder get builder {
-    assert(_builder != null, "Builder has not been computed for $this.");
-    return _builder!;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  void set builder(SourceExtensionTypeDeclarationBuilder value) {
-    assert(_builder == null, "Builder has already been computed for $this.");
-    _builder = value;
-  }
-
-  @override
-  ContainerName get containerName => _className;
-
-  @override
-  ContainerType get containerType => ContainerType.ExtensionType;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  DeclarationFragmentKind get kind =>
-      DeclarationFragmentKind.extensionTypeDeclaration;
 
   @override
   String toString() => '$runtimeType($name,$fileUri,$fileOffset)';

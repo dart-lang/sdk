@@ -59,7 +59,6 @@ import 'offset_map.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
-import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
@@ -1566,53 +1565,31 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
     endExtensionTypeDeclaration(name);
 
-    DeclarationFragment declarationFragment = _declarationFragments.pop();
+    ExtensionTypeFragment declarationFragment =
+        _declarationFragments.pop() as ExtensionTypeFragment;
 
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
     nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
         ownerName: name, allowNameConflict: false);
 
-    LookupScope typeParameterScope = declarationFragment.typeParameterScope;
-    DeclarationNameSpaceBuilder nameSpaceBuilder =
-        declarationFragment.toDeclarationNameSpaceBuilder();
-
     IndexedContainer? indexedContainer =
         indexedLibrary?.lookupIndexedExtensionTypeDeclaration(name);
 
-    List<SourceFieldBuilder>? primaryConstructorFields =
-        declarationFragment.primaryConstructorFields;
-    SourceFieldBuilder? representationFieldBuilder;
-    if (primaryConstructorFields != null &&
-        primaryConstructorFields.isNotEmpty) {
-      representationFieldBuilder = primaryConstructorFields.first;
-    }
+    declarationFragment.metadata = metadata;
+    declarationFragment.modifiers = modifiers;
+    declarationFragment.interfaces = interfaces;
+    declarationFragment.constructorReferences =
+        new List<ConstructorReferenceBuilder>.of(_constructorReferences);
+    declarationFragment.startOffset = startOffset;
+    declarationFragment.endOffset = endOffset;
+    declarationFragment.indexedContainer = indexedContainer;
 
-    ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
-        new SourceExtensionTypeDeclarationBuilder(
-            metadata,
-            modifiers,
-            declarationFragment.name,
-            typeVariables,
-            interfaces,
-            typeParameterScope,
-            nameSpaceBuilder,
-            _parent,
-            new List<ConstructorReferenceBuilder>.of(_constructorReferences),
-            startOffset,
-            identifier.nameOffset,
-            endOffset,
-            indexedContainer,
-            representationFieldBuilder);
-    declarationFragment.bodyScope.declarationBuilder =
-        extensionTypeDeclarationBuilder;
     _constructorReferences.clear();
 
-    _addBuilder(extensionTypeDeclarationBuilder.name,
-        extensionTypeDeclarationBuilder, identifier.nameOffset,
+    _addFragment(declarationFragment,
         getterReference: indexedContainer?.reference);
-    offsetMap.registerNamedDeclaration(
-        identifier, extensionTypeDeclarationBuilder);
+    offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
 
   @override
