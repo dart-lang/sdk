@@ -85,6 +85,7 @@ Future<String> getMachineListing(
         ],
         'fixStatus':
             fixStatusMap[rule.lintCodes.first.uniqueName] ?? 'unregistered',
+        // ignore: deprecated_member_use
         'details': rule.details,
         if (sinceInfo != null)
           'sinceDartSdk': sinceInfo[rule.name]?.sinceDartSdk ?? 'Unreleased',
