@@ -88,7 +88,6 @@ class EnumFragment extends DeclarationFragment implements Fragment {
       : _className = new ClassName(name);
 
   @override
-  // Coverage-ignore(suite): Not run.
   int get fileOffset => nameOffset;
 
   @override
@@ -113,7 +112,6 @@ class EnumFragment extends DeclarationFragment implements Fragment {
   ContainerType get containerType => ContainerType.Class;
 
   @override
-  // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind => DeclarationFragmentKind.enumDeclaration;
 
   @override
@@ -178,7 +176,6 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
   ContainerType get containerType => ContainerType.Extension;
 
   @override
-  // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind =>
       DeclarationFragmentKind.extensionDeclaration;
 
@@ -244,7 +241,6 @@ class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
       : _className = new ClassName(name);
 
   @override
-  // Coverage-ignore(suite): Not run.
   int get fileOffset => nameOffset;
 
   @override
@@ -269,7 +265,6 @@ class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
   ContainerType get containerType => ContainerType.ExtensionType;
 
   @override
-  // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind =>
       DeclarationFragmentKind.extensionTypeDeclaration;
 

@@ -1340,11 +1340,9 @@ class ConstantsTransformer extends RemovingTransformer {
       caseSpaces
           .add(patternConverter.createRootSpace(type, patternGuard.pattern));
     }
-    List<CaseUnreachability>? caseUnreachabilities = retainDataForTesting
-        ?
-        // Coverage-ignore(suite): Not run.
-        []
-        : null;
+    // Coverage-ignore(suite): Not run.
+    List<CaseUnreachability>? caseUnreachabilities =
+        retainDataForTesting ? [] : null;
     NonExhaustiveness? nonExhaustiveness = computeExhaustiveness(
         _exhaustivenessCache!, type, caseIsGuarded, caseSpaces,
         caseUnreachabilities: caseUnreachabilities);
@@ -6058,19 +6056,21 @@ abstract class ErrorReporter {
   bool get hasSeenError;
 }
 
-// Coverage-ignore(suite): Not run.
 class SimpleErrorReporter implements ErrorReporter {
   const SimpleErrorReporter();
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get supportsTrackingReportedErrors => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasSeenError {
     return unsupported("SimpleErrorReporter.hasSeenError", -1, null);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void report(LocatedMessage message, [List<LocatedMessage>? context]) {
     _report(message);
     if (context != null) {
@@ -6080,10 +6080,12 @@ class SimpleErrorReporter implements ErrorReporter {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   void _report(LocatedMessage message) {
     reportMessage(message.uri, message.charOffset, message.problemMessage);
   }
 
+  // Coverage-ignore(suite): Not run.
   void reportMessage(Uri? uri, int offset, String message) {
     io.exitCode = 42;
     io.stderr.writeln('$uri:$offset Constant evaluation error: $message');

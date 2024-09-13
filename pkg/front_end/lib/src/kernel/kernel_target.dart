@@ -412,9 +412,7 @@ class KernelTarget {
   /// Builds [augmentationLibraries] to the state expected after applying phase
   /// 2 macros.
   void _buildForPhase2(List<SourceLibraryBuilder> augmentationLibraries) {
-    benchmarker
-        // Coverage-ignore(suite): Not run.
-        ?.enterPhase(BenchmarkPhases.outline_computeVariances);
+    benchmarker?.enterPhase(BenchmarkPhases.outline_computeVariances);
     loader.computeVariances(augmentationLibraries);
 
     loader.computeDefaultTypes(augmentationLibraries, dynamicType, nullType,

@@ -502,7 +502,6 @@ class ClassFragment extends DeclarationFragment {
   ContainerType get containerType => ContainerType.Class;
 
   @override
-  // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind => DeclarationFragmentKind.classDeclaration;
 
   @override
@@ -547,7 +546,6 @@ class MixinFragment extends DeclarationFragment {
   ContainerType get containerType => ContainerType.Class;
 
   @override
-  // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind => DeclarationFragmentKind.mixinDeclaration;
 
   @override
