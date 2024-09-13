@@ -607,7 +607,8 @@
         "builder-tag": "canary",
         "checked": true,
         "ddc-options": [
-          "--canary"
+          "--canary",
+          "--modules=ddc"
         ],
         "use-sdk": true
       }
@@ -1086,7 +1087,6 @@
       "meta": {
         "description": "This configuration is used by the VM AOT builders. Includes VM service testing in addition to legacy Observatory service tests.",
         "__comment__": "This configuration should be merged with the other VM AOT builders config below once Observatory is removed."
-
       },
       "steps": [
         {
@@ -1119,7 +1119,6 @@
       "meta": {
         "description": "This configuration is used by the VM AOT builders. Includes VM service testing.",
         "__comment__": "vm-aot-linux-debug-x64 should be added back into this configuration once Observatory is removed."
-
       },
       "steps": [
         {
@@ -3156,7 +3155,7 @@
         "pkg-win-release-arm64"
       ],
       "meta": {
-          "description": "This configuration is used by the pkg builders, no shards."
+        "description": "This configuration is used by the pkg builders, no shards."
       },
       "steps": [
         {
