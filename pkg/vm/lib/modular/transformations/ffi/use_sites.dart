@@ -1481,11 +1481,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           parent.addProcedure(newTarget);
       }
     }
-
     return StaticInvocation(
       newTarget,
       Arguments(newArguments),
-    );
+    )..parent = parent;
   }
 
   /// Converts a single parameter with argument for [_replaceNativeCall].
@@ -1510,16 +1509,19 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return ('', parameterType, argument);
     }
 
-    // If an argument is an invalid expression, ffi don't need to report
-    // any error further, so skipping transformation for its descendants of the
-    // argument by transforming into empty expression (which is invalid)
-    if ((argument is AsExpression && argument.operand is InvalidExpression) ||
-        argument is InvalidExpression) {
-      return ('E', parameterType, InvalidExpression('Invalid Type'));
+    if (argument is InvalidExpression && argument.expression is AsExpression) {
+      final parent = argument.expression as AsExpression;
+      final (_, _, transformedArgument) =
+          _replaceNativeCallParameterAndArgument(
+              parameter, parameterType, parent.operand, fileOffset);
+      return (
+        'E',
+        parameterType,
+        InvalidExpression('Invalid Type', transformedArgument)
+      );
     }
     if (argument is InstanceInvocation &&
-        argument.interfaceTarget == castMethod &&
-        argument.functionType.returnType == parameterType) {
+        argument.interfaceTarget == castMethod) {
       // Argument is .address.cast(), so truncating .cast()
       final subExpression = argument.receiver;
       return _replaceNativeCallParameterAndArgument(
