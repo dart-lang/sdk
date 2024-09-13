@@ -53,12 +53,8 @@ class DartDevelopmentServiceLauncher {
     bool enableServicePortFallback = false,
     List<String> cachedUserTags = const <String>[],
     String? dartExecutable,
-    // TODO(chingjun): Change the type to String once flutter_tools is migrated.
-    Object? google3WorkspaceRoot,
+    String? google3WorkspaceRoot,
   }) async {
-    assert(google3WorkspaceRoot == null ||
-        google3WorkspaceRoot is Uri ||
-        google3WorkspaceRoot is String);
     final process = await Process.start(
       dartExecutable ?? Platform.executable,
       <String>[
