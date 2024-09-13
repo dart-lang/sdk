@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -162,6 +163,16 @@ class ElementDeclarationResultImpl implements ElementDeclarationResult {
 
   ElementDeclarationResultImpl(
       this.element, this.node, this.parsedUnit, this.resolvedUnit);
+
+  @override
+  Element2 get element2 {
+    if (element case Fragment fragment) {
+      return fragment.element;
+    } else if (element case Element2 element) {
+      return element;
+    }
+    throw UnimplementedError('Could not compute and element');
+  }
 }
 
 class ErrorsResultImpl implements ErrorsResult {
@@ -258,6 +269,9 @@ class LibraryElementResultImpl implements LibraryElementResult {
   final LibraryElement element;
 
   LibraryElementResultImpl(this.element);
+
+  @override
+  LibraryElement2 get element2 => element as LibraryElement2;
 }
 
 class ParsedLibraryResultImpl extends AnalysisResultImpl
@@ -298,6 +312,14 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     }
 
     return ElementDeclarationResultImpl(element, declaration, unitResult, null);
+  }
+
+  @override
+  ElementDeclarationResult? getElementDeclaration2(Fragment fragment) {
+    if (fragment case Element element) {
+      return getElementDeclaration(element);
+    }
+    throw UnimplementedError();
   }
 }
 
@@ -393,6 +415,9 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   });
 
   @override
+  LibraryElement2 get element2 => element as LibraryElement2;
+
+  @override
   TypeProvider get typeProvider => element.typeProvider;
 
   @override
@@ -423,6 +448,14 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     }
 
     return ElementDeclarationResultImpl(element, declaration, null, unitResult);
+  }
+
+  @override
+  ElementDeclarationResult? getElementDeclaration2(Fragment fragment) {
+    if (fragment case Element element) {
+      return getElementDeclaration(element);
+    }
+    throw UnimplementedError();
   }
 
   @override
@@ -460,6 +493,9 @@ class ResolvedUnitResultImpl extends FileResultImpl
   }
 
   @override
+  LibraryElement2 get libraryElement2 => libraryElement as LibraryElement2;
+
+  @override
   TypeProvider get typeProvider => libraryElement.typeProvider;
 
   @override
@@ -476,4 +512,7 @@ class UnitElementResultImpl extends FileResultImpl
     required super.fileState,
     required this.element,
   });
+
+  @override
+  LibraryFragment get fragment => element as LibraryFragment;
 }

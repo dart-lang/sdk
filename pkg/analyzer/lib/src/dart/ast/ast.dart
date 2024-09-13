@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -210,6 +211,13 @@ abstract final class Annotation implements AstNode {
   /// structure hasn't been resolved or if this annotation couldn't be resolved.
   Element? get element;
 
+  /// The element associated with this annotation.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if this
+  /// annotation couldn't be resolved.
+  @experimental
+  Element2? get element2;
+
   /// The element annotation representing this annotation in the element model,
   /// or `null` if the AST hasn't been resolved.
   ElementAnnotation? get elementAnnotation;
@@ -313,6 +321,18 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   set element(Element? element) {
     _element = element;
+  }
+
+  @experimental
+  @override
+  Element2? get element2 {
+    var element = this.element;
+    if (element case Fragment fragment) {
+      return fragment.element;
+    } else if (element case Element2 element) {
+      return element;
+    }
+    return null;
   }
 
   @override
@@ -753,6 +773,16 @@ abstract final class AssignedVariablePattern implements VariablePattern {
   /// In valid code this is either a [LocalVariableElement] or a
   /// [ParameterElement].
   Element? get element;
+
+  /// The element referenced by this pattern.
+  ///
+  /// Returns `null` if either [name] doesn't resolve to an element or the AST
+  /// structure hasn't been resolved.
+  ///
+  /// In valid code this is either a [LocalVariableElement2] or a
+  /// [FormalParameterElement].
+  @experimental
+  Element2? get element2;
 }
 
 final class AssignedVariablePatternImpl extends VariablePatternImpl
@@ -766,6 +796,18 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 
   @override
   Token get beginToken => name;
+
+  @experimental
+  @override
+  Element2? get element2 {
+    var element = this.element;
+    if (element case Fragment fragment) {
+      return fragment.element;
+    } else if (element case Element2 element) {
+      return element;
+    }
+    return null;
+  }
 
   @override
   Token get endToken => name;
@@ -852,6 +894,10 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken => _leftHandSide.beginToken;
+
+  @experimental
+  @override
+  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
 
   @override
   Token get endToken => _rightHandSide.endToken;
@@ -1571,6 +1617,12 @@ abstract final class AugmentedExpression implements Expression {
 
   /// The referenced augmented element: getter, setter, variable.
   Element? get element;
+
+  /// The referenced augmented element: getter, setter, variable.
+  // TODO(brianwilkerson): Consider resolving this to a fragment rather than an
+  //  element. In this case I think that's closer to the right semantics.
+  @experimental
+  Element2? get element2;
 }
 
 final class AugmentedExpressionImpl extends ExpressionImpl
@@ -1587,6 +1639,10 @@ final class AugmentedExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken => augmentedKeyword;
+
+  @experimental
+  @override
+  Element2? get element2 => (element as Fragment?)?.element;
 
   @override
   Token get endToken => augmentedKeyword;
@@ -1629,6 +1685,15 @@ abstract final class AugmentedInvocation implements Expression {
   /// The referenced augmented element: function, constructor, or method.
   ExecutableElement? get element;
 
+  /// The referenced augmented element: function, constructor, or method.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if this
+  /// fragment is the first fragment in the chain.
+  // TODO(brianwilkerson): Consider resolving this to a fragment rather than an
+  //  element. In this case I think that's closer to the right semantics.
+  @experimental
+  ExecutableElement2? get element2;
+
   /// The list of type arguments.
   ///
   /// In valid code cannot be provided for augmented constructor invocation.
@@ -1660,6 +1725,10 @@ final class AugmentedInvocationImpl extends ExpressionImpl
 
   @override
   Token get beginToken => augmentedKeyword;
+
+  @experimental
+  @override
+  ExecutableElement2? get element2 => (element as ExecutableFragment?)?.element;
 
   @override
   Token get endToken => arguments.endToken;
@@ -1802,6 +1871,10 @@ final class BinaryExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken => _leftOperand.beginToken;
+
+  @experimental
+  @override
+  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
 
   @override
   Token get endToken => _rightOperand.endToken;
@@ -2526,6 +2599,12 @@ abstract final class CatchClauseParameter extends AstNode {
   /// The declared element, or `null` if the AST hasn't been resolved.
   LocalVariableElement? get declaredElement;
 
+  /// The declared element.
+  ///
+  /// Returns `null` if the AST hasn't been resolved.
+  @experimental
+  LocalVariableElement2? get declaredElement2;
+
   /// The name of the parameter.
   Token get name;
 }
@@ -2544,6 +2623,15 @@ final class CatchClauseParameterImpl extends AstNodeImpl
 
   @override
   Token get beginToken => name;
+
+  @experimental
+  @override
+  LocalVariableElement2? get declaredElement2 {
+    if (declaredElement case LocalVariableElementImpl element) {
+      return LocalVariableElementImpl2(element);
+    }
+    return null;
+  }
 
   @override
   Token get endToken => name;
@@ -2649,7 +2737,8 @@ class ChildEntity {
 ///    classModifiers ::= 'sealed'
 ///      | 'abstract'? ('base' | 'interface' | 'final')?
 ///      | 'abstract'? 'base'? 'mixin'
-abstract final class ClassDeclaration implements NamedCompilationUnitMember {
+abstract final class ClassDeclaration
+    implements NamedCompilationUnitMember, _FragmentDeclaration {
   /// The `abstract` keyword, or `null` if the keyword was absent.
   Token? get abstractKeyword;
 
@@ -2665,6 +2754,10 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
 
   @override
   ClassElement? get declaredElement;
+
+  @experimental
+  @override
+  ClassFragment? get declaredFragment;
 
   /// The `extends` clause for this class, or `null` if the class doesn't extend
   /// any other class.
@@ -2799,6 +2892,10 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     this.members._initialize(this, members);
   }
 
+  @experimental
+  @override
+  ClassFragment? get declaredFragment => declaredElement as ClassFragment;
+
   @override
   Token get endToken => rightBracket;
 
@@ -2877,7 +2974,7 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
 ///
 ///    mixinApplication ::=
 ///        [NamedType] [WithClause] [ImplementsClause]? ';'
-abstract final class ClassTypeAlias implements TypeAlias {
+abstract final class ClassTypeAlias implements TypeAlias, _FragmentDeclaration {
   /// The token for the `abstract` keyword, or `null` if this isn't defining an
   /// abstract class.
   Token? get abstractKeyword;
@@ -2887,6 +2984,10 @@ abstract final class ClassTypeAlias implements TypeAlias {
 
   @override
   ClassElement? get declaredElement;
+
+  @experimental
+  @override
+  ClassFragment? get declaredFragment;
 
   /// The token for the '=' separating the name from the definition.
   Token get equals;
@@ -2997,6 +3098,10 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     _becomeParentOf(_withClause);
     _becomeParentOf(_implementsClause);
   }
+
+  @experimental
+  @override
+  ClassFragment? get declaredFragment => declaredElement as ClassFragment?;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -3343,6 +3448,12 @@ abstract final class CompilationUnit implements AstNode {
   /// structure hasn't been resolved.
   CompilationUnitElement? get declaredElement;
 
+  /// The fragment associated with this compilation unit.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  @experimental
+  LibraryFragment? get declaredFragment;
+
   /// The directives contained in this compilation unit.
   NodeList<Directive> get directives;
 
@@ -3439,6 +3550,10 @@ final class CompilationUnitImpl extends AstNodeImpl
 
   @override
   NodeListImpl<CompilationUnitMemberImpl> get declarations => _declarations;
+
+  @experimental
+  @override
+  LibraryFragment? get declaredFragment => declaredElement as LibraryFragment?;
 
   @override
   NodeListImpl<DirectiveImpl> get directives => _directives;
@@ -3568,6 +3683,20 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// navigation.
   Element? get readElement;
 
+  /// The element that is used to read the value.
+  ///
+  /// Returns `null` if this node isn't a compound assignment, if the AST
+  /// structure hasn't been resolved, or if the target couldn't be resolved.
+  ///
+  /// In valid code this element can be a [LocalVariableElement2], a
+  /// [FormalParameterElement], or a [GetterElement].
+  ///
+  /// In invalid code this element is `null`. For example, in `int += 2`. In
+  /// such cases, for recovery purposes, [writeElement] is filled, and can be
+  /// used for navigation.
+  @experimental
+  Element2? get readElement2;
+
   /// The type of the value read with the [readElement], or `null` if this node
   /// isn't a compound assignment.
   ///
@@ -3590,6 +3719,24 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// and [writeElement] could be non-`null`.
   Element? get writeElement;
 
+  /// The element that is used to write the result.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved, or if the target
+  /// couldn't be resolved.
+  ///
+  /// In valid code this is a [LocalVariableElement2], [FormalParameterElement],
+  /// or a [SetterElement].
+  ///
+  /// In invalid code, for recovery, we might use other elements, for example a
+  /// [GetterElement] `myGetter = 0` even though the getter can't be used to set
+  /// a value. We do this to help the user to navigate to the getter, and maybe
+  /// add the corresponding setter.
+  ///
+  /// If this node is a compound assignment, such as `x += y`, both
+  /// [readElement] and [writeElement] could be non-`null`.
+  @experimental
+  Element2? get writeElement2;
+
   /// The type of the target of the assignment.
   ///
   /// The types of assigned values must be subtypes of this type.
@@ -3611,6 +3758,28 @@ base mixin CompoundAssignmentExpressionImpl
 
   @override
   DartType? writeType;
+
+  @experimental
+  @override
+  Element2? get readElement2 {
+    if (readElement is Fragment) {
+      return (readElement as Fragment).element;
+    } else if (readElement is Element2) {
+      return readElement as Element2;
+    }
+    return null;
+  }
+
+  @experimental
+  @override
+  Element2? get writeElement2 {
+    if (writeElement case Fragment fragment) {
+      return fragment.element;
+    } else if (writeElement case Element2 element) {
+      return element;
+    }
+    return null;
+  }
 }
 
 /// A conditional expression.
@@ -3972,7 +4141,8 @@ final class ConstantPatternImpl extends DartPatternImpl
 ///
 ///    initializerList ::=
 ///        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
-abstract final class ConstructorDeclaration implements ClassMember {
+abstract final class ConstructorDeclaration
+    implements ClassMember, _FragmentDeclaration {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
@@ -3985,6 +4155,10 @@ abstract final class ConstructorDeclaration implements ClassMember {
 
   @override
   ConstructorElement? get declaredElement;
+
+  @experimental
+  @override
+  ConstructorFragment? get declaredFragment;
 
   /// The token for the `external` keyword to the given [token].
   Token? get externalKeyword;
@@ -4118,6 +4292,11 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   set body(FunctionBodyImpl functionBody) {
     _body = _becomeParentOf(functionBody);
   }
+
+  @experimental
+  @override
+  ConstructorFragment? get declaredFragment =>
+      declaredElement as ConstructorFragment;
 
   @override
   Token get endToken {
@@ -4354,6 +4533,15 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   @override
   Token get beginToken => _type.beginToken;
 
+  @experimental
+  @override
+  ConstructorElement2? get element {
+    if (staticElement case ConstructorFragment fragment) {
+      return fragment.element;
+    }
+    return null;
+  }
+
   @override
   Token get endToken {
     if (name case var name?) {
@@ -4452,6 +4640,14 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
 
 /// An AST node that makes reference to a constructor.
 abstract final class ConstructorReferenceNode implements AstNode {
+  /// The element associated with the referenced constructor based on static
+  /// type information.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if the
+  /// constructor couldn't be resolved.
+  @experimental
+  ConstructorElement2? get element;
+
   /// The element associated with the referenced constructor based on static
   /// type information, or `null` if the AST structure hasn't been resolved or
   /// if the constructor couldn't be resolved.
@@ -4705,6 +4901,13 @@ abstract final class DeclaredIdentifier implements Declaration {
   @override
   LocalVariableElement? get declaredElement;
 
+  /// The element associated with this declaration.
+  ///
+  /// Returns `null` if either this node corresponds to a list of declarations
+  /// or if the AST structure hasn't been resolved.
+  @experimental
+  LocalVariableElement2? get declaredElement2;
+
   /// Whether this variable was declared with the 'const' modifier.
   bool get isConst;
 
@@ -4757,6 +4960,15 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
     _becomeParentOf(_type);
   }
 
+  @experimental
+  @override
+  LocalVariableElement2? get declaredElement2 {
+    if (declaredElement case LocalVariableElementImpl element) {
+      return LocalVariableElementImpl2(element);
+    }
+    return null;
+  }
+
   @override
   Token get endToken => name;
 
@@ -4803,6 +5015,12 @@ sealed class DeclaredVariablePattern implements VariablePattern {
   /// structure hasn't been resolved.
   BindPatternVariableElement? get declaredElement;
 
+  /// The element declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  @experimental
+  BindPatternVariableElement2? get declaredElement2;
+
   /// The `var` or `final` keyword.
   Token? get keyword;
 
@@ -4832,6 +5050,15 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 
   @override
   Token get beginToken => keyword ?? type?.beginToken ?? name;
+
+  @experimental
+  @override
+  BindPatternVariableElement2? get declaredElement2 {
+    if (declaredElement case BindPatternVariableElementImpl declaredElement) {
+      return BindPatternVariableElementImpl2(declaredElement);
+    }
+    return null;
+  }
 
   @override
   Token get endToken => name;
@@ -4955,6 +5182,10 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 
   @override
   ParameterElementImpl? get declaredElement => _parameter.declaredElement;
+
+  @experimental
+  @override
+  FormalParameterFragment? get declaredFragment => _parameter.declaredFragment;
 
   @override
   ExpressionImpl? get defaultValue => _defaultValue;
@@ -5397,7 +5628,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
 }
 
 /// The declaration of an enum constant.
-abstract final class EnumConstantDeclaration implements Declaration {
+abstract final class EnumConstantDeclaration implements _FragmentDeclaration {
   /// The explicit arguments (there are always implicit `index` and `name`
   /// leading arguments) to the invoked constructor, or `null` if this constant
   /// doesn't provide any explicit arguments.
@@ -5412,8 +5643,19 @@ abstract final class EnumConstantDeclaration implements Declaration {
   /// resolved.
   ConstructorElement? get constructorElement;
 
+  /// The constructor that's invoked by this enum constant.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved, or if the
+  /// constructor couldn't be resolved.
+  @experimental
+  ConstructorElement2? get constructorElement2;
+
   @override
   FieldElement? get declaredElement;
+
+  @experimental
+  @override
+  FieldFragment? get declaredFragment;
 
   /// The name of the constant.
   Token get name;
@@ -5450,6 +5692,19 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
     _becomeParentOf(arguments);
   }
 
+  @experimental
+  @override
+  ConstructorElement2? get constructorElement2 {
+    if (constructorElement case ConstructorFragment fragment) {
+      return fragment.element;
+    }
+    return null;
+  }
+
+  @experimental
+  @override
+  FieldFragment? get declaredFragment => declaredElement as FieldFragment?;
+
   @override
   Token get endToken => arguments?.endToken ?? name;
 
@@ -5479,7 +5734,8 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 ///        metadata 'enum' name [TypeParameterList]?
 ///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
 ///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
-abstract final class EnumDeclaration implements NamedCompilationUnitMember {
+abstract final class EnumDeclaration
+    implements NamedCompilationUnitMember, _FragmentDeclaration {
   /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
@@ -5489,6 +5745,10 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
 
   @override
   EnumElement? get declaredElement;
+
+  @experimental
+  @override
+  EnumFragment? get declaredFragment;
 
   /// The `enum` keyword.
   Token get enumKeyword;
@@ -5582,6 +5842,10 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   NodeListImpl<EnumConstantDeclarationImpl> get constants => _constants;
 
+  @experimental
+  @override
+  EnumFragment? get declaredFragment => declaredElement as EnumFragment?;
+
   @override
   Token get endToken => rightBracket;
 
@@ -5653,6 +5917,12 @@ abstract final class ExportDirective implements NamespaceDirective {
 
   /// The token representing the `export` keyword.
   Token get exportKeyword;
+
+  /// Information about this export directive.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  @experimental
+  LibraryExport? get libraryExport;
 }
 
 final class ExportDirectiveImpl extends NamespaceDirectiveImpl
@@ -5684,6 +5954,10 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   Token get firstTokenAfterCommentAndMetadata => exportKeyword;
 
+  @experimental
+  @override
+  LibraryExport? get libraryExport => element as LibraryExport?;
+
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('exportKeyword', exportKeyword)
@@ -5710,6 +5984,18 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 ///      | [ConditionalExpression] cascadeSection*
 ///      | [ThrowExpression]
 abstract final class Expression implements CollectionElement {
+  /// The parameter element representing the parameter to which the value of
+  /// this expression is bound.
+  ///
+  /// Returns `null` if any of these conditions are false:
+  /// - this expression is an argument to an invocation
+  /// - the AST structure has been resolved
+  /// - the function being invoked is known based on static type information
+  /// - this expression corresponds to one of the parameters of the function
+  ///   being invoked
+  @experimental
+  FormalParameterElement? get correspondingParameter;
+
   /// Whether this expression is in a constant context.
   ///
   /// An expression _e_ is said to _occur in a constant context_,
@@ -5884,6 +6170,15 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 sealed class ExpressionImpl extends AstNodeImpl
     implements CollectionElementImpl, Expression {
   DartType? _staticType;
+
+  @experimental
+  @override
+  FormalParameterElement? get correspondingParameter {
+    if (staticParameterElement case FormalParameterFragment fragment) {
+      return fragment.element;
+    }
+    return null;
+  }
 
   @override
   bool get inConstantContext {
@@ -6159,13 +6454,18 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 ///        'extension' [SimpleIdentifier]? [TypeParameterList]?
 ///        'on' [TypeAnnotation] [ShowClause]? [HideClause]?
 ///        '{' [ClassMember]* '}'
-abstract final class ExtensionDeclaration implements CompilationUnitMember {
+abstract final class ExtensionDeclaration
+    implements CompilationUnitMember, _FragmentDeclaration {
   /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
 
   @override
   ExtensionElement? get declaredElement;
+
+  @experimental
+  @override
+  ExtensionFragment? get declaredFragment;
 
   /// The type that is being extended.
   @Deprecated('Use onClause instead')
@@ -6249,6 +6549,11 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     _becomeParentOf(onClause);
     _members._initialize(this, members);
   }
+
+  @experimental
+  @override
+  ExtensionFragment? get declaredFragment =>
+      declaredElement as ExtensionFragment?;
 
   @override
   Token get endToken => rightBracket;
@@ -6364,6 +6669,10 @@ abstract final class ExtensionOverride implements Expression {
   /// The forced extension element.
   ExtensionElement get element;
 
+  /// The extension that resolution will use to resolve member references.
+  @experimental
+  ExtensionElement2 get element2;
+
   /// The actual type extended by this override, produced by applying
   /// [typeArgumentTypes] to the generic type extended by the extension, or
   /// `null` if the AST structure hasn't been resolved.
@@ -6434,6 +6743,10 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @override
   Token get beginToken => importPrefix?.name ?? name;
 
+  @experimental
+  @override
+  ExtensionElement2 get element2 => (element as ExtensionFragment).element;
+
   @override
   Token get endToken => _argumentList.endToken;
 
@@ -6489,7 +6802,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 ///        '}'
 @experimental
 abstract final class ExtensionTypeDeclaration
-    implements NamedCompilationUnitMember {
+    implements NamedCompilationUnitMember, _FragmentDeclaration {
   /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
@@ -6499,6 +6812,10 @@ abstract final class ExtensionTypeDeclaration
 
   @override
   ExtensionTypeElement? get declaredElement;
+
+  @experimental
+  @override
+  ExtensionTypeFragment? get declaredFragment;
 
   /// The `extension` keyword.
   Token get extensionKeyword;
@@ -6581,6 +6898,11 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     _becomeParentOf(implementsClause);
     this.members._initialize(this, members);
   }
+
+  @experimental
+  @override
+  ExtensionTypeFragment? get declaredFragment =>
+      declaredElement as ExtensionTypeFragment;
 
   @override
   Token get endToken => rightBracket;
@@ -7275,6 +7597,12 @@ sealed class FormalParameter implements AstNode {
   /// hasn't been resolved.
   ParameterElement? get declaredElement;
 
+  ///The fragment declared by this parameter.
+  ///
+  /// Returns `null` if this parameter hasn't been resolved.
+  @experimental
+  FormalParameterFragment? get declaredFragment;
+
   /// Whether this parameter was declared with the 'const' modifier.
   bool get isConst;
 
@@ -7341,6 +7669,11 @@ sealed class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @override
   ParameterElementImpl? declaredElement;
+
+  @experimental
+  @override
+  FormalParameterFragment? get declaredFragment =>
+      declaredElement as FormalParameterFragment?;
 
   @override
   bool get isNamed => kind.isNamed;
@@ -7414,6 +7747,13 @@ abstract final class FormalParameterList implements AstNode {
   /// resolved.
   List<ParameterElement?> get parameterElements;
 
+  /// A list containing the fragments representing the parameters in this list.
+  ///
+  /// The list contains `null`s if the parameters in this list haven't been
+  /// resolved.
+  @experimental
+  List<FormalParameterFragment?> get parameterFragments;
+
   /// The parameters associated with the method.
   NodeList<FormalParameter> get parameters;
 
@@ -7472,6 +7812,11 @@ final class FormalParameterListImpl extends AstNodeImpl
     }
     return types;
   }
+
+  @experimental
+  @override
+  List<FormalParameterFragment?> get parameterFragments =>
+      parameterElements.cast<FormalParameterFragment?>();
 
   @override
   NodeListImpl<FormalParameterImpl> get parameters => _parameters;
@@ -7875,6 +8220,18 @@ sealed class FunctionBody implements AstNode {
   ///
   /// Throws an exception if resolution hasn't been performed.
   bool isPotentiallyMutatedInScope(VariableElement variable);
+
+  /// If [variable] is a local variable or parameter declared anywhere within
+  /// the top level function or method containing this [FunctionBody], return a
+  /// boolean indicating whether [variable] is potentially mutated within the
+  /// scope of its declaration.
+  ///
+  /// If [variable] isn't a local variable or parameter declared within the top
+  /// level function or method containing this [FunctionBody], return `false`.
+  ///
+  /// Throws an exception if resolution hasn't been performed.
+  @experimental
+  bool isPotentiallyMutatedInScope2(VariableElement2 variable);
 }
 
 sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
@@ -7910,6 +8267,15 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
     return localVariableInfo!.potentiallyMutatedInScope.contains(variable);
   }
 
+  @experimental
+  @override
+  bool isPotentiallyMutatedInScope2(VariableElement2 variable) {
+    if (variable case VariableElement variable) {
+      return isPotentiallyMutatedInScope(variable);
+    }
+    return false;
+  }
+
   /// Dispatch this function body to the resolver, imposing [imposedType] as the
   /// return type context for `return` statements.
   ///
@@ -7928,13 +8294,30 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 ///
 ///    functionSignature ::=
 ///        [Type]? ('get' | 'set')? name [FormalParameterList]
-abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
+// TODO(brianwilkerson): This class represents both declarations that can be
+//  augmented and declarations that can't be augmented. This results in getters
+//  that are only sometimes applicable. Consider changing the class hierarchy so
+//  that these two kinds of variables can be distinguished.
+abstract final class FunctionDeclaration
+    implements NamedCompilationUnitMember, _FragmentDeclaration {
   /// The `augment` keyword, or `null` if there is no `augment` keyword.
   @experimental
   Token? get augmentKeyword;
 
+  /// The element defined by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if this node
+  /// represents a top-level function.
   @override
   ExecutableElement? get declaredElement;
+
+  /// The fragment declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if this node
+  /// represents a local function.
+  @experimental
+  @override
+  ExecutableFragment? get declaredFragment;
 
   /// The token representing the `external` keyword, or `null` if this isn't an
   /// external function.
@@ -8001,6 +8384,15 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
         _functionExpression = functionExpression {
     _becomeParentOf(_returnType);
     _becomeParentOf(_functionExpression);
+  }
+
+  @experimental
+  @override
+  ExecutableFragment? get declaredFragment {
+    if (declaredElement case ExecutableFragment fragment) {
+      return fragment;
+    }
+    return null;
   }
 
   @override
@@ -8221,6 +8613,14 @@ final class FunctionExpressionImpl extends ExpressionImpl
 ///        [Expression] [TypeArgumentList]? [ArgumentList]
 abstract final class FunctionExpressionInvocation
     implements NullShortableExpression, InvocationExpression {
+  /// The element associated with the function being invoked based on static
+  /// type information.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or the function
+  /// couldn't be resolved.
+  @experimental
+  ExecutableElement2? get element;
+
   /// The expression producing the function being invoked.
   @override
   Expression get function;
@@ -8250,6 +8650,15 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @override
   Token get beginToken => _function.beginToken;
+
+  @experimental
+  @override
+  ExecutableElement2? get element {
+    if (staticElement case ExecutableFragment fragment) {
+      return fragment.element;
+    }
+    return null;
+  }
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -8393,9 +8802,14 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 ///
 ///    functionPrefix ::=
 ///        [TypeAnnotation]? [SimpleIdentifier]
-abstract final class FunctionTypeAlias implements TypeAlias {
+abstract final class FunctionTypeAlias
+    implements TypeAlias, _FragmentDeclaration {
   @override
   TypeAliasElement? get declaredElement;
+
+  @experimental
+  @override
+  TypeAliasFragment? get declaredFragment;
 
   /// The parameters associated with the function type.
   FormalParameterList get parameters;
@@ -8445,6 +8859,11 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
   }
+
+  @experimental
+  @override
+  TypeAliasFragment? get declaredFragment =>
+      declaredElement as TypeAliasFragment?;
 
   @override
   FormalParameterListImpl get parameters => _parameters;
@@ -8745,7 +9164,8 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 ///    functionTypeAlias ::=
 ///        'typedef' [SimpleIdentifier] [TypeParameterList]? =
 ///        [FunctionType] ';'
-abstract final class GenericTypeAlias implements TypeAlias {
+abstract final class GenericTypeAlias
+    implements TypeAlias, _FragmentDeclaration {
   /// The equal sign separating the name being defined from the function type.
   Token get equals;
 
@@ -8796,6 +9216,10 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_type);
   }
+
+  @experimental
+  @override
+  Fragment? get declaredFragment => declaredElement as Fragment?;
 
   @override
   GenericFunctionType? get functionType {
@@ -8944,6 +9368,15 @@ final class HideCombinatorImpl extends CombinatorImpl
 ///        [SimpleIdentifier]
 ///      | [PrefixedIdentifier]
 sealed class Identifier implements Expression, CommentReferableExpression {
+  /// The element associated with this identifier based on static type
+  /// information.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if this
+  /// identifier couldn't be resolved. One example of the latter case is an
+  /// identifier that isn't defined within the scope in which it appears.
+  @experimental
+  Element2? get element;
+
   /// The lexical representation of the identifier.
   String get name;
 
@@ -8960,6 +9393,18 @@ sealed class Identifier implements Expression, CommentReferableExpression {
 
 sealed class IdentifierImpl extends CommentReferableExpressionImpl
     implements Identifier {
+  @experimental
+  @override
+  Element2? get element {
+    var element = staticElement;
+    if (element case Fragment fragment) {
+      return fragment.element;
+    } else if (element case Element2 element) {
+      return element;
+    }
+    return null;
+  }
+
   @override
   bool get isAssignable => true;
 }
@@ -9378,6 +9823,10 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   @override
   Token get beginToken => expression.beginToken;
 
+  @experimental
+  @override
+  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
+
   @override
   Token get endToken => typeArguments?.endToken ?? expression.endToken;
 
@@ -9445,6 +9894,12 @@ abstract final class ImportDirective implements NamespaceDirective {
   /// The token representing the `import` keyword.
   Token get importKeyword;
 
+  /// Information about this import directive.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  @experimental
+  LibraryImport? get libraryImport;
+
   /// The prefix to be used with the imported names, or `null` if the imported
   /// names aren't prefixed.
   SimpleIdentifier? get prefix;
@@ -9495,6 +9950,10 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata => importKeyword;
+
+  @experimental
+  @override
+  LibraryImport? get libraryImport => element as LibraryImport?;
 
   @override
   SimpleIdentifierImpl? get prefix => _prefix;
@@ -9589,6 +10048,12 @@ abstract final class ImportPrefixReference implements AstNode {
   /// Usually a [PrefixElement], but can be anything in invalid code.
   Element? get element;
 
+  /// The element to which [name] is resolved.
+  ///
+  /// Usually a [PrefixElement2], but can be anything in invalid code.
+  @experimental
+  Element2? get element2;
+
   /// The name of the referenced import prefix.
   Token get name;
 
@@ -9614,6 +10079,18 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
 
   @override
   Token get beginToken => name;
+
+  @experimental
+  @override
+  Element2? get element2 {
+    var element = this.element;
+    if (element case Fragment fragment) {
+      return fragment.element;
+    } else if (element case Element2 element) {
+      return element;
+    }
+    return null;
+  }
 
   @override
   Token get endToken => period;
@@ -9758,6 +10235,10 @@ final class IndexExpressionImpl extends ExpressionImpl
     }
     return period!;
   }
+
+  @experimental
+  @override
+  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
 
   @override
   Token get endToken => rightBracket;
@@ -10585,6 +11066,13 @@ abstract final class LibraryDirective implements Directive {
   @override
   LibraryElement? get element;
 
+  /// The element associated with this directive.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if this
+  /// directive couldn't be resolved.
+  @experimental
+  LibraryElement2? get element2;
+
   /// The token representing the `library` keyword.
   Token get libraryKeyword;
 
@@ -10623,6 +11111,10 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   LibraryElementImpl? get element {
     return super.element as LibraryElementImpl?;
   }
+
+  @experimental
+  @override
+  LibraryElement2? get element2 => element as LibraryElement2?;
 
   @override
   Token get endToken => semicolon;
@@ -11384,7 +11876,8 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 /// Prior to the 'extension-methods' experiment, these nodes were always
 /// children of a class declaration. When the experiment is enabled, these nodes
 /// can also be children of an extension declaration.
-abstract final class MethodDeclaration implements ClassMember {
+abstract final class MethodDeclaration
+    implements ClassMember, _FragmentDeclaration {
   /// The token for the `augment` keyword.
   Token? get augmentKeyword;
 
@@ -11393,6 +11886,10 @@ abstract final class MethodDeclaration implements ClassMember {
 
   @override
   ExecutableElement? get declaredElement;
+
+  @experimental
+  @override
+  ExecutableFragment? get declaredFragment;
 
   /// The token for the `external` keyword, or `null` if the constructor isn't
   /// external.
@@ -11496,6 +11993,11 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     _becomeParentOf(parameters);
     _becomeParentOf(body);
   }
+
+  @experimental
+  @override
+  ExecutableFragment? get declaredFragment =>
+      declaredElement as ExecutableFragment?;
 
   @override
   Token get endToken => body.endToken;
@@ -11749,6 +12251,15 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
 /// An expression that implicitly makes reference to a method.
 abstract final class MethodReferenceExpression implements Expression {
+  /// The element associated with the expression based on the static types.
+  ///
+  /// Returns`null` if the AST structure hasn't been resolved, or there's no
+  /// meaningful element to return. The latter case can occur, for example, when
+  /// this is a non-compound assignment expression, or when the method referred
+  /// to couldn't be resolved.
+  @experimental
+  MethodElement2? get element;
+
   /// The element associated with the expression based on the static types, or
   /// `null` if the AST structure hasn't been resolved, or there's no meaningful
   /// static element to return. The latter case can occur, for example, when
@@ -11762,7 +12273,8 @@ abstract final class MethodReferenceExpression implements Expression {
 ///    mixinDeclaration ::=
 ///        'base'? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
-abstract final class MixinDeclaration implements NamedCompilationUnitMember {
+abstract final class MixinDeclaration
+    implements NamedCompilationUnitMember, _FragmentDeclaration {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
@@ -11771,6 +12283,10 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
 
   @override
   MixinElement? get declaredElement;
+
+  @experimental
+  @override
+  MixinFragment? get declaredFragment;
 
   /// The `implements` clause for the mixin, or `null` if the mixin doesn't
   /// implement any interfaces.
@@ -11849,6 +12365,10 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     _becomeParentOf(implementsClause);
     this.members._initialize(this, members);
   }
+
+  @experimental
+  @override
+  MixinFragment? get declaredFragment => declaredElement as MixinFragment?;
 
   @override
   Token get endToken => rightBracket;
@@ -11969,6 +12489,13 @@ abstract final class NamedExpression implements Expression {
   /// parameter with the same name as this expression.
   ParameterElement? get element;
 
+  /// The element representing the parameter being named by this expression.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if there's no
+  /// parameter with the same name as this expression.
+  @experimental
+  FormalParameterElement? get element2;
+
   /// The expression with which the name is associated.
   Expression get expression;
 
@@ -12000,6 +12527,15 @@ final class NamedExpressionImpl extends ExpressionImpl
     var element = _name.label.staticElement;
     if (element is ParameterElement) {
       return element;
+    }
+    return null;
+  }
+
+  @experimental
+  @override
+  FormalParameterElement? get element2 {
+    if (element case FormalParameterFragment fragment) {
+      return fragment.element;
     }
     return null;
   }
@@ -12053,6 +12589,16 @@ abstract final class NamedType implements TypeAnnotation {
   /// [ClassElement], or [TypeAliasElement], or `null` if [name2] can't be
   /// resolved, or there's no element for the type name, such as for `void`.
   Element? get element;
+
+  /// The element of [name2] considering [importPrefix].
+  ///
+  /// This could be a [ClassElement], [TypeAliasElement], or other type defining
+  /// element.
+  ///
+  /// Returns `null` if [name2] can't be resolved, or there's no element for the
+  /// type name, such as for `void`.
+  @experimental
+  Element2? get element2;
 
   /// The optional import prefix before [name2].
   ImportPrefixReference? get importPrefix;
@@ -12111,6 +12657,18 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @override
   Token get beginToken => importPrefix?.beginToken ?? name2;
+
+  @experimental
+  @override
+  Element2? get element2 {
+    var element = this.element;
+    if (element case Fragment fragment) {
+      return fragment.element;
+    } else if (element case Element2 element) {
+      return element;
+    }
+    return null;
+  }
 
   @override
   Token get endToken => question ?? typeArguments?.endToken ?? name2;
@@ -13141,6 +13699,12 @@ abstract final class PartDirective implements UriBasedDirective {
   @override
   PartElement? get element;
 
+  /// Information about this part directive.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  @experimental
+  LibraryFragmentInclude? get fragmentInclude;
+
   /// The token representing the `part` keyword.
   Token get partKeyword;
 
@@ -13184,6 +13748,11 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata => partKeyword;
+
+  @experimental
+  @override
+  LibraryFragmentInclude? get fragmentInclude =>
+      element as LibraryFragmentInclude?;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -13392,6 +13961,15 @@ abstract final class PatternField implements AstNode {
   /// [RecordPattern]s.
   Element? get element;
 
+  /// The element referenced by [effectiveName].
+  ///
+  /// Returns `null` if the AST structure is not resolved yet.
+  ///
+  /// Returns non-`null` inside valid [ObjectPattern]s; always returns `null`
+  /// inside [RecordPattern]s.
+  @experimental
+  Element2? get element2;
+
   /// The name of the field, or `null` if the field is a positional field.
   PatternFieldName? get name;
 
@@ -13423,6 +14001,18 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
     if (nameNode != null) {
       var nameToken = nameNode.name ?? pattern.variablePattern?.name;
       return nameToken?.lexeme;
+    }
+    return null;
+  }
+
+  @experimental
+  @override
+  Element2? get element2 {
+    var element = this.element;
+    if (element case Fragment fragment) {
+      return fragment.element;
+    } else if (element case Element2 element) {
+      return element;
     }
     return null;
   }
@@ -13670,6 +14260,10 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @override
   Token get beginToken => _operand.beginToken;
 
+  @experimental
+  @override
+  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
+
   @override
   Token get endToken => operator;
 
@@ -13876,6 +14470,10 @@ final class PrefixExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken => operator;
+
+  @experimental
+  @override
+  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
 
   @override
   Token get endToken => _operand.endToken;
@@ -14582,6 +15180,15 @@ final class RedirectingConstructorInvocationImpl
     _constructorName = _becomeParentOf(identifier);
   }
 
+  @experimental
+  @override
+  ConstructorElement2? get element {
+    if (staticElement case ConstructorFragment fragment) {
+      return fragment.element;
+    }
+    return null;
+  }
+
   @override
   Token get endToken => _argumentList.endToken;
 
@@ -14611,6 +15218,13 @@ abstract final class RelationalPattern implements DartPattern {
   /// The element of the [operator] for the matched type.
   MethodElement? get element;
 
+  /// The element of the [operator] for the matched type.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if the
+  /// operator couldn't be resolved.
+  @experimental
+  MethodElement2? get element2;
+
   /// The expression used to compute the operand.
   Expression get operand;
 
@@ -14637,6 +15251,15 @@ final class RelationalPatternImpl extends DartPatternImpl
 
   @override
   Token get beginToken => operator;
+
+  @experimental
+  @override
+  MethodElement2? get element2 {
+    if (element case MethodFragment fragment) {
+      return fragment.element;
+    }
+    return null;
+  }
 
   @override
   Token get endToken => operand.endToken;
@@ -14728,10 +15351,9 @@ final class RepresentationConstructorNameImpl extends AstNodeImpl
   void visitChildren(AstVisitor visitor) {}
 }
 
-/// The declaration an extension type representation.
+/// The declaration of an extension type representation.
 ///
-/// It declares at the same time the representation field, and the primary
-/// constructor.
+/// It declares both the representation field and the primary constructor.
 ///
 ///    <representationDeclaration> ::=
 ///        ('.' <identifierOrNew>)? '(' <metadata> <type> <identifier> ')'
@@ -14740,11 +15362,20 @@ abstract final class RepresentationDeclaration implements AstNode {
   /// The element of the primary constructor.
   ConstructorElement? get constructorElement;
 
+  /// The fragment of the primary constructor contained in this declaration.
+  @experimental
+  ConstructorFragment? get constructorFragment;
+
   /// The optional name of the primary constructor.
   RepresentationConstructorName? get constructorName;
 
   /// The element for [fieldName] with [fieldType].
   FieldElement? get fieldElement;
+
+  /// The fragment for [fieldName] with [fieldType] contained in this
+  /// declaration.
+  @experimental
+  FieldFragment? get fieldFragment;
 
   /// The annotations associated with the field.
   NodeList<Annotation> get fieldMetadata;
@@ -14804,8 +15435,17 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
   @override
   Token get beginToken => constructorName?.beginToken ?? leftParenthesis;
 
+  @experimental
+  @override
+  ConstructorFragment? get constructorFragment =>
+      constructorElement as ConstructorFragment?;
+
   @override
   Token get endToken => rightParenthesis;
+
+  @experimental
+  @override
+  FieldFragment? get fieldFragment => fieldElement as FieldFragment?;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -16104,6 +16744,15 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 
   set constructorName(SimpleIdentifierImpl? identifier) {
     _constructorName = _becomeParentOf(identifier);
+  }
+
+  @experimental
+  @override
+  ConstructorElement2? get element {
+    if (staticElement case ConstructorFragment fragment) {
+      return fragment.element;
+    }
+    return null;
   }
 
   @override
@@ -17508,13 +18157,18 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
 ///
 ///    typeParameter ::=
 ///        name ('extends' [TypeAnnotation])?
-abstract final class TypeParameter implements Declaration {
+abstract final class TypeParameter
+    implements Declaration, _FragmentDeclaration {
   /// The upper bound for legal arguments, or `null` if there's no explicit
   /// upper bound.
   TypeAnnotation? get bound;
 
   @override
   TypeParameterElement? get declaredElement;
+
+  @experimental
+  @override
+  TypeParameterFragment? get declaredFragment;
 
   /// The token representing the `extends` keyword, or `null` if there's no
   /// explicit upper bound.
@@ -17564,6 +18218,11 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   set bound(TypeAnnotationImpl? type) {
     _bound = _becomeParentOf(type);
   }
+
+  @experimental
+  @override
+  TypeParameterFragment? get declaredFragment =>
+      declaredElement as TypeParameterFragment?;
 
   @override
   Token get endToken {
@@ -17740,13 +18399,31 @@ class UriValidationCode {
 ///
 ///    variableDeclaration ::=
 ///        name ('=' [Expression])?
-// TODO(paulberry): the grammar doesn't allow metadata to be associated with a
-// VariableDeclaration, and currently we don't record comments for it either.
-// Consider changing the class hierarchy so that [VariableDeclaration] doesn't
-// extend [Declaration].
-abstract final class VariableDeclaration implements Declaration {
+// TODO(paulberry): The grammar doesn't allow metadata to be associated with a
+//  VariableDeclaration, and currently we don't record comments for it either.
+//  Consider changing the class hierarchy so that [VariableDeclaration] doesn't
+//  extend [Declaration].
+//
+// TODO(brianwilkerson): This class represents both declarations that can be
+//  augmented and declarations that can't be augmented. This results in getters
+//  that are only sometimes applicable. Consider changing the class hierarchy so
+//  that these two kinds of variables can be distinguished.
+abstract final class VariableDeclaration
+    implements Declaration, _FragmentDeclaration {
+  /// The element declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if this node
+  /// represents the declaration of a top-level variable or a field.
   @override
   VariableElement? get declaredElement;
+
+  /// The fragment declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if this node
+  /// represents the declaration of a local variable.
+  @experimental
+  @override
+  VariableFragment? get declaredFragment;
 
   /// The equal sign separating the variable name from the initial value, or
   /// `null` if the initial value isn't specified.
@@ -17801,6 +18478,15 @@ final class VariableDeclarationImpl extends DeclarationImpl
   })  : _initializer = initializer,
         super(comment: null, metadata: null) {
     _becomeParentOf(_initializer);
+  }
+
+  @experimental
+  @override
+  VariableFragment? get declaredFragment {
+    if (declaredElement case VariableFragment fragment) {
+      return fragment;
+    }
+    return null;
   }
 
   /// This overridden implementation of [documentationComment] looks in the
@@ -18506,6 +19192,15 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
       }
     }
   }
+}
+
+/// A declaration of a fragment of an element.
+abstract final class _FragmentDeclaration implements Declaration {
+  /// The fragment declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  @experimental
+  Fragment? get declaredFragment;
 }
 
 /// An indication of the resolved kind of a [SetOrMapLiteral].
