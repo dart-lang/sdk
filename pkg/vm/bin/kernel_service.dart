@@ -1223,7 +1223,7 @@ class _CompilationError extends _CompilationFail {
   Status get status => Status.error;
 
   @override
-  String get errorString => errors.take(10).join('\n');
+  String get errorString => errors.join('\n');
 
   String toString() => "_CompilationError(${errorString})";
 
