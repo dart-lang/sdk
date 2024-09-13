@@ -23,14 +23,12 @@ class RemoveReturnTypeTest extends FixProcessorTest {
     await resolveTestCode('''
 class A {
   dynamic set foo(int a) {
-    if (a == 0) return;
   }
 }
 ''');
     await assertHasFix('''
 class A {
   set foo(int a) {
-    if (a == 0) return;
   }
 }
 ''');
@@ -39,12 +37,10 @@ class A {
   Future<void> test_topLevelFunction_setter_with_return() async {
     await resolveTestCode('''
 dynamic set foo(int a) {
-  if (a == 0) return;
 }
 ''');
     await assertHasFix('''
 set foo(int a) {
-  if (a == 0) return;
 }
 ''');
   }

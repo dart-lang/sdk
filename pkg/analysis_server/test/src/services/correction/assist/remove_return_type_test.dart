@@ -81,14 +81,12 @@ class A {
     await resolveTestCode('''
 class A {
   dynamic /*caret*/m(p) {
-    return p;
   }
 }
 ''');
     await assertHasAssist('''
 class A {
   m(p) {
-    return p;
   }
 }
 ''');
@@ -98,14 +96,12 @@ class A {
     await resolveTestCode('''
 class A {
   void /*caret*/m() {
-    return;
   }
 }
 ''');
     await assertHasAssist('''
 class A {
   m() {
-    return;
   }
 }
 ''');
@@ -158,7 +154,6 @@ class A {
     await resolveTestCode('''
 class A {
   set /*caret*/foo(int a) {
-    if (a == 0) return;
   }
 }
 ''');
@@ -169,14 +164,12 @@ class A {
     await resolveTestCode('''
 class A {
   void set /*caret*/foo(int a) {
-    if (a == 0) return;
   }
 }
 ''');
     await assertHasAssist('''
 class A {
   set foo(int a) {
-    if (a == 0) return;
   }
 }
 ''');
@@ -225,7 +218,6 @@ get foo => 0;
   Future<void> test_topLevelFunction_setter() async {
     await resolveTestCode('''
 set /*caret*/foo(int a) {
-  if (a == 0) return;
 }
 ''');
     await assertNoAssist();
@@ -234,12 +226,10 @@ set /*caret*/foo(int a) {
   Future<void> test_topLevelFunction_setter_with_return() async {
     await resolveTestCode('''
 void set /*caret*/foo(int a) {
-  if (a == 0) return;
 }
 ''');
     await assertHasAssist('''
-set /*caret*/foo(int a) {
-  if (a == 0) return;
+set foo(int a) {
 }
 ''');
   }
