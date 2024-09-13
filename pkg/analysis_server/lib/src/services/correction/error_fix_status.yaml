@@ -1260,9 +1260,8 @@ CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR:
   notes: |-
     Change the return type to `void`.
 CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER:
-  status: needsFix
+  status: hasFix
   notes: |-
-    Remove the return type.
     Change the return type to `void`.
 CompileTimeErrorCode.NOT_A_TYPE:
   status: hasFix
