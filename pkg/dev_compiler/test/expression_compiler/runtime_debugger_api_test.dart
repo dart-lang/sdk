@@ -566,44 +566,6 @@ void runSharedTests(
       );
     });
 
-    test('getObjectMetadata (DartType)', () async {
-      final innerType = 'dart.dloadRepl(object.runtimeType, "_type")';
-      final typeName = await driver.evaluateJsExpression(
-        breakpointId: 'BP',
-        expression: '$innerType.toString()',
-      );
-      expect(typeName, startsWith('class Object'));
-
-      await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata($innerType)',
-          expectedResult: {
-            'className': 'Type',
-            'libraryId': null,
-            'runtimeKind': 'function',
-            'length': 0,
-          });
-    }, skip: 'Only applies to old type system');
-
-    test('getObjectMetadata (RecordType)', () async {
-      final innerType = 'dart.dloadRepl(record.runtimeType, "_type")';
-      final typeName = await driver.evaluateJsExpression(
-        breakpointId: 'BP',
-        expression: '$innerType.toString()',
-      );
-      expect(typeName, '(int, int, {String name})');
-
-      await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata($innerType)',
-          expectedResult: {
-            'className': 'Type',
-            'libraryId': 'dart:core',
-            'runtimeKind': 'type',
-            'typeName': '(int, int, {String name})'
-          });
-    }, skip: 'Only applies to old type system');
-
     test('getObjectMetadata (Rti)', () async {
       final rti = 'dart.dloadRepl(object.runtimeType, "_rti")';
       final typeName = await driver.evaluateJsExpression(

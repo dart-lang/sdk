@@ -1171,14 +1171,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     body.addAll(jsCtors);
 
     // Emit things that come after the ES6 `class ... { ... }`.
-    var jsPeerNames = _extensionTypes.getNativePeers(c);
-    if (jsPeerNames.length == 1 && c.typeParameters.isNotEmpty) {
-      // Special handling for JSArray<E>
-      body.add(_runtimeStatement('setExtensionBaseClass(#, #)', [
-        className,
-        _runtimeCall('global.#', [jsPeerNames[0]])
-      ]));
-    }
 
     /// Collects all implemented types in the ancestry of [cls].
     Iterable<Supertype> transitiveImplementedTypes(Class cls) {
@@ -1241,7 +1233,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Instead, just assign the identity equals method.
       body.add(_runtimeStatement('_installIdentityEquals()'));
     } else {
-      for (var peer in jsPeerNames) {
+      for (var peer in _extensionTypes.getNativePeers(c)) {
         _registerExtensionType(c, peer, body);
       }
     }
@@ -6254,11 +6246,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             throw UnsupportedError(
                 'JS_CLASS_REF only supports interface types: found $type '
                 '(${type.runtimeType}) at ${node.location}');
-          }
-          if (type.typeArguments.isNotEmpty) {
-            throw UnsupportedError(
-                'JS_CLASS_REF does not support type arguments: found '
-                '${type.typeArguments} at ${node.location}');
           }
           return _emitTopLevelName(type.classNode);
         }
