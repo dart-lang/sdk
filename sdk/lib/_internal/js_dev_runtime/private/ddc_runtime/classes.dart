@@ -481,16 +481,6 @@ void classExtends(@notNull Object cls, @notNull Object superClass) {
       JS('', '#.prototype', cls), JS('', '#.prototype', superClass));
 }
 
-/// Link the [dartType] to the native [jsType] it is extending as a base class.
-///
-/// Used for generic extension types such as `JSArray<E>`.
-void setExtensionBaseClass(@notNull Object dartType, @notNull Object jsType) {
-  // Mark the generic type as an extension type and link the prototype objects.
-  var dartProto = JS<Object>('!', '#.prototype', dartType);
-  JS('', '#[#] = #', dartProto, _extensionType, dartType);
-  jsObjectSetPrototypeOf(dartProto, JS('', '#.prototype', jsType));
-}
-
 /// A runtime mapping of interface type recipe to the symbol used to tag the
 /// class for simple identification in the dart:rti library.
 ///
