@@ -93,12 +93,10 @@ library
           element: <testLibrary>::@fragment::package:test/foo.dart::@class::A
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo.dart::@class::A
     class A
-      reference: <testLibrary>::@fragment::package:test/foo.dart::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/foo.dart::@class::A
 ''');
   }
@@ -181,12 +179,10 @@ library
           element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
     class A
-      reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
 ''');
   }
@@ -269,12 +265,10 @@ library
           element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
     class A
-      reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
 ''');
   }
@@ -357,12 +351,10 @@ library
           element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
     class A
-      reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
 ''');
   }
@@ -445,12 +437,10 @@ library
           element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
     class A
-      reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
 ''');
   }
@@ -673,22 +663,16 @@ library
           element: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
   classes
     class Z
-      reference: <testLibraryFragment>::@class::Z
       firstFragment: <testLibraryFragment>::@class::Z
     class A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
     class A11
-      reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
       firstFragment: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
     class A12
-      reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
       firstFragment: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
     class B11
-      reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
       firstFragment: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
     class B12
-      reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
       firstFragment: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
 ''');
   }
@@ -792,18 +776,14 @@ library
               element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
 ''');
   }
@@ -877,18 +857,14 @@ library
               element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
 ''');
   }
@@ -1248,22 +1224,16 @@ library
           element: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
   classes
     class Z
-      reference: <testLibraryFragment>::@class::Z
       firstFragment: <testLibraryFragment>::@class::Z
     class A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
     class A11
-      reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
       firstFragment: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
     class A12
-      reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
       firstFragment: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
     class B11
-      reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
       firstFragment: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
     class B12
-      reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
       firstFragment: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
 ''');
   }

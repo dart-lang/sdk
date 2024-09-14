@@ -94,31 +94,25 @@ library
                   element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          type: int
           getter: <none>
           setter: <none>
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@getter::foo
       setters
         synthetic set foo=
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@setter::foo
           parameters
             requiredPositional _foo
-              reference: <none>
               type: int
-          firstFragment: <testLibraryFragment>::@class::C::@setter::foo
 ''');
   }
 
@@ -182,21 +176,17 @@ library
               element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         synthetic foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       getters
         get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@getter::foo
 ''');
   }
@@ -268,26 +258,21 @@ library
                   element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         synthetic foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          type: int
           setter: <none>
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       setters
         set foo=
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@setter::foo
           parameters
             requiredPositional value
-              reference: <none>
               type: int
-          firstFragment: <testLibraryFragment>::@class::C::@setter::foo
 ''');
   }
 
@@ -426,38 +411,30 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const a
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
+          type: E
           getter: <none>
         static const b
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get a
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::a
         synthetic static get b
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::b
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -533,29 +510,24 @@ library
                   element: <none>
   mixins
     mixin M
-      reference: <testLibraryFragment>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
       fields
         foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          type: int
           getter: <none>
           setter: <none>
       getters
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
       setters
         synthetic set foo=
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
           parameters
             requiredPositional _foo
-              reference: <none>
               type: int
-          firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
 ''');
   }
 
@@ -612,19 +584,16 @@ library
               element: <none>
   mixins
     mixin M
-      reference: <testLibraryFragment>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
       fields
         synthetic foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          type: int
           getter: <none>
       getters
         get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
 ''');
   }
@@ -689,24 +658,20 @@ library
                   element: <none>
   mixins
     mixin M
-      reference: <testLibraryFragment>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
       fields
         synthetic foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          type: int
           setter: <none>
       setters
         set foo=
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
           parameters
             requiredPositional value
-              reference: <none>
               type: int
-          firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
 ''');
   }
 
@@ -751,13 +716,11 @@ library
           element: <none>
   topLevelVariables
     synthetic foo
-      reference: <none>
-      type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: int
       getter: <none>
   getters
     static get foo
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::foo
 ''');
   }
@@ -821,23 +784,19 @@ library
               element: <none>
   topLevelVariables
     synthetic foo
-      reference: <none>
-      type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: int
       getter: <none>
       setter: <none>
   getters
     static get foo
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::foo
   setters
     static set foo=
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@setter::foo
       parameters
         requiredPositional value
-          reference: <none>
           type: int
-      firstFragment: <testLibraryFragment>::@setter::foo
 ''');
   }
 
@@ -889,18 +848,15 @@ library
               element: <none>
   topLevelVariables
     synthetic foo
-      reference: <none>
-      type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: int
       setter: <none>
   setters
     static set foo=
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@setter::foo
       parameters
         requiredPositional value
-          reference: <none>
           type: int
-      firstFragment: <testLibraryFragment>::@setter::foo
 ''');
   }
 
@@ -963,23 +919,19 @@ library
               element: <none>
   topLevelVariables
     foo
-      reference: <none>
-      type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: int
       getter: <none>
       setter: <none>
   getters
     synthetic static get foo
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::foo
   setters
     synthetic static set foo=
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@setter::foo
       parameters
         requiredPositional _foo
-          reference: <none>
           type: int
-      firstFragment: <testLibraryFragment>::@setter::foo
 ''');
   }
 }

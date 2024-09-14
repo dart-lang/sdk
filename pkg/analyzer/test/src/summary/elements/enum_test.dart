@@ -188,48 +188,38 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       codeOffset: 0
       codeLength: 26
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const aaa
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::aaa
+          type: E
           getter: <none>
         static const bbb
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::bbb
+          type: E
           getter: <none>
         static const ccc
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::ccc
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get aaa
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::aaa
         synthetic static get bbb
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::bbb
         synthetic static get ccc
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::ccc
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -385,44 +375,35 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const int
-          reference: <none>
-          type: E<int>
           firstFragment: <testLibraryFragment>::@enum::E::@field::int
+          type: E<int>
           getter: <none>
         static const string
-          reference: <none>
-          type: E<String>
           firstFragment: <testLibraryFragment>::@enum::E::@field::string
+          type: E<String>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           parameters
             requiredPositional a
-              reference: <none>
               type: T
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get int
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::int
         synthetic static get string
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::string
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -523,30 +504,24 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const _name
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::_name
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get _name
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::_name
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -673,36 +648,29 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E<double>
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<double>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           parameters
             requiredPositional a
-              reference: <none>
               type: T
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -802,30 +770,24 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const _
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::_
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get _
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::_
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -936,33 +898,26 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         factory named
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::named
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -1063,30 +1018,24 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         factory new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -1213,46 +1162,36 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
         final x
-          reference: <none>
-          type: dynamic
           firstFragment: <testLibraryFragment>::@enum::E::@field::x
+          type: dynamic
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           parameters
             requiredPositional final x
-              reference: <none>
               type: int Function(double)
               parameters
                 requiredPositional a
-                  reference: <none>
                   type: double
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
         synthetic get x
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x
 ''');
   }
@@ -1393,50 +1332,39 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
         final x
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::E::@field::x::@def::0
+          type: int
           getter: <none>
         final x
-          reference: <none>
-          type: String
           firstFragment: <testLibraryFragment>::@enum::E::@field::x::@def::1
+          type: String
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           parameters
             requiredPositional final x
-              reference: <none>
               type: int
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
         synthetic get x
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x::@def::0
         synthetic get x
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x::@def::1
 ''');
   }
@@ -1544,34 +1472,27 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           parameters
             requiredPositional final x
-              reference: <none>
               type: dynamic
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -1709,42 +1630,34 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
         final x
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::E::@field::x
+          type: int
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           parameters
             optionalNamed final x
-              reference: <none>
+              firstFragment: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x
               type: int
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
         synthetic get x
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x
 ''');
   }
@@ -1868,42 +1781,33 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
         final x
-          reference: <none>
-          type: num
           firstFragment: <testLibraryFragment>::@enum::E::@field::x
+          type: num
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           parameters
             requiredPositional final x
-              reference: <none>
               type: int
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
         synthetic get x
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x
 ''');
   }
@@ -2027,42 +1931,33 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
         final x
-          reference: <none>
-          type: dynamic
           firstFragment: <testLibraryFragment>::@enum::E::@field::x
+          type: dynamic
           getter: <none>
       constructors
         new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           parameters
             requiredPositional final x
-              reference: <none>
               type: int
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
         synthetic get x
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x
 ''');
   }
@@ -2186,42 +2081,33 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
         final x
-          reference: <none>
-          type: dynamic
           firstFragment: <testLibraryFragment>::@enum::E::@field::x
+          type: dynamic
           getter: <none>
       constructors
         new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           parameters
             requiredPositional final x
-              reference: <none>
               type: dynamic
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
         synthetic get x
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x
 ''');
   }
@@ -2341,34 +2227,27 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         const named
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::named
           parameters
             requiredPositional a
-              reference: <none>
               type: int
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::named
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -2479,34 +2358,27 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           parameters
             requiredPositional a
-              reference: <none>
               type: int
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -2687,44 +2559,35 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E<dynamic>
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<dynamic>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
           getter: <none>
         final x
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::E::@field::x
+          type: int
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           parameters
             requiredPositional a
-              reference: <none>
               type: T?
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
         synthetic get x
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x
 ''');
   }
@@ -2826,31 +2689,25 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      documentationComment: /**\n * Docs\n */
       firstFragment: <testLibraryFragment>::@enum::E
+      documentationComment: /**\n * Docs\n */
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -2971,38 +2828,30 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
         final foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::E::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::foo
 ''');
   }
@@ -3053,42 +2902,33 @@ library
               getter2: <testLibraryFragment>::@enum::E::@getter::_foo
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
         final _foo
-          reference: <none>
-          type: int?
           firstFragment: <testLibraryFragment>::@enum::E::@field::_foo
+          type: int?
           getter: <none>
       constructors
         new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           parameters
             requiredPositional final _foo
-              reference: <none>
               type: int?
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
         synthetic get _foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::_foo
 ''');
   }
@@ -3204,38 +3044,30 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
         synthetic foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::E::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
         get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::foo
 ''');
   }
@@ -3354,38 +3186,30 @@ library
               element: <none>
   classes
     class I
-      reference: <testLibraryFragment>::@class::I
       firstFragment: <testLibraryFragment>::@class::I
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::I::@constructor::new
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -3506,48 +3330,38 @@ library
               element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   extensionTypes
     extension type B
-      reference: <testLibraryFragment>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: int
       fields
         final it
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          type: int
           getter: <none>
       getters
         synthetic get it
-          reference: <none>
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
 ''');
   }
@@ -3680,42 +3494,34 @@ library
               element: <none>
   classes
     class I
-      reference: <testLibraryFragment>::@class::I
+      firstFragment: <testLibraryFragment>::@class::I
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::I
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::I::@constructor::new
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         U
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E<dynamic>
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<dynamic>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -3850,45 +3656,35 @@ library
               element: <none>
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
     class Z
-      reference: <testLibraryFragment>::@class::Z
       firstFragment: <testLibraryFragment>::@class::Z
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::Z::@constructor::new
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -4022,46 +3818,37 @@ library
                   element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E<dynamic>
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<dynamic>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
       methods
         foo
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@method::foo
           typeParameters
             U
           parameters
             requiredPositional t
-              reference: <none>
               type: T
             requiredPositional u
-              reference: <none>
               type: U
-          firstFragment: <testLibraryFragment>::@enum::E::@method::foo
 ''');
   }
 
@@ -4170,34 +3957,27 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
       methods
         toString
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@method::toString
 ''');
   }
@@ -4310,34 +4090,27 @@ library
           element: <testLibraryFragment>::@mixin::M
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   mixins
     mixin M
-      reference: <testLibraryFragment>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -4460,48 +4233,38 @@ library
               element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   extensionTypes
     extension type B
-      reference: <testLibraryFragment>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: int
       fields
         final it
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          type: int
           getter: <none>
       getters
         synthetic get it
-          reference: <none>
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
 ''');
   }
@@ -4636,44 +4399,36 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   mixins
     mixin M1
-      reference: <testLibraryFragment>::@mixin::M1
+      firstFragment: <testLibraryFragment>::@mixin::M1
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@mixin::M1
       superclassConstraints
         Object
     mixin M2
-      reference: <testLibraryFragment>::@mixin::M2
+      firstFragment: <testLibraryFragment>::@mixin::M2
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@mixin::M2
       superclassConstraints
         M1<T>
 ''');
@@ -4797,44 +4552,35 @@ library
                   element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
         synthetic foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::E::@field::foo
+          type: int
           setter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
       setters
         set foo=
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@setter::foo
           parameters
             requiredPositional _
-              reference: <none>
               type: int
-          firstFragment: <testLibraryFragment>::@enum::E::@setter::foo
 ''');
   }
 
@@ -4941,32 +4687,26 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E<dynamic>
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<dynamic>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -5080,35 +4820,29 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
           bound: num
         U
           bound: T
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E<num, num>
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<num, num>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E<num, num>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<num, num>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -5180,25 +4914,21 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
           bound: dynamic
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -5280,7 +5010,7 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
           bound: dynamic
@@ -5288,21 +5018,17 @@ library
           bound: num
         V
           bound: dynamic
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic, num, dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic, num, dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -5374,25 +5100,21 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
           bound: void Function(E<dynamic>)
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -5463,24 +5185,20 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -5551,24 +5269,20 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -5639,24 +5353,20 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -5735,26 +5445,22 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
         U
         V
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic, dynamic, dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic, dynamic, dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -5892,38 +5598,30 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const a
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
+          type: E
           getter: <none>
         static const b
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get a
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::a
         synthetic static get b
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::b
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -6106,48 +5804,38 @@ library
           element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const a
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
+          type: E
           getter: <none>
         static const b
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get a
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::a
         synthetic static get b
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::b
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
     const annotation
-      reference: <none>
-      type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::annotation
+      type: int
       getter: <none>
   getters
     synthetic static get annotation
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::annotation
 ''');
   }
@@ -6275,38 +5963,30 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v1
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v1
+          type: E
           getter: <none>
         static const v2
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v2
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v1
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v1
         synthetic static get v2
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v2
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -6474,56 +6154,44 @@ library
               element: <none>
   enums
     enum E1
-      reference: <testLibraryFragment>::@enum::E1
       firstFragment: <testLibraryFragment>::@enum::E1
       supertype: Enum
       fields
         static const v1
-          reference: <none>
-          type: E1
           firstFragment: <testLibraryFragment>::@enum::E1::@field::v1
+          type: E1
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E1>
           firstFragment: <testLibraryFragment>::@enum::E1::@field::values
+          type: List<E1>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E1::@constructor::new
       getters
         synthetic static get v1
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E1::@getter::v1
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E1::@getter::values
     enum E2
-      reference: <testLibraryFragment>::@enum::E2
       firstFragment: <testLibraryFragment>::@enum::E2
       supertype: Enum
       fields
         static const v2
-          reference: <none>
-          type: E2
           firstFragment: <testLibraryFragment>::@enum::E2::@field::v2
+          type: E2
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E2>
           firstFragment: <testLibraryFragment>::@enum::E2::@field::values
+          type: List<E2>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E2::@constructor::new
       getters
         synthetic static get v2
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E2::@getter::v2
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E2::@getter::values
 ''');
   }
@@ -6822,96 +6490,73 @@ library
               element: <none>
   classes
     class M
-      reference: <testLibraryFragment>::@class::M
       firstFragment: <testLibraryFragment>::@class::M
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::M::@constructor::new
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
     class B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: Object
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
     class alias D
-      reference: <testLibraryFragment>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       supertype: Object
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const a
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
+          type: E
           getter: <none>
         static const b
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
+          type: E
           getter: <none>
         static const c
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::c
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get a
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::a
         synthetic static get b
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::b
         synthetic static get c
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::c
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -7039,40 +6684,32 @@ library
           element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
     const a
-      reference: <none>
-      type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: int
       getter: <none>
   getters
     synthetic static get a
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::a
 ''');
   }
@@ -7315,68 +6952,53 @@ library
               element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final value
-          reference: <none>
-          type: dynamic
           firstFragment: <testLibraryFragment>::@class::A::@field::value
+          type: dynamic
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
           parameters
             requiredPositional final value
-              reference: <none>
               type: dynamic
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get value
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@getter::value
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const a
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
+          type: E
           getter: <none>
         static const b
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
+          type: E
           getter: <none>
         static const c
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::c
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get a
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::a
         synthetic static get b
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::b
         synthetic static get c
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::c
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -7485,30 +7107,24 @@ library
               element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
@@ -7651,23 +7267,20 @@ library
           element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
           metadata
             Annotation
               atSign: @ @30
@@ -7676,23 +7289,18 @@ library
                 staticElement: <testLibraryFragment>::@getter::a
                 staticType: null
               element: <testLibraryFragment>::@getter::a
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
     const a
-      reference: <none>
-      type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: int
       getter: <none>
   getters
     synthetic static get a
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::a
 ''');
   }
@@ -7844,34 +7452,28 @@ library
           element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
       methods
         foo
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@method::foo
           metadata
             Annotation
               atSign: @ @30
@@ -7880,16 +7482,13 @@ library
                 staticElement: <testLibraryFragment>::@getter::a
                 staticType: null
               element: <testLibraryFragment>::@getter::a
-          firstFragment: <testLibraryFragment>::@enum::E::@method::foo
   topLevelVariables
     const a
-      reference: <none>
-      type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: int
       getter: <none>
   getters
     synthetic static get a
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::a
 ''');
   }
@@ -8096,7 +7695,7 @@ library
           element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
           metadata
@@ -8107,41 +7706,33 @@ library
                 staticElement: <testLibraryFragment>::@getter::foo
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E<dynamic>
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<dynamic>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
           getter: <none>
         static const foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::E::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
         synthetic static get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::foo
       methods
         bar
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@method::bar
           metadata
             Annotation
               atSign: @ @69
@@ -8150,16 +7741,13 @@ library
                 staticElement: <testLibraryFragment>::@enum::E::@getter::foo
                 staticType: null
               element: <testLibraryFragment>::@enum::E::@getter::foo
-          firstFragment: <testLibraryFragment>::@enum::E::@method::bar
   topLevelVariables
     const foo
-      reference: <none>
-      type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: int
       getter: <none>
   getters
     synthetic static get foo
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::foo
 ''');
   }
@@ -8308,7 +7896,7 @@ library
           element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
+      firstFragment: <testLibraryFragment>::@enum::E
       typeParameters
         T
           metadata
@@ -8319,39 +7907,31 @@ library
                 staticElement: <testLibraryFragment>::@getter::a
                 staticType: null
               element: <testLibraryFragment>::@getter::a
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E<dynamic>
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<dynamic>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
     const a
-      reference: <none>
-      type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: int
       getter: <none>
   getters
     synthetic static get a
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::a
 ''');
   }
@@ -8479,40 +8059,32 @@ library
           element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: E
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<E>
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
     const a
-      reference: <none>
-      type: int
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: int
       getter: <none>
   getters
     synthetic static get a
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::a
 ''');
   }
@@ -8660,37 +8232,29 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
       methods
         foo
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo
         bar
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
 ''');
   }
@@ -8961,30 +8525,24 @@ library
           previousFragment: <testLibrary>::@fragment::package:test/a21.dart::@enumAugmentation::A
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
   exportedReferences
     declared <testLibraryFragment>::@enum::A
@@ -9180,59 +8738,46 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
       supertype: Enum
       fields
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@constructor::new
       getters
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@getter::values
       methods
         foo1
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@method::foo1
     enum A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
       methods
         foo2
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo2
         foo3
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
 ''');
   }
@@ -9376,29 +8921,23 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
       supertype: Enum
       fields
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
       getters
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::values
       methods
         foo1
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo1
         foo2
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@method::foo2
 ''');
   }
@@ -9595,38 +9134,30 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v1
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v1
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         static const v2
-          reference: <none>
-          type: A
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
+          type: A
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v1
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v1
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic static get v2
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
 ''');
   }
@@ -9897,46 +9428,36 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v1
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v1
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         static const v2
-          reference: <none>
-          type: A
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
+          type: A
           getter: <none>
         static const v3
-          reference: <none>
-          type: A
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::v3
+          type: A
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v1
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v1
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic static get v2
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
         synthetic static get v3
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::v3
 ''');
   }
@@ -10159,38 +9680,30 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v1
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v1
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         static const v2
-          reference: <none>
-          type: A
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
+          type: A
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v1
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v1
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic static get v2
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
 ''');
   }
@@ -10449,46 +9962,36 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@field::v2
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v1
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v1
+          type: A
           getter: <none>
         static const v3
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v3
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         static const v2
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v2
+          type: A
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v1
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v1
         synthetic static get v2
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v2
         synthetic static get v3
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v3
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -10727,42 +10230,33 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@field::v1
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v2
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v2
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         static const v1
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v1
+          type: A
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
           parameters
             requiredPositional value
-              reference: <none>
               type: int
-          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v1
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v1
         synthetic static get v2
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v2
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -10921,34 +10415,27 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@field::v
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v2
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v2
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get v2
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v2
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -11076,30 +10563,24 @@ library
               nameEnd: 54
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         const named
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -11247,36 +10728,29 @@ library
                   element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
+      firstFragment: <testLibraryFragment>::@enum::A
       typeParameters
         T1
-      firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A<int>
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
           getter: <none>
       constructors
         const named
-          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
           parameters
             requiredPositional a
-              reference: <none>
               type: T2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -11414,33 +10888,26 @@ library
               nameEnd: 54
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
         const named
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -11564,30 +11031,24 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -11725,33 +11186,26 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         const named
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::named
         const new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -11904,42 +11358,33 @@ library
                   element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final f
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::f
+          type: int
           getter: <none>
       constructors
         const named
-          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
           parameters
             requiredPositional final f
-              reference: <none>
               type: int
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get f
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::f
 ''');
   }
@@ -12105,38 +11550,30 @@ library
                     staticType: int
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final f
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::f
+          type: int
           getter: <none>
       constructors
         const named
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get f
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::f
 ''');
   }
@@ -12308,38 +11745,30 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@field::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
@@ -12557,38 +11986,30 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
@@ -12806,38 +12227,30 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@field::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
@@ -13059,47 +12472,37 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@field::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
       setters
         set foo=
-          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
           parameters
             requiredPositional _
-              reference: <none>
               type: int
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
 ''');
   }
 
@@ -13270,38 +12673,30 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@field::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
@@ -13493,38 +12888,30 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@field::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final foo
-          reference: <none>
-          type: int Function()
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int Function()
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
@@ -13697,38 +13084,30 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@field::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         synthetic foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
@@ -13911,46 +13290,36 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final foo1
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: int
           getter: <none>
         final foo2
-          reference: <none>
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get foo1
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo1
         synthetic get foo2
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
 ''');
   }
@@ -14147,48 +13516,38 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
+      firstFragment: <testLibraryFragment>::@enum::A
       typeParameters
         T1
-      firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A<int>
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
           getter: <none>
         final foo1
-          reference: <none>
-          type: T1
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: T1
           getter: <none>
         final foo2
-          reference: <none>
-          type: T2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+          type: T2
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get foo1
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo1
         synthetic get foo2
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
 ''');
   }
@@ -14341,42 +13700,33 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final foo
-          reference: <none>
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
+          type: int
           getter: <none>
       constructors
         const new
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
           parameters
             requiredPositional final foo
-              reference: <none>
               type: int
-          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
 ''');
   }
@@ -14542,38 +13892,30 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final foo
-          reference: <none>
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
+          type: int
           getter: <none>
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
 ''');
   }
@@ -14754,46 +14096,36 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         synthetic foo1
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: int
           getter: <none>
         synthetic foo2
-          reference: <none>
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         get foo1
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo1
         get foo2
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
 ''');
   }
@@ -14990,48 +14322,38 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
+      firstFragment: <testLibraryFragment>::@enum::A
       typeParameters
         T1
-      firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A<int>
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
           getter: <none>
         synthetic foo1
-          reference: <none>
-          type: T1
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: T1
           getter: <none>
         synthetic foo2
-          reference: <none>
-          type: T2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+          type: T2
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         abstract get foo1
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo1
         abstract get foo2
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
 ''');
   }
@@ -15203,38 +14525,30 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@getter::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
@@ -15452,38 +14766,30 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
@@ -15676,46 +14982,36 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@getter::foo1
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         synthetic foo1
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: int
           getter: <none>
         synthetic foo2
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo2
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         get foo2
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo2
         get foo1
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo1
 ''');
   }
@@ -15900,38 +15196,30 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         synthetic foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
@@ -16148,38 +15436,30 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         synthetic foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
@@ -16316,29 +15596,23 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         get foo
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
 ''');
   }
@@ -16501,45 +15775,35 @@ library
           previousFragment: <testLibraryFragment>::@enum::A
   classes
     class I1
-      reference: <testLibraryFragment>::@class::I1
       firstFragment: <testLibraryFragment>::@class::I1
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -16751,52 +16015,40 @@ library
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   classes
     class I1
-      reference: <testLibraryFragment>::@class::I1
       firstFragment: <testLibraryFragment>::@class::I1
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
     class I3
-      reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::I3
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -16977,49 +16229,39 @@ library
               element: <none>
   classes
     class I1
-      reference: <testLibraryFragment>::@class::I1
       firstFragment: <testLibraryFragment>::@class::I1
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       typeParameters
         E
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
+      firstFragment: <testLibraryFragment>::@enum::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A<int>
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -17203,49 +16445,39 @@ library
               element: <none>
   classes
     class I1
-      reference: <testLibraryFragment>::@class::I1
       firstFragment: <testLibraryFragment>::@class::I1
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       typeParameters
         E
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
+      firstFragment: <testLibraryFragment>::@enum::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A<dynamic>
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<dynamic>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -17391,37 +16623,29 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo
         bar
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
 ''');
   }
@@ -17587,39 +16811,31 @@ library
                   element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
-          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
           parameters
             optionalPositional x
-              reference: <none>
               type: int
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
 ''');
   }
 
@@ -17776,37 +16992,29 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@method::foo1
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo2
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo2
         foo1
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo1
 ''');
   }
@@ -17967,34 +17175,27 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
@@ -18169,34 +17370,27 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
@@ -18389,34 +17583,27 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
@@ -18576,39 +17763,31 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
+      firstFragment: <testLibraryFragment>::@enum::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A<int>
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo
         bar
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
 ''');
   }
@@ -18771,36 +17950,29 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@method::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
+      firstFragment: <testLibraryFragment>::@enum::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A<int>
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
@@ -18951,39 +18123,31 @@ library
           element: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
   mixins
     mixin M1
-      reference: <testLibraryFragment>::@mixin::M1
       firstFragment: <testLibraryFragment>::@mixin::M1
       superclassConstraints
         Object
     mixin M2
-      reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
       superclassConstraints
         Object
@@ -19215,53 +18379,44 @@ library
               element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
+      firstFragment: <testLibraryFragment>::@enum::A
       typeParameters
         T1
-      firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A<int>
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A<dynamic>>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
   mixins
     mixin M1
-      reference: <testLibraryFragment>::@mixin::M1
+      firstFragment: <testLibraryFragment>::@mixin::M1
       typeParameters
         U1
-      firstFragment: <testLibraryFragment>::@mixin::M1
       superclassConstraints
         Object
     mixin M2
-      reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
       typeParameters
         U2
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
       superclassConstraints
         M1<U2>
     mixin M3
-      reference: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
+      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
       typeParameters
         U3
-      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
       superclassConstraints
         M2<U3>
 ''');
@@ -19456,56 +18611,44 @@ library
                   element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         synthetic foo1
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: int
           setter: <none>
         synthetic foo2
-          reference: <none>
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+          type: int
           setter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       setters
         set foo1=
-          reference: <none>
-          parameters
-            requiredPositional _
-              reference: <none>
-              type: int
           firstFragment: <testLibraryFragment>::@enum::A::@setter::foo1
-        set foo2=
-          reference: <none>
           parameters
             requiredPositional _
-              reference: <none>
               type: int
+        set foo2=
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2
+          parameters
+            requiredPositional _
+              type: int
 ''');
   }
 
@@ -19680,47 +18823,37 @@ library
                   element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         final foo
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
         synthetic get foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
       setters
         set foo=
-          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
           parameters
             requiredPositional _
-              reference: <none>
               type: int
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
 ''');
   }
 
@@ -19871,39 +19004,31 @@ library
                   element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       setters
         set foo=
-          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
           parameters
             requiredPositional _
-              reference: <none>
               type: int
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
 ''');
   }
 
@@ -20114,56 +19239,44 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@setter::foo1
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
         synthetic foo1
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: int
           setter: <none>
         synthetic foo2
-          reference: <none>
-          type: int
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo2
+          type: int
           setter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       setters
         set foo2=
-          reference: <none>
-          parameters
-            requiredPositional _
-              reference: <none>
-              type: int
           firstFragment: <testLibraryFragment>::@enum::A::@setter::foo2
-        set foo1=
-          reference: <none>
           parameters
             requiredPositional _
-              reference: <none>
               type: int
+        set foo1=
           firstFragment: <testLibraryFragment>::@enum::A::@setter::foo1
+          parameters
+            requiredPositional _
+              type: int
 ''');
   }
 
@@ -20291,33 +19404,26 @@ library
           element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
   classes
     class A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     class A
-      reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -20458,30 +19564,24 @@ library
           previousFragment: <testLibraryFragment>::@enum::A
   classes
     class A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -20673,30 +19773,24 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         const named
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::named
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -20867,30 +19961,24 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@constructor::named
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         const named
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::named
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -21048,30 +20136,24 @@ library
               previousFragment: <testLibraryFragment>::@enum::A::@constructor::new
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
           getter: <none>
       constructors
         const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
@@ -21232,39 +20314,31 @@ library
                   element: <none>
   enums
     enum B
-      reference: <testLibraryFragment>::@enum::B
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: B
           firstFragment: <testLibraryFragment>::@enum::B::@field::v
+          type: B
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<B>
           firstFragment: <testLibraryFragment>::@enum::B::@field::values
+          type: List<B>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::B::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::B::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::B::@getter::values
       methods
         foo
-          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
           parameters
             requiredPositional a
-              reference: <none>
               type: String
-          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
 ''');
   }
 
@@ -21420,39 +20494,31 @@ library
           previousFragment: <testLibraryFragment>::@enum::B
   enums
     enum B
-      reference: <testLibraryFragment>::@enum::B
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: B
           firstFragment: <testLibraryFragment>::@enum::B::@field::v
+          type: B
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<B>
           firstFragment: <testLibraryFragment>::@enum::B::@field::values
+          type: List<B>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::B::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::B::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::B::@getter::values
       methods
         foo
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::B::@method::foo
           parameters
             requiredPositional a
-              reference: <none>
               type: String
-          firstFragment: <testLibraryFragment>::@enum::B::@method::foo
 ''');
   }
 
@@ -21608,39 +20674,31 @@ library
           previousFragment: <testLibraryFragment>::@enum::B
   enums
     enum B
-      reference: <testLibraryFragment>::@enum::B
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: B
           firstFragment: <testLibraryFragment>::@enum::B::@field::v
+          type: B
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<B>
           firstFragment: <testLibraryFragment>::@enum::B::@field::values
+          type: List<B>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::B::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::B::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::B::@getter::values
       methods
         foo
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::B::@method::foo
           parameters
             requiredPositional a
-              reference: <none>
               type: String
-          firstFragment: <testLibraryFragment>::@enum::B::@method::foo
 ''');
   }
 
@@ -21792,41 +20850,33 @@ library
               element: <none>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
+      firstFragment: <testLibraryFragment>::@enum::A
       typeParameters
         T
           bound: B
-      firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          type: A<B>
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<B>
           getter: <none>
         synthetic static const values
-          reference: <none>
-          type: List<A<B>>
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<B>>
           getter: <none>
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
       getters
         synthetic static get v
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
-          reference: <none>
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }

@@ -72,21 +72,17 @@ library
               element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final x
-          reference: <none>
-          type: (int, String)
           firstFragment: <testLibraryFragment>::@class::A::@field::x
+          type: (int, String)
           getter: <none>
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get x
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
 ''');
   }
@@ -148,21 +144,17 @@ library
               element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final x
-          reference: <none>
-          type: (int, bool)
           firstFragment: <testLibraryFragment>::@class::A::@field::x
+          type: (int, bool)
           getter: <none>
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       getters
         synthetic get x
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
 ''');
   }
@@ -219,20 +211,16 @@ library
                   element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@method::foo
           parameters
             requiredPositional a
-              reference: <none>
               type: (int, String)
-          firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
 
@@ -282,15 +270,12 @@ library
               element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -337,14 +322,12 @@ library
               element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
           bound: (int, String)
-      firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
@@ -377,7 +360,6 @@ library
           element: <testLibraryFragment>::@extension::IntStringExtension
   extensions
     extension IntStringExtension
-      reference: <testLibraryFragment>::@extension::IntStringExtension
       firstFragment: <testLibraryFragment>::@extension::IntStringExtension
 ''');
   }
@@ -416,10 +398,9 @@ library
               element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       parameters
         requiredPositional b
-          reference: <none>
           type: void Function((int, String))
       returnType: void
 ''');
@@ -459,10 +440,9 @@ library
               element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       parameters
         requiredPositional a
-          reference: <none>
           type: (int, String) Function()
       returnType: void
 ''');
@@ -502,10 +482,9 @@ library
               element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       parameters
         requiredPositional a
-          reference: <none>
           type: (int, String)
       returnType: void
 ''');
@@ -539,7 +518,7 @@ library
           element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       returnType: ()
 ''');
   }
@@ -578,7 +557,7 @@ library
               element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
       returnType: (int, T)
@@ -613,7 +592,7 @@ library
           element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       returnType: (int, String, {bool c})
 ''');
   }
@@ -646,7 +625,7 @@ library
           element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       returnType: ({int a, String b})
 ''');
   }
@@ -679,7 +658,7 @@ library
           element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       returnType: ((int, String), (bool, double))
 ''');
   }
@@ -712,7 +691,7 @@ library
           element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       returnType: (int, String)?
 ''');
   }
@@ -745,7 +724,7 @@ library
           element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       returnType: (int, String)
 ''');
   }
@@ -778,7 +757,7 @@ library
           element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       returnType: (int,)
 ''');
   }
@@ -821,13 +800,11 @@ library
           element: <none>
   topLevelVariables
     final x
-      reference: <none>
-      type: (int, String)
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: (int, String)
       getter: <none>
   getters
     synthetic static get x
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
@@ -871,13 +848,11 @@ library
           element: <none>
   topLevelVariables
     final x
-      reference: <none>
-      type: (int, bool)
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: (int, bool)
       getter: <none>
   getters
     synthetic static get x
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
@@ -952,13 +927,11 @@ library
           element: <none>
   topLevelVariables
     const x
-      reference: <none>
-      type: Type
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: Type
       getter: <none>
   getters
     synthetic static get x
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
@@ -1029,13 +1002,11 @@ library
           element: <none>
   topLevelVariables
     const x
-      reference: <none>
-      type: Type
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: Type
       getter: <none>
   getters
     synthetic static get x
-      reference: <none>
       firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }

@@ -48,10 +48,9 @@ library
               element: <none>
   functions
     main
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::main
       parameters
         requiredPositional p
-          reference: <none>
           type: int
       returnType: void
 ''');
@@ -111,20 +110,17 @@ library
                   element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@method::m
           parameters
             optionalNamed covariant a
-              reference: <none>
+              firstFragment: <testLibraryFragment>::@class::A::@method::m::@parameter::a
               type: A
-          firstFragment: <testLibraryFragment>::@class::A::@method::m
 ''');
   }
 
@@ -180,20 +176,16 @@ library
                   element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@method::m
           parameters
             optionalPositional covariant a
-              reference: <none>
               type: A
-          firstFragment: <testLibraryFragment>::@class::A::@method::m
 ''');
   }
 
@@ -249,20 +241,16 @@ library
                   element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@method::m
           parameters
             requiredPositional covariant a
-              reference: <none>
               type: A
-          firstFragment: <testLibraryFragment>::@class::A::@method::m
 ''');
   }
 
@@ -369,41 +357,33 @@ library
                   element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         f
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@method::f
           parameters
             requiredPositional covariant t
-              reference: <none>
               type: T
-          firstFragment: <testLibraryFragment>::@class::A::@method::f
     class B
-      reference: <testLibraryFragment>::@class::B
+      firstFragment: <testLibraryFragment>::@class::B
       typeParameters
         T
-      firstFragment: <testLibraryFragment>::@class::B
       supertype: A<T>
       constructors
         synthetic new
-          reference: <none>
-          superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          superConstructor: <none>
       methods
         f
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@method::f
           parameters
             requiredPositional covariant t
-              reference: <none>
               type: T
-          firstFragment: <testLibraryFragment>::@class::B::@method::f
 ''');
   }
 
@@ -498,37 +478,31 @@ library
                   element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@method::m
           parameters
             optionalNamed covariant a
-              reference: <none>
+              firstFragment: <testLibraryFragment>::@class::A::@method::m::@parameter::a
               type: A
-          firstFragment: <testLibraryFragment>::@class::A::@method::m
     class B
-      reference: <testLibraryFragment>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
         synthetic new
-          reference: <none>
-          superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          superConstructor: <none>
       methods
         m
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@method::m
           parameters
             optionalNamed covariant a
-              reference: <none>
+              firstFragment: <testLibraryFragment>::@class::B::@method::m::@parameter::a
               type: B
-          firstFragment: <testLibraryFragment>::@class::B::@method::m
 ''');
   }
 
@@ -585,27 +559,21 @@ library
                   element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::f
           parameters
             requiredPositional g
-              reference: <none>
               type: dynamic Function(dynamic, dynamic)
               parameters
                 requiredPositional x
-                  reference: <none>
                   type: dynamic
                 requiredPositional y
-                  reference: <none>
                   type: dynamic
-          firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
 
@@ -670,27 +638,22 @@ library
                   element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         A
         B
-      firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::f
           parameters
             requiredPositional g
-              reference: <none>
               type: A Function(B)
               parameters
                 requiredPositional x
-                  reference: <none>
                   type: B
-          firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
 
@@ -742,20 +705,16 @@ library
                   element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::f
           parameters
             requiredPositional g
-              reference: <none>
               type: int Function()
-          firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
 
@@ -807,20 +766,16 @@ library
                   element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::f
           parameters
             requiredPositional g
-              reference: <none>
               type: void Function()
-          firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
 
@@ -864,14 +819,12 @@ library
               element: <none>
   functions
     f
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::f
       parameters
         requiredPositional a
-          reference: <none>
           type: T Function<T, U>(U)
           parameters
             requiredPositional u
-              reference: <none>
               type: U
       returnType: void
 ''');
@@ -953,23 +906,19 @@ library
                   element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         positional
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::positional
           parameters
             optionalPositional x
-              reference: <none>
               type: dynamic
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::positional
         named
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::named
           parameters
             optionalNamed x
-              reference: <none>
+              firstFragment: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
               type: dynamic
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::named
 ''');
   }
 
@@ -1086,42 +1035,34 @@ library
                   element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         x
-          reference: <none>
-          type: dynamic
           firstFragment: <testLibraryFragment>::@class::C::@field::x
+          type: dynamic
           getter: <none>
           setter: <none>
       constructors
         positional
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::positional
           parameters
             optionalPositional final x
-              reference: <none>
               type: dynamic
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::positional
         named
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::named
           parameters
             optionalNamed final x
-              reference: <none>
+              firstFragment: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
               type: dynamic
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::named
       getters
         synthetic get x
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
       setters
         synthetic set x=
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@setter::x
           parameters
             requiredPositional _x
-              reference: <none>
               type: dynamic
-          firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
 
@@ -1203,27 +1144,22 @@ library
                   element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static positional
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::positional
           parameters
             optionalPositional x
-              reference: <none>
               type: dynamic
-          firstFragment: <testLibraryFragment>::@class::C::@method::positional
         static named
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::named
           parameters
             optionalNamed x
-              reference: <none>
+              firstFragment: <testLibraryFragment>::@class::C::@method::named::@parameter::x
               type: dynamic
-          firstFragment: <testLibraryFragment>::@class::C::@method::named
 ''');
   }
 
@@ -1288,17 +1224,16 @@ library
               element: <none>
   functions
     positional
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::positional
       parameters
         optionalPositional x
-          reference: <none>
           type: dynamic
       returnType: void
     named
-      reference: <none>
+      firstFragment: <testLibraryFragment>::@function::named
       parameters
         optionalNamed x
-          reference: <none>
+          firstFragment: <testLibraryFragment>::@function::named::@parameter::x
           type: dynamic
       returnType: void
 ''');
