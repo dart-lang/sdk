@@ -42,8 +42,116 @@ void f() {
 ''');
     await assertHasAssist('''
 void f() {
-  (1 != 1) ? 1 : 0;
+  1 != 1 ? 1 : 0;
 }
+''');
+  }
+
+  Future<void>
+      test_thenStatement_elseStatement_on_thenParenthesesAsyncFunction() async {
+    await resolveTestCode('''
+void f() async {
+  (true) ? (await f/*caret*/n()) : 1;
+}
+
+Future<void> fn() async {}
+''');
+    await assertHasAssist('''
+void f() async {
+  false ? 1 : (await fn());
+}
+
+Future<void> fn() async {}
+''');
+  }
+
+  Future<void>
+      test_thenStatement_elseStatement_on_thenAsyncParenthesizedFunction() async {
+    await resolveTestCode('''
+void f() async {
+  (true) ? await (f/*caret*/n()) : 1;
+}
+
+Future<int> fn() async => 0;
+''');
+    await assertHasAssist('''
+void f() async {
+  false ? 1 : await (fn());
+}
+
+Future<int> fn() async => 0;
+''');
+  }
+
+  Future<void>
+      test_thenStatement_elseStatement_on_thenLambdaBody() async {
+    await resolveTestCode('''
+void f() async {
+  (true) ? () => /*caret*/1 : 1;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void>
+      test_thenStatement_elseStatement_on_thenLambdaParenthesized() async {
+    await resolveTestCode('''
+void f() async {
+  (true) ? (/*caret*/() => 1) : 1;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void>
+      test_thenStatement_elseStatement_on_thenParenthesized() async {
+    await resolveTestCode('''
+void f() async {
+  (true) ? /*caret*/(() => 1) : 1;
+}
+''');
+    await assertHasAssist('''
+void f() async {
+  false ? 1 : (() => 1);
+}
+''');
+  }
+
+  Future<void>
+      test_thenStatement_elseStatement_on_thenLambda() async {
+    await resolveTestCode('''
+void f() async {
+  (true) ? () =>/*caret*/ 1 : 1;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void>
+      test_thenStatement_elseStatement_on_thenLambdaParameters() async {
+    await resolveTestCode('''
+void f() async {
+  (true) ? (/*caret*/) => 1 : 1;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void>
+      test_thenStatement_elseStatement_on_thenParenthesesTearoff() async {
+    await resolveTestCode('''
+void f() {
+  (true) ? (f/*caret*/n) : 1;
+}
+
+void fn() {}
+''');
+    await assertHasAssist('''
+void f() {
+  false ? 1 : (fn);
+}
+
+void fn() {}
 ''');
   }
 
