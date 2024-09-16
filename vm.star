@@ -483,7 +483,7 @@ _vm_builder(
 _vm_builder(
     "vm-ffi-qemu-linux-release-riscv64",
     category = "vm|ffi|qr",
-    dimensions = noble,  # Pre-Noble RISC-V QEMU is missing extensions
+    dimensions = jammy,  # The bit-manipulation extensions are only available starting with Noble, but Noble is suspected to have a bug that leads to flaky crashes
 )
 
 # Isolate stress test builder
