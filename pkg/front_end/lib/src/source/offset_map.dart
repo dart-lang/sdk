@@ -13,6 +13,7 @@ import '../base/problems.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../codes/cfe_codes.dart';
+import '../fragment/fragment.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 
@@ -22,9 +23,8 @@ import 'source_function_builder.dart';
 /// are created, with the [DietListener], where the objects are looked up.
 class OffsetMap {
   final Uri uri;
-  final Map<int, DeclarationBuilder> _declarations = {};
   final Map<int, DeclarationFragment> _declarationFragments = {};
-  final Map<int, SourceFieldBuilder> _fields = {};
+  final Map<int, FieldFragment> _fields = {};
   final Map<int, SourceFunctionBuilder> _constructors = {};
   final Map<int, SourceFunctionBuilder> _procedures = {};
   final Map<int, LibraryPart> _parts = {};
@@ -77,17 +77,9 @@ class OffsetMap {
     _declarationFragments[identifier.nameOffset] = fragment;
   }
 
-  void registerNamedDeclaration(
-      Identifier identifier, DeclarationBuilder builder) {
-    _declarations[identifier.nameOffset] = builder;
-  }
-
   DeclarationBuilder lookupNamedDeclaration(Identifier identifier) {
-    return _checkBuilder(
-        _declarations[identifier.nameOffset] ??
-            _declarationFragments[identifier.nameOffset]?.builder,
-        identifier.name,
-        identifier.nameOffset);
+    return _checkBuilder(_declarationFragments[identifier.nameOffset]?.builder,
+        identifier.name, identifier.nameOffset);
   }
 
   void registerUnnamedDeclaration(
@@ -100,13 +92,13 @@ class OffsetMap {
         '<unnamed-declaration>', beginToken.charOffset);
   }
 
-  void registerField(Identifier identifier, SourceFieldBuilder builder) {
-    _fields[identifier.nameOffset] = builder;
+  void registerField(Identifier identifier, FieldFragment fragment) {
+    _fields[identifier.nameOffset] = fragment;
   }
 
   SourceFieldBuilder lookupField(Identifier identifier) {
-    return _checkBuilder(
-        _fields[identifier.nameOffset], identifier.name, identifier.nameOffset);
+    return _checkBuilder(_fields[identifier.nameOffset]?.builder,
+        identifier.name, identifier.nameOffset);
   }
 
   void registerPrimaryConstructor(

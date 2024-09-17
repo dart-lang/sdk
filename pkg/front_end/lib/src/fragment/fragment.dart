@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/source/source_type_alias_builder.dart';
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/reference_from_index.dart';
 
@@ -14,9 +14,12 @@ import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/type_builder.dart';
 import '../source/name_scheme.dart';
+import '../source/source_class_builder.dart';
 import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
+import '../source/source_field_builder.dart';
+import '../source/source_type_alias_builder.dart';
 import '../source/type_parameter_scope_builder.dart';
 
 sealed class Fragment {
@@ -57,6 +60,194 @@ class TypedefFragment implements Fragment {
 
   @override
   String toString() => "$runtimeType($name,$fileUri,$fileOffset)";
+}
+
+class ClassFragment extends DeclarationFragment implements Fragment {
+  @override
+  final String name;
+
+  final int nameOffset;
+
+  final ClassName _className;
+
+  SourceClassBuilder? _builder;
+
+  late final LookupScope compilationUnitScope;
+  late final List<MetadataBuilder>? metadata;
+  late final int modifiers;
+  late final TypeBuilder? supertype;
+  late final MixinApplicationBuilder? mixins;
+  late final List<TypeBuilder>? interfaces;
+  late final List<ConstructorReferenceBuilder> constructorReferences;
+  late final int startOffset;
+  late final int charOffset;
+  late final int endOffset;
+  late final IndexedLibrary? indexedLibrary;
+  late final IndexedClass? indexedClass;
+  late final bool isAugmentation;
+  late final bool isBase;
+  late final bool isFinal;
+  late final bool isInterface;
+  late final bool isMacro;
+  late final bool isMixinClass;
+  late final bool isSealed;
+
+  ClassFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
+      super.typeParameterScope, super._nominalParameterNameSpace)
+      : _className = new ClassName(name);
+
+  @override
+  int get fileOffset => nameOffset;
+
+  @override
+  SourceClassBuilder get builder {
+    assert(
+        _builder != null, // Coverage-ignore(suite): Not run.
+        "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(SourceClassBuilder value) {
+    assert(
+        _builder == null, // Coverage-ignore(suite): Not run.
+        "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  ContainerName get containerName => _className;
+
+  @override
+  ContainerType get containerType => ContainerType.Class;
+
+  @override
+  DeclarationFragmentKind get kind => DeclarationFragmentKind.classDeclaration;
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
+}
+
+class MixinFragment extends DeclarationFragment implements Fragment {
+  @override
+  final String name;
+
+  final int nameOffset;
+
+  final ClassName _className;
+
+  SourceClassBuilder? _builder;
+
+  late final LookupScope compilationUnitScope;
+  late final List<MetadataBuilder>? metadata;
+  late final int modifiers;
+  late final TypeBuilder? supertype;
+  late final MixinApplicationBuilder? mixins;
+  late final List<TypeBuilder>? interfaces;
+  late final List<ConstructorReferenceBuilder> constructorReferences;
+  late final int startOffset;
+  late final int charOffset;
+  late final int endOffset;
+  late final IndexedLibrary? indexedLibrary;
+  late final IndexedClass? indexedClass;
+  late final bool isAugmentation;
+  late final bool isBase;
+
+  MixinFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
+      super.typeParameterScope, super._nominalParameterNameSpace)
+      : _className = new ClassName(name);
+
+  @override
+  int get fileOffset => nameOffset;
+
+  @override
+  SourceClassBuilder get builder {
+    assert(
+        _builder != null, // Coverage-ignore(suite): Not run.
+        "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(SourceClassBuilder value) {
+    assert(
+        _builder == null, // Coverage-ignore(suite): Not run.
+        "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  ContainerName get containerName => _className;
+
+  @override
+  ContainerType get containerType => ContainerType.Class;
+
+  @override
+  DeclarationFragmentKind get kind => DeclarationFragmentKind.mixinDeclaration;
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
+}
+
+class NamedMixinApplicationFragment implements Fragment {
+  final String name;
+  final Uri fileUri;
+  final int startCharOffset;
+  final int charOffset;
+  final int charEndOffset;
+  final int modifiers;
+  final List<MetadataBuilder>? metadata;
+  final List<NominalVariableBuilder>? typeParameters;
+  final TypeBuilder? supertype;
+  final MixinApplicationBuilder mixins;
+  final List<TypeBuilder>? interfaces;
+  final bool isAugmentation;
+  final bool isBase;
+  final bool isFinal;
+  final bool isInterface;
+  final bool isMacro;
+  final bool isMixinClass;
+  final bool isSealed;
+  final LookupScope compilationUnitScope;
+  final IndexedLibrary? indexedLibrary;
+
+  SourceClassBuilder? _builder;
+
+  NamedMixinApplicationFragment(
+      {required this.name,
+      required this.fileUri,
+      required this.startCharOffset,
+      required this.charOffset,
+      required this.charEndOffset,
+      required this.modifiers,
+      required this.metadata,
+      required this.typeParameters,
+      required this.supertype,
+      required this.mixins,
+      required this.interfaces,
+      required this.isAugmentation,
+      required this.isBase,
+      required this.isFinal,
+      required this.isInterface,
+      required this.isMacro,
+      required this.isMixinClass,
+      required this.isSealed,
+      required this.compilationUnitScope,
+      required this.indexedLibrary});
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  SourceClassBuilder get builder {
+    assert(_builder != null, "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  // Coverage-ignore(suite): Not run.
+  void set builder(SourceClassBuilder value) {
+    assert(_builder == null, "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$charOffset)';
 }
 
 class EnumFragment extends DeclarationFragment implements Fragment {
@@ -254,4 +445,83 @@ class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
 
   @override
   String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
+}
+
+class FieldFragment implements Fragment {
+  final String name;
+  final Uri fileUri;
+  final int charOffset;
+  final int charEndOffset;
+  Token? _initializerToken;
+  Token? _constInitializerToken;
+  final List<MetadataBuilder>? metadata;
+  final TypeBuilder type;
+  final Reference? fieldReference;
+  final Reference? fieldGetterReference;
+  final Reference? fieldSetterReference;
+  final Reference? lateGetterReference;
+  final Reference? lateSetterReference;
+  final Reference? lateIsSetFieldReference;
+  final Reference? lateIsSetGetterReference;
+  final Reference? lateIsSetSetterReference;
+  final bool isTopLevel;
+  final int modifiers;
+  final NameScheme nameScheme;
+
+  SourceFieldBuilder? _builder;
+
+  FieldFragment(
+      {required this.name,
+      required this.fileUri,
+      required this.charOffset,
+      required this.charEndOffset,
+      required Token? initializerToken,
+      required Token? constInitializerToken,
+      required this.metadata,
+      required this.type,
+      required this.fieldReference,
+      required this.fieldGetterReference,
+      required this.fieldSetterReference,
+      required this.lateGetterReference,
+      required this.lateSetterReference,
+      required this.lateIsSetFieldReference,
+      required this.lateIsSetGetterReference,
+      required this.lateIsSetSetterReference,
+      required this.isTopLevel,
+      required this.modifiers,
+      required this.nameScheme})
+      : _initializerToken = initializerToken,
+        _constInitializerToken = constInitializerToken;
+
+  Token? get initializerToken {
+    Token? result = _initializerToken;
+    // Ensure that we don't hold onto the token.
+    _initializerToken = null;
+    return result;
+  }
+
+  Token? get constInitializerToken {
+    Token? result = _constInitializerToken;
+    // Ensure that we don't hold onto the token.
+    _constInitializerToken = null;
+    return result;
+  }
+
+  @override
+  SourceFieldBuilder get builder {
+    assert(
+        _builder != null, // Coverage-ignore(suite): Not run.
+        "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(SourceFieldBuilder value) {
+    assert(
+        _builder == null, // Coverage-ignore(suite): Not run.
+        "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$charOffset)';
 }

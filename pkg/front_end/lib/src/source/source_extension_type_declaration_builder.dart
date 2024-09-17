@@ -24,6 +24,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
@@ -72,7 +73,9 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   List<TypeBuilder>? interfaceBuilders;
 
-  final SourceFieldBuilder? representationFieldBuilder;
+  FieldFragment? _representationFieldFragment;
+
+  SourceFieldBuilder? _representationFieldBuilder;
 
   final IndexedContainer? indexedContainer;
 
@@ -93,7 +96,7 @@ class SourceExtensionTypeDeclarationBuilder
       required int nameOffset,
       required int endOffset,
       required this.indexedContainer,
-      required this.representationFieldBuilder})
+      required FieldFragment? representationFieldFragment})
       : _extensionTypeDeclaration = new ExtensionTypeDeclaration(
             name: name,
             fileUri: fileUri,
@@ -102,6 +105,7 @@ class SourceExtensionTypeDeclarationBuilder
             reference: indexedContainer?.reference)
           ..fileOffset = nameOffset,
         _nameSpaceBuilder = nameSpaceBuilder,
+        _representationFieldFragment = representationFieldFragment,
         super(metadata, modifiers, name, enclosingLibraryBuilder, fileUri,
             nameOffset);
 
@@ -113,6 +117,14 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   ConstructorScope get constructorScope => _constructorScope;
+
+  SourceFieldBuilder? get representationFieldBuilder {
+    if (_representationFieldBuilder == null) {
+      _representationFieldBuilder = _representationFieldFragment?.builder;
+      _representationFieldFragment = null;
+    }
+    return _representationFieldBuilder;
+  }
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {

@@ -44,6 +44,9 @@ import 'source_member_builder.dart';
 class SourceFieldBuilder extends SourceMemberBuilderImpl
     implements FieldBuilder, InferredTypeListener, Inferable {
   @override
+  final SourceLibraryBuilder libraryBuilder;
+
+  @override
   final String name;
 
   final MemberName _memberName;
@@ -84,7 +87,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       this.name,
       this.modifiers,
       this.isTopLevel,
-      SourceLibraryBuilder libraryBuilder,
+      this.libraryBuilder,
+      DeclarationBuilder? declarationBuilder,
       Uri fileUri,
       int charOffset,
       int charEndOffset,
@@ -103,7 +107,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       this.isEnumElement = false})
       : _constInitializerToken = constInitializerToken,
         _memberName = fieldNameScheme.getDeclaredName(name),
-        super(libraryBuilder, charOffset) {
+        super(declarationBuilder ?? libraryBuilder, fileUri, charOffset) {
     type.registerInferredTypeListener(this);
 
     bool isInstanceMember = fieldNameScheme.isInstanceMember;
@@ -296,7 +300,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       } else {
         // A field with no type and initializer or an instance field without
         // type and initializer need to have the type inferred.
-        fieldType =
+        _fieldEncoding.type =
             new InferredType.fromFieldInitializer(this, initializerToken);
         type.registerInferable(this);
       }

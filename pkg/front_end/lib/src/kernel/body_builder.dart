@@ -8810,10 +8810,10 @@ class BodyBuilder extends StackListenerImpl
     }
     TypeVariableBuilder variable = inFunctionType
         ? new StructuralVariableBuilder(
-            typeVariableName, libraryBuilder, typeVariableCharOffset, uri,
+            typeVariableName, typeVariableCharOffset, uri,
             isWildcard: isWildcard)
         : new NominalVariableBuilder(
-            typeVariableName, libraryBuilder, typeVariableCharOffset, uri,
+            typeVariableName, typeVariableCharOffset, uri,
             kind: TypeVariableKind.function, isWildcard: isWildcard);
     if (annotations != null) {
       switch (variable) {

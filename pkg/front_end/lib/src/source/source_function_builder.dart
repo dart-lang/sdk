@@ -156,9 +156,10 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       this.typeVariables,
       this.formals,
       LibraryBuilder compilationUnit,
+      Uri fileUri,
       int charOffset,
       this.nativeMethodName)
-      : super(compilationUnit, charOffset) {
+      : super(compilationUnit, fileUri, charOffset) {
     returnType.registerInferredTypeListener(this);
     if (formals != null) {
       for (int i = 0; i < formals!.length; i++) {
