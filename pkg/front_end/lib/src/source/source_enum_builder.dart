@@ -408,6 +408,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         /* formals = */ null,
         ProcedureKind.Method,
         libraryBuilder,
+        this,
         fileUri,
         charOffset,
         charOffset,

@@ -1383,6 +1383,7 @@ severity: $severity
         /* formals = */ null,
         ProcedureKind.Method,
         libraryBuilder,
+        null,
         libraryBuilder.fileUri,
         /* start char offset = */ 0,
         /* char offset = */ 0,

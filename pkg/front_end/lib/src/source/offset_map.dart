@@ -26,7 +26,7 @@ class OffsetMap {
   final Map<int, DeclarationFragment> _declarationFragments = {};
   final Map<int, FieldFragment> _fields = {};
   final Map<int, SourceFunctionBuilder> _constructors = {};
-  final Map<int, SourceFunctionBuilder> _procedures = {};
+  final Map<int, MethodFragment> _procedures = {};
   final Map<int, LibraryPart> _parts = {};
   final Map<int, Import> _imports = {};
   final Map<int, Export> _exports = {};
@@ -121,13 +121,13 @@ class OffsetMap {
         identifier.nameOffset);
   }
 
-  void registerProcedure(Identifier identifier, SourceFunctionBuilder builder) {
-    _procedures[identifier.nameOffset] = builder;
+  void registerProcedure(Identifier identifier, MethodFragment fragment) {
+    _procedures[identifier.nameOffset] = fragment;
   }
 
   SourceFunctionBuilder lookupProcedure(Identifier identifier) {
-    return _checkBuilder(_procedures[identifier.nameOffset], identifier.name,
-        identifier.nameOffset);
+    return _checkBuilder(_procedures[identifier.nameOffset]?.builder,
+        identifier.name, identifier.nameOffset);
   }
 
   T _checkDirective<T>(T? directive, String name, int charOffset) {

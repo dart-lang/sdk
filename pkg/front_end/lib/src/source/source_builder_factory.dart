@@ -63,7 +63,6 @@ import 'source_factory_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
-import 'source_procedure_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
@@ -124,6 +123,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   final List<StructuralVariableBuilder> _unboundStructuralVariables = [];
 
   final List<SourceFunctionBuilder> _nativeMethods = [];
+
+  final List<MethodFragment> _nativeMethodFragments = [];
 
   final LibraryName libraryName;
 
@@ -2124,6 +2125,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     return suffix;
   }
 
+  void _addNativeMethodFragment(MethodFragment fragment) {
+    _nativeMethodFragments.add(fragment);
+  }
+
   void _addNativeMethod(SourceFunctionBuilder method) {
     _nativeMethods.add(method);
   }
@@ -2203,34 +2208,32 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         }
       }
     }
-    SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
-        metadata,
-        modifiers,
-        returnType ?? addInferableType(),
-        name,
-        typeVariables,
-        formals,
-        kind,
-        _parent,
-        _compilationUnit.fileUri,
-        startCharOffset,
-        charOffset,
-        charOpenParenOffset,
-        charEndOffset,
-        procedureReference,
-        tearOffReference,
-        asyncModifier,
-        nameScheme,
+    MethodFragment fragment = new MethodFragment(
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        startCharOffset: startCharOffset,
+        charOffset: charOffset,
+        charOpenParenOffset: charOpenParenOffset,
+        charEndOffset: charEndOffset,
+        metadata: metadata,
+        modifiers: modifiers,
+        returnType: returnType ?? addInferableType(),
+        typeParameters: typeVariables,
+        formals: formals,
+        kind: kind,
+        procedureReference: procedureReference,
+        tearOffReference: tearOffReference,
+        asyncModifier: asyncModifier,
+        nameScheme: nameScheme,
         nativeMethodName: nativeMethodName);
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
-        ownerName: procedureBuilder.name, allowNameConflict: true);
-    _addBuilder(name, procedureBuilder, charOffset,
-        getterReference: procedureReference);
+        ownerName: name, allowNameConflict: true);
+    _addFragment(fragment, getterReference: procedureReference);
     if (nativeMethodName != null) {
-      _addNativeMethod(procedureBuilder);
+      _addNativeMethodFragment(fragment);
     }
-    offsetMap.registerProcedure(identifier, procedureBuilder);
+    offsetMap.registerProcedure(identifier, fragment);
   }
 
   @override
@@ -2662,6 +2665,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       loader.buildersCreatedWithReferences[setterReference] = declaration;
     }
     if (_declarationFragments.isEmpty) {
+      // Coverage-ignore-block(suite): Not run.
       _libraryNameSpaceBuilder.addBuilder(
           name, declaration, _compilationUnit.fileUri, charOffset);
     } else {
@@ -2741,6 +2745,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   int finishNativeMethods() {
     for (SourceFunctionBuilder method in _nativeMethods) {
       method.becomeNative(loader);
+    }
+    for (MethodFragment fragment in _nativeMethodFragments) {
+      fragment.builder.becomeNative(loader);
     }
     return _nativeMethods.length;
   }

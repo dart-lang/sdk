@@ -25,6 +25,7 @@ import 'source_extension_type_declaration_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
+import 'source_procedure_builder.dart';
 import 'source_type_alias_builder.dart';
 
 sealed class _Added {
@@ -383,6 +384,30 @@ class _AddedFragment implements _Added {
         fragment.builder = fieldBuilder;
         builders.add(new _AddBuilder(fragment.name, fieldBuilder,
             fragment.fileUri, fragment.charOffset));
+      case MethodFragment():
+        SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
+            fragment.metadata,
+            fragment.modifiers,
+            fragment.returnType,
+            fragment.name,
+            fragment.typeParameters,
+            fragment.formals,
+            fragment.kind,
+            enclosingLibraryBuilder,
+            declarationBuilder,
+            fragment.fileUri,
+            fragment.startCharOffset,
+            fragment.charOffset,
+            fragment.charOpenParenOffset,
+            fragment.charEndOffset,
+            fragment.procedureReference,
+            fragment.tearOffReference,
+            fragment.asyncModifier,
+            fragment.nameScheme,
+            nativeMethodName: fragment.nativeMethodName);
+        fragment.builder = procedureBuilder;
+        builders.add(new _AddBuilder(fragment.name, procedureBuilder,
+            fragment.fileUri, fragment.charOffset));
     }
   }
 }
@@ -394,6 +419,7 @@ class LibraryNameSpaceBuilder {
 
   List<_Added> _added = [];
 
+  // Coverage-ignore(suite): Not run.
   void addBuilder(
       String name, Builder declaration, Uri fileUri, int charOffset) {
     _added.add(new _AddedBuilder(
