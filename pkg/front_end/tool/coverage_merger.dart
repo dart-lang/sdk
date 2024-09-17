@@ -1429,9 +1429,9 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
     }
 
     if (node.commaToken != null) {
-      _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-          node.commaToken!.next!, node.commaToken!, node.endToken,
-          allowReplace: false);
+      // The message in an assert should be automatically ignored.
+      _collector.ignoredStartEnd.addIntervalIncludingEnd(
+          node.commaToken!.charOffset, node.endToken.charEnd);
     }
     super.visitAssertEnd(node);
   }

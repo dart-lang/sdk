@@ -601,7 +601,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.expression = expressionResult.expression..parent = node;
     assert(
         expressionResult.inferredType is FunctionType,
-        // Coverage-ignore(suite): Not run.
         "Expected a FunctionType from tearing off a constructor from "
         "a typedef, but got '${expressionResult.inferredType.runtimeType}'.");
     FunctionType expressionType = expressionResult.inferredType as FunctionType;
@@ -1500,9 +1499,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// Returns the function type of [factory] when called through [typedef].
   FunctionType _computeAliasedFactoryFunctionType(
       Procedure factory, Typedef typedef) {
-    assert(
-        factory.isFactory || factory.isExtensionTypeMember,
-        // Coverage-ignore(suite): Not run.
+    assert(factory.isFactory || factory.isExtensionTypeMember,
         "Only run this method on a factory: $factory");
     ensureMemberType(factory);
     FunctionNode function = factory.function;
@@ -4189,9 +4186,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Expression _createAdd(
       Expression receiver, InterfaceType receiverType, Expression argument,
       {required bool isSet}) {
-    assert(
-        argument.fileOffset != TreeNode.noOffset,
-        // Coverage-ignore(suite): Not run.
+    assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
     DartType functionType = Substitution.fromInterfaceType(receiverType)
         .substituteType(
@@ -4206,9 +4201,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Expression _createAddAll(Expression receiver, InterfaceType receiverType,
       Expression argument, bool isSet) {
-    assert(
-        argument.fileOffset != TreeNode.noOffset,
-        // Coverage-ignore(suite): Not run.
+    assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
     DartType functionType = Substitution.fromInterfaceType(receiverType)
         .substituteType(isSet
@@ -4224,9 +4217,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Expression _createMapAddAll(
       Expression receiver, InterfaceType receiverType, Expression argument) {
-    assert(
-        argument.fileOffset != TreeNode.noOffset,
-        // Coverage-ignore(suite): Not run.
+    assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
     DartType functionType = Substitution.fromInterfaceType(receiverType)
         .substituteType(engine.mapAddAllFunctionType);
@@ -6132,9 +6123,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 
-    assert(
-        indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
-        // Coverage-ignore(suite): Not run.
+    assert(indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
         'Unexpected index set target $indexSetTarget.');
     instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
         new InstrumentationValueForMember(node.setter));
@@ -6778,7 +6767,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         equalsTarget.isInstanceMember ||
             equalsTarget.isObjectMember ||
             equalsTarget.isNever,
-        // Coverage-ignore(suite): Not run.
         "Unexpected equals target $equalsTarget for "
         "$left ($leftType) == $right.");
     if (instrumentation != null && leftType == const DynamicType()) {
@@ -10132,9 +10120,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (entry is! NullValue) {
       return entry;
     }
-    assert(
-        nullValue == entry,
-        // Coverage-ignore(suite): Not run.
+    assert(nullValue == entry,
         "Unexpected null value. Expected ${nullValue}, actual $entry");
     return null;
   }

@@ -936,7 +936,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/type_inference/matching_cache.dart": (
-    hitCount: 545,
+    hitCount: 546,
     missCount: 0,
   ),
   // 100.0%.

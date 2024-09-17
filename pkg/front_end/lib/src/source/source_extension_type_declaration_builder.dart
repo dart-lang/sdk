@@ -713,9 +713,7 @@ class SourceExtensionTypeDeclarationBuilder
             memberBuilder.charOffset,
             memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionTypeRepresentationField:
-        assert(
-            tearOff == null, // Coverage-ignore(suite): Not run.
-            "Unexpected tear-off $tearOff");
+        assert(tearOff == null, "Unexpected tear-off $tearOff");
         extensionTypeDeclaration.addProcedure(member as Procedure);
     }
   }

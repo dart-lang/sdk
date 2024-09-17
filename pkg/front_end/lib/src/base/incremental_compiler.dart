@@ -885,7 +885,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
         assert(
             !map.containsKey(name),
-            // Coverage-ignore(suite): Not run.
             "Unexpected double-entry for $name in "
             "${mainCompilationUnit.importUri} "
             "(org from ${entry.key.importUri}): "

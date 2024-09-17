@@ -85,9 +85,7 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
   Nullability? _nullabilityFromParameterBound;
 
   Nullability get nullabilityFromParameterBound {
-    assert(
-        _nullabilityFromParameterBound != null,
-        // Coverage-ignore(suite): Not run.
+    assert(_nullabilityFromParameterBound != null,
         "Nullability has not been computed for $this.");
     return _nullabilityFromParameterBound!;
   }
@@ -261,7 +259,6 @@ class NominalVariableBuilder extends TypeVariableBuilder {
   void applyAugmentation(covariant NominalVariableBuilder augmentation) {
     assert(
         _hasHashCode == null,
-        // Coverage-ignore(suite): Not run.
         "Cannot apply augmentation since to $this since hashCode has already "
         "been computed from $actualParameter @\n$_hasHashCode");
     augmentation.actualOrigin = this;

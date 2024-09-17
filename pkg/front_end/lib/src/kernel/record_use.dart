@@ -25,7 +25,6 @@ Iterable<InstanceConstant> findRecordUseAnnotation(Annotatable node) =>
 // Coverage-ignore(suite): Not run.
 final Uri _metaLibraryUri = new Uri(scheme: 'package', path: 'meta/meta.dart');
 
-// Coverage-ignore(suite): Not run.
 bool isRecordUse(Class cls) =>
     cls.name == 'RecordUse' &&
     // Coverage-ignore(suite): Not run.
@@ -34,8 +33,8 @@ bool isRecordUse(Class cls) =>
 // Coverage-ignore(suite): Not run.
 bool isBeingRecorded(Class cls) => isRecordUse(cls) || hasRecordUse(cls);
 
-/// If [cls] annotation is in turn annotated by a recording annotation.
 // Coverage-ignore(suite): Not run.
+/// If [cls] annotation is in turn annotated by a recording annotation.
 bool hasRecordUse(Class cls) => cls.annotations
     .whereType<ConstantExpression>()
     .map((e) => e.constant)

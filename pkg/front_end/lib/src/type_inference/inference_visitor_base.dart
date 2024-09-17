@@ -1313,9 +1313,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   DartType getGetterTypeForMemberTarget(
       Member interfaceMember, DartType receiverType,
       {required bool isSuper}) {
-    assert(
-        interfaceMember is Field || interfaceMember is Procedure,
-        // Coverage-ignore(suite): Not run.
+    assert(interfaceMember is Field || interfaceMember is Procedure,
         "Unexpected interface member $interfaceMember.");
     DartType calleeType =
         isSuper ? interfaceMember.superGetterType : interfaceMember.getterType;
@@ -1337,9 +1335,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   DartType getSetterTypeForMemberTarget(
       Member interfaceMember, DartType receiverType,
       {required bool isSuper}) {
-    assert(
-        interfaceMember is Field || interfaceMember is Procedure,
-        // Coverage-ignore(suite): Not run.
+    assert(interfaceMember is Field || interfaceMember is Procedure,
         "Unexpected interface member $interfaceMember.");
     DartType calleeType =
         isSuper ? interfaceMember.superSetterType : interfaceMember.setterType;
@@ -1738,7 +1734,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       Object? argument = argumentsEvaluationOrder[evaluationOrderIndex];
       assert(
           argument is Expression || argument is NamedExpression,
-          // Coverage-ignore(suite): Not run.
           "Expected the argument to be either an Expression "
           "or a NamedExpression, got '${argument.runtimeType}'.");
       int index;
@@ -1855,12 +1850,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     assert(
         positionalIndex == arguments.positional.length,
-        // Coverage-ignore(suite): Not run.
         "Expected 'positionalIndex' to be ${arguments.positional.length}, "
         "got ${positionalIndex}.");
     assert(
         namedIndex == arguments.named.length,
-        // Coverage-ignore(suite): Not run.
         "Expected 'namedIndex' to be ${arguments.named.length}, "
         "got ${namedIndex}.");
 
@@ -1925,13 +1918,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (inferenceNeeded) {
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer!, calleeTypeParameters, inferredTypes!);
-      assert(
-          inferredTypes.every((type) => isKnown(type)),
-          // Coverage-ignore(suite): Not run.
+      assert(inferredTypes.every((type) => isKnown(type)),
           "Unknown type(s) in inferred types: $inferredTypes.");
-      assert(
-          inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
-          // Coverage-ignore(suite): Not run.
+      assert(inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
           "Promoted type variable(s) in inferred types: $inferredTypes.");
       instantiator = new FunctionTypeInstantiator.fromIterables(
           calleeTypeParameters, inferredTypes);
@@ -2017,7 +2006,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     inferredType = calleeType.returnType;
     assert(
         !containsFreeFunctionTypeVariables(inferredType),
-        // Coverage-ignore(suite): Not run.
         "Inferred return type $inferredType contains free variables. "
         "Inferred function type: $calleeType.");
 
@@ -2580,7 +2568,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         method.kind == ProcedureKind.Method ||
             // Coverage-ignore(suite): Not run.
             method.kind == ProcedureKind.Operator,
-        // Coverage-ignore(suite): Not run.
         "Unexpected instance method $method");
     Name methodName = method.name;
 
@@ -2645,7 +2632,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       assert(
           inferredFunctionType is FunctionType &&
               invocationTargetType is InvocationTargetFunctionType,
-          // Coverage-ignore(suite): Not run.
           "No function type found for $receiver.$methodName ($target) on "
           "$receiverType");
       InstanceAccessKind kind;
@@ -4659,12 +4645,10 @@ class _ObjectAccessDescriptor {
             FunctionNode function = interfaceMember.function;
             assert(
                 function.namedParameters.isEmpty,
-                // Coverage-ignore(suite): Not run.
                 "Unexpected named parameters on $classNode member "
                 "$interfaceMember.");
             assert(
                 function.typeParameters.isEmpty,
-                // Coverage-ignore(suite): Not run.
                 "Unexpected type parameters on $classNode member "
                 "$interfaceMember.");
             functionType = new FunctionType(

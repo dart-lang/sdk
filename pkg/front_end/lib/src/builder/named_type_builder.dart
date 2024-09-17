@@ -187,9 +187,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
   @override
   TypeDeclarationBuilder get declaration {
-    assert(
-        _declaration != null, // Coverage-ignore(suite): Not run.
-        "Declaration has not been resolved on $this.");
+    assert(_declaration != null, "Declaration has not been resolved on $this.");
     return _declaration!;
   }
 
@@ -511,9 +509,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   @override
   DartType buildAliased(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
-    assert(
-        hierarchy != null || isExplicit, // Coverage-ignore(suite): Not run.
-        "Cannot build $this.");
+    assert(hierarchy != null || isExplicit, "Cannot build $this.");
     DartType builtType = _buildAliasedInternal(library, typeUse, hierarchy);
     if (library is SourceLibraryBuilder &&
         !isRecordAccessAllowed(library) &&

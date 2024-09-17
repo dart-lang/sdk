@@ -897,9 +897,7 @@ class KernelTarget {
     }
     component.setMainMethodAndMode(mainReference, true, compiledMode);
 
-    assert(
-        _getLibraryNnbdModeError(component) == null,
-        // Coverage-ignore(suite): Not run.
+    assert(_getLibraryNnbdModeError(component) == null,
         "Got error: ${_getLibraryNnbdModeError(component)}");
 
     ticker.logMs("Linked component");
@@ -1775,7 +1773,6 @@ class KernelTarget {
         globalFeatures.nonNullable.isEnabled ||
             // Coverage-ignore(suite): Not run.
             loader.nnbdMode == NnbdMode.Weak,
-        // Coverage-ignore(suite): Not run.
         "Non-weak nnbd mode found without experiment enabled: "
         "${loader.nnbdMode}.");
     return constants.EvaluationMode.fromNnbdMode(loader.nnbdMode);
@@ -1786,9 +1783,7 @@ class KernelTarget {
     List<LocatedMessage> errors = verifyComponent(
         context, VerificationStage.afterModularTransformations, component!,
         skipPlatform: context.options.skipPlatformVerification);
-    assert(
-        allowVerificationErrorForTesting || errors.isEmpty,
-        // Coverage-ignore(suite): Not run.
+    assert(allowVerificationErrorForTesting || errors.isEmpty,
         "Verification errors found: $errors");
     ClassHierarchy hierarchy =
         new ClassHierarchy(component!, new CoreTypes(component!),
@@ -1812,9 +1807,7 @@ class KernelTarget {
 
   void readPatchFiles(SourceLibraryBuilder libraryBuilder,
       CompilationUnit compilationUnit, Uri originImportUri) {
-    assert(
-        originImportUri.isScheme("dart"),
-        // Coverage-ignore(suite): Not run.
+    assert(originImportUri.isScheme("dart"),
         "Unexpected origin import uri: $originImportUri");
     List<Uri>? patches = uriTranslator.getDartPatches(originImportUri.path);
     if (patches != null) {

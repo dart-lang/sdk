@@ -187,7 +187,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     assert(
         overriddenMembers.every((overriddenMember) =>
             overriddenMember.declarationBuilder != classBuilder),
-        // Coverage-ignore(suite): Not run.
         "Unexpected override dependencies for $this: $overriddenMembers");
     _overrideDependencies ??= {};
     _overrideDependencies!.addAll(overriddenMembers);
@@ -373,8 +372,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   void _buildExtensionTearOff(SourceLibraryBuilder sourceLibraryBuilder,
       SourceDeclarationBuilderMixin declarationBuilder) {
     assert(
-        _extensionTearOff != null, // Coverage-ignore(suite): Not run.
-        "No extension tear off created for $this.");
+        _extensionTearOff != null, "No extension tear off created for $this.");
 
     _extensionTearOffParameterMap = {};
 

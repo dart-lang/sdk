@@ -365,9 +365,7 @@ sealed class TypeBuilder {
             substitution, substitution, unboundTypeVariablesInternal,
             variance: Variance.covariant) ??
         this;
-    assert(
-        unboundTypeVariables != null || unboundTypeVariablesInternal.isEmpty,
-        // Coverage-ignore(suite): Not run.
+    assert(unboundTypeVariables != null || unboundTypeVariablesInternal.isEmpty,
         "Non-empty unbound type variables: $unboundTypeVariables.");
     return result;
   }

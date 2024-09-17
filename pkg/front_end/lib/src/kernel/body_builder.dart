@@ -16,7 +16,8 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         Parser,
         lengthForToken,
         lengthOfSpan,
-        optional;
+        optional,
+        optional2;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show
         Quote,
@@ -28,7 +29,8 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart'
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, GrowableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/parser/util.dart' show stripSeparators;
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show Token, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
@@ -431,7 +433,6 @@ class BodyBuilder extends StackListenerImpl
     assert(
         expectedScopeKinds == null ||
             expectedScopeKinds.contains(_localScope.kind),
-        // Coverage-ignore(suite): Not run.
         "Expected the current scope to be one of the kinds "
         "${expectedScopeKinds.map((k) => "'${k}'").join(", ")}, "
         "but got '${_localScope.kind}'.");
@@ -2491,7 +2492,6 @@ class BodyBuilder extends StackListenerImpl
     constantContext = pop() as ConstantContext;
     assert(
         _localScopes.previous.kind == ScopeKind.switchBlock,
-        // Coverage-ignore(suite): Not run.
         "Expected to have scope kind ${ScopeKind.switchBlock}, "
         "but got ${_localScopes.previous.kind}.");
     if (value is Pattern) {
@@ -2550,7 +2550,7 @@ class BodyBuilder extends StackListenerImpl
       ]),
     ]));
     debugEvent("BinaryExpression");
-    if (optional(".", token) ||
+    if (optional2(TokenType.PERIOD, token) ||
         optional("..", token) ||
         optional("?..", token)) {
       doDotOrCascadeExpression(token);
@@ -2892,7 +2892,8 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Object? send = pop();
     if (send is Selector) {
-      Object? receiver = optional(".", token) ? pop() : popForValue();
+      Object? receiver =
+          optional2(TokenType.PERIOD, token) ? pop() : popForValue();
       push(send.withReceiver(receiver, token.charOffset));
     } else if (send is IncompleteErrorGenerator) {
       // Pop the "receiver" and push the error.
@@ -5935,7 +5936,6 @@ class BodyBuilder extends StackListenerImpl
           suffixObject == null ||
               // Coverage-ignore(suite): Not run.
               suffixObject is ParserRecovery,
-          // Coverage-ignore(suite): Not run.
           "Unexpected qualified name suffix $suffixObject "
           "(${suffixObject.runtimeType})");
       // There was a `.` without a suffix.
@@ -7214,7 +7214,6 @@ class BodyBuilder extends StackListenerImpl
     } else {
       assert(
           identifier is ParserRecovery,
-          // Coverage-ignore(suite): Not run.
           "Unexpected argument name: "
           "${identifier} (${identifier.runtimeType})");
       push(identifier);
@@ -7472,9 +7471,7 @@ class BodyBuilder extends StackListenerImpl
       /* break target = */ ValueKinds.BreakTarget,
     ]));
     Condition condition = pop() as Condition;
-    assert(
-        condition.patternGuard == null,
-        // Coverage-ignore(suite): Not run.
+    assert(condition.patternGuard == null,
         "Unexpected pattern in do statement: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     Statement body = popStatement();
@@ -7900,9 +7897,7 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Statement body = popStatement();
     Condition condition = pop() as Condition;
-    assert(
-        condition.patternGuard == null,
-        // Coverage-ignore(suite): Not run.
+    assert(condition.patternGuard == null,
         "Unexpected pattern in while statement: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     JumpTarget continueTarget = exitContinueTarget()!;
@@ -8314,7 +8309,6 @@ class BodyBuilder extends StackListenerImpl
     assert(
         _localScope.kind == ScopeKind.switchCase ||
             _localScope.kind == ScopeKind.jointVariables,
-        // Coverage-ignore(suite): Not run.
         "Expected the current scope to be of kind '${ScopeKind.switchCase}' "
         "or '${ScopeKind.jointVariables}', but got '${_localScope.kind}.");
     Map<String, List<int>>? usedNamesOffsets = _localScope.usedNames;
@@ -8467,9 +8461,7 @@ class BodyBuilder extends StackListenerImpl
     exitSwitchScope();
     exitLocalScope();
     Condition condition = pop() as Condition;
-    assert(
-        condition.patternGuard == null,
-        // Coverage-ignore(suite): Not run.
+    assert(condition.patternGuard == null,
         "Unexpected pattern in switch statement: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     Statement switchStatement;
@@ -8613,9 +8605,7 @@ class BodyBuilder extends StackListenerImpl
 
     List<SwitchExpressionCase> cases = pop() as List<SwitchExpressionCase>;
     Condition condition = pop() as Condition;
-    assert(
-        condition.patternGuard == null,
-        // Coverage-ignore(suite): Not run.
+    assert(condition.patternGuard == null,
         "Unexpected pattern in switch expression: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     push(forest.createSwitchExpression(

@@ -255,7 +255,6 @@ class LibraryNameSpaceBuilder {
       assert(
           !(declaration is FunctionBuilder &&
               (declaration.isConstructor || declaration.isFactory)),
-          // Coverage-ignore(suite): Not run.
           "Unexpected constructor in library: $declaration.");
 
       Map<String, Builder> members = declaration.isSetter ? setables : getables;

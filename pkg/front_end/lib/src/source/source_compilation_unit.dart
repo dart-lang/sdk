@@ -133,9 +133,7 @@ class SourceCompilationUnitImpl
   /// This should only be called once.
   @override
   OffsetMap get offsetMap {
-    assert(
-        _offsetMap != null, // Coverage-ignore(suite): Not run.
-        "No OffsetMap for $this");
+    assert(_offsetMap != null, "No OffsetMap for $this");
     OffsetMap map = _offsetMap!;
     _offsetMap = null;
     return map;
@@ -143,9 +141,7 @@ class SourceCompilationUnitImpl
 
   @override
   SourceLibraryBuilder get libraryBuilder {
-    assert(
-        _libraryBuilder != null,
-        // Coverage-ignore(suite): Not run.
+    assert(_libraryBuilder != null,
         "Library builder for $this has not been computed yet.");
     return _libraryBuilder!;
   }
@@ -199,7 +195,6 @@ class SourceCompilationUnitImpl
   LanguageVersion get languageVersion {
     assert(
         _languageVersion.isFinal,
-        // Coverage-ignore(suite): Not run.
         "Attempting to read the language version of ${this} before has been "
         "finalized.");
     return _languageVersion;
@@ -319,18 +314,14 @@ class SourceCompilationUnitImpl
 
   @override
   OutlineBuilder createOutlineBuilder() {
-    assert(
-        _offsetMap == null, // Coverage-ignore(suite): Not run.
-        "OffsetMap has already been set for $this");
+    assert(_offsetMap == null, "OffsetMap has already been set for $this");
     return new OutlineBuilder(
         this, _builderFactory, _offsetMap = new OffsetMap(fileUri));
   }
 
   @override
   SourceLibraryBuilder createLibrary() {
-    assert(
-        _libraryBuilder == null,
-        // Coverage-ignore(suite): Not run.
+    assert(_libraryBuilder == null,
         "Source library builder as already been created for $this.");
     _libraryBuilder = _sourceLibraryBuilder;
     if (isPart) {
@@ -978,7 +969,6 @@ class SourceCompilationUnitImpl
                 declaration is DynamicTypeDeclarationBuilder ||
                 // Coverage-ignore(suite): Not run.
                 declaration is NeverTypeDeclarationBuilder,
-            // Coverage-ignore(suite): Not run.
             "Unexpected top level member $declaration "
             "(${declaration.runtimeType}).");
       }

@@ -205,14 +205,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endClassDeclaration(String name) {
     TypeScope bodyScope = _typeScopes.pop();
-    assert(
-        bodyScope.kind == TypeScopeKind.classDeclaration,
-        // Coverage-ignore(suite): Not run.
+    assert(bodyScope.kind == TypeScopeKind.classDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
   }
 
@@ -254,14 +250,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endMixinDeclaration(String name) {
     TypeScope bodyScope = _typeScopes.pop();
-    assert(
-        bodyScope.kind == TypeScopeKind.mixinDeclaration,
-        // Coverage-ignore(suite): Not run.
+    assert(bodyScope.kind == TypeScopeKind.mixinDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
   }
 
@@ -289,9 +281,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endNamedMixinApplication(String name) {
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
   }
 
@@ -299,9 +289,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void endNamedMixinApplicationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
     _nominalParameterNameSpaces.pop().addTypeVariables(
@@ -342,14 +330,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endEnumDeclaration(String name) {
     TypeScope bodyScope = _typeScopes.pop();
-    assert(
-        bodyScope.kind == TypeScopeKind.enumDeclaration,
-        // Coverage-ignore(suite): Not run.
+    assert(bodyScope.kind == TypeScopeKind.enumDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
   }
 
@@ -357,14 +341,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void endEnumDeclarationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
     TypeScope bodyScope = _typeScopes.pop();
-    assert(
-        bodyScope.kind == TypeScopeKind.enumDeclaration,
-        // Coverage-ignore(suite): Not run.
+    assert(bodyScope.kind == TypeScopeKind.enumDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
     _declarationFragments.pop();
@@ -411,14 +391,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endExtensionDeclaration(String? name) {
     TypeScope bodyScope = _typeScopes.pop();
-    assert(
-        bodyScope.kind == TypeScopeKind.extensionDeclaration,
-        // Coverage-ignore(suite): Not run.
+    assert(bodyScope.kind == TypeScopeKind.extensionDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
   }
 
@@ -443,14 +419,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endExtensionTypeDeclaration(String name) {
     TypeScope bodyScope = _typeScopes.pop();
-    assert(
-        bodyScope.kind == TypeScopeKind.extensionTypeDeclaration,
-        // Coverage-ignore(suite): Not run.
+    assert(bodyScope.kind == TypeScopeKind.extensionTypeDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
   }
 
@@ -469,9 +441,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endFactoryMethod() {
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
   }
 
@@ -501,9 +471,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endConstructor() {
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
   }
 
@@ -511,9 +479,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void endConstructorForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
 
     _nominalParameterNameSpaces.pop().addTypeVariables(
@@ -536,9 +502,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endStaticMethod() {
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
   }
 
@@ -570,9 +534,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endInstanceMethod() {
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
   }
 
@@ -580,9 +542,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void endInstanceMethodForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
 
     _nominalParameterNameSpaces.pop().addTypeVariables(
@@ -605,9 +565,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endTopLevelMethod() {
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
   }
 
@@ -615,9 +573,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void endTopLevelMethodForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
 
     _nominalParameterNameSpaces.pop().addTypeVariables(
@@ -640,9 +596,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endTypedef() {
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
   }
 
@@ -673,9 +627,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void endFunctionType() {
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.functionTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.functionTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
   }
 
@@ -683,22 +635,18 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void checkStacks() {
     assert(
         _typeScopes.isSingular,
-        // Coverage-ignore(suite): Not run.
         "Unexpected type scope stack: "
         "$_typeScopes.");
     assert(
         _declarationFragments.isEmpty,
-        // Coverage-ignore(suite): Not run.
         "Unexpected declaration fragment stack: "
         "$_declarationFragments.");
     assert(
         _nominalParameterNameSpaces.isEmpty,
-        // Coverage-ignore(suite): Not run.
         "Unexpected nominal parameter name space stack : "
         "$_nominalParameterNameSpaces.");
     assert(
         _structuralParameterScopes.isEmpty,
-        // Coverage-ignore(suite): Not run.
         "Unexpected structural parameter scope stack : "
         "$_structuralParameterScopes.");
   }
@@ -2550,9 +2498,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       int charOffset,
       Token? initializerToken,
       {bool lowerWildcard = false}) {
-    assert(
-        !hasThis || !hasSuper,
-        // Coverage-ignore(suite): Not run.
+    assert(!hasThis || !hasSuper,
         "Formal parameter '${name}' has both 'this' and 'super' prefixes.");
     if (hasThis) {
       modifiers |= initializingFormalMask;

@@ -89,9 +89,7 @@ class DillExtensionTypeDeclarationBuilder
           } else {
             Procedure procedure = descriptor.memberReference.asProcedure;
             Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
-            assert(
-                tearOff != null, // Coverage-ignore(suite): Not run.
-                "No tear found for ${descriptor}");
+            assert(tearOff != null, "No tear found for ${descriptor}");
             nameSpace.addLocalMember(
                 name.text,
                 new DillExtensionTypeInstanceMethodBuilder(

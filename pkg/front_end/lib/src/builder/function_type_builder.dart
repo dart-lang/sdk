@@ -159,9 +159,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   @override
   DartType buildAliased(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
-    assert(
-        hierarchy != null || isExplicit, // Coverage-ignore(suite): Not run.
-        "Cannot build $this.");
+    assert(hierarchy != null || isExplicit, "Cannot build $this.");
     DartType builtReturnType =
         returnType.buildAliased(library, TypeUse.returnType, hierarchy);
     List<DartType> positionalParameters = <DartType>[];
