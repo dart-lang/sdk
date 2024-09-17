@@ -185,6 +185,66 @@ class MixinFragment extends DeclarationFragment implements Fragment {
   String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
 }
 
+class NamedMixinApplicationFragment implements Fragment {
+  final String name;
+  final Uri fileUri;
+  final int startCharOffset;
+  final int charOffset;
+  final int charEndOffset;
+  final int modifiers;
+  final List<MetadataBuilder>? metadata;
+  final List<NominalVariableBuilder>? typeParameters;
+  final TypeBuilder? supertype;
+  final MixinApplicationBuilder mixins;
+  final List<TypeBuilder>? interfaces;
+  final bool isAugmentation;
+  final bool isBase;
+  final bool isFinal;
+  final bool isInterface;
+  final bool isMacro;
+  final bool isMixinClass;
+  final bool isSealed;
+  final LookupScope compilationUnitScope;
+  final IndexedLibrary? indexedLibrary;
+
+  SourceClassBuilder? _builder;
+
+  NamedMixinApplicationFragment(
+      {required this.name,
+      required this.fileUri,
+      required this.startCharOffset,
+      required this.charOffset,
+      required this.charEndOffset,
+      required this.modifiers,
+      required this.metadata,
+      required this.typeParameters,
+      required this.supertype,
+      required this.mixins,
+      required this.interfaces,
+      required this.isAugmentation,
+      required this.isBase,
+      required this.isFinal,
+      required this.isInterface,
+      required this.isMacro,
+      required this.isMixinClass,
+      required this.isSealed,
+      required this.compilationUnitScope,
+      required this.indexedLibrary});
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  SourceClassBuilder get builder {
+    assert(_builder != null, "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  // Coverage-ignore(suite): Not run.
+  void set builder(SourceClassBuilder value) {
+    assert(_builder == null, "Builder has already been computed for $this.");
+    _builder = value;
+  }
+}
+
 class EnumFragment extends DeclarationFragment implements Fragment {
   @override
   final String name;

@@ -213,6 +213,45 @@ class _AddedFragment implements _Added {
         fragment.bodyScope.declarationBuilder = mixinBuilder;
         builders.add(new _AddBuilder(fragment.name, mixinBuilder,
             fragment.fileUri, fragment.fileOffset));
+      case NamedMixinApplicationFragment():
+        BuilderFactoryImpl.applyMixins(
+            unboundNominalVariables: unboundNominalVariables,
+            compilationUnitScope: fragment.compilationUnitScope,
+            problemReporting: problemReporting,
+            objectTypeBuilder: loader.target.objectType,
+            enclosingLibraryBuilder: enclosingLibraryBuilder,
+            fileUri: fragment.fileUri,
+            indexedLibrary: fragment.indexedLibrary,
+            supertype: fragment.supertype,
+            mixinApplicationBuilder: fragment.mixins,
+            mixinApplications: mixinApplications,
+            startCharOffset: fragment.startCharOffset,
+            charOffset: fragment.charOffset,
+            charEndOffset: fragment.charEndOffset,
+            subclassName: fragment.name,
+            isMixinDeclaration: false,
+            metadata: fragment.metadata,
+            name: fragment.name,
+            typeVariables: fragment.typeParameters,
+            modifiers: fragment.modifiers,
+            interfaces: fragment.interfaces,
+            isMacro: fragment.isMacro,
+            isSealed: fragment.isSealed,
+            isBase: fragment.isBase,
+            isInterface: fragment.isInterface,
+            isFinal: fragment.isFinal,
+            isAugmentation: fragment.isAugmentation,
+            isMixinClass: fragment.isMixinClass,
+            addBuilder: (String name, Builder declaration, int charOffset,
+                {Reference? getterReference}) {
+              if (getterReference != null) {
+                loader.buildersCreatedWithReferences[getterReference] =
+                    declaration;
+              }
+              builders.add(new _AddBuilder(
+                  name, declaration, fragment.fileUri, charOffset));
+            });
+
       case EnumFragment():
         SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
             fragment.metadata,

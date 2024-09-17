@@ -1082,38 +1082,32 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     assert(
         _mixinApplications != null, "Late registration of mixin application.");
 
-    supertype = applyMixins(
-        unboundNominalVariables: _unboundNominalVariables,
-        compilationUnitScope: _compilationUnitScope,
-        problemReporting: _problemReporting,
-        objectTypeBuilder: loader.target.objectType,
-        enclosingLibraryBuilder: _parent,
-        fileUri: _compilationUnit.fileUri,
-        indexedLibrary: indexedLibrary,
-        supertype: supertype,
-        mixinApplicationBuilder: mixinApplication,
-        mixinApplications: _mixinApplications!,
-        startCharOffset: startCharOffset,
-        charOffset: charOffset,
-        charEndOffset: charEndOffset,
-        subclassName: name,
-        isMixinDeclaration: false,
-        metadata: metadata,
-        name: name,
-        typeVariables: typeVariables,
-        modifiers: modifiers,
-        interfaces: interfaces,
-        isMacro: isMacro,
-        isSealed: isSealed,
-        isBase: isBase,
-        isInterface: isInterface,
-        isFinal: isFinal,
-        isAugmentation: isAugmentation,
-        isMixinClass: isMixinClass,
-        addBuilder: _addBuilder)!;
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
-        ownerName: supertype.declaration!.name, allowNameConflict: false);
+        ownerName: name, allowNameConflict: false);
+
+    _addFragment(new NamedMixinApplicationFragment(
+      name: name,
+      fileUri: _compilationUnit.fileUri,
+      startCharOffset: startCharOffset,
+      charOffset: charOffset,
+      charEndOffset: charEndOffset,
+      modifiers: modifiers,
+      metadata: metadata,
+      typeParameters: typeVariables,
+      supertype: supertype,
+      mixins: mixinApplication,
+      interfaces: interfaces,
+      isAugmentation: isAugmentation,
+      isBase: isBase,
+      isFinal: isFinal,
+      isInterface: isInterface,
+      isMacro: isMacro,
+      isMixinClass: isMixinClass,
+      isSealed: isSealed,
+      compilationUnitScope: _compilationUnitScope,
+      indexedLibrary: indexedLibrary,
+    ));
   }
 
   static TypeBuilder? applyMixins(
