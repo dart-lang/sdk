@@ -19,6 +19,7 @@ import '../fragment/fragment.dart';
 import 'name_scheme.dart';
 import 'source_builder_factory.dart';
 import 'source_class_builder.dart';
+import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
@@ -407,6 +408,54 @@ class _AddedFragment implements _Added {
             nativeMethodName: fragment.nativeMethodName);
         fragment.builder = procedureBuilder;
         builders.add(new _AddBuilder(fragment.name, procedureBuilder,
+            fragment.fileUri, fragment.charOffset));
+      case ConstructorFragment():
+        AbstractSourceConstructorBuilder constructorBuilder;
+        if (declarationBuilder is SourceExtensionTypeDeclarationBuilder) {
+          constructorBuilder = new SourceExtensionTypeConstructorBuilder(
+              fragment.metadata,
+              fragment.modifiers,
+              fragment.returnType,
+              fragment.name,
+              fragment.typeParameters,
+              fragment.formals,
+              enclosingLibraryBuilder,
+              declarationBuilder,
+              fragment.fileUri,
+              fragment.startCharOffset,
+              fragment.charOffset,
+              fragment.charOpenParenOffset,
+              fragment.charEndOffset,
+              fragment.constructorReference,
+              fragment.tearOffReference,
+              fragment.nameScheme,
+              nativeMethodName: fragment.nativeMethodName,
+              forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
+              beginInitializers: fragment.beginInitializers);
+        } else {
+          constructorBuilder = new DeclaredSourceConstructorBuilder(
+              fragment.metadata,
+              fragment.modifiers,
+              fragment.returnType,
+              fragment.name,
+              fragment.typeParameters,
+              fragment.formals,
+              enclosingLibraryBuilder,
+              declarationBuilder!,
+              fragment.fileUri,
+              fragment.startCharOffset,
+              fragment.charOffset,
+              fragment.charOpenParenOffset,
+              fragment.charEndOffset,
+              fragment.constructorReference,
+              fragment.tearOffReference,
+              fragment.nameScheme,
+              nativeMethodName: fragment.nativeMethodName,
+              forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
+              beginInitializers: fragment.beginInitializers);
+        }
+        fragment.builder = constructorBuilder;
+        builders.add(new _AddBuilder(fragment.name, constructorBuilder,
             fragment.fileUri, fragment.charOffset));
     }
   }

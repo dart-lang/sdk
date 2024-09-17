@@ -79,6 +79,12 @@ abstract class AbstractSourceConstructorBuilder
     extends SourceFunctionBuilderImpl
     implements SourceConstructorBuilder, Inferable, ConstructorDeclaration {
   @override
+  final SourceLibraryBuilder libraryBuilder;
+
+  @override
+  final DeclarationBuilder declarationBuilder;
+
+  @override
   final OmittedTypeBuilder returnType;
 
   final int charOpenParenOffset;
@@ -94,13 +100,15 @@ abstract class AbstractSourceConstructorBuilder
       String name,
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
-      SourceLibraryBuilder compilationUnit,
+      this.libraryBuilder,
+      this.declarationBuilder,
       Uri fileUri,
       int charOffset,
       this.charOpenParenOffset,
-      String? nativeMethodName)
+      String? nativeMethodName,
+      this.beginInitializers)
       : super(metadata, modifiers, name, typeVariables, formals,
-            compilationUnit, fileUri, charOffset, nativeMethodName) {
+            declarationBuilder, fileUri, charOffset, nativeMethodName) {
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
         if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
@@ -109,9 +117,6 @@ abstract class AbstractSourceConstructorBuilder
       }
     }
   }
-
-  @override
-  DeclarationBuilder get declarationBuilder => super.declarationBuilder!;
 
   @override
   bool get isConstructor => true;
@@ -405,7 +410,8 @@ class DeclaredSourceConstructorBuilder
       String name,
       List<NominalVariableBuilder>? typeVariables,
       this.formals,
-      SourceLibraryBuilder compilationUnit,
+      SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder declarationBuilder,
       Uri fileUri,
       int startCharOffset,
       int charOffset,
@@ -416,6 +422,7 @@ class DeclaredSourceConstructorBuilder
       NameScheme nameScheme,
       {String? nativeMethodName,
       required bool forAbstractClassOrEnumOrMixin,
+      required Token? beginInitializers,
       bool isSynthetic = false})
       : _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
@@ -427,11 +434,13 @@ class DeclaredSourceConstructorBuilder
             name,
             typeVariables,
             formals,
-            compilationUnit,
+            libraryBuilder,
+            declarationBuilder,
             fileUri,
             charOffset,
             charOpenParenOffset,
-            nativeMethodName) {
+            nativeMethodName,
+            beginInitializers) {
     _constructor = new Constructor(new FunctionNode(null),
         name: dummyName,
         fileUri: fileUri,
@@ -445,8 +454,8 @@ class DeclaredSourceConstructorBuilder
         .attachMember(_constructor);
     _constructorTearOff = createConstructorTearOffProcedure(
         nameScheme.getConstructorMemberName(name, isTearOff: true),
-        compilationUnit,
-        compilationUnit.fileUri,
+        libraryBuilder,
+        fileUri,
         charOffset,
         tearOffReference,
         forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin);
@@ -1149,7 +1158,8 @@ class SourceExtensionTypeConstructorBuilder
       String name,
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
-      SourceLibraryBuilder compilationUnit,
+      SourceLibraryBuilder libraryBuilder,
+      SourceExtensionTypeDeclarationBuilder declarationBuilder,
       Uri fileUri,
       int startCharOffset,
       int charOffset,
@@ -1159,7 +1169,8 @@ class SourceExtensionTypeConstructorBuilder
       Reference? tearOffReference,
       NameScheme nameScheme,
       {String? nativeMethodName,
-      required bool forAbstractClassOrEnumOrMixin})
+      required bool forAbstractClassOrEnumOrMixin,
+      required Token? beginInitializers})
       : _memberName = nameScheme.getDeclaredName(name),
         super(
             metadata,
@@ -1168,14 +1179,16 @@ class SourceExtensionTypeConstructorBuilder
             name,
             typeVariables,
             formals,
-            compilationUnit,
+            libraryBuilder,
+            declarationBuilder,
             fileUri,
             charOffset,
             charOpenParenOffset,
-            nativeMethodName) {
+            nativeMethodName,
+            beginInitializers) {
     _constructor = new Procedure(
         dummyName, ProcedureKind.Method, new FunctionNode(null),
-        fileUri: compilationUnit.fileUri, reference: constructorReference)
+        fileUri: fileUri, reference: constructorReference)
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset;
     nameScheme
@@ -1183,8 +1196,8 @@ class SourceExtensionTypeConstructorBuilder
         .attachMember(_constructor);
     _constructorTearOff = createConstructorTearOffProcedure(
         nameScheme.getConstructorMemberName(name, isTearOff: true),
-        compilationUnit,
-        compilationUnit.fileUri,
+        libraryBuilder,
+        fileUri,
         charOffset,
         tearOffReference,
         forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,

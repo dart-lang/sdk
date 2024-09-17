@@ -26,6 +26,7 @@ class OffsetMap {
   final Map<int, DeclarationFragment> _declarationFragments = {};
   final Map<int, FieldFragment> _fields = {};
   final Map<int, SourceFunctionBuilder> _constructors = {};
+  final Map<int, ConstructorFragment> _constructorFragments = {};
   final Map<int, MethodFragment> _procedures = {};
   final Map<int, LibraryPart> _parts = {};
   final Map<int, Import> _imports = {};
@@ -102,12 +103,12 @@ class OffsetMap {
   }
 
   void registerPrimaryConstructor(
-      Token beginToken, SourceFunctionBuilder builder) {
-    _constructors[beginToken.charOffset] = builder;
+      Token beginToken, ConstructorFragment builder) {
+    _constructorFragments[beginToken.charOffset] = builder;
   }
 
   SourceFunctionBuilder lookupPrimaryConstructor(Token beginToken) {
-    return _checkBuilder(_constructors[beginToken.charOffset],
+    return _checkBuilder(_constructorFragments[beginToken.charOffset]?.builder,
         '<primary-constructor>', beginToken.charOffset);
   }
 
@@ -116,8 +117,16 @@ class OffsetMap {
     _constructors[identifier.nameOffset] = builder;
   }
 
+  void registerConstructorFragment(
+      Identifier identifier, ConstructorFragment fragment) {
+    _constructorFragments[identifier.nameOffset] = fragment;
+  }
+
   SourceFunctionBuilder lookupConstructor(Identifier identifier) {
-    return _checkBuilder(_constructors[identifier.nameOffset], identifier.name,
+    return _checkBuilder(
+        _constructors[identifier.nameOffset] ??
+            _constructorFragments[identifier.nameOffset]?.builder,
+        identifier.name,
         identifier.nameOffset);
   }
 

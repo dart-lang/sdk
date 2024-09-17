@@ -16,6 +16,7 @@ import '../builder/mixin_application_builder.dart';
 import '../builder/type_builder.dart';
 import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart';
+import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
@@ -577,6 +578,73 @@ class MethodFragment implements Fragment {
   }
 
   void set builder(SourceProcedureBuilder value) {
+    assert(
+        _builder == null, // Coverage-ignore(suite): Not run.
+        "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$charOffset)';
+}
+
+class ConstructorFragment implements Fragment {
+  final String name;
+  final Uri fileUri;
+  final int startCharOffset;
+  final int charOffset;
+  final int charOpenParenOffset;
+  final int charEndOffset;
+  final int modifiers;
+  final List<MetadataBuilder>? metadata;
+  final OmittedTypeBuilder returnType;
+  final List<NominalVariableBuilder>? typeParameters;
+  final List<FormalParameterBuilder>? formals;
+  final Reference? constructorReference;
+  final Reference? tearOffReference;
+  final NameScheme nameScheme;
+  final String? nativeMethodName;
+  final bool forAbstractClassOrMixin;
+  Token? _beginInitializers;
+
+  AbstractSourceConstructorBuilder? _builder;
+
+  ConstructorFragment(
+      {required this.name,
+      required this.fileUri,
+      required this.startCharOffset,
+      required this.charOffset,
+      required this.charOpenParenOffset,
+      required this.charEndOffset,
+      required this.modifiers,
+      required this.metadata,
+      required this.returnType,
+      required this.typeParameters,
+      required this.formals,
+      required this.constructorReference,
+      required this.tearOffReference,
+      required this.nameScheme,
+      required this.nativeMethodName,
+      required this.forAbstractClassOrMixin,
+      required Token? beginInitializers})
+      : _beginInitializers = beginInitializers;
+
+  Token? get beginInitializers {
+    Token? result = _beginInitializers;
+    // Ensure that we don't hold onto the token.
+    _beginInitializers = null;
+    return result;
+  }
+
+  @override
+  AbstractSourceConstructorBuilder get builder {
+    assert(
+        _builder != null, // Coverage-ignore(suite): Not run.
+        "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(AbstractSourceConstructorBuilder value) {
     assert(
         _builder == null, // Coverage-ignore(suite): Not run.
         "Builder has already been computed for $this.");
