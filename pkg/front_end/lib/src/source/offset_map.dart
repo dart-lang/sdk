@@ -22,7 +22,6 @@ import 'source_function_builder.dart';
 /// are created, with the [DietListener], where the objects are looked up.
 class OffsetMap {
   final Uri uri;
-  final Map<int, DeclarationBuilder> _declarations = {};
   final Map<int, DeclarationFragment> _declarationFragments = {};
   final Map<int, SourceFieldBuilder> _fields = {};
   final Map<int, SourceFunctionBuilder> _constructors = {};
@@ -77,17 +76,9 @@ class OffsetMap {
     _declarationFragments[identifier.nameOffset] = fragment;
   }
 
-  void registerNamedDeclaration(
-      Identifier identifier, DeclarationBuilder builder) {
-    _declarations[identifier.nameOffset] = builder;
-  }
-
   DeclarationBuilder lookupNamedDeclaration(Identifier identifier) {
-    return _checkBuilder(
-        _declarations[identifier.nameOffset] ??
-            _declarationFragments[identifier.nameOffset]?.builder,
-        identifier.name,
-        identifier.nameOffset);
+    return _checkBuilder(_declarationFragments[identifier.nameOffset]?.builder,
+        identifier.name, identifier.nameOffset);
   }
 
   void registerUnnamedDeclaration(

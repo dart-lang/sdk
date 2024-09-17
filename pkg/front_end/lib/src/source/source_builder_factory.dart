@@ -892,27 +892,48 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isFinal,
       required bool isAugmentation,
       required bool isMixinClass}) {
-    _addClass(
-        offsetMap,
-        metadata,
-        modifiers,
-        identifier,
-        typeVariables,
-        supertype,
-        mixins,
-        interfaces,
-        startOffset,
-        nameOffset,
-        endOffset,
-        supertypeOffset,
-        isMacro: isMacro,
-        isSealed: isSealed,
-        isBase: isBase,
-        isInterface: isInterface,
-        isFinal: isFinal,
-        isAugmentation: isAugmentation,
-        isMixinDeclaration: false,
-        isMixinClass: isMixinClass);
+    String className = identifier.name;
+
+    endClassDeclaration(className);
+
+    ClassFragment declarationFragment =
+        _declarationFragments.pop() as ClassFragment;
+
+    NominalParameterNameSpace nominalParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+    nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
+        ownerName: className, allowNameConflict: false);
+
+    if (declarationFragment.declaresConstConstructor) {
+      modifiers |= declaresConstConstructorMask;
+    }
+
+    declarationFragment.compilationUnitScope = _compilationUnitScope;
+    declarationFragment.metadata = metadata;
+    declarationFragment.modifiers = modifiers;
+    declarationFragment.supertype = supertype;
+    declarationFragment.mixins = mixins;
+    declarationFragment.interfaces = interfaces;
+    declarationFragment.constructorReferences =
+        new List<ConstructorReferenceBuilder>.of(_constructorReferences);
+    declarationFragment.startOffset = startOffset;
+    declarationFragment.charOffset = nameOffset;
+    declarationFragment.endOffset = endOffset;
+    declarationFragment.indexedLibrary = indexedLibrary;
+    declarationFragment.indexedClass = _indexedContainer as IndexedClass?;
+    declarationFragment.isAugmentation = isAugmentation;
+    declarationFragment.isBase = isBase;
+    declarationFragment.isFinal = isFinal;
+    declarationFragment.isInterface = isInterface;
+    declarationFragment.isMacro = isMacro;
+    declarationFragment.isMixinClass = isMixinClass;
+    declarationFragment.isSealed = isSealed;
+
+    _constructorReferences.clear();
+
+    _addFragment(declarationFragment,
+        getterReference: _indexedContainer?.reference);
+    offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
 
   @override
@@ -989,139 +1010,44 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             supertype.charOffset!);
       }
     }
-    _addClass(
-        offsetMap,
-        metadata,
-        0,
-        identifier,
-        typeVariables,
-        supertype,
-        mixinApplication,
-        interfaces,
-        startOffset,
-        nameOffset,
-        endOffset,
-        supertypeOffset,
-        isMacro: false,
-        isSealed: false,
-        isBase: isBase,
-        isInterface: false,
-        isFinal: false,
-        isAugmentation: isAugmentation,
-        isMixinDeclaration: true,
-        isMixinClass: false);
-  }
 
-  void _addClass(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      Identifier identifier,
-      List<NominalVariableBuilder>? typeVariables,
-      TypeBuilder? supertype,
-      MixinApplicationBuilder? mixins,
-      List<TypeBuilder>? interfaces,
-      int startOffset,
-      int nameOffset,
-      int endOffset,
-      int supertypeOffset,
-      {required bool isMacro,
-      required bool isSealed,
-      required bool isBase,
-      required bool isInterface,
-      required bool isFinal,
-      required bool isAugmentation,
-      required bool isMixinDeclaration,
-      required bool isMixinClass}) {
     String className = identifier.name;
-    // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
-    if (isMixinDeclaration) {
-      endMixinDeclaration(className);
-    } else {
-      endClassDeclaration(className);
-    }
+    endMixinDeclaration(className);
 
-    DeclarationFragment declarationFragment = _declarationFragments.pop();
+    MixinFragment declarationFragment =
+        _declarationFragments.pop() as MixinFragment;
 
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
     nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
         ownerName: className, allowNameConflict: false);
 
-    LookupScope typeParameterScope = declarationFragment.typeParameterScope;
-
-    DeclarationNameSpaceBuilder nameSpaceBuilder =
-        declarationFragment.toDeclarationNameSpaceBuilder();
-
-    if (isMixinDeclaration) {
-      modifiers = abstractMask;
-    }
+    int modifiers = abstractMask;
     if (declarationFragment.declaresConstConstructor) {
       modifiers |= declaresConstConstructorMask;
     }
 
-    assert(
-        _mixinApplications != null, "Late registration of mixin application.");
-
-    SourceClassBuilder classBuilder = new SourceClassBuilder(
-        metadata,
-        modifiers,
-        className,
-        typeVariables,
-        applyMixins(
-            unboundNominalVariables: _unboundNominalVariables,
-            compilationUnitScope: _compilationUnitScope,
-            problemReporting: _problemReporting,
-            objectTypeBuilder: loader.target.objectType,
-            enclosingLibraryBuilder: _parent,
-            fileUri: _compilationUnit.fileUri,
-            indexedLibrary: indexedLibrary,
-            supertype: supertype,
-            mixinApplicationBuilder: mixins,
-            mixinApplications: _mixinApplications!,
-            startCharOffset: startOffset,
-            charOffset: nameOffset,
-            charEndOffset: endOffset,
-            subclassName: className,
-            isMixinDeclaration: isMixinDeclaration,
-            typeVariables: typeVariables,
-            isMacro: false,
-            isSealed: false,
-            isBase: false,
-            isInterface: false,
-            isFinal: false,
-            // TODO(johnniwinther): How can we support class with mixins?
-            isAugmentation: false,
-            isMixinClass: false,
-            addBuilder: _addBuilder),
-        interfaces,
-        // TODO(johnniwinther): Add the `on` clause types of a mixin declaration
-        // here.
-        null,
-        typeParameterScope,
-        nameSpaceBuilder,
-        _parent,
-        new List<ConstructorReferenceBuilder>.of(_constructorReferences),
-        _compilationUnit.fileUri,
-        startOffset,
-        nameOffset,
-        endOffset,
-        _indexedContainer as IndexedClass?,
-        isMixinDeclaration: isMixinDeclaration,
-        isMacro: isMacro,
-        isSealed: isSealed,
-        isBase: isBase,
-        isInterface: isInterface,
-        isFinal: isFinal,
-        isAugmentation: isAugmentation,
-        isMixinClass: isMixinClass);
-    declarationFragment.bodyScope.declarationBuilder = classBuilder;
+    declarationFragment.compilationUnitScope = _compilationUnitScope;
+    declarationFragment.metadata = metadata;
+    declarationFragment.modifiers = modifiers;
+    declarationFragment.supertype = supertype;
+    declarationFragment.mixins = mixinApplication;
+    declarationFragment.interfaces = interfaces;
+    declarationFragment.constructorReferences =
+        new List<ConstructorReferenceBuilder>.of(_constructorReferences);
+    declarationFragment.startOffset = startOffset;
+    declarationFragment.charOffset = nameOffset;
+    declarationFragment.endOffset = endOffset;
+    declarationFragment.indexedLibrary = indexedLibrary;
+    declarationFragment.indexedClass = _indexedContainer as IndexedClass?;
+    declarationFragment.isAugmentation = isAugmentation;
+    declarationFragment.isBase = isBase;
 
     _constructorReferences.clear();
 
-    _addBuilder(className, classBuilder, nameOffset,
-        getterReference: _indexedContainer?.reference);
-    offsetMap.registerNamedDeclaration(identifier, classBuilder);
+    _addFragment(declarationFragment);
+
+    offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
 
   @override

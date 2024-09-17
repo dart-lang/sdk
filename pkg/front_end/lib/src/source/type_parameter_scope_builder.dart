@@ -85,6 +85,134 @@ class _AddedFragment implements _Added {
         fragment.builder = typedefBuilder;
         builders.add(new _AddBuilder(fragment.name, typedefBuilder,
             fragment.fileUri, fragment.fileOffset));
+      case ClassFragment():
+        SourceClassBuilder classBuilder = new SourceClassBuilder(
+            fragment.metadata,
+            fragment.modifiers,
+            fragment.name,
+            fragment.typeParameters,
+            BuilderFactoryImpl.applyMixins(
+                unboundNominalVariables: unboundNominalVariables,
+                compilationUnitScope: fragment.compilationUnitScope,
+                problemReporting: problemReporting,
+                objectTypeBuilder: loader.target.objectType,
+                enclosingLibraryBuilder: enclosingLibraryBuilder,
+                fileUri: fragment.fileUri,
+                indexedLibrary: fragment.indexedLibrary,
+                supertype: fragment.supertype,
+                mixinApplicationBuilder: fragment.mixins,
+                mixinApplications: mixinApplications,
+                startCharOffset: fragment.startOffset,
+                charOffset: fragment.charOffset,
+                charEndOffset: fragment.endOffset,
+                subclassName: fragment.name,
+                isMixinDeclaration: false,
+                typeVariables: fragment.typeParameters,
+                isMacro: false,
+                isSealed: false,
+                isBase: false,
+                isInterface: false,
+                isFinal: false,
+                // TODO(johnniwinther): How can we support class with mixins?
+                isAugmentation: false,
+                isMixinClass: false,
+                addBuilder: (String name, Builder declaration, int charOffset,
+                    {Reference? getterReference}) {
+                  if (getterReference != null) {
+                    loader.buildersCreatedWithReferences[getterReference] =
+                        declaration;
+                  }
+                  builders.add(new _AddBuilder(
+                      name, declaration, fragment.fileUri, charOffset));
+                }),
+            fragment.interfaces,
+            /* onTypes = */ null,
+            fragment.typeParameterScope,
+            fragment.toDeclarationNameSpaceBuilder(),
+            enclosingLibraryBuilder,
+            fragment.constructorReferences,
+            fragment.fileUri,
+            fragment.startOffset,
+            fragment.charOffset,
+            fragment.endOffset,
+            fragment.indexedClass,
+            isMixinDeclaration: false,
+            isMacro: fragment.isMacro,
+            isSealed: fragment.isSealed,
+            isBase: fragment.isBase,
+            isInterface: fragment.isInterface,
+            isFinal: fragment.isFinal,
+            isAugmentation: fragment.isAugmentation,
+            isMixinClass: fragment.isMixinClass);
+        fragment.builder = classBuilder;
+        fragment.bodyScope.declarationBuilder = classBuilder;
+        builders.add(new _AddBuilder(fragment.name, classBuilder,
+            fragment.fileUri, fragment.fileOffset));
+      case MixinFragment():
+        SourceClassBuilder mixinBuilder = new SourceClassBuilder(
+            fragment.metadata,
+            fragment.modifiers,
+            fragment.name,
+            fragment.typeParameters,
+            BuilderFactoryImpl.applyMixins(
+                unboundNominalVariables: unboundNominalVariables,
+                compilationUnitScope: fragment.compilationUnitScope,
+                problemReporting: problemReporting,
+                objectTypeBuilder: loader.target.objectType,
+                enclosingLibraryBuilder: enclosingLibraryBuilder,
+                fileUri: fragment.fileUri,
+                indexedLibrary: fragment.indexedLibrary,
+                supertype: fragment.supertype,
+                mixinApplicationBuilder: fragment.mixins,
+                mixinApplications: mixinApplications,
+                startCharOffset: fragment.startOffset,
+                charOffset: fragment.charOffset,
+                charEndOffset: fragment.endOffset,
+                subclassName: fragment.name,
+                isMixinDeclaration: true,
+                typeVariables: fragment.typeParameters,
+                isMacro: false,
+                isSealed: false,
+                isBase: false,
+                isInterface: false,
+                isFinal: false,
+                // TODO(johnniwinther): How can we support class with mixins?
+                isAugmentation: false,
+                isMixinClass: false,
+                addBuilder: (String name, Builder declaration, int charOffset,
+                    {Reference? getterReference}) {
+                  if (getterReference != null) {
+                    loader.buildersCreatedWithReferences[getterReference] =
+                        declaration;
+                  }
+                  builders.add(new _AddBuilder(
+                      name, declaration, fragment.fileUri, charOffset));
+                }),
+            fragment.interfaces,
+            // TODO(johnniwinther): Add the `on` clause types of a mixin
+            //  declaration here.
+            /* onTypes = */ null,
+            fragment.typeParameterScope,
+            fragment.toDeclarationNameSpaceBuilder(),
+            enclosingLibraryBuilder,
+            fragment.constructorReferences,
+            fragment.fileUri,
+            fragment.startOffset,
+            fragment.charOffset,
+            fragment.endOffset,
+            fragment.indexedClass,
+            isMixinDeclaration: true,
+            isMacro: false,
+            isSealed: false,
+            isBase: fragment.isBase,
+            isInterface: false,
+            isFinal: false,
+            isAugmentation: fragment.isAugmentation,
+            isMixinClass: false);
+        fragment.builder = mixinBuilder;
+        fragment.bodyScope.declarationBuilder = mixinBuilder;
+        builders.add(new _AddBuilder(fragment.name, mixinBuilder,
+            fragment.fileUri, fragment.fileOffset));
       case EnumFragment():
         SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
             fragment.metadata,
@@ -462,93 +590,6 @@ abstract class DeclarationFragment {
     return new DeclarationNameSpaceBuilder._(
         name, _nominalParameterNameSpace, _added);
   }
-}
-
-class ClassFragment extends DeclarationFragment {
-  @override
-  final String name;
-
-  final int nameOffset;
-
-  final ClassName _className;
-
-  SourceClassBuilder? _builder;
-
-  ClassFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
-      super.typeParameterScope, super._nominalParameterNameSpace)
-      : _className = new ClassName(name);
-
-  @override
-  int get fileOffset => nameOffset;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  SourceClassBuilder get builder {
-    assert(_builder != null, "Builder has not been computed for $this.");
-    return _builder!;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  void set builder(SourceClassBuilder value) {
-    assert(_builder == null, "Builder has already been computed for $this.");
-    _builder = value;
-  }
-
-  @override
-  ContainerName get containerName => _className;
-
-  @override
-  ContainerType get containerType => ContainerType.Class;
-
-  @override
-  DeclarationFragmentKind get kind => DeclarationFragmentKind.classDeclaration;
-
-  @override
-  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
-}
-
-class MixinFragment extends DeclarationFragment {
-  @override
-  final String name;
-
-  final int nameOffset;
-
-  final ClassName _className;
-
-  SourceClassBuilder? _builder;
-
-  MixinFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
-      super.typeParameterScope, super._nominalParameterNameSpace)
-      : _className = new ClassName(name);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  int get fileOffset => nameOffset;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  SourceClassBuilder get builder {
-    assert(_builder != null, "Builder has not been computed for $this.");
-    return _builder!;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  void set builder(SourceClassBuilder value) {
-    assert(_builder == null, "Builder has already been computed for $this.");
-    _builder = value;
-  }
-
-  @override
-  ContainerName get containerName => _className;
-
-  @override
-  ContainerType get containerType => ContainerType.Class;
-
-  @override
-  DeclarationFragmentKind get kind => DeclarationFragmentKind.mixinDeclaration;
-
-  @override
-  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
 }
 
 class _AddBuilder {

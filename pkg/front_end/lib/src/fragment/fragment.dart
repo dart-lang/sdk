@@ -14,6 +14,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/type_builder.dart';
 import '../source/name_scheme.dart';
+import '../source/source_class_builder.dart';
 import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
@@ -57,6 +58,131 @@ class TypedefFragment implements Fragment {
 
   @override
   String toString() => "$runtimeType($name,$fileUri,$fileOffset)";
+}
+
+class ClassFragment extends DeclarationFragment implements Fragment {
+  @override
+  final String name;
+
+  final int nameOffset;
+
+  final ClassName _className;
+
+  SourceClassBuilder? _builder;
+
+  late final LookupScope compilationUnitScope;
+  late final List<MetadataBuilder>? metadata;
+  late final int modifiers;
+  late final TypeBuilder? supertype;
+  late final MixinApplicationBuilder? mixins;
+  late final List<TypeBuilder>? interfaces;
+  late final List<ConstructorReferenceBuilder> constructorReferences;
+  late final int startOffset;
+  late final int charOffset;
+  late final int endOffset;
+  late final IndexedLibrary? indexedLibrary;
+  late final IndexedClass? indexedClass;
+  late final bool isAugmentation;
+  late final bool isBase;
+  late final bool isFinal;
+  late final bool isInterface;
+  late final bool isMacro;
+  late final bool isMixinClass;
+  late final bool isSealed;
+
+  ClassFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
+      super.typeParameterScope, super._nominalParameterNameSpace)
+      : _className = new ClassName(name);
+
+  @override
+  int get fileOffset => nameOffset;
+
+  @override
+  SourceClassBuilder get builder {
+    assert(
+        _builder != null, // Coverage-ignore(suite): Not run.
+        "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(SourceClassBuilder value) {
+    assert(
+        _builder == null, // Coverage-ignore(suite): Not run.
+        "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  ContainerName get containerName => _className;
+
+  @override
+  ContainerType get containerType => ContainerType.Class;
+
+  @override
+  DeclarationFragmentKind get kind => DeclarationFragmentKind.classDeclaration;
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
+}
+
+class MixinFragment extends DeclarationFragment implements Fragment {
+  @override
+  final String name;
+
+  final int nameOffset;
+
+  final ClassName _className;
+
+  SourceClassBuilder? _builder;
+
+  late final LookupScope compilationUnitScope;
+  late final List<MetadataBuilder>? metadata;
+  late final int modifiers;
+  late final TypeBuilder? supertype;
+  late final MixinApplicationBuilder? mixins;
+  late final List<TypeBuilder>? interfaces;
+  late final List<ConstructorReferenceBuilder> constructorReferences;
+  late final int startOffset;
+  late final int charOffset;
+  late final int endOffset;
+  late final IndexedLibrary? indexedLibrary;
+  late final IndexedClass? indexedClass;
+  late final bool isAugmentation;
+  late final bool isBase;
+
+  MixinFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
+      super.typeParameterScope, super._nominalParameterNameSpace)
+      : _className = new ClassName(name);
+
+  @override
+  int get fileOffset => nameOffset;
+
+  @override
+  SourceClassBuilder get builder {
+    assert(
+        _builder != null, // Coverage-ignore(suite): Not run.
+        "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(SourceClassBuilder value) {
+    assert(
+        _builder == null, // Coverage-ignore(suite): Not run.
+        "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  ContainerName get containerName => _className;
+
+  @override
+  ContainerType get containerType => ContainerType.Class;
+
+  @override
+  DeclarationFragmentKind get kind => DeclarationFragmentKind.mixinDeclaration;
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
 }
 
 class EnumFragment extends DeclarationFragment implements Fragment {
