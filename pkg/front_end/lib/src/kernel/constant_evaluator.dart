@@ -3342,8 +3342,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           AbortConstant? error = checkAssert(init.statement);
           if (error != null) return error;
         } else {
-          // Coverage-ignore-block(suite): Not run.
-          // Coverage-ignore: Probably unreachable.
+          // Coverage-ignore-block: Probably unreachable.
           // InvalidInitializer or new Initializers.
           // InvalidInitializer is (currently) only
           // created for classes with no constructors that doesn't have a

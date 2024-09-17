@@ -362,9 +362,7 @@ class ExpressionInferenceResult {
 
   ExpressionInferenceResult(this.inferredType, this.expression,
       {this.postCoercionType = null})
-      : assert(
-            isKnown(inferredType), // Coverage-ignore(suite): Not run.
-            "$inferredType is not known.");
+      : assert(isKnown(inferredType), "$inferredType is not known.");
 
   /// The guards used for null-aware access if the expression is part of a
   /// null-shorting.

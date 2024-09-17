@@ -258,7 +258,6 @@ class SourceLoader extends Loader {
     };
     assert(
         expectedFutureProblemsForCurrentPhase.isEmpty || hasSeenError,
-        // Coverage-ignore(suite): Not run.
         "Expected problems to be reported, but there were none.\n"
         "Current compilation phase: ${currentPhase}\n"
         "Expected at these locations:\n"
@@ -348,12 +347,8 @@ class SourceLoader extends Loader {
   Iterable<Uri> get loadedLibraryImportUris => _loadedLibraryBuilders.keys;
 
   void registerLoadedDillLibraryBuilder(DillLibraryBuilder libraryBuilder) {
-    assert(
-        !libraryBuilder.isPart, // Coverage-ignore(suite): Not run.
-        "Unexpected part $libraryBuilder.");
-    assert(
-        !libraryBuilder.isAugmenting,
-        // Coverage-ignore(suite): Not run.
+    assert(!libraryBuilder.isPart, "Unexpected part $libraryBuilder.");
+    assert(!libraryBuilder.isAugmenting,
         "Unexpected augmenting library $libraryBuilder.");
     Uri uri = libraryBuilder.importUri;
     _markDartLibraries(uri, libraryBuilder, libraryBuilder.mainCompilationUnit);
@@ -1491,7 +1486,6 @@ severity: $severity
         _compilationUnits.values.every((compilationUnit) =>
             !(compilationUnit is SourceCompilationUnit &&
                 compilationUnit.isAugmenting)),
-        // Coverage-ignore(suite): Not run.
         "Augmentation library found in libraryBuilders: " +
             _compilationUnits.values
                 .where((compilationUnit) =>
@@ -1501,14 +1495,12 @@ severity: $severity
             ".");
     assert(
         sourceLibraries.every((library) => !library.isAugmenting),
-        // Coverage-ignore(suite): Not run.
         "Augmentation library found in sourceLibraryBuilders: "
         "${sourceLibraries.where((library) => library.isAugmenting)}.");
     assert(
         _compilationUnits.values.every((compilationUnit) =>
             compilationUnit.loader != this ||
             sourceLibraries.contains(compilationUnit.libraryBuilder)),
-        // Coverage-ignore(suite): Not run.
         "Source library not found in sourceLibraryBuilders:" +
             _compilationUnits.values
                 .where((compilationUnit) =>
@@ -2621,9 +2613,7 @@ severity: $severity
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
     for (LibraryBuilder libraryBuilder in loadedLibraryBuilders) {
-      assert(
-          !libraryBuilder.isAugmenting,
-          // Coverage-ignore(suite): Not run.
+      assert(!libraryBuilder.isAugmenting,
           "Unexpected augmentation library $libraryBuilder.");
       if ((libraryBuilder.loader == this ||
           libraryBuilder.importUri.isScheme("dart") ||

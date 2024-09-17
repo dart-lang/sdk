@@ -381,14 +381,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       Builder declaration;
       if (messageText == exportDynamicSentinel) {
         assert(
-            name == 'dynamic', // Coverage-ignore(suite): Not run.
-            "Unexpected export name for 'dynamic': '$name'");
+            name == 'dynamic', "Unexpected export name for 'dynamic': '$name'");
         declaration = loader.coreLibrary.exportNameSpace
             .lookupLocalMember(name, setter: false)!;
       } else if (messageText == exportNeverSentinel) {
-        assert(
-            name == 'Never', // Coverage-ignore(suite): Not run.
-            "Unexpected export name for 'Never': '$name'");
+        assert(name == 'Never', "Unexpected export name for 'Never': '$name'");
         declaration = loader.coreLibrary.exportNameSpace
             .lookupLocalMember(name, setter: false)!;
       } else {
@@ -484,7 +481,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
                   node == declaration.extension) ||
               (declaration is ExtensionTypeDeclarationBuilder &&
                   node == declaration.extensionTypeDeclaration),
-          // Coverage-ignore(suite): Not run.
           "Unexpected declaration ${declaration} (${declaration.runtimeType}) "
           "for node ${node} (${node.runtimeType}).");
     }

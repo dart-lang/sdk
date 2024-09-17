@@ -51,9 +51,7 @@ class TypedefFragment implements Fragment {
   }
 
   void set builder(SourceTypeAliasBuilder value) {
-    assert(
-        _builder == null, // Coverage-ignore(suite): Not run.
-        "Builder has already been computed for $this.");
+    assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
 
@@ -92,16 +90,12 @@ class EnumFragment extends DeclarationFragment implements Fragment {
 
   @override
   SourceEnumBuilder get builder {
-    assert(
-        _builder != null, // Coverage-ignore(suite): Not run.
-        "Builder has not been computed for $this.");
+    assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
   }
 
   void set builder(SourceEnumBuilder value) {
-    assert(
-        _builder == null, // Coverage-ignore(suite): Not run.
-        "Builder has already been computed for $this.");
+    assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
 
@@ -153,16 +147,12 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
 
   @override
   SourceExtensionBuilder get builder {
-    assert(
-        _builder != null, // Coverage-ignore(suite): Not run.
-        "Builder has not been computed for $this.");
+    assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
   }
 
   void set builder(SourceExtensionBuilder value) {
-    assert(
-        _builder == null, // Coverage-ignore(suite): Not run.
-        "Builder has already been computed for $this.");
+    assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
 
@@ -202,9 +192,7 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
   /// The 'extension this type' is the type if `this` expression in instance
   /// methods declared in extension declarations.
   TypeBuilder get extensionThisType {
-    assert(
-        _extensionThisType != null,
-        // Coverage-ignore(suite): Not run.
+    assert(_extensionThisType != null,
         "DeclarationBuilder.extensionThisType has not been set on $this.");
     return _extensionThisType!;
   }
@@ -245,16 +233,12 @@ class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
 
   @override
   SourceExtensionTypeDeclarationBuilder get builder {
-    assert(
-        _builder != null, // Coverage-ignore(suite): Not run.
-        "Builder has not been computed for $this.");
+    assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
   }
 
   void set builder(SourceExtensionTypeDeclarationBuilder value) {
-    assert(
-        _builder == null, // Coverage-ignore(suite): Not run.
-        "Builder has already been computed for $this.");
+    assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
 

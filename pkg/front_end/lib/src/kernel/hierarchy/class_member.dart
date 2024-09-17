@@ -64,7 +64,6 @@ class TypeDeclarationInstanceMemberResult implements MemberResult {
       {required this.isDeclaredAsField})
       : assert(
             member.enclosingTypeDeclaration != null,
-            // Coverage-ignore(suite): Not run.
             "Type declaration member without enclosing type "
             "declaration $member.");
 
@@ -636,7 +635,6 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         assert(
             _covariance ==
                 new Covariance.fromMember(_member!, forSetter: forSetter),
-            // Coverage-ignore(suite): Not run.
             "Unexpected covariance for combined members signature "
             "$_member. Found $_covariance, expected "
             "${new Covariance.fromMember(_member!, forSetter: forSetter)}.");
@@ -864,7 +862,6 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
     assert(
         !(implementedInterfaceMember.isNoSuchMethodForwarder &&
             !inheritedClassMember.isNoSuchMethodForwarder),
-        // Coverage-ignore(suite): Not run.
         "The inherited $inheritedClassMember has "
         "isNoSuchMethodForwarder="
         "${inheritedClassMember.isNoSuchMethodForwarder} but "
@@ -1004,7 +1001,6 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
         assert(
             _covariance ==
                 new Covariance.fromMember(_member!, forSetter: forSetter),
-            // Coverage-ignore(suite): Not run.
             "Unexpected covariance for combined members signature "
             "$_member. Found $_covariance, expected "
             "${new Covariance.fromMember(_member!, forSetter: forSetter)}.");

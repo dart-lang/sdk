@@ -91,7 +91,6 @@ DelayedDefaultValueCloner buildConstructorTearOffProcedure(
               declarationConstructor.isFactory) ||
           (declarationConstructor is Procedure &&
               declarationConstructor.isStatic),
-      // Coverage-ignore(suite): Not run.
       "Unexpected constructor tear off target $declarationConstructor "
       "(${declarationConstructor.runtimeType}).");
   assert(
@@ -100,7 +99,6 @@ DelayedDefaultValueCloner buildConstructorTearOffProcedure(
               declarationConstructor.isFactory) ||
           (declarationConstructor is Procedure &&
               declarationConstructor.isStatic),
-      // Coverage-ignore(suite): Not run.
       "Unexpected constructor tear off target $declarationConstructor "
       "(${declarationConstructor.runtimeType}).");
 
@@ -155,7 +153,6 @@ DelayedDefaultValueCloner buildTypedefTearOffProcedure(
               declarationConstructor.isFactory) ||
           (declarationConstructor is Procedure &&
               declarationConstructor.isStatic),
-      // Coverage-ignore(suite): Not run.
       "Unexpected constructor tear off target $declarationConstructor "
       "(${declarationConstructor.runtimeType}).");
   assert(
@@ -164,7 +161,6 @@ DelayedDefaultValueCloner buildTypedefTearOffProcedure(
               implementationConstructor.isFactory) ||
           (implementationConstructor is Procedure &&
               implementationConstructor.isStatic),
-      // Coverage-ignore(suite): Not run.
       "Unexpected constructor tear off target $implementationConstructor "
       "(${declarationConstructor.runtimeType}).");
 

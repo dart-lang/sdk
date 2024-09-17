@@ -341,12 +341,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             !importUri.isScheme('package') ||
             // Coverage-ignore(suite): Not run.
             importUri.path.startsWith(_packageUri.path),
-        // Coverage-ignore(suite): Not run.
         "Foreign package uri '$_packageUri' set on library with import uri "
         "'${importUri}'.");
     assert(
         !importUri.isScheme('dart') || _packageUri == null,
-        // Coverage-ignore(suite): Not run.
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
     compilationUnit = new SourceCompilationUnitImpl(
@@ -370,13 +368,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   SourceLibraryBuilderState get state => _state;
 
   void set state(SourceLibraryBuilderState value) {
-    assert(
-        _state < value,
-        // Coverage-ignore(suite): Not run.
+    assert(_state < value,
         "State $value has already been reached at $_state in $this.");
     assert(
         _state.index + 1 == value.index,
-        // Coverage-ignore(suite): Not run.
         _state.index + 1 < SourceLibraryBuilderState.values.length
             ? "Expected state "
                 "${SourceLibraryBuilderState.values[_state.index + 1]} "
@@ -392,9 +387,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<SourceLibraryBuilderState>? pending}) {
     if (required != null) {
       for (SourceLibraryBuilderState requiredState in required) {
-        assert(
-            state >= requiredState,
-            // Coverage-ignore(suite): Not run.
+        assert(state >= requiredState,
             "State $requiredState required, but found $state in $this.");
       }
     }
@@ -402,7 +395,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       for (SourceLibraryBuilderState pendingState in pending) {
         assert(
             state < pendingState,
-            // Coverage-ignore(suite): Not run.
             "State $pendingState must not have been reached, "
             "but found $state in $this.");
       }
@@ -484,9 +476,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   NameSpace get nameSpace {
-    assert(
-        _nameSpace != null, // Coverage-ignore(suite): Not run.
-        "Name space has not being computed for $this.");
+    assert(_nameSpace != null, "Name space has not being computed for $this.");
     return _nameSpace!;
   }
 
@@ -517,13 +507,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       _augmentationLibraries;
 
   void addAugmentationLibrary(SourceLibraryBuilder augmentationLibrary) {
-    assert(
-        augmentationLibrary.isAugmenting,
-        // Coverage-ignore(suite): Not run.
+    assert(augmentationLibrary.isAugmenting,
         "Library ${augmentationLibrary} must be a augmentation library.");
-    assert(
-        !augmentationLibrary.isPart,
-        // Coverage-ignore(suite): Not run.
+    assert(!augmentationLibrary.isPart,
         "Augmentation library ${augmentationLibrary} cannot be a part .");
     (_augmentationLibraries ??= []).add(augmentationLibrary);
     augmentationLibrary.augmentationIndex = _augmentationLibraries!.length;
@@ -809,15 +795,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   builder.message.problemMessage;
             case BuiltinTypeDeclarationBuilder():
               if (builder is DynamicTypeDeclarationBuilder) {
-                assert(
-                    name == 'dynamic',
-                    // Coverage-ignore(suite): Not run.
+                assert(name == 'dynamic',
                     "Unexpected export name for 'dynamic': '$name'");
                 (unserializableExports ??= {})[name] = exportDynamicSentinel;
               } else if (builder is NeverTypeDeclarationBuilder) {
-                assert(
-                    name == 'Never',
-                    // Coverage-ignore(suite): Not run.
+                assert(name == 'Never',
                     "Unexpected export name for 'Never': '$name'");
                 (unserializableExports ??= // Coverage-ignore(suite): Not run.
                     {})[name] = exportNeverSentinel;
@@ -858,8 +840,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(checkState(required: [SourceLibraryBuilderState.resolvedParts]));
 
     assert(
-        _nameSpace == null, // Coverage-ignore(suite): Not run.
-        "Name space has already being computed for $this.");
+        _nameSpace == null, "Name space has already being computed for $this.");
 
     assert(
         _mixinApplications != null, "Late registration of mixin application.");
@@ -1344,7 +1325,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 declaration is DynamicTypeDeclarationBuilder ||
                 // Coverage-ignore(suite): Not run.
                 declaration is NeverTypeDeclarationBuilder,
-            // Coverage-ignore(suite): Not run.
             "Unexpected builder in library: ${declaration} "
             "(${declaration.runtimeType}");
       }
@@ -2209,7 +2189,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             declaration is! TypeDeclarationBuilder ||
                 // Coverage-ignore(suite): Not run.
                 declaration is BuiltinTypeDeclarationBuilder,
-            // Coverage-ignore(suite): Not run.
             "Unexpected declaration ${declaration.runtimeType}");
       }
     }

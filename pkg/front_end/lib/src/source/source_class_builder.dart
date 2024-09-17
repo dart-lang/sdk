@@ -157,9 +157,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void set isConflictingAugmentationMember(bool value) {
-    assert(
-        _isConflictingAugmentationMember == null,
-        // Coverage-ignore(suite): Not run.
+    assert(_isConflictingAugmentationMember == null,
         '$this.isConflictingAugmentationMember has already been fixed.');
     _isConflictingAugmentationMember = value;
   }
@@ -869,9 +867,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     if (classHierarchyNode.isMixinApplication) {
-      assert(
-          mixedInTypeBuilder != null,
-          // Coverage-ignore(suite): Not run.
+      assert(mixedInTypeBuilder != null,
           "No mixed in type builder for mixin application $this.");
       ClassHierarchyNode mixedInNode = classHierarchyNode.mixedInNode!;
       ClassHierarchyNode? mixinSuperClassNode =
