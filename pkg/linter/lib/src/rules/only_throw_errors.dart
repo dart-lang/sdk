@@ -64,10 +64,10 @@ bool _isThrowable(DartType? type) {
 class OnlyThrowErrors extends LintRule {
   OnlyThrowErrors()
       : super(
-            name: 'only_throw_errors',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'only_throw_errors',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.only_throw_errors;

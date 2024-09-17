@@ -17,6 +17,7 @@ import 'package:analysis_server/src/lsp/snippets.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
+import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
@@ -85,6 +86,11 @@ lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
 
 /// Creates a [lsp.WorkspaceEdit] from simple [server.SourceFileEdit]s.
 ///
+/// [clientCapabilities] should be for the client that will handle this edit, which
+/// is not necessarily the client that triggered the request that called this
+/// function (for example a DTD client may call a request that triggers an edit
+/// that will be sent to the editor).
+///
 /// If [annotateChanges] is set, change annotations will be produced and
 /// marked as needing confirmation from the user (depending on the value).
 ///
@@ -93,13 +99,13 @@ lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
 /// the document is not modified before the version number is read.
 lsp.WorkspaceEdit createPlainWorkspaceEdit(
   AnalysisServer server,
+  LspClientCapabilities clientCapabilities,
   List<server.SourceFileEdit> edits, {
   ChangeAnnotations annotateChanges = ChangeAnnotations.none,
 }) {
   return toWorkspaceEdit(
       annotateChanges: annotateChanges,
-      // Client capabilities are always available after initialization.
-      server.lspClientCapabilities!,
+      clientCapabilities,
       edits
           .map((e) => FileEditInformation(
                 server.getVersionedDocumentIdentifier(e.file),
@@ -149,6 +155,7 @@ WorkspaceEdit createRenameEdit(
 /// the document is not modified before the version number is read.
 lsp.WorkspaceEdit createWorkspaceEdit(
   AnalysisServer server,
+  LspClientCapabilities clientCapabilities,
   server.SourceChange change, {
   ChangeAnnotations annotateChanges = ChangeAnnotations.none,
   // The caller must specify whether snippets are valid here for where they're
@@ -165,8 +172,8 @@ lsp.WorkspaceEdit createWorkspaceEdit(
   // existing file with a single edit and that there is either a selection or a
   // linked edit group (otherwise there's no value in snippets).
   if (!allowSnippets ||
-      !server.lspClientCapabilities!.experimentalSnippetTextEdit ||
-      !server.lspClientCapabilities!.documentChanges ||
+      !clientCapabilities.experimentalSnippetTextEdit ||
+      !clientCapabilities.documentChanges ||
       filePath == null ||
       lineInfo == null ||
       change.edits.length != 1 ||
@@ -174,7 +181,7 @@ lsp.WorkspaceEdit createWorkspaceEdit(
       change.edits.single.file != filePath ||
       change.edits.single.edits.length != 1 ||
       (change.selection == null && change.linkedEditGroups.isEmpty)) {
-    return createPlainWorkspaceEdit(server, change.edits,
+    return createPlainWorkspaceEdit(server, clientCapabilities, change.edits,
         annotateChanges: annotateChanges);
   }
 
@@ -804,7 +811,8 @@ lsp.CompletionItem snippetToCompletionItem(
   // LSP Completions can only provide simple edits for the current file.
   Command? command;
   if (otherFilesChanges.isNotEmpty) {
-    var workspaceEdit = createPlainWorkspaceEdit(server, otherFilesChanges);
+    var workspaceEdit =
+        createPlainWorkspaceEdit(server, capabilities, otherFilesChanges);
     command = Command(
         title: 'Add import',
         command: Commands.sendWorkspaceEdit,
@@ -1038,11 +1046,18 @@ lsp.CompletionItem toCompletionItem(
   }
 
   var element = suggestion.element;
-  var completionKind = element != null
-      ? elementKindToCompletionItemKind(
-          capabilities.completionItemKinds, element.kind)
-      : suggestionKindToCompletionItemKind(
-          capabilities.completionItemKinds, suggestion.kind, label);
+  var colorPreviewHex =
+      capabilities.completionItemKinds.contains(CompletionItemKind.Color) &&
+              suggestion is DartCompletionSuggestion
+          ? suggestion.colorHex
+          : null;
+  var completionKind = colorPreviewHex != null
+      ? CompletionItemKind.Color
+      : element != null
+          ? elementKindToCompletionItemKind(
+              capabilities.completionItemKinds, element.kind)
+          : suggestionKindToCompletionItemKind(
+              capabilities.completionItemKinds, suggestion.kind, label);
 
   var labelDetails = getCompletionDetail(
     suggestion,
@@ -1093,6 +1108,13 @@ lsp.CompletionItem toCompletionItem(
       truncatedSignature: labelDetails.truncatedSignature,
       autoImportUri: labelDetails.autoImportUri,
     );
+  }
+
+  // Append hex colours to the end of the docs, this will allow editors that
+  // use a regex to find a color at the start/end like VS Code to show a color
+  // preview.
+  if (colorPreviewHex != null) {
+    cleanedDoc = '${cleanedDoc ?? ''}\n\n$colorPreviewHex'.trim();
   }
 
   // Because we potentially send thousands of these items, we should minimise
@@ -1518,20 +1540,25 @@ lsp.TextEdit toTextEdit(
 
 /// Creates an [lsp.WorkspaceEdit] for [edits].
 ///
+/// [clientCpabilities] should be for the client that will handle this edit,
+/// which is not necessarily the client that triggered the request that called
+/// this function (for example a DTD client may call a request that triggers an
+/// edit that will be sent to the editor).
+///
 /// If [annotateChanges] is set, change annotations will be produced and
 /// marked as needing confirmation from the user (depending on the value).
 lsp.WorkspaceEdit toWorkspaceEdit(
-  LspClientCapabilities capabilities,
+  LspClientCapabilities clientCapabilities,
   List<FileEditInformation> edits, {
   ChangeAnnotations annotateChanges = ChangeAnnotations.none,
 }) {
-  var supportsDocumentChanges = capabilities.documentChanges;
+  var supportsDocumentChanges = clientCapabilities.documentChanges;
   var changeAnnotations = annotateChanges != ChangeAnnotations.none
       ? <lsp.ChangeAnnotationIdentifier, ChangeAnnotation>{}
       : null;
 
   if (supportsDocumentChanges) {
-    var supportsCreate = capabilities.createResourceOperations;
+    var supportsCreate = clientCapabilities.createResourceOperations;
     var changes = <Either4<lsp.CreateFile, lsp.DeleteFile, lsp.RenameFile,
         lsp.TextDocumentEdit>>[];
 
@@ -1546,7 +1573,7 @@ lsp.WorkspaceEdit toWorkspaceEdit(
         changes.add(createUnion);
       }
 
-      var textDocEdit = toTextDocumentEdit(capabilities, fileEdit,
+      var textDocEdit = toTextDocumentEdit(clientCapabilities, fileEdit,
           annotateChanges: annotateChanges,
           changeAnnotations: changeAnnotations);
       var textDocEditUnion = Either4<lsp.CreateFile, lsp.DeleteFile,

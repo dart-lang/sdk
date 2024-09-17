@@ -579,17 +579,10 @@ class TimelineEvent {
 
   bool owns_label() const { return OwnsLabelBit::decode(state_); }
 
-  enum StateBits {
-    kEventTypeBit = 0,  // reserve 4 bits for type.
-    kPreSerializedArgsBit = 4,
-    kOwnsLabelBit = 5,
-    kNextBit = 6,
-  };
-
-  class EventTypeField : public BitField<uword, EventType, kEventTypeBit, 4> {};
-  class PreSerializedArgsBit
-      : public BitField<uword, bool, kPreSerializedArgsBit, 1> {};
-  class OwnsLabelBit : public BitField<uword, bool, kOwnsLabelBit, 1> {};
+  using EventTypeField =
+      BitField<uword, EventType, 0, Utils::BitLength(kNumEventTypes - 1)>;
+  using PreSerializedArgsBit = BitField<uword, bool, EventTypeField::kNextBit>;
+  using OwnsLabelBit = BitField<uword, bool, PreSerializedArgsBit::kNextBit>;
 
   int64_t timestamp0_;
   // For an event of type |kDuration|, this is the end time. For an event of
@@ -908,9 +901,9 @@ class TimelineEventRecorder : public MallocAllocated {
   void FinishBlock(TimelineEventBlock* block);
   // This function must be called at least once for each thread that corresponds
   // to a track in the trace.
-  void AddTrackMetadataBasedOnThread(const intptr_t process_id,
-                                     const intptr_t trace_id,
-                                     const char* thread_name);
+  virtual void AddTrackMetadataBasedOnThread(const intptr_t process_id,
+                                             const intptr_t trace_id,
+                                             const char* thread_name);
   void AddAsyncTrackMetadataBasedOnEvent(const TimelineEvent& event);
 
  protected:
@@ -1281,6 +1274,10 @@ class TimelineEventFileRecorder : public TimelineEventFileRecorderBase {
   virtual ~TimelineEventFileRecorder();
 
   const char* name() const final { return FILE_RECORDER_NAME; }
+
+  virtual void AddTrackMetadataBasedOnThread(const intptr_t process_id,
+                                             const intptr_t trace_id,
+                                             const char* thread_name);
 
  private:
   void DrainImpl(const TimelineEvent& event) final;

@@ -125,6 +125,7 @@ class ElementFactory {
     constructor.isConst = isConst;
     constructor.parameters = _requiredParameters(argumentTypes);
     constructor.enclosingElement = definingClass;
+    constructor.enclosingElement3 = definingClass;
     if (!constructor.isSynthetic) {
       constructor.constantInitializers = <ConstructorInitializer>[];
     }
@@ -228,6 +229,7 @@ class ElementFactory {
       List<ParameterElement> parameters) {
     MethodElementImpl method = MethodElementImpl(methodName, 0);
     method.enclosingElement = enclosingElement;
+    method.enclosingElement3 = enclosingElement;
     method.parameters = parameters;
     method.returnType = returnType;
     return method;

@@ -48,10 +48,10 @@ dependencies:
 class DependOnReferencedPackages extends LintRule {
   DependOnReferencedPackages()
       : super(
-            name: 'depend_on_referenced_packages',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.pub});
+          name: 'depend_on_referenced_packages',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.depend_on_referenced_packages;

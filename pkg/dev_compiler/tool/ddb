@@ -25,8 +25,8 @@ void main(List<String> args) async {
     print('Usage: ddb [options] <dart-script-file>\n');
     print('Compiles <dart-script-file> with the dev_compiler and runs it on a '
         'JS platform.\n'
-        'Optionally, mulitple Dart source files can be passed as arguments and '
-        'they will be compiled into seperate modules in the order provided. '
+        'Optionally, multiple Dart source files can be passed as arguments and '
+        'they will be compiled into separate modules in the order provided. '
         'The order will be treated as an import DAG with the last file as the '
         'application entrypoint. The .dill file outputs from each compile will '
         'be collected and passed as dependency summaries for the next compile '
@@ -281,6 +281,10 @@ void main(List<String> args) async {
       if (options['packages'] != null) '--packages=${options['packages']}',
       if (emitDebugSymbols) '--emit-debug-symbols',
       if (canaryFeatures) '--canary',
+      // Provide predictable library URIs for all libraries when using the
+      // new ddc module format.
+      if (canaryFeatures) '--multi-root-scheme=ddb',
+      if (canaryFeatures) '--multi-root=/',
     ];
     var summaryFiles = [];
     for (var sourceFile in sourceFiles) {
@@ -289,27 +293,28 @@ void main(List<String> args) async {
         for (var summary in summaryFiles) '--summary=$summary',
         '-o',
         out,
-        sourceFile,
+        if (canaryFeatures) 'ddb:$sourceFile' else sourceFile,
       ];
       await runDdc([...ddcArgs, ...requestArgs]);
       outputs.add(out);
       var summaryFile = p.setExtension(out, '.dill');
-      var libname =
-          js_names.pathToJSIdentifier(p.basenameWithoutExtension(sourceFile));
+      var libname = canaryFeatures
+          ? 'ddb:$sourceFile'
+          : js_names.pathToJSIdentifier(p.basenameWithoutExtension(sourceFile));
       summaryFiles.add('$summaryFile=$libname');
     }
   }
 
   if (run) {
-    var ddcModuleSdkOptions = canaryFeatures ?
-'''let sdkOptions = {
-weakNullSafetyWarnings: !($weakNullSafetyErrors || $soundNullSafety),
+    var ddcModuleSdkOptions = canaryFeatures
+        ? '''let sdkOptions = {
+  weakNullSafetyWarnings: !($weakNullSafetyErrors || $soundNullSafety),
   weakNullSafetyErrors: $weakNullSafetyErrors,
   nonNullAsserts: $nonNullAsserts,
   nativeNonNullAsserts: $nativeNonNullAsserts,
   jsInteropNonNullAsserts: $jsInteropNonNullAsserts,
-};''' :
-'''
+};'''
+        : '''
 let sdk = dart_library.import("dart_sdk", "$appname");
 sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $soundNullSafety));
 sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
@@ -318,9 +323,9 @@ sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
 sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
 ''';
     var ddcModuleRunMain = canaryFeatures
-          ? 'dartDevEmbedder.runMain("$libname", sdkOptions);'
-          : 'dart_library.start('
-              '"$appname", "$uuid", "$basename", "$libname", false);';
+        ? 'dartDevEmbedder.runMain("ddb:$entryPoint", sdkOptions);'
+        : 'dart_library.start('
+            '"$appname", "$uuid", "$basename", "$libname", false);';
     if (chrome) {
       String chromeBinary;
       if (binary != null) {
@@ -437,11 +442,11 @@ try {
     } else if (d8) {
       var ddcModuleScriptTags =
           [for (var output in outputs) 'load("$output");'].join('\n');
-      var ddcModuleAssignGlobalSelf = canaryFeatures ?
-      '''
-let dart = dartDevEmbedder.importLibrary("dart");
-dart.global.self = dart.global;''':
-      'sdk.dart.global.self = sdk.dart.global;';
+      var ddcModuleAssignGlobalSelf = canaryFeatures
+          ? '''
+let dart = dartDevEmbedder.importLibrary("dart:_runtime");
+dart.global.self = dart.global;'''
+          : 'sdk.dart.global.self = sdk.dart.global;';
       var runjs = '''
 load("$ddcPath/lib/js/ddc/ddc_module_loader.js");
 load("$sdkJsPath/dart_sdk.js");

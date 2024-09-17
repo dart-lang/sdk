@@ -76,12 +76,6 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    _runSubscriptions(node, registry._forAugmentationImportDirective);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitAugmentedExpression(AugmentedExpression node) {
     _runSubscriptions(node, registry._forAugmentedExpression);
     node.visitChildren(this);
@@ -570,12 +564,6 @@ class LinterVisitor implements AstVisitor<void> {
   @override
   void visitLabeledStatement(LabeledStatement node) {
     _runSubscriptions(node, registry._forLabeledStatement);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    _runSubscriptions(node, registry._forLibraryAugmentationDirective);
     node.visitChildren(this);
   }
 
@@ -1124,8 +1112,6 @@ class NodeLintRegistry {
   final List<_Subscription<AssignedVariablePattern>>
       _forAssignedVariablePattern = [];
   final List<_Subscription<AssignmentExpression>> _forAssignmentExpression = [];
-  final List<_Subscription<AugmentationImportDirective>>
-      _forAugmentationImportDirective = [];
   final List<_Subscription<AugmentedExpression>> _forAugmentedExpression = [];
   final List<_Subscription<AugmentedInvocation>> _forAugmentedInvocation = [];
   final List<_Subscription<AwaitExpression>> _forAwaitExpression = [];
@@ -1230,8 +1216,6 @@ class NodeLintRegistry {
   final List<_Subscription<IsExpression>> _forIsExpression = [];
   final List<_Subscription<Label>> _forLabel = [];
   final List<_Subscription<LabeledStatement>> _forLabeledStatement = [];
-  final List<_Subscription<LibraryAugmentationDirective>>
-      _forLibraryAugmentationDirective = [];
   final List<_Subscription<LibraryDirective>> _forLibraryDirective = [];
   final List<_Subscription<LibraryIdentifier>> _forLibraryIdentifier = [];
   final List<_Subscription<ListLiteral>> _forListLiteral = [];
@@ -1362,11 +1346,6 @@ class NodeLintRegistry {
 
   void addAssignmentExpression(LintRule linter, AstVisitor visitor) {
     _forAssignmentExpression
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addAugmentationImportDirective(LintRule linter, AstVisitor visitor) {
-    _forAugmentationImportDirective
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
@@ -1740,11 +1719,6 @@ class NodeLintRegistry {
 
   void addLabeledStatement(LintRule linter, AstVisitor visitor) {
     _forLabeledStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addLibraryAugmentationDirective(LintRule linter, AstVisitor visitor) {
-    _forLibraryAugmentationDirective
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addLibraryDirective(LintRule linter, AstVisitor visitor) {

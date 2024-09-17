@@ -57,6 +57,8 @@
   extension type const FancyInt(@mustBeConst int _actual) {}
   ```
 
+- Renamed `@ResourceIdentifier` to `@RecordUse`.
+
 ## 1.15.0
 
 - Updated `@mustBeOverridden` to only flag missing overrides in concrete

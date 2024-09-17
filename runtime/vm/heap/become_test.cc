@@ -22,7 +22,7 @@ void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
   EXPECT(before_obj.ptr() != after_obj.ptr());
 
   Become become;
-  become.Add(before_obj, after_obj);
+  become.Add(before_obj, after_obj, "test");
   become.Forward();
 
   EXPECT(before_obj.ptr() == after_obj.ptr());
@@ -64,7 +64,7 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardPeer) {
   EXPECT_EQ(no_peer, heap->GetPeer(after_obj.ptr()));
 
   Become become;
-  become.Add(before_obj, after_obj);
+  become.Add(before_obj, after_obj, "test");
   become.Forward();
 
   EXPECT(before_obj.ptr() == after_obj.ptr());
@@ -86,7 +86,7 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardObjectId) {
   EXPECT_EQ(no_id, heap->GetObjectId(after_obj.ptr()));
 
   Become become;
-  become.Add(before_obj, after_obj);
+  become.Add(before_obj, after_obj, "test");
   become.Forward();
 
   EXPECT(before_obj.ptr() == after_obj.ptr());
@@ -112,7 +112,7 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardMessageId) {
             isolate->forward_table_old()->GetValueExclusive(after_obj.ptr()));
 
   Become become;
-  become.Add(before_obj, after_obj);
+  become.Add(before_obj, after_obj, "test");
   become.Forward();
 
   EXPECT(before_obj.ptr() == after_obj.ptr());
@@ -138,7 +138,7 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   EXPECT(before_obj.ptr() != after_obj.ptr());
 
   Become become;
-  become.Add(before_obj, after_obj);
+  become.Add(before_obj, after_obj, "test");
   become.Forward();
 
   EXPECT(before_obj.ptr() == after_obj.ptr());
@@ -167,7 +167,7 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedCards) {
   }
 
   Become become;
-  become.Add(old_element, new_element);
+  become.Add(old_element, new_element, "test");
   become.Forward();
 
   EXPECT(old_element.ptr() == new_element.ptr());

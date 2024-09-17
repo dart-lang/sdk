@@ -164,19 +164,19 @@ enum ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0)),
 
+  recordUse(
+      name: 'record-use',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
+
   records(
       name: 'records',
       isEnabledByDefault: true,
       isExpired: true,
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0)),
-
-  resourceIdentifiers(
-      name: 'resource-identifiers',
-      isEnabledByDefault: false,
-      isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
 
   sealedClass(
       name: 'sealed-class',
@@ -226,6 +226,13 @@ enum ExperimentalFlag {
       isExpired: true,
       experimentEnabledVersion: const Version(2, 19),
       experimentReleasedVersion: const Version(2, 19)),
+
+  unquotedImports(
+      name: 'unquoted-imports',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
 
   variance(
       name: 'variance',

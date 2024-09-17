@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show SourceChange, SourceEdit;
 import 'package:analysis_server/src/services/refactoring/agnostic/change_method_signature.dart';
@@ -107,6 +108,7 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
       startSessions: [resolvedLibraryResult.session],
       resolvedLibraryResult: resolvedLibraryResult,
       resolvedUnitResult: unitResult,
+      clientCapabilities: fixedBasicLspClientCapabilities,
       selectionOffset: selectionRange.offset,
       selectionLength: selectionRange.length,
       includeExperimental: true,
@@ -114,7 +116,7 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   }
 
   String _elementToReferenceString(Element element) {
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     var reference = (element as ElementImpl).reference;
     if (reference != null) {
       return _referenceToString(reference);

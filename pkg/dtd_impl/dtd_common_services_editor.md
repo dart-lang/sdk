@@ -133,9 +133,17 @@ An event sent by an editor when a debug session ends.
 
 An event sent by an editor when a debug session is changed.
 
-This could be happen when a VM Service URI becomes available for a session
+This could happen when a VM Service URI becomes available for a session
 launched in debug mode, for example.
 
+
+## themeChanged
+`ThemeChangedEvent`
+
+An event sent by an editor when its theme has changed.
+
+This could happen when a user changes their settings to toggle between light
+and dark mode or increase/decrease font size.
 
 # Type Definitions
 
@@ -188,6 +196,11 @@ class DeviceSelectedEvent {
   String? deviceId;
 }
 
+/// An event sent by an editor when theme settings have changed.
+class ThemeChangedEvent {
+  Theme theme;
+}
+
 /// A debug session running in the editor.
 class EditorDebugSession {
   String id;
@@ -216,6 +229,14 @@ class EditorDevice {
   /// to enable it (which will trigger a `deviceChanged` event after the changes
   /// are made).
   bool supported;
+}
+
+/// The description of an editor's theme.
+class Theme {
+  bool isDarkMode;
+  String? backgroundColor;
+  String? foregroundColor;
+  int? fontSize;
 }
 
 /// Parameters for the `enablePlatformTypeParams` request.

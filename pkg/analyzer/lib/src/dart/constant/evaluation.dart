@@ -223,7 +223,7 @@ class ConstantEvaluationEngine {
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
     if (constant is ConstFieldElementImpl && constant.isEnumConstant) {
-      var enclosing = constant.enclosingElement;
+      var enclosing = constant.enclosingElement3;
       if (enclosing is EnumElementImpl) {
         if (enclosing.name == 'values') {
           return;
@@ -283,7 +283,7 @@ class ConstantEvaluationEngine {
             }
           }
         }
-        for (FieldElement field in constant.enclosingElement.fields) {
+        for (FieldElement field in constant.enclosingElement3.fields) {
           // Note: non-static const isn't allowed but we handle it anyway so
           // that we won't be confused by incorrect code.
           if ((field.isFinal || field.isConst) &&
@@ -447,7 +447,7 @@ class ConstantEvaluationEngine {
       return null;
     }
     var typeProvider = constructor.library.typeProvider;
-    if (constructor.enclosingElement == typeProvider.symbolElement) {
+    if (constructor.enclosingElement3 == typeProvider.symbolElement) {
       // The dart:core.Symbol has a const factory constructor that redirects
       // to dart:_internal.Symbol.  That in turn redirects to an external
       // const constructor, which we won't be able to evaluate.
@@ -471,7 +471,7 @@ class ConstantEvaluationEngine {
 
   static _EnumConstant? _enumConstant(VariableElementImpl element) {
     if (element is ConstFieldElementImpl && element.isEnumConstant) {
-      var enum_ = element.enclosingElement;
+      var enum_ = element.enclosingElement3;
       if (enum_ is EnumElementImpl) {
         var index = enum_.constants.indexOf(element);
         assert(index >= 0);
@@ -635,7 +635,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   @override
   Constant visitBinaryExpression(BinaryExpression node) {
     var operatorElement = node.staticElement;
-    var operatorContainer = operatorElement?.enclosingElement;
+    var operatorContainer = operatorElement?.enclosingElement3;
     switch (operatorContainer) {
       case ExtensionElement():
         return InvalidConstant.forEntity(
@@ -1027,7 +1027,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       if (element.name == "identical") {
         NodeList<Expression> arguments = node.argumentList.arguments;
         if (arguments.length == 2) {
-          var enclosingElement = element.enclosingElement;
+          var enclosingElement = element.enclosingElement3;
           if (enclosingElement is CompilationUnitElement) {
             LibraryElement library = enclosingElement.library;
             if (library.isDartCore) {
@@ -1142,7 +1142,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   @override
   Constant visitPrefixExpression(PrefixExpression node) {
     var operatorElement = node.staticElement;
-    var operatorContainer = operatorElement?.enclosingElement;
+    var operatorContainer = operatorElement?.enclosingElement3;
     switch (operatorContainer) {
       case ExtensionElement():
         return InvalidConstant.forEntity(
@@ -1693,7 +1693,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return null;
     }
 
-    var propertyContainer = propertyElement?.enclosingElement;
+    var propertyContainer = propertyElement?.enclosingElement3;
     switch (propertyContainer) {
       case ExtensionElement():
         return InvalidConstant.forEntity(
@@ -2487,7 +2487,7 @@ class _InstanceCreationEvaluator {
 
   /// Evaluates this constructor call as a factory constructor call.
   Constant evaluateFactoryConstructorCall(List<Expression> arguments) {
-    var definingClass = _constructor.enclosingElement;
+    var definingClass = _constructor.enclosingElement3;
     var argumentCount = arguments.length;
     if (_constructor.name == "fromEnvironment") {
       if (!_checkFromEnvironmentArguments(arguments, definingType)) {
@@ -2618,7 +2618,7 @@ class _InstanceCreationEvaluator {
   ///
   /// Returns an [InvalidConstant] if one is found, or `null` otherwise.
   InvalidConstant? _checkFields() {
-    var fields = _constructor.enclosingElement.fields;
+    var fields = _constructor.enclosingElement3.fields;
     for (var field in fields) {
       if ((field.isFinal || field.isConst) &&
           !field.isStatic &&
@@ -3036,7 +3036,7 @@ class _InstanceCreationEvaluator {
   }
 
   void _checkTypeParameters() {
-    var typeParameters = _constructor.enclosingElement.typeParameters;
+    var typeParameters = _constructor.enclosingElement3.typeParameters;
     var typeArguments = _typeArguments;
     if (typeParameters.isNotEmpty &&
         typeArguments != null &&

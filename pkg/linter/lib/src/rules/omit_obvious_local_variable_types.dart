@@ -81,11 +81,11 @@ https://github.com/dart-lang/linter/issues/3480.
 class OmitObviousLocalVariableTypes extends LintRule {
   OmitObviousLocalVariableTypes()
       : super(
-            name: 'omit_obvious_local_variable_types',
-            description: _desc,
-            details: _details,
-            state: State.experimental(),
-            categories: {LintRuleCategory.style});
+          name: 'omit_obvious_local_variable_types',
+          description: _desc,
+          details: _details,
+          state: State.experimental(),
+        );
 
   @override
   List<String> get incompatibleRules => const ['always_specify_types'];

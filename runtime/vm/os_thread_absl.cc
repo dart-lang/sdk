@@ -216,6 +216,11 @@ void OSThread::Join(ThreadJoinId id) {
   ASSERT(result == 0);
 }
 
+void OSThread::Detach(ThreadJoinId id) {
+  int result = pthread_detach(id);
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
   COMPILE_ASSERT(sizeof(id) <= sizeof(intptr_t));
 #if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)

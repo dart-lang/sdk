@@ -159,6 +159,11 @@ extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
   /// Creates a JavaScript `Array` of size [length] with no elements.
   external JSArray.withLength(int length);
 
+  /// Creates a new, shallow-copied JavaScript `Array` instance from a
+  /// JavaScript iterable or array-like object.
+  @Since('3.6')
+  external static JSArray<T> from<T extends JSAny>(JSObject arrayLike);
+
   /// The length in elements of this `Array`.
   @Since('3.6')
   external int get length;
@@ -519,6 +524,11 @@ extension JSAnyUtilityExtension on JSAny? {
 
   /// Whether this <code>[JSAny]?</code> is an instance of the JavaScript type
   /// that is declared by [T].
+  ///
+  /// Since the type-check this function emits is determined at compile-time,
+  /// [T] needs to be an interop extension type that can also be determined at
+  /// compile-time. In particular, `isA` can't be provided a generic type
+  /// variable as a type argument.
   ///
   /// This method uses a combination of `null`, `typeof`, and `instanceof`
   /// checks in order to do this check. Use this instead of `is` checks.

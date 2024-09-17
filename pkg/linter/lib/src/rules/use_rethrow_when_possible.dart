@@ -44,13 +44,10 @@ try {
 class UseRethrowWhenPossible extends LintRule {
   UseRethrowWhenPossible()
       : super(
-            name: 'use_rethrow_when_possible',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.brevity,
-              LintRuleCategory.effectiveDart
-            });
+          name: 'use_rethrow_when_possible',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.use_rethrow_when_possible;

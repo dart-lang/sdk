@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// A CompletionTarget represents an edge in the parse tree which connects an

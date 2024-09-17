@@ -53,11 +53,11 @@ class C extends I {}
 class ImplicitReopen extends LintRule {
   ImplicitReopen()
       : super(
-            name: 'implicit_reopen',
-            description: _desc,
-            details: _details,
-            state: State.experimental(),
-            categories: {LintRuleCategory.errorProne});
+          name: 'implicit_reopen',
+          description: _desc,
+          details: _details,
+          state: State.experimental(),
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.implicit_reopen;

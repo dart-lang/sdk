@@ -19,18 +19,19 @@ main() {
   testJsInteropClass();
 }
 
-/*member: testJsInteropMethod:*/
+/*member: testJsInteropMethod:type=[native:LegacyJavaScriptObject]*/
 @JS()
 external int testJsInteropMethod();
 
 @JS()
 class JsInteropClass {
-  /*member: JsInteropClass.:*/
+  /*member: JsInteropClass.:type=[native:LegacyJavaScriptObject]*/
   external JsInteropClass();
 
   /*member: JsInteropClass.method:type=[
     native:GenericClass<dynamic>,
-    native:JsInteropClass]*/
+    native:JsInteropClass,
+    native:LegacyJavaScriptObject]*/
   @JS()
   external double method();
 }
@@ -93,6 +94,8 @@ class GenericClass<T> {
     inst:JSMutableArray<dynamic>,
     inst:JSNull,
     inst:JSUnmodifiableArray<dynamic>,
+    native:GenericClass<dynamic>,
+    native:LegacyJavaScriptObject,
     param:void Function(GenericClass.T)]
   */
   external GenericClass method([Callback<T> callback]);

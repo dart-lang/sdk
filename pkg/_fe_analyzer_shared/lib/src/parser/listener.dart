@@ -1183,7 +1183,8 @@ class Listener implements UnescapeErrorListener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {}
+      Token name,
+      String? enclosingDeclarationName) {}
 
   /// Handle the end of a class method declaration.  Substructures:
   /// - metadata
@@ -1332,7 +1333,7 @@ class Listener implements UnescapeErrorListener {
   void beginOptionalFormalParameters(Token token) {}
 
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     logEvent("OptionalFormalParameters");
   }
 

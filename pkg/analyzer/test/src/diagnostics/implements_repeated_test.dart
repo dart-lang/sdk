@@ -41,14 +41,14 @@ ImplementsClause
 
   test_class_implements_2times_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {}
 class B implements A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class B implements A {}
 ''');
@@ -56,7 +56,7 @@ augment class B implements A {}
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 54, 1),
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 46, 1),
     ]);
   }
 
@@ -125,14 +125,14 @@ ImplementsClause
 
   test_enum_implements_2times_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {}
 enum E implements A {v}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment enum E implements A {}
 ''');
@@ -140,7 +140,7 @@ augment enum E implements A {}
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 53, 1),
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 45, 1),
     ]);
   }
 
@@ -210,13 +210,13 @@ ImplementsClause
 
   test_extensionType_implements_2times_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 extension type A(int it) implements int {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment extension type A(int it) implements int {}
 ''');
@@ -224,7 +224,7 @@ augment extension type A(int it) implements int {}
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 71, 3),
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 63, 3),
     ]);
   }
 
@@ -274,14 +274,14 @@ mixin M implements A, A {}
 
   test_mixin_implements_2times_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {}
 mixin M implements A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment mixin M implements A {}
 ''');
@@ -289,7 +289,7 @@ augment mixin M implements A {}
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 54, 1),
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 46, 1),
     ]);
   }
 

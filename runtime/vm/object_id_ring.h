@@ -28,19 +28,24 @@ class ObjectIdRing {
     kExpired,    // Entry was evicted during an insertion into a full ring.
   };
 
+  enum BackingBufferKind {
+    kRing,
+  };
+
   enum IdPolicy {
     kAllocateId,  // Always allocate a new object id.
     kReuseId,     // If the object is already in the ring, reuse id.
                   // Otherwise allocate a new object id.
-    kNumIdPolicy,
   };
 
   static constexpr int32_t kMaxId = 0x3FFFFFFF;
   static constexpr int32_t kInvalidId = -1;
-  static constexpr int32_t kDefaultCapacity = 8192;
 
-  ObjectIdRing();
+  explicit ObjectIdRing(int32_t capacity);
   ~ObjectIdRing();
+
+  // Invalidate all the Service IDs currently living in this ring.
+  void Invalidate();
 
   // Adds the argument to the ring and returns its id. Note we do not allow
   // adding Object::null().

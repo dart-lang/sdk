@@ -42,10 +42,10 @@ Widget buildArea() {
 class UseColoredBox extends LintRule {
   UseColoredBox()
       : super(
-            name: 'use_colored_box',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.flutter, LintRuleCategory.style});
+          name: 'use_colored_box',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.use_colored_box;

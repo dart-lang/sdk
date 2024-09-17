@@ -56,4 +56,13 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
     }
     return const InvalidType();
   }
+
+  @override
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    // TODO(johnniwinther,cstefantsova): Consider implementing
+    // invalidNullability.
+    return Nullability.nullable;
+  }
 }

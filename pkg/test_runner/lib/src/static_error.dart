@@ -13,7 +13,7 @@ import 'test_file.dart';
 /// A front end that can report static errors.
 class ErrorSource {
   static const analyzer = ErrorSource._("analyzer");
-  static const cfe = ErrorSource._("CFE");
+  static const cfe = ErrorSource._("CFE", marker: "cfe");
   static const web = ErrorSource._("web");
 
   /// Pseudo-front end for context messages.
@@ -41,9 +41,16 @@ class ErrorSource {
   final String name;
 
   /// The string used to mark errors from this source in test files.
-  String get marker => name.toLowerCase();
+  ///
+  /// Always lower-case.
+  final String marker;
 
-  const ErrorSource._(this.name);
+  /// Creates error source.
+  ///
+  /// If [name] is not all lower-case, then a [marker] must be passed with
+  /// an all lower-case name. If `name` is lower-case, `marker` can be omitted
+  /// and then defaults to `name`.
+  const ErrorSource._(this.name, {String? marker}) : marker = marker ?? name;
 }
 
 /// Describes a single static error reported by a single front end at a specific
@@ -77,6 +84,7 @@ class StaticError implements Comparable<StaticError> {
     "STATIC_WARNING.INVALID_SECTION_FORMAT",
     "STATIC_WARNING.SPEC_MODE_REMOVED",
     "STATIC_WARNING.UNREACHABLE_SWITCH_CASE",
+    "STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT",
     "STATIC_WARNING.UNRECOGNIZED_ERROR_CODE",
     "STATIC_WARNING.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE",
     "STATIC_WARNING.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES",
@@ -465,7 +473,7 @@ class _ErrorExpectationParser {
   ///     //      ^^^
   ///
   /// We look for a line that starts with a line comment followed by spaces and
-  /// carets.
+  /// carets. Only used on single lines.
   static final _caretLocationRegExp = RegExp(r"^\s*//\s*(\^+)\s*$");
 
   /// Matches an explicit error location with a length, like:
@@ -475,29 +483,26 @@ class _ErrorExpectationParser {
   /// or implicitly on the previous line
   ///
   ///     // [error column 17, length 3]
-  static final _explicitLocationAndLengthRegExp = RegExp(
-      r"^\s*//\s*\[\s*error (?:line\s+(\d+)\s*,)?\s*column\s+(\d+)\s*,\s*"
-      r"length\s+(\d+)\s*\]\s*$");
-
-  /// Matches an explicit error location without a length, like:
+  ///
+  /// or either without a length:
   ///
   ///     // [error line 1, column 17]
-  ///
-  /// or implicitly on the previous line.
-  ///
   ///     // [error column 17]
+  ///
+  ///  Only used on single lines.
   static final _explicitLocationRegExp = RegExp(
-      r"^\s*//\s*\[\s*error (?:line\s+(\d+)\s*,)?\s*column\s+(\d+)\s*\]\s*$");
+      r"^\s*//\s*\[\s*error (?:line\s+(\d+)\s*,)?\s*column\s+(\d+)\s*(?:,\s*"
+      r"length\s+(\d+)\s*)?\]\s*$");
 
   /// Matches the beginning of an error message, like `// [analyzer]`.
   ///
   /// May have an optional number like `// [cfe 32]`.
   static final _errorMessageRegExp =
-      RegExp(r"^\s*// \[(\w+)(\s+\d+)?\]\s*(.*)");
+      RegExp(r"^\s*// \[(\w+)(?:\s+(\d+))?\]\s*(.*)");
 
   /// An analyzer error code is a dotted identifier or the magic string
   /// "unspecified".
-  static final _errorCodeRegExp = RegExp(r"^\w+\.\w+|unspecified$");
+  static final _errorCodeRegExp = RegExp(r"^(?:\w+\.\w+|unspecified)$");
 
   /// Any line-comment-only lines after the first line of a CFE error message
   /// are part of it.
@@ -535,40 +540,29 @@ class _ErrorExpectationParser {
     while (_canPeek(0)) {
       var sourceLine = _peek(0);
 
-      var match = _caretLocationRegExp.firstMatch(sourceLine);
-      if (match != null) {
+      if (_caretLocationRegExp.firstMatch(sourceLine) case var match?) {
         if (_lastRealLine == -1) {
           _fail("An error expectation must follow some code.");
         }
-
+        var markerMatch = match[1]!;
         _parseErrors(
             path: path,
             line: _lastRealLine,
             column: sourceLine.indexOf("^") + 1,
-            length: match[1]!.length);
+            length: markerMatch.length);
         _advance();
         continue;
       }
 
-      match = _explicitLocationAndLengthRegExp.firstMatch(sourceLine);
-      if (match != null) {
+      if (_explicitLocationRegExp.firstMatch(sourceLine) case var match?) {
         var lineCapture = match[1];
+        var columnCapture = match[2]!;
+        var lengthCapture = match[3];
         _parseErrors(
             path: path,
             line: lineCapture == null ? _lastRealLine : int.parse(lineCapture),
-            column: int.parse(match[2]!),
-            length: int.parse(match[3]!));
-        _advance();
-        continue;
-      }
-
-      match = _explicitLocationRegExp.firstMatch(sourceLine);
-      if (match != null) {
-        var lineCapture = match[1];
-        _parseErrors(
-            path: path,
-            line: lineCapture == null ? _lastRealLine : int.parse(lineCapture),
-            column: int.parse(match[2]!));
+            column: int.parse(columnCapture),
+            length: lengthCapture == null ? 0 : int.parse(lengthCapture));
         _advance();
         continue;
       }
@@ -604,7 +598,7 @@ class _ErrorExpectationParser {
         _fail("Context messages must have an error number.");
       }
 
-      var message = match[3]!;
+      var message = StringBuffer(match[3]!);
       _advance();
       var sourceLines = {locationLine, _currentLine};
 
@@ -614,7 +608,6 @@ class _ErrorExpectationParser {
 
         // A location line shouldn't be treated as part of the message.
         if (_caretLocationRegExp.hasMatch(nextLine)) break;
-        if (_explicitLocationAndLengthRegExp.hasMatch(nextLine)) break;
         if (_explicitLocationRegExp.hasMatch(nextLine)) break;
 
         // The next source should not be treated as part of the message.
@@ -623,13 +616,15 @@ class _ErrorExpectationParser {
         var messageMatch = _errorMessageRestRegExp.firstMatch(nextLine);
         if (messageMatch == null) break;
 
-        message += "\n${messageMatch[1]!}";
+        message
+          ..write("\n")
+          ..write(messageMatch[1]!);
         _advance();
         sourceLines.add(_currentLine);
       }
 
       if (source == ErrorSource.analyzer &&
-          !_errorCodeRegExp.hasMatch(message)) {
+          !_errorCodeRegExp.hasMatch(message.toString())) {
         _fail("An analyzer error expectation should be a dotted identifier.");
       }
 
@@ -644,7 +639,7 @@ class _ErrorExpectationParser {
         errorLength = 0;
       }
 
-      var error = StaticError(source, message,
+      var error = StaticError(source, message.toString(),
           path: path,
           line: line,
           column: column,
@@ -654,9 +649,9 @@ class _ErrorExpectationParser {
       if (number != null) {
         // Make sure two errors don't claim the same number.
         if (source != ErrorSource.context) {
-          var existingError = _errors
-              .firstWhereOrNull((error) => _errorNumbers[error] == number);
-          if (existingError != null) {
+          var existingError =
+              _errors.any((error) => _errorNumbers[error] == number);
+          if (existingError) {
             _fail("Already have an error with number $number.");
           }
         }
@@ -700,9 +695,9 @@ class _ErrorExpectationParser {
       var number = _errorNumbers[error];
       if (number == null) continue;
 
-      var context = _contextMessages
-          .firstWhereOrNull((context) => _errorNumbers[context] == number);
-      if (context == null) {
+      var hasContext =
+          _contextMessages.any((context) => _errorNumbers[context] == number);
+      if (!hasContext) {
         throw FormatException("Missing context for numbered error $number "
             "'${error.message}'.");
       }

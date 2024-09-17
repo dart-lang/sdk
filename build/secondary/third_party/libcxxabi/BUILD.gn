@@ -57,7 +57,6 @@ source_set("libcxxabi") {
     "src/cxa_exception_storage.cpp",
     "src/cxa_handlers.cpp",
     "src/cxa_personality.cpp",
-    "src/cxa_thread_atexit.cpp",
     "src/cxa_vector.cpp",
     "src/cxa_virtual.cpp",
     "src/fallback_malloc.cpp",
@@ -69,5 +68,9 @@ source_set("libcxxabi") {
 
   if (!(is_tsan && is_linux)) {
     sources += [ "src/cxa_guard.cpp" ]
+  }
+
+  if (is_fuchsia || (is_posix && !is_ios && !is_mac)) {
+    sources += [ "src/cxa_thread_atexit.cpp" ]
   }
 }

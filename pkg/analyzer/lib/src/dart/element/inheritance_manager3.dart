@@ -145,24 +145,6 @@ class InheritanceManager3 {
     return getInheritedMap2(element)[name];
   }
 
-  /// Return signatures of all concrete members that the given [type] inherits
-  /// from the superclasses and mixins.
-  @Deprecated('Use getInheritedConcreteMap2')
-  Map<Name, ExecutableElement> getInheritedConcreteMap(InterfaceType type) {
-    var result = <Name, ExecutableElement>{};
-
-    var substitution = Substitution.fromInterfaceType(type);
-    var rawMap = getInheritedConcreteMap2(type.element);
-    for (var rawEntry in rawMap.entries) {
-      result[rawEntry.key] = ExecutableMember.from2(
-        rawEntry.value,
-        substitution,
-      );
-    }
-
-    return result;
-  }
-
   /// Return signatures of all concrete members that the given [element] inherits
   /// from the superclasses and mixins.
   Map<Name, ExecutableElement> getInheritedConcreteMap2(
@@ -173,26 +155,6 @@ class InheritanceManager3 {
 
     var interface = getInterface(element);
     return interface.superImplemented.last;
-  }
-
-  /// Return the mapping from names to most specific signatures of members
-  /// inherited from the super-interfaces (superclasses, mixins, and
-  /// interfaces).  If there is no most specific signature for a name, the
-  /// corresponding name will not be included.
-  @Deprecated('Use getInheritedMap2')
-  Map<Name, ExecutableElement> getInheritedMap(InterfaceType type) {
-    var result = <Name, ExecutableElement>{};
-
-    var substitution = Substitution.fromInterfaceType(type);
-    var rawMap = getInheritedMap2(type.element);
-    for (var rawEntry in rawMap.entries) {
-      result[rawEntry.key] = ExecutableMember.from2(
-        rawEntry.value,
-        substitution,
-      );
-    }
-
-    return result;
   }
 
   /// Return the mapping from names to most specific signatures of members
@@ -313,14 +275,6 @@ class InheritanceManager3 {
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member
-  /// with the given [name], defined in the [type], would override; or `null`
-  /// if no members would be overridden.
-  @Deprecated('Use getOverridden2')
-  List<ExecutableElement>? getOverridden(InterfaceType type, Name name) {
-    return getOverridden2(type.element, name);
-  }
-
-  /// Return all members of mixins, superclasses, and interfaces that a member
   /// with the given [name], defined in the [element], would override; or `null`
   /// if no members would be overridden.
   List<ExecutableElement>? getOverridden2(InterfaceElement element, Name name) {
@@ -386,7 +340,7 @@ class InheritanceManager3 {
         continue;
       }
 
-      var class_ = executable.enclosingElement;
+      var class_ = executable.enclosingElement3;
       if (class_ is ClassElement && class_.isDartCoreObject) {
         continue;
       }
@@ -535,7 +489,7 @@ class InheritanceManager3 {
         }
 
         var current = currentList.single;
-        if (candidate.enclosingElement == mixinElement) {
+        if (candidate.enclosingElement3 == mixinElement) {
           namedCandidates[name] = [candidate];
           if (current.kind != candidate.kind) {
             var currentIsGetter = current.kind == ElementKind.GETTER;
@@ -903,7 +857,7 @@ class InheritanceManager3 {
     Name name,
     ExecutableElement executable,
   ) {
-    if (executable.enclosingElement == class_) {
+    if (executable.enclosingElement3 == class_) {
       return executable;
     }
 
@@ -958,6 +912,7 @@ class InheritanceManager3 {
     if (executable is MethodElement) {
       var result = MethodElementImpl(executable.name, -1);
       result.enclosingElement = class_;
+      result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.prototype = executable;
@@ -970,6 +925,7 @@ class InheritanceManager3 {
       assert(executable.isSetter);
       var result = PropertyAccessorElementImpl(executable.name, -1);
       result.enclosingElement = class_;
+      result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
       result.prototype = executable;
@@ -978,6 +934,7 @@ class InheritanceManager3 {
       var field = executable.variable2!;
       var resultField = FieldElementImpl(field.name, -1);
       resultField.enclosingElement = class_;
+      resultField.enclosingElement3 = class_;
       resultField.getter = field.getter;
       resultField.setter = executable;
       resultField.type = executable.parameters[0].type;
@@ -1031,6 +988,7 @@ class InheritanceManager3 {
       var firstMethod = first;
       var result = MethodElementImpl(firstMethod.name, -1);
       result.enclosingElement = targetClass;
+      result.enclosingElement3 = targetClass;
       result.typeParameters = resultType.typeFormals;
       result.returnType = resultType.returnType;
       result.parameters = resultType.parameters;
@@ -1041,6 +999,7 @@ class InheritanceManager3 {
 
       var result = PropertyAccessorElementImpl(variableName, -1);
       result.enclosingElement = targetClass;
+      result.enclosingElement3 = targetClass;
       result.isGetter = firstAccessor.isGetter;
       result.isSetter = firstAccessor.isSetter;
       result.returnType = resultType.returnType;
@@ -1048,6 +1007,7 @@ class InheritanceManager3 {
 
       var field = FieldElementImpl(variableName, -1);
       field.enclosingElement = targetClass;
+      field.enclosingElement3 = targetClass;
       if (firstAccessor.isGetter) {
         field.getter = result;
         field.type = result.returnType;
@@ -1090,7 +1050,7 @@ class InheritanceManager3 {
   }
 
   static bool _isDeclaredInObject(ExecutableElement element) {
-    var enclosing = element.enclosingElement;
+    var enclosing = element.enclosingElement3;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
   }
 }

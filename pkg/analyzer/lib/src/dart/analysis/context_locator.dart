@@ -124,8 +124,8 @@ class ContextLocatorImpl implements ContextLocator {
         root.included.add(folder);
       }
 
-      var rootEnabledPlugins =
-          _getEnabledPlugins(location.workspace, location.optionsFile);
+      var rootEnabledLegacyPlugins =
+          _getEnabledLegacyPlugins(location.workspace, location.optionsFile);
 
       _createContextRootsIn(
         roots,
@@ -133,7 +133,7 @@ class ContextLocatorImpl implements ContextLocator {
         folder,
         excludedFolders,
         root,
-        rootEnabledPlugins,
+        rootEnabledLegacyPlugins,
         root.excludedGlobs,
         defaultOptionsFile,
         defaultPackagesFile,
@@ -305,7 +305,7 @@ class ContextLocatorImpl implements ContextLocator {
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
-      Set<String> containingRootEnabledPlugins,
+      Set<String> containingRootEnabledLegacyPlugins,
       List<LocatedGlob> excludedGlobs,
       File? optionsFile,
       File? packagesFile) {
@@ -324,14 +324,15 @@ class ContextLocatorImpl implements ContextLocator {
     var buildGnFile = folder.getExistingFile(file_paths.buildGn);
 
     var localEnabledPlugins =
-        _getEnabledPlugins(containingRoot.workspace, localOptionsFile);
-    var pluginsDiffer = !const SetEquality<String>()
-        .equals(containingRootEnabledPlugins, localEnabledPlugins);
+        _getEnabledLegacyPlugins(containingRoot.workspace, localOptionsFile);
+    // Legacy plugins differ only if there is an analysis_options and it
+    // contains a different set of plugins from the containing context.
+    var pluginsDiffer = localOptionsFile != null &&
+        !const SetEquality<String>()
+            .equals(containingRootEnabledLegacyPlugins, localEnabledPlugins);
 
-    //
     // Create a context root for the given [folder] if a packages or build file
-    // is locally specified, or the set of enabled plugins changed.
-    //
+    // is locally specified, or the set of enabled legacy plugins changed.
     if (pluginsDiffer || localPackagesFile != null || buildGnFile != null) {
       if (optionsFile != null) {
         localOptionsFile = optionsFile;
@@ -352,7 +353,7 @@ class ContextLocatorImpl implements ContextLocator {
       containingRoot.excluded.add(folder);
       roots.add(root);
       containingRoot = root;
-      containingRootEnabledPlugins = localEnabledPlugins;
+      containingRootEnabledLegacyPlugins = localEnabledPlugins;
       excludedGlobs = _getExcludedGlobs(root.optionsFile, workspace);
       root.excludedGlobs = excludedGlobs;
     }
@@ -371,7 +372,7 @@ class ContextLocatorImpl implements ContextLocator {
       folder,
       excludedFolders,
       containingRoot,
-      containingRootEnabledPlugins,
+      containingRootEnabledLegacyPlugins,
       excludedGlobs,
       optionsFile,
       packagesFile,
@@ -390,7 +391,7 @@ class ContextLocatorImpl implements ContextLocator {
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
-      Set<String> containingRootEnabledPlugins,
+      Set<String> containingRootEnabledLegacyPlugins,
       List<LocatedGlob> excludedGlobs,
       File? optionsFile,
       File? packagesFile) {
@@ -434,7 +435,7 @@ class ContextLocatorImpl implements ContextLocator {
               child,
               excludedFolders,
               containingRoot,
-              containingRootEnabledPlugins,
+              containingRootEnabledLegacyPlugins,
               excludedGlobs,
               optionsFile,
               packagesFile,
@@ -519,9 +520,9 @@ class ContextLocatorImpl implements ContextLocator {
     return null;
   }
 
-  /// Gets the set of enabled plugins for [optionsFile]m taking into account
-  /// any includes.
-  Set<String> _getEnabledPlugins(Workspace workspace, File? optionsFile) {
+  /// Gets the set of enabled legacy plugins for [optionsFile], taking into
+  /// account any includes.
+  Set<String> _getEnabledLegacyPlugins(Workspace workspace, File? optionsFile) {
     if (optionsFile == null) {
       return const {};
     }
@@ -533,10 +534,10 @@ class ContextLocatorImpl implements ContextLocator {
       var optionsYaml = provider.getOptionsFromFile(optionsFile);
       options.applyOptions(optionsYaml);
 
-      return options.enabledPluginNames.toSet();
+      return options.enabledLegacyPluginNames.toSet();
     } catch (_) {
-      // No plugins will be enabled if the file doesn't parse or cannot be read
-      // for any reason.
+      // No legacy plugins will be enabled if the file doesn't parse or cannot
+      // be read for any reason.
       return {};
     }
   }

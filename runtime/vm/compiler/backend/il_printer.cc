@@ -797,10 +797,6 @@ void AssertSubtypeInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->AddString(")");
 }
 
-void AssertBooleanInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  value()->PrintTo(f);
-}
-
 void ClosureCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   if (FLAG_precompiled_mode) {
     f->AddString(" closure=");

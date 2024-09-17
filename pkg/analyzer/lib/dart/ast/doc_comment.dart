@@ -247,34 +247,6 @@ enum DocDirectiveType {
   /// are included. This also allows us to parse (erroneous) dangling end tags.
   endTemplate.end('endtemplate', openingTag: 'template'),
 
-  /// A [DocDirective] declaring an example file.
-  ///
-  /// This directive has one required argument: the path. A named 'region'
-  /// argument, and a named 'lang' argument can also be given. For example:
-  ///
-  /// ```none
-  /// {@example abc/def/xyz_component.dart region=template lang=html}
-  /// ```
-  ///
-  /// See documentation at
-  /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#example---examples-deprecated>.
-  @Deprecated('Recognition of this directive is deprecated in dartdoc')
-  example(
-    'example',
-    positionalParameters: [
-      DocDirectiveParameter('path', DocDirectiveParameterFormat.any)
-    ],
-    namedParameters: [
-      DocDirectiveParameter('region', DocDirectiveParameterFormat.any),
-      DocDirectiveParameter('lang', DocDirectiveParameterFormat.any),
-    ],
-  ),
-
-  /// A [DocDirective] indicating that constants should not have their own
-  /// pages or implementations displayed.
-  @Deprecated('Recognition of this directive is removed in dartdoc')
-  hideConstantImplementations('hideConstantImplementations'),
-
   /// A [DocDirective] declaring a block of HTML content which is to be inserted
   /// after all other processing, including Markdown parsing.
   ///

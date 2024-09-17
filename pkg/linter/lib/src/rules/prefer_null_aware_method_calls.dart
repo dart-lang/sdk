@@ -33,7 +33,6 @@ class PreferNullAwareMethodCalls extends LintRule {
           name: 'prefer_null_aware_method_calls',
           description: _desc,
           details: _details,
-          categories: {LintRuleCategory.brevity, LintRuleCategory.style},
         );
 
   @override

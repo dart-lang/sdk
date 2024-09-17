@@ -48,14 +48,10 @@ const _favoriteMammal = 'weasel';
 class AvoidClassesWithOnlyStaticMembers extends LintRule {
   AvoidClassesWithOnlyStaticMembers()
       : super(
-            name: 'avoid_classes_with_only_static_members',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.languageFeatureUsage,
-              LintRuleCategory.style,
-            });
+          name: 'avoid_classes_with_only_static_members',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>
@@ -85,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var interface = context.inheritanceManager.getInterface(element);
     var map = interface.map;
     for (var member in map.values) {
-      var enclosingElement = member.enclosingElement;
+      var enclosingElement = member.enclosingElement3;
       if (enclosingElement is ClassElement &&
           !enclosingElement.isDartCoreObject) {
         return;

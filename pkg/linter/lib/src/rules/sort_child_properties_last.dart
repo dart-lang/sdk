@@ -84,10 +84,10 @@ Exception: It's allowed to have parameter with a function expression after the
 class SortChildPropertiesLast extends LintRule {
   SortChildPropertiesLast()
       : super(
-            name: 'sort_child_properties_last',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.flutter, LintRuleCategory.style});
+          name: 'sort_child_properties_last',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.sort_child_properties_last;

@@ -4,7 +4,7 @@ publish_to: none
 description: Generate binary Wasm modules
 
 environment:
-  sdk: '>=2.19.0 <3.0.0'
+  sdk: ^3.3.0
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:

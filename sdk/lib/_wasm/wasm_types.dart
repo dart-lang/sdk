@@ -395,3 +395,9 @@ extension WasmExternRefToJSAny on WasmExternRef {
 // on JS interop types are assumed to be JS interop functions, not methods that
 // are patched in patch files. So instead we just use a plain function here.
 external WasmExternRef? externRefForJSAny(JSAny object);
+
+// Tests whether the given object's class is a subclass of T.
+//
+// NOTICE: If the object's class is a subtype of T but not a subclass this will
+// return `false`.
+external bool isSubClassOf<T>(Object object);

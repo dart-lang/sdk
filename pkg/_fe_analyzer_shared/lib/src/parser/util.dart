@@ -13,6 +13,12 @@ import '../scanner/scanner.dart' show Token;
 import '../scanner/token.dart'
     show BeginToken, SimpleToken, SyntheticToken, TokenType;
 
+/// Returns true if [token] has the token type [value].
+@pragma("vm:prefer-inline")
+bool optional2(TokenType value, Token token) {
+  return value.index == token.typeIndex;
+}
+
 /// Returns true if [token] is the symbol or keyword [value].
 bool optional(String value, Token token) {
   return identical(value, token.stringValue);

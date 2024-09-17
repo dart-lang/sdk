@@ -328,11 +328,6 @@ struct ReThrowABI {
   static constexpr Register kStackTraceReg = A1;
 };
 
-// ABI for AssertBooleanStub.
-struct AssertBooleanABI {
-  static constexpr Register kObjectReg = A0;
-};
-
 // ABI for RangeErrorStub.
 struct RangeErrorABI {
   static constexpr Register kLengthReg = T1;
@@ -424,6 +419,10 @@ struct SuspendStubABI {
   static constexpr Register kFunctionDataReg = T3;
   static constexpr Register kSrcFrameReg = T4;
   static constexpr Register kDstFrameReg = T5;
+
+  // Number of bytes to skip after
+  // suspend stub return address in order to resume.
+  static constexpr intptr_t kResumePcDistance = 0;
 };
 
 // ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub,

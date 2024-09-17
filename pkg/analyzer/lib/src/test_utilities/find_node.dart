@@ -36,9 +36,6 @@ class FindNode {
 
   AssignmentExpression get singleAssignmentExpression => _single();
 
-  AugmentationImportDirective get singleAugmentationImportDirective =>
-      _single();
-
   AugmentedExpression get singleAugmentedExpression => _single();
 
   AugmentedInvocation get singleAugmentedInvocation => _single();
@@ -122,9 +119,6 @@ class FindNode {
   IsExpression get singleIsExpression => _single();
 
   LabeledStatement get singleLabeledStatement => _single();
-
-  LibraryAugmentationDirective get singleLibraryAugmentationDirective =>
-      _single();
 
   LibraryDirective get singleLibraryDirective => _single();
 
@@ -239,10 +233,6 @@ class FindNode {
 
   AssignmentExpression assignment(String search) {
     return _node(search, (n) => n is AssignmentExpression);
-  }
-
-  AugmentationImportDirective augmentationImportDirective(String search) {
-    return _node(search, (n) => n is AugmentationImportDirective);
   }
 
   AwaitExpression awaitExpression(String search) {
@@ -568,10 +558,6 @@ class FindNode {
 
   LibraryDirective library(String search) {
     return _node(search, (n) => n is LibraryDirective);
-  }
-
-  LibraryAugmentationDirective libraryAugmentation(String search) {
-    return _node(search, (n) => n is LibraryAugmentationDirective);
   }
 
   LibraryIdentifier libraryIdentifier(String search) {

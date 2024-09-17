@@ -134,6 +134,22 @@ final b = new Foo.named(); // 0
     expect(target.length, 5);
   }
 
+  Future<void> test_field_underscore() async {
+    addTestFile('''
+class C {
+  int _ = 0;
+}
+
+f() {
+  C()._;
+}
+''');
+    await waitForTasksFinished();
+    await _getNavigation(search: '_;');
+    assertHasRegion('_;');
+    assertHasTarget('_ = 0');
+  }
+
   Future<void> test_fieldType() async {
     // This test mirrors test_navigation() from
     // test/integration/analysis/get_navigation_test.dart
@@ -336,6 +352,17 @@ void f(A a) {
     }
   }
 
+  Future<void> test_parameter_wildcard() async {
+    addTestFile('''
+var _ = 0;
+f(int _) { }
+''');
+    await waitForTasksFinished();
+    await _getNavigation(search: '_)');
+    assertHasRegion('_)');
+    assertHasTarget('_)');
+  }
+
   Future<void> test_partDirective() async {
     var partFile = newFile(
       '$testPackageLibPath/a.dart',
@@ -392,6 +419,40 @@ part of 'a.dart';
     expect(testTargets, hasLength(1));
     expect(testTargets[0].kind, ElementKind.LIBRARY);
     assertHasFileTarget(partOfFile.path, 0, 0);
+  }
+
+  Future<void> test_prefix_wildcard() async {
+    addTestFile('''
+import 'dart:io' as _;
+''');
+    await waitForTasksFinished();
+    await _getNavigation(search: '_');
+    assertHasRegion('_');
+    assertHasTarget('_');
+  }
+
+  Future<void> test_topLevelVariable_underscore() async {
+    addTestFile('''
+var _ = 0;
+
+f(int _) {
+  _;
+}
+''');
+    await waitForTasksFinished();
+    await _getNavigation(search: '_;');
+    assertHasRegion('_;');
+    assertHasTarget('_ = 0');
+  }
+
+  Future<void> test_typeParameter_wildcard() async {
+    addTestFile('''
+class C<_> {}
+''');
+    await waitForTasksFinished();
+    await _getNavigation(search: '_');
+    assertHasRegion('_');
+    assertHasTarget('_');
   }
 
   Future<void> test_zeroLength_end() async {

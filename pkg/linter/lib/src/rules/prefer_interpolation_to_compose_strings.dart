@@ -33,10 +33,10 @@ and read than concatenation.
 class PreferInterpolationToComposeStrings extends LintRule {
   PreferInterpolationToComposeStrings()
       : super(
-            name: 'prefer_interpolation_to_compose_strings',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_interpolation_to_compose_strings',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

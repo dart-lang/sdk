@@ -56,6 +56,7 @@ class FieldIndex {
   static const syncStarIteratorYieldStarIterable = 4;
   static const recordFieldBase = 2;
   static const jsStringImplRef = 2;
+  static const ffiPointerAddress = 3;
 
   static void validate(Translator translator) {
     void check(Class cls, String name, int expectedIndex) {
@@ -116,6 +117,7 @@ class FieldIndex {
         FieldIndex.syncStarIteratorCurrent);
     check(translator.syncStarIteratorClass, "_yieldStarIterable",
         FieldIndex.syncStarIteratorYieldStarIterable);
+    check(translator.ffiPointerClass, "_address", FieldIndex.ffiPointerAddress);
   }
 }
 
@@ -276,12 +278,10 @@ class ClassInfoCollector {
 
   ClassInfoCollector(this.translator);
 
-  w.ModuleBuilder get m => translator.m;
-
   TranslatorOptions get options => translator.options;
 
   void _createStructForClassTop(int classCount) {
-    final w.StructType struct = m.types.defineStruct("#Top");
+    final w.StructType struct = translator.typesBuilder.defineStruct("#Top");
     topInfo = ClassInfo(null, 0, 0, struct, null);
     translator.classForHeapType[struct] = topInfo;
   }
@@ -294,8 +294,8 @@ class ClassInfoCollector {
     Class? superclass = cls.superclass;
     if (superclass == null) {
       ClassInfo superInfo = topInfo;
-      final w.StructType struct =
-          m.types.defineStruct(cls.name, superType: superInfo.struct);
+      final w.StructType struct = translator.typesBuilder
+          .defineStruct(cls.name, superType: superInfo.struct);
       info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo);
       // Mark Top type as implementing Object to force the representation
       // type of Object to be Top.
@@ -339,8 +339,8 @@ class ClassInfoCollector {
         }
       }
 
-      w.StructType struct =
-          m.types.defineStruct(cls.name, superType: superInfo.struct);
+      w.StructType struct = translator.typesBuilder
+          .defineStruct(cls.name, superType: superInfo.struct);
       info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo,
           typeParameterMatch: typeParameterMatch);
     }
@@ -357,7 +357,7 @@ class ClassInfoCollector {
 
     final struct = _recordStructs.putIfAbsent(
         numFields,
-        () => m.types.defineStruct(
+        () => translator.typesBuilder.defineStruct(
               'Record$numFields',
               superType: translator.recordInfo.struct,
             ));
@@ -718,6 +718,9 @@ class ClassIdNumbering {
         firstClassId + concreteClassCount - 1,
         firstClassId + concreteClassCount + abstractClassCount - 1);
   }
+
+  Range getConcreteSubclassRange(Class klass) =>
+      _concreteSubclassIdRange[klass]!;
 }
 
 // A range of class ids, both ends inclusive.
@@ -773,7 +776,8 @@ extension RangeListExtention on List<Range> {
       }
       if (nextRange.isEmpty) continue;
       if (currentRange.containsRange(nextRange)) continue;
-      if (currentRange.contains(nextRange.start)) {
+      if (currentRange.contains(nextRange.start) ||
+          (currentRange.end + 1) == nextRange.start) {
         currentRange = Range(currentRange.start, nextRange.end);
         continue;
       }

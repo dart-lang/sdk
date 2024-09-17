@@ -42,7 +42,6 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
 import 'class_declaration.dart';
 import 'source_builder_mixins.dart';
@@ -57,7 +56,7 @@ import 'type_parameter_scope_builder.dart';
 Class initializeClass(
     List<NominalVariableBuilder>? typeVariables,
     String name,
-    SourceLibraryBuilder parent,
+    Uri fileUri,
     int startCharOffset,
     int charOffset,
     int charEndOffset,
@@ -72,7 +71,7 @@ Class initializeClass(
       // TODO(johnniwinther): Avoid creating [Class] so early in the builder
       // that we end up creating unneeded nodes.
       reference: isAugmentation ? null : indexedClass?.reference,
-      fileUri: parent.fileUri);
+      fileUri: fileUri);
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
   }
@@ -158,9 +157,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void set isConflictingAugmentationMember(bool value) {
-    assert(
-        _isConflictingAugmentationMember == null,
-        // Coverage-ignore(suite): Not run.
+    assert(_isConflictingAugmentationMember == null,
         '$this.isConflictingAugmentationMember has already been fixed.');
     _isConflictingAugmentationMember = value;
   }
@@ -181,6 +178,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.nameSpaceBuilder,
       SourceLibraryBuilder parent,
       this.constructorReferences,
+      Uri fileUri,
       int startCharOffset,
       int nameOffset,
       int charEndOffset,
@@ -194,11 +192,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isFinal = false,
       bool isAugmentation = false,
       this.isMixinClass = false})
-      : actualCls = initializeClass(typeVariables, name, parent,
+      : actualCls = initializeClass(typeVariables, name, fileUri,
             startCharOffset, nameOffset, charEndOffset, indexedClass,
             isAugmentation: isAugmentation),
         isAugmentation = isAugmentation,
-        super(metadata, modifiers, name, parent, nameOffset) {
+        super(metadata, modifiers, name, parent, fileUri, nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 
@@ -213,7 +211,11 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
-    _nameSpace = nameSpaceBuilder.buildNameSpace(this);
+    _nameSpace = nameSpaceBuilder.buildNameSpace(
+        loader: libraryBuilder.loader,
+        problemReporting: libraryBuilder,
+        enclosingLibraryBuilder: libraryBuilder,
+        declarationBuilder: this);
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "class $name",
         parent: typeParameterScope);
@@ -800,11 +802,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    void fail(NamedTypeBuilder target, Message message,
-        TypeAliasBuilder? aliasBuilder) {
-      int nameOffset = target.typeName.nameOffset;
-      int nameLength = target.typeName.nameLength;
-      if (aliasBuilder != null) {
+    void fail(TypeBuilder target, Message message,
+        TypeDeclarationBuilder? aliasBuilder) {
+      int nameOffset = target.typeName!.nameOffset;
+      int nameLength = target.typeName!.nameLength;
+      if (aliasBuilder is TypeAliasBuilder) {
         // Coverage-ignore-block(suite): Not run.
         addProblem(message, nameOffset, nameLength, context: [
           messageTypedefCause.withLocation(
@@ -818,25 +820,19 @@ class SourceClassBuilder extends ClassBuilderImpl
     // Extract and check superclass (if it exists).
     ClassBuilder? superClass;
     TypeBuilder? superClassType = supertypeBuilder;
-    if (superClassType is NamedTypeBuilder) {
-      TypeDeclarationBuilder? decl = superClassType.declaration;
-      TypeAliasBuilder? aliasBuilder; // Non-null if a type alias is use.
-      if (decl is TypeAliasBuilder) {
-        aliasBuilder = decl;
-        decl = aliasBuilder.unaliasDeclaration(superClassType.typeArguments,
-            isUsedAsClass: true,
-            usedAsClassCharOffset: superClassType.charOffset,
-            usedAsClassFileUri: superClassType.fileUri);
-      }
+    if (superClassType != null) {
+      TypeDeclarationBuilder? superDeclaration = superClassType.declaration;
+      TypeDeclarationBuilder? unaliasedSuperDeclaration =
+          superClassType.computeUnaliasedDeclaration(isUsedAsClass: true);
       // TODO(eernst): Should gather 'restricted supertype' checks in one place,
       // e.g., dynamic/int/String/Null and more are checked elsewhere.
-      if (decl is VoidTypeDeclarationBuilder) {
+      if (unaliasedSuperDeclaration is VoidTypeDeclarationBuilder) {
         // Coverage-ignore-block(suite): Not run.
-        fail(superClassType, messageExtendsVoid, aliasBuilder);
-      } else if (decl is NeverTypeDeclarationBuilder) {
-        fail(superClassType, messageExtendsNever, aliasBuilder);
-      } else if (decl is ClassBuilder) {
-        superClass = decl;
+        fail(superClassType, messageExtendsVoid, superDeclaration);
+      } else if (unaliasedSuperDeclaration is NeverTypeDeclarationBuilder) {
+        fail(superClassType, messageExtendsNever, superDeclaration);
+      } else if (unaliasedSuperDeclaration is ClassBuilder) {
+        superClass = unaliasedSuperDeclaration;
       }
     }
     if (cls.isMixinClass) {
@@ -871,9 +867,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     if (classHierarchyNode.isMixinApplication) {
-      assert(
-          mixedInTypeBuilder != null,
-          // Coverage-ignore(suite): Not run.
+      assert(mixedInTypeBuilder != null,
           "No mixed in type builder for mixin application $this.");
       ClassHierarchyNode mixedInNode = classHierarchyNode.mixedInNode!;
       ClassHierarchyNode? mixinSuperClassNode =
@@ -896,53 +890,39 @@ class SourceClassBuilder extends ClassBuilderImpl
     Map<ClassBuilder, int>? problemsOffsets;
     Set<ClassBuilder> implemented = new Set<ClassBuilder>();
     for (TypeBuilder type in interfaceBuilders!) {
-      if (type is NamedTypeBuilder) {
-        int? charOffset = type.charOffset;
-        TypeDeclarationBuilder? typeDeclaration = type.declaration;
-        TypeDeclarationBuilder? decl;
-        TypeAliasBuilder? aliasBuilder; // Non-null if a type alias is used.
-        if (typeDeclaration is TypeAliasBuilder) {
-          aliasBuilder = typeDeclaration;
-          decl = aliasBuilder.unaliasDeclaration(type.typeArguments,
-              isUsedAsClass: true,
-              usedAsClassCharOffset: type.charOffset,
-              usedAsClassFileUri: type.fileUri);
+      TypeDeclarationBuilder? typeDeclaration = type.declaration;
+      TypeDeclarationBuilder? unaliasedDeclaration =
+          type.computeUnaliasedDeclaration(isUsedAsClass: true);
+      if (unaliasedDeclaration is ClassBuilder) {
+        ClassBuilder interface = unaliasedDeclaration;
+        if (superClass == interface) {
+          addProblem(templateImplementsSuperClass.withArguments(interface.name),
+              this.charOffset, noLength);
+        } else if (interface.cls.name == "FutureOr" &&
+            // Coverage-ignore(suite): Not run.
+            interface.cls.enclosingLibrary.importUri.isScheme("dart") &&
+            // Coverage-ignore(suite): Not run.
+            interface.cls.enclosingLibrary.importUri.path == "async") {
+          // Coverage-ignore-block(suite): Not run.
+          addProblem(messageImplementsFutureOr, this.charOffset, noLength);
+        } else if (implemented.contains(interface)) {
+          // Aggregate repetitions.
+          problems ??= <ClassBuilder, int>{};
+          problems[interface] ??= 0;
+          problems[interface] = problems[interface]! + 1;
+          problemsOffsets ??= <ClassBuilder, int>{};
+          problemsOffsets[interface] ??= type.charOffset ?? TreeNode.noOffset;
         } else {
-          decl = typeDeclaration;
+          implemented.add(interface);
         }
-        if (decl is ClassBuilder) {
-          ClassBuilder interface = decl;
-          if (superClass == interface) {
-            addProblem(
-                templateImplementsSuperClass.withArguments(interface.name),
-                this.charOffset,
-                noLength);
-          } else if (interface.cls.name == "FutureOr" &&
-              // Coverage-ignore(suite): Not run.
-              interface.cls.enclosingLibrary.importUri.isScheme("dart") &&
-              // Coverage-ignore(suite): Not run.
-              interface.cls.enclosingLibrary.importUri.path == "async") {
-            // Coverage-ignore-block(suite): Not run.
-            addProblem(messageImplementsFutureOr, this.charOffset, noLength);
-          } else if (implemented.contains(interface)) {
-            // Aggregate repetitions.
-            problems ??= <ClassBuilder, int>{};
-            problems[interface] ??= 0;
-            problems[interface] = problems[interface]! + 1;
-            problemsOffsets ??= <ClassBuilder, int>{};
-            problemsOffsets[interface] ??= charOffset ?? TreeNode.noOffset;
-          } else {
-            implemented.add(interface);
-          }
-        }
-        if (decl != superClass) {
-          // TODO(eernst): Have all 'restricted supertype' checks in one place.
-          if (decl is VoidTypeDeclarationBuilder) {
-            // Coverage-ignore-block(suite): Not run.
-            fail(type, messageImplementsVoid, aliasBuilder);
-          } else if (decl is NeverTypeDeclarationBuilder) {
-            fail(type, messageImplementsNever, aliasBuilder);
-          }
+      }
+      if (unaliasedDeclaration != superClass) {
+        // TODO(eernst): Have all 'restricted supertype' checks in one place.
+        if (unaliasedDeclaration is VoidTypeDeclarationBuilder) {
+          // Coverage-ignore-block(suite): Not run.
+          fail(type, messageImplementsVoid, typeDeclaration);
+        } else if (unaliasedDeclaration is NeverTypeDeclarationBuilder) {
+          fail(type, messageImplementsNever, typeDeclaration);
         }
       }
     }
@@ -1015,8 +995,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     Message? message;
     for (int i = 0; i < typeVariables!.length; ++i) {
       NominalVariableBuilder typeVariableBuilder = typeVariables![i];
-      Variance variance = computeTypeVariableBuilderVariance(
-              typeVariableBuilder, supertype,
+      Variance variance = supertype
+          .computeTypeVariableBuilderVariance(typeVariableBuilder,
               sourceLoader: libraryBuilder.loader)
           .variance!;
       if (!variance.greaterThanOrEqual(typeVariables![i].variance)) {
@@ -1248,19 +1228,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     final Map<TypeDeclarationBuilder?, TypeAliasBuilder?> result = {};
     final TypeBuilder? supertype = this.supertypeBuilder;
     if (supertype != null) {
-      TypeDeclarationBuilder? declarationBuilder = supertype.declaration;
-      if (declarationBuilder is TypeAliasBuilder) {
-        TypeAliasBuilder aliasBuilder = declarationBuilder;
-        NamedTypeBuilder namedBuilder = supertype as NamedTypeBuilder;
-        declarationBuilder = aliasBuilder.unaliasDeclaration(
-            namedBuilder.typeArguments,
-            isUsedAsClass: true,
-            usedAsClassCharOffset: namedBuilder.charOffset,
-            usedAsClassFileUri: namedBuilder.fileUri);
-        result[declarationBuilder] = aliasBuilder;
-      } else {
-        result[declarationBuilder] = null;
-      }
+      TypeDeclarationBuilder? declaration = supertype.declaration;
+      TypeDeclarationBuilder? unaliasedDeclaration =
+          supertype.computeUnaliasedDeclaration(isUsedAsClass: true);
+      result[unaliasedDeclaration] =
+          declaration is TypeAliasBuilder ? declaration : null;
     } else if (objectClass != this) {
       result[objectClass] = null;
     }
@@ -1268,37 +1240,20 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (interfaces != null) {
       for (int i = 0; i < interfaces.length; i++) {
         TypeBuilder interface = interfaces[i];
-        TypeDeclarationBuilder? declarationBuilder = interface.declaration;
-        if (declarationBuilder is TypeAliasBuilder) {
-          TypeAliasBuilder aliasBuilder = declarationBuilder;
-          NamedTypeBuilder namedBuilder = interface as NamedTypeBuilder;
-          declarationBuilder = aliasBuilder.unaliasDeclaration(
-              namedBuilder.typeArguments,
-              isUsedAsClass: true,
-              usedAsClassCharOffset: namedBuilder.charOffset,
-              usedAsClassFileUri: namedBuilder.fileUri);
-          result[declarationBuilder] = aliasBuilder;
-        } else {
-          result[declarationBuilder] = null;
-        }
+        TypeDeclarationBuilder? declaration = interface.declaration;
+        TypeDeclarationBuilder? unaliasedDeclaration =
+            interface.computeUnaliasedDeclaration(isUsedAsClass: true);
+        result[unaliasedDeclaration] =
+            declaration is TypeAliasBuilder ? declaration : null;
       }
     }
     final TypeBuilder? mixedInTypeBuilder = this.mixedInTypeBuilder;
     if (mixedInTypeBuilder != null) {
-      TypeDeclarationBuilder? declarationBuilder =
-          mixedInTypeBuilder.declaration;
-      if (declarationBuilder is TypeAliasBuilder) {
-        TypeAliasBuilder aliasBuilder = declarationBuilder;
-        NamedTypeBuilder namedBuilder = mixedInTypeBuilder as NamedTypeBuilder;
-        declarationBuilder = aliasBuilder.unaliasDeclaration(
-            namedBuilder.typeArguments,
-            isUsedAsClass: true,
-            usedAsClassCharOffset: namedBuilder.charOffset,
-            usedAsClassFileUri: namedBuilder.fileUri);
-        result[declarationBuilder] = aliasBuilder;
-      } else {
-        result[declarationBuilder] = null;
-      }
+      TypeDeclarationBuilder? declaration = mixedInTypeBuilder.declaration;
+      TypeDeclarationBuilder? unaliasedDeclaration =
+          mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true);
+      result[unaliasedDeclaration] =
+          declaration is TypeAliasBuilder ? declaration : null;
     }
     return result;
   }

@@ -38,14 +38,12 @@ class A {
 ''';
 
 class AvoidFieldInitializersInConstClasses extends LintRule {
-  AvoidFieldInitializersInConstClasses() : super(
-            name: 'avoid_field_initializers_in_const_classes',
-            description: _desc,
-            details: _details,
-            // TODO(srawlins): This rule has nothing to do with style. It is to
-            // reduce runtime memory usage. But we don't have a Category for
-            // that yet.
-            categories: {LintRuleCategory.style});
+  AvoidFieldInitializersInConstClasses()
+      : super(
+          name: 'avoid_field_initializers_in_const_classes',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

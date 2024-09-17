@@ -70,10 +70,10 @@ Expression? _getExpressionCondition(Expression rawExpression) {
 class PreferConditionalAssignment extends LintRule {
   PreferConditionalAssignment()
       : super(
-            name: 'prefer_conditional_assignment',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'prefer_conditional_assignment',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_conditional_assignment;

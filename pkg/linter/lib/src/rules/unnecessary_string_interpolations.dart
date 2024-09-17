@@ -31,10 +31,10 @@ String o = message;
 class UnnecessaryStringInterpolations extends LintRule {
   UnnecessaryStringInterpolations()
       : super(
-            name: 'unnecessary_string_interpolations',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'unnecessary_string_interpolations',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_string_interpolations;

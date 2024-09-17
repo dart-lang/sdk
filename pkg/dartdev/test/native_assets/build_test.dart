@@ -128,6 +128,28 @@ void main(List<String> args) {
     });
   });
 
+  test('dart build and link dylib conflict', timeout: longTimeout, () async {
+    await nativeAssetsTest('native_add_duplicate', (dartAppUri) async {
+      final result = await runDart(
+        arguments: [
+          '--enable-experiment=native-assets',
+          'build',
+          'bin/native_add_duplicate.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(
+        result.stderr,
+        contains(
+          'Duplicate dynamic library file name',
+        ),
+      );
+      expect(result.exitCode, 255);
+    });
+  });
+
   test('dart link assets', timeout: longTimeout, () async {
     await nativeAssetsTest('drop_dylib_link', (dartAppUri) async {
       final result = await runDart(
@@ -189,6 +211,80 @@ void main(List<String> args) {
       );
     });
   });
+
+  test('do not delete project', () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final result = await runDart(
+        arguments: [
+          '--enable-experiment=native-assets',
+          if (fromDartdevSource)
+            Platform.script.resolve('../../bin/dartdev.dart').toFilePath(),
+          'build',
+          'bin/dart_app.dart',
+          '.'
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(
+        result.exitCode,
+        isNot(0), // The dartdev error code.
+      );
+    });
+  });
+
+  for (var filename in [
+    'drop_dylib_recording_calls',
+    'drop_dylib_recording_instances',
+  ]) {
+    test('Tree-shaking in $filename: An asset is dropped', timeout: longTimeout,
+        () async {
+      await recordUseTest('drop_dylib_recording', (dartAppUri) async {
+        final addLib =
+            OSImpl.current.libraryFileName('add', DynamicLoadingBundledImpl());
+        final mulitplyLib = OSImpl.current
+            .libraryFileName('multiply', DynamicLoadingBundledImpl());
+        // Now try using the add symbol only, so the multiply library is
+        // tree-shaken.
+
+        await runDart(
+          arguments: [
+            '--enable-experiment=native-assets,record-use',
+            'build',
+            'bin/$filename.dart',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: true,
+        );
+
+        await runProcess(
+          executable: Uri.file('bin/$filename/$filename.exe'),
+          logger: logger,
+          expectedExitCode: 0,
+          throwOnUnexpectedExitCode: true,
+          workingDirectory: dartAppUri,
+        );
+
+        // The build directory exists
+        final shakeDirectory =
+            Directory.fromUri(dartAppUri.resolve('bin/$filename'));
+        expect(shakeDirectory.existsSync(), true);
+
+        // The multiply asset has been treeshaken
+        expect(
+          File.fromUri(shakeDirectory.uri.resolve('lib/$addLib')).existsSync(),
+          true,
+        );
+        expect(
+          File.fromUri(shakeDirectory.uri.resolve('lib/$mulitplyLib'))
+              .existsSync(),
+          false,
+        );
+      });
+    });
+  }
 }
 
 Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {

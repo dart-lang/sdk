@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:front_end/src/type_inference/type_constraint_gatherer.dart';
 import 'package:front_end/src/type_inference/type_inference_engine.dart';
@@ -245,8 +246,8 @@ abstract class TypeSchemaEnvironmentTestBase {
   /// the [constraint] string, from left to right.
   MergedTypeConstraint parseConstraint(String constraint) {
     MergedTypeConstraint result = new MergedTypeConstraint(
-        lower: const UnknownType(),
-        upper: const UnknownType(),
+        lower: SharedTypeSchemaView(const UnknownType()),
+        upper: SharedTypeSchemaView(const UnknownType()),
         origin: const UnknownTypeConstraintOrigin());
     List<String> upperBoundSegments = constraint.split("<:");
     bool firstUpperBoundSegment = true;
@@ -263,10 +264,12 @@ abstract class TypeSchemaEnvironmentTestBase {
         if (firstLowerBoundSegment) {
           firstLowerBoundSegment = false;
           if (segment.isNotEmpty) {
-            result.mergeInTypeSchemaUpper(parseType(segment), _operations);
+            result.mergeInTypeSchemaUpper(
+                SharedTypeSchemaView(parseType(segment)), _operations);
           }
         } else {
-          result.mergeInTypeSchemaLower(parseType(segment), _operations);
+          result.mergeInTypeSchemaLower(
+              SharedTypeSchemaView(parseType(segment)), _operations);
         }
       }
     }

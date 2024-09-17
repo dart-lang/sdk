@@ -20,307 +20,47 @@ import 'bytecode_serialization.dart'
         StringWriter;
 import 'declarations.dart' show SourceFile, TypeParametersDeclaration;
 
-/*
-
-Bytecode object table is encoded in the following way
-(using notation from pkg/kernel/binary.md):
-
-type ObjectTable {
-  UInt numEntries
-
-  // Total size of ‘objects’ in bytes.
-  UInt objectsSize
-
-  ObjectContents[numEntries] objects
-
-  // Offsets relative to ‘objects’.
-  UInt[numEntries] objectOffsets
-}
-
-
-// Either reference to an object in object table, or object contents
-// written inline (determined by bit 0).
-PackedObject = ObjectReference | ObjectContents
-
-type ObjectReference {
-  // Bit 0 (reference bit): 1
-  // Bits 1+: index in object table
-  UInt reference
-}
-
-type ObjectContents {
-  // Bit 0 (reference bit): 0
-  // Bits 1-4: object kind
-  // Bits 5+ object flags
-  UInt header
-}
-
-// Invalid/null object (always present at index 0).
-type InvalidObject extends ObjectContents {
-  kind = 0;
-}
-
-type Library extends ObjectContents {
-  kind = 1;
-  PackedObject importUri;
-}
-
-type Class extends ObjectContents {
-  kind = 2;
-  PackedObject library;
-  // Empty name is used for artificial class containing top-level
-  // members of a library.
-  PackedObject name;
-}
-
-type Member extends ObjectContents {
-  kind = 3;
-  flags = (isField, isConstructor);
-  PackedObject class;
-  PackedObject name;
-}
-
-type Closure extends ObjectContents {
-  kind = 4;
-  PackedObject enclosingMember;
-  UInt closureIndex;
-}
-
-type Name extends ObjectContents {
-  kind = 5;
-
-  // Invalid for public names
-  PackedObject library;
-
-  // Getters are prefixed with 'get:'.
-  // Setters are prefixed with 'set:'.
-  PackedString string;
-}
-
-// Type arguments vector.
-type TypeArguments extends ObjectContents {
-  kind = 6;
-  List<PackedObject> args;
-}
-
-abstract type ConstObject extends ObjectContents {
-  kind = 7;
-  flags = constantTag (4 bits)
-}
-
-type ConstInstance extends ConstObject {
-  kind = 7
-  constantTag (flags) = 1
-  PackedObject type;
-  List<Pair<PackedObject, PackedObject>> fieldValues;
-}
-
-type ConstInt extends ConstValue {
-  kind = 7
-  constantTag (flags) = 2
-  SLEB128 value;
-}
-
-type ConstDouble extends ConstValue {
-  kind = 7
-  constantTag (flags) = 3
-  // double bits are reinterpreted as 64-bit int
-  SLEB128 value;
-}
-
-type ConstList extends ConstObject {
-  kind = 7
-  constantTag (flags) = 4
-  PackedObject elemType;
-  List<PackedObject> entries;
-}
-
-type ConstTearOff extends ConstObject {
-  kind = 7
-  constantTag (flags) = 5
-  PackedObject target;
-}
-
-type ConstBool extends ConstValue {
-  kind = 7
-  constantTag = 6
-  Byte isTrue;
-}
-
-type ConstSymbol extends ConstObject {
-  kind = 7
-  constantTag (flags) = 7
-  PackedObject name;
-}
-
-type ConstTearOffInstantiation extends ConstObject {
-  kind = 7
-  constantTag (flags) = 8
-  PackedObject tearOff;
-  PackedObject typeArguments;
-}
-
-type ArgDesc extends ObjectContents {
-  kind = 8;
-  flags = (hasNamedArgs, hasTypeArgs)
-
-  UInt numArguments
-
- if hasTypeArgs
-   UInt numTypeArguments
-
- if hasNamedArgs
-   List<PackedObject> argNames;
-}
-
-type Script extends ObjectContents {
-  kind = 9
-  flags = (hasSourceFile)
-  PackedObject uri
-  if hasSourceFile
-    UInt sourceFileOffset
-}
-
-abstract type Type extends ObjectContents {
-  kind = 10
-  flags = typeTag (4 bits)
-}
-
-type DynamicType extends Type {
-  kind = 10
-  typeTag (flags) = 1
-}
-
-type VoidType extends Type {
-  kind = 10
-  typeTag (flags) = 2
-}
-
-// SimpleType can be used only for types without type arguments.
-type SimpleType extends Type {
-  kind = 10
-  typeTag (flags) = 3
-  PackedObject class
-}
-
-type TypeParameter extends Type {
-  kind = 10
-  typeTag (flags) = 4
-  // Class, Member or Closure declaring this type parameter.
-  // Null (Invalid) if declared by function type.
-  PackedObject parent
-  UInt indexInParent
-}
-
-// Generic interface type.
-type GenericType extends Type {
-  kind = 10
-  typeTag (flags) = 5
-  PackedObject class
-  // Flattened type arguments vector.
-  PackedObject typeArgs
-}
-
-type FunctionType extends Type {
-  kind = 10
-  typeTag (flags) = 6
-
-  UInt functionTypeFlags(hasOptionalPositionalParams,
-                         hasOptionalNamedParams,
-                         hasTypeParams)
-
-  if hasTypeParams
-    TypeParametersDeclaration typeParameters
-
-  UInt numParameters
-
-  if hasOptionalPositionalParams || hasOptionalNamedParams
-    UInt numRequiredParameters
-
-  Type[] positionalParameters
-  NameAndType[] namedParameters
-  PackedObject returnType
-}
-
-type RecordType extends Type {
-  kind = 10
-  typeTag (flags) = 7
-
-  UInt numPositionalFields
-  UInt numNamedFields
-
-  Type[] positionalFields
-  NameAndType[] namedFields
-}
-
-type NullType extends Type {
-  kind = 10
-  typeTag (flags) = 8
-}
-
-type NeverType extends Type {
-  kind = 10
-  typeTag (flags) = 9
-}
-
-type TypeParametersDeclaration {
-   UInt numTypeParameters
-   PackedObject[numTypeParameters] typeParameterNames
-   BoundAndDefaultType[numTypeParameters] typeParameterBoundsAndDefaultTypes
-}
-
-type NameAndType {
-  PackedObject name;
-  PackedObject type;
-}
-
-type BoundAndDefaultType {
-  PackedObject bound;
-  PackedObject defaultType;
-}
-
-*/
-
 enum ObjectKind {
   kInvalid,
   kLibrary,
+  kScript,
   kClass,
   kMember,
   kClosure,
   kName,
-  kTypeArguments,
   kConstObject,
-  kArgDesc,
-  kScript,
   kType,
+  kTypeArguments,
+  kArgDesc,
 }
 
 enum ConstTag {
   kInvalid,
-  kInstance,
   kInt,
   kDouble,
-  kList,
-  kTearOff,
   kBool,
-  kSymbol,
-  kTearOffInstantiation,
   kString,
+  kSymbol,
+  kInstance,
+  kList,
   kMap,
   kSet,
+  kRecord,
+  kTearOff,
+  kTearOffInstantiation,
 }
 
 enum TypeTag {
   kInvalid,
   kDynamic,
   kVoid,
-  kSimpleType,
-  kTypeParameter,
-  kGenericType,
-  kFunctionType,
-  kRecordType,
   kNull,
   kNever,
+  kSimpleType,
+  kGenericType,
+  kTypeParameter,
+  kFunctionType,
+  kRecordType,
 }
 
 /// Name of artificial class containing top-level members of a library.
@@ -1405,6 +1145,7 @@ class _ConstObjectHandle extends ObjectHandle {
         }
         break;
       case ConstTag.kList:
+      case ConstTag.kRecord:
       case ConstTag.kMap:
       case ConstTag.kSet:
         {
@@ -1461,6 +1202,7 @@ class _ConstObjectHandle extends ObjectHandle {
                     reader.readPackedObject(), reader.readPackedObject())));
         break;
       case ConstTag.kList:
+      case ConstTag.kRecord:
       case ConstTag.kMap:
       case ConstTag.kSet:
         type = reader.readPackedObject();
@@ -1503,6 +1245,7 @@ class _ConstObjectHandle extends ObjectHandle {
         }
         break;
       case ConstTag.kList:
+      case ConstTag.kRecord:
       case ConstTag.kMap:
       case ConstTag.kSet:
         {
@@ -1579,6 +1322,7 @@ class _ConstObjectHandle extends ObjectHandle {
               _combineHashes(type.hashCode, mapHashCode(fieldValues));
         }
       case ConstTag.kList:
+      case ConstTag.kRecord:
       case ConstTag.kMap:
       case ConstTag.kSet:
         {
@@ -1610,6 +1354,7 @@ class _ConstObjectHandle extends ObjectHandle {
         case ConstTag.kInstance:
           return this.type == other.type && mapEquals(this.value, other.value);
         case ConstTag.kList:
+        case ConstTag.kRecord:
         case ConstTag.kMap:
         case ConstTag.kSet:
           return this.type == other.type && listEquals(this.value, other.value);
@@ -1634,6 +1379,8 @@ class _ConstObjectHandle extends ObjectHandle {
         return 'const $type $value';
       case ConstTag.kList:
         return 'const List<$type> $value';
+      case ConstTag.kRecord:
+        return 'const Record<$type> $value';
       case ConstTag.kMap:
         return 'const Map<$type> $value';
       case ConstTag.kSet:
@@ -2381,6 +2128,16 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
           ConstTag.kList,
           objectTable.getHandles(node.entries),
           objectTable.getHandle(node.typeArgument)));
+
+  @override
+  ObjectHandle? visitRecordConstant(RecordConstant node) =>
+      objectTable.getOrAddObject(new _ConstObjectHandle(
+          ConstTag.kRecord,
+          objectTable.getHandles([
+            ...node.positional,
+            ...node.named.values,
+          ]),
+          objectTable.getHandle(node.recordType)));
 
   @override
   ObjectHandle? visitMapConstant(MapConstant node) =>

@@ -45,7 +45,7 @@ FutureOr<Handler> defaultHandler({
   required String buildDir,
   ClientManager? clientManager,
   Handler? notFoundHandler,
-  DTDConnectionInfo? dtd,
+  DtdInfo? dtd,
   required ExtensionsManager devtoolsExtensionsManager,
 }) {
   // When served through DDS, the app root is /devtools.

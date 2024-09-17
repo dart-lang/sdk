@@ -16,42 +16,57 @@ bool isExhaustive(ObjectPropertyLookup fieldLookup, Space valueSpace,
   return checkExhaustiveness(fieldLookup, valueSpace, caseSpaces) == null;
 }
 
-/// Checks the [cases] representing a series of switch cases to see if they
+/// Checks the [caseSpaces] representing a series of switch cases to see if they
 /// exhaustively cover all possible values of the matched [valueType]. Also
 /// checks to see if any case can't be matched because it's covered by previous
 /// cases.
 ///
-/// Returns a list of any unreachable case or non-exhaustive match errors.
-/// Returns an empty list if all cases are reachable and the cases are
-/// exhaustive.
-List<ExhaustivenessError> reportErrors(
-    ObjectPropertyLookup fieldLookup, StaticType valueType, List<Space> cases,
-    {required bool computeUnreachable}) {
+/// [caseIsGuarded] should be a list of booleans indicating whether each case in
+/// [caseSpaces] has an associated `when` clause.
+///
+/// If any unreachable cases are found, information about them is appended to
+/// [caseUnreachabilities]. (If `null` is passed for [caseUnreachabilities],
+/// then no information about unreachable cases is generated).
+///
+/// If the switch cases are not fully exhaustive, details about how they fail to
+/// be exhaustive are returned using a data structure of type
+/// [NonExhaustiveness]; otherwise `null` is returned.
+///
+/// Note that if a non-null value is returned, that doesn't necessarily mean
+/// that an error should be reported; the caller still must check whether the
+/// switch has a `default` clause and whether the scrutinee type is an "always
+/// exhaustive" type.
+NonExhaustiveness? computeExhaustiveness(ObjectPropertyLookup fieldLookup,
+    StaticType valueType, List<bool> caseIsGuarded, List<Space> caseSpaces,
+    {List<CaseUnreachability>? caseUnreachabilities}) {
   _Checker checker = new _Checker(fieldLookup);
 
-  List<ExhaustivenessError> errors = <ExhaustivenessError>[];
-
   Space valuePattern = new Space(const Path.root(), valueType);
-  List<List<Space>> caseRows = cases.map((space) => [space]).toList();
+  List<List<Space>> caseRows = [];
 
-  if (computeUnreachable) {
-    for (int i = 1; i < caseRows.length; i++) {
+  for (int i = 0; i < caseSpaces.length; i++) {
+    late List<Space> caseRow = [caseSpaces[i]];
+    if (caseUnreachabilities != null && i > 0) {
       // See if this case is covered by previous ones.
-      if (checker._unmatched(caseRows.sublist(0, i), caseRows[i],
+      if (checker._unmatched(caseRows, caseRow,
               returnMultipleWitnesses: false) ==
           null) {
-        errors.add(new UnreachableCaseError(valueType, cases, i));
+        caseUnreachabilities
+            .add(new CaseUnreachability(valueType, caseSpaces, i));
       }
+    }
+    if (!caseIsGuarded[i]) {
+      caseRows.add(caseRow);
     }
   }
 
   List<Witness>? witnesses = checker._unmatched(caseRows, [valuePattern],
       returnMultipleWitnesses: true);
   if (witnesses != null) {
-    errors.add(new NonExhaustiveError(valueType, cases, witnesses));
+    return new NonExhaustiveness(valueType, caseSpaces, witnesses);
+  } else {
+    return null;
   }
-
-  return errors;
 }
 
 /// Determines if [cases] is exhaustive over all values contained by
@@ -357,28 +372,26 @@ List<StaticType> checkingOrder(StaticType type, Set<Key> keysOfInterest) {
   return result;
 }
 
-class ExhaustivenessError {}
-
-class NonExhaustiveError implements ExhaustivenessError {
+class NonExhaustiveness {
   final StaticType valueType;
 
   final List<Space> cases;
 
   final List<Witness> witnesses;
 
-  NonExhaustiveError(this.valueType, this.cases, this.witnesses);
+  NonExhaustiveness(this.valueType, this.cases, this.witnesses);
 
   @override
   String toString() =>
       '$valueType is not exhaustively matched by ${cases.join('|')}.';
 }
 
-class UnreachableCaseError implements ExhaustivenessError {
+class CaseUnreachability {
   final StaticType valueType;
   final List<Space> cases;
   final int index;
 
-  UnreachableCaseError(this.valueType, this.cases, this.index);
+  CaseUnreachability(this.valueType, this.cases, this.index);
 
   @override
   String toString() => 'Case #${index + 1} ${cases[index]} is unreachable.';

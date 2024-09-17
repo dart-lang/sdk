@@ -247,7 +247,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     var element = node.staticElement;
     if (element is MethodElement) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement.isAllocatorExtension &&
           element.name == _allocateExtensionMethodName) {
         _validateAllocate(node);
@@ -260,7 +260,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void visitIndexExpression(IndexExpression node) {
     var element = node.staticElement;
     if (element is MethodElement) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement.isNativeStructPointerExtension ||
           enclosingElement.isNativeStructArrayExtension ||
           enclosingElement.isNativeUnionPointerExtension ||
@@ -275,7 +275,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var constructor = node.constructorName.staticElement;
-    var class_ = constructor?.enclosingElement;
+    var class_ = constructor?.enclosingElement3;
     if (class_.isStructSubclass || class_.isUnionSubclass) {
       if (!constructor!.isFactory) {
         _errorReporter.atNode(
@@ -331,7 +331,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var element = node.methodName.staticElement;
     if (element is MethodElement) {
-      Element enclosingElement = element.enclosingElement;
+      Element enclosingElement = element.enclosingElement3;
       if (enclosingElement.isPointer) {
         if (element.name == 'fromFunction') {
           _validateFromFunction(node, element);
@@ -356,7 +356,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
       }
     } else if (element is FunctionElement) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement is CompilationUnitElement) {
         if (element.library.name == 'dart.ffi') {
           if (element.name == 'sizeOf') {
@@ -372,7 +372,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     var element = node.staticElement;
     if (element != null) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement.isNativeStructPointerExtension ||
           enclosingElement.isNativeUnionPointerExtension) {
         if (element.name == 'ref') {
@@ -391,7 +391,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void visitPropertyAccess(PropertyAccess node) {
     var element = node.propertyName.staticElement;
     if (element != null) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement.isNativeStructPointerExtension ||
           enclosingElement.isNativeUnionPointerExtension) {
         if (element.name == 'ref') {
@@ -629,7 +629,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // Receiver can only be Pointer if the class extends
       // NativeFieldWrapperClass1.
       if (ffiSignature.normalParameterTypes[0].isPointer) {
-        var cls = declarationElement.enclosingElement as InterfaceElement;
+        var cls = declarationElement.enclosingElement3 as InterfaceElement;
         if (!_extendsNativeFieldWrapperClass1(cls.thisType)) {
           _errorReporter.atToken(
             errorToken,
@@ -937,7 +937,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   _PrimitiveDartType _typeForAnnotation(Annotation annotation) {
     var element = annotation.element;
     if (element is ConstructorElement) {
-      String name = element.enclosingElement.name;
+      String name = element.enclosingElement3.name;
       if (_primitiveIntegerNativeTypes.contains(name)) {
         return _PrimitiveDartType.int;
       } else if (_primitiveDoubleNativeTypes.contains(name)) {
@@ -1041,6 +1041,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// calls.
   void _validateAddressPosition(Expression node, AstNode errorNode) {
     var parent = node.parent;
+    // Since we are allowing .address.cast(), we need to traverse up one level
+    // to get the ffi Invocation (.cast() nested down one level the expression)
+    if (parent is MethodInvocation &&
+        parent.methodName.staticElement is MethodElement &&
+        parent.methodName.name == "cast" &&
+        parent.methodName.staticElement?.enclosingElement3 is ClassElement &&
+        parent.methodName.staticElement!.enclosingElement3.isPointer) {
+      parent = parent.parent;
+    }
     var grandParent = parent?.parent;
     if (parent is! ArgumentList ||
         grandParent is! MethodInvocation ||
@@ -1055,7 +1064,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _validateAddressPrefixedIdentifier(PrefixedIdentifier node) {
     var errorNode = node.identifier;
     _validateAddressPosition(node, errorNode);
-    var extensionName = node.staticElement?.enclosingElement?.name;
+    var extensionName = node.staticElement?.enclosingElement3?.name;
     var receiver = node.prefix;
     _validateAddressReceiver(node, extensionName, receiver, errorNode);
   }
@@ -1063,7 +1072,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _validateAddressPropertyAccess(PropertyAccess node) {
     var errorNode = node.propertyName;
     _validateAddressPosition(node, errorNode);
-    var extensionName = node.propertyName.staticElement?.enclosingElement?.name;
+    var extensionName =
+        node.propertyName.staticElement?.enclosingElement3?.name;
     var receiver = node.target;
     _validateAddressReceiver(node, extensionName, receiver, errorNode);
   }
@@ -1140,7 +1150,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     List<Annotation> extraAnnotations = [];
     for (Annotation annotation in annotations) {
       if (annotation.element.ffiClass != null ||
-          annotation.element?.enclosingElement.isAbiSpecificIntegerSubclass ==
+          annotation.element?.enclosingElement3.isAbiSpecificIntegerSubclass ==
               true) {
         if (requiredFound) {
           extraAnnotations.add(annotation);
@@ -1478,7 +1488,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
         var arrayDimensions = declaredType.arrayDimensions;
         var fieldElement = node.fields.variables.first.declaredElement;
-        var lastElement = (fieldElement?.enclosingElement as ClassElement?)
+        var lastElement = (fieldElement?.enclosingElement3 as ClassElement?)
             ?.fields
             .reversed
             .where((field) {
@@ -2060,7 +2070,7 @@ extension on Annotation {
     var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement.name ==
+        element.enclosingElement3.name ==
             FfiVerifier._abiSpecificIntegerMappingClassName;
   }
 
@@ -2068,14 +2078,14 @@ extension on Annotation {
     var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement.name == 'Array';
+        element.enclosingElement3.name == 'Array';
   }
 
   bool get isPacked {
     var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement.name == 'Packed';
+        element.enclosingElement3.name == 'Packed';
   }
 }
 
@@ -2122,7 +2132,7 @@ extension on ElementAnnotation {
     var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement.name == 'Array';
+        element.enclosingElement3.name == 'Array';
     // Note: this is 'Array' instead of '_ArraySize' because it finds the
     // forwarding factory instead of the forwarded constructor.
   }
@@ -2147,7 +2157,7 @@ extension on ElementAnnotation {
     var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement.name == 'Packed';
+        element.enclosingElement3.name == 'Packed';
   }
 
   int? get packedMemberAlignment {
@@ -2216,7 +2226,7 @@ extension on Element? {
   ClassElement? get ffiClass {
     var element = this;
     if (element is ConstructorElement) {
-      element = element.enclosingElement;
+      element = element.enclosingElement3;
     }
     if (element is ClassElement && element.isFfiClass) {
       return element;

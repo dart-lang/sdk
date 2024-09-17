@@ -90,11 +90,11 @@ void main() {
         equals({
           '0': [
             [
-              'file1.ext',
+              'hot-reload-test:///file1.ext',
               jsOutputUri.resolve('generation0/file1.ext').toFilePath()
             ],
             [
-              'file2.ext',
+              'hot-reload-test:///file2.ext',
               jsOutputUri.resolve('generation0/file2.ext').toFilePath()
             ]
           ]
@@ -156,21 +156,21 @@ void main() {
         equals({
           '0': [
             [
-              'file1.ext',
+              'hot-reload-test:///file1.ext',
               jsOutputUri.resolve('generation0/file1.ext').toFilePath()
             ],
             [
-              'file2.ext',
+              'hot-reload-test:///file2.ext',
               jsOutputUri.resolve('generation0/file2.ext').toFilePath()
             ]
           ],
           '1': [
             [
-              'file3.ext',
+              'hot-reload-test:///file3.ext',
               jsOutputUri.resolve('generation1/file3.ext').toFilePath()
             ],
             [
-              'file4.ext',
+              'hot-reload-test:///file4.ext',
               jsOutputUri.resolve('generation1/file4.ext').toFilePath()
             ],
           ],
@@ -182,11 +182,11 @@ void main() {
         filesystem.scriptDescriptorForBootstrap,
         equals([
           {
-            'id': 'file1.ext',
+            'id': 'hot-reload-test:///file1.ext',
             'src': jsOutputUri.resolve('generation0/file1.ext').toFilePath(),
           },
           {
-            'id': 'file2.ext',
+            'id': 'hot-reload-test:///file2.ext',
             'src': jsOutputUri.resolve('generation0/file2.ext').toFilePath(),
           },
         ]),

@@ -482,7 +482,7 @@
         ],
         "use-sdk": true,
         "host-asserts": false,
-        "timeout": 60
+        "timeout": 120
       }
     },
     "dart2wasm-(linux|mac|win)-jscm-(d8|jsshell|jsc|chrome|firefox)": {
@@ -582,7 +582,7 @@
         "use-sdk": true
       }
     },
-    "ddc-mac-chrome": {
+    "ddc-mac-(chrome|safari)": {
       "options": {
         "architecture": "arm64",
         "checked": true,
@@ -607,7 +607,8 @@
         "builder-tag": "canary",
         "checked": true,
         "ddc-options": [
-          "--canary"
+          "--canary",
+          "--modules=ddc"
         ],
         "use-sdk": true
       }
@@ -976,8 +977,6 @@
         "vm-linux-debug-ia32",
         "vm-linux-release-ia32",
         "vm-linux-release-x64",
-        "vm-mac-debug-arm64",
-        "vm-mac-release-arm64",
         "vm-win-debug-x64",
         "vm-win-release-ia32",
         "vm-win-release-x64"
@@ -1005,6 +1004,45 @@
           ],
           "fileset": "vm",
           "shards": 16
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-mac-debug-arm64",
+        "vm-mac-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM JIT builders on mac arm64. Includes VM service testing and building shared libraries for iOS target."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--codesigning-identity=-",
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}",
+            "--default-suites",
+            "co19",
+            "pkg/pkg/vm_service/"
+          ],
+          "fileset": "vm",
+          "shards": 16
+        },
+        {
+          "name": "build iOS shared library",
+          "script": "tools/build.py",
+          "arguments": [
+            "--codesigning-identity=-",
+            "--os=ios",
+            "runtime:dart_jit_library"
+          ]
         }
       ]
     },
@@ -1049,7 +1087,6 @@
       "meta": {
         "description": "This configuration is used by the VM AOT builders. Includes VM service testing in addition to legacy Observatory service tests.",
         "__comment__": "This configuration should be merged with the other VM AOT builders config below once Observatory is removed."
-
       },
       "steps": [
         {
@@ -1082,7 +1119,6 @@
       "meta": {
         "description": "This configuration is used by the VM AOT builders. Includes VM service testing.",
         "__comment__": "vm-aot-linux-debug-x64 should be added back into this configuration once Observatory is removed."
-
       },
       "steps": [
         {
@@ -1294,7 +1330,8 @@
           "arguments": [
             "--dart-dynamic-modules",
             "runtime",
-            "runtime_precompiled"
+            "runtime_precompiled",
+            "utils/gen_kernel"
           ]
         },
         {
@@ -1306,6 +1343,17 @@
           ],
           "fileset": "vm",
           "shards": 5
+        },
+        {
+          "name": "dynamic module tests",
+          "script": "out/DebugX64/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dynamic_modules/test/runner/main.dart",
+            "-nvm-aot-dyn-${system}-${mode}-${arch}",
+            "-raot",
+            "--verbose"
+          ]
         }
       ]
     },
@@ -1842,12 +1890,13 @@
           ]
         },
         {
-          "name": "ddc hot reload tests",
+          "name": "ddc dynamic module tests",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
-            "pkg/dev_compiler/test/hot_reload_suite.dart",
+            "pkg/dynamic_modules/test/runner/main.dart",
             "-nddc-${system}-chrome",
+            "-rddc",
             "--verbose"
           ]
         },
@@ -1939,16 +1988,6 @@
           ]
         },
         {
-          "name": "ddc hot reload tests",
-          "script": "xcodebuild/ReleaseARM64/dart-sdk/bin/dart",
-          "testRunner": true,
-          "arguments": [
-            "pkg/dev_compiler/test/hot_reload_suite.dart",
-            "-nddc-mac-chrome",
-            "--verbose"
-          ]
-        },
-        {
           "name": "ddc sourcemap tests",
           "script": "xcodebuild/ReleaseARM64/dart",
           "arguments": [
@@ -1990,6 +2029,49 @@
             "-nweb-dev-unittest-asserts-mac",
             "pkg//dev_compiler/"
           ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "ddc-mac-safari"
+      ],
+      "meta": {
+        "description": "DDC running in Safari on Mac."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=arm64",
+            "dart2js_bot",
+            "ddc_stable_test"
+          ]
+        },
+        {
+          "name": "ddc sdk tests",
+          "arguments": [
+            "-nddc-mac-safari",
+            "--arch=arm64",
+            "corelib",
+            "dartdevc",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 6,
+          "fileset": "js_platform"
+        },
+        {
+          "name": "ddc co19 tests",
+          "arguments": [
+            "-nddc-mac-safari",
+            "--arch=arm64",
+            "co19"
+          ],
+          "shards": 6,
+          "fileset": "js_platform"
         }
       ]
     },
@@ -2077,6 +2159,16 @@
           "script": "tools/build.py",
           "arguments": [
             "ddc_canary_test"
+          ]
+        },
+        {
+          "name": "ddc hot reload tests in d8",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/hot_reload_suite.dart",
+            "-nddc-canary-linux-chrome",
+            "--verbose"
           ]
         },
         {
@@ -3063,7 +3155,7 @@
         "pkg-win-release-arm64"
       ],
       "meta": {
-          "description": "This configuration is used by the pkg builders, no shards."
+        "description": "This configuration is used by the pkg builders, no shards."
       },
       "steps": [
         {

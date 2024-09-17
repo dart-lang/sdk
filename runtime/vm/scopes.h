@@ -217,6 +217,12 @@ class LocalVariable : public ZoneAllocated {
 
   bool Equals(const LocalVariable& other) const;
 
+  void PrintTo(BaseTextBuffer* f,
+               const char* label = "variable",
+               int depth = 0,
+               const LocalScope* scope = nullptr) const;
+  const char* ToCString() const;
+
  private:
   // If true, this variable is readonly.
   using IsFinalBit = BitField<uint32_t, bool, 0, 1>;
@@ -430,6 +436,9 @@ class LocalScope : public ZoneAllocated {
   // Create a ContextScope object which will capture "this" for an implicit
   // closure object.
   static ContextScopePtr CreateImplicitClosureScope(const Function& func);
+
+  void PrintTo(BaseTextBuffer* f, int depth = 0) const;
+  const char* ToCString() const;
 
  private:
   // Allocate the variable in the current context, possibly updating the current

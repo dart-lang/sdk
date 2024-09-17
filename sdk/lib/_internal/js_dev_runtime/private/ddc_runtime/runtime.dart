@@ -6,8 +6,6 @@
 library dart._runtime;
 
 import 'dart:async';
-import 'dart:collection';
-
 import 'dart:_debugger' show stackTraceMapper, trackCall;
 import 'dart:_foreign_helper'
     show
@@ -18,8 +16,7 @@ import 'dart:_foreign_helper'
         JS_GET_NAME,
         JSExportName,
         rest,
-        TYPE_REF,
-        spread;
+        TYPE_REF;
 import 'dart:_interceptors'
     show
         JavaScriptBigInt,
@@ -44,7 +41,6 @@ import 'dart:_js_helper'
         getRtiForRecord,
         ImmutableMap,
         ImmutableSet,
-        JsLinkedHashMap,
         jsObjectGetPrototypeOf,
         jsObjectSetPrototypeOf,
         NoReifyGeneric,
@@ -52,25 +48,21 @@ import 'dart:_js_helper'
         Primitives,
         PrivateSymbol,
         ReifyFunctionTypes,
-        TypeErrorImpl,
-        undefined;
+        TypeErrorImpl;
 import 'dart:_js_shared_embedded_names';
 import 'dart:_rti' as rti
     show
         bindingRtiFromList,
         constructorRtiCachePropertyName,
         createRuntimeType,
-        findType,
         getFunctionParametersForDynamicChecks,
         getGenericFunctionBounds,
-        getLegacyErasedRti,
         getRecordTypeElementTypes,
         getRecordTypeShapeKey,
         instanceType,
         instantiatedGenericFunctionType,
         interfaceTypeRecipePropertyName,
         isGenericFunctionType,
-        isNullable,
         isRecordType,
         isSubtype,
         Rti,

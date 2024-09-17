@@ -407,8 +407,14 @@ abstract class WebSocket
 
 class WebSocketException implements IOException {
   final String message;
+  final int? httpStatusCode;
 
-  const WebSocketException([this.message = ""]);
+  const WebSocketException([this.message = "", this.httpStatusCode]);
 
-  String toString() => "WebSocketException: $message";
+  String toString() {
+    if (httpStatusCode != null) {
+      return "WebSocketException: $message, HTTP status code: $httpStatusCode";
+    }
+    return "WebSocketException: $message";
+  }
 }

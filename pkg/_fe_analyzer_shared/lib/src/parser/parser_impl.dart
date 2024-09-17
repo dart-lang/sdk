@@ -129,7 +129,8 @@ import 'util.dart'
         findPreviousNonZeroLengthToken,
         isOneOf,
         isOneOfOrEof,
-        optional;
+        optional,
+        optional2;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
 /// in a linked list (aka a token stream).
@@ -1281,7 +1282,7 @@ class Parser {
   Token parseMetadataStar(Token token) {
     listener.beginMetadataStar(token.next!);
     int count = 0;
-    while (optional('@', token.next!)) {
+    while (optional2(TokenType.AT, token.next!)) {
       token = parseMetadata(token);
       count++;
     }
@@ -1334,10 +1335,10 @@ class Parser {
     token = ensureIdentifier(atToken, IdentifierContext.metadataReference);
     token =
         parseQualifiedRestOpt(token, IdentifierContext.metadataContinuation);
-    bool hasTypeArguments = optional("<", token.next!);
+    bool hasTypeArguments = optional2(TokenType.LT, token.next!);
     token = computeTypeParamOrArg(token).parseArguments(token, this);
     Token? period = null;
-    if (optional('.', token.next!)) {
+    if (optional2(TokenType.PERIOD, token.next!)) {
       period = token.next!;
       token = ensureIdentifier(
           period, IdentifierContext.metadataContinuationAfterTypeArguments);
@@ -1540,7 +1541,7 @@ class Parser {
   Token parseGetterOrFormalParameters(
       Token token, Token name, bool isGetter, MemberKind kind) {
     Token next = token.next!;
-    if (optional("(", next)) {
+    if (optional2(TokenType.OPEN_PAREN, next)) {
       if (isGetter) {
         reportRecoverableError(next, codes.messageGetterWithFormals);
       }
@@ -1781,7 +1782,7 @@ class Parser {
     int parameterCount = 0;
     while (true) {
       Token next = token.next!;
-      if (optional(')', next)) {
+      if (optional2(TokenType.CLOSE_PAREN, next)) {
         token = next;
         break;
       }
@@ -1805,7 +1806,7 @@ class Parser {
       token = parseFormalParameter(
           token, FormalParameterKind.requiredPositional, kind);
       next = token.next!;
-      if (!optional(',', next)) {
+      if (!optional2(TokenType.COMMA, next)) {
         Token next = token.next!;
         if (optional(')', next)) {
           token = next;
@@ -2043,7 +2044,7 @@ class Parser {
         IdentifierContext.formalParameterDeclaration;
 
     if (!inFunctionType &&
-        (optional('this', next) || optional('super', next))) {
+        (optional2(Keyword.THIS, next) || optional2(Keyword.SUPER, next))) {
       Token originalToken = token;
       if (optional('this', next)) {
         thisKeyword = token = next;
@@ -2083,7 +2084,7 @@ class Parser {
     }
     Token? beforeInlineFunctionType;
     TypeParamOrArgInfo typeParam = noTypeParamOrArg;
-    if (optional("<", next)) {
+    if (optional2(TokenType.LT, next)) {
       typeParam = computeTypeParamOrArg(token);
       if (typeParam != noTypeParamOrArg) {
         Token closer = typeParam.skip(token);
@@ -2097,7 +2098,7 @@ class Parser {
           next = token.next!;
         }
       }
-    } else if (optional("(", next)) {
+    } else if (optional2(TokenType.OPEN_PAREN, next)) {
       if (varFinalOrConst != null) {
         reportRecoverableError(
             varFinalOrConst, codes.messageFunctionTypedParameterVar);
@@ -2248,7 +2249,7 @@ class Parser {
     }
     token = token.next!;
     assert(optional(']', token));
-    listener.endOptionalFormalParameters(parameterCount, begin, token);
+    listener.endOptionalFormalParameters(parameterCount, begin, token, kind);
     return token;
   }
 
@@ -2299,7 +2300,7 @@ class Parser {
     }
     token = token.next!;
     assert(optional('}', token));
-    listener.endOptionalFormalParameters(parameterCount, begin, token);
+    listener.endOptionalFormalParameters(parameterCount, begin, token, kind);
     return token;
   }
 
@@ -2324,7 +2325,7 @@ class Parser {
   /// ```
   Token parseQualifiedRestOpt(
       Token token, IdentifierContext continuationContext) {
-    if (optional('.', token.next!)) {
+    if (optional2(TokenType.PERIOD, token.next!)) {
       return parseQualifiedRest(token, continuationContext);
     } else {
       return token;
@@ -3974,7 +3975,7 @@ class Parser {
   }
 
   Token parseInitializersOpt(Token token) {
-    if (optional(':', token.next!)) {
+    if (optional2(TokenType.COLON, token.next!)) {
       return parseInitializers(token.next!);
     } else {
       listener.handleNoInitializers();
@@ -4295,7 +4296,7 @@ class Parser {
     // to use this method, remove similar semicolon recovery code
     // from the handleError method in element_listener.dart.
     Token next = token.next!;
-    if (optional(';', next)) return next;
+    if (optional2(TokenType.SEMICOLON, next)) return next;
 
     // Find a token on the same line as where the ';' should be inserted.
     // Reporting the error on this token makes it easier
@@ -4878,8 +4879,16 @@ class Parser {
 
     // TODO(danrubel): Consider parsing the name before calling beginMethod
     // rather than passing the name token into beginMethod.
-    listener.beginMethod(kind, augmentToken, externalToken, staticToken,
-        covariantToken, varFinalOrConst, getOrSet, name);
+    listener.beginMethod(
+        kind,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        varFinalOrConst,
+        getOrSet,
+        name,
+        enclosingDeclarationName);
 
     Token token = typeInfo.parseType(beforeType, this);
     assert(token.next == (getOrSet ?? name) ||
@@ -5350,7 +5359,7 @@ class Parser {
     assert(!isExpression);
     token = skipAsyncModifier(token);
     Token next = token.next!;
-    if (optional('native', next)) {
+    if (optional2(Keyword.NATIVE, next)) {
       Token nativeToken = next;
       // TODO(danrubel): skip the native clause rather than parsing it
       // or remove this code completely when we remove support
@@ -5537,7 +5546,7 @@ class Parser {
     Token? star;
     asyncState = AsyncModifier.Sync;
     Token next = token.next!;
-    if (optional('async', next)) {
+    if (optional2(Keyword.ASYNC, next)) {
       async = token = next;
       next = token.next!;
       if (optional('*', next)) {
@@ -5547,7 +5556,7 @@ class Parser {
       } else {
         asyncState = AsyncModifier.Async;
       }
-    } else if (optional('sync', next)) {
+    } else if (optional2(Keyword.SYNC, next)) {
       async = token = next;
       next = token.next!;
       if (optional('*', next)) {
@@ -5820,7 +5829,7 @@ class Parser {
       if (allowPatterns && looksLikeOuterPatternEquals(token)) {
         token = parsePatternAssignment(token);
       } else {
-        token = optional('throw', token.next!)
+        token = optional2(Keyword.THROW, token.next!)
             ? parseThrowExpression(token, /* allowCascades = */ true)
             : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE,
                 /* allowCascades = */ true, ConstantPatternContext.none);
@@ -5884,7 +5893,7 @@ class Parser {
     assert(precedence <= SELECTOR_PRECEDENCE);
     token = parseUnaryExpression(token, allowCascades, constantPatternContext);
     Token bangToken = token;
-    if (optional('!', token.next!)) {
+    if (optional2(TokenType.BANG, token.next!)) {
       bangToken = token.next!;
     }
     TypeParamOrArgInfo typeArg = computeMethodTypeArguments(bangToken);
@@ -6020,7 +6029,7 @@ class Parser {
             listener.handleEndingBinaryExpression(operator, token);
 
             Token bangToken = token;
-            if (optional('!', token.next!)) {
+            if (optional2(TokenType.BANG, token.next!)) {
               bangToken = token.next!;
             }
             typeArg = computeMethodTypeArguments(bangToken);
@@ -6417,12 +6426,12 @@ class Parser {
       return token;
     } else if (useImplicitCreationExpression && token.next!.isIdentifier) {
       Token identifier = token.next!;
-      if (optional(".", identifier.next!)) {
+      if (optional2(TokenType.PERIOD, identifier.next!)) {
         identifier = identifier.next!.next!;
       }
       if (identifier.isIdentifier) {
         // Looking at `identifier ('.' identifier)?`.
-        if (optional("<", identifier.next!)) {
+        if (optional2(TokenType.LT, identifier.next!)) {
           TypeParamOrArgInfo typeArg = computeTypeParamOrArg(identifier);
           if (typeArg != noTypeParamOrArg) {
             Token endTypeArguments = typeArg.skip(identifier);
@@ -7191,7 +7200,7 @@ class Parser {
     if (name.isIdentifier) {
       TypeParamOrArgInfo typeParam = computeTypeParamOrArg(name);
       Token next = typeParam.skip(name).next!;
-      if (optional('(', next)) {
+      if (optional2(TokenType.OPEN_PAREN, next)) {
         if (looksLikeFunctionBody(next.endGroup!.next!)) {
           return parseFunctionLiteral(
               token, beforeName, name, typeInfo, typeParam, context);
@@ -7667,7 +7676,8 @@ class Parser {
     potentialTypeArg ??= computeTypeParamOrArg(token);
     afterToken ??= potentialTypeArg.skip(token).next!;
     TypeParamOrArgInfo typeArg;
-    if (optional('(', afterToken) && !potentialTypeArg.recovered) {
+    if (optional2(TokenType.OPEN_PAREN, afterToken) &&
+        !potentialTypeArg.recovered) {
       typeArg = potentialTypeArg;
     } else {
       typeArg = noTypeParamOrArg;
@@ -7711,7 +7721,7 @@ class Parser {
   /// https://github.com/dart-lang/language/blob/master/accepted/future-releases/records/records-feature-specification.md#ambiguity-with-metadata-annotations
   Token parseArgumentsOptMetadata(Token token, bool hasTypeArguments) {
     final Token next = token.next!;
-    if (!optional('(', next)) {
+    if (!optional2(TokenType.OPEN_PAREN, next)) {
       listener.handleNoArguments(next);
       return token;
     } else if (token.charEnd == next.charOffset) {
@@ -7747,7 +7757,7 @@ class Parser {
 
   Token parseArgumentsOpt(Token token) {
     Token next = token.next!;
-    if (!optional('(', next)) {
+    if (!optional2(TokenType.OPEN_PAREN, next)) {
       listener.handleNoArguments(next);
       return token;
     } else {
@@ -7783,12 +7793,13 @@ class Parser {
     mayParseFunctionExpressions = true;
     while (true) {
       Token next = token.next!;
-      if (optional(')', next)) {
+      if (optional2(TokenType.CLOSE_PAREN, next)) {
         token = next;
         break;
       }
       Token? colon = null;
-      if (optional(':', next.next!) || /* recovery */ optional(':', next)) {
+      if (optional2(TokenType.COLON, next.next!) || /* recovery */
+          optional2(TokenType.COLON, next)) {
         token =
             ensureIdentifier(token, IdentifierContext.namedArgumentReference)
                 .next!;
@@ -7798,8 +7809,8 @@ class Parser {
       next = token.next!;
       if (colon != null) listener.handleNamedArgument(colon);
       ++argumentCount;
-      if (!optional(',', next)) {
-        if (optional(')', next)) {
+      if (!optional2(TokenType.COMMA, next)) {
+        if (optional2(TokenType.CLOSE_PAREN, next)) {
           token = next;
           break;
         }
@@ -7928,7 +7939,7 @@ class Parser {
   /// without a return type.
   bool looksLikeLocalFunction(Token token) {
     if (token.isIdentifier) {
-      if (optional('<', token.next!)) {
+      if (optional2(TokenType.LT, token.next!)) {
         TypeParamOrArgInfo typeParam = computeTypeParamOrArg(token);
         if (typeParam == noTypeParamOrArg) {
           return false;
@@ -7936,7 +7947,7 @@ class Parser {
         token = typeParam.skip(token);
       }
       token = token.next!;
-      if (optional('(', token)) {
+      if (optional2(TokenType.OPEN_PAREN, token)) {
         token = token.endGroup!.next!;
         return optional('{', token) ||
             optional('=>', token) ||
@@ -7952,10 +7963,10 @@ class Parser {
 
   /// Returns true if [token] could be the start of a function body.
   bool looksLikeFunctionBody(Token token) {
-    return optional('{', token) ||
-        optional('=>', token) ||
-        optional('async', token) ||
-        optional('sync', token);
+    return optional2(TokenType.OPEN_CURLY_BRACKET, token) ||
+        optional2(TokenType.FUNCTION, token) ||
+        optional2(Keyword.ASYNC, token) ||
+        optional2(Keyword.SYNC, token);
   }
 
   Token parseExpressionStatementOrConstDeclaration(final Token start) {
@@ -10252,7 +10263,7 @@ class Parser {
   bool looksLikeOuterPatternEquals(Token token) {
     Token? afterOuterPattern = skipOuterPattern(token);
     if (afterOuterPattern == null) return false;
-    return optional('=', afterOuterPattern.next!);
+    return optional2(TokenType.EQ, afterOuterPattern.next!);
   }
 
   /// Tries to advance beyond an "outer pattern" starting from [token].  If the
@@ -10268,7 +10279,7 @@ class Parser {
     if (next.isIdentifier) {
       token = next;
       next = token.next!;
-      if (!optional('.', next)) {
+      if (!optional2(TokenType.PERIOD, next)) {
         return skipObjectPatternRest(token);
       }
       token = next;
@@ -10283,15 +10294,17 @@ class Parser {
     TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(token);
     token = typeParamOrArg.skip(token);
     next = token.next!;
-    if (optional('[]', next)) {
+    if (optional2(TokenType.INDEX, next)) {
       // Empty list pattern
       return next;
     }
-    if (optional('[', next) || optional('{', next)) {
+    if (optional2(TokenType.OPEN_SQUARE_BRACKET, next) ||
+        optional2(TokenType.OPEN_CURLY_BRACKET, next)) {
       // List or map pattern
       return next.endGroup;
     }
-    if (typeParamOrArg == noTypeParamOrArg && optional('(', next)) {
+    if (typeParamOrArg == noTypeParamOrArg &&
+        optional2(TokenType.OPEN_PAREN, next)) {
       // Record or parenthesized pattern
       return next.endGroup;
     }
@@ -10309,7 +10322,7 @@ class Parser {
     token = typeParamOrArg.skip(token);
     Token? next = token.next;
     if (next == null) return null;
-    if (!optional('(', next)) return null;
+    if (!optional2(TokenType.OPEN_PAREN, next)) return null;
     return next.endGroup;
   }
 

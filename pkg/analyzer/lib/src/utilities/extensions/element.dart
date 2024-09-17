@@ -36,7 +36,7 @@ extension ElementExtension on Element {
   bool get isProtected {
     var self = this;
     if (self is PropertyAccessorElement &&
-        self.enclosingElement is InterfaceElement) {
+        self.enclosingElement3 is InterfaceElement) {
       if (self.hasProtected) {
         return true;
       }
@@ -46,7 +46,7 @@ extension ElementExtension on Element {
       }
     }
     if (self is MethodElement &&
-        self.enclosingElement is InterfaceElement &&
+        self.enclosingElement3 is InterfaceElement &&
         self.hasProtected) {
       return true;
     }

@@ -14,6 +14,7 @@ import 'package:linter/src/utils.dart';
 import 'package:yaml/yaml.dart';
 
 import '../tool/util/path_utils.dart';
+import 'messages_data.dart';
 import 'since.dart';
 import 'util/score_utils.dart' as score_utils;
 
@@ -68,12 +69,13 @@ Future<String> getMachineListing(
     flutterRules: flutterRules
   ) = await _fetchSetRules(fetch: includeSetInfo);
 
+  var categories = messagesYaml.categoryMappings;
   var json = encoder.convert([
     for (var rule in rules.where((rule) => !rule.state.isInternal))
       {
         'name': rule.name,
         'description': rule.description,
-        'categories': rule.categories.toList(),
+        'categories': categories[rule.name]?.toList() ?? [],
         'state': rule.state.label,
         'incompatible': rule.incompatibleRules,
         'sets': [
@@ -81,7 +83,9 @@ Future<String> getMachineListing(
           if (recommendedRules.contains(rule.name)) 'recommended',
           if (flutterRules.contains(rule.name)) 'flutter',
         ],
-        'fixStatus': fixStatusMap[rule.name] ?? 'unregistered',
+        'fixStatus':
+            fixStatusMap[rule.lintCodes.first.uniqueName] ?? 'unregistered',
+        // ignore: deprecated_member_use
         'details': rule.details,
         if (sinceInfo != null)
           'sinceDartSdk': sinceInfo[rule.name]?.sinceDartSdk ?? 'Unreleased',
@@ -107,15 +111,10 @@ Map<String, String> readFixStatusMap() {
   var contents = File(statusFilePath).readAsStringSync();
 
   var yaml = loadYamlNode(contents) as YamlMap;
-  var fixStatusMap = <String, String>{};
-  for (var entry in yaml.entries) {
-    var code = entry.key as String;
-    if (code.startsWith('LintCode.')) {
-      fixStatusMap[code.substring(9)] =
-          (entry.value as YamlMap)['status'] as String;
-    }
-  }
-  return fixStatusMap;
+  return <String, String>{
+    for (var MapEntry(key: String code, :YamlMap value) in yaml.entries)
+      if (code.startsWith('LintCode.')) code: value['status'] as String,
+  };
 }
 
 Future<

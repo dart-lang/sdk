@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 
 import 'util.dart';
 
-typedef JSMethods = Map<Procedure, String>;
+typedef JSMethods = Map<Procedure, ({String importName, String jsCode})>;
 
 /// Collects JS methods and adds Dart stubs to libraries.
 class MethodCollector {
@@ -35,6 +35,6 @@ class MethodCollector {
   }
 
   void addMethod(Procedure dartProcedure, String methodName, String code) {
-    jsMethods[dartProcedure] = "$methodName: $code";
+    jsMethods[dartProcedure] = (importName: methodName, jsCode: code);
   }
 }

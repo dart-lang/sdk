@@ -87,15 +87,7 @@ class TestCase {
   bool get hasCompileError => testFile.hasCompileError;
   bool get hasCrash => testFile.hasCrash;
 
-  bool get unexpectedOutput {
-    var outcome = result;
-    return !expectedOutcomes.any((expectation) {
-      return outcome.canBeOutcomeOf(expectation);
-    });
-  }
-
   Expectation get result => lastCommandOutput.result(this);
-  Expectation get realResult => lastCommandOutput.realResult(this);
   Expectation get realExpected {
     if (hasCrash) {
       return Expectation.crash;
@@ -162,18 +154,6 @@ class TestCase {
   List<String> get batchTestArguments {
     assert(commands.last is ProcessCommand);
     return (commands.last as ProcessCommand).arguments;
-  }
-
-  bool get isFlaky {
-    if (expectedOutcomes.contains(Expectation.skip) ||
-        expectedOutcomes.contains(Expectation.skipByDesign)) {
-      return false;
-    }
-
-    return expectedOutcomes
-            .where((expectation) => expectation.isOutcome)
-            .length >
-        1;
   }
 
   bool get isFinished {

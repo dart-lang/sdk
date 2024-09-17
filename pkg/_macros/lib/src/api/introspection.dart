@@ -307,6 +307,9 @@ abstract interface class MethodDeclaration
 
 /// Constructor introspection information.
 abstract interface class ConstructorDeclaration implements MethodDeclaration {
+  /// Whether or not this constructor is const.
+  bool get isConst;
+
   /// Whether or not this is a factory constructor.
   bool get isFactory;
 }
@@ -360,6 +363,9 @@ abstract interface class FormalParameter implements Annotatable {
   /// Specifically, function type parameters may not have a name.
   String? get name;
 
+  /// The style of parameter this is.
+  ParameterStyle get style;
+
   /// A convenience method to get a `code` object equivalent to this parameter.
   ///
   /// Note that the original default value will not be included, as it is not a
@@ -367,8 +373,23 @@ abstract interface class FormalParameter implements Annotatable {
   ParameterCode get code;
 }
 
+/// The different kinds of parameters.
+enum ParameterStyle {
+  /// A standard parameter.
+  normal,
+
+  /// A `this.` style parameter, otherwise known as an initializing formal
+  /// parameter.
+  fieldFormal,
+
+  /// A `super.` style parameter.
+  superFormal,
+}
+
 /// Parameters of normal functions/methods, which always have an identifier, and
 /// declare a new variable in scope.
+///
+/// These may also be `this.` or `super.` parameters.
 abstract interface class FormalParameterDeclaration
     implements FormalParameter, Declaration {
   @override

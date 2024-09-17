@@ -142,10 +142,11 @@ abstract class AbstractScanner implements Scanner {
 
   final bool inRecoveryOption;
   int recoveryCount = 0;
+  final bool allowLazyStrings;
 
   AbstractScanner(ScannerConfiguration? config, this.includeComments,
       this.languageVersionChanged,
-      {int? numberOfBytesHint})
+      {int? numberOfBytesHint, this.allowLazyStrings = true})
       : lineStarts = new LineStarts(numberOfBytesHint),
         inRecoveryOption = false {
     this.tail = this.tokens;
@@ -159,7 +160,8 @@ abstract class AbstractScanner implements Scanner {
       : lineStarts = [],
         includeComments = false,
         languageVersionChanged = null,
-        inRecoveryOption = true {
+        inRecoveryOption = true,
+        allowLazyStrings = true {
     this.tail = this.tokens;
     this.errorTail = this.tokens;
     this._enableExtensionMethods = copyFrom._enableExtensionMethods;
@@ -265,7 +267,8 @@ abstract class AbstractScanner implements Scanner {
    */
   void appendSubstringToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
-    appendToken(createSubstringToken(type, start, asciiOnly, extraOffset));
+    appendToken(createSubstringToken(
+        type, start, asciiOnly, extraOffset, allowLazyStrings));
   }
 
   /**
@@ -277,9 +280,8 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  analyzer.StringToken createSubstringToken(
-      TokenType type, int start, bool asciiOnly,
-      [int extraOffset = 0]);
+  analyzer.StringToken createSubstringToken(TokenType type, int start,
+      bool asciiOnly, int extraOffset, bool allowLazy);
 
   /**
    * Appends a substring from the scan offset [start] to the current

@@ -30,6 +30,27 @@ enum class CompilerTracing {
   kOff,
 };
 
+struct FunctionPragmas : public ZoneAllocated {
+  explicit FunctionPragmas(const Function& function);
+
+  const Function& function;
+  const bool unsafe_no_bounds_checks;
+};
+
+struct FunctionPragmasTrait {
+  typedef FunctionPragmas* Value;
+  typedef const Function* Key;
+  typedef FunctionPragmas* Pair;
+
+  static Key KeyOf(Pair kv) { return &kv->function; }
+  static Value ValueOf(Pair kv) { return kv; }
+  static inline uword Hash(Key key) { return key->Hash(); }
+  static inline bool IsKeyEqual(Pair kv, Key key) {
+    return (kv->function.ptr() == key->ptr());
+  }
+};
+using CachedPragmasMap = ZoneDirectChainedHashMap<FunctionPragmasTrait>;
+
 // Global compiler state attached to the thread.
 class CompilerState : public ThreadStackResource {
  public:
@@ -128,6 +149,8 @@ class CompilerState : public ThreadStackResource {
 
   void ReportCrash();
 
+  const FunctionPragmas& PragmasOf(const Function& function);
+
  private:
   const Class& TypedListClass();
 
@@ -173,6 +196,7 @@ class CompilerState : public ThreadStackResource {
   const Function* function_ = nullptr;
   const CompilerPass* pass_ = nullptr;
   const CompilerPassState* pass_state_ = nullptr;
+  CachedPragmasMap* cached_pragmas_ = nullptr;
 
   CompilerState* previous_;
 };

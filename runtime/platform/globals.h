@@ -797,6 +797,14 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 #error Target operating system detection failed.
 #endif
 
+#if __GNUC__
+#define DART_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+#elif _MSC_VER
+#define DART_WARN_UNUSED_RESULT _Check_return_
+#else
+#define DART_WARN_UNUSED_RESULT
+#endif
+
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_GLOBALS_H_

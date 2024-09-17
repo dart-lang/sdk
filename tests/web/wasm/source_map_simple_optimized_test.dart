@@ -10,12 +10,12 @@ void main() {
   Lib.testMain('source_map_simple_optimized', frameDetails);
 }
 
-const List<(int?, int?)?> frameDetails = [
-  (null, null), // _throwWithCurrentStackTrace
-  (16, 3), // g
-  (12, 3), // f
-  (44, 5), // testMain, inlined in main
-  (null, null), // _invokeMain
+const List<(String?, int?, int?)?> frameDetails = [
+  ('errors_patch.dart', null, null), // _throwWithCurrentStackTrace
+  ('source_map_simple_lib.dart', 16, 3), // g
+  ('source_map_simple_lib.dart', 12, 3), // f
+  ('source_map_simple_lib.dart', 38, 5), // testMain, inlined in main
+  ('internal_patch.dart', null, null), // _invokeMain
 ];
 
 /*

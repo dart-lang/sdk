@@ -40,10 +40,10 @@ A a2 = new A(const {});
 class PreferConstLiteralsToCreateImmutables extends LintRule {
   PreferConstLiteralsToCreateImmutables()
       : super(
-            name: 'prefer_const_literals_to_create_immutables',
-            description: desc,
-            details: details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_const_literals_to_create_immutables',
+          description: desc,
+          details: details,
+        );
 
   @override
   LintCode get lintCode =>

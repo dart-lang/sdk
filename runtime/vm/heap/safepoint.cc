@@ -375,8 +375,11 @@ void SafepointHandler::ExitSafepointLocked(Thread* T,
       }
     }
     if (task != nullptr) {
+      Thread::ExecutionState execution_state = T->execution_state();
+      T->set_execution_state(Thread::kThreadInVM);
       task->RunBlockedAtSafepoint();
       delete task;
+      T->set_execution_state(execution_state);
     }
   }
   T->SetAtSafepoint(false, level);

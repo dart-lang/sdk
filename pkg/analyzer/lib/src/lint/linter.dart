@@ -195,6 +195,10 @@ abstract class LintRule {
 
   /// Description (in markdown format) suitable for display in a detailed lint
   /// description.
+  ///
+  /// This property is deprecated and will be removed in a future release.
+  @Deprecated('Use .description for a short description and consider placing '
+      'long-form documentation on an external website.')
   final String details;
 
   /// Short description suitable for display in console output.
@@ -206,21 +210,15 @@ abstract class LintRule {
   /// Lint name.
   final String name;
 
-  /// The documentation for the lint that should appear on the Diagnostic
-  /// messages page. This field should never be accessed in any code in `lib` or
-  /// `bin`.
-  final String? documentation;
-
   /// The state of a lint, and optionally since when the state began.
   final State state;
 
   LintRule({
     required this.name,
-    required this.categories,
+    this.categories = const <String>{},
     required this.description,
-    required this.details,
+    this.details = '',
     State? state,
-    this.documentation,
   }) : state = state ?? State.stable();
 
   /// Indicates whether the lint rule can work with just the parsed information
@@ -327,23 +325,8 @@ abstract class LintRule {
 }
 
 abstract final class LintRuleCategory {
-  /// A category of rules that help to minimize binary size.
-  static const String binarySize = 'binary size';
-
-  /// A category of rules that encourage brevity in the source code.
-  static const String brevity = 'brevity';
-
-  /// A category of rules that help to maintain documentation comments.
-  static const String documentationCommentMaintenance =
-      'documentation comment maintenance';
-
   /// A category of rules that align with the Effective Dart style guide.
   static const String effectiveDart = 'effective dart';
-
-  /// A category representing possible coding errors.
-  // TODO(srawlins): Hopefully deprecate this (or just rename `error_prone`
-  // back to this one).
-  static const String errors = 'errors';
 
   /// A category of rules that protect against error-prone code.
   static const String errorProne = 'error-prone';
@@ -487,7 +470,7 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
   bool get canBeConst {
     var element = declaredElement!;
 
-    var classElement = element.enclosingElement;
+    var classElement = element.enclosingElement3;
     if (classElement is ClassElement && classElement.hasNonFinalField) {
       return false;
     }

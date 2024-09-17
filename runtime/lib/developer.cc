@@ -168,6 +168,7 @@ DEFINE_NATIVE_ENTRY(Developer_getIsolateIdFromSendPort, 0, 1) {
 #endif
 }
 
+// TODO(derekxu16): Make this function accept an idZoneId.
 DEFINE_NATIVE_ENTRY(Developer_getObjectId, 0, 1) {
 #if defined(PRODUCT)
   return Object::null();

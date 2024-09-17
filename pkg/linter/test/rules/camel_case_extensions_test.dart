@@ -19,13 +19,13 @@ class CamelCaseExtensionsTest extends LintRuleTest {
 
   test_augmentationExtension_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 extension e on Object { }
 ''');
 
     await assertNoDiagnostics(r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment extension e { }
 ''');

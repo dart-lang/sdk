@@ -215,6 +215,10 @@ class _Evaluator {
         (runParams['params'] as Map<String, dynamic>)['scope'] =
             _message.params['scope'];
       }
+      if (_message.params['_idZoneId'] != null) {
+        (runParams['params'] as Map<String, dynamic>)['_idZoneId'] =
+            _message.params['_idZoneId'];
+      }
       final runExpression =
           Message._fromJsonRpcRequest(_message.client!, runParams);
       return _isolate.routeRequest(_service, runExpression); // _message

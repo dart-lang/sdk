@@ -30,7 +30,7 @@ Future<void> main(List<String> args) async {
   // a test because the tested hasn't changed even though the actual test has.
   // E.g. if you only update the spelling dictionary no spell test will be run
   // because the files being spell-tested hasn't changed.
-  workItems.addIfNotNull(_createExplicitCreationTestWork(changedFiles));
+  workItems.addIfNotNull(_createCompileAndLintTestWork(changedFiles));
   workItems.addIfNotNull(_createMessagesTestWork(changedFiles));
   workItems.addIfNotNull(_createSpellingTestNotSourceWork(changedFiles));
   workItems.addIfNotNull(_createSpellingTestSourceWork(changedFiles));
@@ -62,10 +62,11 @@ Future<void> main(List<String> args) async {
 }
 
 /// Map from a dir name in "pkg" to the inner-dir we want to include in the
-/// explicit creation test.
-const Map<String, String> _explicitCreationDirs = {
+/// compile and lint test.
+const Map<String, String> _compileAndLintDirs = {
   "frontend_server": "",
   "front_end": "lib/",
+  "kernel": "lib/",
   "_fe_analyzer_shared": "lib/",
 };
 
@@ -144,10 +145,9 @@ DepsTestWork? _createDepsTestWork(List<String> changedFiles) {
   return new DepsTestWork();
 }
 
-ExplicitCreationWork? _createExplicitCreationTestWork(
-    List<String> changedFiles) {
+CompileAndLintWork? _createCompileAndLintTestWork(List<String> changedFiles) {
   Set<Uri> includedDirs = {};
-  for (MapEntry<String, String> entry in _explicitCreationDirs.entries) {
+  for (MapEntry<String, String> entry in _compileAndLintDirs.entries) {
     includedDirs.add(_repoDir.resolve("pkg/${entry.key}/${entry.value}"));
   }
 
@@ -155,7 +155,7 @@ ExplicitCreationWork? _createExplicitCreationTestWork(
   for (String path in changedFiles) {
     if (!path.endsWith(".dart")) continue;
     bool found = false;
-    for (MapEntry<String, String> usDirEntry in _explicitCreationDirs.entries) {
+    for (MapEntry<String, String> usDirEntry in _compileAndLintDirs.entries) {
       if (path.startsWith("pkg/${usDirEntry.key}/${usDirEntry.value}")) {
         found = true;
         break;
@@ -167,7 +167,7 @@ ExplicitCreationWork? _createExplicitCreationTestWork(
 
   if (files.isEmpty) return null;
 
-  return new ExplicitCreationWork(
+  return new CompileAndLintWork(
       includedFiles: files,
       includedDirectoryUris: includedDirs,
       repoDir: _repoDir);
@@ -484,23 +484,23 @@ class DepsTestWork extends Work {
   }
 }
 
-class ExplicitCreationWork extends Work {
+class CompileAndLintWork extends Work {
   final Set<Uri> includedFiles;
   final Set<Uri> includedDirectoryUris;
   final Uri repoDir;
 
-  ExplicitCreationWork(
+  CompileAndLintWork(
       {required this.includedFiles,
       required this.includedDirectoryUris,
       required this.repoDir});
 
   @override
-  String get name => "explicit creation test";
+  String get name => "compile and lint test";
 
   @override
   Map<String, Object?> toJson() {
     return {
-      "WorkTypeIndex": WorkEnum.ExplicitCreation.index,
+      "WorkTypeIndex": WorkEnum.CompileAndLint.index,
       "includedFiles": includedFiles.map((e) => e.toString()).toList(),
       "includedDirectoryUris":
           includedDirectoryUris.map((e) => e.toString()).toList(),
@@ -509,7 +509,7 @@ class ExplicitCreationWork extends Work {
   }
 
   static Work fromJson(Map<String, Object?> json) {
-    return new ExplicitCreationWork(
+    return new CompileAndLintWork(
       includedFiles: Set<Uri>.from(
           (json["includedFiles"] as Iterable).map((e) => Uri.parse(e))),
       includedDirectoryUris: Set<Uri>.from(
@@ -669,8 +669,8 @@ sealed class Work {
     }
     WorkEnum workType = WorkEnum.values[workTypeIndex];
     switch (workType) {
-      case WorkEnum.ExplicitCreation:
-        return ExplicitCreationWork.fromJson(json);
+      case WorkEnum.CompileAndLint:
+        return CompileAndLintWork.fromJson(json);
       case WorkEnum.Messages:
         return MessagesWork.fromJson(json);
       case WorkEnum.SpellingNotSource:
@@ -686,7 +686,7 @@ sealed class Work {
 }
 
 enum WorkEnum {
-  ExplicitCreation,
+  CompileAndLint,
   Messages,
   SpellingNotSource,
   SpellingSource,

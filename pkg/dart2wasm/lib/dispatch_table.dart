@@ -69,8 +69,6 @@ class SelectorInfo {
   /// class member for this selector.
   int? offset;
 
-  w.ModuleBuilder get m => translator.m;
-
   /// The selector's member's name.
   String get name => paramInfo.member!.name.text;
 
@@ -132,7 +130,6 @@ class SelectorInfo {
       }
       assert(returns.length <= outputSets.length);
       inputSets[0].add(translator.translateType(receiver));
-      ensureBoxed[0] = member.enclosingClass != translator.ffiPointerClass;
       for (int i = 0; i < positional.length; i++) {
         DartType type = positional[i];
         inputSets[1 + i].add(translator.translateType(type));
@@ -166,7 +163,7 @@ class SelectorInfo {
     }
     List<w.ValueType> outputs = List.generate(outputSets.length,
         (i) => _upperBound(outputSets[i], ensureBoxed: false));
-    return m.types.defineFunction(
+    return translator.typesBuilder.defineFunction(
         [inputs[0], ...typeParameters, ...inputs.sublist(1)], outputs);
   }
 
@@ -215,6 +212,8 @@ class SelectorInfo {
 
 /// Builds the dispatch table for member calls.
 class DispatchTable {
+  static const _functionType = w.RefType.func(nullable: true);
+
   final Translator translator;
   final List<TableSelectorInfo> _selectorMetadata;
   final Map<TreeNode, ProcedureAttributesMetadata> _procedureAttributeMetadata;
@@ -231,15 +230,17 @@ class DispatchTable {
   /// Maps member names to method selectors with the same member name.
   final Map<String, Set<SelectorInfo>> _dynamicMethods = {};
 
-  /// Contents of [wasmTable]. For a selector with ID S and a target class of
-  /// the selector with ID C, `table[S + C]` gives the reference to the class
-  /// member for the selector.
+  /// Contents of [_definedWasmTable]. For a selector with ID S and a target
+  /// class of the selector with ID C, `table[S + C]` gives the reference to the
+  /// class member for the selector.
   late final List<Reference?> _table;
 
-  /// The Wasm table for the dispatch table.
-  late final w.TableBuilder wasmTable;
+  late final w.TableBuilder _definedWasmTable;
+  final WasmTableImporter _importedWasmTables;
 
-  w.ModuleBuilder get m => translator.m;
+  /// The Wasm table for the dispatch table.
+  w.Table getWasmTable(w.ModuleBuilder module) =>
+      _importedWasmTables.get(_definedWasmTable, module);
 
   DispatchTable(this.translator)
       : _selectorMetadata =
@@ -250,7 +251,8 @@ class DispatchTable {
         _procedureAttributeMetadata =
             (translator.component.metadata["vm.procedure-attributes.metadata"]
                     as ProcedureAttributesMetadataRepository)
-                .mapping;
+                .mapping,
+        _importedWasmTables = WasmTableImporter(translator, 'dispatch');
 
   SelectorInfo selectorForTarget(Reference target) {
     Member member = target.asMember;
@@ -499,7 +501,13 @@ class DispatchTable {
       selectors[i].offset = rows[i].offset;
     }
 
-    wasmTable = m.tables.define(w.RefType.func(nullable: true), _table.length);
+    _definedWasmTable =
+        translator.mainModule.tables.define(_functionType, _table.length);
+    for (final module in translator.modules) {
+      // Ensure the dispatch table is imported into every module as the first
+      // table.
+      getWasmTable(module);
+    }
   }
 
   void output() {
@@ -507,8 +515,24 @@ class DispatchTable {
       Reference? target = _table[i];
       if (target != null) {
         w.BaseFunction? fun = translator.functions.getExistingFunction(target);
+        // Any call to the dispatch table is guaranteed to hit a target.
+        //
+        // If a target is in a deferred module and that deferred module hasn't
+        // been loaded yet, then the entry is `null`.
+        //
+        // Though we can only hit a target if that target's class has been
+        // allocated. In order for the class to be allocated, the deferred
+        // module must've been loaded to call the constructor.
         if (fun != null) {
-          wasmTable.setElement(i, fun);
+          final targetModule = translator.moduleForReference(target);
+          if (translator.isMainModule(targetModule)) {
+            _definedWasmTable.setElement(i, fun);
+          } else {
+            // This will generate the imported table if it doesn't already
+            // exist.
+            (getWasmTable(targetModule) as w.ImportedTable).setElements[i] =
+                fun;
+          }
         }
       }
     }

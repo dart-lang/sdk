@@ -49,7 +49,8 @@ class TypeSchemaPrinter extends Printer {
 ///
 /// The unknown type cannot appear in programs or in final inferred types: it is
 /// purely part of the local inference process.
-class UnknownType extends AuxiliaryType implements SharedUnknownType<DartType> {
+class UnknownType extends AuxiliaryType
+    implements SharedUnknownTypeStructure<DartType> {
   const UnknownType();
 
   @override

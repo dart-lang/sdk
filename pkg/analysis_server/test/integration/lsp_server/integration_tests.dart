@@ -125,11 +125,8 @@ abstract class AbstractLspAnalysisServerIntegrationTest
         .resolveSymbolicLinksSync();
     newFolder(projectFolderPath);
     newFolder(join(projectFolderPath, 'lib'));
-    projectFolderUri = Uri.file(projectFolderPath);
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
-    mainFileUri = Uri.file(mainFilePath);
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
-    analysisOptionsUri = Uri.file(analysisOptionsPath);
 
     var client = LspServerClient(instrumentationService);
     this.client = client;

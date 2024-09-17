@@ -103,6 +103,9 @@ class SharedCompilerOptions {
   /// isolated namespace.
   final bool emitLibraryBundle;
 
+  /// Whether the compiler is generating a dynamic module.
+  final bool dynamicModule;
+
   /// When `true` stars "*" will appear to represent legacy types when printing
   /// runtime types in the compiled application.
   final bool printLegacyStars = false;
@@ -133,6 +136,7 @@ class SharedCompilerOptions {
       this.experiments = const {},
       this.soundNullSafety = true,
       this.canaryFeatures = false,
+      this.dynamicModule = false,
       this.precompiledMacros = const [],
       this.macroSerializationMode})
       : emitLibraryBundle = canaryFeatures &&
@@ -160,6 +164,7 @@ class SharedCompilerOptions {
                 args['enable-experiment'] as List<String>),
             soundNullSafety: args['sound-null-safety'] as bool,
             canaryFeatures: args['canary'] as bool,
+            dynamicModule: args['dynamic-module'] as bool,
             precompiledMacros: args['precompiled-macro'] as List<String>,
             macroSerializationMode:
                 args['macro-serialization-mode'] as String?);
@@ -231,7 +236,11 @@ class SharedCompilerOptions {
       ..addOption('macro-serialization-mode',
           help: 'The serialization mode for communicating with macros.',
           allowed: ['bytedata', 'json'],
-          defaultsTo: 'bytedata');
+          defaultsTo: 'bytedata')
+      ..addFlag('dynamic-module',
+          help: 'Compile to generate a dynamic module',
+          negatable: false,
+          defaultsTo: false);
   }
 
   /// Adds only the arguments used to compile the SDK from a full dill file.

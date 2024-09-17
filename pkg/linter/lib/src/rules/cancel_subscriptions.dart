@@ -67,13 +67,10 @@ for more information.
 class CancelSubscriptions extends LintRule {
   CancelSubscriptions()
       : super(
-            name: 'cancel_subscriptions',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.errorProne,
-              LintRuleCategory.memoryLeaks
-            });
+          name: 'cancel_subscriptions',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.cancel_subscriptions;

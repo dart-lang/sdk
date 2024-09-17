@@ -19,7 +19,7 @@
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 4
-#define SERVICE_PROTOCOL_MINOR_VERSION 15
+#define SERVICE_PROTOCOL_MINOR_VERSION 16
 
 class Array;
 class EmbedderServiceHandler;
@@ -37,9 +37,17 @@ class String;
 
 class ServiceIdZone {
  public:
-  explicit ServiceIdZone(ObjectIdRing::IdPolicy policy);
+  ServiceIdZone(intptr_t id, ObjectIdRing::IdPolicy policy);
   virtual ~ServiceIdZone();
 
+  // Parses a Service ID zone ID string and returns the corresponding integer
+  // ID. Or, returns -1 if |id_string| is invalid.
+  //
+  // For example, this function will return 5 when called with the argument
+  // "zones/5".
+  intptr_t static StringIdToInt(const char* id_string);
+
+  intptr_t id() const { return id_; }
   ObjectIdRing::IdPolicy policy() const { return policy_; }
 
   virtual int32_t GetIdForObject(const ObjectPtr obj) = 0;
@@ -47,9 +55,14 @@ class ServiceIdZone {
                                    ObjectIdRing::LookupResult* kind) = 0;
   // Returned string will be zone allocated.
   virtual char* GetServiceId(const Object& obj) = 0;
+  // Invalidate all the Service IDs currently living in this zone.
+  virtual void Invalidate() = 0;
   virtual void VisitPointers(ObjectPointerVisitor& visitor) const = 0;
 
+  virtual void PrintJSON(JSONStream& js) const = 0;
+
  private:
+  intptr_t id_;
   ObjectIdRing::IdPolicy policy_;
 
   friend class ServiceIdZonePolicyOverrideScope;
@@ -62,14 +75,21 @@ class ServiceIdZone {
 
 class RingServiceIdZone final : public ServiceIdZone {
  public:
-  explicit RingServiceIdZone(ObjectIdRing::IdPolicy policy);
+  static constexpr int32_t kDefaultCapacity = 8192;
+
+  RingServiceIdZone(intptr_t id,
+                    ObjectIdRing::IdPolicy policy,
+                    int32_t capacity);
   ~RingServiceIdZone() final;
 
   int32_t GetIdForObject(const ObjectPtr obj) final;
   ObjectPtr GetObjectForId(int32_t id, ObjectIdRing::LookupResult* kind) final;
   // Returned string will be zone allocated.
   char* GetServiceId(const Object& obj) final;
+  void Invalidate() final;
   void VisitPointers(ObjectPointerVisitor& visitor) const final;
+
+  void PrintJSON(JSONStream& js) const final;
 
  private:
   ObjectIdRing ring_;

@@ -30,7 +30,8 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
         b.addLocal(w.RefType(asyncSuspendStateInfo.struct, nullable: false));
 
     // AsyncResumeFun _resume
-    b.global_get(translator.makeFunctionRef(resumeFun));
+    translator.globals
+        .readGlobal(b, translator.makeFunctionRef(b.module, resumeFun));
 
     // WasmStructRef? _context
     if (context != null) {
@@ -57,7 +58,7 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
     b.ref_null(translator.topInfo.struct); // await value
     b.ref_null(translator.topInfo.struct); // error value
     b.ref_null(translator.stackTraceInfo.repr.struct); // stack trace
-    b.call(resumeFun);
+    translator.callFunction(resumeFun, b);
     b.drop(); // drop null
 
     // (3) Return the completer's future.
@@ -82,8 +83,8 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
   }
 
   w.FunctionBuilder _defineInnerBodyFunction(FunctionNode functionNode) =>
-      m.functions.define(
-          m.types.defineFunction([
+      b.module.functions.define(
+          translator.typesBuilder.defineFunction([
             asyncSuspendStateInfo.nonNullableType, // _AsyncSuspendState
             translator.topInfo.nullableType, // Object?, await value
             translator.topInfo.nullableType, // Object?, error value
@@ -243,7 +244,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
         thisLocal,
         cloneContextFor: functionNode);
 
-    visitStatement(functionNode.body!);
+    translateStatement(functionNode.body!);
 
     // Final state: return.
     emitTargetLabel(targets.last);
@@ -271,7 +272,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     }
 
     // Handle Dart exceptions.
-    b.catch_(translator.exceptionTag);
+    b.catch_(translator.getExceptionTag(b.module));
     b.local_set(stackTraceLocal);
     b.local_set(exceptionLocal);
     callCompleteError();
@@ -352,7 +353,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
       types.makeType(this, futureTypeParam);
     }
     b.local_get(_suspendStateLocal);
-    wrap(node.operand, translator.topInfo.nullableType);
+    translateExpression(node.operand, translator.topInfo.nullableType);
     if (runtimeType != null) {
       call(translator.awaitHelperWithTypeCheck.reference);
     } else {
@@ -386,7 +387,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     b.local_get(_pendingStackTraceLocal);
     b.ref_as_non_null();
 
-    b.throw_(translator.exceptionTag);
+    b.throw_(translator.getExceptionTag(b.module));
     b.end(); // exceptionBlock
 
     setVariable(awaitValueVar, () {

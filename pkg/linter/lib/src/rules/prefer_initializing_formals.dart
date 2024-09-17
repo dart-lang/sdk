@@ -119,10 +119,10 @@ Element? _getRightElement(AssignmentExpression assignment) =>
 class PreferInitializingFormals extends LintRule {
   PreferInitializingFormals()
       : super(
-            name: 'prefer_initializing_formals',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'prefer_initializing_formals',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_initializing_formals;
@@ -161,8 +161,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           !leftElement.isPrivate &&
           leftElement is FieldElement &&
           !leftElement.isSynthetic &&
-          leftElement.enclosingElement ==
-              node.declaredElement?.enclosingElement &&
+          leftElement.enclosingElement3 ==
+              node.declaredElement?.enclosingElement3 &&
           parameters.contains(rightElement) &&
           (!parametersUsedMoreThanOnce.contains(rightElement) &&
                   !(rightElement as ParameterElement).isNamed ||

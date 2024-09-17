@@ -48,9 +48,12 @@ Null expectErrorOnly(e, s) {
 }
 
 AsyncError? replace(self, parent, zone, e, s) {
-  if (e == "ignore") return null; // For testing handleError throwing.
-  Expect.identical(error1, e); // Ensure replacement only called once
-  return new AsyncError(error2, stack2);
+  if (identical(error1, e)) {
+    // Give parent chance to replace your replacements.
+    return parent.errorCallback(zone, error2, stack2) ??
+        AsyncError(error2, stack2);
+  }
+  return parent.errorCallback(zone, e, s);
 }
 
 var replaceZoneSpec = new ZoneSpecification(errorCallback: replace);

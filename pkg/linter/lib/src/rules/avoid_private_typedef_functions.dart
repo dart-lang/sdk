@@ -31,10 +31,10 @@ m(void Function() f);
 class AvoidPrivateTypedefFunctions extends LintRule {
   AvoidPrivateTypedefFunctions()
       : super(
-            name: 'avoid_private_typedef_functions',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'avoid_private_typedef_functions',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_private_typedef_functions;

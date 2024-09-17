@@ -36,10 +36,10 @@ var s =
 class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
   MissingWhitespaceBetweenAdjacentStrings()
       : super(
-            name: 'missing_whitespace_between_adjacent_strings',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'missing_whitespace_between_adjacent_strings',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>
@@ -91,7 +91,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   static bool _isRegExpInstanceCreation(AstNode? node) {
     if (node is InstanceCreationExpression) {
       var constructorElement = node.constructorName.staticElement;
-      return constructorElement?.enclosingElement.name == 'RegExp';
+      return constructorElement?.enclosingElement3.name == 'RegExp';
     }
     return false;
   }

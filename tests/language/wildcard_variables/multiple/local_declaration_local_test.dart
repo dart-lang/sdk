@@ -22,4 +22,6 @@ void main() {
 
   late final int _;
   late final int _ = 2;
+
+  const int _ = 2;
 }

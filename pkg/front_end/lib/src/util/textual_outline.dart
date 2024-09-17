@@ -450,7 +450,7 @@ String? textualOutline(
       ..originalPosition = originalPosition.value++);
     // Coverage-ignore-block(suite): Not run.
     infoForTesting?.languageVersionTokens.add(languageVersionToken);
-  });
+  }, allowLazyStrings: false);
   Token firstToken = scanner.tokenize();
   TextualOutlineListener listener = new TextualOutlineListener();
   ClassMemberParser classMemberParser =

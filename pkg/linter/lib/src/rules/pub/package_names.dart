@@ -23,10 +23,10 @@ with digits and isn't a reserved word.
 class PackageNames extends LintRule {
   PackageNames()
       : super(
-            name: 'package_names',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'package_names',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.package_names;

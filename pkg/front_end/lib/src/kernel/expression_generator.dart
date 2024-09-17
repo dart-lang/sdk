@@ -313,9 +313,7 @@ class VariableUseGenerator extends Generator {
 
   VariableUseGenerator(
       ExpressionGeneratorHelper helper, Token token, this.variable)
-      : assert(
-            variable.isAssignable, // Coverage-ignore(suite): Not run.
-            'Variable $variable is not assignable'),
+      : assert(variable.isAssignable, 'Variable $variable is not assignable'),
         super(helper, token);
 
   @override
@@ -2962,11 +2960,9 @@ class DeferredAccessGenerator extends Generator {
         allowPotentiallyConstantType: allowPotentiallyConstantType,
         performTypeCanonicalization: performTypeCanonicalization);
     LocatedMessage message;
-    if (type is NamedTypeBuilder &&
-        type.declaration is InvalidTypeDeclarationBuilder) {
+    TypeDeclarationBuilder? declaration = type.declaration;
+    if (declaration is InvalidTypeDeclarationBuilder) {
       // Coverage-ignore-block(suite): Not run.
-      InvalidTypeDeclarationBuilder declaration =
-          type.declaration as InvalidTypeDeclarationBuilder;
       message = declaration.message;
     } else {
       int charOffset = offsetForToken(prefixGenerator.token);
@@ -3263,7 +3259,6 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         if (send is PropertySelector) {
           assert(
               send.typeArguments == null,
-              // Coverage-ignore(suite): Not run.
               "Unexpected non-null typeArguments of "
               "an IncompletePropertyAccessGenerator object: "
               "'${send.typeArguments.runtimeType}'.");
@@ -4191,9 +4186,7 @@ class PrefixUseGenerator extends Generator {
   @override
   Expression_Generator buildSelectorAccess(
       Selector selector, int operatorOffset, bool isNullAware) {
-    assert(
-        selector.name.text == selector.token.lexeme,
-        // Coverage-ignore(suite): Not run.
+    assert(selector.name.text == selector.token.lexeme,
         "'${selector.name.text}' != ${selector.token.lexeme}");
     selector.reportNewAsSelector();
     Object result = qualifiedLookup(selector.token);

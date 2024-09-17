@@ -188,7 +188,7 @@ final class ConstructorSuggestion extends ImportableSuggestion
 
   @override
   String get completion {
-    var enclosingClass = element.enclosingElement.augmented.declaration;
+    var enclosingClass = element.enclosingElement3.augmented.declaration;
 
     var className = enclosingClass.name;
 
@@ -234,7 +234,7 @@ final class EnumConstantSuggestion extends ImportableSuggestion
   @override
   String get completion {
     if (includeEnumName) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       return '$completionPrefix${enclosingElement.name}.${element.name}';
     } else {
       return element.name;
@@ -325,7 +325,14 @@ final class FieldSuggestion extends CandidateSuggestion with MemberSuggestion {
       required this.referencingInterface});
 
   @override
-  String get completion => element.name;
+  String get completion {
+    if (element.isEnumConstant) {
+      var constantName = element.name;
+      var enumName = element.enclosingElement3.name;
+      return '$enumName.$constantName';
+    }
+    return element.displayName;
+  }
 }
 
 /// The information about a candidate suggestion based on a formal parameter.
@@ -596,7 +603,7 @@ mixin MemberSuggestion implements ElementBasedSuggestion {
     var inheritanceDistance = 0.0;
     var element = this.element;
     if (!(element is FieldElement && element.isEnumConstant)) {
-      var declaringClass = element.enclosingElement;
+      var declaringClass = element.enclosingElement3;
       var referencingInterface = this.referencingInterface;
       if (referencingInterface != null && declaringClass is InterfaceElement) {
         inheritanceDistance = featureComputer.inheritanceDistanceFeature(
@@ -661,16 +668,73 @@ final class NamedArgumentSuggestion extends CandidateSuggestion {
   /// doesn't need to be overridden.
   final int? replacementLength;
 
-  NamedArgumentSuggestion(
-      {required this.parameter,
-      required this.appendColon,
-      required this.appendComma,
-      this.replacementLength,
-      required super.matcherScore});
+  final bool isWidget;
+
+  String preferredQuoteForStrings;
+
+  late String _completion;
+
+  // Indicates whether _completion and _selectionOffset have been initialized.
+  bool _initialized = false;
+
+  late int _selectionOffset;
+
+  NamedArgumentSuggestion({
+    required this.parameter,
+    required this.appendColon,
+    required this.appendComma,
+    this.replacementLength,
+    required super.matcherScore,
+    required this.preferredQuoteForStrings,
+    this.isWidget = false,
+  });
 
   @override
-  String get completion =>
-      '${parameter.name}${appendColon ? ': ' : ''}${appendComma ? ',' : ''}';
+  String get completion {
+    _init();
+    return _completion;
+  }
+
+  /// The offset, from the beginning of the inserted text, where the cursor
+  /// should be positioned.
+  int get selectionOffset {
+    _init();
+    return _selectionOffset;
+  }
+
+  void _init() {
+    if (_initialized) {
+      return;
+    }
+    var completion = parameter.name;
+    if (appendColon) {
+      completion += ': ';
+    }
+    var selectionOffset = completion.length;
+
+    // Optionally add Flutter child widget details.
+    // TODO(pq): revisit this special casing; likely it can be generalized away.
+    if (isWidget && appendColon) {
+      var defaultValue =
+          getDefaultStringParameterValue(parameter, preferredQuoteForStrings);
+      // TODO(devoncarew): Should we remove the check here? We would then
+      // suggest values for param types like closures.
+      if (defaultValue != null && defaultValue.text == '[]') {
+        var completionLength = completion.length;
+        completion += defaultValue.text;
+        var cursorPosition = defaultValue.cursorPosition;
+        if (cursorPosition != null) {
+          selectionOffset = completionLength + cursorPosition;
+        }
+      }
+    }
+    if (appendComma) {
+      completion += ',';
+    }
+    _completion = completion;
+    _selectionOffset = selectionOffset;
+    _initialized = true;
+  }
 }
 
 /// The information about a candidate suggestion based on a getter or setter.
@@ -741,7 +805,37 @@ final class PropertyAccessSuggestion extends ImportableSuggestion
       this.withEnclosingName = false});
 
   @override
-  String get completion => element.name;
+  String get completion {
+    var prefix = _enclosingPrefix;
+    if (prefix.isNotEmpty) {
+      return '$prefix${element.displayName}';
+    }
+    return element.displayName;
+  }
+
+  /// Return the name of the enclosing class or extension.
+  ///
+  /// The enclosing element must be either a class, or extension; otherwise
+  /// we either fail with assertion, or return `null`.
+  String? get _enclosingClassOrExtensionName {
+    var enclosing = element.enclosingElement3;
+    if (enclosing is InterfaceElement) {
+      return enclosing.name;
+    } else if (enclosing is ExtensionElement) {
+      return enclosing.name;
+    } else {
+      assert(false, 'Expected ClassElement or ExtensionElement');
+      return null;
+    }
+  }
+
+  String get _enclosingPrefix {
+    if (withEnclosingName) {
+      var enclosingName = _enclosingClassOrExtensionName;
+      return enclosingName != null ? '$enclosingName.' : '';
+    }
+    return '';
+  }
 }
 
 /// The information about a candidate suggestion based on a field in a record
@@ -769,6 +863,12 @@ final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion {
   final bool appendColon;
   final bool appendComma;
 
+  late String _completion;
+  late int _selectionOffset;
+
+  // Whether _completion, _displayText, and _selectionOffset have been initialized.
+  bool _initialized = false;
+
   RecordLiteralNamedFieldSuggestion.newField({
     required this.field,
     required this.appendComma,
@@ -782,7 +882,36 @@ final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion {
         appendComma = false;
 
   @override
-  String get completion => field.name;
+  String get completion {
+    _init();
+    return _completion;
+  }
+
+  /// The offset, from the beginning of the inserted text, where the cursor
+  /// should be positioned.
+  int get selectionOffset {
+    _init();
+    return _selectionOffset;
+  }
+
+  void _init() {
+    if (_initialized) {
+      return;
+    }
+    var name = field.name;
+
+    var completion = name;
+    if (appendColon) {
+      completion += ': ';
+    }
+    _selectionOffset = completion.length;
+
+    if (appendComma) {
+      completion += ',';
+    }
+    _completion = completion;
+    _initialized = true;
+  }
 }
 
 /// The information about a candidate suggestion for Flutter's `setState` method.
@@ -870,7 +999,7 @@ final class StaticFieldSuggestion extends ImportableSuggestion
 
   @override
   String get completion {
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     return '$completionPrefix${enclosingElement.name}.${element.name}';
   }
 }
@@ -961,7 +1090,7 @@ final class TypeAliasSuggestion extends ImportableSuggestion
       required super.matcherScore});
 
   @override
-  String get completion => '$completionPrefix${element.name}';
+  String get completion => '$completionPrefix${element.displayName}';
 }
 
 /// The information about a candidate suggestion based on a type parameter.
@@ -1049,8 +1178,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
             prefix: suggestion.prefix, relevance: relevance);
       case EnumConstantSuggestion():
         if (suggestion.includeEnumName) {
-          suggestEnumConstant(suggestion.element,
-              prefix: suggestion.prefix, relevance: relevance);
+          suggestEnumConstant(suggestion.element, suggestion.completion,
+              relevance: relevance);
         } else {
           suggestField(suggestion.element,
               inheritanceDistance: 0.0, relevance: relevance);
@@ -1064,7 +1193,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
       case FieldSuggestion():
         var fieldElement = suggestion.element;
         if (fieldElement.isEnumConstant) {
-          suggestEnumConstant(fieldElement, relevance: relevance);
+          suggestEnumConstant(fieldElement, suggestion.completion,
+              relevance: relevance);
         } else {
           var inheritanceDistance =
               suggestion.inheritanceDistance(request.featureComputer);
@@ -1133,6 +1263,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
             appendColon: suggestion.appendColon,
             appendComma: suggestion.appendComma,
             replacementLength: suggestion.replacementLength,
+            completion: suggestion.completion,
+            selectionOffset: suggestion.selectionOffset,
             relevance: relevance);
       case NameSuggestion():
         suggestName(suggestion.name);
@@ -1150,7 +1282,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           suggestion.element,
           inheritanceDistance: inheritanceDistance,
           relevance: relevance,
-          withEnclosingName: suggestion.withEnclosingName,
+          completion: suggestion.completion,
         );
       case RecordFieldSuggestion():
         suggestRecordField(
@@ -1177,7 +1309,9 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         );
       case StaticFieldSuggestion():
         suggestStaticField(suggestion.element,
-            prefix: suggestion.prefix, relevance: relevance);
+            prefix: suggestion.prefix,
+            relevance: relevance,
+            completion: suggestion.completion);
       case SuperParameterSuggestion():
         suggestSuperFormalParameter(suggestion.element);
       case TopLevelFunctionSuggestion():

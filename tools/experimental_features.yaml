@@ -125,7 +125,7 @@ features:
   native-assets:
     help: "Compile and bundle native assets."
 
-  resource-identifiers:
+  record-use:
     help: "Output arguments used by static functions."
 
   wildcard-variables:
@@ -136,6 +136,9 @@ features:
 
   enhanced-parts:
     help: "Generalize parts to be nested and have exports/imports."
+
+  unquoted-imports:
+    help: "Shorter import syntax."
 
   augmentations:
     help: "Augmentations - enhancing declarations from outside"

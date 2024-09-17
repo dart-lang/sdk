@@ -55,7 +55,7 @@ class PrepareTypeHierarchyHandler extends SharedMessageHandler<
       return success(const []);
     }
 
-    var clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = message.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;

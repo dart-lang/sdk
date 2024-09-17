@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.1.0"
+  },
+  "uris": [
+    "instance_complex.dart"
+  ],
+  "ids": [
+    {
+      "uri": 0,
+      "name": "MyClass"
+    }
+  ],
+  "constants": [
+    {
+      "type": "int",
+      "value": 15
+    },
+    {
+      "type": "String",
+      "value": "s"
+    },
+    {
+      "type": "bool",
+      "value": false
+    },
+    {
+      "type": "map",
+      "value": {
+        "h": 2
+      }
+    },
+    {
+      "type": "bool",
+      "value": true
+    },
+    {
+      "type": "int",
+      "value": 3
+    },
+    {
+      "type": "map",
+      "value": {
+        "l": 5
+      }
+    },
+    {
+      "type": "list",
+      "value": [
+        6
+      ]
+    },
+    {
+      "type": "Null"
+    },
+    {
+      "type": "Instance",
+      "value": {
+        "i": 0,
+        "s": 1,
+        "m": 3,
+        "b": 4,
+        "l": 7,
+        "n": 8
+      }
+    }
+  ],
+  "instances": [
+    {
+      "definition": {
+        "id": 0,
+        "@": {
+          "uri": 0,
+          "line": 24,
+          "column": 7
+        },
+        "loadingUnit": "1"
+      },
+      "references": [
+        {
+          "instanceConstant": 9,
+          "loadingUnit": "1",
+          "@": {
+            "uri": 0,
+            "line": 11,
+            "column": 2
+          }
+        }
+      ]
+    }
+  ]
+}

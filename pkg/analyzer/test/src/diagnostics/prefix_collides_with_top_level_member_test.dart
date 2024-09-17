@@ -25,7 +25,6 @@ import 'lib.dart' as p;
 typedef p();
 p.A a = p.A();
 ''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 10),
       error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 32, 1,
           contextMessages: [message(testFile, 21, 1)]),
       error(CompileTimeErrorCode.NOT_A_TYPE, 37, 3),
@@ -92,7 +91,6 @@ import 'lib.dart' as p;
 class p {}
 p.A a = p.A();
 ''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 10),
       error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 30, 1,
           contextMessages: [message(testFile, 21, 1)]),
       error(CompileTimeErrorCode.NOT_A_TYPE, 35, 3),

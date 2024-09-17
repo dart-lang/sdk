@@ -35,14 +35,10 @@ m(){
 class UnnecessaryNew extends LintRule {
   UnnecessaryNew()
       : super(
-            name: 'unnecessary_new',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.brevity,
-              LintRuleCategory.languageFeatureUsage,
-              LintRuleCategory.style
-            });
+          name: 'unnecessary_new',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   bool get canUseParsedResult => true;

@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_call_hierarchy.dart'
     as call_hierarchy;
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -70,10 +71,16 @@ class IncomingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
   /// in the superclass.
   @override
   Future<ErrorOr<CallHierarchyIncomingCallsResult>> handle(
-          CallHierarchyIncomingCallsParams params,
-          MessageInfo message,
-          CancellationToken token) =>
-      handleCalls(params.item);
+      CallHierarchyIncomingCallsParams params,
+      MessageInfo message,
+      CancellationToken token) async {
+    var clientCapabilities = message.clientCapabilities;
+    if (clientCapabilities == null) {
+      return failure(serverNotInitializedError);
+    }
+
+    return handleCalls(clientCapabilities, params.item);
+  }
 
   /// Converts a server [call_hierarchy.CallHierarchyCalls] into the correct LSP
   /// type for incoming calls.
@@ -132,10 +139,16 @@ class OutgoingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
   /// in the superclass.
   @override
   Future<ErrorOr<CallHierarchyOutgoingCallsResult>> handle(
-          CallHierarchyOutgoingCallsParams params,
-          MessageInfo message,
-          CancellationToken token) =>
-      handleCalls(params.item);
+      CallHierarchyOutgoingCallsParams params,
+      MessageInfo message,
+      CancellationToken token) async {
+    var clientCapabilities = message.clientCapabilities;
+    if (clientCapabilities == null) {
+      return failure(serverNotInitializedError);
+    }
+
+    return handleCalls(clientCapabilities, params.item);
+  }
 
   /// Converts a server [call_hierarchy.CallHierarchyCalls] into the correct LSP
   /// type for outgoing calls.
@@ -195,7 +208,7 @@ class PrepareCallHierarchyHandler extends SharedMessageHandler<
       return success(const []);
     }
 
-    var clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = message.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -264,15 +277,10 @@ abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
   /// Handles a request for incoming or outgoing calls (handled by the concrete
   /// implementation) by delegating fetching and converting calls to the
   /// subclass.
-  Future<ErrorOr<List<C>?>> handleCalls(CallHierarchyItem item) async {
+  Future<ErrorOr<List<C>?>> handleCalls(
+      LspClientCapabilities clientCapabilities, CallHierarchyItem item) async {
     if (!isDartUri(item.uri)) {
       return success(const []);
-    }
-
-    var clientCapabilities = server.lspClientCapabilities;
-    if (clientCapabilities == null) {
-      // This should not happen unless a client misbehaves.
-      return failure(serverNotInitializedError);
     }
 
     var path = pathOfUri(item.uri);

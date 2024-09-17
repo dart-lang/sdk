@@ -4557,7 +4557,7 @@ test() {
   const c = _;
 }
 ''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1, messageContains: ["'c'"]),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 39, 1),
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 39,
           1),

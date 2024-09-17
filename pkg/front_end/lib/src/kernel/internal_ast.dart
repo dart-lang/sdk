@@ -21,6 +21,7 @@ library;
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
@@ -33,8 +34,8 @@ import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 
-typedef SharedMatchContext = shared
-    .MatchContext<TreeNode, Expression, Pattern, DartType, VariableDeclaration>;
+typedef SharedMatchContext = shared.MatchContext<TreeNode, Expression, Pattern,
+    SharedTypeView<DartType>, VariableDeclaration>;
 
 int getExtensionTypeParameterCount(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
@@ -2830,7 +2831,6 @@ Expression clonePureExpression(Expression node) {
   } else if (node is VariableGet) {
     assert(
         node.variable.isFinal && !node.variable.isLate,
-        // Coverage-ignore(suite): Not run.
         "Trying to clone VariableGet of non-final variable"
         " ${node.variable}.");
     return new VariableGet(node.variable, node.promotedType)

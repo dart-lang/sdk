@@ -17,7 +17,7 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
-import 'package:front_end/src/kernel/verifier.dart' show verifyComponent;
+import 'package:front_end/src/kernel/cfe_verifier.dart' show verifyComponent;
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart' show VerificationStage;

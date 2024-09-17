@@ -213,7 +213,6 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   }
 
   void addError(Object error, [StackTrace? stackTrace]) {
-    checkNotNullable(error, "error");
     var sink = _sink;
     if (sink == null) {
       throw StateError("Sink is closed");

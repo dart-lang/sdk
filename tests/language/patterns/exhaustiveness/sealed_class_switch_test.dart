@@ -183,3 +183,22 @@ void unreachableCase3(A? a) {
       break;
   }
 }
+
+void unreachableDefault(A a) {
+  switch (a) /* Ok */ {
+    case B b:
+      print('B');
+      break;
+    case C c:
+      print('C');
+      break;
+    case D d:
+      print('D');
+      break;
+    default: // Unreachable
+//  ^^^^^^^
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
+      print('default');
+      break;
+  }
+}

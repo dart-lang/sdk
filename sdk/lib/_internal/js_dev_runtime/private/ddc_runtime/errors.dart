@@ -208,6 +208,15 @@ StackTrace? stackTraceForError(Error error) {
   return stackTrace(jsError);
 }
 
+/// Sets stack trace on error, if possible.
+void trySetStackTrace(Error error, StackTrace stackTrace) {
+  var jsError = JS('', '#[#]', error, _jsError);
+  if (jsError == null) {
+    // Link Dart stack trace to error object.
+    JS('', 'new #(#, #)', RethrownDartError, error, stackTrace);
+  }
+}
+
 /// Implements `rethrow` of [error], allowing rethrow in an expression context.
 ///
 /// Note: [error] must be the raw JS error caught in the JS catch, not the

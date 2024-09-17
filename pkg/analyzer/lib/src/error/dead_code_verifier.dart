@@ -591,7 +591,8 @@ class _LabelTracker {
 
 extension on FunctionElement {
   bool get isLocal =>
-      enclosingElement is FunctionElement || enclosingElement is MethodElement;
+      enclosingElement3 is FunctionElement ||
+      enclosingElement3 is MethodElement;
 }
 
 extension DoStatementExtension on DoStatement {

@@ -822,12 +822,7 @@ static void ThrowExceptionHelper(Thread* thread,
       // If this is not a rethrow, it's a "throw with stacktrace".
       // Set an Error object's stackTrace field if needed.
       if (!is_rethrow) {
-        const Field& stacktrace_field =
-            Field::Handle(zone, LookupStackTraceField(exception));
-        if (!stacktrace_field.IsNull() &&
-            (exception.GetField(stacktrace_field) == Object::null())) {
-          exception.SetField(stacktrace_field, stacktrace);
-        }
+        Exceptions::TrySetStackTrace(zone, exception, stacktrace);
       }
     } else {
       // Get stacktrace field of class Error to determine whether we have a
@@ -1023,6 +1018,17 @@ void Exceptions::ThrowWithStackTrace(Thread* thread,
                        /*bypass_debugger=*/false);
 }
 
+void Exceptions::TrySetStackTrace(Zone* zone,
+                                  const Instance& error,
+                                  const Instance& stacktrace) {
+  const Field& stacktrace_field =
+      Field::Handle(zone, dart::LookupStackTraceField(error));
+  if (!stacktrace_field.IsNull() &&
+      (error.GetField(stacktrace_field) == Object::null())) {
+    error.SetField(stacktrace_field, stacktrace);
+  }
+}
+
 void Exceptions::PropagateError(const Error& error) {
   ASSERT(!error.IsNull());
   Thread* thread = Thread::Current();
@@ -1138,6 +1144,12 @@ void Exceptions::ThrowCompileTimeError(const LanguageError& error) {
   Exceptions::ThrowByType(Exceptions::kCompileTimeError, args);
 }
 
+void Exceptions::ThrowLateFieldAlreadyInitialized(const String& name) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, name);
+  Exceptions::ThrowByType(Exceptions::kLateFieldAlreadyInitialized, args);
+}
+
 void Exceptions::ThrowLateFieldNotInitialized(const String& name) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, name);
@@ -1228,6 +1240,11 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kCompileTimeError:
       library = Library::CoreLibrary();
       class_name = &Symbols::_CompileTimeError();
+      break;
+    case kLateFieldAlreadyInitialized:
+      library = Library::InternalLibrary();
+      class_name = &Symbols::LateError();
+      constructor_name = &Symbols::DotFieldAI();
       break;
     case kLateFieldAssignedDuringInitialization:
       library = Library::InternalLibrary();

@@ -24,10 +24,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   final LibraryBuilder _libraryBuilder;
   final CompilationUnitElementImpl _unitElement;
 
-  // TODO(scheglov): We need it for now, but remove it later.
-  final List<AugmentationImportElementImpl> _augmentationImports;
-
-  var _augmentationDirectiveIndex = 0;
   var _exportDirectiveIndex = 0;
   var _importDirectiveIndex = 0;
   var _partDirectiveIndex = 0;
@@ -37,11 +33,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   ElementBuilder({
     required LibraryBuilder libraryBuilder,
-    required List<AugmentationImportElementImpl> augmentationImports,
     required Reference unitReference,
     required CompilationUnitElementImpl unitElement,
   })  : _libraryBuilder = libraryBuilder,
-        _augmentationImports = augmentationImports,
         _unitElement = unitElement,
         _enclosingContext = _EnclosingContext(unitReference, unitElement);
 
@@ -94,13 +88,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         libraryElement.metadata = firstDirectiveMetadata;
       }
     }
-  }
-
-  @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    var index = _augmentationDirectiveIndex++;
-    var element = _augmentationImports[index];
-    element.metadata = _buildAnnotations(node.metadata);
   }
 
   @override
@@ -960,9 +947,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {}
-
-  @override
   void visitLibraryDirective(covariant LibraryDirectiveImpl node) {}
 
   @override
@@ -1104,9 +1088,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    var libraryElement = _libraryBuilder.element;
     var index = _partDirectiveIndex++;
-    var partElement = libraryElement.parts[index];
+    var partElement = _unitElement.parts[index];
     partElement.metadata = _buildAnnotations(node.metadata);
   }
 
@@ -1398,23 +1381,42 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           accessorElement.isSetter && property.setter == null;
     }
 
-    PropertyInducingElementImpl property;
+    PropertyInducingElementImpl? property;
     if (enclosingElement is CompilationUnitElement) {
-      var reference = enclosingRef.getChild('@topLevelVariable').getChild(name);
-      var existing = reference.element;
-      if (existing is TopLevelVariableElementImpl && canUseExisting(existing)) {
-        property = existing;
-      } else {
+      // Try to find the variable to attach the accessor.
+      var containerRef = enclosingRef.getChild('@topLevelVariable');
+      for (var reference in containerRef.getChildrenByName(name)) {
+        var existing = reference.element;
+        if (existing is TopLevelVariableElementImpl &&
+            canUseExisting(existing)) {
+          property = existing;
+          break;
+        }
+      }
+
+      // If no variable, add a new one.
+      // In error cases could be a duplicate.
+      if (property == null) {
+        var reference = containerRef.addChild(name);
         var variable = property = TopLevelVariableElementImpl(name, -1)
           ..isSynthetic = true;
         _enclosingContext.addTopLevelVariableSynthetic(reference, variable);
       }
     } else {
-      var reference = enclosingRef.getChild('@field').getChild(name);
-      var existing = reference.element;
-      if (existing is FieldElementImpl && canUseExisting(existing)) {
-        property = existing;
-      } else {
+      // Try to find the variable to attach the accessor.
+      var containerRef = enclosingRef.getChild('@field');
+      for (var reference in containerRef.getChildrenByName(name)) {
+        var existing = reference.element;
+        if (existing is FieldElementImpl && canUseExisting(existing)) {
+          property = existing;
+          break;
+        }
+      }
+
+      // If no variable, add a new one.
+      // In error cases could be a duplicate.
+      if (property == null) {
+        var reference = containerRef.addChild(name);
         var field = property = FieldElementImpl(name, -1)
           ..isStatic = accessorElement.isStatic
           ..isSynthetic = true;

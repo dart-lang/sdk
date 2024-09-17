@@ -69,10 +69,10 @@ information.
 class CommentReferences extends LintRule {
   CommentReferences()
       : super(
-            name: 'comment_references',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.documentationCommentMaintenance});
+          name: 'comment_references',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.comment_references;

@@ -33,18 +33,18 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           codeOffset: 0
           codeLength: 26
           supertype: Enum
           fields
             static const enumConstant aaa @11
               reference: <testLibraryFragment>::@enum::E::@field::aaa
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               codeOffset: 11
               codeLength: 3
               type: E
@@ -63,7 +63,7 @@ library
                   staticType: E
             static const enumConstant bbb @16
               reference: <testLibraryFragment>::@enum::E::@field::bbb
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               codeOffset: 16
               codeLength: 3
               type: E
@@ -82,7 +82,7 @@ library
                   staticType: E
             static const enumConstant ccc @21
               reference: <testLibraryFragment>::@enum::E::@field::ccc
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               codeOffset: 21
               codeLength: 3
               type: E
@@ -101,7 +101,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -124,40 +124,103 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get aaa @-1
               reference: <testLibraryFragment>::@enum::E::@getter::aaa
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get bbb @-1
               reference: <testLibraryFragment>::@enum::E::@getter::bbb
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get ccc @-1
               reference: <testLibraryFragment>::@enum::E::@getter::ccc
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant aaa @11
+              reference: <testLibraryFragment>::@enum::E::@field::aaa
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::aaa
+            enumConstant bbb @16
+              reference: <testLibraryFragment>::@enum::E::@field::bbb
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::bbb
+            enumConstant ccc @21
+              reference: <testLibraryFragment>::@enum::E::@field::ccc
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::ccc
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get aaa @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::aaa
+              element: <none>
+            get bbb @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::bbb
+              element: <none>
+            get ccc @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::ccc
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@enum::E
       codeOffset: 0
       codeLength: 26
-      firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const aaa
+          firstFragment: <testLibraryFragment>::@enum::E::@field::aaa
+          type: E
+          getter: <none>
+        static const bbb
+          firstFragment: <testLibraryFragment>::@enum::E::@field::bbb
+          type: E
+          getter: <none>
+        static const ccc
+          firstFragment: <testLibraryFragment>::@enum::E::@field::ccc
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get aaa
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::aaa
+        synthetic static get bbb
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::bbb
+        synthetic static get ccc
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::ccc
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -174,11 +237,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @7
               defaultType: dynamic
@@ -186,7 +249,7 @@ library
           fields
             static const enumConstant int @14
               reference: <testLibraryFragment>::@enum::E::@field::int
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E<int>
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -209,7 +272,7 @@ library
                   staticType: E<int>
             static const enumConstant string @22
               reference: <testLibraryFragment>::@enum::E::@field::string
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E<String>
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -231,7 +294,7 @@ library
                   staticType: E<String>
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic>>
               constantInitializer
                 ListLiteral
@@ -250,37 +313,98 @@ library
           constructors
             const @43
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
                 requiredPositional a @47
                   type: T
           accessors
             synthetic static get int @-1
               reference: <testLibraryFragment>::@enum::E::@getter::int
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E<int>
             synthetic static get string @-1
               reference: <testLibraryFragment>::@enum::E::@getter::string
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E<String>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
+              element: <none>
+          fields
+            enumConstant int @14
+              reference: <testLibraryFragment>::@enum::E::@field::int
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::int
+            enumConstant string @22
+              reference: <testLibraryFragment>::@enum::E::@field::string
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::string
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            const new @43
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+              parameters
+                a @47
+                  element: <none>
+          getters
+            get int @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::int
+              element: <none>
+            get string @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::string
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
       supertype: Enum
+      fields
+        static const int
+          firstFragment: <testLibraryFragment>::@enum::E::@field::int
+          type: E<int>
+          getter: <none>
+        static const string
+          firstFragment: <testLibraryFragment>::@enum::E::@field::string
+          type: E<String>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          parameters
+            requiredPositional a
+              type: T
+      getters
+        synthetic static get int
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::int
+        synthetic static get string
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::string
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -297,16 +421,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant _name @11
               reference: <testLibraryFragment>::@enum::E::@field::_name
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -323,7 +447,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -338,30 +462,67 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get _name @-1
               reference: <testLibraryFragment>::@enum::E::@getter::_name
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant _name @11
+              reference: <testLibraryFragment>::@enum::E::@field::_name
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::_name
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get _name @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::_name
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const _name
+          firstFragment: <testLibraryFragment>::@enum::E::@field::_name
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get _name
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::_name
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -378,11 +539,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @7
               defaultType: dynamic
@@ -390,7 +551,7 @@ library
           fields
             static const enumConstant v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E<double>
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -421,7 +582,7 @@ library
                   staticType: E<double>
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic>>
               constantInitializer
                 ListLiteral
@@ -436,33 +597,81 @@ library
           constructors
             const @37
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
                 requiredPositional a @41
                   type: T
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E<double>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
+              element: <none>
+          fields
+            enumConstant v @14
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            const new @37
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+              parameters
+                a @41
+                  element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<double>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          parameters
+            requiredPositional a
+              type: T
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -478,16 +687,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant _ @11
               reference: <testLibraryFragment>::@enum::E::@field::_
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -504,7 +713,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -519,30 +728,67 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get _ @-1
               reference: <testLibraryFragment>::@enum::E::@getter::_
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant _ @11
+              reference: <testLibraryFragment>::@enum::E::@field::_
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::_
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get _ @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::_
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const _
+          firstFragment: <testLibraryFragment>::@enum::E::@field::_
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get _
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::_
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -559,16 +805,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -585,7 +831,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -600,35 +846,79 @@ library
           constructors
             factory named @26
               reference: <testLibraryFragment>::@enum::E::@constructor::named
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               periodOffset: 25
               nameEnd: 31
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @11
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            factory named @26
+              reference: <testLibraryFragment>::@enum::E::@constructor::named
+              element: <none>
+              periodOffset: 25
+              nameEnd: 31
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        factory named
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::named
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -645,16 +935,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -671,7 +961,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -686,30 +976,67 @@ library
           constructors
             factory @24
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @11
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            factory new @24
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        factory new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -727,16 +1054,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -753,7 +1080,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -767,12 +1094,12 @@ library
                   staticType: List<E>
             final x @22
               reference: <testLibraryFragment>::@enum::E::@field::x
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: dynamic
           constructors
             const @33
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
                 requiredPositional final this.x @44
                   type: int Function(double)
@@ -783,30 +1110,89 @@ library
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
             synthetic get x @-1
               reference: <testLibraryFragment>::@enum::E::@getter::x
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: dynamic
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @11
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+            x @22
+              reference: <testLibraryFragment>::@enum::E::@field::x
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::x
+          constructors
+            const new @33
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+              parameters
+                this.x @44
+                  element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+            get x @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::x
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+        final x
+          firstFragment: <testLibraryFragment>::@enum::E::@field::x
+          type: dynamic
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          parameters
+            requiredPositional final x
+              type: int Function(double)
+              parameters
+                requiredPositional a
+                  type: double
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+        synthetic get x
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::x
 ''');
   }
 
@@ -826,16 +1212,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -852,7 +1238,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -866,16 +1252,16 @@ library
                   staticType: List<E>
             final x @26
               reference: <testLibraryFragment>::@enum::E::@field::x::@def::0
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: int
             final x @44
               reference: <testLibraryFragment>::@enum::E::@field::x::@def::1
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: String
           constructors
             const @55
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
                 requiredPositional final this.x @62
                   type: int
@@ -883,34 +1269,103 @@ library
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
             synthetic get x @-1
               reference: <testLibraryFragment>::@enum::E::@getter::x::@def::0
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: int
             synthetic get x @-1
               reference: <testLibraryFragment>::@enum::E::@getter::x::@def::1
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: String
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @11
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+            x @26
+              reference: <testLibraryFragment>::@enum::E::@field::x::@def::0
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::x::@def::0
+            x @44
+              reference: <testLibraryFragment>::@enum::E::@field::x::@def::1
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::x::@def::1
+          constructors
+            const new @55
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+              parameters
+                this.x @62
+                  element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+            get x @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::x::@def::0
+              element: <none>
+            get x @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::x::@def::1
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+        final x
+          firstFragment: <testLibraryFragment>::@enum::E::@field::x::@def::0
+          type: int
+          getter: <none>
+        final x
+          firstFragment: <testLibraryFragment>::@enum::E::@field::x::@def::1
+          type: String
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          parameters
+            requiredPositional final x
+              type: int
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+        synthetic get x
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::x::@def::0
+        synthetic get x
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::x::@def::1
 ''');
   }
 
@@ -927,16 +1382,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -953,7 +1408,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -968,7 +1423,7 @@ library
           constructors
             const @22
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
                 requiredPositional final this.x @29
                   type: dynamic
@@ -976,26 +1431,69 @@ library
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @11
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            const new @22
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+              parameters
+                this.x @29
+                  element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          parameters
+            requiredPositional final x
+              type: dynamic
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -1013,16 +1511,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -1039,7 +1537,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -1053,12 +1551,12 @@ library
                   staticType: List<E>
             final x @26
               reference: <testLibraryFragment>::@enum::E::@field::x
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: int
           constructors
             const @37
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
                 optionalNamed default final this.x @45
                   reference: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x
@@ -1079,30 +1577,88 @@ library
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
             synthetic get x @-1
               reference: <testLibraryFragment>::@enum::E::@getter::x
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @11
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+            x @26
+              reference: <testLibraryFragment>::@enum::E::@field::x
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::x
+          constructors
+            const new @37
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+              parameters
+                default this.x @45
+                  reference: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x
+                  element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+            get x @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::x
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+        final x
+          firstFragment: <testLibraryFragment>::@enum::E::@field::x
+          type: int
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          parameters
+            optionalNamed final x
+              firstFragment: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x
+              type: int
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+        synthetic get x
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::x
 ''');
   }
 
@@ -1120,16 +1676,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -1146,7 +1702,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -1160,12 +1716,12 @@ library
                   staticType: List<E>
             final x @26
               reference: <testLibraryFragment>::@enum::E::@field::x
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: num
           constructors
             const @37
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
                 requiredPositional final this.x @48
                   type: int
@@ -1173,30 +1729,86 @@ library
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
             synthetic get x @-1
               reference: <testLibraryFragment>::@enum::E::@getter::x
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: num
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @11
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+            x @26
+              reference: <testLibraryFragment>::@enum::E::@field::x
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::x
+          constructors
+            const new @37
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+              parameters
+                this.x @48
+                  element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+            get x @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::x
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+        final x
+          firstFragment: <testLibraryFragment>::@enum::E::@field::x
+          type: num
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          parameters
+            requiredPositional final x
+              type: int
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+        synthetic get x
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::x
 ''');
   }
 
@@ -1214,16 +1826,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -1240,7 +1852,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -1254,12 +1866,12 @@ library
                   staticType: List<E>
             final x @22
               reference: <testLibraryFragment>::@enum::E::@field::x
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: dynamic
           constructors
             @27
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
                 requiredPositional final this.x @38
                   type: int
@@ -1267,30 +1879,86 @@ library
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
             synthetic get x @-1
               reference: <testLibraryFragment>::@enum::E::@getter::x
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: dynamic
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @11
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+            x @22
+              reference: <testLibraryFragment>::@enum::E::@field::x
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::x
+          constructors
+            new @27
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+              parameters
+                this.x @38
+                  element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+            get x @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::x
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+        final x
+          firstFragment: <testLibraryFragment>::@enum::E::@field::x
+          type: dynamic
+          getter: <none>
+      constructors
+        new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          parameters
+            requiredPositional final x
+              type: int
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+        synthetic get x
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::x
 ''');
   }
 
@@ -1308,16 +1976,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -1334,7 +2002,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -1348,12 +2016,12 @@ library
                   staticType: List<E>
             final x @22
               reference: <testLibraryFragment>::@enum::E::@field::x
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: dynamic
           constructors
             @27
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
                 requiredPositional final this.x @34
                   type: dynamic
@@ -1361,30 +2029,86 @@ library
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
             synthetic get x @-1
               reference: <testLibraryFragment>::@enum::E::@getter::x
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: dynamic
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @11
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+            x @22
+              reference: <testLibraryFragment>::@enum::E::@field::x
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::x
+          constructors
+            new @27
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+              parameters
+                this.x @34
+                  element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+            get x @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::x
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+        final x
+          firstFragment: <testLibraryFragment>::@enum::E::@field::x
+          type: dynamic
+          getter: <none>
+      constructors
+        new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          parameters
+            requiredPositional final x
+              type: dynamic
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+        synthetic get x
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::x
 ''');
   }
 
@@ -1401,16 +2125,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -1436,7 +2160,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -1451,7 +2175,7 @@ library
           constructors
             const named @34
               reference: <testLibraryFragment>::@enum::E::@constructor::named
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               periodOffset: 33
               nameEnd: 39
               parameters
@@ -1460,26 +2184,71 @@ library
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @11
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            const named @34
+              reference: <testLibraryFragment>::@enum::E::@constructor::named
+              element: <none>
+              periodOffset: 33
+              nameEnd: 39
+              parameters
+                a @44
+                  element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        const named
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::named
+          parameters
+            requiredPositional a
+              type: int
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -1496,16 +2265,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -1526,7 +2295,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -1541,33 +2310,76 @@ library
           constructors
             const @26
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
                 requiredPositional a @32
                   type: int
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @11
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            const new @26
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+              parameters
+                a @32
+                  element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          parameters
+            requiredPositional a
+              type: int
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -1585,11 +2397,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @7
               defaultType: dynamic
@@ -1597,7 +2409,7 @@ library
           fields
             static const enumConstant v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E<dynamic>
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -1616,7 +2428,7 @@ library
                   staticType: E<dynamic>
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic>>
               constantInitializer
                 ListLiteral
@@ -1630,12 +2442,12 @@ library
                   staticType: List<E<dynamic>>
             final x @29
               reference: <testLibraryFragment>::@enum::E::@field::x
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: int
           constructors
             const @40
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
                 requiredPositional a @45
                   type: T?
@@ -1667,30 +2479,116 @@ library
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E<dynamic>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
             synthetic get x @-1
               reference: <testLibraryFragment>::@enum::E::@getter::x
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
+              element: <none>
+          fields
+            enumConstant v @14
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+            x @29
+              reference: <testLibraryFragment>::@enum::E::@field::x
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::x
+          constructors
+            const new @40
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+              parameters
+                a @45
+                  element: <none>
+              constantInitializers
+                AssertInitializer
+                  assertKeyword: assert @50
+                  leftParenthesis: ( @56
+                  condition: IsExpression
+                    expression: SimpleIdentifier
+                      token: a @57
+                      staticElement: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a
+                      staticType: T?
+                    isOperator: is @59
+                    type: NamedType
+                      name: T @62
+                      element: T@7
+                      type: T
+                    staticType: bool
+                  rightParenthesis: ) @63
+                ConstructorFieldInitializer
+                  fieldName: SimpleIdentifier
+                    token: x @66
+                    staticElement: <testLibraryFragment>::@enum::E::@field::x
+                    staticType: null
+                  equals: = @68
+                  expression: IntegerLiteral
+                    literal: 0 @70
+                    staticType: int
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+            get x @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::x
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<dynamic>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
+          getter: <none>
+        final x
+          firstFragment: <testLibraryFragment>::@enum::E::@field::x
+          type: int
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          parameters
+            requiredPositional a
+              type: T?
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+        synthetic get x
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::x
 ''');
   }
 
@@ -1707,17 +2605,17 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @65
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           documentationComment: /**\n * Docs\n */
           supertype: Enum
           fields
             static const enumConstant v @69
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -1734,7 +2632,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -1749,31 +2647,68 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @65
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @69
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
-      documentationComment: /**\n * Docs\n */
       firstFragment: <testLibraryFragment>::@enum::E
+      documentationComment: /**\n * Docs\n */
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -1790,16 +2725,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -1816,7 +2751,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -1830,7 +2765,7 @@ library
                   staticType: List<E>
             final foo @22
               reference: <testLibraryFragment>::@enum::E::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: int
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -1840,34 +2775,84 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
             synthetic get foo @-1
               reference: <testLibraryFragment>::@enum::E::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @11
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+            foo @22
+              reference: <testLibraryFragment>::@enum::E::@field::foo
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+            get foo @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::foo
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+        final foo
+          firstFragment: <testLibraryFragment>::@enum::E::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+        synthetic get foo
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::foo
 ''');
   }
 
@@ -1889,31 +2874,62 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             final promotable _foo @33
               reference: <testLibraryFragment>::@enum::E::@field::_foo
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: int?
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            promotable _foo @33
+              reference: <testLibraryFragment>::@enum::E::@field::_foo
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::_foo
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+        final _foo
+          firstFragment: <testLibraryFragment>::@enum::E::@field::_foo
+          type: int?
+          getter: <none>
+      constructors
+        new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          parameters
+            requiredPositional final _foo
+              type: int?
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+        synthetic get _foo
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::_foo
 ''');
   }
 
@@ -1930,16 +2946,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @10
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -1956,7 +2972,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -1970,39 +2986,89 @@ library
                   staticType: List<E>
             synthetic foo @-1
               reference: <testLibraryFragment>::@enum::E::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: int
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
             get foo @23
               reference: <testLibraryFragment>::@enum::E::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @10
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+            foo @-1
+              reference: <testLibraryFragment>::@enum::E::@field::foo
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+            get foo @23
+              reference: <testLibraryFragment>::@enum::E::@getter::foo
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+        synthetic foo
+          firstFragment: <testLibraryFragment>::@enum::E::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+        get foo
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::foo
 ''');
   }
 
@@ -2019,26 +3085,26 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::I::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::I
+              enclosingElement3: <testLibraryFragment>::@class::I
       enums
         enum E @16
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           interfaces
             I
           fields
             static const enumConstant v @35
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -2055,7 +3121,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -2070,38 +3136,81 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
+          element: <testLibraryFragment>::@class::I
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::I::@constructor::new
+              element: <none>
       enums
         enum E @16
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @35
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   classes
     class I
-      reference: <testLibraryFragment>::@class::I
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::I::@constructor::new
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -2121,18 +3230,18 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
         class C @45
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
       enums
         enum E @55
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           interfaces
             A
@@ -2140,70 +3249,120 @@ library
           fields
             static const enumConstant v @78
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
       extensionTypes
         B @26
           reference: <testLibraryFragment>::@extensionType::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           representation: <testLibraryFragment>::@extensionType::B::@field::it
           primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
           typeErasure: int
           fields
             final it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingElement: <testLibraryFragment>::@extensionType::B
+              enclosingElement3: <testLibraryFragment>::@extensionType::B
               type: int
           accessors
             synthetic get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingElement: <testLibraryFragment>::@extensionType::B
+              enclosingElement3: <testLibraryFragment>::@extensionType::B
               returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
         class C @45
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
       enums
         enum E @55
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @78
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
       extensionTypes
         extension type B @26
           reference: <testLibraryFragment>::@extensionType::B
+          element: <testLibraryFragment>::@extensionType::B
+          fields
+            it @32
+              reference: <testLibraryFragment>::@extensionType::B::@field::it
+              element: <none>
+              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::B::@getter::it
+              element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
     class C
-      reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+  extensionTypes
+    extension type B
+      firstFragment: <testLibraryFragment>::@extensionType::B
+      typeErasure: int
+      fields
+        final it
+          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          type: int
+          getter: <none>
+      getters
+        synthetic get it
+          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
 ''');
   }
 
@@ -2220,22 +3379,22 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @8
               defaultType: dynamic
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::I::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::I
+              enclosingElement3: <testLibraryFragment>::@class::I
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant U @21
               defaultType: dynamic
@@ -2245,7 +3404,7 @@ library
           fields
             static const enumConstant v @44
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E<dynamic>
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -2264,7 +3423,7 @@ library
                   staticType: E<dynamic>
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic>>
               constantInitializer
                 ListLiteral
@@ -2279,38 +3438,91 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E<dynamic>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
+          element: <testLibraryFragment>::@class::I
+          typeParameters
+            T @8
+              element: <none>
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::I::@constructor::new
+              element: <none>
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            U @21
+              element: <none>
+          fields
+            enumConstant v @44
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   classes
     class I
-      reference: <testLibraryFragment>::@class::I
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I
+      typeParameters
+        T
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::I::@constructor::new
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        U
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<dynamic>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -2328,26 +3540,26 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class X @6
           reference: <testLibraryFragment>::@class::X
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::X
+              enclosingElement3: <testLibraryFragment>::@class::X
         class Z @17
           reference: <testLibraryFragment>::@class::Z
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::Z::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::Z
+              enclosingElement3: <testLibraryFragment>::@class::Z
       enums
         enum E @27
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           interfaces
             X
@@ -2355,7 +3567,7 @@ library
           fields
             static const enumConstant v @52
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -2372,7 +3584,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -2387,44 +3599,93 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class X @6
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::X::@constructor::new
+              element: <none>
         class Z @17
           reference: <testLibraryFragment>::@class::Z
+          element: <testLibraryFragment>::@class::Z
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::Z::@constructor::new
+              element: <none>
       enums
         enum E @27
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @52
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::X::@constructor::new
     class Z
-      reference: <testLibraryFragment>::@class::Z
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::Z
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::Z::@constructor::new
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -2441,11 +3702,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @7
               defaultType: dynamic
@@ -2453,7 +3714,7 @@ library
           fields
             static const enumConstant v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E<dynamic>
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -2472,7 +3733,7 @@ library
                   staticType: E<dynamic>
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic>>
               constantInitializer
                 ListLiteral
@@ -2487,20 +3748,20 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E<dynamic>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
           methods
             foo @23
               reference: <testLibraryFragment>::@enum::E::@method::foo
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               typeParameters
                 covariant U @27
                   defaultType: dynamic
@@ -2515,15 +3776,79 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
+              element: <none>
+          fields
+            enumConstant v @14
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+          methods
+            foo @23
+              reference: <testLibraryFragment>::@enum::E::@method::foo
+              element: <none>
+              typeParameters
+                U @27
+                  element: <none>
+              parameters
+                t @32
+                  element: <none>
+                u @37
+                  element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<dynamic>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@enum::E::@method::foo
+          typeParameters
+            U
+          parameters
+            requiredPositional t
+              type: T
+            requiredPositional u
+              type: U
 ''');
   }
 
@@ -2540,16 +3865,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -2566,7 +3891,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -2581,35 +3906,79 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
           methods
             toString @23
               reference: <testLibraryFragment>::@enum::E::@method::toString
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: String
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @11
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+          methods
+            toString @23
+              reference: <testLibraryFragment>::@enum::E::@method::toString
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+      methods
+        toString
+          firstFragment: <testLibraryFragment>::@enum::E::@method::toString
 ''');
   }
 
@@ -2626,18 +3995,18 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @16
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           mixins
             M
           fields
             static const enumConstant v @29
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -2654,7 +4023,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -2669,20 +4038,20 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           superclassConstraints
             Object
 ----------------------------------------
@@ -2690,22 +4059,58 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @16
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @29
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   mixins
     mixin M
-      reference: <testLibraryFragment>::@mixin::M
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -2728,18 +4133,18 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
         class C @45
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
       enums
         enum E @55
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           mixins
             A
@@ -2747,70 +4152,120 @@ library
           fields
             static const enumConstant v @72
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
       extensionTypes
         B @26
           reference: <testLibraryFragment>::@extensionType::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           representation: <testLibraryFragment>::@extensionType::B::@field::it
           primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
           typeErasure: int
           fields
             final it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingElement: <testLibraryFragment>::@extensionType::B
+              enclosingElement3: <testLibraryFragment>::@extensionType::B
               type: int
           accessors
             synthetic get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingElement: <testLibraryFragment>::@extensionType::B
+              enclosingElement3: <testLibraryFragment>::@extensionType::B
               returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
         class C @45
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
       enums
         enum E @55
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @72
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
       extensionTypes
         extension type B @26
           reference: <testLibraryFragment>::@extensionType::B
+          element: <testLibraryFragment>::@extensionType::B
+          fields
+            it @32
+              reference: <testLibraryFragment>::@extensionType::B::@field::it
+              element: <none>
+              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::B::@getter::it
+              element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
     class C
-      reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+  extensionTypes
+    extension type B
+      firstFragment: <testLibraryFragment>::@extensionType::B
+      typeErasure: int
+      fields
+        final it
+          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          type: int
+          getter: <none>
+      getters
+        synthetic get it
+          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
 ''');
   }
 
@@ -2828,11 +4283,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @44
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           mixins
             M1<int>
@@ -2840,7 +4295,7 @@ library
           fields
             static const enumConstant v @67
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -2857,7 +4312,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -2872,20 +4327,20 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
       mixins
         mixin M1 @6
           reference: <testLibraryFragment>::@mixin::M1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @9
               defaultType: dynamic
@@ -2893,7 +4348,7 @@ library
             Object
         mixin M2 @21
           reference: <testLibraryFragment>::@mixin::M2
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @24
               defaultType: dynamic
@@ -2904,31 +4359,76 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @44
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @67
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
       mixins
         mixin M1 @6
           reference: <testLibraryFragment>::@mixin::M1
+          element: <testLibraryFragment>::@mixin::M1
+          typeParameters
+            T @9
+              element: <none>
         mixin M2 @21
           reference: <testLibraryFragment>::@mixin::M2
+          element: <testLibraryFragment>::@mixin::M2
+          typeParameters
+            T @24
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   mixins
     mixin M1
-      reference: <testLibraryFragment>::@mixin::M1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@mixin::M1
+      typeParameters
+        T
       superclassConstraints
         Object
     mixin M2
-      reference: <testLibraryFragment>::@mixin::M2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@mixin::M2
+      typeParameters
+        T
       superclassConstraints
         M1<T>
 ''');
@@ -2947,16 +4447,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @10
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -2973,7 +4473,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -2987,24 +4487,24 @@ library
                   staticType: List<E>
             synthetic foo @-1
               reference: <testLibraryFragment>::@enum::E::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: int
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
             set foo= @19
               reference: <testLibraryFragment>::@enum::E::@setter::foo
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               parameters
                 requiredPositional _ @27
                   type: int
@@ -3014,15 +4514,73 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @10
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+            foo @-1
+              reference: <testLibraryFragment>::@enum::E::@field::foo
+              element: <none>
+              setter2: <testLibraryFragment>::@enum::E::@setter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+          setters
+            set foo= @19
+              reference: <testLibraryFragment>::@enum::E::@setter::foo
+              element: <none>
+              parameters
+                _ @27
+                  element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+        synthetic foo
+          firstFragment: <testLibraryFragment>::@enum::E::@field::foo
+          type: int
+          setter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+      setters
+        set foo=
+          firstFragment: <testLibraryFragment>::@enum::E::@setter::foo
+          parameters
+            requiredPositional _
+              type: int
 ''');
   }
 
@@ -3038,11 +4596,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @7
               defaultType: dynamic
@@ -3050,7 +4608,7 @@ library
           fields
             static const enumConstant v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E<dynamic>
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -3069,7 +4627,7 @@ library
                   staticType: E<dynamic>
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic>>
               constantInitializer
                 ListLiteral
@@ -3084,30 +4642,72 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E<dynamic>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
+              element: <none>
+          fields
+            enumConstant v @14
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<dynamic>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -3123,11 +4723,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         notSimplyBounded enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @7
               bound: num
@@ -3139,7 +4739,7 @@ library
           fields
             static const enumConstant v @39
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E<num, num>
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -3158,7 +4758,7 @@ library
                   staticType: E<num, num>
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<num, num>>
               constantInitializer
                 ListLiteral
@@ -3173,30 +4773,77 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E<num, num>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<num, num>>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
+              element: <none>
+            U @22
+              element: <none>
+          fields
+            enumConstant v @39
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
+          bound: num
+        U
+          bound: T
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<num, num>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<num, num>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -3210,11 +4857,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         notSimplyBounded enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @7
               bound: dynamic
@@ -3223,7 +4870,7 @@ library
           fields
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic>>
               constantInitializer
                 ListLiteral
@@ -3233,26 +4880,56 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
+              element: <none>
+          fields
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
+          bound: dynamic
       supertype: Enum
+      fields
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -3266,11 +4943,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         notSimplyBounded enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @7
               bound: dynamic
@@ -3285,7 +4962,7 @@ library
           fields
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic, num, dynamic>>
               constantInitializer
                 ListLiteral
@@ -3295,26 +4972,64 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic, num, dynamic>>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
+              element: <none>
+            U @20
+              element: <none>
+            V @35
+              element: <none>
+          fields
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
+          bound: dynamic
+        U
+          bound: num
+        V
+          bound: dynamic
       supertype: Enum
+      fields
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic, num, dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -3328,11 +5043,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         notSimplyBounded enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @7
               bound: void Function(E<dynamic>)
@@ -3341,7 +5056,7 @@ library
           fields
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic>>
               constantInitializer
                 ListLiteral
@@ -3351,26 +5066,56 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @7
+              element: <none>
+          fields
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
+          bound: void Function(E<dynamic>)
       supertype: Enum
+      fields
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -3384,11 +5129,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             contravariant T @10
               defaultType: dynamic
@@ -3396,7 +5141,7 @@ library
           fields
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic>>
               constantInitializer
                 ListLiteral
@@ -3406,26 +5151,55 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @10
+              element: <none>
+          fields
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
       supertype: Enum
+      fields
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -3439,11 +5213,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @11
               defaultType: dynamic
@@ -3451,7 +5225,7 @@ library
           fields
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic>>
               constantInitializer
                 ListLiteral
@@ -3461,26 +5235,55 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @11
+              element: <none>
+          fields
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
       supertype: Enum
+      fields
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -3494,11 +5297,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             invariant T @13
               defaultType: dynamic
@@ -3506,7 +5309,7 @@ library
           fields
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic>>
               constantInitializer
                 ListLiteral
@@ -3516,26 +5319,55 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @13
+              element: <none>
+          fields
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
       supertype: Enum
+      fields
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -3549,11 +5381,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             invariant T @13
               defaultType: dynamic
@@ -3565,7 +5397,7 @@ library
           fields
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic, dynamic, dynamic>>
               constantInitializer
                 ListLiteral
@@ -3575,26 +5407,61 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic, dynamic, dynamic>>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @13
+              element: <none>
+            U @19
+              element: <none>
+            V @26
+              element: <none>
+          fields
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
+        U
+        V
       supertype: Enum
+      fields
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic, dynamic, dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -3614,16 +5481,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant a @32
               reference: <testLibraryFragment>::@enum::E::@field::a
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               documentationComment: /**\n   * aaa\n   */
               type: E
               shouldUseTypeForInitializerInference: false
@@ -3641,7 +5508,7 @@ library
                   staticType: E
             static const enumConstant b @47
               reference: <testLibraryFragment>::@enum::E::@field::b
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               documentationComment: /// bbb
               type: E
               shouldUseTypeForInitializerInference: false
@@ -3659,7 +5526,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -3678,34 +5545,84 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get a @-1
               reference: <testLibraryFragment>::@enum::E::@getter::a
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get b @-1
               reference: <testLibraryFragment>::@enum::E::@getter::b
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant a @32
+              reference: <testLibraryFragment>::@enum::E::@field::a
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::a
+            enumConstant b @47
+              reference: <testLibraryFragment>::@enum::E::@field::b
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::b
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get a @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::a
+              element: <none>
+            get b @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::b
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const a
+          firstFragment: <testLibraryFragment>::@enum::E::@field::a
+          type: E
+          getter: <none>
+        static const b
+          firstFragment: <testLibraryFragment>::@enum::E::@field::b
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get a
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::a
+        synthetic static get b
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::b
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -3730,16 +5647,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant a @46
               reference: <testLibraryFragment>::@enum::E::@field::a
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               documentationComment: /**\n   * aaa\n   */
               metadata
                 Annotation
@@ -3765,7 +5682,7 @@ library
                   staticType: E
             static const enumConstant b @75
               reference: <testLibraryFragment>::@enum::E::@field::b
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               documentationComment: /// bbb
               metadata
                 Annotation
@@ -3791,7 +5708,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -3810,24 +5727,24 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get a @-1
               reference: <testLibraryFragment>::@enum::E::@getter::a
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get b @-1
               reference: <testLibraryFragment>::@enum::E::@getter::b
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
       topLevelVariables
         static const annotation @91
           reference: <testLibraryFragment>::@topLevelVariable::annotation
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
           constantInitializer
@@ -3837,22 +5754,89 @@ library
       accessors
         synthetic static get annotation @-1
           reference: <testLibraryFragment>::@getter::annotation
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant a @46
+              reference: <testLibraryFragment>::@enum::E::@field::a
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::a
+            enumConstant b @75
+              reference: <testLibraryFragment>::@enum::E::@field::b
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::b
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get a @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::a
+              element: <none>
+            get b @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::b
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+      topLevelVariables
+        const annotation @91
+          reference: <testLibraryFragment>::@topLevelVariable::annotation
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::annotation
+      getters
+        get annotation @-1
+          reference: <testLibraryFragment>::@getter::annotation
+          element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const a
+          firstFragment: <testLibraryFragment>::@enum::E::@field::a
+          type: E
+          getter: <none>
+        static const b
+          firstFragment: <testLibraryFragment>::@enum::E::@field::b
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get a
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::a
+        synthetic static get b
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::b
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+  topLevelVariables
+    const annotation
+      firstFragment: <testLibraryFragment>::@topLevelVariable::annotation
+      type: int
+      getter: <none>
+  getters
+    synthetic static get annotation
+      firstFragment: <testLibraryFragment>::@getter::annotation
 ''');
   }
 
@@ -3864,16 +5848,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v1 @9
               reference: <testLibraryFragment>::@enum::E::@field::v1
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -3890,7 +5874,7 @@ library
                   staticType: E
             static const enumConstant v2 @13
               reference: <testLibraryFragment>::@enum::E::@field::v2
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -3907,7 +5891,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -3926,34 +5910,84 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v1 @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v1
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get v2 @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v2
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v1 @9
+              reference: <testLibraryFragment>::@enum::E::@field::v1
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v1
+            enumConstant v2 @13
+              reference: <testLibraryFragment>::@enum::E::@field::v2
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v2
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v1 @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v1
+              element: <none>
+            get v2 @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v2
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v1
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v1
+          type: E
+          getter: <none>
+        static const v2
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v2
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v1
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v1
+        synthetic static get v2
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v2
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -3965,16 +5999,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E1 @5
           reference: <testLibraryFragment>::@enum::E1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v1 @10
               reference: <testLibraryFragment>::@enum::E1::@field::v1
-              enclosingElement: <testLibraryFragment>::@enum::E1
+              enclosingElement3: <testLibraryFragment>::@enum::E1
               type: E1
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -3991,7 +6025,7 @@ library
                   staticType: E1
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E1::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E1
+              enclosingElement3: <testLibraryFragment>::@enum::E1
               type: List<E1>
               constantInitializer
                 ListLiteral
@@ -4006,24 +6040,24 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E1::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E1
+              enclosingElement3: <testLibraryFragment>::@enum::E1
           accessors
             synthetic static get v1 @-1
               reference: <testLibraryFragment>::@enum::E1::@getter::v1
-              enclosingElement: <testLibraryFragment>::@enum::E1
+              enclosingElement3: <testLibraryFragment>::@enum::E1
               returnType: E1
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E1::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E1
+              enclosingElement3: <testLibraryFragment>::@enum::E1
               returnType: List<E1>
         enum E2 @20
           reference: <testLibraryFragment>::@enum::E2
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v2 @25
               reference: <testLibraryFragment>::@enum::E2::@field::v2
-              enclosingElement: <testLibraryFragment>::@enum::E2
+              enclosingElement3: <testLibraryFragment>::@enum::E2
               type: E2
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -4040,7 +6074,7 @@ library
                   staticType: E2
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E2::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E2
+              enclosingElement3: <testLibraryFragment>::@enum::E2
               type: List<E2>
               constantInitializer
                 ListLiteral
@@ -4055,37 +6089,110 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E2::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E2
+              enclosingElement3: <testLibraryFragment>::@enum::E2
           accessors
             synthetic static get v2 @-1
               reference: <testLibraryFragment>::@enum::E2::@getter::v2
-              enclosingElement: <testLibraryFragment>::@enum::E2
+              enclosingElement3: <testLibraryFragment>::@enum::E2
               returnType: E2
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E2::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E2
+              enclosingElement3: <testLibraryFragment>::@enum::E2
               returnType: List<E2>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E1 @5
           reference: <testLibraryFragment>::@enum::E1
+          element: <testLibraryFragment>::@enum::E1
+          fields
+            enumConstant v1 @10
+              reference: <testLibraryFragment>::@enum::E1::@field::v1
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E1::@getter::v1
+            values @-1
+              reference: <testLibraryFragment>::@enum::E1::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E1::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E1::@constructor::new
+              element: <none>
+          getters
+            get v1 @-1
+              reference: <testLibraryFragment>::@enum::E1::@getter::v1
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E1::@getter::values
+              element: <none>
         enum E2 @20
           reference: <testLibraryFragment>::@enum::E2
+          element: <testLibraryFragment>::@enum::E2
+          fields
+            enumConstant v2 @25
+              reference: <testLibraryFragment>::@enum::E2::@field::v2
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E2::@getter::v2
+            values @-1
+              reference: <testLibraryFragment>::@enum::E2::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E2::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E2::@constructor::new
+              element: <none>
+          getters
+            get v2 @-1
+              reference: <testLibraryFragment>::@enum::E2::@getter::v2
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E2::@getter::values
+              element: <none>
   enums
     enum E1
-      reference: <testLibraryFragment>::@enum::E1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E1
       supertype: Enum
+      fields
+        static const v1
+          firstFragment: <testLibraryFragment>::@enum::E1::@field::v1
+          type: E1
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E1::@field::values
+          type: List<E1>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E1::@constructor::new
+      getters
+        synthetic static get v1
+          firstFragment: <testLibraryFragment>::@enum::E1::@getter::v1
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E1::@getter::values
     enum E2
-      reference: <testLibraryFragment>::@enum::E2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E2
       supertype: Enum
+      fields
+        static const v2
+          firstFragment: <testLibraryFragment>::@enum::E2::@field::v2
+          type: E2
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E2::@field::values
+          type: List<E2>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E2::@constructor::new
+      getters
+        synthetic static get v2
+          firstFragment: <testLibraryFragment>::@enum::E2::@getter::v2
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E2::@getter::values
 ''');
   }
 
@@ -4115,66 +6222,66 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class M @24
           reference: <testLibraryFragment>::@class::M
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::M::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::M
+              enclosingElement3: <testLibraryFragment>::@class::M
         class A @36
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
           methods
             foo @52
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: dynamic
         class B @70
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           interfaces
             M
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
           methods
             foo @92
               reference: <testLibraryFragment>::@class::B::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
               returnType: dynamic
         class C @110
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Object
           mixins
             M
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
           methods
             foo @141
               reference: <testLibraryFragment>::@class::C::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
               returnType: dynamic
         class alias D @159
           reference: <testLibraryFragment>::@class::D
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Object
           mixins
             M
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::D
+              enclosingElement3: <testLibraryFragment>::@class::D
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -4185,12 +6292,12 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant a @8
               reference: <testLibraryFragment>::@enum::E::@field::a
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -4207,7 +6314,7 @@ library
                   staticType: E
             static const enumConstant b @11
               reference: <testLibraryFragment>::@enum::E::@field::b
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -4224,7 +6331,7 @@ library
                   staticType: E
             static const enumConstant c @14
               reference: <testLibraryFragment>::@enum::E::@field::c
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -4241,7 +6348,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -4264,72 +6371,193 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get a @-1
               reference: <testLibraryFragment>::@enum::E::@getter::a
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get b @-1
               reference: <testLibraryFragment>::@enum::E::@getter::b
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get c @-1
               reference: <testLibraryFragment>::@enum::E::@getter::c
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class M @24
           reference: <testLibraryFragment>::@class::M
+          element: <testLibraryFragment>::@class::M
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::M::@constructor::new
+              element: <none>
         class A @36
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
+          methods
+            foo @52
+              reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <none>
         class B @70
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
+          methods
+            foo @92
+              reference: <testLibraryFragment>::@class::B::@method::foo
+              element: <none>
         class C @110
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
+          methods
+            foo @141
+              reference: <testLibraryFragment>::@class::C::@method::foo
+              element: <none>
         class D @159
           reference: <testLibraryFragment>::@class::D
+          element: <testLibraryFragment>::@class::D
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              element: <none>
+              constantInitializers
+                SuperConstructorInvocation
+                  superKeyword: super @0
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant a @8
+              reference: <testLibraryFragment>::@enum::E::@field::a
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::a
+            enumConstant b @11
+              reference: <testLibraryFragment>::@enum::E::@field::b
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::b
+            enumConstant c @14
+              reference: <testLibraryFragment>::@enum::E::@field::c
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::c
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get a @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::a
+              element: <none>
+            get b @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::b
+              element: <none>
+            get c @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::c
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   classes
     class M
-      reference: <testLibraryFragment>::@class::M
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::M
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::M::@constructor::new
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@class::A::@method::foo
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@class::B::@method::foo
     class C
-      reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       supertype: Object
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@class::C::@method::foo
     class alias D
-      reference: <testLibraryFragment>::@class::D
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
       supertype: Object
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const a
+          firstFragment: <testLibraryFragment>::@enum::E::@field::a
+          type: E
+          getter: <none>
+        static const b
+          firstFragment: <testLibraryFragment>::@enum::E::@field::b
+          type: E
+          getter: <none>
+        static const c
+          firstFragment: <testLibraryFragment>::@enum::E::@field::c
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get a
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::a
+        synthetic static get b
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::b
+        synthetic static get c
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::c
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -4341,16 +6569,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               metadata
                 Annotation
                   atSign: @ @23
@@ -4375,7 +6603,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -4390,20 +6618,20 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
       topLevelVariables
         static const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
           constantInitializer
@@ -4413,22 +6641,76 @@ library
       accessors
         synthetic static get a @-1
           reference: <testLibraryFragment>::@getter::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+      topLevelVariables
+        const a @6
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::a
+      getters
+        get a @-1
+          reference: <testLibraryFragment>::@getter::a
+          element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+  topLevelVariables
+    const a
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: int
+      getter: <none>
+  getters
+    synthetic static get a
+      firstFragment: <testLibraryFragment>::@getter::a
 ''');
   }
 
@@ -4451,20 +6733,20 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           fields
             final value @26
               reference: <testLibraryFragment>::@class::A::@field::value
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               type: dynamic
           constructors
             const @41
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               parameters
                 requiredPositional final this.value @48
                   type: dynamic
@@ -4472,17 +6754,17 @@ library
           accessors
             synthetic get value @-1
               reference: <testLibraryFragment>::@class::A::@getter::value
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: dynamic
       enums
         enum E @64
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant a @78
               reference: <testLibraryFragment>::@enum::E::@field::a
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               metadata
                 Annotation
                   atSign: @ @70
@@ -4514,7 +6796,7 @@ library
                   staticType: E
             static const enumConstant b @83
               reference: <testLibraryFragment>::@enum::E::@field::b
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -4531,7 +6813,7 @@ library
                   staticType: E
             static const enumConstant c @96
               reference: <testLibraryFragment>::@enum::E::@field::c
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               metadata
                 Annotation
                   atSign: @ @88
@@ -4563,7 +6845,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -4586,46 +6868,138 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get a @-1
               reference: <testLibraryFragment>::@enum::E::@getter::a
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get b @-1
               reference: <testLibraryFragment>::@enum::E::@getter::b
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get c @-1
               reference: <testLibraryFragment>::@enum::E::@getter::c
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          fields
+            value @26
+              reference: <testLibraryFragment>::@class::A::@field::value
+              element: <none>
+              getter2: <testLibraryFragment>::@class::A::@getter::value
+          constructors
+            const new @41
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
+              parameters
+                this.value @48
+                  element: <none>
+          getters
+            get value @-1
+              reference: <testLibraryFragment>::@class::A::@getter::value
+              element: <none>
       enums
         enum E @64
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant a @78
+              reference: <testLibraryFragment>::@enum::E::@field::a
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::a
+            enumConstant b @83
+              reference: <testLibraryFragment>::@enum::E::@field::b
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::b
+            enumConstant c @96
+              reference: <testLibraryFragment>::@enum::E::@field::c
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::c
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get a @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::a
+              element: <none>
+            get b @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::b
+              element: <none>
+            get c @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::c
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        final value
+          firstFragment: <testLibraryFragment>::@class::A::@field::value
+          type: dynamic
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          parameters
+            requiredPositional final value
+              type: dynamic
+      getters
+        synthetic get value
+          firstFragment: <testLibraryFragment>::@class::A::@getter::value
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const a
+          firstFragment: <testLibraryFragment>::@enum::E::@field::a
+          type: E
+          getter: <none>
+        static const b
+          firstFragment: <testLibraryFragment>::@enum::E::@field::b
+          type: E
+          getter: <none>
+        static const c
+          firstFragment: <testLibraryFragment>::@enum::E::@field::c
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get a
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::a
+        synthetic static get b
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::b
+        synthetic static get c
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::c
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -4642,16 +7016,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @16
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               metadata
                 Annotation
                   atSign: @ @11
@@ -4676,7 +7050,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -4691,30 +7065,67 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @16
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -4733,16 +7144,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @25
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -4759,7 +7170,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -4774,7 +7185,7 @@ library
           constructors
             const @41
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               metadata
                 Annotation
                   atSign: @ @30
@@ -4786,16 +7197,16 @@ library
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
       topLevelVariables
         static const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
           constantInitializer
@@ -4805,22 +7216,92 @@ library
       accessors
         synthetic static get a @-1
           reference: <testLibraryFragment>::@getter::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @25
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            const new @41
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+              metadata
+                Annotation
+                  atSign: @ @30
+                  name: SimpleIdentifier
+                    token: a @31
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+      topLevelVariables
+        const a @6
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::a
+      getters
+        get a @-1
+          reference: <testLibraryFragment>::@getter::a
+          element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          metadata
+            Annotation
+              atSign: @ @30
+              name: SimpleIdentifier
+                token: a @31
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+  topLevelVariables
+    const a
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: int
+      getter: <none>
+  getters
+    synthetic static get a
+      firstFragment: <testLibraryFragment>::@getter::a
 ''');
   }
 
@@ -4839,16 +7320,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @25
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -4865,7 +7346,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -4880,20 +7361,20 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
           methods
             foo @40
               reference: <testLibraryFragment>::@enum::E::@method::foo
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               metadata
                 Annotation
                   atSign: @ @30
@@ -4906,7 +7387,7 @@ library
       topLevelVariables
         static const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
           constantInitializer
@@ -4916,22 +7397,99 @@ library
       accessors
         synthetic static get a @-1
           reference: <testLibraryFragment>::@getter::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @25
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+          methods
+            foo @40
+              reference: <testLibraryFragment>::@enum::E::@method::foo
+              element: <none>
+              metadata
+                Annotation
+                  atSign: @ @30
+                  name: SimpleIdentifier
+                    token: a @31
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
+      topLevelVariables
+        const a @6
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::a
+      getters
+        get a @-1
+          reference: <testLibraryFragment>::@getter::a
+          element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@enum::E::@method::foo
+          metadata
+            Annotation
+              atSign: @ @30
+              name: SimpleIdentifier
+                token: a @31
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
+  topLevelVariables
+    const a
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: int
+      getter: <none>
+  getters
+    synthetic static get a
+      firstFragment: <testLibraryFragment>::@getter::a
 ''');
   }
 
@@ -4953,11 +7511,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @26
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           metadata
             Annotation
               atSign: @ @16
@@ -4981,7 +7539,7 @@ library
           fields
             static const enumConstant v @40
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E<dynamic>
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -5000,7 +7558,7 @@ library
                   staticType: E<dynamic>
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic>>
               constantInitializer
                 ListLiteral
@@ -5014,7 +7572,7 @@ library
                   staticType: List<E<dynamic>>
             static const foo @58
               reference: <testLibraryFragment>::@enum::E::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: int
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -5024,24 +7582,24 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E<dynamic>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
             synthetic static get foo @-1
               reference: <testLibraryFragment>::@enum::E::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: int
           methods
             bar @81
               reference: <testLibraryFragment>::@enum::E::@method::bar
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               metadata
                 Annotation
                   atSign: @ @69
@@ -5054,7 +7612,7 @@ library
       topLevelVariables
         static const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
           constantInitializer
@@ -5064,22 +7622,133 @@ library
       accessors
         synthetic static get foo @-1
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @26
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @33
+              element: <none>
+              metadata
+                Annotation
+                  atSign: @ @28
+                  name: SimpleIdentifier
+                    token: foo @29
+                    staticElement: <testLibraryFragment>::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::foo
+          fields
+            enumConstant v @40
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+            foo @58
+              reference: <testLibraryFragment>::@enum::E::@field::foo
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+            get foo @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::foo
+              element: <none>
+          methods
+            bar @81
+              reference: <testLibraryFragment>::@enum::E::@method::bar
+              element: <none>
+              metadata
+                Annotation
+                  atSign: @ @69
+                  name: SimpleIdentifier
+                    token: foo @70
+                    staticElement: <testLibraryFragment>::@enum::E::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@enum::E::@getter::foo
+      topLevelVariables
+        const foo @6
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::foo
+      getters
+        get foo @-1
+          reference: <testLibraryFragment>::@getter::foo
+          element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @28
+              name: SimpleIdentifier
+                token: foo @29
+                staticElement: <testLibraryFragment>::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@getter::foo
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<dynamic>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
+          getter: <none>
+        static const foo
+          firstFragment: <testLibraryFragment>::@enum::E::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+        synthetic static get foo
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::foo
+      methods
+        bar
+          firstFragment: <testLibraryFragment>::@enum::E::@method::bar
+          metadata
+            Annotation
+              atSign: @ @69
+              name: SimpleIdentifier
+                token: foo @70
+                staticElement: <testLibraryFragment>::@enum::E::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@enum::E::@getter::foo
+  topLevelVariables
+    const foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: int
+      getter: <none>
+  getters
+    synthetic static get foo
+      firstFragment: <testLibraryFragment>::@getter::foo
 ''');
   }
 
@@ -5096,11 +7765,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @24
               defaultType: dynamic
@@ -5116,7 +7785,7 @@ library
           fields
             static const enumConstant v @31
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E<dynamic>
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -5135,7 +7804,7 @@ library
                   staticType: E<dynamic>
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E<dynamic>>
               constantInitializer
                 ListLiteral
@@ -5150,20 +7819,20 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E<dynamic>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
       topLevelVariables
         static const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
           constantInitializer
@@ -5173,22 +7842,97 @@ library
       accessors
         synthetic static get a @-1
           reference: <testLibraryFragment>::@getter::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          typeParameters
+            T @24
+              element: <none>
+              metadata
+                Annotation
+                  atSign: @ @21
+                  name: SimpleIdentifier
+                    token: a @22
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
+          fields
+            enumConstant v @31
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+      topLevelVariables
+        const a @6
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::a
+      getters
+        get a @-1
+          reference: <testLibraryFragment>::@getter::a
+          element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
+      typeParameters
+        T
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: a @22
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E<dynamic>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+  topLevelVariables
+    const a
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: int
+      getter: <none>
+  getters
+    synthetic static get a
+      firstFragment: <testLibraryFragment>::@getter::a
 ''');
   }
 
@@ -5200,11 +7944,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       enums
         enum E @22
           reference: <testLibraryFragment>::@enum::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           metadata
             Annotation
               atSign: @ @14
@@ -5217,7 +7961,7 @@ library
           fields
             static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::E::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -5234,7 +7978,7 @@ library
                   staticType: E
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               type: List<E>
               constantInitializer
                 ListLiteral
@@ -5249,20 +7993,20 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: E
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::E
+              enclosingElement3: <testLibraryFragment>::@enum::E
               returnType: List<E>
       topLevelVariables
         static const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
           constantInitializer
@@ -5272,22 +8016,76 @@ library
       accessors
         synthetic static get a @-1
           reference: <testLibraryFragment>::@getter::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       enums
         enum E @22
           reference: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::E::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::E::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::E::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::E::@getter::values
+              element: <none>
+      topLevelVariables
+        const a @6
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::a
+      getters
+        get a @-1
+          reference: <testLibraryFragment>::@getter::a
+          element: <none>
   enums
     enum E
-      reference: <testLibraryFragment>::@enum::E
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::E::@field::v
+          type: E
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          type: List<E>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+  topLevelVariables
+    const a
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: int
+      getter: <none>
+  getters
+    synthetic static get a
+      firstFragment: <testLibraryFragment>::@getter::a
 ''');
   }
 }
@@ -5295,7 +8093,7 @@ library
 abstract class EnumElementTest_augmentation extends ElementsBaseTest {
   test_add_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 enum A {
   v;
@@ -5308,7 +8106,7 @@ augment enum A {;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
 
     configuration.withConstantInitializers = false;
@@ -5316,50 +8114,51 @@ import augment 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        enum A @35
+        enum A @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @41
+            static const enumConstant v @33
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::values
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               type: List<A>
           constructors
             synthetic const @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               returnType: List<A>
           methods
-            foo @51
+            foo @43
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               returnType: void
           augmented
             fields
@@ -5375,77 +8174,129 @@ library
             methods
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
               <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo
-        augment enum A @76
+        augment enum A @68
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           methods
-            bar @88
+            bar @80
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @35
+        enum A @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-        enum A @76
+          fields
+            enumConstant v @33
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
+            values @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
+              element: <none>
+          methods
+            foo @43
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo
+              element: <none>
+        enum A @68
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+          methods
+            bar @80
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
+              element: <none>
   enums
     enum A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
+      methods
+        foo
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo
+        bar
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
 ''');
   }
 
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a1.dart', r'''
-augment library 'test.dart';
-import augment 'a11.dart';
-import augment 'a12.dart';
+part of 'test.dart';
+part 'a11.dart';
+part 'a12.dart';
 augment enum A {}
 ''');
 
     newFile('$testPackageLibPath/a11.dart', r'''
-augment library 'a1.dart';
+part of 'a1.dart';
 augment enum A {}
 ''');
 
     newFile('$testPackageLibPath/a12.dart', r'''
-augment library 'a1.dart';
+part of 'a1.dart';
 augment enum A {}
 ''');
 
     newFile('$testPackageLibPath/a2.dart', r'''
-augment library 'test.dart';
-import augment 'a21.dart';
-import augment 'a22.dart';
+part of 'test.dart';
+part 'a21.dart';
+part 'a22.dart';
 augment enum A {}
 ''');
 
     newFile('$testPackageLibPath/a21.dart', r'''
-augment library 'a2.dart';
+part of 'a2.dart';
 augment enum A {}
 ''');
 
     newFile('$testPackageLibPath/a22.dart', r'''
-augment library 'a2.dart';
+part of 'a2.dart';
 augment enum A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a1.dart';
-import augment 'a2.dart';
+part 'a1.dart';
+part 'a2.dart';
 enum A {
   v
 }
@@ -5458,64 +8309,49 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a1.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a1.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a1.dart
-      augmentationImports
-        package:test/a11.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a1.dart
-          reference: <testLibrary>::@augmentation::package:test/a11.dart
-          definingUnit: <testLibrary>::@fragment::package:test/a11.dart
-        package:test/a12.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a1.dart
-          reference: <testLibrary>::@augmentation::package:test/a12.dart
-          definingUnit: <testLibrary>::@fragment::package:test/a12.dart
-    package:test/a2.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a2.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a2.dart
-      augmentationImports
-        package:test/a21.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a2.dart
-          reference: <testLibrary>::@augmentation::package:test/a21.dart
-          definingUnit: <testLibrary>::@fragment::package:test/a21.dart
-        package:test/a22.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a2.dart
-          reference: <testLibrary>::@augmentation::package:test/a22.dart
-          definingUnit: <testLibrary>::@fragment::package:test/a22.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a1.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a1.dart
+        part_1
+          uri: package:test/a2.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a2.dart
       enums
-        enum A @57
+        enum A @37
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @63
+            static const enumConstant v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             fields
@@ -5529,57 +8365,69 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a1.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a1.dart
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_2
+          uri: package:test/a11.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
+          unit: <testLibrary>::@fragment::package:test/a11.dart
+        part_3
+          uri: package:test/a12.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
+          unit: <testLibrary>::@fragment::package:test/a12.dart
       enums
-        augment enum A @96
+        augment enum A @68
           reference: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a1.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/a11.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a11.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a11.dart
       enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
       enums
-        augment enum A @40
+        augment enum A @32
           reference: <testLibrary>::@fragment::package:test/a11.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a11.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a11.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
           augmentation: <testLibrary>::@fragment::package:test/a12.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a12.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a12.dart
       enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
       enums
-        augment enum A @40
+        augment enum A @32
           reference: <testLibrary>::@fragment::package:test/a12.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a12.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a12.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a11.dart::@enumAugmentation::A
           augmentation: <testLibrary>::@fragment::package:test/a2.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a2.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a2.dart
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_4
+          uri: package:test/a21.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
+          unit: <testLibrary>::@fragment::package:test/a21.dart
+        part_5
+          uri: package:test/a22.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
+          unit: <testLibrary>::@fragment::package:test/a22.dart
       enums
-        augment enum A @96
+        augment enum A @68
           reference: <testLibrary>::@fragment::package:test/a2.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a2.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a12.dart::@enumAugmentation::A
           augmentation: <testLibrary>::@fragment::package:test/a21.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a21.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a21.dart
       enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
       enums
-        augment enum A @40
+        augment enum A @32
           reference: <testLibrary>::@fragment::package:test/a21.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a21.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a21.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a2.dart::@enumAugmentation::A
           augmentation: <testLibrary>::@fragment::package:test/a22.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a22.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a22.dart
       enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
       enums
-        augment enum A @40
+        augment enum A @32
           reference: <testLibrary>::@fragment::package:test/a22.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a22.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a22.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a21.dart::@enumAugmentation::A
   exportedReferences
     declared <testLibraryFragment>::@enum::A
@@ -5590,63 +8438,112 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a1.dart
       enums
-        enum A @57
+        enum A @37
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
+          fields
+            enumConstant v @43
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a1.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
       enums
-        enum A @96
+        enum A @68
           reference: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a11.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a11.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a1.dart
       nextFragment: <testLibrary>::@fragment::package:test/a12.dart
       enums
-        enum A @40
+        enum A @32
           reference: <testLibrary>::@fragment::package:test/a11.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/a12.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a12.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a11.dart
       nextFragment: <testLibrary>::@fragment::package:test/a2.dart
       enums
-        enum A @40
+        enum A @32
           reference: <testLibrary>::@fragment::package:test/a12.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a11.dart::@enumAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/a2.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a2.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/a21.dart
       enums
-        enum A @96
+        enum A @68
           reference: <testLibrary>::@fragment::package:test/a2.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a12.dart::@enumAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/a21.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a21.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a2.dart
       nextFragment: <testLibrary>::@fragment::package:test/a22.dart
       enums
-        enum A @40
+        enum A @32
           reference: <testLibrary>::@fragment::package:test/a21.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a2.dart::@enumAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/a22.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a22.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a21.dart
       enums
-        enum A @40
+        enum A @32
           reference: <testLibrary>::@fragment::package:test/a22.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a21.dart::@enumAugmentation::A
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
   exportedReferences
     declared <testLibraryFragment>::@enum::A
   exportNamespace
@@ -5656,7 +8553,7 @@ library
 
   test_augmentationTarget_augmentationThenDeclaration() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment enum A {;
   void foo1() {}
@@ -5673,7 +8570,7 @@ augment enum A {;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
 
     configuration.withConstantInitializers = false;
@@ -5681,72 +8578,73 @@ import augment 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @43
+        augment enum A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           fields
             synthetic static const values @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@field::values
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
               type: List<A>
           constructors
             synthetic const @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
           accessors
             synthetic static get values @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@getter::values
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
               returnType: List<A>
           methods
-            foo1 @55
+            foo1 @47
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@method::foo1
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
               returnType: void
-        enum A @73
+        enum A @65
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
           supertype: Enum
           fields
-            static const enumConstant v @79
+            static const enumConstant v @71
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::values
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               type: List<A>
           constructors
             synthetic const @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               returnType: List<A>
           methods
-            foo2 @89
+            foo2 @81
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               returnType: void
           augmented
             fields
@@ -5762,95 +8660,178 @@ library
             methods
               <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo2
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
-        augment enum A @115
+        augment enum A @107
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           methods
-            foo3 @127
+            foo3 @119
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
               returnType: void
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @43
+        enum A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
-        enum A @73
+          element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
+          fields
+            values @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@field::values
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@constructor::new
+              element: <none>
+          getters
+            get values @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@getter::values
+              element: <none>
+          methods
+            foo1 @47
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@method::foo1
+              element: <none>
+        enum A @65
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
-        enum A @115
+          fields
+            enumConstant v @71
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
+            values @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
+              element: <none>
+          methods
+            foo2 @81
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo2
+              element: <none>
+        enum A @107
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
+          element: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+          methods
+            foo3 @119
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
+              element: <none>
   enums
     enum A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
       supertype: Enum
+      fields
+        synthetic static const values
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@constructor::new
+      getters
+        synthetic static get values
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@getter::values
+      methods
+        foo1
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@method::foo1
     enum A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
+      methods
+        foo2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo2
+        foo3
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
 ''');
   }
 
   test_augmentationTarget_no2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-import augment 'b.dart';
+part of 'test.dart';
+part 'b.dart';
 augment enum A {;
   void foo1() {}
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 augment enum A {;
   void foo2() {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-      augmentationImports
-        package:test/b.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
-          reference: <testLibrary>::@augmentation::package:test/b.dart
-          definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_1
+          uri: package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        augment enum A @67
+        augment enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           fields
             synthetic static const values @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::values
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: List<A>
               constantInitializer
                 ListLiteral
@@ -5860,16 +8841,16 @@ library
           constructors
             synthetic const @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           accessors
             synthetic static get values @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::values
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: List<A>
           methods
-            foo1 @79
+            foo1 @61
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo1
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
           augmented
             fields
@@ -5882,56 +8863,95 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo1
               <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@method::foo2
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       enums
-        augment enum A @39
+        augment enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           methods
-            foo2 @51
+            foo2 @43
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@method::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               returnType: void
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @67
+        enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          fields
+            values @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::values
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
+              element: <none>
+          getters
+            get values @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::values
+              element: <none>
+          methods
+            foo1 @61
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo1
+              element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @39
+        enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          methods
+            foo2 @43
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@method::foo2
+              element: <none>
   enums
     enum A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
       supertype: Enum
+      fields
+        synthetic static const values
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
+      getters
+        synthetic static get values
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::values
+      methods
+        foo1
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo1
+        foo2
+          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@method::foo2
 ''');
   }
 
   test_augmented_constants_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {
   v2
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v1
 }
@@ -5942,24 +8962,26 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v1 @36
+            static const enumConstant v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -5978,7 +9000,7 @@ library
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               constantInitializer
                 ListLiteral
@@ -5999,17 +9021,17 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v1 @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
@@ -6028,17 +9050,16 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            static const enumConstant v2 @48
+            static const enumConstant v2 @40
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6058,7 +9079,7 @@ library
           accessors
             synthetic static get v2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: A
               id: getter_2
               variable: field_2
@@ -6067,44 +9088,98 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v1 @26
+              reference: <testLibraryFragment>::@enum::A::@field::v1
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v1
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v1 @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v1
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          fields
+            enumConstant v2 @40
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
+          getters
+            get v2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v1
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v1
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        static const v2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
+          type: A
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v1
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v1
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic static get v2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
 ''');
   }
 
   test_augmented_constants_add2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {
   v2
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {
   v3
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v1
 }
@@ -6115,28 +9190,31 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v1 @61
+            static const enumConstant v1 @41
               reference: <testLibraryFragment>::@enum::A::@field::v1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6155,7 +9233,7 @@ library
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               constantInitializer
                 ListLiteral
@@ -6180,17 +9258,17 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v1 @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
@@ -6212,18 +9290,17 @@ library
               <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::v3
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           fields
-            static const enumConstant v2 @48
+            static const enumConstant v2 @40
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6243,22 +9320,21 @@ library
           accessors
             synthetic static get v2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: A
               id: getter_2
               variable: field_2
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            static const enumConstant v3 @48
+            static const enumConstant v3 @40
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::v3
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6278,7 +9354,7 @@ library
           accessors
             synthetic static get v3 @-1
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::v3
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               returnType: A
               id: getter_3
               variable: field_3
@@ -6287,37 +9363,108 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v1 @41
+              reference: <testLibraryFragment>::@enum::A::@field::v1
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v1
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v1 @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v1
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          fields
+            enumConstant v2 @40
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
+          getters
+            get v2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
+              element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v3 @40
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::v3
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::v3
+          getters
+            get v3 @-1
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::v3
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v1
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v1
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        static const v2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
+          type: A
+          getter: <none>
+        static const v3
+          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::v3
+          type: A
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v1
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v1
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic static get v2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
+        synthetic static get v3
+          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::v3
 ''');
   }
 
   test_augmented_constants_add_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {
   v2,
   augment v2
@@ -6325,7 +9472,7 @@ augment enum A {
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v1
 }
@@ -6336,24 +9483,26 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v1 @36
+            static const enumConstant v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6372,7 +9521,7 @@ library
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               constantInitializer
                 ListLiteral
@@ -6393,17 +9542,17 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v1 @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
@@ -6422,17 +9571,16 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            static const enumConstant v2 @48
+            static const enumConstant v2 @40
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6450,9 +9598,9 @@ library
               id: field_2
               getter: getter_2
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
-            augment static const enumConstant v2 @62
+            augment static const enumConstant v2 @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6472,7 +9620,7 @@ library
           accessors
             synthetic static get v2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: A
               id: getter_2
               variable: field_2
@@ -6481,36 +9629,95 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v1 @26
+              reference: <testLibraryFragment>::@enum::A::@field::v1
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v1
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v1 @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v1
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          fields
+            enumConstant v2 @40
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
+            enumConstant v2 @54
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+              element: <none>
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
+          getters
+            get v2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v1
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v1
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        static const v2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
+          type: A
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v1
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v1
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic static get v2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
 ''');
   }
 
   test_augmented_constants_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {
   augment v2
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v1, v2, v3
 }
@@ -6521,24 +9728,26 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v1 @36
+            static const enumConstant v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6555,9 +9764,9 @@ library
                   staticType: A
               id: field_0
               getter: getter_0
-            static const enumConstant v2 @40
+            static const enumConstant v2 @30
               reference: <testLibraryFragment>::@enum::A::@field::v2
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6575,9 +9784,9 @@ library
               id: field_1
               getter: getter_1
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
-            static const enumConstant v3 @44
+            static const enumConstant v3 @34
               reference: <testLibraryFragment>::@enum::A::@field::v3
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6596,7 +9805,7 @@ library
               getter: getter_2
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               constantInitializer
                 ListLiteral
@@ -6621,29 +9830,29 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v1 @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get v2 @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v2
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_1
               variable: field_1
             synthetic static get v3 @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v3
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_2
               variable: field_2
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_3
               variable: field_3
@@ -6665,17 +9874,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v3
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment static const enumConstant v2 @56
+            augment static const enumConstant v2 @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6697,36 +9905,107 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v1 @26
+              reference: <testLibraryFragment>::@enum::A::@field::v1
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v1
+            enumConstant v2 @30
+              reference: <testLibraryFragment>::@enum::A::@field::v2
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+              getter2: <testLibraryFragment>::@enum::A::@getter::v2
+            enumConstant v3 @34
+              reference: <testLibraryFragment>::@enum::A::@field::v3
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v3
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v1 @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v1
+              element: <none>
+            get v2 @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v2
+              element: <none>
+            get v3 @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v3
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          fields
+            enumConstant v2 @48
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@field::v2
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v1
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v1
+          type: A
+          getter: <none>
+        static const v3
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v3
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        static const v2
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v2
+          type: A
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v1
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v1
+        synthetic static get v2
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v2
+        synthetic static get v3
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v3
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_augmented_constants_augment_withArguments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {
   augment v1(3)
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v1(1), v2(2);
   const A(int value);
@@ -6738,24 +10017,26 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v1 @36
+            static const enumConstant v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6770,16 +10051,16 @@ library
                     leftParenthesis: ( @0
                     arguments
                       IntegerLiteral
-                        literal: 1 @39
+                        literal: 1 @29
                         staticType: int
                     rightParenthesis: ) @0
                   staticType: A
               id: field_0
               getter: getter_0
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
-            static const enumConstant v2 @43
+            static const enumConstant v2 @33
               reference: <testLibraryFragment>::@enum::A::@field::v2
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6794,7 +10075,7 @@ library
                     leftParenthesis: ( @0
                     arguments
                       IntegerLiteral
-                        literal: 2 @46
+                        literal: 2 @36
                         staticType: int
                     rightParenthesis: ) @0
                   staticType: A
@@ -6802,7 +10083,7 @@ library
               getter: getter_1
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               constantInitializer
                 ListLiteral
@@ -6821,28 +10102,28 @@ library
               id: field_2
               getter: getter_2
           constructors
-            const @58
+            const @48
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               parameters
-                requiredPositional value @64
+                requiredPositional value @54
                   type: int
           accessors
             synthetic static get v1 @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get v2 @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v2
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_1
               variable: field_1
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_2
               variable: field_2
@@ -6861,17 +10142,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v2
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment static const enumConstant v1 @56
+            augment static const enumConstant v1 @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6886,7 +10166,7 @@ library
                     leftParenthesis: ( @0
                     arguments
                       IntegerLiteral
-                        literal: 3 @59
+                        literal: 3 @51
                         staticType: int
                     rightParenthesis: ) @0
                   staticType: A
@@ -6897,36 +10177,100 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v1 @26
+              reference: <testLibraryFragment>::@enum::A::@field::v1
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
+              getter2: <testLibraryFragment>::@enum::A::@getter::v1
+            enumConstant v2 @33
+              reference: <testLibraryFragment>::@enum::A::@field::v2
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v2
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            const new @48
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+              parameters
+                value @54
+                  element: <none>
+          getters
+            get v1 @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v1
+              element: <none>
+            get v2 @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v2
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          fields
+            enumConstant v1 @48
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@field::v1
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v2
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v2
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        static const v1
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v1
+          type: A
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+          parameters
+            requiredPositional value
+              type: int
+      getters
+        synthetic static get v1
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v1
+        synthetic static get v2
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v2
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_augmented_constants_typeParameterCountMismatch() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T> {
   augment v
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v, v2
 }
@@ -6939,48 +10283,50 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
-            static const enumConstant v2 @39
+            static const enumConstant v2 @29
               reference: <testLibraryFragment>::@enum::A::@field::v2
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get v2 @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v2
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             fields
@@ -6999,20 +10345,19 @@ library
               <testLibraryFragment>::@enum::A::@getter::v2
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T @44
+            covariant T @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment static const enumConstant v @59
+            augment static const enumConstant v @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
               shouldUseTypeForInitializerInference: false
               augmentationTarget: <testLibraryFragment>::@enum::A::@field::v
@@ -7021,36 +10366,90 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            enumConstant v2 @29
+              reference: <testLibraryFragment>::@enum::A::@field::v2
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v2
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get v2 @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v2
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T @36
+              element: <none>
+          fields
+            enumConstant v @51
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@field::v
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v2
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v2
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get v2
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v2
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_augmented_constructors_add_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   const A.named();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v.named();
 }
@@ -7061,38 +10460,40 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             fields
@@ -7106,54 +10507,94 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const named @57
+            const named @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 56
-              nameEnd: 62
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 48
+              nameEnd: 54
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            const named @49
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+              element: <none>
+              periodOffset: 48
+              nameEnd: 54
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        const named
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_augmented_constructors_add_named_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> {;
   const A.named(T2 a);
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T1> {
   v<int>.named()
 }
@@ -7164,41 +10605,43 @@ enum A<T1> {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
-            covariant T1 @32
+            covariant T1 @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @40
+            static const enumConstant v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A<int>
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A<dynamic>>
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A<int>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A<dynamic>>
           augmented
             fields
@@ -7214,60 +10657,114 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const named @61
+            const named @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 60
-              nameEnd: 66
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 52
+              nameEnd: 58
               parameters
-                requiredPositional a @70
+                requiredPositional a @62
                   type: T2
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T1 @22
+              element: <none>
+          fields
+            enumConstant v @30
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
+              element: <none>
+          constructors
+            const named @53
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+              element: <none>
+              periodOffset: 52
+              nameEnd: 58
+              parameters
+                a @62
+                  element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
+      typeParameters
+        T1
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
+          getter: <none>
+      constructors
+        const named
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+          parameters
+            requiredPositional a
+              type: T2
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_augmented_constructors_add_named_hasUnnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   const A.named();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   const A();
@@ -7279,42 +10776,44 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
-            const @47
+            const @37
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             fields
@@ -7329,54 +10828,100 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const named @57
+            const named @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 56
-              nameEnd: 62
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 48
+              nameEnd: 54
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            const new @37
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            const named @49
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+              element: <none>
+              periodOffset: 48
+              nameEnd: 54
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+        const named
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_augmented_constructors_add_unnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   const A();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
 }
@@ -7387,38 +10932,40 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             fields
@@ -7432,52 +10979,90 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const @55
+            const @47
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            const new @47
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_augmented_constructors_add_unnamed_hasNamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   const A();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   const A.named();
@@ -7489,44 +11074,46 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
-            const named @49
+            const named @39
               reference: <testLibraryFragment>::@enum::A::@constructor::named
-              enclosingElement: <testLibraryFragment>::@enum::A
-              periodOffset: 48
-              nameEnd: 54
+              enclosingElement3: <testLibraryFragment>::@enum::A
+              periodOffset: 38
+              nameEnd: 44
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             fields
@@ -7541,52 +11128,98 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const @55
+            const @47
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            const named @39
+              reference: <testLibraryFragment>::@enum::A::@constructor::named
+              element: <none>
+              periodOffset: 38
+              nameEnd: 44
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            const new @47
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        const named
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::named
+        const new
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_augmented_constructors_add_useFieldFormal() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   const A.named(this.f);
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v(0);
   final int f;
@@ -7598,46 +11231,48 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
-            final f @54
+            final f @44
               reference: <testLibraryFragment>::@enum::A::@field::f
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
             synthetic get f @-1
               reference: <testLibraryFragment>::@enum::A::@getter::f
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
           augmented
             fields
@@ -7653,21 +11288,20 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const named @57
+            const named @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 56
-              nameEnd: 62
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 48
+              nameEnd: 54
               parameters
-                requiredPositional final this.f @68
+                requiredPositional final this.f @60
                   type: int
                   field: <testLibraryFragment>::@enum::A::@field::f
 ----------------------------------------
@@ -7675,36 +11309,96 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            f @44
+              reference: <testLibraryFragment>::@enum::A::@field::f
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::f
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get f @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::f
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            const named @49
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+              element: <none>
+              periodOffset: 48
+              nameEnd: 54
+              parameters
+                this.f @60
+                  element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final f
+          firstFragment: <testLibraryFragment>::@enum::A::@field::f
+          type: int
+          getter: <none>
+      constructors
+        const named
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+          parameters
+            requiredPositional final f
+              type: int
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get f
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::f
 ''');
   }
 
   test_augmented_constructors_add_useFieldInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   const A.named() : f = 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int f;
@@ -7716,46 +11410,48 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
-            final f @51
+            final f @41
               reference: <testLibraryFragment>::@enum::A::@field::f
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
             synthetic get f @-1
               reference: <testLibraryFragment>::@enum::A::@getter::f
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
           augmented
             fields
@@ -7771,64 +11467,127 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const named @57
+            const named @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 56
-              nameEnd: 62
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 48
+              nameEnd: 54
               constantInitializers
                 ConstructorFieldInitializer
                   fieldName: SimpleIdentifier
-                    token: f @67
+                    token: f @59
                     staticElement: <testLibraryFragment>::@enum::A::@field::f
                     staticType: null
-                  equals: = @69
+                  equals: = @61
                   expression: IntegerLiteral
-                    literal: 0 @71
+                    literal: 0 @63
                     staticType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            f @41
+              reference: <testLibraryFragment>::@enum::A::@field::f
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::f
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get f @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::f
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            const named @49
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+              element: <none>
+              periodOffset: 48
+              nameEnd: 54
+              constantInitializers
+                ConstructorFieldInitializer
+                  fieldName: SimpleIdentifier
+                    token: f @59
+                    staticElement: <testLibraryFragment>::@enum::A::@field::f
+                    staticType: null
+                  equals: = @61
+                  expression: IntegerLiteral
+                    literal: 0 @63
+                    staticType: int
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final f
+          firstFragment: <testLibraryFragment>::@enum::A::@field::f
+          type: int
+          getter: <none>
+      constructors
+        const named
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get f
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::f
 ''');
   }
 
   test_augmented_field_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int foo = 1;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int foo = 0;
@@ -7842,37 +11601,39 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @51
+            final foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_2
@@ -7881,23 +11642,23 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
             synthetic get foo @-1
               reference: <testLibraryFragment>::@enum::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
@@ -7915,17 +11676,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment final foo @67
+            augment final foo @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_3
@@ -7935,44 +11695,102 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo @41
+              reference: <testLibraryFragment>::@enum::A::@field::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::foo
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          fields
+            foo @59
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@field::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final foo
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get foo
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
 
   test_augmented_field_augment_field2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int foo = 1;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int foo = 2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v;
   final int foo = 0;
@@ -7986,41 +11804,44 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @61
+            static const enumConstant v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @76
+            final foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_2
@@ -8029,23 +11850,23 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
             synthetic get foo @-1
               reference: <testLibraryFragment>::@enum::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
@@ -8063,35 +11884,33 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           fields
-            augment final foo @67
+            augment final foo @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_3
               augmentationTarget: <testLibraryFragment>::@enum::A::@field::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            augment final foo @67
+            augment final foo @59
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_4
@@ -8101,52 +11920,118 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @41
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo @56
+              reference: <testLibraryFragment>::@enum::A::@field::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::foo
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          fields
+            foo @59
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@field::foo
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            foo @59
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              element: <none>
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final foo
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get foo
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
 
   test_augmented_field_augment_field_afterGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 1;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int foo = 2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v;
   final int foo = 0;
@@ -8160,41 +12045,44 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @61
+            static const enumConstant v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @76
+            final foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_2
@@ -8203,23 +12091,23 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
             synthetic get foo @-1
               reference: <testLibraryFragment>::@enum::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
@@ -8238,34 +12126,32 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
               id: getter_3
               variable: field_2
               augmentationTarget: <testLibraryFragment>::@enum::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            augment final foo @67
+            augment final foo @59
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_3
@@ -8275,52 +12161,118 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @41
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo @56
+              reference: <testLibraryFragment>::@enum::A::@field::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          getters
+            augment get foo @57
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            foo @59
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@field::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final foo
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get foo
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
 
   test_augmented_field_augment_field_afterSetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment set foo(int _) {}
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int foo = 2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v;
   final int foo = 0;
@@ -8334,41 +12286,44 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @61
+            static const enumConstant v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @76
+            final foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_2
@@ -8377,23 +12332,23 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
             synthetic get foo @-1
               reference: <testLibraryFragment>::@enum::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
@@ -8412,37 +12367,35 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           accessors
-            augment set foo= @61
+            augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               parameters
-                requiredPositional _ @69
+                requiredPositional _ @61
                   type: int
               returnType: void
               id: setter_0
               variable: <null>
               augmentationTargetAny: <testLibraryFragment>::@enum::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            augment final foo @67
+            augment final foo @59
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_3
@@ -8452,44 +12405,117 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @41
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo @56
+              reference: <testLibraryFragment>::@enum::A::@field::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::foo
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          setters
+            augment set foo= @53
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+              element: <none>
+              parameters
+                _ @61
+                  element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            foo @59
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@field::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final foo
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get foo
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
+      setters
+        set foo=
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+          parameters
+            requiredPositional _
+              type: int
 ''');
   }
 
   test_augmented_field_augment_field_differentTypes() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final double foo = 1.2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int foo = 0;
@@ -8503,37 +12529,39 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @51
+            final foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_2
@@ -8542,23 +12570,23 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
             synthetic get foo @-1
               reference: <testLibraryFragment>::@enum::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
@@ -8576,17 +12604,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment final foo @70
+            augment final foo @62
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: double
               shouldUseTypeForInitializerInference: true
               id: field_3
@@ -8596,29 +12623,87 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo @41
+              reference: <testLibraryFragment>::@enum::A::@field::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::foo
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          fields
+            foo @62
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@field::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final foo
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get foo
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
 
   test_augmented_field_augment_field_functionExpression() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int Function() foo = () {
     return augmented() + 1;
@@ -8627,7 +12712,7 @@ augment enum A {;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int Function() foo = () {
@@ -8640,24 +12725,26 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -8674,7 +12761,7 @@ library
                   staticType: A
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               constantInitializer
                 ListLiteral
@@ -8686,9 +12773,9 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            final foo @62
+            final foo @52
               reference: <testLibraryFragment>::@enum::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int Function()
               shouldUseTypeForInitializerInference: true
               constantInitializer
@@ -8700,19 +12787,19 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
             synthetic get foo @-1
               reference: <testLibraryFragment>::@enum::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int Function()
           augmented
             fields
@@ -8728,17 +12815,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment final foo @78
+            augment final foo @70
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int Function()
               shouldUseTypeForInitializerInference: true
               constantInitializer
@@ -8752,23 +12838,81 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo @52
+              reference: <testLibraryFragment>::@enum::A::@field::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::foo
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          fields
+            foo @70
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@field::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final foo
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int Function()
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get foo
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
 
@@ -8776,14 +12920,14 @@ library
   /// so we need a way to handle it.
   test_augmented_field_augment_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int foo = 1;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   int get foo => 0;
@@ -8797,37 +12941,39 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
             synthetic foo @-1
               reference: <testLibraryFragment>::@enum::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               id: field_2
               getter: getter_2
@@ -8835,23 +12981,23 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
-            get foo @49
+            get foo @39
               reference: <testLibraryFragment>::@enum::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
@@ -8869,17 +13015,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment final foo @67
+            augment final foo @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_3
@@ -8889,36 +13034,94 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo @-1
+              reference: <testLibraryFragment>::@enum::A::@field::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo @39
+              reference: <testLibraryFragment>::@enum::A::@getter::foo
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          fields
+            foo @59
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@field::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        synthetic foo
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        get foo
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
 
   test_augmented_fields_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   final int foo2 = 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int foo1 = 0;
@@ -8932,37 +13135,39 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo1 @51
+            final foo1 @41
               reference: <testLibraryFragment>::@enum::A::@field::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_2
@@ -8970,23 +13175,23 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
             synthetic get foo1 @-1
               reference: <testLibraryFragment>::@enum::A::@getter::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
@@ -9006,17 +13211,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            final foo2 @59
+            final foo2 @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_3
@@ -9024,7 +13228,7 @@ library
           accessors
             synthetic get foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
               id: getter_3
               variable: field_3
@@ -9033,36 +13237,103 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo1 @41
+              reference: <testLibraryFragment>::@enum::A::@field::foo1
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo1
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo1 @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::foo1
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          fields
+            foo2 @51
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+          getters
+            get foo2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final foo1
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: int
+          getter: <none>
+        final foo2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get foo1
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo1
+        synthetic get foo2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
 ''');
   }
 
   test_augmented_fields_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> {;
   final T2 foo2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T1> {
   v<int>();
   final T1 foo1;
@@ -9076,63 +13347,65 @@ enum A<T1> {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
-            covariant T1 @32
+            covariant T1 @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @40
+            static const enumConstant v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A<int>
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A<dynamic>>
               id: field_1
               getter: getter_1
-            final foo1 @61
+            final foo1 @51
               reference: <testLibraryFragment>::@enum::A::@field::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: T1
               id: field_2
               getter: getter_2
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A<int>
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A<dynamic>>
               id: getter_1
               variable: field_1
             synthetic get foo1 @-1
               reference: <testLibraryFragment>::@enum::A::@getter::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: T1
               id: getter_2
               variable: field_2
@@ -9156,27 +13429,26 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            final foo2 @62
+            final foo2 @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: T2
               id: field_3
               getter: getter_3
           accessors
             synthetic get foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: T2
               id: getter_3
               variable: field_3
@@ -9185,36 +13457,111 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T1 @22
+              element: <none>
+          fields
+            enumConstant v @30
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo1 @51
+              reference: <testLibraryFragment>::@enum::A::@field::foo1
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo1
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo1 @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::foo1
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
+              element: <none>
+          fields
+            foo2 @54
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+          getters
+            get foo2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
+      typeParameters
+        T1
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
+          getter: <none>
+        final foo1
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: T1
+          getter: <none>
+        final foo2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+          type: T2
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get foo1
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo1
+        synthetic get foo2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
 ''');
   }
 
   test_augmented_fields_add_useFieldFormal() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   final int foo;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v(0);
   const A(this.foo);
@@ -9226,46 +13573,48 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
-            const @50
+            const @40
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               parameters
-                requiredPositional final this.foo @57
+                requiredPositional final this.foo @47
                   type: int
                   field: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             fields
@@ -9281,58 +13630,117 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            final foo @59
+            final foo @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
           accessors
             synthetic get foo @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            const new @40
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+              parameters
+                this.foo @47
+                  element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          fields
+            foo @51
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
+          getters
+            get foo @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final foo
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+          parameters
+            requiredPositional final foo
+              type: int
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get foo
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
 ''');
   }
 
   test_augmented_fields_add_useFieldInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   final int foo;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   const A() : foo = 0;
@@ -9344,52 +13752,54 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
-            const @47
+            const @37
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               constantInitializers
                 ConstructorFieldInitializer
                   fieldName: SimpleIdentifier
-                    token: foo @53
+                    token: foo @43
                     staticElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
                     staticType: null
-                  equals: = @57
+                  equals: = @47
                   expression: IntegerLiteral
-                    literal: 0 @59
+                    literal: 0 @49
                     staticType: int
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             fields
@@ -9405,58 +13815,121 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            final foo @59
+            final foo @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
           accessors
             synthetic get foo @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            const new @37
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+              constantInitializers
+                ConstructorFieldInitializer
+                  fieldName: SimpleIdentifier
+                    token: foo @43
+                    staticElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
+                    staticType: null
+                  equals: = @47
+                  expression: IntegerLiteral
+                    literal: 0 @49
+                    staticType: int
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          fields
+            foo @51
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
+          getters
+            get foo @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final foo
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get foo
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
 ''');
   }
 
   test_augmented_getters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   int get foo2 => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   int get foo1 => 0;
@@ -9470,60 +13943,62 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
             synthetic foo1 @-1
               reference: <testLibraryFragment>::@enum::A::@field::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               id: field_2
               getter: getter_2
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
-            get foo1 @49
+            get foo1 @39
               reference: <testLibraryFragment>::@enum::A::@getter::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
@@ -9543,24 +14018,23 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
             synthetic foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
               id: field_3
               getter: getter_3
           accessors
-            get foo2 @57
+            get foo2 @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
               id: getter_3
               variable: field_3
@@ -9569,36 +14043,103 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo1 @-1
+              reference: <testLibraryFragment>::@enum::A::@field::foo1
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo1
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo1 @39
+              reference: <testLibraryFragment>::@enum::A::@getter::foo1
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          fields
+            foo2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+          getters
+            get foo2 @49
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        synthetic foo1
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: int
+          getter: <none>
+        synthetic foo2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        get foo1
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo1
+        get foo2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
 ''');
   }
 
   test_augmented_getters_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> {;
   T2 get foo2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T1> {
   v<int>();
   T1 get foo1;
@@ -9612,63 +14153,65 @@ enum A<T1> {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
-            covariant T1 @32
+            covariant T1 @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @40
+            static const enumConstant v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A<int>
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A<dynamic>>
               id: field_1
               getter: getter_1
             synthetic foo1 @-1
               reference: <testLibraryFragment>::@enum::A::@field::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: T1
               id: field_2
               getter: getter_2
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A<int>
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A<dynamic>>
               id: getter_1
               variable: field_1
-            abstract get foo1 @59
+            abstract get foo1 @49
               reference: <testLibraryFragment>::@enum::A::@getter::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: T1
               id: getter_2
               variable: field_2
@@ -9692,27 +14235,26 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
             synthetic foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: T2
               id: field_3
               getter: getter_3
           accessors
-            abstract get foo2 @60
+            abstract get foo2 @52
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: T2
               id: getter_3
               variable: field_3
@@ -9721,36 +14263,111 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T1 @22
+              element: <none>
+          fields
+            enumConstant v @30
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo1 @-1
+              reference: <testLibraryFragment>::@enum::A::@field::foo1
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo1
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo1 @49
+              reference: <testLibraryFragment>::@enum::A::@getter::foo1
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
+              element: <none>
+          fields
+            foo2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+              element: <none>
+              getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+          getters
+            get foo2 @52
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
+      typeParameters
+        T1
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
+          getter: <none>
+        synthetic foo1
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: T1
+          getter: <none>
+        synthetic foo2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+          type: T2
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        abstract get foo1
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo1
+        abstract get foo2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
 ''');
   }
 
   test_augmented_getters_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int foo = 0;
@@ -9764,37 +14381,39 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @51
+            final foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_2
@@ -9802,23 +14421,23 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
             synthetic get foo @-1
               reference: <testLibraryFragment>::@enum::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
@@ -9837,17 +14456,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
               id: getter_3
               variable: field_2
@@ -9857,44 +14475,102 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo @41
+              reference: <testLibraryFragment>::@enum::A::@field::foo
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          getters
+            augment get foo @57
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@getter::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final foo
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get foo
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
 
   test_augmented_getters_augment_field2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v;
   final int foo = 0;
@@ -9908,41 +14584,44 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @61
+            static const enumConstant v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @76
+            final foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_2
@@ -9950,23 +14629,23 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
             synthetic get foo @-1
               reference: <testLibraryFragment>::@enum::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
@@ -9985,35 +14664,33 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
               id: getter_3
               variable: field_2
               augmentationTarget: <testLibraryFragment>::@enum::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               returnType: int
               id: getter_4
               variable: field_2
@@ -10023,44 +14700,110 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @41
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo @56
+              reference: <testLibraryFragment>::@enum::A::@field::foo
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          getters
+            augment get foo @57
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@getter::foo
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          getters
+            augment get foo @57
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
+              element: <none>
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final foo
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get foo
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
 
   test_augmented_getters_augment_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo1 => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   int get foo1 => 0;
@@ -10075,73 +14818,75 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
             synthetic foo1 @-1
               reference: <testLibraryFragment>::@enum::A::@field::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               id: field_2
               getter: getter_2
             synthetic foo2 @-1
               reference: <testLibraryFragment>::@enum::A::@field::foo2
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               id: field_3
               getter: getter_3
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
-            get foo1 @49
+            get foo1 @39
               reference: <testLibraryFragment>::@enum::A::@getter::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
-            get foo2 @70
+            get foo2 @60
               reference: <testLibraryFragment>::@enum::A::@getter::foo2
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_3
               variable: field_3
@@ -10161,17 +14906,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment get foo1 @65
+            augment get foo1 @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
               id: getter_4
               variable: field_2
@@ -10181,29 +14925,100 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo1 @-1
+              reference: <testLibraryFragment>::@enum::A::@field::foo1
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo1
+            foo2 @-1
+              reference: <testLibraryFragment>::@enum::A::@field::foo2
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo2
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo1 @39
+              reference: <testLibraryFragment>::@enum::A::@getter::foo1
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
+            get foo2 @60
+              reference: <testLibraryFragment>::@enum::A::@getter::foo2
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          getters
+            augment get foo1 @57
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@getter::foo1
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        synthetic foo1
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: int
+          getter: <none>
+        synthetic foo2
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo2
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        get foo2
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo2
+        get foo1
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo1
 ''');
   }
 
   test_augmented_getters_augment_getter2_oneLib_oneTop() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
   augment int get foo => 0;
@@ -10211,7 +15026,7 @@ augment enum A {;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   int get foo => 0;
@@ -10225,60 +15040,62 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
             synthetic foo @-1
               reference: <testLibraryFragment>::@enum::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               id: field_2
               getter: getter_2
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
-            get foo @49
+            get foo @39
               reference: <testLibraryFragment>::@enum::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
@@ -10297,25 +15114,24 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
               id: getter_3
               variable: field_2
               augmentationTarget: <testLibraryFragment>::@enum::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
-            augment get foo @93
+            augment get foo @85
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
               id: getter_4
               variable: field_2
@@ -10325,44 +15141,107 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo @-1
+              reference: <testLibraryFragment>::@enum::A::@field::foo
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo @39
+              reference: <testLibraryFragment>::@enum::A::@getter::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          getters
+            augment get foo @57
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@getter::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
+            augment get foo @85
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
+              element: <none>
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        synthetic foo
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        get foo
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
 
   test_augmented_getters_augment_getter2_twoLib() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v;
   int get foo => 0;
@@ -10376,64 +15255,67 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @61
+            static const enumConstant v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
             synthetic foo @-1
               reference: <testLibraryFragment>::@enum::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               id: field_2
               getter: getter_2
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
-            get foo @74
+            get foo @54
               reference: <testLibraryFragment>::@enum::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
@@ -10452,35 +15334,33 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
               id: getter_3
               variable: field_2
               augmentationTarget: <testLibraryFragment>::@enum::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               returnType: int
               id: getter_4
               variable: field_2
@@ -10490,44 +15370,110 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @41
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo @-1
+              reference: <testLibraryFragment>::@enum::A::@field::foo
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo @54
+              reference: <testLibraryFragment>::@enum::A::@getter::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          getters
+            augment get foo @57
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@getter::foo
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          getters
+            augment get foo @57
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
+              element: <none>
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        synthetic foo
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        get foo
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
 ''');
   }
 
   test_augmented_getters_augment_nothing() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v
 }
@@ -10541,44 +15487,46 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
@@ -10593,17 +15541,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
               id: getter_2
               variable: <null>
@@ -10612,35 +15559,73 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          getters
+            augment get foo @57
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        get foo
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
   test_augmented_interfaces() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A implements I2 {}
 class I2 {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A implements I1 {
   v
 }
@@ -10652,52 +15637,54 @@ class I1 {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @60
+        class I1 @50
           reference: <testLibraryFragment>::@class::I1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::I1::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::I1
+              enclosingElement3: <testLibraryFragment>::@class::I1
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           interfaces
             I1
           fields
-            static const enumConstant v @50
+            static const enumConstant v @40
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             interfaces
@@ -10714,20 +15701,19 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       classes
-        class I2 @67
+        class I2 @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           interfaces
             I2
@@ -10736,57 +15722,108 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @60
+        class I1 @50
           reference: <testLibraryFragment>::@class::I1
+          element: <testLibraryFragment>::@class::I1
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::I1::@constructor::new
+              element: <none>
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @40
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
-        class I2 @67
+        class I2 @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+              element: <none>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
   classes
     class I1
-      reference: <testLibraryFragment>::@class::I1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I1
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      constructors
+        synthetic new
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_augmented_interfaces_chain() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-import augment 'b.dart';
+part of 'test.dart';
+part 'b.dart';
 augment enum A implements I2 {}
 class I2 {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 augment enum A implements I3 {}
 class I3 {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A implements I1 {
   v
 }
@@ -10798,57 +15835,54 @@ class I1 {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-      augmentationImports
-        package:test/b.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
-          reference: <testLibrary>::@augmentation::package:test/b.dart
-          definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @60
+        class I1 @50
           reference: <testLibraryFragment>::@class::I1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::I1::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::I1
+              enclosingElement3: <testLibraryFragment>::@class::I1
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           interfaces
             I1
           fields
-            static const enumConstant v @50
+            static const enumConstant v @40
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             interfaces
@@ -10866,39 +15900,42 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_1
+          uri: package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class I2 @92
+        class I2 @74
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
-        augment enum A @67
+        augment enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           interfaces
             I2
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I3 @64
+        class I3 @56
           reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@class::I3
       enums
-        augment enum A @39
+        augment enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           interfaces
             I3
@@ -10907,65 +15944,124 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @60
+        class I1 @50
           reference: <testLibraryFragment>::@class::I1
+          element: <testLibraryFragment>::@class::I1
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::I1::@constructor::new
+              element: <none>
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @40
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class I2 @92
+        class I2 @74
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+              element: <none>
       enums
-        enum A @67
+        enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I3 @64
+        class I3 @56
           reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+          element: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
+              element: <none>
       enums
-        enum A @39
+        enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   classes
     class I1
-      reference: <testLibraryFragment>::@class::I1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I1
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      constructors
+        synthetic new
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
     class I3
-      reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+      constructors
+        synthetic new
+          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_augmented_interfaces_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> implements I2<T2> {}
 class I2<E> {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T> implements I1 {
   v<int>()
 }
@@ -10977,55 +16073,57 @@ class I1 {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @70
+        class I1 @60
           reference: <testLibraryFragment>::@class::I1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::I1::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::I1
+              enclosingElement3: <testLibraryFragment>::@class::I1
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
-            covariant T @32
+            covariant T @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           interfaces
             I1
           fields
-            static const enumConstant v @53
+            static const enumConstant v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A<int>
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A<dynamic>>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A<int>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A<dynamic>>
           augmented
             interfaces
@@ -11042,25 +16140,24 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       classes
-        class I2 @75
+        class I2 @67
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant E @78
+            covariant E @70
               defaultType: dynamic
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           interfaces
@@ -11070,50 +16167,114 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @70
+        class I1 @60
           reference: <testLibraryFragment>::@class::I1
+          element: <testLibraryFragment>::@class::I1
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::I1::@constructor::new
+              element: <none>
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T @22
+              element: <none>
+          fields
+            enumConstant v @43
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
-        class I2 @75
+        class I2 @67
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          typeParameters
+            E @70
+              element: <none>
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+              element: <none>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
+              element: <none>
   classes
     class I1
-      reference: <testLibraryFragment>::@class::I1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I1
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      typeParameters
+        E
+      constructors
+        synthetic new
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
+      typeParameters
+        T
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_augmented_interfaces_generic_mismatch() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2, T3> implements I2<T2> {}
 class I2<E> {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T> implements I1 {
   v
 }
@@ -11125,55 +16286,57 @@ class I1 {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @63
+        class I1 @53
           reference: <testLibraryFragment>::@class::I1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::I1::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::I1
+              enclosingElement3: <testLibraryFragment>::@class::I1
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
-            covariant T @32
+            covariant T @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           interfaces
             I1
           fields
-            static const enumConstant v @53
+            static const enumConstant v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A<dynamic>
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A<dynamic>>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A<dynamic>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A<dynamic>>
           augmented
             interfaces
@@ -11189,27 +16352,26 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       classes
-        class I2 @79
+        class I2 @71
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant E @82
+            covariant E @74
               defaultType: dynamic
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
-            covariant T3 @48
+            covariant T3 @40
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           interfaces
@@ -11219,51 +16381,117 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @63
+        class I1 @53
           reference: <testLibraryFragment>::@class::I1
+          element: <testLibraryFragment>::@class::I1
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::I1::@constructor::new
+              element: <none>
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T @22
+              element: <none>
+          fields
+            enumConstant v @43
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
-        class I2 @79
+        class I2 @71
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          typeParameters
+            E @74
+              element: <none>
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+              element: <none>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
+              element: <none>
+            T3 @40
+              element: <none>
   classes
     class I1
-      reference: <testLibraryFragment>::@class::I1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I1
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      typeParameters
+        E
+      constructors
+        synthetic new
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
+      typeParameters
+        T
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<dynamic>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_augmented_methods() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   void bar() {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   void foo() {}
@@ -11275,47 +16503,49 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           methods
-            foo @46
+            foo @36
               reference: <testLibraryFragment>::@enum::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: void
           augmented
             fields
@@ -11332,53 +16562,104 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
               <testLibraryFragment>::@enum::A::@method::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           methods
-            bar @54
+            bar @46
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+          methods
+            foo @36
+              reference: <testLibraryFragment>::@enum::A::@method::foo
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          methods
+            bar @46
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo
+        bar
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
 ''');
   }
 
   test_augmented_methods_add_withDefaultValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   void foo([int x = 42]) {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v
 }
@@ -11388,24 +16669,26 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -11422,7 +16705,7 @@ library
                   staticType: A
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               constantInitializer
                 ListLiteral
@@ -11437,15 +16720,15 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             fields
@@ -11461,23 +16744,22 @@ library
             methods
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           methods
-            foo @54
+            foo @46
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               parameters
-                optionalPositional default x @63
+                optionalPositional default x @55
                   type: int
                   constantInitializer
                     IntegerLiteral
-                      literal: 42 @67
+                      literal: 42 @59
                       staticType: int
               returnType: void
 ----------------------------------------
@@ -11485,36 +16767,88 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          methods
+            foo @46
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
+              element: <none>
+              parameters
+                default x @55
+                  element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+      methods
+        foo
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
+          parameters
+            optionalPositional x
+              type: int
 ''');
   }
 
   test_augmented_methods_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment void foo1() {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   void foo1() {}
@@ -11527,52 +16861,54 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           methods
-            foo1 @46
+            foo1 @36
               reference: <testLibraryFragment>::@enum::A::@method::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: void
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
-            foo2 @63
+            foo2 @53
               reference: <testLibraryFragment>::@enum::A::@method::foo2
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: void
           augmented
             fields
@@ -11589,17 +16925,16 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
               <testLibraryFragment>::@enum::A::@method::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           methods
-            augment foo1 @62
+            augment foo1 @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@enum::A::@method::foo1
 ----------------------------------------
@@ -11607,29 +16942,86 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+          methods
+            foo1 @36
+              reference: <testLibraryFragment>::@enum::A::@method::foo1
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
+            foo2 @53
+              reference: <testLibraryFragment>::@enum::A::@method::foo2
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          methods
+            augment foo1 @54
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@method::foo1
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+      methods
+        foo2
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo2
+        foo1
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo1
 ''');
   }
 
   test_augmented_methods_augment2_oneLib_oneTop() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment void foo() {}
   augment void foo() {}
@@ -11637,7 +17029,7 @@ augment enum A {;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   void foo() {}
@@ -11649,47 +17041,49 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           methods
-            foo @46
+            foo @36
               reference: <testLibraryFragment>::@enum::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: void
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
           augmented
@@ -11706,23 +17100,22 @@ library
             methods
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           methods
-            augment foo @62
+            augment foo @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@enum::A::@method::foo
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
-            augment foo @86
+            augment foo @78
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
 ----------------------------------------
@@ -11730,29 +17123,86 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+          methods
+            foo @36
+              reference: <testLibraryFragment>::@enum::A::@method::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          methods
+            augment foo @54
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
+            augment foo @78
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
+              element: <none>
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
 
   test_augmented_methods_augment2_oneLib_twoTop() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment void foo() {}
 }
@@ -11762,7 +17212,7 @@ augment enum A {;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   void foo() {}
@@ -11774,47 +17224,49 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           methods
-            foo @46
+            foo @36
               reference: <testLibraryFragment>::@enum::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: void
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
           augmented
@@ -11831,29 +17283,28 @@ library
             methods
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
           methods
-            augment foo @62
+            augment foo @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
               returnType: void
               augmentationTarget: <testLibraryFragment>::@enum::A::@method::foo
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
-        augment enum A @86
+        augment enum A @78
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
           methods
-            augment foo @106
+            augment foo @98
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
               returnType: void
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
 ----------------------------------------
@@ -11861,48 +17312,107 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+          methods
+            foo @36
+              reference: <testLibraryFragment>::@enum::A::@method::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
-        enum A @86
+          methods
+            augment foo @54
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
+        enum A @78
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
+          methods
+            augment foo @98
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
+              element: <none>
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
 
   test_augmented_methods_augment2_twoLib() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-import augment 'b.dart';
+part of 'test.dart';
+part 'b.dart';
 augment enum A {;
   augment void foo() {}
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 augment enum A {;
   augment void foo() {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   void foo() {}
@@ -11914,52 +17424,49 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-      augmentationImports
-        package:test/b.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
-          reference: <testLibrary>::@augmentation::package:test/b.dart
-          definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           methods
-            foo @46
+            foo @36
               reference: <testLibraryFragment>::@enum::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: void
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
           augmented
@@ -11976,33 +17483,36 @@ library
             methods
               <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_1
+          uri: package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        augment enum A @67
+        augment enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           methods
-            augment foo @87
+            augment foo @69
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@enum::A::@method::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       enums
-        augment enum A @39
+        augment enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           methods
-            augment foo @59
+            augment foo @51
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               returnType: void
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
 ----------------------------------------
@@ -12010,44 +17520,104 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+          methods
+            foo @36
+              reference: <testLibraryFragment>::@enum::A::@method::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @67
+        enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          methods
+            augment foo @69
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @39
+        enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          methods
+            augment foo @51
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
+              element: <none>
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
 
   test_augmented_methods_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> {;
   T2 bar() => throw 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T> {
   v<int>();
   T foo() => throw 0;
@@ -12059,50 +17629,52 @@ enum A<T> {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
-            covariant T @32
+            covariant T @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @39
+            static const enumConstant v @29
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A<int>
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A<dynamic>>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A<int>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A<dynamic>>
           methods
-            foo @53
+            foo @43
               reference: <testLibraryFragment>::@enum::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: T
           augmented
             fields
@@ -12121,56 +17693,115 @@ library
                 augmentationSubstitution: {T2: T}
               <testLibraryFragment>::@enum::A::@method::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           methods
-            bar @56
+            bar @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: T2
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T @22
+              element: <none>
+          fields
+            enumConstant v @29
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@enum::A::@method::foo
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
+              element: <none>
+          methods
+            bar @48
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
+      typeParameters
+        T
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo
+        bar
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
 ''');
   }
 
   test_augmented_methods_generic_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> {;
   augment T2 foo() => throw 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T> {
   v<int>();
   T foo() => throw 0;
@@ -12182,50 +17813,52 @@ enum A<T> {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
-            covariant T @32
+            covariant T @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @39
+            static const enumConstant v @29
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A<int>
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A<dynamic>>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A<int>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A<dynamic>>
           methods
-            foo @53
+            foo @43
               reference: <testLibraryFragment>::@enum::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: T
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
           augmented
@@ -12244,20 +17877,19 @@ library
                 base: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
                 augmentationSubstitution: {T2: T}
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           methods
-            augment foo @64
+            augment foo @56
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: T2
               augmentationTarget: <testLibraryFragment>::@enum::A::@method::foo
 ----------------------------------------
@@ -12265,35 +17897,95 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T @22
+              element: <none>
+          fields
+            enumConstant v @29
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@enum::A::@method::foo
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T2 @36
+              element: <none>
+          methods
+            augment foo @56
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@method::foo
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
+      typeParameters
+        T
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
 
   test_augmented_mixins() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A with M2 {}
 mixin M2 {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A with M1 {
   v
 }
@@ -12305,44 +17997,46 @@ mixin M1 {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           mixins
             M1
           fields
-            static const enumConstant v @44
+            static const enumConstant v @34
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             mixins
@@ -12359,25 +18053,24 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
       mixins
-        mixin M1 @54
+        mixin M1 @44
           reference: <testLibraryFragment>::@mixin::M1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           superclassConstraints
             Object
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           mixins
             M2
       mixins
-        mixin M2 @61
+        mixin M2 @53
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           superclassConstraints
             Object
 ----------------------------------------
@@ -12385,39 +18078,76 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @34
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
       mixins
-        mixin M1 @54
+        mixin M1 @44
           reference: <testLibraryFragment>::@mixin::M1
+          element: <testLibraryFragment>::@mixin::M1
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
       mixins
-        mixin M2 @61
+        mixin M2 @53
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
+          element: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
   mixins
     mixin M1
-      reference: <testLibraryFragment>::@mixin::M1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@mixin::M1
       superclassConstraints
         Object
     mixin M2
-      reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
       superclassConstraints
         Object
@@ -12426,20 +18156,20 @@ library
 
   test_augmented_mixins_inferredTypeArguments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> with M2 {}
 mixin M2<U2> on M1<U2> {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T3> with M3 {}
 mixin M3<U3> on M2<U3> {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A<T1> with M1<T1> {
   v<int>()
 }
@@ -12451,51 +18181,54 @@ mixin M1<U1> {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
-            covariant T1 @57
+            covariant T1 @37
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           mixins
             M1<T1>
           fields
-            static const enumConstant v @77
+            static const enumConstant v @57
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A<int>
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A<dynamic>>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A<int>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A<dynamic>>
           augmented
             mixins
@@ -12513,56 +18246,54 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
       mixins
-        mixin M1 @94
+        mixin M1 @74
           reference: <testLibraryFragment>::@mixin::M1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
-            covariant U1 @97
+            covariant U1 @77
               defaultType: dynamic
           superclassConstraints
             Object
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           mixins
             M2<T2>
       mixins
-        mixin M2 @65
+        mixin M2 @57
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant U2 @68
+            covariant U2 @60
               defaultType: dynamic
           superclassConstraints
             M1<U2>
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           typeParameters
-            covariant T3 @44
+            covariant T3 @36
               defaultType: dynamic
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           mixins
             M3<T3>
       mixins
-        mixin M3 @65
+        mixin M3 @57
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           typeParameters
-            covariant U3 @68
+            covariant U3 @60
               defaultType: dynamic
           superclassConstraints
             M2<U3>
@@ -12571,57 +18302,121 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T1 @37
+              element: <none>
+          fields
+            enumConstant v @57
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
       mixins
-        mixin M1 @94
+        mixin M1 @74
           reference: <testLibraryFragment>::@mixin::M1
+          element: <testLibraryFragment>::@mixin::M1
+          typeParameters
+            U1 @77
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          typeParameters
+            T2 @36
+              element: <none>
       mixins
-        mixin M2 @65
+        mixin M2 @57
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
+          element: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
+          typeParameters
+            U2 @60
+              element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T3 @36
+              element: <none>
       mixins
-        mixin M3 @65
+        mixin M3 @57
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
+          element: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
+          typeParameters
+            U3 @60
+              element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
+      typeParameters
+        T1
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<int>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<dynamic>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
   mixins
     mixin M1
-      reference: <testLibraryFragment>::@mixin::M1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@mixin::M1
+      typeParameters
+        U1
       superclassConstraints
         Object
     mixin M2
-      reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
+      typeParameters
+        U2
       superclassConstraints
         M1<U2>
     mixin M3
-      reference: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
+      typeParameters
+        U3
       superclassConstraints
         M2<U3>
 ''');
@@ -12629,14 +18424,14 @@ library
 
   test_augmented_setters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   set foo2(int _) {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   set foo1(int _) {}
@@ -12650,62 +18445,64 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
             synthetic foo1 @-1
               reference: <testLibraryFragment>::@enum::A::@field::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               id: field_2
               setter: setter_0
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
-            set foo1= @45
+            set foo1= @35
               reference: <testLibraryFragment>::@enum::A::@setter::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               parameters
-                requiredPositional _ @54
+                requiredPositional _ @44
                   type: int
               returnType: void
               id: setter_0
@@ -12726,26 +18523,25 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
             synthetic foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
               id: field_3
               setter: setter_1
           accessors
-            set foo2= @53
+            set foo2= @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               parameters
-                requiredPositional _ @62
+                requiredPositional _ @54
                   type: int
               returnType: void
               id: setter_1
@@ -12755,36 +18551,117 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo1 @-1
+              reference: <testLibraryFragment>::@enum::A::@field::foo1
+              element: <none>
+              setter2: <testLibraryFragment>::@enum::A::@setter::foo1
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+          setters
+            set foo1= @35
+              reference: <testLibraryFragment>::@enum::A::@setter::foo1
+              element: <none>
+              parameters
+                _ @44
+                  element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          fields
+            foo2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+              element: <none>
+              setter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2
+          setters
+            set foo2= @45
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2
+              element: <none>
+              parameters
+                _ @54
+                  element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        synthetic foo1
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: int
+          setter: <none>
+        synthetic foo2
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
+          type: int
+          setter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+      setters
+        set foo1=
+          firstFragment: <testLibraryFragment>::@enum::A::@setter::foo1
+          parameters
+            requiredPositional _
+              type: int
+        set foo2=
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2
+          parameters
+            requiredPositional _
+              type: int
 ''');
   }
 
   test_augmented_setters_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment set foo(int _) {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int foo = 0;
@@ -12798,37 +18675,39 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @51
+            final foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_2
@@ -12836,23 +18715,23 @@ library
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
             synthetic get foo @-1
               reference: <testLibraryFragment>::@enum::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
@@ -12871,19 +18750,18 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment set foo= @61
+            augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               parameters
-                requiredPositional _ @69
+                requiredPositional _ @61
                   type: int
               returnType: void
               id: setter_0
@@ -12894,36 +18772,101 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo @41
+              reference: <testLibraryFragment>::@enum::A::@field::foo
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::foo
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+            get foo @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::foo
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          setters
+            augment set foo= @53
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+              element: <none>
+              parameters
+                _ @61
+                  element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        final foo
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo
+          type: int
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+        synthetic get foo
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::foo
+      setters
+        set foo=
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+          parameters
+            requiredPositional _
+              type: int
 ''');
   }
 
   test_augmented_setters_augment_nothing() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment set foo(int _) {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v
 }
@@ -12936,48 +18879,50 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
@@ -12994,19 +18939,18 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment set foo= @61
+            augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               parameters
-                requiredPositional _ @69
+                requiredPositional _ @61
                   type: int
               returnType: void
               id: setter_0
@@ -13016,36 +18960,88 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          setters
+            augment set foo= @53
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+              element: <none>
+              parameters
+                _ @61
+                  element: <none>
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+      setters
+        set foo=
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+          parameters
+            requiredPositional _
+              type: int
 ''');
   }
 
   test_augmented_setters_augment_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment set foo1(int _) {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   set foo1(int _) {}
@@ -13060,78 +19056,80 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               id: field_0
               getter: getter_0
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               id: field_1
               getter: getter_1
             synthetic foo1 @-1
               reference: <testLibraryFragment>::@enum::A::@field::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               id: field_2
               setter: setter_0
             synthetic foo2 @-1
               reference: <testLibraryFragment>::@enum::A::@field::foo2
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: int
               id: field_3
               setter: setter_1
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
               id: getter_0
               variable: field_0
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
               id: getter_1
               variable: field_1
-            set foo1= @45
+            set foo1= @35
               reference: <testLibraryFragment>::@enum::A::@setter::foo1
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               parameters
-                requiredPositional _ @54
+                requiredPositional _ @44
                   type: int
               returnType: void
               id: setter_0
               variable: field_2
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
-            set foo2= @66
+            set foo2= @56
               reference: <testLibraryFragment>::@enum::A::@setter::foo2
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               parameters
-                requiredPositional _ @75
+                requiredPositional _ @65
                   type: int
               returnType: void
               id: setter_1
@@ -13152,19 +19150,18 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment set foo1= @61
+            augment set foo1= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               parameters
-                requiredPositional _ @70
+                requiredPositional _ @62
                   type: int
               returnType: void
               id: setter_2
@@ -13175,42 +19172,130 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+            foo1 @-1
+              reference: <testLibraryFragment>::@enum::A::@field::foo1
+              element: <none>
+              setter2: <testLibraryFragment>::@enum::A::@setter::foo1
+            foo2 @-1
+              reference: <testLibraryFragment>::@enum::A::@field::foo2
+              element: <none>
+              setter2: <testLibraryFragment>::@enum::A::@setter::foo2
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
+          setters
+            set foo1= @35
+              reference: <testLibraryFragment>::@enum::A::@setter::foo1
+              element: <none>
+              parameters
+                _ @44
+                  element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
+            set foo2= @56
+              reference: <testLibraryFragment>::@enum::A::@setter::foo2
+              element: <none>
+              parameters
+                _ @65
+                  element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          setters
+            augment set foo1= @53
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
+              element: <none>
+              parameters
+                _ @62
+                  element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@setter::foo1
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+        synthetic foo1
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
+          type: int
+          setter: <none>
+        synthetic foo2
+          firstFragment: <testLibraryFragment>::@enum::A::@field::foo2
+          type: int
+          setter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+      setters
+        set foo2=
+          firstFragment: <testLibraryFragment>::@enum::A::@setter::foo2
+          parameters
+            requiredPositional _
+              type: int
+        set foo1=
+          firstFragment: <testLibraryFragment>::@enum::A::@setter::foo1
+          parameters
+            requiredPositional _
+              type: int
 ''');
   }
 
   test_augmentedBy_class2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 
 enum A {v}
 ''');
@@ -13222,112 +19307,143 @@ enum A {v}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @56
+        enum A @36
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
-            static const enumConstant v @59
+            static const enumConstant v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       classes
-        augment class A @44
+        augment class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTargetAny: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       classes
-        augment class A @44
+        augment class A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTargetAny: <testLibraryFragment>::@enum::A
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @56
+        enum A @36
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
+          fields
+            enumConstant v @39
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class A @44
+        class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @44
+        class A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+          element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
   classes
     class A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     class A
-      reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_augmentedBy_class_enum() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment enum A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 
 enum A {v}
 ''');
@@ -13339,42 +19455,45 @@ enum A {v}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @56
+        enum A @36
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @59
+            static const enumConstant v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             fields
@@ -13386,75 +19505,105 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       classes
-        augment class A @44
+        augment class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTargetAny: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @43
+        augment enum A @35
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @56
+        enum A @36
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          fields
+            enumConstant v @39
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class A @44
+        class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @43
+        enum A @35
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
   classes
     class A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_constructors_augment2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment const A.named();
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment const A.named();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v.named();
   const A.named();
@@ -13466,49 +19615,52 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @61
+            static const enumConstant v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
-            const named @82
+            const named @62
               reference: <testLibraryFragment>::@enum::A::@constructor::named
-              enclosingElement: <testLibraryFragment>::@enum::A
-              periodOffset: 81
-              nameEnd: 87
+              enclosingElement3: <testLibraryFragment>::@enum::A
+              periodOffset: 61
+              nameEnd: 67
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             fields
@@ -13522,80 +19674,137 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           constructors
-            augment const named @65
+            augment const named @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 64
-              nameEnd: 70
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 56
+              nameEnd: 62
               augmentationTarget: <testLibraryFragment>::@enum::A::@constructor::named
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           constructors
-            augment const named @65
+            augment const named @57
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-              periodOffset: 64
-              nameEnd: 70
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+              periodOffset: 56
+              nameEnd: 62
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @41
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            const named @62
+              reference: <testLibraryFragment>::@enum::A::@constructor::named
+              element: <none>
+              periodOffset: 61
+              nameEnd: 67
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          constructors
+            augment const named @57
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+              element: <none>
+              periodOffset: 56
+              nameEnd: 62
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
+              previousFragment: <testLibraryFragment>::@enum::A::@constructor::named
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            augment const named @57
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
+              element: <none>
+              periodOffset: 56
+              nameEnd: 62
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        const named
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::named
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_constructors_augment_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment const A.named();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v.named();
   const A.named();
@@ -13606,24 +19815,26 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -13645,7 +19856,7 @@ library
                   staticType: A
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               constantInitializer
                 ListLiteral
@@ -13658,20 +19869,20 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            const named @57
+            const named @47
               reference: <testLibraryFragment>::@enum::A::@constructor::named
-              enclosingElement: <testLibraryFragment>::@enum::A
-              periodOffset: 56
-              nameEnd: 62
+              enclosingElement3: <testLibraryFragment>::@enum::A
+              periodOffset: 46
+              nameEnd: 52
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             fields
@@ -13685,55 +19896,103 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            augment const named @65
+            augment const named @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 64
-              nameEnd: 70
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 56
+              nameEnd: 62
               augmentationTarget: <testLibraryFragment>::@enum::A::@constructor::named
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            const named @47
+              reference: <testLibraryFragment>::@enum::A::@constructor::named
+              element: <none>
+              periodOffset: 46
+              nameEnd: 52
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            augment const named @57
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+              element: <none>
+              periodOffset: 56
+              nameEnd: 62
+              previousFragment: <testLibraryFragment>::@enum::A::@constructor::named
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        const named
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::named
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
   test_constructors_augment_unnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment const A();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   const A();
@@ -13744,24 +20003,26 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -13778,7 +20039,7 @@ library
                   staticType: A
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A>
               constantInitializer
                 ListLiteral
@@ -13791,18 +20052,18 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            const @47
+            const @37
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
           augmented
             fields
@@ -13816,40 +20077,84 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            augment const @63
+            augment const @55
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               augmentationTarget: <testLibraryFragment>::@enum::A::@constructor::new
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          fields
+            enumConstant v @26
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            const new @37
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            augment const new @55
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
+              element: <none>
+              previousFragment: <testLibraryFragment>::@enum::A::@constructor::new
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A>
+          getter: <none>
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 
@@ -13861,7 +20166,7 @@ abstract class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum B {;
   foo(a) => 0;
 }
@@ -13869,7 +20174,7 @@ augment enum B {;
 
     var library = await buildLibrary(r'''
 import 'a.dart';
-import augment 'b.dart';
+part 'b.dart';
 
 enum B implements A {
   v
@@ -13882,51 +20187,51 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+      parts
+        part_0
+          uri: package:test/b.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum B @48
+        enum B @38
           reference: <testLibraryFragment>::@enum::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           supertype: Enum
           interfaces
             A
           fields
-            static const enumConstant v @67
+            static const enumConstant v @57
               reference: <testLibraryFragment>::@enum::B::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               type: B
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::B::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               type: List<B>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::B::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               returnType: B
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::B::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               returnType: List<B>
           augmented
             interfaces
@@ -13944,19 +20249,18 @@ library
             methods
               <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum B @42
+        augment enum B @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibraryFragment>::@enum::B
           methods
-            foo @49
+            foo @41
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
               parameters
-                requiredPositional a @53
+                requiredPositional a @45
                   type: String
               returnType: int
 ----------------------------------------
@@ -13964,25 +20268,77 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
       enums
-        enum B @48
+        enum B @38
           reference: <testLibraryFragment>::@enum::B
+          element: <testLibraryFragment>::@enum::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
+          fields
+            enumConstant v @57
+              reference: <testLibraryFragment>::@enum::B::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::B::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::B::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::B::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::B::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::B::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::B::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum B @42
+        enum B @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
+          element: <testLibraryFragment>::@enum::B
           previousFragment: <testLibraryFragment>::@enum::B
+          methods
+            foo @41
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
+              element: <none>
+              parameters
+                a @45
+                  element: <none>
   enums
     enum B
-      reference: <testLibraryFragment>::@enum::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::B::@field::v
+          type: B
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::B::@field::values
+          type: List<B>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::B::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::B::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::B::@getter::values
+      methods
+        foo
+          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
+          parameters
+            requiredPositional a
+              type: String
 ''');
   }
 
@@ -13994,13 +20350,13 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 import 'a.dart';
 augment enum B implements A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'b.dart';
+part 'b.dart';
 
 enum B {
   v;
@@ -14013,53 +20369,51 @@ enum B {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      libraryImports
-        package:test/a.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/b.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum B @31
+        enum B @21
           reference: <testLibraryFragment>::@enum::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           supertype: Enum
           fields
-            static const enumConstant v @37
+            static const enumConstant v @27
               reference: <testLibraryFragment>::@enum::B::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               type: B
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::B::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               type: List<B>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::B::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               returnType: B
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::B::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               returnType: List<B>
           methods
-            foo @42
+            foo @32
               reference: <testLibraryFragment>::@enum::B::@method::foo
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               parameters
-                requiredPositional a @46
+                requiredPositional a @36
                   type: String
               returnType: int
           augmented
@@ -14078,16 +20432,14 @@ library
             methods
               <testLibraryFragment>::@enum::B::@method::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       libraryImports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
       enums
-        augment enum B @59
+        augment enum B @51
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibraryFragment>::@enum::B
           interfaces
             A
@@ -14096,25 +20448,77 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum B @31
+        enum B @21
           reference: <testLibraryFragment>::@enum::B
+          element: <testLibraryFragment>::@enum::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
+          fields
+            enumConstant v @27
+              reference: <testLibraryFragment>::@enum::B::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::B::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::B::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::B::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::B::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::B::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::B::@getter::values
+              element: <none>
+          methods
+            foo @32
+              reference: <testLibraryFragment>::@enum::B::@method::foo
+              element: <none>
+              parameters
+                a @36
+                  element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       enums
-        enum B @59
+        enum B @51
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
+          element: <testLibraryFragment>::@enum::B
           previousFragment: <testLibraryFragment>::@enum::B
   enums
     enum B
-      reference: <testLibraryFragment>::@enum::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::B::@field::v
+          type: B
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::B::@field::values
+          type: List<B>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::B::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::B::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::B::@getter::values
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@enum::B::@method::foo
+          parameters
+            requiredPositional a
+              type: String
 ''');
   }
 
@@ -14126,13 +20530,13 @@ mixin A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 import 'a.dart';
 augment enum B with A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'b.dart';
+part 'b.dart';
 
 enum B {
   v;
@@ -14145,53 +20549,51 @@ enum B {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      libraryImports
-        package:test/a.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/b.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum B @31
+        enum B @21
           reference: <testLibraryFragment>::@enum::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           supertype: Enum
           fields
-            static const enumConstant v @37
+            static const enumConstant v @27
               reference: <testLibraryFragment>::@enum::B::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               type: B
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::B::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               type: List<B>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::B::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               returnType: B
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::B::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               returnType: List<B>
           methods
-            foo @42
+            foo @32
               reference: <testLibraryFragment>::@enum::B::@method::foo
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               parameters
-                requiredPositional a @46
+                requiredPositional a @36
                   type: String
               returnType: int
           augmented
@@ -14210,16 +20612,14 @@ library
             methods
               <testLibraryFragment>::@enum::B::@method::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       libraryImports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
       enums
-        augment enum B @59
+        augment enum B @51
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibraryFragment>::@enum::B
           mixins
             A
@@ -14228,36 +20628,88 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum B @31
+        enum B @21
           reference: <testLibraryFragment>::@enum::B
+          element: <testLibraryFragment>::@enum::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
+          fields
+            enumConstant v @27
+              reference: <testLibraryFragment>::@enum::B::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::B::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::B::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::B::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::B::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::B::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::B::@getter::values
+              element: <none>
+          methods
+            foo @32
+              reference: <testLibraryFragment>::@enum::B::@method::foo
+              element: <none>
+              parameters
+                a @36
+                  element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       enums
-        enum B @59
+        enum B @51
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
+          element: <testLibraryFragment>::@enum::B
           previousFragment: <testLibraryFragment>::@enum::B
   enums
     enum B
-      reference: <testLibraryFragment>::@enum::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::B::@field::v
+          type: B
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::B::@field::values
+          type: List<B>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::B::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::B::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::B::@getter::values
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@enum::B::@method::foo
+          parameters
+            requiredPositional a
+              type: String
 ''');
   }
 
   test_typeParameters_defaultType() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T extends B> {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T extends B> {
   v
 }
@@ -14269,54 +20721,56 @@ class B {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class B @59
+        class B @49
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
-            covariant T @32
+            covariant T @22
               bound: B
               defaultType: B
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @49
+            static const enumConstant v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: A<B>
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::A::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               type: List<A<B>>
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@enum::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: A<B>
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::A::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::A
+              enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A<B>>
           augmented
             fields
@@ -14330,14 +20784,13 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T @44
+            covariant T @36
               bound: B
               defaultType: B
           augmentationTarget: <testLibraryFragment>::@enum::A
@@ -14346,31 +20799,85 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class B @59
+        class B @49
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              element: <none>
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
+          element: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          typeParameters
+            T @22
+              element: <none>
+          fields
+            enumConstant v @39
+              reference: <testLibraryFragment>::@enum::A::@field::v
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::A::@field::values
+              element: <none>
+              getter2: <testLibraryFragment>::@enum::A::@getter::values
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              element: <none>
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::v
+              element: <none>
+            get values @-1
+              reference: <testLibraryFragment>::@enum::A::@getter::values
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          element: <testLibraryFragment>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
+          typeParameters
+            T @36
+              element: <none>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
   enums
     enum A
-      reference: <testLibraryFragment>::@enum::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
+      typeParameters
+        T
+          bound: B
       supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::A::@field::v
+          type: A<B>
+          getter: <none>
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::A::@field::values
+          type: List<A<B>>
+          getter: <none>
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::A::@getter::values
 ''');
   }
 }

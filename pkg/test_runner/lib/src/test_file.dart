@@ -6,28 +6,33 @@ import 'dart:io';
 import 'feature.dart';
 import 'path.dart';
 import 'static_error.dart';
+import 'utils.dart';
 
-final _multitestRegExp = RegExp(r"//# \w+:(.*)");
+final _multitestRegExp = RegExp(r"//# \w+:");
 
-final _vmOptionsRegExp = RegExp(r"// VMOptions=(.*)");
-final _environmentRegExp = RegExp(r"// Environment=(.*)");
-final _packagesRegExp = RegExp(r"// Packages=(.*)");
+final _vmOptionsRegExp = RegExp(r"^[ \t]*// VMOptions=(.*)", multiLine: true);
+final _environmentRegExp =
+    RegExp(r"^[ \t]*// Environment=(.*)", multiLine: true);
+final _packagesRegExp = RegExp(r"^[ \t]*// Packages=(.*)", multiLine: true);
 final _experimentRegExp = RegExp(r"^--enable-experiment=([a-z0-9,-]+)$");
 final _localFileRegExp = RegExp(
-    r"""^\s*(?:import(?: augment)?|part) """
-    r"""['"](?!package:|dart:)(.*)['"]"""
-    r"""(?: deferred as \w+)?;""",
+    r"""^[ \t]*(?:import(?: augment)?|part)\s*"""
+    r"""['"](?!package:|dart:)(.*?)['"]\s*"""
+    r"""(?:(?:deferred\s+)?as\s+\w+\s*)?"""
+    r"""(?:(?:show|hide)\s+\w+\s*(?:,\s*\w+\s*))*;""",
     multiLine: true);
 
 List<String> _splitWords(String s) =>
-    s.split(' ').where((e) => e != '').toList();
+    s.split(' ')..removeWhere((s) => s.isEmpty);
 
 List<T> _parseOption<T>(
     String filePath, String contents, String name, T Function(String) convert,
     {bool allowMultiple = false}) {
-  var matches = RegExp('// $name=(.*)').allMatches(contents);
+  var matches = RegExp('^[ \t]*// $name=(.*)', multiLine: true)
+      .allMatches(contents)
+      .toList();
   if (!allowMultiple && matches.length > 1) {
-    throw Exception('More than one "// $name=" line in test $filePath');
+    throw FormatException('More than one "// $name=" line in test $filePath');
   }
 
   var options = <T>[];
@@ -99,7 +104,7 @@ abstract class _TestFileBase {
       return path.toString().hashCode;
     }
 
-    return originPath.relativeTo(_suiteDirectory!).toString().hashCode;
+    return originPath.relativeTo(_suiteDirectory).toString().hashCode;
   }
 
   _TestFileBase(this._suiteDirectory, this.path, this.expectedErrors) {
@@ -117,15 +122,15 @@ abstract class _TestFileBase {
     var directory = testNamePath.directoryPath;
     var filenameWithoutExt = testNamePath.filenameWithoutExtension;
 
-    String concat(String base, String part) {
-      if (base == "") return part;
-      if (part == "") return base;
+    String join(String base, String part) {
+      if (base.isEmpty) return part;
+      if (part.isEmpty) return base;
       return "$base/$part";
     }
 
     var result = "$directory";
-    result = concat(result, filenameWithoutExt);
-    result = concat(result, multitestKey);
+    result = join(result, filenameWithoutExt);
+    result = join(result, multitestKey);
     return result;
   }
 }
@@ -255,7 +260,7 @@ class TestFile extends _TestFileBase {
               "flags. Was:\n$sharedOption");
         }
 
-        experiments.addAll(match.group(1)!.split(","));
+        experiments.addAll(match[1]!.split(","));
         sharedOptions.removeAt(i);
         i--;
       }
@@ -266,9 +271,13 @@ class TestFile extends _TestFileBase {
     matches = _environmentRegExp.allMatches(contents);
     for (var match in matches) {
       var envDef = match[1]!;
+      var name = envDef;
+      var value = '';
       var pos = envDef.indexOf('=');
-      var name = (pos < 0) ? envDef : envDef.substring(0, pos);
-      var value = (pos < 0) ? '' : envDef.substring(pos + 1);
+      if (pos >= 0) {
+        name = envDef.substring(0, pos);
+        value = envDef.substring(pos + 1);
+      }
       environment[name] = value;
     }
 
@@ -278,18 +287,23 @@ class TestFile extends _TestFileBase {
     matches = _packagesRegExp.allMatches(contents);
     for (var match in matches) {
       if (packages != null) {
-        throw Exception('More than one "// Package..." line in test $filePath');
+        throw FormatException(
+            'More than one "// Package..." line in test $filePath');
       }
-      packages = match[1];
+      packages = match[1]!;
       if (packages != 'none') {
         // Packages=none means that no packages option should be given. Any
         // other value overrides packages.
         packages =
-            Uri.file(filePath).resolveUri(Uri.file(packages!)).toFilePath();
+            Uri.file(filePath).resolveUri(Uri.file(packages)).toFilePath();
       }
     }
 
     var isMultitest = _multitestRegExp.hasMatch(contents);
+    if (isMultitest) {
+      DebugLogger.warning(
+          "${Path(filePath).toNativePath()} is a legacy multi-test file.");
+    }
 
     var errorExpectations = <StaticError>[];
     try {
@@ -323,12 +337,12 @@ class TestFile extends _TestFileBase {
       {Set<String>? alreadyParsed}) {
     alreadyParsed ??= {};
     var file = File(path);
-
+    var pathUri = Uri.parse(path);
     // Missing files set no expectations.
     if (!file.existsSync()) return [];
 
     // Catch import loops.
-    if (!alreadyParsed.add(Uri.parse(path).toString())) return [];
+    if (!alreadyParsed.add(pathUri.toString())) return [];
 
     // Parse one file.
     var contents = File(path).readAsStringSync();
@@ -340,7 +354,7 @@ class TestFile extends _TestFileBase {
       var localPath = Uri.tryParse(match[1]!);
       // Broken import paths set no expectations.
       if (localPath == null) continue;
-      var uriString = Uri.parse(path).resolve(localPath.path).toString();
+      var uriString = pathUri.resolve(localPath.path).toString();
       result
           .addAll(_parseExpectations(uriString, alreadyParsed: alreadyParsed));
     }

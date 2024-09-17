@@ -167,7 +167,7 @@ _CollectedOptionsData _collectOptionsData(AnalysisDriver driver) {
   if (driver.analysisContext?.allAnalysisOptions case var allAnalysisOptions?) {
     for (var analysisOptions in allAnalysisOptions) {
       collectedData.lints.addAll(analysisOptions.lintRules.map((e) => e.name));
-      collectedData.plugins.addAll(analysisOptions.enabledPluginNames);
+      collectedData.plugins.addAll(analysisOptions.enabledLegacyPluginNames);
     }
   }
   return collectedData;
@@ -1251,7 +1251,7 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
     buf.writeln('<div class="columns">');
     buf.writeln('<div class="column one-half">');
     h3('Client Capabilities');
-    var clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = server.editorClientCapabilities;
     if (clientCapabilities == null) {
       p('Client capabilities have not yet been received.');
     } else {

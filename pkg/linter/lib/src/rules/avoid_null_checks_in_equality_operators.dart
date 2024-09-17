@@ -65,10 +65,10 @@ bool _isParameterWithQuestionQuestion(
 class AvoidNullChecksInEqualityOperators extends LintRule {
   AvoidNullChecksInEqualityOperators()
       : super(
-            name: 'avoid_null_checks_in_equality_operators',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'avoid_null_checks_in_equality_operators',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

@@ -144,7 +144,8 @@ class _FixAllOperation extends TemporaryOverlayOperation
     // LineInfos to reflect the original state while mapping to LSP.
     await revertOverlays();
 
-    var edit = createPlainWorkspaceEdit(server, changes);
+    var edit = createPlainWorkspaceEdit(
+        server, server.editorClientCapabilities!, changes);
 
     return success(edit);
   }

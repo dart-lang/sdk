@@ -221,12 +221,6 @@ CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME:
     We could rename the type parameter, this is purely local operation.
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION:
   status: noFix
-CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
-  status: needsFix
-  notes: |-
-    The fix is to add `import augment`.
-CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY:
-  status: noFix
 CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER:
   status: noFix
 CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER:
@@ -517,8 +511,6 @@ CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
 CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
   status: needsFix
   since: 2.15
-CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT:
-  status: hasFix
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
   status: noFix
   notes: |-
@@ -836,10 +828,6 @@ CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:
   status: hasFix
 CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY:
   status: hasFix
-CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION:
-  status: needsFix
-  notes: |-
-    Remove the import.
 CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES:
   status: noFix
 CompileTimeErrorCode.INCONSISTENT_INHERITANCE:
@@ -1909,6 +1897,15 @@ LintCode.avoid_final_parameters:
     The fix is to remove the `final` keyword.
 LintCode.avoid_function_literals_in_foreach_calls:
   status: hasFix
+LintCode.avoid_futureor_void:
+  status: noFix
+  notes: |-
+    The type 'FutureOr<void>' is inherently problematic, but there is
+    no replacement for this type which will always be the best choice.
+    'Future<void>?' is usually a very good choice, but it might create
+    a need for some implementation changes, or it might be a breaking
+    change. Another possibility is to use 'void', but this could also
+    be breaking.
 LintCode.avoid_implementing_value_types:
   status: noFix
   notes: |-
@@ -2452,7 +2449,7 @@ LintCode.use_build_context_synchronously_wrong_mounted:
     We could have a fix that would replace a mounted check on the wrong element
     to a mounted check on the right element.
 LintCode.use_colored_box:
-  status: needsFix
+  status: hasFix
 LintCode.use_decorated_box:
   status: hasFix
 LintCode.use_enums:
@@ -3750,6 +3747,8 @@ WarningCode.UNNECESSARY_TYPE_CHECK_TRUE:
 WarningCode.UNNECESSARY_WILDCARD_PATTERN:
   status: hasFix
 WarningCode.UNREACHABLE_SWITCH_CASE:
+  status: hasFix
+WarningCode.UNREACHABLE_SWITCH_DEFAULT:
   status: hasFix
 WarningCode.UNUSED_CATCH_CLAUSE:
   status: hasFix

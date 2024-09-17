@@ -1,0 +1,56 @@
+library;
+import self as self;
+import "main_lib.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → void {
+  const mai::SomeEnum a = #C3;
+  final mai::SomeEnum b = mai::SomeEnum::value;
+  core::print("a == b: ${a =={core::Object::==}{(core::Object) → core::bool} b}");
+  core::print("a hash: ${a.{core::Object::hashCode}{core::int}}");
+  core::print("b hash: ${b.{core::Object::hashCode}{core::int}}");
+}
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+abstract class HasSomeField extends core::Object /*isMixinDeclaration*/  {
+  abstract get someField() → core::String;
+}
+abstract class _SomeEnum&_Enum&HasSomeField = core::_Enum with mai::HasSomeField /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → mai::_SomeEnum&_Enum&HasSomeField
+    : super core::_Enum::•(index, _name)
+    ;
+  abstract mixin-stub get someField() → core::String; -> mai::HasSomeField::someField
+}
+class SomeEnum extends mai::_SomeEnum&_Enum&HasSomeField /*isEnum*/  {
+  static const field core::List<mai::SomeEnum> values = #C4;
+  enum-element static const field mai::SomeEnum value = #C3;
+  const synthetic constructor •(core::int #index, core::String #name) → mai::SomeEnum
+    : super mai::_SomeEnum&_Enum&HasSomeField::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "SomeEnum.${this.{core::_Enum::_name}{core::String}}";
+  @#C5
+  get someField() → core::String
+    return "field";
+}
+
+constants  {
+  #C1 = 0.0
+  #C2 = "value"
+  #C3 = mai::SomeEnum {index:#C1, _name:#C2}
+  #C4 = <mai::SomeEnum>[#C3]
+  #C5 = core::_Override {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///main_lib.dart:
+- SomeEnum. (from org-dartlang-testcase:///main_lib.dart:9:6)
+- _SomeEnum&_Enum&HasSomeField. (from org-dartlang-testcase:///main_lib.dart:9:6)
+- _Enum. (from org-dartlang-sdk:///lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)

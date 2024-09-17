@@ -102,6 +102,10 @@ class ValueKinds {
           NullValues.FormalParameters);
   static const ValueKind FormalParameterBuilder =
       const SingleValueKind<type.FormalParameterBuilder>();
+  static const ValueKind FunctionTypeParameterBuilder =
+      const SingleValueKind<type.FunctionTypeParameterBuilder>();
+  static const ValueKind FunctionTypeParameterBuilderList =
+      const SingleValueKind<List<type.FunctionTypeParameterBuilder>>();
   static const ValueKind Generator = const SingleValueKind<type.Generator>();
   static const ValueKind Identifier = const SingleValueKind<type.Identifier>();
   static const ValueKind IdentifierOrNull =

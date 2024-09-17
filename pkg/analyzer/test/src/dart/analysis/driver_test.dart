@@ -275,7 +275,7 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/a.dart';
@@ -935,7 +935,7 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/a.dart';
@@ -1015,7 +1015,7 @@ class B {}
   ResolvedUnitResult #1
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/b.dart';
@@ -1048,7 +1048,7 @@ class A2 {}
   ResolvedUnitResult #3
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/b.dart';
@@ -1125,7 +1125,7 @@ class B {}
   ResolvedUnitResult #1
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/b.dart';
@@ -1162,7 +1162,7 @@ class A2 {}
   ErrorsResult #3
     path: /home/test/lib/b.macro.dart
     uri: package:test/b.macro.dart
-    flags: isMacroAugmentation isPart
+    flags: isMacroPart isPart
     content
 ---
 part of 'package:test/b.dart';
@@ -1904,7 +1904,7 @@ class A {}
   ErrorsResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: isMacroAugmentation isPart
+    flags: isMacroPart isPart
     content
 ---
 part of 'package:test/a.dart';
@@ -1915,7 +1915,7 @@ class B {}
   ResolvedUnitResult #2
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/a.dart';
@@ -2237,7 +2237,6 @@ void f(A a) {}
     flags: exists isLibrary
     errors
       25 +1 UNDEFINED_CLASS
-      7 +8 UNUSED_IMPORT
 [stream]
   ResolvedUnitResult #1
 [status] idle
@@ -2378,7 +2377,7 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/a.dart';
@@ -2443,23 +2442,6 @@ class B {}
     await assertEventsText(collector, r'''
 [future] getLibraryByUri X
   CannotResolveUriResult
-''');
-  }
-
-  test_getLibraryByUri_notLibrary_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'package:test/b.dart';
-''');
-
-    var driver = driverFor(a);
-    var collector = DriverEventCollector(driver);
-
-    var uriStr = 'package:test/a.dart';
-    collector.getLibraryByUri('X', uriStr);
-
-    await assertEventsText(collector, r'''
-[future] getLibraryByUri X
-  NotLibraryButAugmentationResult
 ''');
   }
 
@@ -2539,19 +2521,6 @@ part of 'b.dart';
     expect(
       driver.getParsedLibraryByUri(uri),
       isA<CannotResolveUriResult>(),
-    );
-  }
-
-  test_getParsedLibraryByUri_notLibrary_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'package:test/b.dart';
-''');
-
-    var driver = driverFor(a);
-    var uri = Uri.parse('package:test/a.dart');
-    expect(
-      driver.getParsedLibraryByUri(uri),
-      isA<NotLibraryButAugmentationResult>(),
     );
   }
 
@@ -2682,24 +2651,6 @@ part of 'a.dart';
     expect(result, isA<InvalidPathResult>());
   }
 
-  test_getResolvedLibrary_notLibrary_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'package:test/b.dart';
-''');
-
-    var driver = driverFor(a);
-    var collector = DriverEventCollector(driver);
-
-    collector.getResolvedLibrary('X', a);
-
-    await assertEventsText(collector, r'''
-[status] working
-[future] getResolvedLibrary X
-  NotLibraryButAugmentationResult
-[status] idle
-''');
-  }
-
   test_getResolvedLibrary_notLibrary_part() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'b.dart';
@@ -2794,7 +2745,7 @@ class A {}
       ResolvedUnitResult #2
         path: /home/test/lib/a.macro.dart
         uri: package:test/a.macro.dart
-        flags: exists isMacroAugmentation isPart
+        flags: exists isMacroPart isPart
         content
 ---
 part of 'package:test/a.dart';
@@ -2896,25 +2847,6 @@ part of 'a.dart';
 ''');
   }
 
-  test_getResolvedLibraryByUri_notLibrary_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'package:test/b.dart';
-''');
-
-    var driver = driverFor(a);
-    var collector = DriverEventCollector(driver);
-
-    var uri = Uri.parse('package:test/a.dart');
-    collector.getResolvedLibraryByUri('X', uri);
-
-    await assertEventsText(collector, r'''
-[status] working
-[future] getResolvedLibraryByUri X
-  NotLibraryButAugmentationResult
-[status] idle
-''');
-  }
-
   test_getResolvedLibraryByUri_notLibrary_part() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'b.dart';
@@ -3003,7 +2935,7 @@ class A {}
       ResolvedUnitResult #2
         path: /home/test/lib/a.macro.dart
         uri: package:test/a.macro.dart
-        flags: exists isMacroAugmentation isPart
+        flags: exists isMacroPart isPart
         content
 ---
 part of 'package:test/a.dart';
@@ -3061,45 +2993,6 @@ class B {}
     flags: exists isLibrary
 [stream]
   ResolvedUnitResult #0
-[status] idle
-''');
-  }
-
-  test_getResolvedUnit_augmentation_library() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'package:test/a.dart';
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    collector.getResolvedUnit('B1', b);
-    collector.getResolvedUnit('A1', a);
-
-    // Note, the library is resolved only once.
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/b.dart
-  library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
-[future] getResolvedUnit B1
-  ResolvedUnitResult #1
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: exists isAugmentation
-[stream]
-  ResolvedUnitResult #1
 [status] idle
 ''');
   }
@@ -3237,45 +3130,6 @@ part of 'a.dart';
 ''');
   }
 
-  test_getResolvedUnit_library_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'package:test/a.dart';
-''');
-
-    var driver = driverFor(testFile);
-    var collector = DriverEventCollector(driver);
-
-    collector.getResolvedUnit('A1', a);
-    collector.getResolvedUnit('B1', b);
-
-    // Note, the library is resolved only once.
-    await assertEventsText(collector, r'''
-[status] working
-[operation] analyzeFile
-  file: /home/test/lib/a.dart
-  library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
-  ResolvedUnitResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
-[future] getResolvedUnit B1
-  ResolvedUnitResult #1
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: exists isAugmentation
-[stream]
-  ResolvedUnitResult #1
-[status] idle
-''');
-  }
-
   test_getResolvedUnit_library_part() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -3393,7 +3247,7 @@ class A {}
   ResolvedUnitResult #1
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
-    flags: exists isMacroAugmentation isPart
+    flags: exists isMacroPart isPart
     content
 ---
 part of 'package:test/a.dart';
@@ -3885,7 +3739,7 @@ class A {}
 [future] getUnitElement AM1
   path: /home/test/lib/a.macro.dart
   uri: package:test/a.macro.dart
-  flags: isMacroAugmentation isPart
+  flags: isMacroPart isPart
   enclosing: package:test/a.dart::<fragment>
   selectedElements
     package:test/a.dart::@fragment::package:test/a.macro.dart::@class::B
@@ -6231,10 +6085,10 @@ extension on AnalysisDriver {
 extension on DriverEventsPrinterConfiguration {
   void withMacroFileContent() {
     errorsConfiguration.withContentPredicate = (result) {
-      return result.isMacroAugmentation;
+      return result.isMacroPart;
     };
     libraryConfiguration.unitConfiguration.withContentPredicate = (result) {
-      return result.isMacroAugmentation;
+      return result.isMacroPart;
     };
   }
 }

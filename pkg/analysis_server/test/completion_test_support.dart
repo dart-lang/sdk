@@ -18,7 +18,7 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
       .toList();
 
   void assertHasCompletion(String completion,
-      {ElementKind? elementKind, bool? isDeprecated}) {
+      {ElementKind? elementKind, bool? isDeprecated, Matcher? libraryUri}) {
     var expectedOffset = completion.indexOf(CURSOR_MARKER);
     if (expectedOffset >= 0) {
       if (completion.contains(CURSOR_MARKER, expectedOffset + 1)) {
@@ -57,6 +57,9 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
     }
     if (isDeprecated != null) {
       expect(matchingSuggestion.isDeprecated, isDeprecated);
+    }
+    if (libraryUri != null) {
+      expect(matchingSuggestion.libraryUri, libraryUri);
     }
   }
 

@@ -5,9 +5,11 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'edit/test_all.dart' as edit;
+import 'src/test_all.dart' as src;
 
 void main() {
   defineReflectiveSuite(() {
     edit.main();
-  }, name: 'edit');
+    src.main();
+  });
 }

@@ -61,13 +61,10 @@ Advice for writing good doc comments can be found in the
 class PackageApiDocs extends LintRule {
   PackageApiDocs()
       : super(
-            name: 'package_api_docs',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.publicInterface
-            });
+          name: 'package_api_docs',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.package_api_docs;

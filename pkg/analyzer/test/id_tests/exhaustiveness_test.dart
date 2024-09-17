@@ -102,18 +102,20 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
           }
         }
       }
-      ExhaustivenessError? error = _exhaustivenessData.errors[node];
-      if (error != null) {
-        features[Tags.error] = errorToText(error);
+      NonExhaustiveness? nonExhaustiveness =
+          _exhaustivenessData.nonExhaustivenesses[node];
+      if (nonExhaustiveness != null) {
+        features[Tags.error] = nonExhaustivenessToText(nonExhaustiveness);
       }
     } else if (node is SwitchMember || node is SwitchExpressionCase) {
       Space? caseSpace = _exhaustivenessData.caseSpaces[node];
       if (caseSpace != null) {
         features[Tags.space] = spacesToText(caseSpace);
       }
-      ExhaustivenessError? error = _exhaustivenessData.errors[node];
-      if (error != null) {
-        features[Tags.error] = errorToText(error);
+      CaseUnreachability? caseUnreachability =
+          _exhaustivenessData.caseUnreachabilities[node];
+      if (caseUnreachability != null) {
+        features[Tags.error] = 'unreachable';
       }
     }
     return features.isNotEmpty ? features : null;

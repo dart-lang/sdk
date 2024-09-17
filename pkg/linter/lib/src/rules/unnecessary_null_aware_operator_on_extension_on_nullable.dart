@@ -42,7 +42,6 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
           name: 'unnecessary_null_aware_operator_on_extension_on_nullable',
           description: _desc,
           details: _details,
-          categories: {LintRuleCategory.style},
         );
 
   @override
@@ -72,8 +71,8 @@ class _Visitor extends SimpleAstVisitor<void> {
             ? node
                 .thisOrAncestorOfType<AssignmentExpression>()
                 ?.writeElement
-                ?.enclosingElement
-            : node.staticElement?.enclosingElement)) {
+                ?.enclosingElement3
+            : node.staticElement?.enclosingElement3)) {
       rule.reportLintForToken(node.question);
     }
   }
@@ -82,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     if (node.isNullAware &&
         _isExtensionOnNullableType(
-            node.methodName.staticElement?.enclosingElement)) {
+            node.methodName.staticElement?.enclosingElement3)) {
       rule.reportLintForToken(node.operator);
     }
   }
@@ -93,8 +92,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       var realParent = node.thisOrAncestorMatching(
           (p) => p != node && p is! ParenthesizedExpression);
       if (_isExtensionOnNullableType(realParent is AssignmentExpression
-          ? realParent.writeElement?.enclosingElement
-          : node.propertyName.staticElement?.enclosingElement)) {
+          ? realParent.writeElement?.enclosingElement3
+          : node.propertyName.staticElement?.enclosingElement3)) {
         rule.reportLintForToken(node.operator);
       }
     }

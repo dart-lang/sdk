@@ -31,6 +31,7 @@ import 'package:kernel/ast.dart'
         Arguments,
         Class,
         Component,
+        DynamicType,
         Expression,
         FunctionNode,
         Library,
@@ -111,7 +112,7 @@ Future<void> main() async {
         new PrefixBuilder("myPrefix", false, libraryBuilder, null, -1, -1);
     String assignmentOperator = "+=";
     TypeDeclarationBuilder declaration = new NominalVariableBuilder.fromKernel(
-        new TypeParameter("T"),
+        new TypeParameter("T", const DynamicType(), const DynamicType()),
         loader: null);
     VariableDeclaration variable =
         new VariableDeclaration(null, isSynthesized: true);

@@ -175,7 +175,12 @@ ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
 
 void OSThread::Join(ThreadJoinId id) {
   int result = pthread_join(id, nullptr);
-  ASSERT(result == 0);
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
+void OSThread::Detach(ThreadJoinId id) {
+  int result = pthread_detach(id);
+  VALIDATE_PTHREAD_RESULT(result);
 }
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {

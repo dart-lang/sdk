@@ -32,9 +32,7 @@ class FunctionCollector {
 
   FunctionCollector(this.translator);
 
-  w.ModuleBuilder get m => translator.m;
-
-  void collectImportsAndExports() {
+  void _collectImportsAndExports() {
     for (Library library in translator.libraries) {
       library.procedures.forEach(_importOrExport);
       library.fields.forEach(_importOrExport);
@@ -57,8 +55,10 @@ class FunctionCollector {
           w.FunctionType ftype = _makeFunctionType(
               translator, member.reference, null,
               isImportOrExport: true);
-          _functions[member.reference] =
-              m.functions.import(module, name, ftype, "$importName (import)");
+          _functions[member.reference] = translator
+              .moduleForReference(member.reference)
+              .functions
+              .import(module, name, ftype, "$importName (import)");
         }
       }
     }
@@ -69,18 +69,19 @@ class FunctionCollector {
         _makeFunctionType(translator, member.reference, null,
             isImportOrExport: true);
       }
-      addExport(member.reference, exportName);
+      _exports[member.reference] = exportName;
     }
   }
 
-  void addExport(Reference target, String exportName) {
-    _exports[target] = exportName;
-  }
-
-  String? getExport(Reference target) => _exports[target];
+  /// If the member with the reference [target] is exported, get the export
+  /// name.
+  String? getExportName(Reference target) => _exports[target];
 
   void initialize() {
-    // Add exports to the module and add exported functions to the compilationQueue
+    _collectImportsAndExports();
+
+    // Add exports to the module and add exported functions to the
+    // compilationQueue.
     for (var export in _exports.entries) {
       Reference target = export.key;
       Member node = target.asMember;
@@ -89,15 +90,17 @@ class FunctionCollector {
         assert(!node.isGetter);
         w.FunctionType ftype =
             _makeFunctionType(translator, target, null, isImportOrExport: true);
-        w.FunctionBuilder function = m.functions.define(ftype, "$node");
+        final module = translator.moduleForReference(target);
+        w.FunctionBuilder function = module.functions.define(ftype, "$node");
         _functions[target] = function;
-        m.exports.export(export.value, function);
+        module.exports.export(export.value, function);
         translator.compilationQueue.add(AstCompilationTask(function,
             getMemberCodeGenerator(translator, function, target), target));
       } else if (node is Field) {
-        w.Table? table = translator.getTable(node);
+        final module = translator.moduleForReference(target);
+        w.Table? table = translator.getTable(module, node);
         if (table != null) {
-          m.exports.export(export.value, table);
+          module.exports.export(export.value, table);
         }
       }
     }
@@ -117,7 +120,8 @@ class FunctionCollector {
 
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
-      final function = m.functions.define(
+      final module = translator.moduleForReference(target);
+      final function = module.functions.define(
           translator.signatureForDirectCall(target), getFunctionName(target));
       translator.compilationQueue.add(AstCompilationTask(function,
           getMemberCodeGenerator(translator, function, target), target));
@@ -226,12 +230,8 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
   @override
   w.FunctionType visitField(Field node, Reference target) {
     if (!node.isInstanceMember) {
-      if (target == node.fieldReference) {
-        // Static field initializer function
-        return _makeFunctionType(translator, target, null);
-      }
-      String kind = target == node.setterReference ? "setter" : "getter";
-      throw "No implicit $kind function for static field: $node";
+      // Static field initializer function or implicit getter/setter.
+      return _makeFunctionType(translator, target, null);
     }
     assert(!translator.dispatchTable
         .selectorForTarget(target)
@@ -295,7 +295,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
 
   w.FunctionType _getConstructorAllocatorType(
       Constructor node, List<w.ValueType> arguments) {
-    return translator.m.types.defineFunction(arguments,
+    return translator.typesBuilder.defineFunction(arguments,
         [translator.classInfo[node.enclosingClass]!.nonNullableType.unpacked]);
   }
 
@@ -362,7 +362,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
         (contextRef != null ? [contextRef] : []) +
         fieldTypes;
 
-    return translator.m.types.defineFunction(arguments, outputs);
+    return translator.typesBuilder.defineFunction(arguments, outputs);
   }
 
   w.FunctionType _getConstructorBodyType(
@@ -404,7 +404,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
       }
     }
 
-    return translator.m.types.defineFunction(inputs, []);
+    return translator.typesBuilder.defineFunction(inputs, []);
   }
 }
 
@@ -463,6 +463,19 @@ w.FunctionType _makeFunctionType(
     {bool isImportOrExport = false}) {
   Member member = target.asMember;
 
+  if (member is Field && !member.isInstanceMember) {
+    final isGetter = target.isImplicitGetter;
+    final isSetter = target.isImplicitSetter;
+    if (isGetter || isSetter) {
+      final global = translator.globals.getGlobalForStaticField(member);
+      final globalType = global.type.type;
+      if (isGetter) {
+        return translator.typesBuilder.defineFunction(const [], [globalType]);
+      }
+      return translator.typesBuilder.defineFunction([globalType], const []);
+    }
+  }
+
   // Translate types differently for imports and exports.
   w.ValueType translateType(DartType type) => isImportOrExport
       ? translator.translateExternalType(type)
@@ -471,6 +484,7 @@ w.FunctionType _makeFunctionType(
   final List<w.ValueType> inputs = _getInputTypes(
       translator, target, receiverType, isImportOrExport, translateType);
 
+  // Setters don't have an output with the exception of static implicit setters.
   final bool emptyOutputList =
       (member is Field && member.setterReference == target) ||
           (member is Procedure && member.isSetter);
@@ -487,5 +501,5 @@ w.FunctionType _makeFunctionType(
     outputs = !isVoidType(returnType) ? [translateType(returnType)] : const [];
   }
 
-  return translator.m.types.defineFunction(inputs, outputs);
+  return translator.typesBuilder.defineFunction(inputs, outputs);
 }

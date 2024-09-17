@@ -301,6 +301,7 @@ class _BufferingStreamSubscription<T>
   }
 
   void _addError(Object error, StackTrace stackTrace) {
+    _trySetStackTrace(error, stackTrace);
     if (_isCanceled) return;
     if (_canFire) {
       _sendError(error, stackTrace); // Reports cancel after sending.

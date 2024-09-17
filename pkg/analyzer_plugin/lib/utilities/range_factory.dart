@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /// An instance of [RangeFactory] made available for convenience.
 final RangeFactory range = RangeFactory();

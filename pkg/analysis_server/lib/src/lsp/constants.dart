@@ -129,6 +129,7 @@ abstract final class Commands {
 abstract final class CustomMethods {
   static const augmented = Method('dart/textDocument/augmented');
   static const augmentation = Method('dart/textDocument/augmentation');
+  static const connectToDtd = Method('dart/connectToDtd');
   static const diagnosticServer = Method('dart/diagnosticServer');
   static const reanalyze = Method('dart/reanalyze');
   static const openUri = Method('dart/openUri');
@@ -180,6 +181,9 @@ abstract final class CustomSemanticTokenModifiers {
   /// to class names that are not constructors.
   static const constructor = SemanticTokenModifiers('constructor');
 
+  /// A modifier applied to wildcards.
+  static const wildcard = SemanticTokenModifiers('wildcard');
+
   /// A modifier applied to escape characters within a string to allow coloring
   /// them differently.
   static const escape = SemanticTokenModifiers('escape');
@@ -220,6 +224,7 @@ abstract final class CustomSemanticTokenModifiers {
     escape,
     interpolation,
     void_,
+    wildcard,
   ];
 }
 
@@ -287,6 +292,9 @@ abstract final class ServerErrorCodes {
 
   /// Computation of a refactoring change failed.
   static const RefactoringComputeStatusFailure = ErrorCodes(-32014);
+
+  /// General state error.
+  static const StateError = ErrorCodes(-32015);
 
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification

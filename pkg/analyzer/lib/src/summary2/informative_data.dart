@@ -92,13 +92,9 @@ class InformativeDataApplier {
     var unitReader = SummaryDataReader(unitInfoBytes);
     var unitInfo = _InfoUnit(_infoDeclarationStore, unitReader);
 
-    var enclosing = unitElement.enclosingElement;
-    if (enclosing is LibraryElementImpl) {
-      if (identical(enclosing.definingCompilationUnit, unitElement)) {
-        _applyToLibrary(enclosing, unitInfo);
-      }
-    } else if (enclosing is LibraryAugmentationElementImpl) {
-      _applyToAugmentation(enclosing, unitInfo);
+    var libraryElement = unitElement.library;
+    if (identical(libraryElement.definingCompilationUnit, unitElement)) {
+      _applyToLibrary(libraryElement, unitInfo);
     }
 
     unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
@@ -113,6 +109,7 @@ class InformativeDataApplier {
         applier.applyToMetadata(unitElement);
         applier.applyToImports(unitElement.libraryImports);
         applier.applyToExports(unitElement.libraryExports);
+        applier.applyToParts(unitElement.parts);
       },
     );
 
@@ -212,32 +209,6 @@ class InformativeDataApplier {
         }
       },
     );
-  }
-
-  void _applyToAugmentation(
-    LibraryAugmentationElementImpl element,
-    _InfoUnit info,
-  ) {
-    if (info.docComment.isNotEmpty) {
-      element.documentationComment = info.docComment;
-    }
-
-    var applyOffsets = ApplyConstantOffsets(
-      info.libraryConstantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToImports(element.libraryImports);
-        applier.applyToExports(element.libraryExports);
-        applier.applyToAugmentationImports(element.augmentationImports);
-      },
-    );
-
-    var linkedData = element.linkedData;
-    if (linkedData is LibraryAugmentationElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
   }
 
   void _applyToClassDeclaration(
@@ -695,7 +666,6 @@ class InformativeDataApplier {
         applier.applyToMetadata(element);
         applier.applyToImports(element.libraryImports);
         applier.applyToExports(element.libraryExports);
-        applier.applyToAugmentationImports(element.augmentationImports);
         applier.applyToPartDirectives(element.parts);
       },
     );
@@ -1767,8 +1737,6 @@ class _InformativeDataWriter {
       metadata: firstDirective?.metadata,
       importDirectives: unit.directives.whereType<ImportDirective>(),
       exportDirectives: unit.directives.whereType<ExportDirective>(),
-      augmentationImportDirectives:
-          unit.directives.whereType<AugmentationImportDirective>(),
       partDirectives: unit.directives.whereType<PartDirective>(),
     );
   }
@@ -1799,7 +1767,6 @@ class _InformativeDataWriter {
     NodeList<Annotation>? metadata,
     Iterable<ImportDirective>? importDirectives,
     Iterable<ExportDirective>? exportDirectives,
-    Iterable<AugmentationImportDirective>? augmentationImportDirectives,
     Iterable<PartDirective>? partDirectives,
     TypeParameterList? typeParameters,
     FormalParameterList? formalParameters,
@@ -1846,7 +1813,6 @@ class _InformativeDataWriter {
     metadata?.accept(collector);
     addDirectives(importDirectives);
     addDirectives(exportDirectives);
-    addDirectives(augmentationImportDirectives);
     addDirectives(partDirectives);
     addTypeParameters(typeParameters);
     addFormalParameters(formalParameters);
@@ -2088,12 +2054,6 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   _OffsetsApplier(this._iterator);
 
-  void applyToAugmentationImports(List<AugmentationImportElement> elements) {
-    for (var element in elements) {
-      applyToMetadata(element);
-    }
-  }
-
   void applyToConstantInitializer(Element element) {
     if (element is ConstFieldElementImpl && element.isEnumConstant) {
       _applyToEnumConstantInitializer(element);
@@ -2142,6 +2102,12 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   }
 
   void applyToPartDirectives(List<PartElement> elements) {
+    for (var element in elements) {
+      applyToMetadata(element);
+    }
+  }
+
+  void applyToParts(List<PartElementImpl> elements) {
     for (var element in elements) {
       applyToMetadata(element);
     }

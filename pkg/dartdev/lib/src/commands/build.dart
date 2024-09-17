@@ -29,8 +29,9 @@ class BuildCommand extends DartdevCommand {
   static const String outputOptionName = 'output';
   static const String formatOptionName = 'format';
   static const int genericErrorExitCode = 255;
+  final bool recordUseEnabled;
 
-  BuildCommand({bool verbose = false})
+  BuildCommand({bool verbose = false, required this.recordUseEnabled})
       : super(cmdName, 'Build a Dart application including native assets.',
             verbose) {
     argParser
@@ -96,6 +97,11 @@ class BuildCommand extends DartdevCommand {
       args.option(outputOptionName)?.normalizeCanonicalizePath().makeFolder() ??
           sourceUri.toFilePath().removeDotDart().makeFolder(),
     );
+    if (await File.fromUri(outputUri.resolve('pubspec.yaml')).exists()) {
+      stderr.writeln("'dart build' refuses to delete your project.");
+      stderr.writeln('Requested output directory: ${outputUri.toFilePath()}');
+      return 128;
+    }
 
     final format = Kind.values.byName(args.option(formatOptionName)!);
     final outputExeUri = outputUri.resolve(
@@ -157,7 +163,10 @@ class BuildCommand extends DartdevCommand {
     final tempDir = Directory.systemTemp.createTempSync();
     try {
       final packageConfig = await packageConfigUri(sourceUri);
-      final resources = path.join(tempDir.path, 'resources.json');
+      String? recordedUsagesPath;
+      if (recordUseEnabled) {
+        recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
+      }
       final generator = KernelGenerator(
         kind: format,
         sourceFile: sourceUri.toFilePath(),
@@ -172,12 +181,13 @@ class BuildCommand extends DartdevCommand {
       );
 
       final snapshotGenerator = await generator.generate(
-        resourcesFile: resources,
+        recordedUsagesFile: recordedUsagesPath,
       );
 
       // Start linking here.
       final linkResult = await nativeAssetsBuildRunner.link(
-        resourceIdentifiers: Uri.file(resources),
+        resourceIdentifiers:
+            recordUseEnabled ? Uri.file(recordedUsagesPath!) : null,
         workingDirectory: workingDirectory,
         target: target,
         linkModePreference: LinkModePreferenceImpl.dynamic,
@@ -205,6 +215,11 @@ class BuildCommand extends DartdevCommand {
         stderr.write(
             """'dart build' does not yet support NativeCodeAssets with static linking.
 Use linkMode as dynamic library instead.""");
+        return 255;
+      }
+      final validateResult = validateNoDuplicateDylibs(allAssets);
+      if (validateResult.isNotEmpty) {
+        validateResult.forEach(stderr.writeln);
         return 255;
       }
       if (allAssets.isNotEmpty) {

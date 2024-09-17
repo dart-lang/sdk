@@ -4,6 +4,55 @@
 
 part of dart.async;
 
+/// Sets [stackTrace] as [Error.stackTrace] on [error], if that is an [Error].
+///
+/// If [error] is not an instance of a class which extends [Error],
+/// or if it already has an [Error.stackTrace] set, nothing happens.
+@pragma("wasm:entry-point")
+external void _trySetStackTrace(Object error, StackTrace stackTrace);
+
+/// Calls the [Zone.errorCallback] of the current zone with the error and stack.
+///
+/// If a non-`null` result is returned, it tries to set the stack trace
+/// on the returned error to the returned stack trace.
+AsyncError? _interceptError(Object error, StackTrace? stackTrace) {
+  var zone = Zone._current;
+  if (identical(zone, _rootZone)) return null;
+  var replacement = zone.errorCallback(error, stackTrace);
+  if (replacement == null) return null;
+  _trySetStackTrace(replacement.error, replacement.stackTrace);
+  return replacement;
+}
+
+/// Used for user-provided error and stack trace that are to become async
+/// errors.
+///
+/// Allows `Zone.current.errorCallback` to intercept and modify the error,
+/// and sets the stack trace on the error as if it was thrown.
+AsyncError _interceptUserError(Object error, StackTrace? stackTrace) {
+  var zone = Zone.current;
+  if (!identical(zone, _rootZone)) {
+    var replacement = _interceptError(error, stackTrace);
+    if (replacement != null) return replacement;
+  }
+  if (stackTrace == null) {
+    // Inlines `AsyncError.defaultStackTrace`, to reuse the `is Error` check
+    // result to also not do `_trySetStackTrace` on known non-`Error`s.
+    if (error is Error) {
+      stackTrace = error.stackTrace;
+      if (stackTrace == null) {
+        stackTrace = StackTrace.empty;
+        _trySetStackTrace(error, stackTrace);
+      }
+    } else {
+      stackTrace = StackTrace.empty;
+    }
+  } else {
+    _trySetStackTrace(error, stackTrace); // Maybe it's an Error.
+  }
+  return AsyncError._(error, stackTrace);
+}
+
 abstract class _Completer<T> implements Completer<T> {
   @pragma("wasm:entry-point")
   @pragma("vm:entry-point")
@@ -14,16 +63,8 @@ abstract class _Completer<T> implements Completer<T> {
 
   @pragma("wasm:entry-point")
   void completeError(Object error, [StackTrace? stackTrace]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    checkNotNullable(error, "error");
     if (!future._mayComplete) throw new StateError("Future already completed");
-    AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
-    if (replacement != null) {
-      error = replacement.error;
-      stackTrace = replacement.stackTrace;
-    } else {
-      stackTrace ??= AsyncError.defaultStackTrace(error);
-    }
+    AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
     _completeError(error, stackTrace);
   }
 

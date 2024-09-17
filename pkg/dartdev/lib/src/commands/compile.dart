@@ -20,7 +20,7 @@ import '../sdk.dart';
 import '../utils.dart';
 
 const int genericErrorExitCode = 255;
-const int compileErrorExitCode = 64;
+const int compileErrorExitCode = 254;
 
 class Option {
   final String flag;
@@ -593,6 +593,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       --type-merging
       -Os
       --type-finalizing
+      --minimize-rec-groups
     '''); // end of binaryenFlags
 
   final List<String> optimizationLevel0Flags = _flagList('''
@@ -620,7 +621,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       --inlining
       --minify
       --omit-implicit-checks
-      --omit-explicit-checks
       --omit-bounds-checks
     '''); // end of optimizationLevel4Flags
 
@@ -847,7 +847,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     ];
     try {
       final exitCode = await runProcess(dart2wasmCommand);
-      if (exitCode != 0) return compileErrorExitCode;
+      if (exitCode != 0) return exitCode;
     } catch (e, st) {
       log.stderr('Error: Wasm compilation failed');
       log.stderr(e.toString());

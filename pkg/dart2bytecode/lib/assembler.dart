@@ -105,12 +105,6 @@ class BytecodeAssembler {
     }
   }
 
-  void emitYieldPointSourcePosition(int yieldSourcePosition) {
-    if (!isUnreachable) {
-      sourcePositions.addYieldPoint(offset, yieldSourcePosition);
-    }
-  }
-
   void _grow() {
     final newSize = _buffer.length << 1;
     final newBuffer = new Uint8List(newSize);
@@ -461,30 +455,14 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
+  void emitSuspend(Label label) {
+    _emitJumpInstruction(Opcode.kSuspend, label);
+  }
+
+  @pragma('vm:prefer-inline')
   void emitReturnTOS() {
     emitSourcePosition();
     _emitInstruction0(Opcode.kReturnTOS);
-    isUnreachable = true;
-  }
-
-  @pragma('vm:prefer-inline')
-  void emitReturnAsync() {
-    emitSourcePosition();
-    _emitInstruction0(Opcode.kReturnAsync);
-    isUnreachable = true;
-  }
-
-  @pragma('vm:prefer-inline')
-  void emitReturnAsyncStar() {
-    emitSourcePosition();
-    _emitInstruction0(Opcode.kReturnAsyncStar);
-    isUnreachable = true;
-  }
-
-  @pragma('vm:prefer-inline')
-  void emitReturnSyncStar() {
-    emitSourcePosition();
-    _emitInstruction0(Opcode.kReturnSyncStar);
     isUnreachable = true;
   }
 
@@ -711,12 +689,6 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
-  void emitAssertBoolean(int ra) {
-    emitSourcePosition();
-    _emitInstructionA(Opcode.kAssertBoolean, ra);
-  }
-
-  @pragma('vm:prefer-inline')
   void emitCheckStack(int ra) {
     emitSourcePosition();
     _emitInstructionA(Opcode.kCheckStack, ra);
@@ -745,9 +717,9 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
-  void emitAllocateClosure(int rd) {
+  void emitAllocateClosure() {
     emitSourcePosition();
-    _emitInstructionD(Opcode.kAllocateClosure, rd);
+    _emitInstruction0(Opcode.kAllocateClosure);
   }
 
   @pragma('vm:prefer-inline')
@@ -770,5 +742,15 @@ class BytecodeAssembler {
   @pragma('vm:prefer-inline')
   void emitJumpIfInitialized(Label label) {
     _emitJumpInstruction(Opcode.kJumpIfInitialized, label);
+  }
+
+  @pragma('vm:prefer-inline')
+  void emitAllocateRecord(int rd) {
+    _emitInstructionD(Opcode.kAllocateRecord, rd);
+  }
+
+  @pragma('vm:prefer-inline')
+  void emitLoadRecordField(int rd) {
+    _emitInstructionD(Opcode.kLoadRecordField, rd);
   }
 }

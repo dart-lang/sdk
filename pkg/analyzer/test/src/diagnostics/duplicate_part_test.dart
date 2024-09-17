@@ -15,6 +15,28 @@ main() {
 
 @reflectiveTest
 class DuplicatePartTest extends PubPackageResolutionTest {
+  test_library_sameSource() async {
+    newFile('$testPackageLibPath/part.dart', 'part of lib;');
+    await assertErrorsInCode(r'''
+library lib;
+part 'part.dart';
+part 'foo/../part.dart';
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_PART, 36, 18),
+    ]);
+  }
+
+  test_library_sameUri() async {
+    newFile('$testPackageLibPath/part.dart', 'part of lib;');
+    await assertErrorsInCode(r'''
+library lib;
+part 'part.dart';
+part 'part.dart';
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_PART, 36, 11),
+    ]);
+  }
+
   test_no_duplicates() async {
     newFile('$testPackageLibPath/part1.dart', '''
 part of lib;
@@ -29,25 +51,20 @@ part 'part2.dart';
 ''');
   }
 
-  test_sameSource() async {
-    newFile('$testPackageLibPath/part.dart', 'part of lib;');
-    await assertErrorsInCode(r'''
-library lib;
-part 'part.dart';
-part 'foo/../part.dart';
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_PART, 36, 18),
-    ]);
-  }
+  test_part_includesSelf() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
 
-  test_sameUri() async {
-    newFile('$testPackageLibPath/part.dart', 'part of lib;');
-    await assertErrorsInCode(r'''
-library lib;
-part 'part.dart';
-part 'part.dart';
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_PART, 36, 11),
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+part 'b.dart';
+''');
+
+    await assertErrorsInFile2(a, []);
+
+    await assertErrorsInFile2(b, [
+      error(CompileTimeErrorCode.DUPLICATE_PART, 23, 8),
     ]);
   }
 }

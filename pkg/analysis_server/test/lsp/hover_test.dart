@@ -81,6 +81,25 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     expect(markup.value, matcher);
   }
 
+  Future<void> assertNullHover(
+    String content, {
+    bool waitForAnalysis = false,
+    bool withOpenFile = true,
+  }) async {
+    var code = TestCode.parse(content);
+
+    var initialAnalysis = waitForAnalysis ? waitForAnalysisComplete() : null;
+    await initialize();
+    if (withOpenFile) {
+      await openFile(mainFileUri, code.code);
+    } else {
+      newFile(mainFilePath, code.code);
+    }
+    await initialAnalysis;
+    var hover = await getHover(mainFileUri, code.position.position);
+    expect(hover, isNull);
+  }
+
   Future<void> assertPlainTextContents(String content, Matcher matcher) async {
     setHoverContentFormat([MarkupKind.PlainText]);
     var code = TestCode.parse(content);
@@ -185,6 +204,23 @@ Type: `List<MyEnum>`
     await assertStringContents(content, equals(expected));
   }
 
+  Future<void> test_field_underscore() async {
+    var content = '''
+class A {
+  int _ = 1;
+  int f() => [!^_!];
+}
+''';
+    var expected = '''
+```dart
+int _
+```
+Type: `int`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_forLoop_declaredVariable() async {
     var content = '''
 void f() {
@@ -238,6 +274,20 @@ Type: `String`''';
       () => getHover(mainFileUri, Position(line: 999, character: 999)),
       throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)),
     );
+  }
+
+  Future<void> test_localVariable_wildcard() async {
+    var content = '''
+f() {
+  int [!^_!] = 0;
+}
+''';
+    var expected = '''
+```dart
+int _
+```
+Type: `int`''';
+    await assertStringContents(content, equals(expected));
   }
 
   Future<void> test_markdown_isFormattedForDisplay() async {
@@ -306,6 +356,23 @@ print();
         contains('This is a method.'),
       );
 
+  Future<void> test_method_underscore() async {
+    var content = '''
+class A {
+  int _() => 1;
+  int f() => [!^_!]();
+}
+''';
+    var expected = '''
+```dart
+int _()
+```
+Type: `int Function()`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_noElement() async {
     var code = TestCode.parse('''
     String? abc;
@@ -344,6 +411,18 @@ Type: `String?`
         .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
+  }
+
+  Future<void> test_parameter_wildcard() async {
+    var content = '''
+f(int [!^_!]) { }
+''';
+    var expected = '''
+```dart
+int _
+```
+Type: `int`''';
+    await assertStringContents(content, equals(expected));
   }
 
   Future<void> test_pattern_assignment_left() => assertStringContents(
@@ -805,6 +884,50 @@ Type: `String?`
 ---
 This is a string.''';
     await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_topLevelFunction_underscore() async {
+    var content = '''
+int _() => 1;
+int f() => [!^_!]();
+''';
+    var expected = '''
+```dart
+int _()
+```
+Type: `int Function()`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_topLevelVariable_underscore() async {
+    var content = '''
+int _ = 1;
+int f() => [!^_!];
+''';
+    var expected = '''
+```dart
+int _
+```
+Type: `int`
+
+*package:test/main.dart*''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_typeParameter() async {
+    var content = '''
+class C<[!^T!]> {}
+''';
+    await assertNullHover(content);
+  }
+
+  Future<void> test_typeParameter_wildcard() async {
+    var content = '''
+class C<[!^_!]> {}
+''';
+    await assertNullHover(content);
   }
 
   Future<void> test_unnamed_library_directive() async {

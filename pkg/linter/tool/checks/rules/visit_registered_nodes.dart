@@ -71,10 +71,10 @@ class VisitRegisteredNodes extends LintRule {
 
   VisitRegisteredNodes()
       : super(
-            name: 'visit_registered_nodes',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errors});
+          name: 'visit_registered_nodes',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => code;
@@ -104,7 +104,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
     // Unifying and Generalizing visitors are doing the right thing.)
     // For now we flag methods inherited from SimpleAstVisitor since they
     // surely don't do anything.
-    return method?.enclosingElement.name != 'SimpleAstVisitor';
+    return method?.enclosingElement3.name != 'SimpleAstVisitor';
   }
 
   @override

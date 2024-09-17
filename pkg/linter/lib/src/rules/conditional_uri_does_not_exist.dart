@@ -34,10 +34,10 @@ import 'file_that_does_exist.dart'
 class ConditionalUriDoesNotExist extends LintRule {
   ConditionalUriDoesNotExist()
       : super(
-            name: 'conditional_uri_does_not_exist',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'conditional_uri_does_not_exist',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.conditional_uri_does_not_exist;

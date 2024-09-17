@@ -52,7 +52,9 @@ class TopLevelDeclarations {
         continue;
       }
 
-      if (_findElement(elementResult.element, element.displayName) != null) {
+      if (_findElement(elementResult.element, element.displayName)
+              ?.nonSynthetic ==
+          element.nonSynthetic) {
         resultCache?[element] = elementResult.element;
         return elementResult.element;
       }

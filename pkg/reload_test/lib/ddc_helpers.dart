@@ -95,7 +95,6 @@ var prerequisiteScripts = [
   }
 ];
 
-let sdk = dart_library.import('dart_sdk');
 let scripts = ${_encoder.convert(scriptDescriptors)};
 
 let loadConfig = new self.\$dartLoader.LoadConfiguration();
@@ -123,6 +122,8 @@ self.\$dartLoader.loader = loader;
 // Append hot reload runner-specific logic.
 let modifiedFilesPerGeneration = ${_encoder.convert(modifiedFilesPerGeneration)};
 let previousGenerations = new Set();
+
+// Append a helper function for hot restart.
 self.\$dartReloadModifiedModules = function(subAppName, callback) {
   let expectedName = "$entrypointModuleName";
   if (subAppName !== expectedName) {
@@ -138,11 +139,6 @@ self.\$dartReloadModifiedModules = function(subAppName, callback) {
     throw Error('Fatal error: Previous generations are being re-run.');
   }
   previousGenerations.add(nextGeneration);
-
-  // Increment the hot restart generation before loading files or running main
-  // This lets us treat the value in `hotRestartGeneration` as the 'current'
-  // generation until local state is updated.
-  self.\$dartLoader.loader.hotRestartGeneration += 1;
 
   let modifiedFilePaths = modifiedFilesPerGeneration[nextGeneration];
   // Stop if the next generation does not exist.
@@ -160,10 +156,34 @@ self.\$dartReloadModifiedModules = function(subAppName, callback) {
   callback();
 }
 
+// Append a helper function for hot reload.
+self.\$injectedFilesAndLibrariesToReload = function() {
+  // Resolve the next generation's directory and load all modified files.
+  let nextGeneration = self.dartDevEmbedder.hotReloadGeneration + 1;
+  if (previousGenerations.has(nextGeneration)) {
+    throw Error('Fatal error: Previous generations are being re-run.');
+  }
+  previousGenerations.add(nextGeneration);
+  let modifiedFilePaths = modifiedFilesPerGeneration[nextGeneration];
+  // Stop if the next generation does not exist.
+  if (modifiedFilePaths == void 0) {
+    return;
+  }
+  let fileUrls = [];
+  let libraryIds = [];
+  for (let i = 0; i < modifiedFilePaths.length; i++) {
+    let modifiedFileId =  modifiedFilePaths[i][0];
+    let modifiedFilePath = modifiedFilePaths[i][1];
+    libraryIds.push(modifiedFileId);
+    fileUrls.push(modifiedFilePath);
+  }
+  return [fileUrls, libraryIds];
+}
+
 // D8 does not support the core Timer API methods beside `setTimeout` so our
 // D8 preambles provide a custom implementation.
 //
-// Timers in this implementatiom are simulated, so they all complete before
+// Timers in this implementation are simulated, so they all complete before
 // native JS `await` boundaries. If this boundary occurs before our runtime's
 // `hotRestartIteration` counter increments, we can observe Futures not being
 // cancelled in D8 when they might otherwise have been in Chrome.
@@ -195,12 +215,7 @@ loader.nextAttempt();
 // Invoke main through the d8 preamble to ensure the code is running
 // within the fake event loop.
 self.dartMainRunner(function () {
-  dart_library.start("$entrypointModuleName",
-    "$uuid",
-    "$entrypointModuleName",
-    "$entrypointLibraryExportName",
-    false
-  );
+  dartDevEmbedder.runMain("$entrypointModuleName", {});
 });
 ''';
   return d8BootstrapJS;
@@ -258,16 +273,7 @@ String generateChromeMainEntrypoint({
 
   let child = {};
   child.main = function() {
-    let dart = self.dart_library.import('dart_sdk', appName).dart;
-    dart.nonNullAsserts($nullAssertions);
-    dart.nativeNonNullAsserts($nativeNullAssertions);
-    dart_library.start(
-      appName,
-      "$uuid",
-      moduleName,
-      "$entrypointLibraryExportName",
-      false
-    );
+    dartDevEmbedder.runMain("$entrypointModuleName", {});
   }
 
   child.main();
@@ -437,6 +443,30 @@ let _scriptUrls = {
     // Append hot reload runner-specific logic.
     let modifiedFilesPerGeneration = ${_encoder.convert(modifiedFilesPerGeneration)};
     let previousGenerations = new Set();
+
+    self.\$injectedFilesAndLibrariesToReload = function() {
+      // Resolve the next generation's directory and load all modified files.
+      let nextGeneration = self.dartDevEmbedder.hotReloadGeneration + 1;
+      if (previousGenerations.has(nextGeneration)) {
+        throw Error('Fatal error: Previous generations are being re-run.');
+      }
+      previousGenerations.add(nextGeneration);
+      let modifiedFilePaths = modifiedFilesPerGeneration[nextGeneration];
+      // Stop if the next generation does not exist.
+      if (modifiedFilePaths == void 0) {
+        return;
+      }
+      let fileUrls = [];
+      let libraryIds = [];
+      for (let i = 0; i < modifiedFilePaths.length; i++) {
+        let modifiedFileId =  modifiedFilePaths[i][0];
+        let modifiedFilePath = modifiedFilePaths[i][1];
+        libraryIds.push(modifiedFileId);
+        fileUrls.push(modifiedFilePath);
+      }
+      return [fileUrls, libraryIds];
+    }
+
     self.\$dartReloadModifiedModules = function(subAppName, callback) {
       let expectedName = "$entrypointModuleName";
       if (subAppName !== expectedName) {
@@ -452,11 +482,6 @@ let _scriptUrls = {
         throw Error('Fatal error: Previous generations are being re-run.');
       }
       previousGenerations.add(nextGeneration);
-
-      // Increment the hot restart generation before loading files or running main
-      // This lets us treat the value in `hotRestartGeneration` as the 'current'
-      // generation until local state is updated.
-      self.\$dartLoader.loader.hotRestartGeneration += 1;
 
       let modifiedFilePaths = modifiedFilesPerGeneration[nextGeneration];
       // Stop if the next generation does not exist.

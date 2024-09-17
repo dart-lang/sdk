@@ -324,7 +324,7 @@ class RelevanceComputer {
   /// Compute the relevance for [ConstructorElement].
   int _computeConstructorRelevance(ConstructorElement element,
       NeverType neverType, bool isNotImportedLibrary) {
-    var enclosingClass = element.enclosingElement.augmented.declaration;
+    var enclosingClass = element.enclosingElement3.augmented.declaration;
     var returnType = instantiateInstanceElement(enclosingClass, neverType);
     return computeTopLevelRelevance(element,
         elementType: returnType, isNotImportedLibrary: isNotImportedLibrary);

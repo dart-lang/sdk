@@ -31,10 +31,10 @@ Remove unnecessary backslashes in strings.
 class UnnecessaryStringEscapes extends LintRule {
   UnnecessaryStringEscapes()
       : super(
-            name: 'unnecessary_string_escapes',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'unnecessary_string_escapes',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   bool get canUseParsedResult => true;

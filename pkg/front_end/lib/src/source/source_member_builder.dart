@@ -115,13 +115,13 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   @override
   MemberDataForTesting? dataForTesting;
 
-  SourceMemberBuilderImpl(Builder parent, int charOffset, [Uri? fileUri])
+  SourceMemberBuilderImpl(Builder parent, Uri fileUri, int charOffset)
       : dataForTesting = retainDataForTesting
             ?
             // Coverage-ignore(suite): Not run.
             new MemberDataForTesting()
             : null,
-        super(parent, charOffset, fileUri);
+        super(parent, fileUri, charOffset);
 
   @override
   SourceLibraryBuilder get libraryBuilder =>
@@ -138,9 +138,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   }
 
   void set isConflictingSetter(bool value) {
-    assert(
-        _isConflictingSetter == null,
-        // Coverage-ignore(suite): Not run.
+    assert(_isConflictingSetter == null,
         '$this.isConflictingSetter has already been fixed.');
     _isConflictingSetter = value;
   }
@@ -154,9 +152,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
 
   @override
   void set isConflictingAugmentationMember(bool value) {
-    assert(
-        _isConflictingAugmentationMember == null,
-        // Coverage-ignore(suite): Not run.
+    assert(_isConflictingAugmentationMember == null,
         '$this.isConflictingAugmentationMember has already been fixed.');
     _isConflictingAugmentationMember = value;
   }

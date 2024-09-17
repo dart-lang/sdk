@@ -24,10 +24,10 @@ import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/type_algorithms.dart';
 import '../type_inference/type_inference_engine.dart';
 import 'class_declaration.dart';
 import 'source_builder_mixins.dart';
@@ -73,33 +73,41 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   List<TypeBuilder>? interfaceBuilders;
 
-  final SourceFieldBuilder? representationFieldBuilder;
+  FieldFragment? _representationFieldFragment;
+
+  SourceFieldBuilder? _representationFieldBuilder;
 
   final IndexedContainer? indexedContainer;
 
+  Nullability? _nullability;
+
   SourceExtensionTypeDeclarationBuilder(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      String name,
-      this.typeParameters,
-      this.interfaceBuilders,
-      this.typeParameterScope,
-      this._nameSpaceBuilder,
-      SourceLibraryBuilder parent,
-      this.constructorReferences,
-      int startOffset,
-      int nameOffset,
-      int endOffset,
-      this.indexedContainer,
-      this.representationFieldBuilder)
+      {required List<MetadataBuilder>? metadata,
+      required int modifiers,
+      required String name,
+      required this.typeParameters,
+      required this.interfaceBuilders,
+      required this.typeParameterScope,
+      required DeclarationNameSpaceBuilder nameSpaceBuilder,
+      required SourceLibraryBuilder enclosingLibraryBuilder,
+      required this.constructorReferences,
+      required Uri fileUri,
+      required int startOffset,
+      required int nameOffset,
+      required int endOffset,
+      required this.indexedContainer,
+      required FieldFragment? representationFieldFragment})
       : _extensionTypeDeclaration = new ExtensionTypeDeclaration(
             name: name,
-            fileUri: parent.fileUri,
+            fileUri: fileUri,
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
                 typeParameters),
             reference: indexedContainer?.reference)
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, name, parent, nameOffset) {}
+        _nameSpaceBuilder = nameSpaceBuilder,
+        _representationFieldFragment = representationFieldFragment,
+        super(metadata, modifiers, name, enclosingLibraryBuilder, fileUri,
+            nameOffset);
 
   @override
   LookupScope get scope => _scope;
@@ -110,9 +118,21 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   ConstructorScope get constructorScope => _constructorScope;
 
+  SourceFieldBuilder? get representationFieldBuilder {
+    if (_representationFieldBuilder == null) {
+      _representationFieldBuilder = _representationFieldFragment?.builder;
+      _representationFieldFragment = null;
+    }
+    return _representationFieldBuilder;
+  }
+
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
-    _nameSpace = _nameSpaceBuilder.buildNameSpace(this);
+    _nameSpace = _nameSpaceBuilder.buildNameSpace(
+        loader: libraryBuilder.loader,
+        problemReporting: libraryBuilder,
+        enclosingLibraryBuilder: libraryBuilder,
+        declarationBuilder: this);
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension type $name",
         parent: typeParameterScope);
@@ -179,8 +199,8 @@ class SourceExtensionTypeDeclarationBuilder
 
         if (typeParameters?.isNotEmpty ?? false) {
           for (NominalVariableBuilder variable in typeParameters!) {
-            Variance variance = computeTypeVariableBuilderVariance(
-                    variable, typeBuilder,
+            Variance variance = typeBuilder
+                .computeTypeVariableBuilderVariance(variable,
                     sourceLoader: libraryBuilder.loader)
                 .variance!;
             if (!variance.greaterThanOrEqual(variable.variance)) {
@@ -548,26 +568,21 @@ class SourceExtensionTypeDeclarationBuilder
           }
         }
 
-        if (typeBuilder is NamedTypeBuilder) {
-          TypeDeclarationBuilder? typeDeclaration = typeBuilder.declaration;
-          if (typeDeclaration is TypeAliasBuilder) {
-            typeDeclaration =
-                typeDeclaration.unaliasDeclaration(typeBuilder.typeArguments);
-          }
-          if (typeDeclaration is ClassBuilder ||
-              typeDeclaration is ExtensionTypeDeclarationBuilder) {
-            if (!implemented.add(typeDeclaration!)) {
-              duplicationProblems ??= {};
-              switch (duplicationProblems[typeDeclaration]) {
-                case (:var count, :var offset):
-                  duplicationProblems[typeDeclaration] =
-                      (count: count + 1, offset: offset);
-                case null:
-                  duplicationProblems[typeDeclaration] = (
-                    count: 1,
-                    offset: typeBuilder.charOffset ?? TreeNode.noOffset
-                  );
-              }
+        TypeDeclarationBuilder? typeDeclaration =
+            typeBuilder.computeUnaliasedDeclaration(isUsedAsClass: false);
+        if (typeDeclaration is ClassBuilder ||
+            typeDeclaration is ExtensionTypeDeclarationBuilder) {
+          if (!implemented.add(typeDeclaration!)) {
+            duplicationProblems ??= {};
+            switch (duplicationProblems[typeDeclaration]) {
+              case (:var count, :var offset):
+                duplicationProblems[typeDeclaration] =
+                    (count: count + 1, offset: offset);
+              case null:
+                duplicationProblems[typeDeclaration] = (
+                  count: 1,
+                  offset: typeBuilder.charOffset ?? TreeNode.noOffset
+                );
             }
           }
         }
@@ -584,6 +599,76 @@ class SourceExtensionTypeDeclarationBuilder
         }
       }
     }
+  }
+
+  @override
+  Nullability computeNullability(
+          {Map<ExtensionTypeDeclarationBuilder, TraversalState>?
+              traversalState}) =>
+      _nullability ??= _computeNullability(traversalState: traversalState);
+
+  Nullability _computeNullabilityFromType(TypeBuilder typeBuilder,
+      {required Map<ExtensionTypeDeclarationBuilder, TraversalState>
+          traversalState}) {
+    Nullability nullability = typeBuilder.nullabilityBuilder.build();
+    TypeDeclarationBuilder? declaration = typeBuilder.declaration;
+    switch (declaration) {
+      case TypeAliasBuilder():
+        return combineNullabilitiesForSubstitution(
+            inner: _computeNullabilityFromType(
+                declaration.unalias(typeBuilder.typeArguments,
+                    unboundTypeVariables: [])!,
+                traversalState: traversalState),
+            outer: nullability);
+      case ExtensionTypeDeclarationBuilder():
+        return combineNullabilitiesForSubstitution(
+            inner:
+                declaration.computeNullability(traversalState: traversalState),
+            outer: nullability);
+      case ClassBuilder():
+      // Coverage-ignore(suite): Not run.
+      case NominalVariableBuilder():
+      // Coverage-ignore(suite): Not run.
+      case StructuralVariableBuilder():
+      // Coverage-ignore(suite): Not run.
+      case ExtensionBuilder():
+      // Coverage-ignore(suite): Not run.
+      case BuiltinTypeDeclarationBuilder():
+      // Coverage-ignore(suite): Not run.
+      case InvalidTypeDeclarationBuilder():
+      // Coverage-ignore(suite): Not run.
+      case OmittedTypeDeclarationBuilder():
+      case null:
+        return nullability;
+    }
+  }
+
+  Nullability _computeNullability(
+      {Map<ExtensionTypeDeclarationBuilder, TraversalState>? traversalState}) {
+    traversalState ??= {};
+    Nullability nullability = Nullability.undetermined;
+    switch (traversalState[this] ??= TraversalState.unvisited) {
+      case TraversalState.unvisited:
+        traversalState[this] = TraversalState.active;
+        List<TypeBuilder>? interfaceBuilders = this.interfaceBuilders;
+        if (interfaceBuilders != null) {
+          for (TypeBuilder interfaceBuilder in interfaceBuilders) {
+            Nullability interfaceNullability = _computeNullabilityFromType(
+                interfaceBuilder,
+                traversalState: traversalState);
+            if (interfaceNullability == Nullability.nonNullable) {
+              nullability = Nullability.nonNullable;
+              break;
+            }
+          }
+        }
+        traversalState[this] = TraversalState.visited;
+      // Coverage-ignore(suite): Not run.
+      case TraversalState.active:
+      case TraversalState.visited:
+        traversalState[this] = TraversalState.visited;
+    }
+    return nullability;
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
@@ -640,9 +725,7 @@ class SourceExtensionTypeDeclarationBuilder
             memberBuilder.charOffset,
             memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionTypeRepresentationField:
-        assert(
-            tearOff == null, // Coverage-ignore(suite): Not run.
-            "Unexpected tear-off $tearOff");
+        assert(tearOff == null, "Unexpected tear-off $tearOff");
         extensionTypeDeclaration.addProcedure(member as Procedure);
     }
   }
@@ -817,14 +900,9 @@ class SourceExtensionTypeDeclarationBuilder
         TypeBuilder interface = interfaces[i];
         TypeDeclarationBuilder? declarationBuilder = interface.declaration;
         if (declarationBuilder is TypeAliasBuilder) {
-          TypeAliasBuilder aliasBuilder = declarationBuilder;
-          NamedTypeBuilder namedBuilder = interface as NamedTypeBuilder;
-          declarationBuilder = aliasBuilder.unaliasDeclaration(
-              namedBuilder.typeArguments,
-              isUsedAsClass: true,
-              usedAsClassCharOffset: namedBuilder.charOffset,
-              usedAsClassFileUri: namedBuilder.fileUri);
-          result[declarationBuilder] = aliasBuilder;
+          TypeDeclarationBuilder? unaliasedDeclaration =
+              interface.computeUnaliasedDeclaration(isUsedAsClass: true);
+          result[unaliasedDeclaration] = declarationBuilder;
         } else {
           result[declarationBuilder] = null;
         }

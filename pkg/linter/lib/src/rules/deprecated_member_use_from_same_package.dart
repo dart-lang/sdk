@@ -80,10 +80,10 @@ void m(Foo foo) {
 class DeprecatedMemberUseFromSamePackage extends LintRule {
   DeprecatedMemberUseFromSamePackage()
       : super(
-            name: 'deprecated_member_use_from_same_package',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.languageFeatureUsage});
+          name: 'deprecated_member_use_from_same_package',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<LintCode> get lintCodes => [

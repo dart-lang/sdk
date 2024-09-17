@@ -885,7 +885,8 @@ class _MacroListener implements Listener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
+      Token name,
+      String? enclosingDeclarationName) {
     _unexpected();
   }
 
@@ -1531,7 +1532,7 @@ class _MacroListener implements Listener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     _unsupported();
   }
 

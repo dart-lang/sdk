@@ -114,7 +114,8 @@ class ParserTestListener implements Listener {
 
   out.writeln("}");
 
-  return new DartFormatter().format("$out");
+  return new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+      .format("$out");
 }
 
 class ParserCreatorListener extends Listener {
@@ -157,7 +158,8 @@ class ParserCreatorListener extends Listener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
+      Token name,
+      String? enclosingDeclarationName) {
     currentMethodName = name.lexeme;
   }
 

@@ -39,13 +39,10 @@ int get field => _field;
 class RecursiveGetters extends LintRule {
   RecursiveGetters()
       : super(
-            name: 'recursive_getters',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.errorProne,
-              LintRuleCategory.unintentional
-            });
+          name: 'recursive_getters',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.recursive_getters;

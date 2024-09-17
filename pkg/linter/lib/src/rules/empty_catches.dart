@@ -52,10 +52,10 @@ try {
 class EmptyCatches extends LintRule {
   EmptyCatches()
       : super(
-            name: 'empty_catches',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'empty_catches',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.empty_catches;

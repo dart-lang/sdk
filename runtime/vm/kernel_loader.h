@@ -225,21 +225,21 @@ class KernelLoader : public ValueObject {
 
  private:
   // Pragma bits
-  using HasPragma = BitField<uint32_t, bool, 0, 1>;
-  using ExternalNamePragma = BitField<uint32_t, bool, HasPragma::kNextBit, 1>;
+  using HasPragma = BitField<uint32_t, bool>;
+  using ExternalNamePragma = BitField<uint32_t, bool, HasPragma::kNextBit>;
   using InvisibleFunctionPragma =
-      BitField<uint32_t, bool, ExternalNamePragma::kNextBit, 1>;
+      BitField<uint32_t, bool, ExternalNamePragma::kNextBit>;
   using IsolateUnsendablePragma =
-      BitField<uint32_t, bool, InvisibleFunctionPragma::kNextBit, 1>;
+      BitField<uint32_t, bool, InvisibleFunctionPragma::kNextBit>;
   using DeeplyImmutablePragma =
-      BitField<uint32_t, bool, IsolateUnsendablePragma::kNextBit, 1>;
+      BitField<uint32_t, bool, IsolateUnsendablePragma::kNextBit>;
   using FfiNativePragma =
-      BitField<uint32_t, bool, DeeplyImmutablePragma::kNextBit, 1>;
-  using SharedPragma = BitField<uint32_t, bool, FfiNativePragma::kNextBit, 1>;
+      BitField<uint32_t, bool, DeeplyImmutablePragma::kNextBit>;
+  using SharedPragma = BitField<uint32_t, bool, FfiNativePragma::kNextBit>;
   using DynModuleExtendablePragma =
-      BitField<uint32_t, bool, SharedPragma::kNextBit, 1>;
+      BitField<uint32_t, bool, SharedPragma::kNextBit>;
   using DynModuleCanBeOverriddenPragma =
-      BitField<uint32_t, bool, DynModuleExtendablePragma::kNextBit, 1>;
+      BitField<uint32_t, bool, DynModuleExtendablePragma::kNextBit>;
 
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,

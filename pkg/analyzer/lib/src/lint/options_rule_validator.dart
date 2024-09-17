@@ -79,21 +79,28 @@ class LinterRuleOptionsValidator extends OptionsValidator {
 
       var rule = getRegisteredLint(value as Object);
       if (rule == null) {
-        reporter.reportErrorForSpan(
-            AnalysisOptionsWarningCode.UNDEFINED_LINT, node.span, [value]);
+        reporter.atSourceSpan(
+          node.span,
+          AnalysisOptionsWarningCode.UNDEFINED_LINT,
+          arguments: [value],
+        );
         return;
       }
 
       if (enabled) {
         var incompatibleRule = findIncompatibleRule(rule);
         if (incompatibleRule != null) {
-          reporter.reportErrorForSpan(
-              AnalysisOptionsWarningCode.INCOMPATIBLE_LINT,
-              node.span,
-              [value, incompatibleRule]);
+          reporter.atSourceSpan(
+            node.span,
+            AnalysisOptionsWarningCode.INCOMPATIBLE_LINT,
+            arguments: [value, incompatibleRule],
+          );
         } else if (!seenRules.add(rule.name)) {
-          reporter.reportErrorForSpan(
-              AnalysisOptionsHintCode.DUPLICATE_RULE, node.span, [value]);
+          reporter.atSourceSpan(
+            node.span,
+            AnalysisOptionsHintCode.DUPLICATE_RULE,
+            arguments: [value],
+          );
         }
       }
       // Report removed or deprecated lint warnings defined directly (and not in
@@ -103,25 +110,33 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         if (state is DeprecatedState && isDeprecatedInCurrentSdk(state)) {
           var replacedBy = state.replacedBy;
           if (replacedBy != null) {
-            reporter.reportErrorForSpan(
-                AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT,
-                node.span,
-                [value, replacedBy]);
+            reporter.atSourceSpan(
+              node.span,
+              AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT,
+              arguments: [value, replacedBy],
+            );
           } else {
-            reporter.reportErrorForSpan(
-                AnalysisOptionsHintCode.DEPRECATED_LINT, node.span, [value]);
+            reporter.atSourceSpan(
+              node.span,
+              AnalysisOptionsHintCode.DEPRECATED_LINT,
+              arguments: [value],
+            );
           }
         } else if (isRemovedInCurrentSdk(state)) {
           var since = state.since.toString();
           var replacedBy = (state as RemovedState).replacedBy;
           if (replacedBy != null) {
-            reporter.reportErrorForSpan(
-                AnalysisOptionsWarningCode.REPLACED_LINT,
-                node.span,
-                [value, since, replacedBy]);
+            reporter.atSourceSpan(
+              node.span,
+              AnalysisOptionsWarningCode.REPLACED_LINT,
+              arguments: [value, since, replacedBy],
+            );
           } else {
-            reporter.reportErrorForSpan(AnalysisOptionsWarningCode.REMOVED_LINT,
-                node.span, [value, since]);
+            reporter.atSourceSpan(
+              node.span,
+              AnalysisOptionsWarningCode.REMOVED_LINT,
+              arguments: [value, since],
+            );
           }
         }
       }

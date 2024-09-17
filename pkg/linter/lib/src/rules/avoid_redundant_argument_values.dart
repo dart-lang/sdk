@@ -17,6 +17,19 @@ const _details = r'''
 **DON'T** pass an argument that matches the corresponding parameter's default
 value.
 
+Note that a method override can change the default value of a parameter, so that
+an argument may be equal to one default value, and not the other. Take, for
+example, two classes, `A` and `B` where `B` is a subclass of `A`, and `B`
+overrides a method declared on `A`, and that method has a parameter with one
+default value in `A`'s declaration, and a different default value in `B`'s
+declaration. If the static type of the target of the invoked method is `B`, and
+`B`'s default value matches the argument, then the argument can be omitted (and
+if the argument value is different, then a lint is not reported). If, however,
+the static type of the target of the invoked method is `A`, then a lint may be
+reported, but we cannot know statically which method is invoked, so the reported
+lint may be a false positive. Such cases can be ignored inline with a comment
+like `// ignore: avoid_redundant_argument_values`.
+
 **BAD:**
 ```dart
 void f({bool valWithDefault = true, bool? val}) {
@@ -44,10 +57,10 @@ void main() {
 class AvoidRedundantArgumentValues extends LintRule {
   AvoidRedundantArgumentValues()
       : super(
-            name: 'avoid_redundant_argument_values',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'avoid_redundant_argument_values',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_redundant_argument_values;

@@ -77,6 +77,28 @@ DART_EXPORT int32_t SumPlus42(int32_t a, int32_t b) {
   return retval;
 }
 
+// Sums the first two elements from the arr,
+// where arr must contains at least 2 elements.
+// It's been written to test `.address.cast()` expressions,
+// in the dart side and signature for the below function is
+// intentionally, `int sumFirstTwoElements(Pointer<Void> arr)` to test the
+// TypedData.address.cast() would not affect the address in anyways as it
+// stays the same as if it sent without the cast, as Pointer<Int32>.
+// Hence the `arr` is sent as Pointer<Void>.
+DART_EXPORT int32_t SumFirstTwoElements(int32_t* arr) {
+  std::cout << "SumFirstTwoElements(" << *arr << ", " << *(arr + 1) << ")\n";
+  const int32_t retval = *(arr) + *(arr + 1);
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
+DART_EXPORT int32_t SumTwoPointers(int32_t* a, int32_t* b) {
+  std::cout << "SumTwoPointers(" << *a << ", " << *b << ")\n";
+  const int32_t retval = *a + *b;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
 // Tests for sign and zero extension return values when passed to Dart.
 DART_EXPORT uint8_t ReturnMaxUint8() {
   return 0xff;

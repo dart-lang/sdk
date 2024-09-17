@@ -707,7 +707,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void VisitSharedPointers(ObjectPointerVisitor* visitor);
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
-  void VisitPointersInDefaultServiceIdZone(ObjectPointerVisitor& visitor);
+  void VisitPointersInAllServiceIdZones(ObjectPointerVisitor& visitor);
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   // In precompilation we finalize all regular classes before compiling.
@@ -812,7 +812,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   };
 
 #define DECLARE_BITFIELD(Name)                                                 \
-  class Name##Bit : public BitField<uint32_t, bool, k##Name##Bit, 1> {};
+  using Name##Bit = BitField<uint32_t, bool, k##Name##Bit>;
   ISOLATE_GROUP_FLAG_BITS(DECLARE_BITFIELD)
 #undef DECLARE_BITFIELD
 
@@ -1248,9 +1248,21 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
 #if !defined(PRODUCT)
+  // This method first ensures that the default Service ID zone for this isolate
+  // exists, by creating it if necessary, and then adds a new Service ID zone to
+  // `serivce_id_zones_` and returns a reference to that new zone.
+  RingServiceIdZone& AddServiceIdZone(
+      ObjectIdRing::BackingBufferKind backing_buffer_kind,
+      ObjectIdRing::IdPolicy id_assignment_policy,
+      int32_t capacity);
+
+  void DeleteServiceIdZone(int32_t id);
+
   // The default Service ID zone is created lazily; this method returns the
   // default Service ID zone, creating it if necessary.
   RingServiceIdZone& EnsureDefaultServiceIdZone();
+
+  RingServiceIdZone* GetServiceIdZone(intptr_t zone_id) const;
 
   intptr_t NumServiceIdZones() const;
 #endif  // !defined(PRODUCT)
@@ -1590,7 +1602,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   };
 
 #define DECLARE_BITFIELD(Name)                                                 \
-  class Name##Bit : public BitField<uint32_t, bool, k##Name##Bit, 1> {};
+  using Name##Bit = BitField<uint32_t, bool, k##Name##Bit>;
   ISOLATE_FLAG_BITS(DECLARE_BITFIELD)
 #undef DECLARE_BITFIELD
 

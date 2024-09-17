@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -63,7 +62,7 @@ class AddLate extends ResolvedCorrectionProducer {
       if (getter is PropertyAccessorElement &&
           getter.isGetter &&
           getter.isSynthetic &&
-          getter.enclosingElement is InterfaceElement) {
+          getter.enclosingElement3 is InterfaceElement) {
         var variableElement = getter.variable2;
         if (variableElement != null &&
             !variableElement.isSynthetic &&

@@ -4,12 +4,14 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/implicit_field_type.dart';
-import '../source/builder_factory.dart';
+import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
-import '../source/type_parameter_scope_builder.dart';
+import '../source/source_loader.dart';
+import 'declaration_builders.dart';
 import 'inferable_type_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
@@ -31,14 +33,6 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   int? get charOffset => null;
-
-  @override
-  TypeBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      BuilderFactory builderFactory,
-      TypeParameterScopeBuilder contextDeclaration) {
-    return this;
-  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -68,6 +62,43 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
 
   @override
   DartType get type;
+
+  @override
+  VarianceCalculationValue computeTypeVariableBuilderVariance(
+      NominalVariableBuilder variable,
+      {required SourceLoader sourceLoader}) {
+    return VarianceCalculationValue.calculatedUnrelated;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  TypeDeclarationBuilder? computeUnaliasedDeclaration(
+          {required bool isUsedAsClass}) =>
+      null;
+
+  @override
+  void collectReferencesFrom(Map<TypeVariableBuilder, int> variableIndices,
+      List<List<int>> edges, int index) {}
+
+  @override
+  TypeBuilder? substituteRange(
+      Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
+      Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
+      List<StructuralVariableBuilder> unboundTypeVariables,
+      {Variance variance = Variance.covariant}) {
+    return null;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  TypeBuilder? unaliasAndErase() => this;
+
+  @override
+  bool usesTypeVariables(Set<String> typeVariableNames) => false;
+
+  @override
+  List<TypeWithInBoundReferences> findRawTypesWithInboundReferences() =>
+      const [];
 }
 
 /// [TypeBuilder] for when there is no explicit type provided by the user and
@@ -106,6 +137,13 @@ class ImplicitTypeBuilder extends OmittedTypeBuilderImpl {
 
   @override
   DartType get type => const DynamicType();
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Nullability computeNullability(
+          {required Map<TypeVariableBuilder, TraversalState>
+              typeVariablesTraversalState}) =>
+      type.nullability;
 }
 
 /// [TypeBuilder] for when there is no explicit type provided by the user but
@@ -159,7 +197,6 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
   void registerInferable(Inferable inferable) {
     assert(
         _inferable == null,
-        // Coverage-ignore(suite): Not run.
         "Inferable $_inferable has already been register, "
         "trying to register $inferable.");
     _inferable = inferable;
@@ -178,9 +215,7 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
       } else {
         registerInferredType(const DynamicType());
       }
-      assert(
-          hasType, // Coverage-ignore(suite): Not run.
-          "No type computed for $this");
+      assert(hasType, "No type computed for $this");
     }
     return type;
   }
@@ -195,6 +230,13 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
     buffer.write(inferable);
     buffer.write(')');
     return buffer;
+  }
+
+  @override
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    throw new UnsupportedError("$runtimeType.computeNullability");
   }
 }
 
@@ -251,6 +293,13 @@ class DependentTypeBuilder extends OmittedTypeBuilderImpl
     buffer.write(typeBuilder);
     buffer.write(')');
     return buffer;
+  }
+
+  @override
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    throw new UnimplementedError("$runtimeType.computeNullability");
   }
 }
 

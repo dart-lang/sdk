@@ -62,14 +62,10 @@ Item? bestDeal(List<Item> cart) {
 class AvoidInitToNull extends LintRule {
   AvoidInitToNull()
       : super(
-            name: 'avoid_init_to_null',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.brevity,
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'avoid_init_to_null',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_init_to_null;

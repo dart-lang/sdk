@@ -46,7 +46,7 @@ import '../type_inference/matching_cache.dart';
 import '../type_inference/matching_expressions.dart';
 import 'constant_int_folder.dart';
 import 'exhaustiveness.dart';
-import 'resource_identifier.dart' as ResourceIdentifiers;
+import 'record_use.dart' as RecordUse;
 import 'static_weak_references.dart' show StaticWeakReferences;
 
 part 'constant_collection_builders.dart';
@@ -352,11 +352,14 @@ class ConstantsTransformer extends RemovingTransformer {
             parent, constantEvaluator.errorReporter);
       }
       final Iterable<InstanceConstant> resourceAnnotations =
-          ResourceIdentifiers.findResourceAnnotations(parent);
+          RecordUse.findRecordUseAnnotation(parent);
       if (resourceAnnotations.isNotEmpty) {
         // Coverage-ignore-block(suite): Not run.
-        ResourceIdentifiers.validateResourceIdentifierDeclaration(
-            parent, constantEvaluator.errorReporter, resourceAnnotations);
+        RecordUse.validateRecordUseDeclaration(
+          parent,
+          constantEvaluator.errorReporter,
+          resourceAnnotations,
+        );
       }
     }
   }
@@ -1324,7 +1327,8 @@ class ConstantsTransformer extends RemovingTransformer {
         expressionType is InvalidType
             ? const NeverType.nonNullable()
             : expressionType);
-    List<Space> cases = [];
+    List<bool> caseIsGuarded = [];
+    List<Space> caseSpaces = [];
     PatternConverter patternConverter = new PatternConverter(
         currentLibrary.languageVersion,
         _exhaustivenessCache!,
@@ -1332,45 +1336,45 @@ class ConstantsTransformer extends RemovingTransformer {
         hasPrimitiveEquality: (Constant constant) => constantEvaluator
             .hasPrimitiveEqual(constant, staticTypeContext: staticTypeContext));
     for (PatternGuard patternGuard in patternGuards) {
-      cases.add(patternConverter.createRootSpace(type, patternGuard.pattern,
-          hasGuard: patternGuard.guard != null));
+      caseIsGuarded.add(patternGuard.guard != null);
+      caseSpaces
+          .add(patternConverter.createRootSpace(type, patternGuard.pattern));
     }
-    List<ExhaustivenessError> errors = reportErrors(
-        _exhaustivenessCache!, type, cases,
-        computeUnreachable: retainDataForTesting);
-    List<ExhaustivenessError>? reportedErrors;
-    if (_exhaustivenessDataForTesting != null) {
-      // Coverage-ignore-block(suite): Not run.
-      reportedErrors = [];
-    }
-    for (ExhaustivenessError error in errors) {
-      if (error is UnreachableCaseError) {
-        // Coverage-ignore-block(suite): Not run.
-        reportedErrors?.add(error);
-      } else if (error is NonExhaustiveError &&
-          !hasDefault &&
-          mustBeExhaustive) {
-        // Coverage-ignore(suite): Not run.
-        reportedErrors?.add(error);
-        constantEvaluator.errorReporter.report(
-            constantEvaluator.createLocatedMessageWithOffset(
-                node,
-                fileOffset,
-                (isSwitchExpression
-                        ? templateNonExhaustiveSwitchExpression
-                        : templateNonExhaustiveSwitchStatement)
-                    .withArguments(
-                        expressionType,
-                        error.witnesses.first.asWitness,
-                        error.witnesses.first.asCorrection)));
-      }
+    // Coverage-ignore(suite): Not run.
+    List<CaseUnreachability>? caseUnreachabilities =
+        retainDataForTesting ? [] : null;
+    NonExhaustiveness? nonExhaustiveness = computeExhaustiveness(
+        _exhaustivenessCache!, type, caseIsGuarded, caseSpaces,
+        caseUnreachabilities: caseUnreachabilities);
+    NonExhaustiveness? reportedNonExhaustiveness;
+    if (nonExhaustiveness != null && !hasDefault && mustBeExhaustive) {
+      reportedNonExhaustiveness = nonExhaustiveness;
+      constantEvaluator.errorReporter.report(
+          constantEvaluator.createLocatedMessageWithOffset(
+              node,
+              fileOffset,
+              (isSwitchExpression
+                      ? templateNonExhaustiveSwitchExpression
+                      : templateNonExhaustiveSwitchStatement)
+                  .withArguments(
+                      expressionType,
+                      nonExhaustiveness.witnesses.first.asWitness,
+                      nonExhaustiveness.witnesses.first.asCorrection)));
     }
     if (_exhaustivenessDataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       _exhaustivenessDataForTesting.objectFieldLookup ??= _exhaustivenessCache;
       _exhaustivenessDataForTesting.switchResults[replacement] =
-          new ExhaustivenessResult(type, cases,
-              patternGuards.map((c) => c.fileOffset).toList(), reportedErrors!);
+          new ExhaustivenessResult(
+              type,
+              caseSpaces,
+              patternGuards.map((c) => c.fileOffset).toList(),
+              {
+                for (CaseUnreachability caseUnreachability
+                    in caseUnreachabilities!)
+                  caseUnreachability.index
+              },
+              reportedNonExhaustiveness);
     }
   }
 
@@ -3338,8 +3342,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           AbortConstant? error = checkAssert(init.statement);
           if (error != null) return error;
         } else {
-          // Coverage-ignore-block(suite): Not run.
-          // Coverage-ignore: Probably unreachable.
+          // Coverage-ignore-block: Probably unreachable.
           // InvalidInitializer or new Initializers.
           // InvalidInitializer is (currently) only
           // created for classes with no constructors that doesn't have a
@@ -6052,19 +6055,21 @@ abstract class ErrorReporter {
   bool get hasSeenError;
 }
 
-// Coverage-ignore(suite): Not run.
 class SimpleErrorReporter implements ErrorReporter {
   const SimpleErrorReporter();
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get supportsTrackingReportedErrors => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasSeenError {
     return unsupported("SimpleErrorReporter.hasSeenError", -1, null);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void report(LocatedMessage message, [List<LocatedMessage>? context]) {
     _report(message);
     if (context != null) {
@@ -6074,10 +6079,12 @@ class SimpleErrorReporter implements ErrorReporter {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   void _report(LocatedMessage message) {
     reportMessage(message.uri, message.charOffset, message.problemMessage);
   }
 
+  // Coverage-ignore(suite): Not run.
   void reportMessage(Uri? uri, int offset, String message) {
     io.exitCode = 42;
     io.stderr.writeln('$uri:$offset Constant evaluation error: $message');

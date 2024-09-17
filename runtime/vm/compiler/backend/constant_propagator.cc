@@ -464,18 +464,6 @@ void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
 
 void ConstantPropagator::VisitAssertSubtype(AssertSubtypeInstr* instr) {}
 
-void ConstantPropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsUnknown(value)) {
-    return;
-  }
-  if (value.IsBool()) {
-    SetValue(instr, value);
-  } else {
-    SetValue(instr, non_constant_);
-  }
-}
-
 void ConstantPropagator::VisitClosureCall(ClosureCallInstr* instr) {
   SetValue(instr, non_constant_);
 }

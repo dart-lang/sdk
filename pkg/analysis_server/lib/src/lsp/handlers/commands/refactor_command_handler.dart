@@ -49,7 +49,9 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
               'arguments: List'));
     }
 
-    var clientCapabilities = server.lspClientCapabilities;
+    // Use the editor capabilities, since we're building edits to send to the
+    // editor regardless of who called us.
+    var clientCapabilities = server.editorClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -67,6 +69,7 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
         startSessions: await server.currentSessions,
         resolvedLibraryResult: library,
         resolvedUnitResult: unit,
+        clientCapabilities: clientCapabilities,
         selectionOffset: offset,
         selectionLength: length,
         includeExperimental:

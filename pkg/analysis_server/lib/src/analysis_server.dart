@@ -12,11 +12,14 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analysis_server/src/lsp/client_capabilities.dart';
-import 'package:analysis_server/src/lsp/client_configuration.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart' as lsp;
+import 'package:analysis_server/src/lsp/client_configuration.dart' as lsp;
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
-import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
+import 'package:analysis_server/src/lsp/error_or.dart' as lsp;
+import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart'
+    as lsp;
+import 'package:analysis_server/src/lsp/handlers/handler_states.dart' as lsp;
+import 'package:analysis_server/src/lsp/handlers/handlers.dart' as lsp;
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
@@ -25,10 +28,12 @@ import 'package:analysis_server/src/protocol_server.dart' as legacy
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
+import 'package:analysis_server/src/services/dart_tooling_daemon/dtd_services.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
@@ -104,6 +109,12 @@ abstract class AnalysisServer {
   /// The object through which analytics are to be sent.
   final AnalyticsManager analyticsManager;
 
+  /// A connection to DTD (the Dart Tooling Daemon) that allows other clients to
+  /// call server functionality.
+  ///
+  /// Initialized by the client through a request that calls [connectToDtd].
+  DtdServices? dtd;
+
   /// The object for managing showing surveys to users and recording their
   /// responses.
   ///
@@ -127,7 +138,7 @@ abstract class AnalysisServer {
   ///
   /// This allows the server to call commands itself, such as "Fix All in
   /// Workspace" triggered from the [DartFixPromptManager].
-  ExecuteCommandHandler? executeCommandHandler;
+  lsp.ExecuteCommandHandler? executeCommandHandler;
 
   /// The object used to manage the execution of plugins.
   late PluginManager pluginManager;
@@ -242,6 +253,10 @@ abstract class AnalysisServer {
   /// A completer for [lspUninitialized].
   final Completer<void> _lspUninitializedCompleter = Completer<void>();
 
+  /// A scheduler that keeps track of all incoming messages and schedules them
+  /// for processing.
+  final MessageScheduler messageScheduler;
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -261,7 +276,9 @@ abstract class AnalysisServer {
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']),
-        producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap() {
+        producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap(),
+        messageScheduler = MessageScheduler() {
+    messageScheduler.setServer(this);
     // Set the default URI converter. This uses the resource providers path
     // context (unlike the initialized value) which allows tests to override it.
     uriConverter = ClientUriConverter.noop(baseResourceProvider.pathContext);
@@ -378,17 +395,25 @@ abstract class AnalysisServer {
   Map<Folder, analysis.AnalysisDriver> get driverMap =>
       contextManager.driverMap;
 
-  /// The capabilities of the LSP client.
+  /// The capabilities of the editor that owns this server.
   ///
-  /// For the legacy server, this set may be a fixed set that is not configured
-  /// by the client.
-  LspClientCapabilities? get lspClientCapabilities;
+  /// Request handlers should be careful to use the correct clients capabilities
+  /// if they are available to non-editor clients (such as over DTD). The
+  /// capabilities of the caller are available in [MessageInfo] and should
+  /// usually be used when computing the results for requests, but if those
+  /// requests additionally trigger requests to the editor, those requests to
+  /// the editor should consider these capabilities.
+  ///
+  /// For the legacy server, this set may be a fixed set that is not actually
+  /// configured by the client, but matches what legacy protocol editors expect
+  /// when using LSP-over-Legacy.
+  lsp.LspClientCapabilities? get editorClientCapabilities;
 
   /// The configuration (user/workspace settings) from the LSP client.
   ///
   /// For the legacy server, this set may be a fixed set that is not controlled
   /// by the client.
-  LspClientConfiguration get lspClientConfiguration;
+  lsp.LspClientConfiguration get lspClientConfiguration;
 
   /// A [Future] that completes when the LSP server moves into the initialized
   /// state and can handle normal LSP requests.
@@ -397,7 +422,7 @@ abstract class AnalysisServer {
   ///
   /// When the server leaves the initialized state, [lspUninitialized] will
   /// complete.
-  FutureOr<InitializedStateMessageHandler> get lspInitialized;
+  FutureOr<lsp.InitializedStateMessageHandler> get lspInitialized;
 
   /// A [Future] that completes once the server transitions out of an
   /// initialized state.
@@ -487,6 +512,26 @@ abstract class AnalysisServer {
   void completeLspUninitialization() {
     if (!_lspUninitializedCompleter.isCompleted) {
       _lspUninitializedCompleter.complete();
+    }
+  }
+
+  /// Connects to DTD at [dtdUri].
+  ///
+  /// If there is already an active connection to DTD or there is an error
+  /// connecting, returns an error, otherwise returns `null`.
+  Future<lsp.ErrorOr<Null>> connectToDtd(Uri dtdUri) async {
+    switch (dtd?.state) {
+      case DtdConnectionState.Connecting || DtdConnectionState.Connected:
+        return lsp.error(
+          lsp.ServerErrorCodes.StateError,
+          'Server is already connected to DTD',
+        );
+      case DtdConnectionState.Disconnected || DtdConnectionState.Error || null:
+        var connectResult = await DtdServices.connect(this, dtdUri);
+        return connectResult.mapResultSync((dtd) {
+          this.dtd = dtd;
+          return lsp.success(null);
+        });
     }
   }
 
@@ -750,6 +795,28 @@ abstract class AnalysisServer {
       isFirstAnalysisSinceContextsBuilt = false;
       _dartFixPrompt.triggerCheck();
     }
+  }
+
+  /// Immediately handles an LSP message by delegating to the
+  /// [lsp.InitializedStateMessageHandler]. This method does not schedule the
+  /// message and is intended to be used by the scheduler (or LSP-over-Legacy
+  /// where the original legacy wrapper was already scheduled).
+  ///
+  /// If the LSP server/support is not yet initialized, will wait until it is.
+  FutureOr<lsp.ErrorOr<Object?>> immediatelyHandleLspMessage(
+    lsp.IncomingMessage message,
+    lsp.MessageInfo messageInfo, {
+    lsp.CancellationToken? cancellationToken,
+  }) async {
+    // This is FutureOr<> because for the legacy server it's never a future, so
+    // we can skip the await.
+    var initializedLspHandler = lspInitialized;
+    var handler = initializedLspHandler is lsp.InitializedStateMessageHandler
+        ? initializedLspHandler
+        : await initializedLspHandler;
+
+    return handler.handleMessage(message, messageInfo,
+        cancellationToken: cancellationToken);
   }
 
   /// Return `true` if the file or directory with the given [path] will be

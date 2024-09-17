@@ -30,11 +30,11 @@ b() {
 class EnableNullSafety extends LintRule {
   EnableNullSafety()
       : super(
-            name: 'enable_null_safety',
-            description: _desc,
-            details: _details,
-            state: State.removed(since: dart3),
-            categories: {LintRuleCategory.style});
+          name: 'enable_null_safety',
+          description: _desc,
+          details: _details,
+          state: State.removed(since: dart3),
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

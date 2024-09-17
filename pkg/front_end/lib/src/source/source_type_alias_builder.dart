@@ -45,23 +45,22 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   Map<Name, Procedure>? tearOffs;
 
   SourceTypeAliasBuilder(
-      List<MetadataBuilder>? metadata,
-      String name,
-      this._typeVariables,
-      this.type,
-      SourceLibraryBuilder parent,
-      int charOffset,
-      {Typedef? typedef,
-      Typedef? referenceFrom})
-      : typedef = typedef ??
-            (new Typedef(name, null,
-                typeParameters:
-                    NominalVariableBuilder.typeParametersFromBuilders(
-                        _typeVariables),
-                fileUri: parent.fileUri,
-                reference: referenceFrom?.reference)
-              ..fileOffset = charOffset),
-        super(metadata, name, parent, charOffset);
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required List<NominalVariableBuilder>? typeVariables,
+      required this.type,
+      required SourceLibraryBuilder enclosingLibraryBuilder,
+      required Uri fileUri,
+      required int fileOffset,
+      required Reference? reference})
+      : typedef = new Typedef(name, null,
+            typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
+                typeVariables),
+            fileUri: fileUri,
+            reference: reference)
+          ..fileOffset = fileOffset,
+        _typeVariables = typeVariables,
+        super(metadata, name, enclosingLibraryBuilder, fileUri, fileOffset);
 
   @override
   SourceLibraryBuilder get libraryBuilder =>
@@ -76,8 +75,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   int get typeVariablesCount => typeVariables?.length ?? 0;
 
-  Typedef build() {
-    buildThisType();
+  bool _hasCheckedForCyclicDependency = false;
+
+  void _breakCyclicDependency() {
+    if (_hasCheckedForCyclicDependency) return;
     if (_checkCyclicTypedefDependency(type, this, {this})) {
       typedef.type = new InvalidType();
       type = new InvalidTypeBuilderImpl(fileUri, charOffset);
@@ -98,18 +99,22 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         }
       }
     }
+    _hasCheckedForCyclicDependency = true;
+  }
+
+  Typedef build() {
+    _breakCyclicDependency();
+    buildThisType();
     return typedef;
   }
 
   @override
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables}) {
-    build();
+    _breakCyclicDependency();
     return super.unalias(typeArguments,
         usedTypeAliasBuilders: usedTypeAliasBuilders,
-        unboundTypes: unboundTypes,
         unboundTypeVariables: unboundTypeVariables);
   }
 

@@ -1436,7 +1436,7 @@ conflicts
 
   test_interface_candidatesConflict_interfaceInAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 mixin A {
   void foo(int _);
@@ -1450,7 +1450,7 @@ abstract class C extends Object with A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment abstract class C implements B {}
 ''');
@@ -2774,7 +2774,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
 
   void _assertExecutable(ExecutableElement? element, String? expected) {
     if (expected != null && element != null) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
 
       var type = element.type;
       var typeStr = typeString(type);
@@ -2784,7 +2784,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
 
       if (element is PropertyAccessorElement) {
         var variable = element.variable2!;
-        expect(variable.enclosingElement, same(element.enclosingElement));
+        expect(variable.enclosingElement3, same(element.enclosingElement3));
         expect(variable.name, element.displayName);
         if (element.isGetter) {
           expect(variable.type, element.returnType);
@@ -2865,7 +2865,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       var element = entry.value;
       var type = element.type;
 
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement.name == 'Object') continue;
 
       var typeStr = type.getDisplayString();

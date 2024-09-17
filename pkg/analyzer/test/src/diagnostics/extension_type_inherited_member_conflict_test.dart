@@ -48,6 +48,26 @@ extension type B(int it) implements A1, A2 {}
     ]);
   }
 
+  test_conflict_representationField() async {
+    await assertErrorsInCode('''
+extension type A(String bar) {}
+
+extension type B(String bar) {}
+
+extension type C(String foo) implements A, B {}
+''', [
+      error(
+        CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+        81,
+        1,
+        contextMessages: [
+          message(testFile, 24, 3),
+          message(testFile, 57, 3),
+        ],
+      ),
+    ]);
+  }
+
   test_noConflict_redeclared() async {
     await assertNoErrorsInCode('''
 extension type A1(int it) {

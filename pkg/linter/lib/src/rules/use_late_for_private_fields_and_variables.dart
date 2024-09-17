@@ -61,7 +61,6 @@ class UseLateForPrivateFieldsAndVariables extends LintRule {
           description: _desc,
           details: _details,
           state: State.experimental(),
-          categories: {LintRuleCategory.style},
         );
 
   @override

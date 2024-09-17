@@ -4,6 +4,7 @@
 
 #include "vm/service.h"
 
+#include <cstdint>
 #include <memory>
 #include <utility>
 
@@ -183,6 +184,38 @@ class NoSuchParameter : public MethodParameter {
 #define NO_ISOLATE_PARAMETER new NoSuchParameter("isolateId")
 #define RUNNABLE_ISOLATE_PARAMETER new RunnableIsolateParameter("isolateId")
 #define OBJECT_PARAMETER new IdParameter("objectId", true)
+
+static bool ValidateUIntParameter(const char* value) {
+  if (value == nullptr) {
+    return false;
+  }
+  for (const char* cp = value; *cp != '\0'; cp++) {
+    if (*cp < '0' || *cp > '9') {
+      return false;
+    }
+  }
+  return true;
+}
+
+class UIntParameter : public MethodParameter {
+ public:
+  UIntParameter(const char* name, bool required)
+      : MethodParameter(name, required) {}
+
+  virtual bool Validate(const char* value) const {
+    return ValidateUIntParameter(value);
+  }
+
+  static uintptr_t Parse(const char* value) {
+    if (value == nullptr) {
+      return -1;
+    }
+    char* end_ptr = nullptr;
+    uintptr_t result = strtoul(value, &end_ptr, 10);
+    ASSERT(*end_ptr == '\0');  // Parsed full string
+    return result;
+  }
+};
 
 class EnumListParameter : public MethodParameter {
  public:
@@ -364,12 +397,23 @@ static const char* GetVMName() {
   return vm_name;
 }
 
-ServiceIdZone::ServiceIdZone(ObjectIdRing::IdPolicy policy) : policy_(policy) {}
+ServiceIdZone::ServiceIdZone(intptr_t id, ObjectIdRing::IdPolicy policy)
+    : id_(id), policy_(policy) {}
 
 ServiceIdZone::~ServiceIdZone() {}
 
-RingServiceIdZone::RingServiceIdZone(ObjectIdRing::IdPolicy policy)
-    : ServiceIdZone(policy), ring_() {}
+intptr_t ServiceIdZone::StringIdToInt(const char* id_string) {
+  if (Utils::StrStartsWith(id_string, "zones/") &&
+      ValidateUIntParameter(id_string + 6)) {
+    return UIntParameter::Parse(id_string + 6);
+  }
+  return -1;
+}
+
+RingServiceIdZone::RingServiceIdZone(intptr_t id,
+                                     ObjectIdRing::IdPolicy policy,
+                                     int32_t capacity)
+    : ServiceIdZone(id, policy), ring_(capacity) {}
 
 RingServiceIdZone::~RingServiceIdZone() {}
 
@@ -386,12 +430,32 @@ char* RingServiceIdZone::GetServiceId(const Object& obj) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(zone != nullptr);
-  const intptr_t id = GetIdForObject(obj.ptr());
-  return zone->PrintToString("objects/%" Pd "", id);
+  const intptr_t object_part_of_service_id = GetIdForObject(obj.ptr());
+  return zone->PrintToString("objects/%" Pd "/%" Pd, object_part_of_service_id,
+                             id());
+}
+
+void RingServiceIdZone::Invalidate() {
+  ring_.Invalidate();
 }
 
 void RingServiceIdZone::VisitPointers(ObjectPointerVisitor& visitor) const {
   ring_.VisitPointers(&visitor);
+}
+
+void RingServiceIdZone::PrintJSON(JSONStream& js) const {
+  JSONObject jsobj(&js);
+  jsobj.AddProperty("type", "_IdZone");
+  jsobj.AddPropertyF("id", "zones/%" Pd, id());
+  jsobj.AddProperty("backingBufferKind", "Ring");
+  switch (policy()) {
+    case dart::ObjectIdRing::IdPolicy::kAllocateId:
+      jsobj.AddProperty("idAssignmentPolicy", "AlwaysAllocate");
+      break;
+    case dart::ObjectIdRing::IdPolicy::kReuseId:
+      jsobj.AddProperty("idAssignmentPolicy", "ReuseExisting");
+      break;
+  }
 }
 
 // TODO(johnmccutchan): Unify embedder service handler lists and their APIs.
@@ -727,34 +791,6 @@ class BoolParameter : public MethodParameter {
   }
 };
 
-class UIntParameter : public MethodParameter {
- public:
-  UIntParameter(const char* name, bool required)
-      : MethodParameter(name, required) {}
-
-  virtual bool Validate(const char* value) const {
-    if (value == nullptr) {
-      return false;
-    }
-    for (const char* cp = value; *cp != '\0'; cp++) {
-      if (*cp < '0' || *cp > '9') {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  static uintptr_t Parse(const char* value) {
-    if (value == nullptr) {
-      return -1;
-    }
-    char* end_ptr = nullptr;
-    uintptr_t result = strtoul(value, &end_ptr, 10);
-    ASSERT(*end_ptr == '\0');  // Parsed full string
-    return result;
-  }
-};
-
 class Int64Parameter : public MethodParameter {
  public:
   Int64Parameter(const char* name, bool required)
@@ -971,6 +1007,7 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
   {
     StackZone zone(T);
 
+    Isolate& isolate = *T->isolate();
     Instance& reply_port = Instance::Handle(Z);
     Instance& seq = String::Handle(Z);
     String& method_name = String::Handle(Z);
@@ -1001,16 +1038,27 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
     js.Setup(zone.GetZone(), reply_port_id, seq, method_name, param_keys,
              param_values, parameters_are_dart_objects);
 
-    // RPC came in with a custom service id zone.
-    const char* id_zone_param = js.LookupParam("_idZone");
+    // |id_zone| is the zone that will be stored into the |JSONStream| that we
+    // are about to create, meaning that it is where temporary Service IDs may
+    // be allocated by the RPC currently being handled.
+    RingServiceIdZone* id_zone = &isolate.EnsureDefaultServiceIdZone();
+    const char* id_zone_id_arg = js.LookupParam("_idZoneId");
+    if (id_zone_id_arg != nullptr) {
+      intptr_t id_zone_id = ServiceIdZone::StringIdToInt(id_zone_id_arg);
+      if (id_zone_id != -1) {
+        id_zone = isolate.GetServiceIdZone(id_zone_id);
+      } else {
+        id_zone = nullptr;
+      }
+    }
 
-    if (id_zone_param != nullptr) {
-      // TODO(derekxu16): Support creating, deleting, and selecting custom
-      // Service ID zones. For now, always return an error.
-      PrintInvalidParamError(&js, "_idZone");
+    if (id_zone == nullptr) {
+      PrintInvalidParamError(&js, "_idZoneId");
       js.PostReply();
       return T->StealStickyError();
     }
+    js.set_id_zone(*id_zone);
+
     const char* c_method_name = method_name.ToCString();
 
     const ServiceMethodDescriptor* method = FindMethod(c_method_name);
@@ -1215,6 +1263,12 @@ void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
     return;
   }
   JSONStream js;
+  // When a Service event needs to include temporary object IDs, these IDs will
+  // be allocated in the default ID zone of the isolate associated with the
+  // Service event.
+  if (event->isolate() != nullptr) {
+    js.set_id_zone(event->isolate()->EnsureDefaultServiceIdZone());
+  }
   if (event->stream_info() != nullptr) {
     js.set_include_private_members(
         event->stream_info()->include_private_members());
@@ -1808,35 +1862,61 @@ static bool ContainsNonInstance(const Object& obj) {
   }
 }
 
-static ObjectPtr LookupObjectId(Thread* thread,
-                                const char* arg,
-                                ObjectIdRing::LookupResult* kind) {
+static ObjectPtr LookUpObjectByServiceId(
+    Thread* thread,
+    const char* id_zone_part_of_service_id_as_string,
+    const char* object_part_of_service_id_as_string,
+    ObjectIdRing::LookupResult* kind) {
+  ASSERT(thread != nullptr);
+
+  // First, check if the provided ID is a fixed Service ID.
   *kind = ObjectIdRing::kValid;
-  if (strncmp(arg, "int-", 4) == 0) {
-    arg += 4;
+  if (strncmp(object_part_of_service_id_as_string, "int-", 4) == 0) {
+    object_part_of_service_id_as_string += 4;
     int64_t value = 0;
-    if (!OS::StringToInt64(arg, &value) || !Smi::IsValid(value)) {
+    if (!OS::StringToInt64(object_part_of_service_id_as_string, &value) ||
+        !Smi::IsValid(value)) {
       *kind = ObjectIdRing::kInvalid;
       return Object::null();
     }
     const Integer& obj =
         Integer::Handle(thread->zone(), Smi::New(static_cast<intptr_t>(value)));
     return obj.ptr();
-  } else if (strcmp(arg, "bool-true") == 0) {
+  } else if (strcmp(object_part_of_service_id_as_string, "bool-true") == 0) {
     return Bool::True().ptr();
-  } else if (strcmp(arg, "bool-false") == 0) {
+  } else if (strcmp(object_part_of_service_id_as_string, "bool-false") == 0) {
     return Bool::False().ptr();
-  } else if (strcmp(arg, "null") == 0) {
+  } else if (strcmp(object_part_of_service_id_as_string, "null") == 0) {
     return Object::null();
   }
 
-  intptr_t id = -1;
-  if (!GetIntegerId(arg, &id)) {
+  // The provided ID is not a fixed Service ID, now we will interpret the ID as
+  // a temporary Service ID. Temporary Service IDs of objects look like
+  // "objects/1123/4", where 4 is the ID of the ID Zone where the ID was
+  // allocated, and 1123 is the part that identifies an object within zone 4.
+  intptr_t id_zone_part_of_service_id = -1;
+  if (!GetIntegerId(id_zone_part_of_service_id_as_string,
+                    &id_zone_part_of_service_id)) {
     *kind = ObjectIdRing::kInvalid;
     return Object::null();
   }
-  return thread->isolate()->EnsureDefaultServiceIdZone().GetObjectForId(id,
-                                                                        kind);
+  intptr_t object_part_of_service_id = -1;
+  if (!GetIntegerId(object_part_of_service_id_as_string,
+                    &object_part_of_service_id)) {
+    *kind = ObjectIdRing::kInvalid;
+    return Object::null();
+  }
+
+  ASSERT(thread->isolate() != nullptr);
+  const Isolate& isolate = *thread->isolate();
+  if (id_zone_part_of_service_id >= isolate.NumServiceIdZones()) {
+    *kind = ObjectIdRing::kInvalid;
+    return Object::null();
+  }
+
+  RingServiceIdZone& id_zone =
+      *isolate.GetServiceIdZone(id_zone_part_of_service_id);
+  return id_zone.GetObjectForId(object_part_of_service_id, kind);
 }
 
 static ObjectPtr LookupClassMembers(Thread* thread,
@@ -2202,10 +2282,9 @@ static ObjectPtr LookupHeapObject(Thread* thread,
 
   Isolate* isolate = thread->isolate();
   if (strcmp(parts[0], "objects") == 0) {
-    // Object ids look like "objects/1123"
     Object& obj = Object::Handle(thread->zone());
     ObjectIdRing::LookupResult lookup_result;
-    obj = LookupObjectId(thread, parts[1], &lookup_result);
+    obj = LookUpObjectByServiceId(thread, parts[2], parts[1], &lookup_result);
     if (lookup_result != ObjectIdRing::kValid) {
       if (result != nullptr) {
         *result = lookup_result;
@@ -2614,6 +2693,23 @@ static void GetReachableSize(Thread* thread, JSONStream* js) {
   intptr_t retained_size = graph.SizeReachableByInstance(obj);
   const Object& result = Object::Handle(Integer::New(retained_size));
   result.PrintJSON(js, true);
+}
+
+static const MethodParameter* const invalidate_id_zone_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    nullptr,
+};
+
+static void InvalidateIdZone(Thread* thread, JSONStream* js) {
+  ASSERT(thread != nullptr);
+  ASSERT(js != nullptr);
+
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != nullptr);
+
+  js->id_zone().Invalidate();
+
+  PrintSuccess(js);
 }
 
 static const MethodParameter* const invoke_params[] = {
@@ -5043,6 +5139,89 @@ static bool GetHeapObjectCommon(Thread* thread,
   return false;
 }
 
+static const MethodParameter* const create_id_zone_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    new StringParameter("backingBufferKind", true),
+    new StringParameter("idAssignmentPolicy", true),
+    new UIntParameter("capacity", false),
+    nullptr,
+};
+
+static void CreateIdZone(Thread* thread, JSONStream* js) {
+  ASSERT(thread != nullptr);
+  ASSERT(js != nullptr);
+
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != nullptr);
+
+  const char* backing_buffer_kind_as_string =
+      js->LookupParam("backingBufferKind");
+  ASSERT(backing_buffer_kind_as_string != nullptr);
+  ObjectIdRing::BackingBufferKind backing_buffer_kind;
+  if (strcmp(backing_buffer_kind_as_string, "Ring") == 0) {
+    backing_buffer_kind = ObjectIdRing::BackingBufferKind::kRing;
+  } else {
+    PrintInvalidParamError(js, "backingBufferKind");
+    return;
+  }
+
+  const char* id_assignment_policy_as_string =
+      js->LookupParam("idAssignmentPolicy");
+  ASSERT(id_assignment_policy_as_string != nullptr);
+  ObjectIdRing::IdPolicy id_assignment_policy;
+  if (strcmp(id_assignment_policy_as_string, "AlwaysAllocate") == 0) {
+    id_assignment_policy = ObjectIdRing::IdPolicy::kAllocateId;
+  } else if (strcmp(id_assignment_policy_as_string, "ReuseExisting") == 0) {
+    id_assignment_policy = ObjectIdRing::IdPolicy::kReuseId;
+  } else {
+    PrintInvalidParamError(js, "idAssignmentPolicy");
+    return;
+  }
+
+  int32_t capacity = RingServiceIdZone::kDefaultCapacity;
+  if (js->HasParam("capacity")) {
+    intptr_t value = UIntParameter::Parse(js->LookupParam("capacity"));
+    if (value < 0 || value > INT32_MAX) {
+      PrintInvalidParamError(js, "capacity");
+      return;
+    }
+    capacity = value;
+  }
+  isolate->AddServiceIdZone(backing_buffer_kind, id_assignment_policy, capacity)
+      .PrintJSON(*js);
+}
+
+static const MethodParameter* const delete_id_zone_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    nullptr,
+};
+
+static void DeleteIdZone(Thread* thread, JSONStream* js) {
+  ASSERT(thread != nullptr);
+  ASSERT(js != nullptr);
+
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != nullptr);
+
+  const char* id_zone_id_arg = js->LookupParam("_idZoneId");
+  if (id_zone_id_arg == nullptr) {
+    PrintMissingParamError(js, "_idZoneId");
+  }
+
+  // If the `_idZoneId` argument is not missing, we know that the some
+  // properties of |id_zone_id| have already been checked in |InvokeMethod|
+  // (search for `js.set_id_zone(*id_zone)` to find the checks), so we can
+  // assert these properties to be true below.
+
+  intptr_t id_zone_id = ServiceIdZone::StringIdToInt(id_zone_id_arg);
+  ASSERT(id_zone_id != -1);
+  ASSERT(id_zone_id < isolate->NumServiceIdZones());
+
+  isolate->DeleteServiceIdZone(id_zone_id);
+
+  PrintSuccess(js);
+}
+
 static const MethodParameter* const get_object_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new UIntParameter("offset", false),
@@ -5875,6 +6054,10 @@ static const ServiceMethodDescriptor service_methods_[] = {
   { "clearVMTimeline", ClearVMTimeline,
     clear_vm_timeline_params, },
   { "_compileExpression", CompileExpression, compile_expression_params },
+  { "_createIdZone", CreateIdZone,
+    create_id_zone_params },
+  { "_deleteIdZone", DeleteIdZone,
+    delete_id_zone_params },
   { "_enableProfiler", EnableProfiler,
     enable_profiler_params, },
   { "evaluate", Evaluate,
@@ -5967,6 +6150,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_vm_timeline_flags_params },
   { "getVMTimelineMicros", GetVMTimelineMicros,
     get_vm_timeline_micros_params },
+  { "_invalidateIdZone", InvalidateIdZone,
+    invalidate_id_zone_params },
   { "invoke", Invoke, invoke_params },
   { "kill", Kill, kill_params },
   { "pause", Pause,

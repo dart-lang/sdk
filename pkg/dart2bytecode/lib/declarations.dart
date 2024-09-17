@@ -313,23 +313,23 @@ class Members extends BytecodeDeclaration {
 }
 
 class FieldDeclaration {
-  static const hasNontrivialInitializerFlag = 1 << 0;
-  static const hasGetterFlag = 1 << 1;
-  static const hasSetterFlag = 1 << 2;
-  static const isReflectableFlag = 1 << 3;
-  static const isStaticFlag = 1 << 4;
-  static const isConstFlag = 1 << 5;
-  static const isFinalFlag = 1 << 6;
-  static const isCovariantFlag = 1 << 7;
-  static const isGenericCovariantImplFlag = 1 << 8;
-  static const hasSourcePositionsFlag = 1 << 9;
-  static const hasAnnotationsFlag = 1 << 10;
-  static const hasPragmaFlag = 1 << 11;
-  static const hasCustomScriptFlag = 1 << 12;
-  static const hasInitializerCodeFlag = 1 << 13;
-  static const isLateFlag = 1 << 14;
-  static const isExtensionMemberFlag = 1 << 15;
-  static const hasInitializerFlag = 1 << 16;
+  static const isStaticFlag = 1 << 0;
+  static const isConstFlag = 1 << 1;
+  static const isFinalFlag = 1 << 2;
+  static const isLateFlag = 1 << 3;
+  static const isCovariantFlag = 1 << 4;
+  static const isCovariantByClassFlag = 1 << 5;
+  static const isExtensionMemberFlag = 1 << 6;
+  static const isReflectableFlag = 1 << 7;
+  static const hasGetterFlag = 1 << 8;
+  static const hasSetterFlag = 1 << 9;
+  static const hasInitializerFlag = 1 << 10;
+  static const hasNontrivialInitializerFlag = 1 << 11;
+  static const hasInitializerCodeFlag = 1 << 12;
+  static const hasSourcePositionsFlag = 1 << 13;
+  static const hasAnnotationsFlag = 1 << 14;
+  static const hasPragmaFlag = 1 << 15;
+  static const hasCustomScriptFlag = 1 << 16;
 
   final int flags;
   final ObjectHandle name;
@@ -472,31 +472,30 @@ class FieldDeclaration {
 }
 
 class FunctionDeclaration {
-  static const isConstructorFlag = 1 << 0;
-  static const isGetterFlag = 1 << 1;
-  static const isSetterFlag = 1 << 2;
-  static const isFactoryFlag = 1 << 3;
-  static const isStaticFlag = 1 << 4;
-  static const isAbstractFlag = 1 << 5;
+  static const isStaticFlag = 1 << 0;
+  static const isAbstractFlag = 1 << 1;
+  static const isGetterFlag = 1 << 2;
+  static const isSetterFlag = 1 << 3;
+  static const isConstructorFlag = 1 << 4;
+  static const isFactoryFlag = 1 << 5;
   static const isConstFlag = 1 << 6;
   static const hasOptionalPositionalParamsFlag = 1 << 7;
   static const hasOptionalNamedParamsFlag = 1 << 8;
   static const hasTypeParamsFlag = 1 << 9;
-  static const isReflectableFlag = 1 << 10;
-  static const isDebuggableFlag = 1 << 11;
-  static const isAsyncFlag = 1 << 12;
-  static const isAsyncStarFlag = 1 << 13;
-  static const isSyncStarFlag = 1 << 14;
-  static const isForwardingStubFlag = 1 << 15;
-  static const isNoSuchMethodForwarderFlag = 1 << 16;
-  static const isNativeFlag = 1 << 17;
+  static const hasParameterFlagsFlag = 1 << 10;
+  static const isExtensionMemberFlag = 1 << 11;
+  static const isReflectableFlag = 1 << 12;
+  static const isDebuggableFlag = 1 << 13;
+  static const isAsyncFlag = 1 << 14;
+  static const isAsyncStarFlag = 1 << 15;
+  static const isSyncStarFlag = 1 << 16;
+  static const isNoSuchMethodForwarderFlag = 1 << 17;
   static const isExternalFlag = 1 << 18;
-  static const hasSourcePositionsFlag = 1 << 19;
-  static const hasAnnotationsFlag = 1 << 20;
-  static const hasPragmaFlag = 1 << 21;
-  static const hasCustomScriptFlag = 1 << 22;
-  static const isExtensionMemberFlag = 1 << 23;
-  static const hasParameterFlagsFlag = 1 << 24;
+  static const isNativeFlag = 1 << 19;
+  static const hasSourcePositionsFlag = 1 << 20;
+  static const hasAnnotationsFlag = 1 << 21;
+  static const hasPragmaFlag = 1 << 22;
+  static const hasCustomScriptFlag = 1 << 23;
 
   final int flags;
   final ObjectHandle name;
@@ -670,9 +669,6 @@ class FunctionDeclaration {
     if ((flags & isSyncStarFlag) != 0) {
       sb.write(', sync*');
     }
-    if ((flags & isForwardingStubFlag) != 0) {
-      sb.write(', forwarding-stub');
-    }
     if ((flags & isNoSuchMethodForwarderFlag) != 0) {
       sb.write(', no-such-method-forwarder');
     }
@@ -751,7 +747,7 @@ class TypeParametersDeclaration {
 class ParameterDeclaration {
   // Parameter flags are written separately (in Code).
   static const isCovariantFlag = 1 << 0;
-  static const isGenericCovariantImplFlag = 1 << 1;
+  static const isCovariantByClassFlag = 1 << 1;
   static const isFinalFlag = 1 << 2;
   static const isRequiredFlag = 1 << 3;
 

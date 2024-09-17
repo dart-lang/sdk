@@ -33,7 +33,7 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -41,6 +41,7 @@ library
   documentationComment: /**\n * aaa\n * bbb\n */
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -53,12 +54,13 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -70,12 +72,13 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -95,7 +98,7 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -103,6 +106,7 @@ library
   documentationComment: /// aaa\n/// bbb
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -119,13 +123,14 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
   name: foo.bar
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -140,12 +145,13 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -162,13 +168,14 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
   name: foo.bar
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 }

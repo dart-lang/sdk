@@ -16,6 +16,7 @@ import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'incremental_kernel_generator.dart' show isLegalIdentifier;
 import 'lowering_predicates.dart' show isExtensionThisName;
 
+// Coverage-ignore(suite): Not run.
 Map<String, DartType>? createDefinitionsWithTypes(
     Iterable<Library>? knownLibraries,
     List<String> definitionTypes,
@@ -46,6 +47,7 @@ Map<String, DartType>? createDefinitionsWithTypes(
   return completeDefinitions;
 }
 
+// Coverage-ignore(suite): Not run.
 List<TypeParameter>? createTypeParametersWithBounds(
     Iterable<Library>? knownLibraries,
     List<String> typeBounds,
@@ -83,6 +85,7 @@ List<TypeParameter>? createTypeParametersWithBounds(
   return typeParameters;
 }
 
+// Coverage-ignore(suite): Not run.
 List<ParsedType> parseDefinitionTypes(List<String> definitionTypes) {
   List<ParsedType> result = [];
   int i = 0;
@@ -125,6 +128,7 @@ List<ParsedType> parseDefinitionTypes(List<String> definitionTypes) {
   return result;
 }
 
+// Coverage-ignore(suite): Not run.
 class ParsedType {
   final String? uri;
   final String? className;
@@ -196,6 +200,7 @@ class ParsedType {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 Set<String> collectParsedTypeUris(List<ParsedType> parsedTypes) {
   Set<String> result = {};
   List<ParsedType> workList = new List.from(parsedTypes);

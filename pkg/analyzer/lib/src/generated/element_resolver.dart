@@ -106,10 +106,6 @@ class ElementResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  void visitAugmentationImportDirective(AugmentationImportDirectiveImpl node) {
-    _resolveAnnotations(node.metadata);
-  }
-
   void visitClassDeclaration(ClassDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
@@ -255,10 +251,6 @@ class ElementResolver {
     }
   }
 
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    _resolveAnnotations(node.metadata);
-  }
-
   void visitLibraryDirective(LibraryDirective node) {
     _resolveAnnotations(node.metadata);
   }
@@ -376,7 +368,7 @@ class ElementResolver {
     } else {
       if (element.isFactory &&
           // Check if we've reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
-          !element.enclosingElement.constructors
+          !element.enclosingElement3.constructors
               .every((constructor) => constructor.isFactory)) {
         _errorReporter.atNode(
           node,

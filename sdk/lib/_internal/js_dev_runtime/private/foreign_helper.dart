@@ -261,11 +261,6 @@ class _Rest {
 
 const _Rest rest = _Rest();
 
-dynamic spread(args) {
-  throw StateError('The spread function cannot be called, '
-      'it should be compiled away.');
-}
-
 /// Reads an embedded global.
 ///
 /// The [name] should be a constant defined in the `_js_shared_embedded_names`

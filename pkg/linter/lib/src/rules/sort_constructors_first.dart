@@ -36,10 +36,10 @@ abstract class Animation<T> {
 class SortConstructorsFirst extends LintRule {
   SortConstructorsFirst()
       : super(
-            name: 'sort_constructors_first',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'sort_constructors_first',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.sort_constructors_first;

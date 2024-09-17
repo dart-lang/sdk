@@ -48,6 +48,30 @@ Object f(bool x) {
     ]);
   }
 
+  test_guarded_reachable() async {
+    await assertNoErrorsInCode(r'''
+enum E { e1, e2 }
+Object f(E e, bool b) => switch (e) {
+  E.e1 when b => 0,
+  E.e2 => 1,
+  E.e1 => 2,
+};
+''');
+  }
+
+  test_guarded_unreachable() async {
+    await assertErrorsInCode(r'''
+enum E { e1, e2 }
+Object f(E e, bool b) => switch (e) {
+  E.e1 => 0,
+  E.e2 => 1,
+  E.e1 when b => 2,
+};
+''', [
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 96, 2),
+    ]);
+  }
+
   test_unresolved_wildcard() async {
     await assertErrorsInCode(r'''
 int f(Object? x) {
@@ -111,6 +135,40 @@ void f(Object? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 69, 10),
+    ]);
+  }
+
+  test_guarded_reachable() async {
+    await assertNoErrorsInCode(r'''
+enum E { e1, e2 }
+void f(E e, bool b) {
+  switch (e) {
+    case E.e1 when b:
+      break;
+    case E.e2:
+      break;
+    case E.e1:
+      break;
+  }
+}
+''');
+  }
+
+  test_guarded_unreachable() async {
+    await assertErrorsInCode(r'''
+enum E { e1, e2 }
+void f(E e, bool b) {
+  switch (e) {
+    case E.e1:
+      break;
+    case E.e2:
+      break;
+    case E.e1 when b:
+      break;
+  }
+}
+''', [
+      error(WarningCode.UNREACHABLE_SWITCH_CASE, 115, 4),
     ]);
   }
 

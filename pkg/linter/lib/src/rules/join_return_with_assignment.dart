@@ -55,10 +55,10 @@ Expression? _getExpressionFromReturnStatement(Statement node) =>
 class JoinReturnWithAssignment extends LintRule {
   JoinReturnWithAssignment()
       : super(
-            name: 'join_return_with_assignment',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'join_return_with_assignment',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.join_return_with_assignment;

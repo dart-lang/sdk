@@ -55,6 +55,7 @@ class ElementHolder {
 
   void enclose(ElementImpl element) {
     element.enclosingElement = _element;
+    element.enclosingElement3 = _element;
   }
 }
 
@@ -204,20 +205,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
       );
     }
-  }
-
-  @override
-  void visitAugmentationImportDirective(
-    covariant AugmentationImportDirectiveImpl node,
-  ) {
-    var element = node.element;
-    if (element is AugmentationImportElementImpl) {
-      _setOrCreateMetadataElements(element, node.metadata);
-    }
-
-    _withElementWalker(null, () {
-      super.visitAugmentationImportDirective(node);
-    });
   }
 
   @override
@@ -1005,20 +992,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     } finally {
       _labelScope = outerScope;
     }
-  }
-
-  @override
-  void visitLibraryAugmentationDirective(
-    covariant LibraryAugmentationDirectiveImpl node,
-  ) {
-    var element = node.element;
-    if (element is LibraryOrAugmentationElementImpl) {
-      _setOrCreateMetadataElements(element, node.metadata);
-    }
-
-    _withElementWalker(null, () {
-      super.visitLibraryAugmentationDirective(node);
-    });
   }
 
   @override
@@ -1973,7 +1946,9 @@ class _VariableBinder
             .map((e) => e.inconsistency),
       ),
     )
+      // ignore: deprecated_member_use_from_same_package
       ..enclosingElement = first.enclosingElement
+      ..enclosingElement3 = first.enclosingElement3
       ..type = InvalidTypeImpl.instance;
   }
 }

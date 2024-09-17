@@ -52,10 +52,10 @@ class Ok {
 class ThrowInFinally extends LintRule {
   ThrowInFinally()
       : super(
-            name: 'throw_in_finally',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'throw_in_finally',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.throw_in_finally;

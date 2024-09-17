@@ -32,22 +32,40 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: Future<int>
       accessors
         static get foo @16 async
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: Future<int>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic foo @-1
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::foo
+      getters
+        get foo @16
+          reference: <testLibraryFragment>::@getter::foo
+          element: <none>
+  topLevelVariables
+    synthetic foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: Future<int>
+      getter: <none>
+  getters
+    static get foo
+      firstFragment: <testLibraryFragment>::@getter::foo
 ''');
   }
 
@@ -61,33 +79,49 @@ library
   reference: <testLibrary>
   libraryImports
     dart:async
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         dart:async
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: Stream<int>
       accessors
         static get foo @37 async*
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: Stream<int>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         dart:async
+      topLevelVariables
+        synthetic foo @-1
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::foo
+      getters
+        get foo @37
+          reference: <testLibraryFragment>::@getter::foo
+          element: <none>
+  topLevelVariables
+    synthetic foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: Stream<int>
+      getter: <none>
+  getters
+    static get foo
+      firstFragment: <testLibraryFragment>::@getter::foo
 ''');
   }
 
@@ -104,16 +138,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: dynamic
       accessors
         static get x @64
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           documentationComment: /**\n * Docs\n */
           returnType: dynamic
 ----------------------------------------
@@ -121,6 +155,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+      getters
+        get x @64
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+          documentationComment: /**\n * Docs\n */
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: dynamic
+      getter: <none>
+  getters
+    static get x
+      firstFragment: <testLibraryFragment>::@getter::x
+      documentationComment: /**\n * Docs\n */
 ''');
   }
 
@@ -132,22 +186,40 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
       accessors
         static external get x @17
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+      getters
+        get x @17
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      getter: <none>
+  getters
+    static external get x
+      firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
 
@@ -160,64 +232,113 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: D
           fields
             synthetic f @-1
               reference: <testLibraryFragment>::@class::C::@field::f
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
               type: int
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
           accessors
             get f @24
               reference: <testLibraryFragment>::@class::C::@getter::f
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
               returnType: int
         abstract class D @52
           reference: <testLibraryFragment>::@class::D
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           fields
             synthetic f @-1
               reference: <testLibraryFragment>::@class::D::@field::f
-              enclosingElement: <testLibraryFragment>::@class::D
+              enclosingElement3: <testLibraryFragment>::@class::D
               type: int
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::D
+              enclosingElement3: <testLibraryFragment>::@class::D
           accessors
             abstract get f @64
               reference: <testLibraryFragment>::@class::D::@getter::f
-              enclosingElement: <testLibraryFragment>::@class::D
+              enclosingElement3: <testLibraryFragment>::@class::D
               returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C
+          fields
+            f @-1
+              reference: <testLibraryFragment>::@class::C::@field::f
+              element: <none>
+              getter2: <testLibraryFragment>::@class::C::@getter::f
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <none>
+              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
+          getters
+            get f @24
+              reference: <testLibraryFragment>::@class::C::@getter::f
+              element: <none>
         class D @52
           reference: <testLibraryFragment>::@class::D
+          element: <testLibraryFragment>::@class::D
+          fields
+            f @-1
+              reference: <testLibraryFragment>::@class::D::@field::f
+              element: <none>
+              getter2: <testLibraryFragment>::@class::D::@getter::f
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              element: <none>
+          getters
+            get f @64
+              reference: <testLibraryFragment>::@class::D::@getter::f
+              element: <none>
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       supertype: D
+      fields
+        synthetic f
+          firstFragment: <testLibraryFragment>::@class::C::@field::f
+          type: int
+          getter: <none>
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          superConstructor: <none>
+      getters
+        get f
+          firstFragment: <testLibraryFragment>::@class::C::@getter::f
     abstract class D
-      reference: <testLibraryFragment>::@class::D
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+      fields
+        synthetic f
+          firstFragment: <testLibraryFragment>::@class::D::@field::f
+          type: int
+          getter: <none>
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+      getters
+        abstract get f
+          firstFragment: <testLibraryFragment>::@class::D::@getter::f
 ''');
   }
 
@@ -231,22 +352,40 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: Iterator<int>
       accessors
         static get foo @18 sync*
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: Iterator<int>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic foo @-1
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::foo
+      getters
+        get foo @18
+          reference: <testLibraryFragment>::@getter::foo
+          element: <none>
+  topLevelVariables
+    synthetic foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: Iterator<int>
+      getter: <none>
+  getters
+    static get foo
+      firstFragment: <testLibraryFragment>::@getter::foo
 ''');
   }
 
@@ -258,30 +397,61 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
         synthetic static y @-1
           reference: <testLibraryFragment>::@topLevelVariable::y
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: dynamic
       accessors
         static get x @8
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
         static get y @23
           reference: <testLibraryFragment>::@getter::y
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+        synthetic y @-1
+          reference: <testLibraryFragment>::@topLevelVariable::y
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::y
+      getters
+        get x @8
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+        get y @23
+          reference: <testLibraryFragment>::@getter::y
+          element: <none>
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      getter: <none>
+    synthetic y
+      firstFragment: <testLibraryFragment>::@topLevelVariable::y
+      type: dynamic
+      getter: <none>
+  getters
+    static get x
+      firstFragment: <testLibraryFragment>::@getter::x
+    static get y
+      firstFragment: <testLibraryFragment>::@getter::y
 ''');
   }
 
@@ -295,11 +465,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           id: variable_0
           getter: getter_0
@@ -307,13 +477,13 @@ library
       accessors
         static get x @8
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
           id: getter_0
           variable: variable_0
         static set x= @25
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional value @31
               type: int
@@ -325,6 +495,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+          setter2: <testLibraryFragment>::@setter::x
+      getters
+        get x @8
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+      setters
+        set x= @25
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          parameters
+            value @31
+              element: <none>
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    static get x
+      firstFragment: <testLibraryFragment>::@getter::x
+  setters
+    static set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      parameters
+        requiredPositional value
+          type: int
 ''');
   }
 
@@ -337,29 +540,62 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
       accessors
         static set x= @9
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional value @15
               type: int
           returnType: void
         static get x @33
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+          setter2: <testLibraryFragment>::@setter::x
+      getters
+        get x @33
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+      setters
+        set x= @9
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          parameters
+            value @15
+              element: <none>
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    static get x
+      firstFragment: <testLibraryFragment>::@getter::x
+  setters
+    static set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      parameters
+        requiredPositional value
+          type: int
 ''');
   }
 
@@ -376,16 +612,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: dynamic
       accessors
         static set x= @69
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           documentationComment: /**\n * Docs\n */
           parameters
             requiredPositional value @71
@@ -396,6 +632,32 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          setter2: <testLibraryFragment>::@setter::x
+      setters
+        set x= @69
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          documentationComment: /**\n * Docs\n */
+          parameters
+            value @71
+              element: <none>
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: dynamic
+      setter: <none>
+  setters
+    static set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      documentationComment: /**\n * Docs\n */
+      parameters
+        requiredPositional value
+          type: dynamic
 ''');
   }
 
@@ -407,16 +669,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
       accessors
         static external set x= @18
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional value @24
               type: int
@@ -426,6 +688,30 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          setter2: <testLibraryFragment>::@setter::x
+      setters
+        set x= @18
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          parameters
+            value @24
+              element: <none>
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      setter: <none>
+  setters
+    static external set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      parameters
+        requiredPositional value
+          type: int
 ''');
   }
 
@@ -437,16 +723,16 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static f @-1
           reference: <testLibraryFragment>::@topLevelVariable::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
       accessors
         static set f= @4
           reference: <testLibraryFragment>::@setter::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional value @10
               type: int
@@ -456,6 +742,30 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic f @-1
+          reference: <testLibraryFragment>::@topLevelVariable::f
+          element: <none>
+          setter2: <testLibraryFragment>::@setter::f
+      setters
+        set f= @4
+          reference: <testLibraryFragment>::@setter::f
+          element: <none>
+          parameters
+            value @10
+              element: <none>
+  topLevelVariables
+    synthetic f
+      firstFragment: <testLibraryFragment>::@topLevelVariable::f
+      type: int
+      setter: <none>
+  setters
+    static set f=
+      firstFragment: <testLibraryFragment>::@setter::f
+      parameters
+        requiredPositional value
+          type: int
 ''');
   }
 
@@ -468,27 +778,27 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
         synthetic static y @-1
           reference: <testLibraryFragment>::@topLevelVariable::y
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: dynamic
       accessors
         static set x= @9
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional value @15
               type: int
           returnType: void
         static set y= @29
           reference: <testLibraryFragment>::@setter::y
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional value @31
               type: dynamic
@@ -498,6 +808,49 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          setter2: <testLibraryFragment>::@setter::x
+        synthetic y @-1
+          reference: <testLibraryFragment>::@topLevelVariable::y
+          element: <none>
+          setter2: <testLibraryFragment>::@setter::y
+      setters
+        set x= @9
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          parameters
+            value @15
+              element: <none>
+        set y= @29
+          reference: <testLibraryFragment>::@setter::y
+          element: <none>
+          parameters
+            value @31
+              element: <none>
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      setter: <none>
+    synthetic y
+      firstFragment: <testLibraryFragment>::@topLevelVariable::y
+      type: dynamic
+      setter: <none>
+  setters
+    static set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      parameters
+        requiredPositional value
+          type: int
+    static set y=
+      firstFragment: <testLibraryFragment>::@setter::y
+      parameters
+        requiredPositional value
+          type: dynamic
 ''');
   }
 
@@ -511,20 +864,20 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static i @13
           reference: <testLibraryFragment>::@topLevelVariable::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
       accessors
         synthetic static get i @-1
           reference: <testLibraryFragment>::@getter::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
         synthetic static set i= @-1
           reference: <testLibraryFragment>::@setter::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _i @-1
               type: int
@@ -534,6 +887,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        i @13
+          reference: <testLibraryFragment>::@topLevelVariable::i
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::i
+          setter2: <testLibraryFragment>::@setter::i
+      getters
+        get i @-1
+          reference: <testLibraryFragment>::@getter::i
+          element: <none>
+      setters
+        set i= @-1
+          reference: <testLibraryFragment>::@setter::i
+          element: <none>
+          parameters
+            _i @-1
+              element: <none>
+  topLevelVariables
+    i
+      firstFragment: <testLibraryFragment>::@topLevelVariable::i
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get i
+      firstFragment: <testLibraryFragment>::@getter::i
+  setters
+    synthetic static set i=
+      firstFragment: <testLibraryFragment>::@setter::i
+      parameters
+        requiredPositional _i
+          type: int
 ''');
   }
 
@@ -548,20 +934,20 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
       accessors
         static get x @8
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
         static set x= @25
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional value @31
               type: int
@@ -571,6 +957,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+          setter2: <testLibraryFragment>::@setter::x
+      getters
+        get x @8
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+      setters
+        set x= @25
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          parameters
+            value @31
+              element: <none>
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    static get x
+      firstFragment: <testLibraryFragment>::@getter::x
+  setters
+    static set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      parameters
+        requiredPositional value
+          type: int
 ''');
   }
 
@@ -585,29 +1004,62 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
       accessors
         static set x= @9
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional value @15
               type: int
           returnType: void
         static get x @33
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+          setter2: <testLibraryFragment>::@setter::x
+      getters
+        get x @33
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+      setters
+        set x= @9
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          parameters
+            value @15
+              element: <none>
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    static get x
+      firstFragment: <testLibraryFragment>::@getter::x
+  setters
+    static set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      parameters
+        requiredPositional value
+          type: int
 ''');
   }
 
@@ -623,32 +1075,32 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static foo @4
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::0
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_0
           getter: getter_0
           setter: setter_0
         synthetic static foo @-1
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::1
+          enclosingElement3: <testLibraryFragment>
           type: int
           id: variable_1
           getter: getter_1
       accessors
         synthetic static get foo @-1
           reference: <testLibraryFragment>::@getter::foo::@def::0
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
           id: getter_0
           variable: variable_0
         synthetic static set foo= @-1
           reference: <testLibraryFragment>::@setter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _foo @-1
               type: int
@@ -657,7 +1109,7 @@ library
           variable: variable_0
         static get foo @21
           reference: <testLibraryFragment>::@getter::foo::@def::1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
           id: getter_1
           variable: variable_1
@@ -666,6 +1118,52 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        foo @4
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::0
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::foo::@def::0
+          setter2: <testLibraryFragment>::@setter::foo
+        synthetic foo @-1
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::1
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::foo::@def::1
+      getters
+        get foo @-1
+          reference: <testLibraryFragment>::@getter::foo::@def::0
+          element: <none>
+        get foo @21
+          reference: <testLibraryFragment>::@getter::foo::@def::1
+          element: <none>
+      setters
+        set foo= @-1
+          reference: <testLibraryFragment>::@setter::foo
+          element: <none>
+          parameters
+            _foo @-1
+              element: <none>
+  topLevelVariables
+    foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo::@def::0
+      type: int
+      getter: <none>
+      setter: <none>
+    synthetic foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo::@def::1
+      type: int
+      getter: <none>
+  getters
+    synthetic static get foo
+      firstFragment: <testLibraryFragment>::@getter::foo::@def::0
+    static get foo
+      firstFragment: <testLibraryFragment>::@getter::foo::@def::1
+  setters
+    synthetic static set foo=
+      firstFragment: <testLibraryFragment>::@setter::foo
+      parameters
+        requiredPositional _foo
+          type: int
 ''');
   }
 
@@ -681,32 +1179,32 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static foo @4
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::0
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_0
           getter: getter_0
           setter: setter_0
         synthetic static foo @-1
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::1
+          enclosingElement3: <testLibraryFragment>
           type: int
           id: variable_1
           setter: setter_1
       accessors
         synthetic static get foo @-1
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
           id: getter_0
           variable: variable_0
         synthetic static set foo= @-1
           reference: <testLibraryFragment>::@setter::foo::@def::0
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _foo @-1
               type: int
@@ -715,7 +1213,7 @@ library
           variable: variable_0
         static set foo= @17
           reference: <testLibraryFragment>::@setter::foo::@def::1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _ @25
               type: int
@@ -727,6 +1225,58 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        foo @4
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::0
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::foo
+          setter2: <testLibraryFragment>::@setter::foo::@def::0
+        synthetic foo @-1
+          reference: <testLibraryFragment>::@topLevelVariable::foo::@def::1
+          element: <none>
+          setter2: <testLibraryFragment>::@setter::foo::@def::1
+      getters
+        get foo @-1
+          reference: <testLibraryFragment>::@getter::foo
+          element: <none>
+      setters
+        set foo= @-1
+          reference: <testLibraryFragment>::@setter::foo::@def::0
+          element: <none>
+          parameters
+            _foo @-1
+              element: <none>
+        set foo= @17
+          reference: <testLibraryFragment>::@setter::foo::@def::1
+          element: <none>
+          parameters
+            _ @25
+              element: <none>
+  topLevelVariables
+    foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo::@def::0
+      type: int
+      getter: <none>
+      setter: <none>
+    synthetic foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo::@def::1
+      type: int
+      setter: <none>
+  getters
+    synthetic static get foo
+      firstFragment: <testLibraryFragment>::@getter::foo
+  setters
+    synthetic static set foo=
+      firstFragment: <testLibraryFragment>::@setter::foo::@def::0
+      parameters
+        requiredPositional _foo
+          type: int
+    static set foo=
+      firstFragment: <testLibraryFragment>::@setter::foo::@def::1
+      parameters
+        requiredPositional _
+          type: int
 ''');
   }
 
@@ -742,11 +1292,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static final foo @10
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_0
@@ -755,13 +1305,13 @@ library
       accessors
         synthetic static get foo @-1
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
           id: getter_0
           variable: variable_0
         static set foo= @23
           reference: <testLibraryFragment>::@setter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional newValue @31
               type: int
@@ -773,6 +1323,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        final foo @10
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::foo
+          setter2: <testLibraryFragment>::@setter::foo
+      getters
+        get foo @-1
+          reference: <testLibraryFragment>::@getter::foo
+          element: <none>
+      setters
+        set foo= @23
+          reference: <testLibraryFragment>::@setter::foo
+          element: <none>
+          parameters
+            newValue @31
+              element: <none>
+  topLevelVariables
+    final foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get foo
+      firstFragment: <testLibraryFragment>::@getter::foo
+  setters
+    static set foo=
+      firstFragment: <testLibraryFragment>::@setter::foo
+      parameters
+        requiredPositional newValue
+          type: int
 ''');
   }
 
@@ -784,21 +1367,21 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static x @4
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
       accessors
         synthetic static get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
         synthetic static set x= @-1
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _x @-1
               type: int
@@ -808,6 +1391,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        x @4
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+          setter2: <testLibraryFragment>::@setter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+      setters
+        set x= @-1
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          parameters
+            _x @-1
+              element: <none>
+  topLevelVariables
+    x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get x
+      firstFragment: <testLibraryFragment>::@getter::x
+  setters
+    synthetic static set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      parameters
+        requiredPositional _x
+          type: int
 ''');
   }
 
@@ -819,11 +1435,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static const i @10
           reference: <testLibraryFragment>::@topLevelVariable::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
           constantInitializer
@@ -833,13 +1449,31 @@ library
       accessors
         synthetic static get i @-1
           reference: <testLibraryFragment>::@getter::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        const i @10
+          reference: <testLibraryFragment>::@topLevelVariable::i
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::i
+      getters
+        get i @-1
+          reference: <testLibraryFragment>::@getter::i
+          element: <none>
+  topLevelVariables
+    const i
+      firstFragment: <testLibraryFragment>::@topLevelVariable::i
+      type: int
+      getter: <none>
+  getters
+    synthetic static get i
+      firstFragment: <testLibraryFragment>::@getter::i
 ''');
   }
 
@@ -851,11 +1485,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static late const i @15
           reference: <testLibraryFragment>::@topLevelVariable::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
           constantInitializer
@@ -865,13 +1499,31 @@ library
       accessors
         synthetic static get i @-1
           reference: <testLibraryFragment>::@getter::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        const i @15
+          reference: <testLibraryFragment>::@topLevelVariable::i
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::i
+      getters
+        get i @-1
+          reference: <testLibraryFragment>::@getter::i
+          element: <none>
+  topLevelVariables
+    late const i
+      firstFragment: <testLibraryFragment>::@topLevelVariable::i
+      type: int
+      getter: <none>
+  getters
+    synthetic static get i
+      firstFragment: <testLibraryFragment>::@getter::i
 ''');
   }
 
@@ -888,21 +1540,21 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static x @64
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           documentationComment: /**\n * Docs\n */
           type: dynamic
       accessors
         synthetic static get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
         synthetic static set x= @-1
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _x @-1
               type: dynamic
@@ -912,6 +1564,40 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        x @64
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          documentationComment: /**\n * Docs\n */
+          getter2: <testLibraryFragment>::@getter::x
+          setter2: <testLibraryFragment>::@setter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+      setters
+        set x= @-1
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          parameters
+            _x @-1
+              element: <none>
+  topLevelVariables
+    x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: dynamic
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get x
+      firstFragment: <testLibraryFragment>::@getter::x
+  setters
+    synthetic static set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      parameters
+        requiredPositional _x
+          type: dynamic
 ''');
   }
 
@@ -923,28 +1609,46 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static final x @10
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
       accessors
         synthetic static get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        final x @10
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+  topLevelVariables
+    final x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      getter: <none>
+  getters
+    synthetic static get x
+      firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
 
   test_variable_getterInLib_setterInPart() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 part of my.lib;
 void set x(int _) {}
 ''');
@@ -962,35 +1666,33 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static x @-1
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
       accessors
         static get x @39
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: int
       accessors
         static set x= @25
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::x
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _ @31
               type: int
@@ -1001,14 +1703,55 @@ library
   name: my.lib
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+      getters
+        get x @39
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
+          element: <none>
+          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::x
+      setters
+        set x= @25
+          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::x
+          element: <none>
+          parameters
+            _ @31
+              element: <none>
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      getter: <none>
+    synthetic x
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
+      type: int
+      setter: <none>
+  getters
+    static get x
+      firstFragment: <testLibraryFragment>::@getter::x
+  setters
+    static set x=
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::x
+      parameters
+        requiredPositional _
+          type: int
 ''');
   }
 
   test_variable_getterInPart_setterInLib() async {
-    addSource('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 part of my.lib;
 int get x => 42;
 ''');
@@ -1027,38 +1770,36 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static x @-1
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
       accessors
         static set x= @40
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _ @46
               type: int
           returnType: void
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: int
       accessors
         static get x @24
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::x
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
 ----------------------------------------
 library
@@ -1066,15 +1807,56 @@ library
   name: my.lib
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          setter2: <testLibraryFragment>::@setter::x
+      setters
+        set x= @40
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          parameters
+            _ @46
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::x
+      getters
+        get x @24
+          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::x
+          element: <none>
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      setter: <none>
+    synthetic x
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
+      type: int
+      getter: <none>
+  getters
+    static get x
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::x
+  setters
+    static set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      parameters
+        requiredPositional _
+          type: int
 ''');
   }
 
   test_variable_getterInPart_setterInPart() async {
-    addSource('$testPackageLibPath/a.dart', 'part of my.lib; int get x => 42;');
-    addSource(
+    newFile('$testPackageLibPath/a.dart', 'part of my.lib; int get x => 42;');
+    newFile(
         '$testPackageLibPath/b.dart', 'part of my.lib; void set x(int _) {}');
     var library =
         await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
@@ -1089,43 +1871,39 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: int
       accessors
         static get x @24
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::x
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::x
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           type: int
       accessors
         static set x= @25
           reference: <testLibrary>::@fragment::package:test/b.dart::@setter::x
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           parameters
             requiredPositional _ @31
               type: int
@@ -1136,12 +1914,54 @@ library
   name: my.lib
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::x
+      getters
+        get x @24
+          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::x
+          element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::x
+          element: <none>
+          setter2: <testLibrary>::@fragment::package:test/b.dart::@setter::x
+      setters
+        set x= @25
+          reference: <testLibrary>::@fragment::package:test/b.dart::@setter::x
+          element: <none>
+          parameters
+            _ @31
+              element: <none>
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
+      type: int
+      getter: <none>
+    synthetic x
+      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::x
+      type: int
+      setter: <none>
+  getters
+    static get x
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::x
+  setters
+    static set x=
+      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@setter::x
+      parameters
+        requiredPositional _
+          type: int
 ''');
   }
 
@@ -1173,20 +1993,20 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static x @4
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: dynamic
       accessors
         synthetic static get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
         synthetic static set x= @-1
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _x @-1
               type: dynamic
@@ -1196,6 +2016,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        x @4
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+          setter2: <testLibraryFragment>::@setter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+      setters
+        set x= @-1
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          parameters
+            _x @-1
+              element: <none>
+  topLevelVariables
+    x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: dynamic
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get x
+      firstFragment: <testLibraryFragment>::@getter::x
+  setters
+    synthetic static set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      parameters
+        requiredPositional _x
+          type: dynamic
 ''');
   }
 
@@ -1207,21 +2060,21 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static v @4
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
       accessors
         synthetic static get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
         synthetic static set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _v @-1
               type: int
@@ -1231,6 +2084,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        v @4
+          reference: <testLibraryFragment>::@topLevelVariable::v
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::v
+          setter2: <testLibraryFragment>::@setter::v
+      getters
+        get v @-1
+          reference: <testLibraryFragment>::@getter::v
+          element: <none>
+      setters
+        set v= @-1
+          reference: <testLibraryFragment>::@setter::v
+          element: <none>
+          parameters
+            _v @-1
+              element: <none>
+  topLevelVariables
+    v
+      firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get v
+      firstFragment: <testLibraryFragment>::@getter::v
+  setters
+    synthetic static set v=
+      firstFragment: <testLibraryFragment>::@setter::v
+      parameters
+        requiredPositional _v
+          type: int
 ''');
   }
 
@@ -1242,23 +2128,41 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static final v @10
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
       accessors
         synthetic static get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        final v @10
+          reference: <testLibraryFragment>::@topLevelVariable::v
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::v
+      getters
+        get v @-1
+          reference: <testLibraryFragment>::@getter::v
+          element: <none>
+  topLevelVariables
+    final v
+      firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      type: int
+      getter: <none>
+  getters
+    synthetic static get v
+      firstFragment: <testLibraryFragment>::@getter::v
 ''');
   }
 
@@ -1270,23 +2174,41 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static final v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
       accessors
         synthetic static get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        final v @6
+          reference: <testLibraryFragment>::@topLevelVariable::v
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::v
+      getters
+        get v @-1
+          reference: <testLibraryFragment>::@getter::v
+          element: <none>
+  topLevelVariables
+    final v
+      firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      type: int
+      getter: <none>
+  getters
+    synthetic static get v
+      firstFragment: <testLibraryFragment>::@getter::v
 ''');
   }
 
@@ -1300,11 +2222,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static const x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: (int, bool)
           shouldUseTypeForInitializerInference: false
           constantInitializer
@@ -1322,13 +2244,31 @@ library
       accessors
         synthetic static get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: (int, bool)
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        const x @6
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+  topLevelVariables
+    const x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: (int, bool)
+      getter: <none>
+  getters
+    synthetic static get x
+      firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
 
@@ -1346,39 +2286,39 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
       extensions
         E @21
           reference: <testLibraryFragment>::@extension::E
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           extendedType: A
           methods
             static f @43
               reference: <testLibraryFragment>::@extension::E::@method::f
-              enclosingElement: <testLibraryFragment>::@extension::E
+              enclosingElement3: <testLibraryFragment>::@extension::E
               returnType: int
       topLevelVariables
         static x @59
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
       accessors
         synthetic static get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
         synthetic static set x= @-1
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _x @-1
               type: int
@@ -1388,17 +2328,67 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
       extensions
         extension E @21
           reference: <testLibraryFragment>::@extension::E
+          element: <testLibraryFragment>::@extension::E
+          methods
+            f @43
+              reference: <testLibraryFragment>::@extension::E::@method::f
+              element: <none>
+      topLevelVariables
+        x @59
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+          setter2: <testLibraryFragment>::@setter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+      setters
+        set x= @-1
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          parameters
+            _x @-1
+              element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  extensions
+    extension E
+      firstFragment: <testLibraryFragment>::@extension::E
+      methods
+        static f
+          firstFragment: <testLibraryFragment>::@extension::E::@method::f
+  topLevelVariables
+    x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get x
+      firstFragment: <testLibraryFragment>::@getter::x
+  setters
+    synthetic static set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      parameters
+        requiredPositional _x
+          type: int
 ''');
   }
 
@@ -1410,21 +2400,21 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static v @4
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
       accessors
         synthetic static get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
         synthetic static set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _v @-1
               type: int
@@ -1434,6 +2424,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        v @4
+          reference: <testLibraryFragment>::@topLevelVariable::v
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::v
+          setter2: <testLibraryFragment>::@setter::v
+      getters
+        get v @-1
+          reference: <testLibraryFragment>::@getter::v
+          element: <none>
+      setters
+        set v= @-1
+          reference: <testLibraryFragment>::@setter::v
+          element: <none>
+          parameters
+            _v @-1
+              element: <none>
+  topLevelVariables
+    v
+      firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get v
+      firstFragment: <testLibraryFragment>::@getter::v
+  setters
+    synthetic static set v=
+      firstFragment: <testLibraryFragment>::@setter::v
+      parameters
+        requiredPositional _v
+          type: int
 ''');
   }
 
@@ -1445,21 +2468,21 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static late x @9
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
       accessors
         synthetic static get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
         synthetic static set x= @-1
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _x @-1
               type: int
@@ -1469,6 +2492,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        x @9
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+          setter2: <testLibraryFragment>::@setter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+      setters
+        set x= @-1
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          parameters
+            _x @-1
+              element: <none>
+  topLevelVariables
+    late x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get x
+      firstFragment: <testLibraryFragment>::@getter::x
+  setters
+    synthetic static set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      parameters
+        requiredPositional _x
+          type: int
 ''');
   }
 
@@ -1480,20 +2536,20 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static late final x @15
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
       accessors
         synthetic static get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
         synthetic static set x= @-1
           reference: <testLibraryFragment>::@setter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _x @-1
               type: int
@@ -1503,6 +2559,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        final x @15
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+          setter2: <testLibraryFragment>::@setter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+      setters
+        set x= @-1
+          reference: <testLibraryFragment>::@setter::x
+          element: <none>
+          parameters
+            _x @-1
+              element: <none>
+  topLevelVariables
+    late final x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get x
+      firstFragment: <testLibraryFragment>::@getter::x
+  setters
+    synthetic static set x=
+      firstFragment: <testLibraryFragment>::@setter::x
+      parameters
+        requiredPositional _x
+          type: int
 ''');
   }
 
@@ -1514,23 +2603,41 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static late final x @15
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
       accessors
         synthetic static get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        final x @15
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+  topLevelVariables
+    late final x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: int
+      getter: <none>
+  getters
+    synthetic static get x
+      firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
 
@@ -1542,11 +2649,11 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static const i @6
           reference: <testLibraryFragment>::@topLevelVariable::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
           constantInitializer
@@ -1556,57 +2663,91 @@ library
       accessors
         synthetic static get i @-1
           reference: <testLibraryFragment>::@getter::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        const i @6
+          reference: <testLibraryFragment>::@topLevelVariable::i
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::i
+      getters
+        get i @-1
+          reference: <testLibraryFragment>::@getter::i
+          element: <none>
+  topLevelVariables
+    const i
+      firstFragment: <testLibraryFragment>::@topLevelVariable::i
+      type: int
+      getter: <none>
+  getters
+    synthetic static get i
+      firstFragment: <testLibraryFragment>::@getter::i
 ''');
   }
 
   test_variable_propagatedType_final_dep_inLib() async {
-    addSource('$testPackageLibPath/a.dart', 'final a = 1;');
+    newFile('$testPackageLibPath/a.dart', 'final a = 1;');
     var library = await buildLibrary('import "a.dart"; final b = a / 2;');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       topLevelVariables
         static final b @23
           reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: double
           shouldUseTypeForInitializerInference: false
       accessors
         synthetic static get b @-1
           reference: <testLibraryFragment>::@getter::b
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: double
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/a.dart
+      topLevelVariables
+        final b @23
+          reference: <testLibraryFragment>::@topLevelVariable::b
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::b
+      getters
+        get b @-1
+          reference: <testLibraryFragment>::@getter::b
+          element: <none>
+  topLevelVariables
+    final b
+      firstFragment: <testLibraryFragment>::@topLevelVariable::b
+      type: double
+      getter: <none>
+  getters
+    synthetic static get b
+      firstFragment: <testLibraryFragment>::@getter::b
 ''');
   }
 
   test_variable_propagatedType_final_dep_inPart() async {
-    addSource('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
+    newFile('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
     var library =
         await buildLibrary('library lib; part "a.dart"; final b = a / 2;');
     checkElementText(library, r'''
@@ -1619,37 +2760,35 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         static final b @34
           reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: double
           shouldUseTypeForInitializerInference: false
       accessors
         synthetic static get b @-1
           reference: <testLibraryFragment>::@getter::b
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: double
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
         static final a @19
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: int
           shouldUseTypeForInitializerInference: false
       accessors
         synthetic static get a @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
 ----------------------------------------
 library
@@ -1657,9 +2796,43 @@ library
   name: lib
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      topLevelVariables
+        final b @34
+          reference: <testLibraryFragment>::@topLevelVariable::b
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::b
+      getters
+        get b @-1
+          reference: <testLibraryFragment>::@getter::b
+          element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        final a @19
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
+          element: <none>
+          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+      getters
+        get a @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+          element: <none>
+  topLevelVariables
+    final b
+      firstFragment: <testLibraryFragment>::@topLevelVariable::b
+      type: double
+      getter: <none>
+    final a
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
+      type: int
+      getter: <none>
+  getters
+    synthetic static get b
+      firstFragment: <testLibraryFragment>::@getter::b
+    synthetic static get a
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::a
 ''');
   }
 
@@ -1671,71 +2844,105 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static final i @6
           reference: <testLibraryFragment>::@topLevelVariable::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
       accessors
         synthetic static get i @-1
           reference: <testLibraryFragment>::@getter::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        final i @6
+          reference: <testLibraryFragment>::@topLevelVariable::i
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::i
+      getters
+        get i @-1
+          reference: <testLibraryFragment>::@getter::i
+          element: <none>
+  topLevelVariables
+    final i
+      firstFragment: <testLibraryFragment>::@topLevelVariable::i
+      type: int
+      getter: <none>
+  getters
+    synthetic static get i
+      firstFragment: <testLibraryFragment>::@getter::i
 ''');
   }
 
   test_variable_propagatedType_implicit_dep() async {
     // The propagated type is defined in a library that is not imported.
-    addSource('$testPackageLibPath/a.dart', 'class C {}');
-    addSource('$testPackageLibPath/b.dart', 'import "a.dart"; C f() => null;');
+    newFile('$testPackageLibPath/a.dart', 'class C {}');
+    newFile('$testPackageLibPath/b.dart', 'import "a.dart"; C f() => null;');
     var library = await buildLibrary('import "b.dart"; final x = f();');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   libraryImports
     package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       topLevelVariables
         static final x @23
           reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: C
           shouldUseTypeForInitializerInference: false
       accessors
         synthetic static get x @-1
           reference: <testLibraryFragment>::@getter::x
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: C
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/b.dart
+      topLevelVariables
+        final x @23
+          reference: <testLibraryFragment>::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::x
+      getters
+        get x @-1
+          reference: <testLibraryFragment>::@getter::x
+          element: <none>
+  topLevelVariables
+    final x
+      firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      type: C
+      getter: <none>
+  getters
+    synthetic static get x
+      firstFragment: <testLibraryFragment>::@getter::x
 ''');
   }
 
   test_variable_setterInPart_getterInPart() async {
-    addSource(
+    newFile(
         '$testPackageLibPath/a.dart', 'part of my.lib; void set x(int _) {}');
-    addSource('$testPackageLibPath/b.dart', 'part of my.lib; int get x => 42;');
+    newFile('$testPackageLibPath/b.dart', 'part of my.lib; int get x => 42;');
     var library =
         await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
@@ -1749,46 +2956,42 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: int
       accessors
         static set x= @25
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::x
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _ @31
               type: int
           returnType: void
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
         synthetic static x @-1
           reference: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::x
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           type: int
       accessors
         static get x @24
           reference: <testLibrary>::@fragment::package:test/b.dart::@getter::x
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           returnType: int
 ----------------------------------------
 library
@@ -1796,12 +2999,54 @@ library
   name: my.lib
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
+          element: <none>
+          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::x
+      setters
+        set x= @25
+          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::x
+          element: <none>
+          parameters
+            _ @31
+              element: <none>
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      topLevelVariables
+        synthetic x @-1
+          reference: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::x
+          element: <none>
+          getter2: <testLibrary>::@fragment::package:test/b.dart::@getter::x
+      getters
+        get x @24
+          reference: <testLibrary>::@fragment::package:test/b.dart::@getter::x
+          element: <none>
+  topLevelVariables
+    synthetic x
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
+      type: int
+      setter: <none>
+    synthetic x
+      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::x
+      type: int
+      getter: <none>
+  getters
+    static get x
+      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@getter::x
+  setters
+    static set x=
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::x
+      parameters
+        requiredPositional _
+          type: int
 ''');
   }
 
@@ -1813,21 +3058,21 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static v @4
           reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
       accessors
         synthetic static get v @-1
           reference: <testLibraryFragment>::@getter::v
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
         synthetic static set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _v @-1
               type: int
@@ -1837,6 +3082,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        v @4
+          reference: <testLibraryFragment>::@topLevelVariable::v
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::v
+          setter2: <testLibraryFragment>::@setter::v
+      getters
+        get v @-1
+          reference: <testLibraryFragment>::@getter::v
+          element: <none>
+      setters
+        set v= @-1
+          reference: <testLibraryFragment>::@setter::v
+          element: <none>
+          parameters
+            _v @-1
+              element: <none>
+  topLevelVariables
+    v
+      firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get v
+      firstFragment: <testLibraryFragment>::@getter::v
+  setters
+    synthetic static set v=
+      firstFragment: <testLibraryFragment>::@setter::v
+      parameters
+        requiredPositional _v
+          type: int
 ''');
   }
 
@@ -1851,21 +3129,21 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static a @4
           reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: Never
           shouldUseTypeForInitializerInference: false
       accessors
         synthetic static get a @-1
           reference: <testLibraryFragment>::@getter::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: Never
         synthetic static set a= @-1
           reference: <testLibraryFragment>::@setter::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _a @-1
               type: Never
@@ -1875,6 +3153,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        a @4
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::a
+          setter2: <testLibraryFragment>::@setter::a
+      getters
+        get a @-1
+          reference: <testLibraryFragment>::@getter::a
+          element: <none>
+      setters
+        set a= @-1
+          reference: <testLibraryFragment>::@setter::a
+          element: <none>
+          parameters
+            _a @-1
+              element: <none>
+  topLevelVariables
+    a
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: Never
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get a
+      firstFragment: <testLibraryFragment>::@getter::a
+  setters
+    synthetic static set a=
+      firstFragment: <testLibraryFragment>::@setter::a
+      parameters
+        requiredPositional _a
+          type: Never
 ''');
   }
 
@@ -1889,20 +3200,20 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static a @4
           reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: dynamic
       accessors
         synthetic static get a @-1
           reference: <testLibraryFragment>::@getter::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
         synthetic static set a= @-1
           reference: <testLibraryFragment>::@setter::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _a @-1
               type: dynamic
@@ -1912,6 +3223,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        a @4
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::a
+          setter2: <testLibraryFragment>::@setter::a
+      getters
+        get a @-1
+          reference: <testLibraryFragment>::@getter::a
+          element: <none>
+      setters
+        set a= @-1
+          reference: <testLibraryFragment>::@setter::a
+          element: <none>
+          parameters
+            _a @-1
+              element: <none>
+  topLevelVariables
+    a
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: dynamic
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get a
+      firstFragment: <testLibraryFragment>::@getter::a
+  setters
+    synthetic static set a=
+      firstFragment: <testLibraryFragment>::@setter::a
+      parameters
+        requiredPositional _a
+          type: dynamic
 ''');
   }
 
@@ -1928,22 +3272,22 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @8
               defaultType: dynamic
           constructors
             const @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
       topLevelVariables
         static const a @41
           reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: A<int>
           shouldUseTypeForInitializerInference: true
           constantInitializer
@@ -1963,21 +3307,50 @@ library
       accessors
         synthetic static get a @-1
           reference: <testLibraryFragment>::@getter::a
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: A<int>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          typeParameters
+            T @8
+              element: <none>
+          constructors
+            const new @21
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
+      topLevelVariables
+        const a @41
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::a
+      getters
+        get a @-1
+          reference: <testLibraryFragment>::@getter::a
+          element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      typeParameters
+        T
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  topLevelVariables
+    const a
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: A<int>
+      getter: <none>
+  getters
+    synthetic static get a
+      firstFragment: <testLibraryFragment>::@getter::a
 ''');
   }
 
@@ -1989,35 +3362,35 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       topLevelVariables
         static i @4
           reference: <testLibraryFragment>::@topLevelVariable::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
         static j @11
           reference: <testLibraryFragment>::@topLevelVariable::j
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
       accessors
         synthetic static get i @-1
           reference: <testLibraryFragment>::@getter::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
         synthetic static set i= @-1
           reference: <testLibraryFragment>::@setter::i
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _i @-1
               type: int
           returnType: void
         synthetic static get j @-1
           reference: <testLibraryFragment>::@getter::j
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
         synthetic static set j= @-1
           reference: <testLibraryFragment>::@setter::j
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _j @-1
               type: int
@@ -2027,6 +3400,65 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        i @4
+          reference: <testLibraryFragment>::@topLevelVariable::i
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::i
+          setter2: <testLibraryFragment>::@setter::i
+        j @11
+          reference: <testLibraryFragment>::@topLevelVariable::j
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::j
+          setter2: <testLibraryFragment>::@setter::j
+      getters
+        get i @-1
+          reference: <testLibraryFragment>::@getter::i
+          element: <none>
+        get j @-1
+          reference: <testLibraryFragment>::@getter::j
+          element: <none>
+      setters
+        set i= @-1
+          reference: <testLibraryFragment>::@setter::i
+          element: <none>
+          parameters
+            _i @-1
+              element: <none>
+        set j= @-1
+          reference: <testLibraryFragment>::@setter::j
+          element: <none>
+          parameters
+            _j @-1
+              element: <none>
+  topLevelVariables
+    i
+      firstFragment: <testLibraryFragment>::@topLevelVariable::i
+      type: int
+      getter: <none>
+      setter: <none>
+    j
+      firstFragment: <testLibraryFragment>::@topLevelVariable::j
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get i
+      firstFragment: <testLibraryFragment>::@getter::i
+    synthetic static get j
+      firstFragment: <testLibraryFragment>::@getter::j
+  setters
+    synthetic static set i=
+      firstFragment: <testLibraryFragment>::@setter::i
+      parameters
+        requiredPositional _i
+          type: int
+    synthetic static set j=
+      firstFragment: <testLibraryFragment>::@setter::j
+      parameters
+        requiredPositional _j
+          type: int
 ''');
   }
 
@@ -2058,12 +3490,12 @@ abstract class TopLevelVariableElementTest_augmentation
     extends ElementsBaseTest {
   test_variable_augments_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment int A = 0;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 class A {}
 ''');
 
@@ -2074,29 +3506,30 @@ class A {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @31
+        class A @21
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
-        augment static A @41
+        augment static A @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_0
@@ -2106,13 +3539,13 @@ library
       accessors
         synthetic static get A @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
           id: getter_0
           variable: variable_0
         synthetic static set A= @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _A @-1
               type: int
@@ -2130,17 +3563,57 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @31
+        class A @21
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        augment A @33
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::A
+          element: <none>
+          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::A
+          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::A
+      getters
+        get A @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::A
+          element: <none>
+      setters
+        set A= @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::A
+          element: <none>
+          parameters
+            _A @-1
+              element: <none>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+  topLevelVariables
+    A
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::A
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get A
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::A
+  setters
+    synthetic static set A=
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::A
+      parameters
+        requiredPositional _A
+          type: int
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::A
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::A
@@ -2152,12 +3625,12 @@ library
 
   test_variable_augments_function() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment int foo = 0;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 void foo() {}
 ''');
 
@@ -2168,26 +3641,27 @@ void foo() {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       functions
-        foo @30
+        foo @20
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: void
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
-        augment static foo @41
+        augment static foo @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_0
@@ -2197,13 +3671,13 @@ library
       accessors
         synthetic static get foo @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
           id: getter_0
           variable: variable_0
         synthetic static set foo= @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _foo @-1
               type: int
@@ -2221,9 +3695,51 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      functions
+        foo @20
+          reference: <testLibraryFragment>::@function::foo
+          element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        augment foo @33
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+          element: <none>
+          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+      getters
+        get foo @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+          element: <none>
+      setters
+        set foo= @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+          element: <none>
+          parameters
+            _foo @-1
+              element: <none>
+  topLevelVariables
+    foo
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get foo
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+  setters
+    synthetic static set foo=
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+      parameters
+        requiredPositional _foo
+          type: int
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      returnType: void
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
@@ -2235,12 +3751,12 @@ library
 
   test_variable_augments_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment int foo = 0;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 int get foo => 0;
 ''');
 
@@ -2251,35 +3767,36 @@ int get foo => 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           id: variable_0
           getter: getter_0
       accessors
-        static get foo @33
+        static get foo @23
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
           id: getter_0
           variable: variable_0
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
-        augment static foo @41
+        augment static foo @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_1
@@ -2289,13 +3806,13 @@ library
       accessors
         synthetic static get foo @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
           id: getter_1
           variable: variable_1
         synthetic static set foo= @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _foo @-1
               type: int
@@ -2313,9 +3830,58 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      topLevelVariables
+        synthetic foo @-1
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
+          getter2: <testLibraryFragment>::@getter::foo
+      getters
+        get foo @23
+          reference: <testLibraryFragment>::@getter::foo
+          element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        augment foo @33
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+          element: <none>
+          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+      getters
+        get foo @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+          element: <none>
+      setters
+        set foo= @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+          element: <none>
+          parameters
+            _foo @-1
+              element: <none>
+  topLevelVariables
+    synthetic foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: int
+      getter: <none>
+    foo
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    static get foo
+      firstFragment: <testLibraryFragment>::@getter::foo
+    synthetic static get foo
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+  setters
+    synthetic static set foo=
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+      parameters
+        requiredPositional _foo
+          type: int
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
@@ -2327,12 +3893,12 @@ library
 
   test_variable_augments_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment int foo = 0;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 set foo(int _) {}
 ''');
 
@@ -2343,38 +3909,39 @@ set foo(int _) {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic static foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           id: variable_0
           setter: setter_0
       accessors
-        static set foo= @29
+        static set foo= @19
           reference: <testLibraryFragment>::@setter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
-            requiredPositional _ @37
+            requiredPositional _ @27
               type: int
           returnType: void
           id: setter_0
           variable: variable_0
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
-        augment static foo @41
+        augment static foo @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_1
@@ -2384,13 +3951,13 @@ library
       accessors
         synthetic static get foo @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
           id: getter_0
           variable: variable_1
         synthetic static set foo= @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _foo @-1
               type: int
@@ -2408,9 +3975,64 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      topLevelVariables
+        synthetic foo @-1
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
+          setter2: <testLibraryFragment>::@setter::foo
+      setters
+        set foo= @19
+          reference: <testLibraryFragment>::@setter::foo
+          element: <none>
+          parameters
+            _ @27
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        augment foo @33
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+          element: <none>
+          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+      getters
+        get foo @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+          element: <none>
+      setters
+        set foo= @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+          element: <none>
+          parameters
+            _foo @-1
+              element: <none>
+  topLevelVariables
+    synthetic foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: int
+      setter: <none>
+    foo
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get foo
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+  setters
+    static set foo=
+      firstFragment: <testLibraryFragment>::@setter::foo
+      parameters
+        requiredPositional _
+          type: int
+    synthetic static set foo=
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+      parameters
+        requiredPositional _foo
+          type: int
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
@@ -2422,12 +4044,12 @@ library
 
   test_variable_augments_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment int foo = 1;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 int foo = 0;
 ''');
 
@@ -2438,18 +4060,20 @@ int foo = 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        static foo @29
+        static foo @19
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_0
@@ -2459,13 +4083,13 @@ library
       accessors
         synthetic static get foo @-1
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
           id: getter_0
           variable: variable_0
         synthetic static set foo= @-1
           reference: <testLibraryFragment>::@setter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _foo @-1
               type: int
@@ -2473,12 +4097,11 @@ library
           id: setter_0
           variable: variable_0
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
-        augment static foo @41
+        augment static foo @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_1
@@ -2488,13 +4111,13 @@ library
       accessors
         synthetic static get foo @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
           id: getter_1
           variable: variable_1
         synthetic static set foo= @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _foo @-1
               type: int
@@ -2512,9 +4135,69 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      topLevelVariables
+        foo @19
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+          getter2: <testLibraryFragment>::@getter::foo
+          setter2: <testLibraryFragment>::@setter::foo
+      getters
+        get foo @-1
+          reference: <testLibraryFragment>::@getter::foo
+          element: <none>
+      setters
+        set foo= @-1
+          reference: <testLibraryFragment>::@setter::foo
+          element: <none>
+          parameters
+            _foo @-1
+              element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        augment foo @33
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+          element: <none>
+          previousFragment: <testLibraryFragment>::@topLevelVariable::foo
+          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+      getters
+        get foo @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+          element: <none>
+      setters
+        set foo= @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+          element: <none>
+          parameters
+            _foo @-1
+              element: <none>
+  topLevelVariables
+    foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: int
+      getter: <none>
+      setter: <none>
+  getters
+    synthetic static get foo
+      firstFragment: <testLibraryFragment>::@getter::foo
+    synthetic static get foo
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+  setters
+    synthetic static set foo=
+      firstFragment: <testLibraryFragment>::@setter::foo
+      parameters
+        requiredPositional _foo
+          type: int
+    synthetic static set foo=
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+      parameters
+        requiredPositional _foo
+          type: int
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
@@ -2526,12 +4209,12 @@ library
 
   test_variable_augments_variable_augmented_const_typed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment const int foo = augmented + 1;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 const int foo = 0;
 ''');
 
@@ -2539,48 +4222,49 @@ const int foo = 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        static const foo @35
+        static const foo @25
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: true
           constantInitializer
             IntegerLiteral
-              literal: 0 @41
+              literal: 0 @31
               staticType: int
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
       accessors
         synthetic static get foo @-1
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
-        augment static const foo @47
+        augment static const foo @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: int
           shouldUseTypeForInitializerInference: true
           constantInitializer
             BinaryExpression
               leftOperand: AugmentedExpression
-                augmentedKeyword: augmented @53
+                augmentedKeyword: augmented @45
                 element: <testLibraryFragment>::@topLevelVariable::foo
                 staticType: int
-              operator: + @63
+              operator: + @55
               rightOperand: IntegerLiteral
-                literal: 1 @65
+                literal: 1 @57
                 staticType: int
               staticElement: dart:core::<fragment>::@class::num::@method::+
               staticInvokeType: num Function(num)
@@ -2589,16 +4273,48 @@ library
       accessors
         synthetic static get foo @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      topLevelVariables
+        const foo @25
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <none>
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+          getter2: <testLibraryFragment>::@getter::foo
+      getters
+        get foo @-1
+          reference: <testLibraryFragment>::@getter::foo
+          element: <none>
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        augment const foo @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+          element: <none>
+          previousFragment: <testLibraryFragment>::@topLevelVariable::foo
+          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+      getters
+        get foo @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+          element: <none>
+  topLevelVariables
+    const foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: int
+      getter: <none>
+  getters
+    synthetic static get foo
+      firstFragment: <testLibraryFragment>::@getter::foo
+    synthetic static get foo
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
 ''');
   }
 }

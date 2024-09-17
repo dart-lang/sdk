@@ -36,10 +36,10 @@ class A {
 class PreferAssertsInInitializerLists extends LintRule {
   PreferAssertsInInitializerLists()
       : super(
-            name: 'prefer_asserts_in_initializer_lists',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_asserts_in_initializer_lists',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_asserts_in_initializer_lists;
@@ -84,12 +84,12 @@ class _AssertVisitor extends RecursiveAstVisitor {
 
   bool _hasAccessor(PropertyAccessorElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement);
+    return classes != null && classes.contains(element.enclosingElement3);
   }
 
   bool _hasMethod(MethodElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement);
+    return classes != null && classes.contains(element.enclosingElement3);
   }
 
   bool _paramMatchesField(

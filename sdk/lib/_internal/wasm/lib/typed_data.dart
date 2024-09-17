@@ -28,6 +28,8 @@ import 'dart:_internal'
         WhereTypeIterable;
 import 'dart:_simd';
 import 'dart:_wasm';
+import 'dart:_js_types';
+import 'dart:_js_helper';
 
 import 'dart:collection' show ListBase;
 import 'dart:math' show Random;
@@ -62,12 +64,12 @@ void _offsetAlignmentCheck(int offset, int alignment) {
 }
 
 final class _TypedListIterator<E> implements Iterator<E> {
-  final List<E> _array;
+  final TypedDataList<E> _array;
   final int _length;
   int _position;
   E? _current;
 
-  _TypedListIterator(List<E> array)
+  _TypedListIterator(TypedDataList<E> array)
       : _array = array,
         _length = array.length,
         _position = -1;
@@ -80,7 +82,6 @@ final class _TypedListIterator<E> implements Iterator<E> {
       _position = nextPosition;
       return true;
     }
-    _position = _length;
     _current = null;
     return false;
   }
@@ -482,6 +483,7 @@ class I8ByteData extends ByteDataBase {
       _UnmodifiableI8ByteData._(_data, offsetInBytes, lengthInBytes);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I8ByteBuffer get buffer => _I8ByteBuffer(_data);
 
   @override
@@ -520,6 +522,7 @@ class _I16ByteData extends ByteDataBase {
       _UnmodifiableI16ByteData._(_data, offsetInBytes, lengthInBytes);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I16ByteBuffer get buffer => _I16ByteBuffer(_data);
 
   @override
@@ -583,6 +586,7 @@ class _I32ByteData extends ByteDataBase {
       _UnmodifiableI32ByteData._(_data, offsetInBytes, lengthInBytes);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I32ByteBuffer get buffer => _I32ByteBuffer(_data);
 
   @override
@@ -669,6 +673,7 @@ class _I64ByteData extends ByteDataBase {
       _UnmodifiableI64ByteData._(_data, offsetInBytes, lengthInBytes);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I64ByteBuffer get buffer => _I64ByteBuffer(_data);
 
   @override
@@ -766,6 +771,7 @@ class _F32ByteData extends ByteDataBase {
       _UnmodifiableF32ByteData._(_data, offsetInBytes, lengthInBytes);
 
   @override
+  @pragma('wasm:prefer-inline')
   _F32ByteBuffer get buffer => _F32ByteBuffer(_data);
 
   @override
@@ -832,6 +838,7 @@ class _F64ByteData extends ByteDataBase {
       _UnmodifiableF64ByteData._(_data, offsetInBytes, lengthInBytes);
 
   @override
+  @pragma('wasm:prefer-inline')
   _F64ByteBuffer get buffer => _F64ByteBuffer(_data);
 
   @override
@@ -899,6 +906,7 @@ class _UnmodifiableI8ByteData extends I8ByteData
       : super._(_data, offsetInBytes, lengthInBytes);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I8ByteBuffer get buffer => _I8ByteBuffer._(_data, false);
 }
 
@@ -909,6 +917,7 @@ class _UnmodifiableI16ByteData extends _I16ByteData
       : super._(_data, offsetInBytes, lengthInBytes);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I16ByteBuffer get buffer => _I16ByteBuffer._(_data, false);
 }
 
@@ -919,6 +928,7 @@ class _UnmodifiableI32ByteData extends _I32ByteData
       : super._(_data, offsetInBytes, lengthInBytes);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I32ByteBuffer get buffer => _I32ByteBuffer._(_data, false);
 }
 
@@ -929,6 +939,7 @@ class _UnmodifiableI64ByteData extends _I64ByteData
       : super._(_data, 0, _data.length * 8);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I64ByteBuffer get buffer => _I64ByteBuffer._(_data, false);
 }
 
@@ -939,6 +950,7 @@ class _UnmodifiableF32ByteData extends _F32ByteData
       : super._(_data, offsetInBytes, lengthInBytes);
 
   @override
+  @pragma('wasm:prefer-inline')
   _F32ByteBuffer get buffer => _F32ByteBuffer._(_data, false);
 }
 
@@ -949,6 +961,7 @@ class _UnmodifiableF64ByteData extends _F64ByteData
       : super._(_data, offsetInBytes, lengthInBytes);
 
   @override
+  @pragma('wasm:prefer-inline')
   _F64ByteBuffer get buffer => _F64ByteBuffer._(_data, false);
 }
 
@@ -1102,8 +1115,10 @@ abstract class ByteBufferBase extends WasmTypedDataBase implements ByteBuffer {
 class _I8ByteBuffer extends ByteBufferBase {
   final WasmArray<WasmI8> _data;
 
+  @pragma("wasm:prefer-inline")
   _I8ByteBuffer(this._data) : super(_data.length, true);
 
+  @pragma("wasm:prefer-inline")
   _I8ByteBuffer._(this._data, bool mutable) : super(_data.length, mutable);
 
   @override
@@ -1130,7 +1145,7 @@ class _I8ByteBuffer extends ByteBufferBase {
   }
 
   @override
-  ByteData asByteData([int offsetInBytes = 0, int? length]) {
+  I8ByteData asByteData([int offsetInBytes = 0, int? length]) {
     length ??= lengthInBytes - offsetInBytes;
     _rangeCheck(lengthInBytes, offsetInBytes, length);
     return I8ByteData._withMutability(_data, offsetInBytes, length, _mutable);
@@ -1140,8 +1155,10 @@ class _I8ByteBuffer extends ByteBufferBase {
 class _I16ByteBuffer extends ByteBufferBase {
   final WasmArray<WasmI16> _data;
 
+  @pragma("wasm:prefer-inline")
   _I16ByteBuffer(this._data) : super(_data.length * 2, true);
 
+  @pragma("wasm:prefer-inline")
   _I16ByteBuffer._(this._data, bool mutable) : super(_data.length * 2, mutable);
 
   @override
@@ -1172,7 +1189,7 @@ class _I16ByteBuffer extends ByteBufferBase {
   }
 
   @override
-  ByteData asByteData([int offsetInBytes = 0, int? length]) {
+  _I16ByteData asByteData([int offsetInBytes = 0, int? length]) {
     length ??= lengthInBytes - offsetInBytes;
     _rangeCheck(lengthInBytes, offsetInBytes, length);
     return _I16ByteData._withMutability(_data, offsetInBytes, length, _mutable);
@@ -1182,14 +1199,17 @@ class _I16ByteBuffer extends ByteBufferBase {
 class _I32ByteBuffer extends ByteBufferBase {
   final WasmArray<WasmI32> _data;
 
+  @pragma("wasm:prefer-inline")
   _I32ByteBuffer(this._data) : super(_data.length * 4, true);
 
+  @pragma("wasm:prefer-inline")
   _I32ByteBuffer._(this._data, bool mutable) : super(_data.length * 4, mutable);
 
   @override
   _I32ByteBuffer _immutable() => _I32ByteBuffer._(_data, false);
 
   @override
+  @pragma("wasm:prefer-inline")
   bool operator ==(Object other) =>
       other is _I32ByteBuffer && identical(_data, other._data);
 
@@ -1214,7 +1234,7 @@ class _I32ByteBuffer extends ByteBufferBase {
   }
 
   @override
-  ByteData asByteData([int offsetInBytes = 0, int? length]) {
+  _I32ByteData asByteData([int offsetInBytes = 0, int? length]) {
     length ??= lengthInBytes - offsetInBytes;
     _rangeCheck(lengthInBytes, offsetInBytes, length);
     return _I32ByteData._withMutability(_data, offsetInBytes, length, _mutable);
@@ -1224,8 +1244,10 @@ class _I32ByteBuffer extends ByteBufferBase {
 class _I64ByteBuffer extends ByteBufferBase {
   final WasmArray<WasmI64> _data;
 
+  @pragma("wasm:prefer-inline")
   _I64ByteBuffer(this._data) : super(_data.length * 8, true);
 
+  @pragma("wasm:prefer-inline")
   _I64ByteBuffer._(this._data, bool mutable) : super(_data.length * 8, mutable);
 
   @override
@@ -1256,7 +1278,7 @@ class _I64ByteBuffer extends ByteBufferBase {
   }
 
   @override
-  ByteData asByteData([int offsetInBytes = 0, int? length]) {
+  _I64ByteData asByteData([int offsetInBytes = 0, int? length]) {
     length ??= lengthInBytes - offsetInBytes;
     _rangeCheck(lengthInBytes, offsetInBytes, length);
     return _I64ByteData._withMutability(_data, offsetInBytes, length, _mutable);
@@ -1266,8 +1288,10 @@ class _I64ByteBuffer extends ByteBufferBase {
 class _F32ByteBuffer extends ByteBufferBase {
   final WasmArray<WasmF32> _data;
 
+  @pragma("wasm:prefer-inline")
   _F32ByteBuffer(this._data) : super(_data.length * 4, true);
 
+  @pragma("wasm:prefer-inline")
   _F32ByteBuffer._(this._data, bool mutable) : super(_data.length * 4, mutable);
 
   @override
@@ -1288,7 +1312,7 @@ class _F32ByteBuffer extends ByteBufferBase {
   }
 
   @override
-  ByteData asByteData([int offsetInBytes = 0, int? length]) {
+  _F32ByteData asByteData([int offsetInBytes = 0, int? length]) {
     length ??= lengthInBytes - offsetInBytes;
     _rangeCheck(lengthInBytes, offsetInBytes, length);
     return _F32ByteData._withMutability(_data, offsetInBytes, length, _mutable);
@@ -1298,8 +1322,10 @@ class _F32ByteBuffer extends ByteBufferBase {
 class _F64ByteBuffer extends ByteBufferBase {
   final WasmArray<WasmF64> _data;
 
+  @pragma("wasm:prefer-inline")
   _F64ByteBuffer(this._data) : super(_data.length * 8, true);
 
+  @pragma("wasm:prefer-inline")
   _F64ByteBuffer._(this._data, bool mutable) : super(_data.length * 8, mutable);
 
   @override
@@ -1320,7 +1346,7 @@ class _F64ByteBuffer extends ByteBufferBase {
   }
 
   @override
-  ByteData asByteData([int offsetInBytes = 0, int? length]) {
+  _F64ByteData asByteData([int offsetInBytes = 0, int? length]) {
     length ??= lengthInBytes - offsetInBytes;
     _rangeCheck(lengthInBytes, offsetInBytes, length);
     return _F64ByteData._withMutability(_data, offsetInBytes, length, _mutable);
@@ -1742,6 +1768,39 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
 
     if (count == 0) return;
 
+    if (this is _UnmodifiableIntListMixin) {
+      throw UnsupportedError("Cannot modify an unmodifiable list");
+    }
+
+    if (from is JSIntegerArrayBase) {
+      // We only add this mixin to typed lists in this library so we know
+      // `this` is `TypedData`.
+      final fromTypedData = unsafeCast<JSIntegerArrayBase>(from);
+
+      final fromElementSize = fromTypedData.elementSizeInBytes;
+      if (fromElementSize == 1 && this is _WasmI8ArrayBase) {
+        final destTypedData = unsafeCast<_WasmI8ArrayBase>(this);
+        copyToWasmI8Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+      if (fromElementSize == 2 && this is _WasmI16ArrayBase) {
+        final destTypedData = unsafeCast<_WasmI16ArrayBase>(this);
+        copyToWasmI16Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+      if (fromElementSize == 4 && this is _WasmI32ArrayBase) {
+        final destTypedData = unsafeCast<_WasmI32ArrayBase>(this);
+        copyToWasmI32Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+
+      // NOTICE: We currently don't have `JSUint64Array` classes in
+      // `dart:js_interop`.
+    }
+
     if (from is TypedData) {
       // We only add this mixin to typed lists in this library so we know
       // `this` is `TypedData`.
@@ -2139,6 +2198,30 @@ mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
 
     if (count == 0) return;
 
+    if (this is _UnmodifiableDoubleListMixin) {
+      throw UnsupportedError("Cannot modify an unmodifiable list");
+    }
+
+    if (from is JSFloatArrayBase) {
+      // We only add this mixin to typed lists in this library so we know
+      // `this` is `TypedData`.
+      final fromTypedData = unsafeCast<JSFloatArrayBase>(from);
+
+      final fromElementSize = fromTypedData.elementSizeInBytes;
+      if (fromElementSize == 4 && this is _WasmF32ArrayBase) {
+        final destTypedData = unsafeCast<_WasmF32ArrayBase>(this);
+        copyToWasmF32Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+      if (fromElementSize == 8 && this is _WasmF64ArrayBase) {
+        final destTypedData = unsafeCast<_WasmF64ArrayBase>(this);
+        copyToWasmF64Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+    }
+
     if (from is TypedData) {
       // We only add this mixin to typed lists in this library so we know
       // `this` is `TypedData`.
@@ -2244,7 +2327,8 @@ abstract class _WasmI8ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements;
 
-  ByteBuffer get buffer => _I8ByteBuffer(_data);
+  @pragma('wasm:prefer-inline')
+  _I8ByteBuffer get buffer => _I8ByteBuffer(_data);
 }
 
 abstract class _WasmI16ArrayBase extends WasmTypedDataBase {
@@ -2262,7 +2346,8 @@ abstract class _WasmI16ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 2;
 
-  ByteBuffer get buffer => _I16ByteBuffer(_data);
+  @pragma('wasm:prefer-inline')
+  _I16ByteBuffer get buffer => _I16ByteBuffer(_data);
 }
 
 abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
@@ -2280,7 +2365,8 @@ abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 4;
 
-  ByteBuffer get buffer => _I32ByteBuffer(_data);
+  @pragma('wasm:prefer-inline')
+  _I32ByteBuffer get buffer => _I32ByteBuffer(_data);
 }
 
 abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
@@ -2298,7 +2384,8 @@ abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 8;
 
-  ByteBuffer get buffer => _I64ByteBuffer(_data);
+  @pragma('wasm:prefer-inline')
+  _I64ByteBuffer get buffer => _I64ByteBuffer(_data);
 }
 
 abstract class _WasmF32ArrayBase extends WasmTypedDataBase {
@@ -2316,7 +2403,8 @@ abstract class _WasmF32ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 4;
 
-  ByteBuffer get buffer => _F32ByteBuffer(_data);
+  @pragma('wasm:prefer-inline')
+  _F32ByteBuffer get buffer => _F32ByteBuffer(_data);
 }
 
 abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
@@ -2334,7 +2422,8 @@ abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
 
   int get offsetInBytes => _offsetInElements * 8;
 
-  ByteBuffer get buffer => _F64ByteBuffer(_data);
+  @pragma('wasm:prefer-inline')
+  _F64ByteBuffer get buffer => _F64ByteBuffer(_data);
 }
 
 extension WasmI8ArrayBaseExt on _WasmI8ArrayBase {
@@ -2808,6 +2897,7 @@ class UnmodifiableI8List extends I8List with _UnmodifiableIntListMixin {
       : super._(data, offsetInElements, length);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I8ByteBuffer get buffer => _I8ByteBuffer._(_data, false);
 }
 
@@ -2819,6 +2909,7 @@ class UnmodifiableU8List extends U8List with _UnmodifiableIntListMixin {
       : super._(data, offsetInElements, length);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I8ByteBuffer get buffer => _I8ByteBuffer._(_data, false);
 }
 
@@ -2832,6 +2923,7 @@ class UnmodifiableU8ClampedList extends U8ClampedList
       : super._(data, offsetInElements, length);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I8ByteBuffer get buffer => _I8ByteBuffer._(_data, false);
 }
 
@@ -2844,6 +2936,7 @@ class UnmodifiableI16List extends I16List with _UnmodifiableIntListMixin {
       : super._(data, offsetInElements, length);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I16ByteBuffer get buffer => _I16ByteBuffer._(_data, false);
 }
 
@@ -2856,6 +2949,7 @@ class UnmodifiableU16List extends U16List with _UnmodifiableIntListMixin {
       : super._(data, offsetInElements, length);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I16ByteBuffer get buffer => _I16ByteBuffer._(_data, false);
 }
 
@@ -2868,6 +2962,7 @@ class UnmodifiableI32List extends I32List with _UnmodifiableIntListMixin {
       : super._(data, offsetInElements, length);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I32ByteBuffer get buffer => _I32ByteBuffer._(_data, false);
 }
 
@@ -2880,6 +2975,7 @@ class UnmodifiableU32List extends U32List with _UnmodifiableIntListMixin {
       : super._(data, offsetInElements, length);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I32ByteBuffer get buffer => _I32ByteBuffer._(_data, false);
 }
 
@@ -2892,6 +2988,7 @@ class UnmodifiableI64List extends I64List with _UnmodifiableIntListMixin {
       : super._(data, offsetInElements, length);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I64ByteBuffer get buffer => _I64ByteBuffer._(_data, false);
 }
 
@@ -2904,6 +3001,7 @@ class UnmodifiableU64List extends U64List with _UnmodifiableIntListMixin {
       : super._(data, offsetInElements, length);
 
   @override
+  @pragma('wasm:prefer-inline')
   _I64ByteBuffer get buffer => _I64ByteBuffer._(_data, false);
 }
 
@@ -2916,6 +3014,7 @@ class UnmodifiableF32List extends F32List with _UnmodifiableDoubleListMixin {
       : super._(data, offsetInElements, length);
 
   @override
+  @pragma('wasm:prefer-inline')
   _F32ByteBuffer get buffer => _F32ByteBuffer._(_data, false);
 }
 
@@ -2928,6 +3027,7 @@ class UnmodifiableF64List extends F64List with _UnmodifiableDoubleListMixin {
       : super._(data, offsetInElements, length);
 
   @override
+  @pragma('wasm:prefer-inline')
   _F64ByteBuffer get buffer => _F64ByteBuffer._(_data, false);
 }
 
@@ -3376,6 +3476,7 @@ class SlowF64List extends _SlowListBase
 //
 
 mixin _UnmodifiableSlowListMixin on _SlowListBase {
+  @pragma('wasm:prefer-inline')
   ByteBuffer get buffer =>
       unsafeCast<ByteBufferBase>(super.buffer)._immutable();
 }

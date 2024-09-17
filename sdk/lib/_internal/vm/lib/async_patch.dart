@@ -17,6 +17,10 @@ part "timer_patch.dart";
 @pragma("vm:external-name", "DartAsync_fatal")
 external _fatal(msg);
 
+@patch
+@pragma("vm:external-name", "Error_trySetStackTrace")
+external void _trySetStackTrace(Object error, StackTrace stackTrace);
+
 // This function is used when lowering `await for` statements.
 void _asyncStarMoveNextHelper(var stream) {
   if (stream is! _StreamImpl) {

@@ -61,10 +61,10 @@ class ColoredRectangle extends Rectangle {
 class MatchingSuperParameters extends LintRule {
   MatchingSuperParameters()
       : super(
-            name: 'matching_super_parameters',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'matching_super_parameters',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.matching_super_parameters;

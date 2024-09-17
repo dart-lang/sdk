@@ -5,8 +5,6 @@
 # Status file for the textual_outline_suite.dart test suite. This is testing
 # the textual outline used for better incremental compilation.
 
-super_parameters/issue47741: FormatterCrash # https://github.com/dart-lang/dart_style/issues/1321
-
 # These tests have errors in them which isn't reported by the parser but the
 # formatter still sees as syntax errors and thus won't format.
 extension_types/const_constructor_body: FormatterCrash

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -78,7 +79,8 @@ class BinaryExpressionResolver {
   }
 
   void _checkNonBoolOperand(Expression operand, String operator,
-      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
+      {required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+          whyNotPromoted}) {
     _resolver.boolExpressionVerifier.checkForNonBoolExpression(
       operand,
       errorCode: CompileTimeErrorCode.NON_BOOL_OPERAND,
@@ -88,25 +90,27 @@ class BinaryExpressionResolver {
   }
 
   void _resolveEqual(BinaryExpressionImpl node, {required bool notEqual}) {
-    _resolver.analyzeExpression(node.leftOperand, UnknownInferredType.instance);
+    _resolver.analyzeExpression(
+        node.leftOperand, SharedTypeSchemaView(UnknownInferredType.instance));
     var left = _resolver.popRewrite()!;
 
     var flowAnalysis = _resolver.flowAnalysis;
     var flow = flowAnalysis.flow;
-    ExpressionInfo<DartType>? leftInfo;
+    ExpressionInfo<SharedTypeView<DartType>>? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
-      leftInfo = flow?.equalityOperand_end(left, left.typeOrThrow);
+      leftInfo =
+          flow?.equalityOperand_end(left, SharedTypeView(left.typeOrThrow));
     }
 
     _resolver.analyzeExpression(
-        node.rightOperand, UnknownInferredType.instance);
+        node.rightOperand, SharedTypeSchemaView(UnknownInferredType.instance));
     var right = _resolver.popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(right);
 
     if (!leftExtensionOverride) {
-      flow?.equalityOperation_end(
-          node, leftInfo, flow.equalityOperand_end(right, right.typeOrThrow),
+      flow?.equalityOperation_end(node, leftInfo,
+          flow.equalityOperand_end(right, SharedTypeView(right.typeOrThrow)),
           notEqual: notEqual);
     }
 
@@ -156,7 +160,8 @@ class BinaryExpressionResolver {
     // analyzed as follows:
     //
     // - Let `T1` be the type of `e1` inferred with context type `K?`.
-    _resolver.analyzeExpression(left, _typeSystem.makeNullable(contextType));
+    _resolver.analyzeExpression(
+        left, SharedTypeSchemaView(_typeSystem.makeNullable(contextType)));
     left = _resolver.popRewrite()!;
     var t1 = left.typeOrThrow;
 
@@ -172,8 +177,8 @@ class BinaryExpressionResolver {
     {
       j = contextType;
     }
-    flow?.ifNullExpression_rightBegin(left, t1);
-    _resolver.analyzeExpression(right, j);
+    flow?.ifNullExpression_rightBegin(left, SharedTypeView(t1));
+    _resolver.analyzeExpression(right, SharedTypeSchemaView(j));
     right = _resolver.popRewrite()!;
     flow?.ifNullExpression_end();
     var t2 = right.typeOrThrow;
@@ -217,14 +222,16 @@ class BinaryExpressionResolver {
     var flow = _resolver.flowAnalysis.flow;
 
     flow?.logicalBinaryOp_begin();
-    _resolver.analyzeExpression(left, _typeProvider.boolType);
+    _resolver.analyzeExpression(
+        left, SharedTypeSchemaView(_typeProvider.boolType));
     left = _resolver.popRewrite()!;
     var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
 
     flow?.logicalBinaryOp_rightBegin(left, node, isAnd: true);
     _resolver.checkUnreachableNode(right);
 
-    _resolver.analyzeExpression(right, _typeProvider.boolType);
+    _resolver.analyzeExpression(
+        right, SharedTypeSchemaView(_typeProvider.boolType));
     right = _resolver.popRewrite()!;
     var rightWhyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(right);
@@ -244,14 +251,16 @@ class BinaryExpressionResolver {
     var flow = _resolver.flowAnalysis.flow;
 
     flow?.logicalBinaryOp_begin();
-    _resolver.analyzeExpression(left, _typeProvider.boolType);
+    _resolver.analyzeExpression(
+        left, SharedTypeSchemaView(_typeProvider.boolType));
     left = _resolver.popRewrite()!;
     var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
 
     flow?.logicalBinaryOp_rightBegin(left, node, isAnd: false);
     _resolver.checkUnreachableNode(right);
 
-    _resolver.analyzeExpression(right, _typeProvider.boolType);
+    _resolver.analyzeExpression(
+        right, SharedTypeSchemaView(_typeProvider.boolType));
     right = _resolver.popRewrite()!;
     var rightWhyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(right);
@@ -283,7 +292,8 @@ class BinaryExpressionResolver {
       rightContextType = UnknownInferredType.instance;
     }
 
-    _resolver.analyzeExpression(node.rightOperand, rightContextType);
+    _resolver.analyzeExpression(
+        node.rightOperand, SharedTypeSchemaView(rightContextType));
     var right = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(right);
 
@@ -311,14 +321,15 @@ class BinaryExpressionResolver {
       return;
     }
 
-    _resolver.analyzeExpression(node.leftOperand, UnknownInferredType.instance);
+    _resolver.analyzeExpression(
+        node.leftOperand, SharedTypeSchemaView(UnknownInferredType.instance));
     left = _resolver.popRewrite()!;
 
     if (left is SuperExpressionImpl) {
       if (SuperContext.of(left) != SuperContext.valid) {
         _resolver.analyzeExpression(
           node.rightOperand,
-          InvalidTypeImpl.instance,
+          SharedTypeSchemaView(InvalidTypeImpl.instance),
         );
         _resolver.popRewrite();
         node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);

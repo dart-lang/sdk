@@ -6,76 +6,74 @@ library dart2js.util.enumset;
 
 import 'dart:collection';
 
-/// A set of enum values based on a bit mask of the shifted enum indices.
-abstract class EnumSet<E> {
-  /// Creates an empty mutable set.
-  factory EnumSet() = _EnumSet<E>;
+import 'package:meta/meta.dart';
 
-  /// Creates a mutable set from the bit mask [value].
-  factory EnumSet.fromValue(int value) = _EnumSet<E>.fromValue;
-
-  /// Creates an immutable set from the bit mask [value].
-  const factory EnumSet.fixed(int value) = _ConstEnumSet<E>;
-
-  /// Create a set containing the [values]. If [fixed] is `true` the set is
-  /// immutable.
-  factory EnumSet.fromValues(Iterable<E> values, {bool fixed = false}) {
-    if (fixed) {
-      return _ConstEnumSet<E>.fromValues(values);
-    } else {
-      return _EnumSet<E>.fromValues(values);
-    }
+extension<E extends Enum> on E {
+  int get mask {
+    assert(index < 64);
+    return 1 << index;
   }
+}
 
-  const EnumSet._();
+int _fold<E extends Enum>(Iterable<E> values) =>
+    values.fold(0, (acc, e) => acc | e.mask);
 
-  /// The bit mask of the shifted indices for the enum values in this set.
-  int get value;
+/// A set of enum values based on a bit mask of the shifted enum indices. The
+/// enum indices used must be less than 64.
+extension type const EnumSet<E extends Enum>(int mask) {
+  /// Creates an empty set.
+  const EnumSet.empty() : mask = 0;
 
-  /// Sets the enum values in this set through a bit mask of the shifted enum
-  /// value indices.
-  void set value(int mask);
+  /// Creates a singleton set containing [value].
+  EnumSet.fromValue(E value) : mask = value.mask;
 
-  /// Adds [enumValue] to this set. Returns `true` if the set was changed by
-  /// this action.
-  bool add(E enumValue);
+  /// Creates a set containing [values].
+  EnumSet.fromValues(Iterable<E> values) : mask = _fold(values);
 
-  /// Adds all enum values in [set] to this set.
-  void addAll(EnumSet<E> set);
+  /// Returns a set containing all enum values in [this] as well as [enumValue].
+  EnumSet<E> operator +(E enumValue) => EnumSet(mask | enumValue.mask);
 
-  /// Removes [enumValue] from this set. Returns `true` if the set was changed
-  /// by this action.
-  bool remove(E enumValue);
-
-  /// Removes all enum values in [set] from this set. The set of removed values
-  /// is returned.
-  EnumSet<E> removeAll(EnumSet<E> set);
+  /// Returns a set containing all enum values in [this] except for [enumValue].
+  EnumSet<E> operator -(E enumValue) => EnumSet(mask & ~enumValue.mask);
 
   /// Returns a new set containing all values in both this and the [other] set.
+  @useResult
   EnumSet<E> intersection(EnumSet<E> other) {
-    return EnumSet.fromValue(value & other.value);
+    return EnumSet(mask & other.mask);
   }
 
   /// Returns a new set containing all values either in this set or in the
   /// [other] set.
+  @useResult
   EnumSet<E> union(EnumSet<E> other) {
-    return EnumSet.fromValue(value | other.value);
+    return EnumSet(mask | other.mask);
   }
 
   /// Returns a new set containing all values in this set that are not in the
   /// [other] set.
-  EnumSet<E> minus(EnumSet<E> other) {
-    return EnumSet.fromValue(value & ~other.value);
+  @useResult
+  EnumSet<E> setMinus(EnumSet<E> other) {
+    return EnumSet(mask & ~other.mask);
   }
-
-  /// Clears this set.
-  void clear();
 
   /// Returns `true` if [enumValue] is in this set.
   bool contains(E enumValue) {
-    // ignore: avoid_dynamic_calls
-    return (value & (1 << (enumValue as dynamic).index)) != 0;
+    return (mask & enumValue.mask) != 0;
   }
+
+  /// Returns `true` if this and [other] have any elements in common.
+  bool intersects(EnumSet<E> other) {
+    return (mask & other.mask) != 0;
+  }
+
+  /// Returns `true` if this set is empty.
+  bool get isEmpty => mask == 0;
+
+  /// Returns `true` if this set is not empty.
+  bool get isNotEmpty => mask != 0;
+
+  /// Returns a new mutable enum set that contains the values of this set.
+  EnumSet<E> clone() => EnumSet<E>(mask);
 
   /// Returns an [Iterable] of the values is in this set using [values] to
   /// convert the stored indices to enum values.
@@ -89,193 +87,36 @@ abstract class EnumSet<E> {
   Iterable<E> iterable(List<E> values) {
     return _EnumSetIterable(this, values);
   }
-
-  /// Returns `true` if this and [other] have any elements in common.
-  bool intersects(EnumSet<E> other) {
-    return (value & other.value) != 0;
-  }
-
-  /// Returns `true` if this set is empty.
-  bool get isEmpty => value == 0;
-
-  /// Returns `true` if this set is not empty.
-  bool get isNotEmpty => value != 0;
-
-  /// Returns a new mutable enum set that contains the values of this set.
-  EnumSet<E> clone() => EnumSet<E>.fromValue(value);
-
-  @override
-  int get hashCode => value.hashCode * 19;
-
-  @override
-  bool operator ==(other) {
-    if (identical(this, other)) return true;
-    if (other is! EnumSet<E>) return false;
-    return value == other.value;
-  }
-
-  @override
-  String toString() {
-    return value.toRadixString(2);
-  }
 }
 
-/// Mutable implementation of [EnumSet].
-class _EnumSet<E> extends EnumSet<E> {
-  int _value;
-
-  _EnumSet() : this.fromValue(0);
-
-  _EnumSet.fromValue(this._value) : super._();
-
-  _EnumSet.fromValues(Iterable<E> values)
-      : this._value = 0,
-        super._() {
-    values.forEach(add);
-  }
-
-  @override
-  int get value => _value;
-
-  @override
-  void set value(int mask) {
-    _value = mask;
-  }
-
-  @override
-  bool add(E enumValue) {
-    int before = _value;
-    // ignore: avoid_dynamic_calls
-    _value |= 1 << (enumValue as dynamic).index;
-    return _value != before;
-  }
-
-  @override
-  void addAll(EnumSet<E> set) {
-    _value |= set.value;
-  }
-
-  @override
-  bool remove(E enumValue) {
-    int before = _value;
-    // ignore: avoid_dynamic_calls
-    _value &= ~(1 << (enumValue as dynamic).index);
-    return _value != before;
-  }
-
-  @override
-  EnumSet<E> removeAll(EnumSet<E> set) {
-    int removed = _value & set.value;
-    _value &= ~set.value;
-    return EnumSet<E>.fromValue(removed);
-  }
-
-  @override
-  void clear() {
-    _value = 0;
-  }
-}
-
-/// Immutable implementation of [EnumSet].
-class _ConstEnumSet<E> extends EnumSet<E> {
-  @override
-  final int value;
-
-  const _ConstEnumSet(this.value) : super._();
-
-  factory _ConstEnumSet.fromValues(Iterable<E> values) {
-    int value = 0;
-    void add(E enumValue) {
-      if (enumValue != null) {
-        // ignore: avoid_dynamic_calls
-        value |= 1 << (enumValue as dynamic).index;
-      }
-    }
-
-    values.forEach(add);
-    return _ConstEnumSet(value);
-  }
-
-  @override
-  void set value(int mask) {
-    throw UnsupportedError('EnumSet.value=');
-  }
-
-  @override
-  bool add(E enumValue) {
-    throw UnsupportedError('EnumSet.add');
-  }
-
-  @override
-  void addAll(EnumSet<E> set) {
-    throw UnsupportedError('EnumSet.addAll');
-  }
-
-  @override
-  void clear() {
-    if (isEmpty) {
-      // We allow this no-op operation on an immutable set to support using a
-      // constant empty set together with mutable sets where applicable.
-    } else {
-      throw UnsupportedError('EnumSet.clear');
-    }
-  }
-
-  @override
-  bool remove(E enumValue) {
-    if (isEmpty) {
-      // We allow this no-op operation on an immutable set to support using a
-      // constant empty set together with mutable sets where applicable.
-      return false;
-    }
-    throw UnsupportedError('EnumSet.remove');
-  }
-
-  @override
-  EnumSet<E> removeAll(EnumSet<E> set) {
-    if (isEmpty) {
-      // We allow this no-op operation on an immutable set to support using a
-      // constant empty set together with mutable sets where applicable.
-      return this;
-    }
-    if (set.isEmpty) {
-      // We allow this no-op operation on an immutable set to support using a
-      // constant empty set together with mutable sets where applicable.
-      return set.clone();
-    }
-    throw UnsupportedError('EnumSet.removeAll');
-  }
-}
-
-class _EnumSetIterable<E> extends IterableBase<E> {
+class _EnumSetIterable<E extends Enum> extends IterableBase<E> {
   final EnumSet<E> _enumSet;
   final List<E> _values;
 
   _EnumSetIterable(this._enumSet, this._values);
 
   @override
-  Iterator<E> get iterator => _EnumSetIterator(_enumSet.value, _values);
+  Iterator<E> get iterator => _EnumSetIterator(_enumSet, _values);
 }
 
-class _EnumSetIterator<E> implements Iterator<E> {
-  int _value;
+class _EnumSetIterator<E extends Enum> implements Iterator<E> {
+  EnumSet<E> _enumSet;
   final List<E> _values;
   E? _current;
 
-  _EnumSetIterator(this._value, this._values);
+  _EnumSetIterator(this._enumSet, this._values);
 
   @override
-  E get current => _current as E;
+  E get current => _current!;
 
   @override
   bool moveNext() {
-    if (_value == 0) {
+    if (_enumSet.isEmpty) {
       _current = null;
       return false;
     }
-    int index = _value.bitLength - 1;
-    _current = _values[index];
-    _value &= ~(1 << index);
+    final value = _current = _values[_enumSet.mask.bitLength - 1];
+    _enumSet -= value;
     return true;
   }
 }

@@ -170,6 +170,26 @@ class Reference {
         Reference._(this, name);
   }
 
+  /// Returns children with the given name.
+  /// Usually returns zero or one child.
+  /// But in case of duplicates will return more than one.
+  List<Reference> getChildrenByName(String name) {
+    var result = this[name];
+
+    // No such child yet.
+    if (result == null) {
+      return const [];
+    }
+
+    // Maybe has the container with duplicates.
+    if (result[_defName] case var defContainer?) {
+      return defContainer.children.toList();
+    }
+
+    // Should be the only child with such name.
+    return [result];
+  }
+
   Reference? removeChild(String name) {
     var childrenUnion = _childrenUnion;
     if (childrenUnion == null) return null;

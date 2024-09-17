@@ -92,6 +92,7 @@ class E1 extends self::_E1&_Enum&A1 /*isEnum*/  {
   static const field core::List<self::E1> values = const <self::E1>[self::E1::element];
   enum-element static const field self::E1 element = const self::E1::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::E1
+    : super self::_E1&_Enum&A1::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
@@ -113,6 +114,7 @@ class E2 extends self::_E2&_Enum&A2 /*isEnum*/  {
   static const field core::List<self::E2> values = const <self::E2>[self::E2::element];
   enum-element static const field self::E2 element = const self::E2::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::E2
+    : super self::_E2&_Enum&A2::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
@@ -134,6 +136,7 @@ class E3 extends self::_E3&_Enum&A3 /*isEnum*/  {
   static const field core::List<self::E3> values = const <self::E3>[self::E3::element];
   enum-element static const field self::E3 element = const self::E3::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::E3
+    : super self::_E3&_Enum&A3::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
@@ -155,6 +158,7 @@ class E4 extends self::_E4&_Enum&A4 /*isEnum*/  {
   static const field core::List<self::E4> values = const <self::E4>[self::E4::element];
   enum-element static const field self::E4 element = const self::E4::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::E4
+    : super self::_E4&_Enum&A4::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
@@ -174,6 +178,7 @@ class E5 extends self::_E5&_Enum&M5 /*isEnum*/  {
   static const field core::List<self::E5> values = const <self::E5>[self::E5::element];
   enum-element static const field self::E5 element = const self::E5::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::E5
+    : super self::_E5&_Enum&M5::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E5.${this.{core::_Enum::_name}{core::String}}";
@@ -193,6 +198,7 @@ class E6 extends self::_E6&_Enum&M6 /*isEnum*/  {
   static const field core::List<self::E6> values = const <self::E6>[self::E6::element];
   enum-element static const field self::E6 element = const self::E6::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::E6
+    : super self::_E6&_Enum&M6::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
@@ -212,6 +218,7 @@ class E7 extends self::_E7&_Enum&M7 /*isEnum*/  {
   static const field core::List<self::E7> values = const <self::E7>[self::E7::element];
   enum-element static const field self::E7 element = const self::E7::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::E7
+    : super self::_E7&_Enum&M7::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E7.${this.{core::_Enum::_name}{core::String}}";
@@ -231,6 +238,7 @@ class E8 extends self::_E8&_Enum&M8 /*isEnum*/  {
   static const field core::List<self::E8> values = const <self::E8>[self::E8::element];
   enum-element static const field self::E8 element = const self::E8::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::E8
+    : super self::_E8&_Enum&M8::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E8.${this.{core::_Enum::_name}{core::String}}";
@@ -254,6 +262,7 @@ class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
   static const field core::List<self::E9> values = const <self::E9>[self::E9::element];
   enum-element static const field self::E9 element = const self::E9::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::E9
+    : super self::_E9&_Enum&A9::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E9.${this.{core::_Enum::_name}{core::String}}";
@@ -275,6 +284,7 @@ class E10 extends self::_E10&_Enum&M10 /*isEnum*/  {
   static const field core::List<self::E10> values = const <self::E10>[self::E10::element];
   enum-element static const field self::E10 element = const self::E10::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::E10
+    : super self::_E10&_Enum&M10::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E10.${this.{core::_Enum::_name}{core::String}}";
@@ -284,24 +294,24 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:9:6 -> ListConstant(const <E1>[const E1{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:10:3 -> InstanceConstant(const E1{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:17:6 -> ListConstant(const <E2>[const E2{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:18:3 -> InstanceConstant(const E2{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:25:6 -> ListConstant(const <E3>[const E3{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:26:3 -> InstanceConstant(const E3{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:33:6 -> ListConstant(const <E4>[const E4{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:34:3 -> InstanceConstant(const E4{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:41:6 -> ListConstant(const <E5>[const E5{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:42:3 -> InstanceConstant(const E5{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:49:6 -> ListConstant(const <E6>[const E6{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:50:3 -> InstanceConstant(const E6{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:57:6 -> ListConstant(const <E7>[const E7{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:58:3 -> InstanceConstant(const E7{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:65:6 -> ListConstant(const <E8>[const E8{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:66:3 -> InstanceConstant(const E8{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:75:6 -> ListConstant(const <E9>[const E9{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:76:3 -> InstanceConstant(const E9{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:85:6 -> ListConstant(const <E10>[const E10{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:86:3 -> InstanceConstant(const E10{})
-Extra constant evaluation: evaluated: 80, effectively constant: 20
+Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:9:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:10:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:17:6 -> ListConstant(const <E2>[const E2{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:18:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:25:6 -> ListConstant(const <E3>[const E3{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:26:3 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:33:6 -> ListConstant(const <E4>[const E4{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:34:3 -> InstanceConstant(const E4{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:41:6 -> ListConstant(const <E5>[const E5{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:42:3 -> InstanceConstant(const E5{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:49:6 -> ListConstant(const <E6>[const E6{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:50:3 -> InstanceConstant(const E6{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:57:6 -> ListConstant(const <E7>[const E7{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:58:3 -> InstanceConstant(const E7{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:65:6 -> ListConstant(const <E8>[const E8{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:66:3 -> InstanceConstant(const E8{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:75:6 -> ListConstant(const <E9>[const E9{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:76:3 -> InstanceConstant(const E9{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:85:6 -> ListConstant(const <E10>[const E10{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:86:3 -> InstanceConstant(const E10{_Enum.index: 0, _Enum._name: "element"})
+Extra constant evaluation: evaluated: 100, effectively constant: 20

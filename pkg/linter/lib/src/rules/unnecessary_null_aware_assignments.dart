@@ -36,14 +36,10 @@ x ??= 1;
 class UnnecessaryNullAwareAssignments extends LintRule {
   UnnecessaryNullAwareAssignments()
       : super(
-            name: 'unnecessary_null_aware_assignments',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.brevity,
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style,
-            });
+          name: 'unnecessary_null_aware_assignments',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_null_aware_assignments;

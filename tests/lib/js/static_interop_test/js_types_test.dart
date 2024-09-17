@@ -225,6 +225,12 @@ void syncTests() {
   expect(arrN.length, 1);
   arrN[0] = 1.toJS;
   expect(arrN[0].toDartInt, 1);
+  arrN = JSArray.from<JSNumber>(arrN);
+  expect(arrN.length, 1);
+  expect(arrN[0].toDartInt, 1);
+  final typedArray = JSArray.from<JSNumber>(JSUint8Array.withLength(4));
+  expect(typedArray.length, 4);
+  expect(typedArray[0].toDartInt, 0);
 
   // [JSArray] <-> [List<JSAny?>]
   final list = <JSAny?>[1.0.toJS, 'foo'.toJS];

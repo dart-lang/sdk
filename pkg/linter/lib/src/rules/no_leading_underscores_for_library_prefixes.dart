@@ -33,10 +33,10 @@ import 'dart:core' as core;
 class NoLeadingUnderscoresForLibraryPrefixes extends LintRule {
   NoLeadingUnderscoresForLibraryPrefixes()
       : super(
-            name: 'no_leading_underscores_for_library_prefixes',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'no_leading_underscores_for_library_prefixes',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

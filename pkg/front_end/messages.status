@@ -647,8 +647,8 @@ JsInteropFunctionToJSTypeParameters/analyzerCode: Fail # Web compiler specific
 JsInteropFunctionToJSTypeParameters/example: Fail # Web compiler specific
 JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
 JsInteropInvalidStaticClassMemberName/example: Fail
-JsInteropIsAInvalidType/analyzerCode: Fail # Web compiler specific
-JsInteropIsAInvalidType/example: Fail # Web compiler specific
+JsInteropIsAInvalidTypeVariable/analyzerCode: Fail # Web compiler specific
+JsInteropIsAInvalidTypeVariable/example: Fail # Web compiler specific
 JsInteropIsAObjectLiteralType/analyzerCode: Fail # Web compiler specific
 JsInteropIsAObjectLiteralType/example: Fail # Web compiler specific
 JsInteropIsAPrimitiveExtensionType/analyzerCode: Fail # Web compiler specific
@@ -954,10 +954,8 @@ RequiredNamedParameterHasDefaultValueError/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueError/example: Fail
 RequiredNamedParameterHasDefaultValueWarning/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueWarning/example: Fail
-ResourceIdentifiersMultiple/analyzerCode: Fail
-ResourceIdentifiersMultiple/example: Fail
-ResourceIdentifiersNotStatic/analyzerCode: Fail
-ResourceIdentifiersNotStatic/example: Fail
+RecordUseCannotBePlacedHere/analyzerCode: Fail
+RecordUseCannotBePlacedHere/example: Fail
 RestPatternInMapPattern/analyzerCode: Fail
 RestPatternMoreThanOne/analyzerCode: Fail
 RethrowNotCatch/example: Fail

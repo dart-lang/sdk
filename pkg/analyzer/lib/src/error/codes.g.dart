@@ -294,22 +294,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try changing the augmentation to match an existing declaration.",
   );
 
-  static const CompileTimeErrorCode AUGMENTATION_WITHOUT_IMPORT =
-      CompileTimeErrorCode(
-    'AUGMENTATION_WITHOUT_IMPORT',
-    "The library does not import this augmentation.",
-    correctionMessage:
-        "Try updating the augmented library to import this augmentation.",
-  );
-
-  static const CompileTimeErrorCode AUGMENTATION_WITHOUT_LIBRARY =
-      CompileTimeErrorCode(
-    'AUGMENTATION_WITHOUT_LIBRARY',
-    "The URI does not resolve to a library.",
-    correctionMessage:
-        "Try updating the URI to reference the augmented library.",
-  );
-
   static const CompileTimeErrorCode AUGMENTED_EXPRESSION_IS_NOT_SETTER =
       CompileTimeErrorCode(
     'AUGMENTED_EXPRESSION_IS_NOT_SETTER',
@@ -1384,17 +1368,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the URI of the duplicate augmentation
-  static const CompileTimeErrorCode DUPLICATE_AUGMENTATION_IMPORT =
-      CompileTimeErrorCode(
-    'DUPLICATE_AUGMENTATION_IMPORT',
-    "The library already contains an augmentation with the URI '{0}'.",
-    correctionMessage:
-        "Try removing all except one of the duplicated augmentation "
-        "directives.",
-  );
-
   ///  No parameters.
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode(
@@ -2454,17 +2427,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The imported library '{0}' can't have a part-of directive.",
     correctionMessage: "Try importing the library that the part is a part of.",
     hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the URI of the imported file
-  static const CompileTimeErrorCode IMPORT_OF_NOT_AUGMENTATION =
-      CompileTimeErrorCode(
-    'IMPORT_OF_NOT_AUGMENTATION',
-    "The imported file '{0}' isn't an augmentation of this library.",
-    correctionMessage:
-        "Try adding an 'augment library' directive referencing this library to "
-        "the imported file.",
   );
 
   ///  13.9 Switch: It is a compile-time error if values of the expressions
@@ -7579,6 +7541,15 @@ class WarningCode extends AnalyzerErrorCode {
         "Try removing the case clause, or restructuring the preceding "
         "patterns.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode UNREACHABLE_SWITCH_DEFAULT = WarningCode(
+    'UNREACHABLE_SWITCH_DEFAULT',
+    "This default clause is covered by the previous cases.",
+    correctionMessage:
+        "Try removing the default clause, or restructuring the preceding "
+        "patterns.",
   );
 
   ///  Parameters:

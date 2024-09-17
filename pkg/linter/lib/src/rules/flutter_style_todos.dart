@@ -41,10 +41,10 @@ class FlutterStyleTodos extends LintRule {
 
   FlutterStyleTodos()
       : super(
-            name: 'flutter_style_todos',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'flutter_style_todos',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.flutter_style_todos;

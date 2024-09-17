@@ -44,10 +44,10 @@ class A {}
 class MissingCodeBlockLanguageInDocComment extends LintRule {
   MissingCodeBlockLanguageInDocComment()
       : super(
-            name: 'missing_code_block_language_in_doc_comment',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'missing_code_block_language_in_doc_comment',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

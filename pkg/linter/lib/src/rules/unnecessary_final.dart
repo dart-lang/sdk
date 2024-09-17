@@ -46,13 +46,10 @@ void goodMethod() {
 class UnnecessaryFinal extends LintRule {
   UnnecessaryFinal()
       : super(
-            name: 'unnecessary_final',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'unnecessary_final',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<String> get incompatibleRules =>

@@ -30,10 +30,10 @@ set speed(int ms);
 class AvoidReturnTypesOnSetters extends LintRule {
   AvoidReturnTypesOnSetters()
       : super(
-            name: 'avoid_return_types_on_setters',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'avoid_return_types_on_setters',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   bool get canUseParsedResult => true;

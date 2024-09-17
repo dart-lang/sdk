@@ -40,10 +40,10 @@ try {
 class AvoidCatchingErrors extends LintRule {
   AvoidCatchingErrors()
       : super(
-            name: 'avoid_catching_errors',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'avoid_catching_errors',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<LintCode> get lintCodes => [

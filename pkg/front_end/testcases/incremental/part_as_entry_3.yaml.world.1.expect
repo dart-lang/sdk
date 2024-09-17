@@ -1,0 +1,15 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  part maybe_part.dart;
+  class Foo extends dart.core::Object { // from org-dartlang-test:///maybe_part.dart
+    synthetic constructor •() → main::Foo
+      : super dart.core::Object::•()
+      ;
+  }
+  static method main() → dynamic {
+    main::Foo foo = new main::Foo::•();
+    dart.core::print("Hello, World!");
+    dart.core::print("Hello ${foo}");
+  }
+}

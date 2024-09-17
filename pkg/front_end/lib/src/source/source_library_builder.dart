@@ -4,7 +4,6 @@
 
 library fasta.source_library_builder;
 
-import 'dart:collection';
 import 'dart:convert' show jsonEncode;
 
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
@@ -59,7 +58,6 @@ import '../kernel/type_algorithms.dart'
     show
         NonSimplicityIssue,
         calculateBounds,
-        computeTypeVariableBuilderVariance,
         findUnaliasedGenericFunctionTypes,
         getInboundReferenceIssuesInType,
         getNonSimplicityIssuesForDeclaration,
@@ -94,14 +92,64 @@ import 'type_parameter_scope_builder.dart';
 
 part 'source_compilation_unit.dart';
 
+/// Enum that define what state a source library is in, in terms of how far
+/// in the compilation it has progressed. This is used to document and assert
+/// the requirements of individual methods within the [SourceLibraryBuilder].
+enum SourceLibraryBuilderState {
+  /// The builder is in its initial state.
+  ///
+  /// In this state a builder is not known a library yet.
+  initial,
+
+  /// The builder has resolved to be a library.
+  ///
+  /// Parts never reach this state.
+  resolvedParts,
+
+  /// The name space has been built for the library.
+  nameSpaceBuilt,
+
+  /// Scopes have been built for the library.
+  scopesBuilt,
+
+  /// Initial export scope derived from the name space has been built.
+  initialExportScopesBuilt,
+
+  /// Full export scope has been built.
+  exportScopesBuilt,
+
+  /// Type in the outline have been resolved.
+  resolvedTypes,
+
+  /// Default types of type parameters have been computed.
+  defaultTypesComputed,
+
+  /// Type parameters have been checked for cyclic dependencies and their
+  /// nullability have been computed.
+  typeVariablesFinished,
+  ;
+
+  bool operator <(SourceLibraryBuilderState other) => index < other.index;
+
+  // Coverage-ignore(suite): Not run.
+  bool operator <=(SourceLibraryBuilderState other) => index <= other.index;
+
+  // Coverage-ignore(suite): Not run.
+  bool operator >(SourceLibraryBuilderState other) => index > other.index;
+
+  bool operator >=(SourceLibraryBuilderState other) => index >= other.index;
+}
+
 class SourceLibraryBuilder extends LibraryBuilderImpl {
+  SourceLibraryBuilderState _state = SourceLibraryBuilderState.initial;
+
   late final SourceCompilationUnit compilationUnit;
 
   LookupScope _importScope;
 
-  late final LookupScope _scope;
+  final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
-  NameSpace _nameSpace;
+  NameSpace? _nameSpace;
 
   final NameSpace _exportNameSpace;
 
@@ -141,12 +189,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // the former does not need to be updated after the body of the latter was
   // built.
   final List<Procedure> forwardersOrigins = <Procedure>[];
-
-  // While the bounds of type parameters aren't compiled yet, we can't tell the
-  // default nullability of the corresponding type-parameter types.  This list
-  // is used to collect such type-parameter types in order to set the
-  // nullability after the bounds are built.
-  final List<PendingNullability> _pendingNullabilities = <PendingNullability>[];
 
   // A library to use for Names generated when compiling code in this library.
   // This allows code generated in one library to use the private namespace of
@@ -201,6 +243,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // TODO(johnniwinther): Remove this.
   final Map<String, List<Builder>>? setterAugmentations;
 
+  /// Set of extension declarations in scope. This is computed lazily in
+  /// [forEachExtensionInScope].
+  Set<ExtensionBuilder>? _extensionsInScope;
+
   factory SourceLibraryBuilder(
       {required Uri importUri,
       required Uri fileUri,
@@ -227,8 +273,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     : indexedLibrary?.library.reference)
           ..setLanguageVersion(packageLanguageVersion.version));
     LibraryName libraryName = new LibraryName(library.reference);
-    TypeParameterScopeBuilder libraryTypeParameterScopeBuilder =
-        new TypeParameterScopeBuilder.library();
+    LibraryNameSpaceBuilder libraryNameSpaceBuilder =
+        new LibraryNameSpaceBuilder();
     NameSpace? importNameSpace = new NameSpaceImpl();
     LookupScope importScope = new NameSpaceLookupScope(
         importNameSpace, ScopeKind.library, 'top',
@@ -236,7 +282,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     importScope = new FixedLookupScope(
         ScopeKind.typeParameters, 'omitted-types',
         getables: omittedTypes, parent: importScope);
-    NameSpace libraryNameSpace = libraryTypeParameterScopeBuilder.toNameSpace();
     NameSpace exportNameSpace = origin?.exportNameSpace ?? new NameSpaceImpl();
     return new SourceLibraryBuilder._(
         loader: loader,
@@ -245,10 +290,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         packageUri: packageUri,
         originImportUri: originImportUri,
         packageLanguageVersion: packageLanguageVersion,
-        libraryTypeParameterScopeBuilder: libraryTypeParameterScopeBuilder,
+        libraryNameSpaceBuilder: libraryNameSpaceBuilder,
         importNameSpace: importNameSpace,
         importScope: importScope,
-        libraryNameSpace: libraryNameSpace,
         exportNameSpace: exportNameSpace,
         origin: origin,
         library: library,
@@ -259,9 +303,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isAugmentation: isAugmentation,
         isPatch: isPatch,
         omittedTypes: omittedTypes,
-        augmentations: libraryTypeParameterScopeBuilder.augmentations,
-        setterAugmentations:
-            libraryTypeParameterScopeBuilder.setterAugmentations);
+        augmentations: libraryNameSpaceBuilder.augmentations,
+        setterAugmentations: libraryNameSpaceBuilder.setterAugmentations);
   }
 
   SourceLibraryBuilder._(
@@ -271,10 +314,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required Uri? packageUri,
       required Uri originImportUri,
       required LanguageVersion packageLanguageVersion,
-      required TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
+      required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       required NameSpace importNameSpace,
       required LookupScope importScope,
-      required NameSpace libraryNameSpace,
       required NameSpace exportNameSpace,
       required SourceLibraryBuilder? origin,
       required this.library,
@@ -291,7 +333,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         _immediateOrigin = origin,
         _nameOrigin = nameOrigin,
         _importScope = importScope,
-        _nameSpace = libraryNameSpace,
+        _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _exportNameSpace = exportNameSpace,
         super(fileUri) {
     assert(
@@ -299,18 +341,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             !importUri.isScheme('package') ||
             // Coverage-ignore(suite): Not run.
             importUri.path.startsWith(_packageUri.path),
-        // Coverage-ignore(suite): Not run.
         "Foreign package uri '$_packageUri' set on library with import uri "
         "'${importUri}'.");
     assert(
         !importUri.isScheme('dart') || _packageUri == null,
-        // Coverage-ignore(suite): Not run.
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
-    _scope = new SourceLibraryBuilderScope(
-        this, ScopeKind.typeParameters, libraryTypeParameterScopeBuilder.name);
     compilationUnit = new SourceCompilationUnitImpl(
-        this, libraryTypeParameterScopeBuilder,
+        this, libraryNameSpaceBuilder,
         importUri: importUri,
         fileUri: fileUri,
         packageUri: _packageUri,
@@ -325,6 +363,43 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isAugmenting: origin != null,
         isUnsupported: isUnsupported,
         loader: loader);
+  }
+
+  SourceLibraryBuilderState get state => _state;
+
+  void set state(SourceLibraryBuilderState value) {
+    assert(_state < value,
+        "State $value has already been reached at $_state in $this.");
+    assert(
+        _state.index + 1 == value.index,
+        _state.index + 1 < SourceLibraryBuilderState.values.length
+            ? "Expected state "
+                "${SourceLibraryBuilderState.values[_state.index + 1]} "
+                "to follow from $_state, trying to set next state to $value "
+                "in $this."
+            : "No more states expected to follow from $_state, trying to set "
+                "next state to $value in $this.");
+    _state = value;
+  }
+
+  bool checkState(
+      {List<SourceLibraryBuilderState>? required,
+      List<SourceLibraryBuilderState>? pending}) {
+    if (required != null) {
+      for (SourceLibraryBuilderState requiredState in required) {
+        assert(state >= requiredState,
+            "State $requiredState required, but found $state in $this.");
+      }
+    }
+    if (pending != null) {
+      for (SourceLibraryBuilderState pendingState in pending) {
+        assert(
+            state < pendingState,
+            "State $pendingState must not have been reached, "
+            "but found $state in $this.");
+      }
+    }
+    return true;
   }
 
   /// `true` if this is an augmentation library.
@@ -395,12 +470,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  LookupScope get scope => _scope;
+  LookupScope get scope => compilationUnit.scope;
 
   LookupScope get importScope => _importScope;
 
   @override
-  NameSpace get nameSpace => _nameSpace;
+  NameSpace get nameSpace {
+    assert(_nameSpace != null, "Name space has not being computed for $this.");
+    return _nameSpace!;
+  }
 
   @override
   NameSpace get exportNameSpace => _exportNameSpace;
@@ -429,13 +507,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       _augmentationLibraries;
 
   void addAugmentationLibrary(SourceLibraryBuilder augmentationLibrary) {
-    assert(
-        augmentationLibrary.isAugmenting,
-        // Coverage-ignore(suite): Not run.
+    assert(augmentationLibrary.isAugmenting,
         "Library ${augmentationLibrary} must be a augmentation library.");
-    assert(
-        !augmentationLibrary.isPart,
-        // Coverage-ignore(suite): Not run.
+    assert(!augmentationLibrary.isPart,
         "Augmentation library ${augmentationLibrary} cannot be a part .");
     (_augmentationLibraries ??= []).add(augmentationLibrary);
     augmentationLibrary.augmentationIndex = _augmentationLibraries!.length;
@@ -491,9 +565,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return augmentationLibrary;
   }
 
-  List<NamedTypeBuilder> get unresolvedNamedTypes =>
-      compilationUnit.unresolvedNamedTypes;
-
   @override
   bool get isSynthetic => compilationUnit.isSynthetic;
 
@@ -515,10 +586,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       yield part.importUri;
       yield* part.dependencies;
     }
-  }
-
-  Builder addBuilder(String name, Builder declaration, int charOffset) {
-    return compilationUnit.addBuilder(name, declaration, charOffset);
   }
 
   /// Checks [nameSpace] for conflicts between setters and non-setters and
@@ -664,19 +731,38 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void buildInitialScopes() {
+    assert(checkState(required: [SourceLibraryBuilderState.scopesBuilt]));
+
     NameIterator iterator = nameSpace.filteredNameIterator(
         includeDuplicates: false, includeAugmentations: false);
     UriOffset uriOffset = new UriOffset(fileUri, TreeNode.noOffset);
     while (iterator.moveNext()) {
       addToExportScope(iterator.name, iterator.current, uriOffset: uriOffset);
     }
-  }
 
-  void addImportsToScope() {
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
     if (augmentationLibraries != null) {
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        // Augmentation libraries don't have their own export scope.
+        augmentationLibrary.state =
+            SourceLibraryBuilderState.initialExportScopesBuilt;
+      }
+    }
+
+    state = SourceLibraryBuilderState.initialExportScopesBuilt;
+  }
+
+  void addImportsToScope() {
+    assert(checkState(
+        required: [SourceLibraryBuilderState.initialExportScopesBuilt]));
+
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        // Augmentation libraries don't have their own export scope.
+        // TODO(johnniwinther): Do we need this?
         augmentationLibrary.addImportsToScope();
       }
     }
@@ -709,15 +795,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   builder.message.problemMessage;
             case BuiltinTypeDeclarationBuilder():
               if (builder is DynamicTypeDeclarationBuilder) {
-                assert(
-                    name == 'dynamic',
-                    // Coverage-ignore(suite): Not run.
+                assert(name == 'dynamic',
                     "Unexpected export name for 'dynamic': '$name'");
                 (unserializableExports ??= {})[name] = exportDynamicSentinel;
               } else if (builder is NeverTypeDeclarationBuilder) {
-                assert(
-                    name == 'Never',
-                    // Coverage-ignore(suite): Not run.
+                assert(name == 'Never',
                     "Unexpected export name for 'Never': '$name'");
                 (unserializableExports ??= // Coverage-ignore(suite): Not run.
                     {})[name] = exportNeverSentinel;
@@ -750,9 +832,39 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
+
+    state = SourceLibraryBuilderState.exportScopesBuilt;
+  }
+
+  void buildNameSpace() {
+    assert(checkState(required: [SourceLibraryBuilderState.resolvedParts]));
+
+    assert(
+        _nameSpace == null, "Name space has already being computed for $this.");
+
+    assert(
+        _mixinApplications != null, "Late registration of mixin application.");
+
+    _nameSpace = _libraryNameSpaceBuilder.toNameSpace(
+        problemReporting: this,
+        enclosingLibraryBuilder: this,
+        mixinApplications: _mixinApplications!,
+        unboundNominalVariables: _unboundNominalVariables);
+
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.buildNameSpace();
+      }
+    }
+
+    state = SourceLibraryBuilderState.nameSpaceBuilt;
   }
 
   void buildScopes(LibraryBuilder coreLibrary) {
+    assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
+
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
     if (augmentationLibraries != null) {
@@ -774,11 +886,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         augmentationLibrary.applyAugmentations();
       }
     }
+
+    state = SourceLibraryBuilderState.scopesBuilt;
   }
 
   /// Resolves all unresolved types in [unresolvedNamedTypes]. The list of types
   /// is cleared when done.
   int resolveTypes() {
+    assert(checkState(required: [SourceLibraryBuilderState.exportScopesBuilt]));
     int typeCount = 0;
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
@@ -789,12 +904,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    typeCount += unresolvedNamedTypes.length;
-    for (NamedTypeBuilder namedType in unresolvedNamedTypes) {
-      namedType.resolveIn(
-          scope, namedType.charOffset!, namedType.fileUri!, this);
+    typeCount += compilationUnit.resolveTypes(this);
+    for (SourceCompilationUnit part in parts) {
+      typeCount += part.resolveTypes(this);
     }
-    unresolvedNamedTypes.clear();
+
+    state = SourceLibraryBuilderState.resolvedTypes;
     return typeCount;
   }
 
@@ -990,16 +1105,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   // Coverage-ignore(suite): Not run.
   void becomeCoreLibrary() {
+    assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
+
     if (nameSpace.lookupLocalMember("dynamic", setter: false) == null) {
-      addBuilder("dynamic",
-          new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1), -1);
+      nameSpace.addLocalMember("dynamic",
+          new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1),
+          setter: false);
     }
     if (nameSpace.lookupLocalMember("Never", setter: false) == null) {
-      addBuilder(
+      nameSpace.addLocalMember(
           "Never",
           new NeverTypeDeclarationBuilder(
               const NeverType.nonNullable(), this, -1),
-          -1);
+          setter: false);
     }
     assert(nameSpace.lookupLocalMember("Null", setter: false) != null,
         "No class 'Null' found in dart:core.");
@@ -1122,8 +1240,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
+  /// Map from mixin application classes to their mixin types.
+  ///
+  /// This is used to check that super access in mixin declarations have a
+  /// concrete target.
+  Map<SourceClassBuilder, TypeBuilder>? _mixinApplications = {};
+
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications) {
+    assert(_mixinApplications != null,
+        "Mixin applications have already been processed.");
+    mixinApplications.addAll(_mixinApplications!);
+    _mixinApplications = null;
+
     compilationUnit.takeMixinApplications(mixinApplications);
     for (SourceCompilationUnit part in parts) {
       part.takeMixinApplications(mixinApplications);
@@ -1196,7 +1325,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 declaration is DynamicTypeDeclarationBuilder ||
                 // Coverage-ignore(suite): Not run.
                 declaration is NeverTypeDeclarationBuilder,
-            // Coverage-ignore(suite): Not run.
             "Unexpected builder in library: ${declaration} "
             "(${declaration.runtimeType}");
       }
@@ -1416,6 +1544,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
+  final List<NominalVariableBuilder> _unboundNominalVariables = [];
+
   /// Adds all unbound nominal variables to [nominalVariables] and unbound
   /// structural variables to [structuralVariables], mapping them to this
   /// library.
@@ -1440,207 +1570,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       part.collectUnboundTypeVariables(
           this, nominalVariables, structuralVariables);
     }
-  }
-
-  /// Assigns nullabilities to types in [_pendingNullabilities].
-  ///
-  /// It's a helper function to assign the nullabilities to type-parameter types
-  /// after the corresponding type parameters have their bounds set or changed.
-  /// The function takes into account that some of the types in the input list
-  /// may be bounds to some of the type parameters of other types from the input
-  /// list.
-  void processPendingNullabilities({Set<DartType>? typeFilter}) {
-    Iterable<SourceLibraryBuilder>? augmentationLibraries =
-        this.augmentationLibraries;
-    if (augmentationLibraries != null) {
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.processPendingNullabilities();
-      }
+    for (NominalVariableBuilder builder in _unboundNominalVariables) {
+      nominalVariables[builder] = this;
     }
-
-    // The bounds of type parameters may be type-parameter types of other
-    // parameters from the same declaration.  In this case we need to set the
-    // nullability for them first.  To preserve the ordering, we implement a
-    // depth-first search over the types.  We use the fact that a nullability
-    // of a type parameter type can't ever be 'nullable' if computed from the
-    // bound. It allows us to use 'nullable' nullability as the marker in the
-    // DFS implementation.
-
-    // We cannot set the declared nullability on the pending types to `null` so
-    // we create a map of the pending type parameter type nullabilities.
-    Map< /* TypeParameterType | StructuralParameterType */ DartType,
-        Nullability?> nullabilityMap = new LinkedHashMap.identity();
-    Nullability? getDeclaredNullability(
-        /* TypeParameterType | StructuralParameterType */ DartType type) {
-      assert(type is TypeParameterType || type is StructuralParameterType);
-      if (nullabilityMap.containsKey(type)) {
-        return nullabilityMap[type];
-      }
-      return type.declaredNullability;
-    }
-
-    void setDeclaredNullability(
-        /* TypeParameterType | StructuralParameterType */ DartType type,
-        Nullability nullability) {
-      assert(type is TypeParameterType || type is StructuralParameterType);
-      if (nullabilityMap.containsKey(type)) {
-        nullabilityMap[type] = nullability;
-      }
-      if (type is TypeParameterType) {
-        type.declaredNullability = nullability;
-      } else {
-        type as StructuralParameterType;
-        type.declaredNullability = nullability;
-      }
-    }
-
-    DartType getBound(
-        /* TypeParameterType | StructuralParameterType */ DartType type) {
-      assert(type is TypeParameterType || type is StructuralParameterType);
-      if (type is TypeParameterType) {
-        return type.parameter.bound;
-      } else {
-        type as StructuralParameterType;
-        return type.parameter.bound;
-      }
-    }
-
-    // Coverage-ignore(suite): Not run.
-    void setBoundAndDefaultType(
-        /* TypeParameterType | StructuralParameterType */ type,
-        DartType bound,
-        DartType defaultType) {
-      assert(type is TypeParameterType || type is StructuralParameterType);
-      if (type is TypeParameterType) {
-        type.parameter.bound = bound;
-        type.parameter.defaultType = defaultType;
-      } else {
-        type as StructuralParameterType;
-        type.parameter.bound = bound;
-        type.parameter.defaultType = defaultType;
-      }
-    }
-
-    Nullability computeNullabilityFromBound(
-        /* TypeParameterType | StructuralParameterType */ DartType type) {
-      assert(type is TypeParameterType || type is StructuralParameterType);
-      if (type is TypeParameterType) {
-        return TypeParameterType.computeNullabilityFromBound(type.parameter);
-      } else {
-        type as StructuralParameterType;
-        return StructuralParameterType.computeNullabilityFromBound(
-            type.parameter);
-      }
-    }
-
-    Nullability marker = Nullability.nullable;
-    List< /* TypeParameterType | StructuralParameterType */ DartType?> stack =
-        new List<DartType?>.filled(_pendingNullabilities.length, null);
-    int stackTop = 0;
-    for (PendingNullability pendingNullability in _pendingNullabilities) {
-      if (typeFilter != null &&
-          // Coverage-ignore(suite): Not run.
-          !typeFilter.contains(pendingNullability.type)) {
-        continue;
-      }
-      nullabilityMap[pendingNullability.type] = null;
-    }
-    for (PendingNullability pendingNullability in _pendingNullabilities) {
-      if (typeFilter != null &&
-          // Coverage-ignore(suite): Not run.
-          !typeFilter.contains(pendingNullability.type)) {
-        continue;
-      }
-      DartType type = pendingNullability.type;
-      if (getDeclaredNullability(type) != null) {
-        // Nullability for [type] was already computed on one of the branches
-        // of the depth-first search.  Continue to the next one.
-        continue;
-      }
-      DartType peeledBound = _peelOffFutureOr(getBound(type));
-      if (peeledBound is TypeParameterType) {
-        DartType current = type;
-        DartType? next = peeledBound;
-        bool isDirectDependency = identical(getBound(type), peeledBound);
-        while (next != null && getDeclaredNullability(next) == null) {
-          stack[stackTop++] = current;
-          setDeclaredNullability(current, marker);
-
-          current = next;
-          peeledBound = _peelOffFutureOr(getBound(current));
-          isDirectDependency =
-              isDirectDependency && identical(getBound(current), peeledBound);
-          if (peeledBound is TypeParameterType) {
-            next = peeledBound;
-            if (getDeclaredNullability(next) == marker) {
-              setDeclaredNullability(next, Nullability.undetermined);
-              if (isDirectDependency) {
-                // Coverage-ignore-block(suite): Not run.
-                assert(loader.assertProblemReportedElsewhere(
-                    "SourceLibraryBuilder.processPendingNullabilities: "
-                    "Cyclic dependency via TypeParameterType is detected while "
-                    "processing pending nullabilities.",
-                    expectedPhase:
-                        CompilationPhaseForProblemReporting.outline));
-                setBoundAndDefaultType(
-                    current, const InvalidType(), const InvalidType());
-              }
-              next = null;
-            }
-          } else {
-            next = null;
-          }
-        }
-        setDeclaredNullability(current, computeNullabilityFromBound(current));
-        while (stackTop != 0) {
-          --stackTop;
-          current = stack[stackTop]!;
-          setDeclaredNullability(current, computeNullabilityFromBound(current));
-        }
-      } else if (peeledBound is StructuralParameterType) {
-        // Coverage-ignore-block(suite): Not run.
-        DartType current = type;
-        DartType? next = peeledBound;
-        bool isDirectDependency = identical(getBound(type), peeledBound);
-        while (next != null && getDeclaredNullability(next) == null) {
-          stack[stackTop++] = current;
-          setDeclaredNullability(current, marker);
-
-          current = next;
-          peeledBound = _peelOffFutureOr(getBound(current));
-          isDirectDependency =
-              isDirectDependency && identical(getBound(current), peeledBound);
-          if (peeledBound is StructuralParameterType) {
-            next = peeledBound;
-            if (getDeclaredNullability(next) == marker) {
-              setDeclaredNullability(next, Nullability.undetermined);
-              if (isDirectDependency) {
-                assert(loader.assertProblemReportedElsewhere(
-                    "SourceLibraryBuilder.processPendingNullabilities: "
-                    "Cyclic dependency via StructuralParameterType is detected "
-                    "while processing pending nullabilities.",
-                    expectedPhase:
-                        CompilationPhaseForProblemReporting.outline));
-                setBoundAndDefaultType(
-                    current, const InvalidType(), const InvalidType());
-              }
-              next = null;
-            }
-          } else {
-            next = null;
-          }
-        }
-        setDeclaredNullability(current, computeNullabilityFromBound(current));
-        while (stackTop != 0) {
-          --stackTop;
-          current = stack[stackTop]!;
-          setDeclaredNullability(current, computeNullabilityFromBound(current));
-        }
-      } else {
-        setDeclaredNullability(type, computeNullabilityFromBound(type));
-      }
-    }
-    _pendingNullabilities.clear();
+    _unboundNominalVariables.clear();
   }
 
   /// Computes variances of type parameters on typedefs.
@@ -1669,6 +1602,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// that were instantiated in this library.
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
       TypeBuilder bottomType, ClassBuilder objectClass) {
+    assert(checkState(
+        required: [SourceLibraryBuilderState.resolvedTypes],
+        pending: [SourceLibraryBuilderState.typeVariablesFinished]));
     int count = 0;
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
@@ -1683,6 +1619,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     count += compilationUnit.computeDefaultTypes(
         dynamicType, nullType, bottomType, objectClass);
 
+    state = SourceLibraryBuilderState.defaultTypesComputed;
     return count;
   }
 
@@ -2252,7 +2189,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             declaration is! TypeDeclarationBuilder ||
                 // Coverage-ignore(suite): Not run.
                 declaration is BuiltinTypeDeclarationBuilder,
-            // Coverage-ignore(suite): Not run.
             "Unexpected declaration ${declaration.runtimeType}");
       }
     }
@@ -2260,13 +2196,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypeVariableDependencies(List<TypeVariableBuilder> typeVariables) {
-    Map<TypeVariableBuilder, TypeVariableTraversalState>
-        typeVariablesTraversalState =
-        <TypeVariableBuilder, TypeVariableTraversalState>{};
+    Map<TypeVariableBuilder, TraversalState> typeVariablesTraversalState =
+        <TypeVariableBuilder, TraversalState>{};
     for (TypeVariableBuilder typeVariable in typeVariables) {
       if ((typeVariablesTraversalState[typeVariable] ??=
-              TypeVariableTraversalState.unvisited) ==
-          TypeVariableTraversalState.unvisited) {
+              TraversalState.unvisited) ==
+          TraversalState.unvisited) {
         TypeVariableCyclicDependency? dependency =
             typeVariable.findCyclicDependency(
                 typeVariablesTraversalState: typeVariablesTraversalState);
@@ -2306,46 +2241,43 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
+    _computeTypeVariableNullabilities(typeVariables);
+  }
+
+  void _computeTypeVariableNullabilities(
+      List<TypeVariableBuilder> typeVariables) {
+    Map<TypeVariableBuilder, TraversalState> typeVariablesTraversalState =
+        <TypeVariableBuilder, TraversalState>{};
+    for (TypeVariableBuilder typeVariable in typeVariables) {
+      if ((typeVariablesTraversalState[typeVariable] ??=
+              TraversalState.unvisited) ==
+          TraversalState.unvisited) {
+        typeVariable.computeNullability(
+            typeVariablesTraversalState: typeVariablesTraversalState);
+      }
+    }
   }
 
   void forEachExtensionInScope(void Function(ExtensionBuilder) f) {
-    compilationUnit.forEachExtensionInScope(f);
+    if (_extensionsInScope == null) {
+      _extensionsInScope = <ExtensionBuilder>{};
+      scope.forEachExtension((e) {
+        _extensionsInScope!.add(e);
+      });
+      Iterator<PrefixBuilder> iterator = nameSpace.filteredIterator(
+          includeDuplicates: false, includeAugmentations: false);
+      while (iterator.moveNext()) {
+        iterator.current.forEachExtension((e) {
+          _extensionsInScope!.add(e);
+        });
+      }
+    }
+    _extensionsInScope!.forEach(f);
   }
 
   // Coverage-ignore(suite): Not run.
   void clearExtensionsInScopeCache() {
-    compilationUnit.clearExtensionsInScopeCache();
-  }
-
-  void registerPendingNullability(
-      Uri fileUri, int charOffset, TypeParameterType type) {
-    _pendingNullabilities
-        .add(new PendingNullability(fileUri, charOffset, type));
-  }
-
-  void registerPendingFunctionTypeNullability(
-      Uri fileUri, int charOffset, StructuralParameterType type) {
-    _pendingNullabilities
-        .add(new PendingNullability(fileUri, charOffset, type));
-  }
-
-  bool hasPendingNullability(DartType type) {
-    type = _peelOffFutureOr(type);
-    if (type is TypeParameterType) {
-      for (PendingNullability pendingNullability in _pendingNullabilities) {
-        if (pendingNullability.type == type) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  static DartType _peelOffFutureOr(DartType type) {
-    while (type is FutureOrType) {
-      type = type.typeArgument;
-    }
-    return type;
+    _extensionsInScope = null;
   }
 
   void registerBoundsCheck(
@@ -2680,20 +2612,6 @@ class ImplicitLanguageVersion implements LanguageVersion {
   @override
   String toString() {
     return 'ImplicitLanguageVersion(version=$version)';
-  }
-}
-
-class PendingNullability {
-  final Uri fileUri;
-  final int charOffset;
-  final /* TypeParameterType | StructuralParameterType */ DartType type;
-
-  PendingNullability(this.fileUri, this.charOffset, this.type)
-      : assert(type is TypeParameterType || type is StructuralParameterType);
-
-  @override
-  String toString() {
-    return "PendingNullability(${fileUri}, ${charOffset}, ${type})";
   }
 }
 

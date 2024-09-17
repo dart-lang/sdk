@@ -33,6 +33,7 @@ import 'avoid_field_initializers_in_non_const_classes_test.dart'
 import 'avoid_final_parameters_test.dart' as avoid_final_parameters;
 import 'avoid_function_literals_in_foreach_calls_test.dart'
     as avoid_function_literals_in_foreach_calls;
+import 'avoid_futureor_void_test.dart' as avoid_futureor_void;
 import 'avoid_implementing_value_types_test.dart'
     as avoid_implementing_value_types;
 import 'avoid_init_to_null_test.dart' as avoid_init_to_null;
@@ -113,6 +114,7 @@ import 'exhaustive_cases_test.dart' as exhaustive_cases;
 import 'file_names_test.dart' as file_names;
 import 'flutter_style_todos_test.dart' as flutter_style_todos;
 import 'hash_and_equals_test.dart' as hash_and_equals;
+import 'implementation_imports_test.dart' as implementation_imports;
 import 'implicit_call_tearoffs_test.dart' as implicit_call_tearoffs;
 import 'implicit_reopen_test.dart' as implicit_reopen;
 import 'invalid_case_patterns_test.dart' as invalid_case_patterns;
@@ -194,6 +196,7 @@ import 'prefer_generic_function_type_aliases_test.dart'
     as prefer_generic_function_type_aliases;
 import 'prefer_if_elements_to_conditional_expressions_test.dart'
     as prefer_if_elements_to_conditional_expressions;
+import 'prefer_initializing_formals_test.dart' as prefer_initializing_formals;
 import 'prefer_inlined_adds_test.dart' as prefer_inlined_adds;
 import 'prefer_int_literals_test.dart' as prefer_int_literals;
 import 'prefer_interpolation_to_compose_strings_test.dart'
@@ -325,6 +328,7 @@ void main() {
   avoid_field_initializers_in_non_const_classes.main();
   avoid_final_parameters.main();
   avoid_function_literals_in_foreach_calls.main();
+  avoid_futureor_void.main();
   avoid_implementing_value_types.main();
   avoid_init_to_null.main();
   avoid_js_rounded_ints.main();
@@ -381,6 +385,7 @@ void main() {
   file_names.main();
   flutter_style_todos.main();
   hash_and_equals.main();
+  implementation_imports.main();
   implicit_call_tearoffs.main();
   implicit_reopen.main();
   invalid_case_patterns.main();
@@ -439,6 +444,7 @@ void main() {
   prefer_function_declarations_over_variables.main();
   prefer_generic_function_type_aliases.main();
   prefer_if_elements_to_conditional_expressions.main();
+  prefer_initializing_formals.main();
   prefer_inlined_adds.main();
   prefer_int_literals.main();
   prefer_interpolation_to_compose_strings.main();

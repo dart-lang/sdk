@@ -656,7 +656,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           fileUri: node.fileUri,
           reference: reference)
         ..fileOffset = node.fileOffset;
-
+      addPragmaPreferInline(ctor);
       node.addConstructor(ctor);
     }
   }
@@ -815,6 +815,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           offsetGetter,
         );
         getter.isExternal = false;
+        addPragmaPreferInline(getter);
       }
 
       if (setter != null) {
@@ -827,6 +828,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           offsetGetter,
         );
         setter.isExternal = false;
+        addPragmaPreferInline(setter);
       }
 
       i++;
@@ -1046,6 +1048,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     )
       ..fileOffset = field.fileOffset
       ..annotations = field.annotations;
+    addPragmaPreferInline(getter);
     node.addProcedure(getter);
 
     if (!field.isFinal) {
@@ -1080,6 +1083,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         fileUri: field.fileUri,
         reference: setterReference,
       )..fileOffset = field.fileOffset;
+      addPragmaPreferInline(setter);
       node.addProcedure(setter);
     }
 

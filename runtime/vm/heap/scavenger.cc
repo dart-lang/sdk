@@ -52,7 +52,7 @@ DEFINE_FLAG(int, new_gen_growth_factor, 2, "Grow new gen by this factor.");
 // object headers, and which doesn't intersect with the target address because
 // of object alignment.
 enum {
-  kForwardingMask = 1 << UntaggedObject::kCardRememberedBit,
+  kForwardingMask = UntaggedObject::CardRememberedBit::mask(),
   kNotForwarded = 0,
   kForwarded = kForwardingMask,
 };
@@ -1265,7 +1265,7 @@ void Scavenger::IterateRememberedCards(
 void Scavenger::IterateObjectIdTable(ObjectPointerVisitor* visitor) {
 #ifndef PRODUCT
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IterateObjectIdTable");
-  heap_->isolate_group()->VisitPointersInDefaultServiceIdZone(*visitor);
+  heap_->isolate_group()->VisitPointersInAllServiceIdZones(*visitor);
 #endif  // !PRODUCT
 }
 

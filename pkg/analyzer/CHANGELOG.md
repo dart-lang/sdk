@@ -1,5 +1,10 @@
+## 6.10.0-dev
+* Deprecated `LibraryElement.accessibleExtensions`, use
+  `CompilationUnitElement.accessibleExtensions` instead.
+
 ## 6.9.0
 * `NormalFormalParameter` now implements `AnnotatedNode`.
+* Deprecated `Element.enclosingElement`, use `enclosingElement3`.
 
 ## 6.8.0
 * Add `AnalysisContextCollection.dispose()`. It must be invoked at the end.

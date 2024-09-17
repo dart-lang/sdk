@@ -4,48 +4,13 @@
 
 part of "common_patch.dart";
 
-class _IOServicePorts {
-  // We limit the number of IO Service ports per isolate so that we don't
-  // spawn too many threads all at once, which can crash the VM on Windows.
-  static const int maxPorts = 32;
-  final List<SendPort> _ports = [];
-  final List<int> _useCounts = [];
-  final List<int> _freePorts = [];
-  final Map<int, int> _usedPorts = HashMap<int, int>();
-
-  _IOServicePorts();
-
-  SendPort _getPort(int forRequestId) {
-    assert(!_usedPorts.containsKey(forRequestId));
-    if (_freePorts.isEmpty && _ports.length < maxPorts) {
-      final SendPort port = _newServicePort();
-      _ports.add(port);
-      _useCounts.add(0);
-      _freePorts.add(_ports.length - 1);
-    }
-    // Use a free port if one exists.
-    final index = _freePorts.isNotEmpty
-        ? _freePorts.removeLast()
-        : forRequestId % maxPorts;
-    _usedPorts[forRequestId] = index;
-    _useCounts[index]++;
-    return _ports[index];
-  }
-
-  void _returnPort(int forRequestId) {
-    final index = _usedPorts.remove(forRequestId)!;
-    if (--_useCounts[index] == 0) {
-      _freePorts.add(index);
-    }
-  }
-
-  @pragma("vm:external-name", "IOService_NewServicePort")
-  external static SendPort _newServicePort();
-}
+@pragma("vm:external-name", "IOService_NewServicePort")
+external SendPort _newServicePort();
 
 @patch
 class _IOService {
-  static _IOServicePorts _servicePorts = new _IOServicePorts();
+  static final SendPort _port = _newServicePort();
+
   static RawReceivePort? _receivePort;
   static late SendPort _replyToPort;
   static HashMap<int, Completer> _messageMap = new HashMap<int, Completer>();
@@ -59,10 +24,9 @@ class _IOService {
     } while (_messageMap.containsKey(id));
     final Completer completer = new Completer();
     try {
-      final SendPort servicePort = _servicePorts._getPort(id);
       _ensureInitialize();
       _messageMap[id] = completer;
-      servicePort.send(<dynamic>[id, _replyToPort, request, data]);
+      _port.send(<dynamic>[id, _replyToPort, request, data]);
     } catch (error) {
       _messageMap.remove(id)!.complete(error);
       if (_messageMap.length == 0) {
@@ -79,7 +43,6 @@ class _IOService {
       _receivePort!.handler = (List<Object?> data) {
         assert(data.length == 2);
         _messageMap.remove(data[0])!.complete(data[1]);
-        _servicePorts._returnPort(data[0] as int);
         if (_messageMap.length == 0) {
           _finalize();
         }

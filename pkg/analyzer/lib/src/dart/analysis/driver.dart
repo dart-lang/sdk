@@ -96,7 +96,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 381;
+  static const int DATA_VERSION = 386;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -346,15 +346,16 @@ class AnalysisDriver {
     return libraryContext.elementFactory.analysisSession;
   }
 
-  /// Return a set of the names of all the plugins enabled in analysis options
-  /// in this driver.
-  Set<String> get enabledPluginNames {
-    // We currently only support plugins enabled at the very root of a context
-    // (and we create contexts for any analysis options that changes plugins
-    // from its parent context).
+  /// The set of legacy plugin names enabled in analysis options in this driver.
+  Set<String> get enabledLegacyPluginNames {
+    // We currently only support legacy plugins enabled at the very root of a
+    // context (and we create contexts for any analysis options that changes
+    // plugins from its parent context).
     var rootOptionsFile = analysisContext?.contextRoot.optionsFile;
     return rootOptionsFile != null
-        ? getAnalysisOptionsForFile(rootOptionsFile).enabledPluginNames.toSet()
+        ? getAnalysisOptionsForFile(rootOptionsFile)
+            .enabledLegacyPluginNames
+            .toSet()
         : const {};
   }
 
@@ -888,8 +889,6 @@ class AnalysisDriver {
       case UriResolutionFile(:var file):
         var kind = file.kind;
         if (kind is LibraryFileKind) {
-        } else if (kind is AugmentationFileKind) {
-          return NotLibraryButAugmentationResult();
         } else if (kind is PartFileKind) {
           return NotLibraryButPartResult();
         } else {
@@ -933,8 +932,6 @@ class AnalysisDriver {
     var file = _fsState.getFileForPath(path);
     var kind = file.kind;
     if (kind is LibraryFileKind) {
-    } else if (kind is AugmentationFileKind) {
-      return NotLibraryButAugmentationResult();
     } else if (kind is PartFileKind) {
       return NotLibraryButPartResult();
     } else {
@@ -1577,9 +1574,8 @@ class AnalysisDriver {
       content: file.content,
       lineInfo: file.lineInfo,
       uri: file.uri,
-      isAugmentation: file.kind is AugmentationFileKind,
       isLibrary: file.kind is LibraryFileKind,
-      isMacroAugmentation: file.isMacroPart,
+      isMacroPart: file.isMacroPart,
       isPart: file.kind is PartFileKind,
       errors: errors,
       analysisOptions: file.analysisOptions,
@@ -1812,12 +1808,6 @@ class AnalysisDriver {
     switch (kind) {
       case LibraryFileKind():
         break;
-      case AugmentationFileKind():
-        _requestedLibraries.completeAll(
-          path,
-          NotLibraryButAugmentationResult(),
-        );
-        return;
       case PartFileKind():
         _requestedLibraries.completeAll(
           path,
@@ -1935,9 +1925,8 @@ class AnalysisDriver {
       content: file.content,
       lineInfo: file.lineInfo,
       uri: file.uri,
-      isAugmentation: file.kind is AugmentationFileKind,
       isLibrary: file.kind is LibraryFileKind,
-      isMacroAugmentation: file.isMacroPart,
+      isMacroPart: file.isMacroPart,
       isPart: file.kind is PartFileKind,
       errors: [
         AnalysisError.tmp(

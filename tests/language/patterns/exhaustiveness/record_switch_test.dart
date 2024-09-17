@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-enum Enum {a, b}
-const r0 = (Enum.a, false);
-const r1 = (Enum.b, false);
-const r2 = (Enum.a, true);
-const r3 = (Enum.b, true);
+enum E {a, b}
+const r0 = (E.a, false);
+const r1 = (E.b, false);
+const r2 = (E.a, true);
+const r3 = (E.b, true);
 
-void exhaustiveSwitch((Enum, bool) r) {
+void exhaustiveSwitch((E, bool) r) {
   switch (r) /* Ok */ {
     case r0:
       print('(a, false)');
@@ -25,12 +25,12 @@ void exhaustiveSwitch((Enum, bool) r) {
   }
 }
 
-void nonExhaustiveSwitch1((Enum, bool) r) {
+void nonExhaustiveSwitch1((E, bool) r) {
   switch (r) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '(Enum, bool)' is not exhaustively matched by the switch cases since it doesn't match '(Enum.b, false)'.
+// [cfe] The type '(E, bool)' is not exhaustively matched by the switch cases since it doesn't match '(E.b, false)'.
     case r0:
       print('(a, false)');
       break;
@@ -43,12 +43,12 @@ void nonExhaustiveSwitch1((Enum, bool) r) {
   }
 }
 
-void nonExhaustiveSwitch2((Enum, bool) r) {
+void nonExhaustiveSwitch2((E, bool) r) {
   switch (r) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '(Enum, bool)' is not exhaustively matched by the switch cases since it doesn't match '(Enum.a, false)'.
+// [cfe] The type '(E, bool)' is not exhaustively matched by the switch cases since it doesn't match '(E.a, false)'.
     case r1:
       print('(b, false)');
       break;
@@ -61,7 +61,7 @@ void nonExhaustiveSwitch2((Enum, bool) r) {
   }
 }
 
-void nonExhaustiveSwitchWithDefault((Enum, bool) r) {
+void nonExhaustiveSwitchWithDefault((E, bool) r) {
   switch (r) /* Ok */ {
     case r0:
       print('(a, false)');
@@ -72,7 +72,7 @@ void nonExhaustiveSwitchWithDefault((Enum, bool) r) {
   }
 }
 
-void exhaustiveNullableSwitch((Enum, bool)? r) {
+void exhaustiveNullableSwitch((E, bool)? r) {
   switch (r) /* Ok */ {
     case r0:
       print('(a, false)');
@@ -92,12 +92,12 @@ void exhaustiveNullableSwitch((Enum, bool)? r) {
   }
 }
 
-void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
+void nonExhaustiveNullableSwitch1((E, bool)? r) {
   switch (r) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '(Enum, bool)?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
+// [cfe] The type '(E, bool)?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
     case r0:
       print('(a, false)');
       break;
@@ -113,12 +113,12 @@ void nonExhaustiveNullableSwitch1((Enum, bool)? r) {
   }
 }
 
-void nonExhaustiveNullableSwitch2((Enum, bool)? r) {
+void nonExhaustiveNullableSwitch2((E, bool)? r) {
   switch (r) /* Error */ {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type '(Enum, bool)?' is not exhaustively matched by the switch cases since it doesn't match '(Enum.b, false)'.
+// [cfe] The type '(E, bool)?' is not exhaustively matched by the switch cases since it doesn't match '(E.b, false)'.
     case r0:
       print('(a, false)');
       break;
@@ -134,7 +134,7 @@ void nonExhaustiveNullableSwitch2((Enum, bool)? r) {
   }
 }
 
-void unreachableCase1((Enum, bool) r) {
+void unreachableCase1((E, bool) r) {
   switch (r) /* Ok */ {
     case r0:
       print('(a, false) #1');
@@ -156,7 +156,7 @@ void unreachableCase1((Enum, bool) r) {
   }
 }
 
-void unreachableCase2((Enum, bool) r) {
+void unreachableCase2((E, bool) r) {
   // TODO(johnniwinther): Should we avoid the unreachable error here?
   switch (r) /* Error */ {
     case r0:
@@ -177,7 +177,7 @@ void unreachableCase2((Enum, bool) r) {
   }
 }
 
-void unreachableCase3((Enum, bool)? r) {
+void unreachableCase3((E, bool)? r) {
   switch (r) /* Ok */ {
     case r0:
       print('(a, false)');
@@ -198,6 +198,28 @@ void unreachableCase3((Enum, bool)? r) {
 //  ^^^^
 // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('null2');
+      break;
+  }
+}
+
+void unreachableDefault((E, bool) r) {
+  switch (r) /* Ok */ {
+    case r0:
+      print('(a, false)');
+      break;
+    case r1:
+      print('(b, false)');
+      break;
+    case r2:
+      print('(a, true)');
+      break;
+    case r3:
+      print('(b, true)');
+      break;
+    default: // Unreachable
+//  ^^^^^^^
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
+      print('default');
       break;
   }
 }

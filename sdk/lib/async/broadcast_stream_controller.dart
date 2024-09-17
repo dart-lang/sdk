@@ -245,16 +245,9 @@ abstract class _BroadcastStreamController<T>
   }
 
   void addError(Object error, [StackTrace? stackTrace]) {
-    checkNotNullable(error, "error");
     if (!_mayAddEvent) throw _addEventError();
-    AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
-    if (replacement != null) {
-      error = replacement.error;
-      stackTrace = replacement.stackTrace;
-    } else {
-      stackTrace ??= AsyncError.defaultStackTrace(error);
-    }
-    _sendError(error, stackTrace);
+    AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
+    _addError(error, stackTrace);
   }
 
   Future<void> close() {
@@ -476,14 +469,13 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
   }
 
   void addError(Object error, [StackTrace? stackTrace]) {
-    checkNotNullable(error, "error");
-    stackTrace ??= AsyncError.defaultStackTrace(error);
+    if (!_mayAddEvent) throw _addEventError();
+    AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
     if (!isClosed && _isFiring) {
       _addPendingEvent(new _DelayedError(error, stackTrace));
       return;
     }
-    if (!_mayAddEvent) throw _addEventError();
-    _sendError(error, stackTrace);
+    _addError(error, stackTrace);
     _flushPending();
   }
 

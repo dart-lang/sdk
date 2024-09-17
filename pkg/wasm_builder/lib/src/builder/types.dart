@@ -2,9 +2,57 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:collection/collection.dart';
 import '../ir/ir.dart' as ir;
 import 'builder.dart';
+
+/// The available field values that can be used in brand type StructTypes.
+const List<ir.ValueType> _brandTypeFieldValues = [
+  ir.NumType.i32,
+  ir.NumType.i64,
+  ir.NumType.f32,
+  ir.NumType.f64,
+  ir.NumType.v128,
+  ir.RefType.extern(nullable: false),
+  ir.RefType.extern(nullable: true),
+  ir.RefType.any(nullable: false),
+  ir.RefType.any(nullable: true),
+  ir.RefType.func(nullable: false),
+  ir.RefType.func(nullable: true),
+  ir.RefType.none(nullable: false),
+  ir.RefType.none(nullable: true),
+  ir.RefType.noextern(nullable: false),
+  ir.RefType.noextern(nullable: true),
+  ir.RefType.nofunc(nullable: false),
+  ir.RefType.nofunc(nullable: true),
+];
+
+/// Encodes [index] as a StructType that will not be a subtype of any other
+/// index.
+///
+/// The produced brand type can be added to rec groups that would otherwise be
+/// considered equal by the wasm type system. The brand types break the unwanted
+/// equivalence relation between the groups.
+///
+/// The brand type must contain at least one field because every struct is a
+/// subtype of the empty struct.
+ir.StructType _getBrandType(int index) {
+  final brandName = 'brand$index';
+  final List<ir.FieldType> fields = [];
+  final numDigits = _brandTypeFieldValues.length;
+  do {
+    final modValue = index % numDigits;
+    // It's important that the fields are mutable. This ensures that the
+    // contained StorageTypes must be mutual subtypes (i.e. they must be equal)
+    // in order for them to match. Some of our brand digit options are subtypes
+    // of others so to avoid them matching we need the mutual subtyping.
+    fields.add(ir.FieldType(_brandTypeFieldValues[modValue], mutable: true));
+    index = index ~/ numDigits;
+  } while (index > 0);
+  return ir.StructType(brandName, fields: fields);
+}
 
 /// Creates minimally sized rec groups given the types added to the builder.
 ///
@@ -20,11 +68,9 @@ import 'builder.dart';
 /// of our rec groups. The root of the DAG is the top type and all other types
 /// follow from there.
 ///
-/// Two Dart classes may map to structurally equivalent [ir.StructType]s. Having
-/// them in the same rec group disambiguates them for the wasm type system. In
-/// order to allow binaryen to optimize these class structs as independent types
-/// we put structurally equivalent struct types into the same recursive group as
-/// well.
+/// Two Dart classes may map to structurally equivalent [ir.StructType]s. To
+/// disambiguate them we assign unique brand types to rec groups that are
+/// structually equivalent.
 class _RecGroupBuilder {
   late final List<List<ir.DefType>> _allRecursiveGroups =
       _createAllRecursiveGroups();
@@ -33,7 +79,7 @@ class _RecGroupBuilder {
   _RecGroupBuilder();
 
   /// Get the out-edges for [type] in the wasm type graph.
-  Set<ir.DefType> _edgesforType(ir.DefType type) {
+  static Set<ir.DefType> _edgesforType(ir.DefType type) {
     final edges = <ir.DefType>{};
     for (final constituentType in type.constituentTypes) {
       if (constituentType is ir.RefType) {
@@ -50,39 +96,74 @@ class _RecGroupBuilder {
     return edges;
   }
 
+  /// Checks if two groups contain structurally equivalent struct types in the
+  /// same order.
+  ///
+  /// Assumes both groups are the same size.
+  static bool _areGroupsStructurallyEqual(
+      List<ir.DefType> group1, List<ir.DefType> group2) {
+    for (int i = 0; i < group1.length; i++) {
+      final type1 = group1[i];
+      final type2 = group2[i];
+      if (type1 is! ir.StructType) {
+        if (type2 is ir.StructType) return false;
+        return type1.isStructuralSubtypeOf(type2) &&
+            type2.isStructuralSubtypeOf(type1);
+      }
+      if (type2 is! ir.StructType) return false;
+      if (!type1.isStructurallyEqualTo(type2)) return false;
+    }
+    return true;
+  }
+
+  /// Assigns brand types to structurally equivalent rec groups.
+  ///
+  /// If a rec group is in an equivalence class with multiple groups, it will be
+  /// assigned an index encoded as a brand type. The brand types allows the wasm
+  /// type system to disambiguate members of otherwise equivalent rec groups.
+  static void _assignBrandTypes(List<List<ir.DefType>> groups) {
+    // Collect rec groups joining over:
+    // (1) group length
+    // (2) length of first struct
+    // (3) group structural equality
+    final equivalenceGroups =
+        LinkedHashMap<(int, int, List<ir.DefType>), List<List<ir.DefType>>>(
+      hashCode: (a) => Object.hash(a.$1, a.$2),
+      equals: (a, b) =>
+          a.$1 == b.$1 &&
+          a.$2 == b.$2 &&
+          _areGroupsStructurallyEqual(a.$3, b.$3),
+    );
+
+    for (final group in groups) {
+      final structIndex = group.indexWhere((g) => g is ir.StructType);
+      // Skip groups with no struct types.
+      if (structIndex == -1) continue;
+      final structType = group[structIndex] as ir.StructType;
+      equivalenceGroups.putIfAbsent(
+          (group.length, structType.fields.length, group), () => []).add(group);
+    }
+
+    for (final equalGroups in equivalenceGroups.values) {
+      // All the groups in `equalGroups` are structurally equivalent.
+      // Skip the first group since we can leave one group as-is.
+      for (int i = 1; i < equalGroups.length; i++) {
+        equalGroups[i].insert(0, _getBrandType(i - 1));
+      }
+    }
+  }
+
   /// Create minimal recursive groups.
   ///
   /// Some groups may contain only unused types. Those groups can be dropped by
   /// callers of this function.
+  ///
+  /// Adds brand types to groups where necessary so that similar struct types
+  /// are not considered equivalent.
   List<List<ir.DefType>> _createAllRecursiveGroups() {
     Map<ir.DefType, Set<ir.DefType>> typeGraph = {};
     for (ir.DefType type in _allDefinedTypes) {
       typeGraph[type] = _edgesforType(type);
-    }
-
-    // Ensure different, but structucally equivalent types, are placed together.
-    // Note: only `StructType`s need to be considered and it is sufficient to
-    // only compare pairs of same struct size.
-    var structTypes = _allDefinedTypes.whereType<ir.StructType>().toList();
-    structTypes.sort((a, b) => a.fields.length.compareTo(b.fields.length));
-
-    // All structs prior to `sizeStart` have a size smaller than `currentSize`.
-    int sizeStart = 0;
-    int currentSize = 0;
-    for (int i = 0; i < structTypes.length; i++) {
-      var type1 = structTypes[i];
-      var type1Size = type1.fields.length;
-      if (currentSize != type1Size) {
-        currentSize = type1Size;
-        sizeStart = i;
-      }
-      for (int j = sizeStart; j < i; j++) {
-        var type2 = structTypes[j];
-        if (type1.isStructurallyEqualTo(type2)) {
-          typeGraph[type1]!.add(type2);
-          typeGraph[type2]!.add(type1);
-        }
-      }
     }
 
     final components = stronglyConnectedComponents(typeGraph);
@@ -106,6 +187,9 @@ class _RecGroupBuilder {
       }
       groups.add(group);
     }
+
+    _assignBrandTypes(groups);
+
     return groups;
   }
 
@@ -113,7 +197,7 @@ class _RecGroupBuilder {
     _allDefinedTypes.add(type);
   }
 
-  /// Create a filtered list of recursive groups in type hierarchy order.
+  /// Create a filtered list of rec groups in type hierarchy order.
   ///
   /// [directlyUsedTypes] should be the list of types used directly in the
   /// module (i.e. types referenced from code, function definitions, etc.).
@@ -151,10 +235,11 @@ class _RecGroupBuilder {
 class TypesBuilder with Builder<ir.Types> {
   final ModuleBuilder _module;
 
-  late final Map<_FunctionTypeKey, ir.FunctionType> _functionTypeMap = {};
-  late final _RecGroupBuilder _recGroupBuilder = _RecGroupBuilder();
+  final Map<_FunctionTypeKey, ir.FunctionType> _functionTypeMap = {};
+  final _RecGroupBuilder _recGroupBuilder;
 
-  TypesBuilder(this._module);
+  TypesBuilder(this._module, {TypesBuilder? parent})
+      : _recGroupBuilder = parent?._recGroupBuilder ?? _RecGroupBuilder();
 
   /// Add a new function type to the module.
   ///
@@ -203,6 +288,7 @@ class TypesBuilder with Builder<ir.Types> {
 
   Set<ir.DefType> _collectUsedTypes() {
     final usedTypes = <ir.DefType>{};
+    _module.tables.collectUsedTypes(usedTypes);
     _module.functions.collectUsedTypes(usedTypes);
     _module.globals.collectUsedTypes(usedTypes);
     _module.tags.collectUsedTypes(usedTypes);

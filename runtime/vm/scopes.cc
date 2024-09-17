@@ -8,7 +8,6 @@
 #include "vm/compiler/backend/slot.h"
 #include "vm/kernel.h"
 #include "vm/object.h"
-#include "vm/object_store.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
@@ -236,9 +235,12 @@ LocalVariable::LocalVariable(TokenPosition declaration_pos,
                         CompileType::kCanBeNull,
                         CompileType::kCannotBeSentinel))) {}
 
-// VM creates internal variables that start with ":"
+// The VM creates synthetic variables that start with ":" and the CFE creates
+// synthetic variables with no name.
 bool LocalVariable::IsFilteredIdentifier(const String& name) {
-  ASSERT(name.Length() > 0);
+  if (name.ptr() == Symbols::Empty().ptr()) {
+    return true;
+  }
   if (name.ptr() == Symbols::FunctionTypeArgumentsVar().ptr()) {
     // Keep :function_type_arguments for accessing type variables in debugging.
     return false;
@@ -335,13 +337,22 @@ void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
 
 LocalVariable* LocalScope::LocalLookupVariable(const String& name,
                                                intptr_t kernel_offset) const {
-  ASSERT(name.IsSymbol());
+  ASSERT(name.IsNull() || name.IsSymbol());
   for (intptr_t i = 0; i < variables_.length(); i++) {
     LocalVariable* var = variables_[i];
-    ASSERT(var->name().IsSymbol());
-    if ((var->name().ptr() == name.ptr()) &&
-        (var->kernel_offset() == kernel_offset)) {
-      return var;
+    if (var->kernel_offset() == kernel_offset) {
+      if (kernel_offset != LocalVariable::kNoKernelOffset) {
+        // Variable from kernel.
+        return var;
+      } else {
+        // Synthetic variable from the VM.
+        ASSERT(kernel_offset == LocalVariable::kNoKernelOffset);
+        ASSERT(name.IsSymbol());
+        ASSERT(var->name().IsSymbol());
+        if (var->name().ptr() == name.ptr()) {
+          return var;
+        }
+      }
     }
   }
   return nullptr;
@@ -576,6 +587,99 @@ ContextScopePtr LocalScope::CreateImplicitClosureScope(const Function& func) {
   context_scope.SetKernelOffsetAt(0, LocalVariable::kNoKernelOffset);
   ASSERT(context_scope.num_variables() == kNumCapturedVars);  // Verify count.
   return context_scope.ptr();
+}
+
+static void PrintIndentation(BaseTextBuffer* f, int depth) {
+  for (int i = 0; i < depth; i++) {
+    f->AddString("  ");
+  }
+}
+
+void LocalScope::PrintTo(BaseTextBuffer* f, int depth) const {
+  PrintIndentation(f, depth);
+  f->AddString("scope: ");
+  f->Printf("function_level: %i, ", function_level_);
+  f->Printf("loop_level: %i, ", loop_level_);
+  if (context_level_ == kUninitializedContextLevel) {
+    f->AddString("context_level: uninitialized, ");
+  } else {
+    f->Printf("context_level: %i, ", context_level_);
+  }
+  int num_variables_ = num_variables();
+  f->Printf("variables: %i, ", num_variables_);
+  f->Printf("context_variables: %i", num_context_variables());
+  if (function_level() == 1) {
+    f->Printf(", captured_variables: %i", NumCapturedVariables());
+  }
+  f->AddString("\n");
+
+  for (intptr_t i = 0; i < num_variables_; i++) {
+    LocalVariable* variable = VariableAt(i);
+    variable->PrintTo(f, "variable", depth + 1, this);
+  }
+
+  for (intptr_t i = 0; i < num_context_variables(); i++) {
+    LocalVariable* variable = context_variables().At(i);
+    variable->PrintTo(f, "context variable", depth + 1, this);
+  }
+
+  auto* child = child_;
+  while (child != nullptr) {
+    child->PrintTo(f, depth + 1);
+    child = child->sibling();
+  }
+}
+
+const char* LocalScope::ToCString() const {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTo(&f);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
+}
+
+void LocalVariable::PrintTo(BaseTextBuffer* f,
+                            const char* label,
+                            int depth,
+                            const LocalScope* scope) const {
+  PrintIndentation(f, depth);
+  f->Printf("%s: ", label);
+  const char* var_name = name().ToCString();
+  if (var_name[0] == '\0') {
+    // Follow CFE no-name variable printing convention.
+    var_name = "#t?";
+  }
+  f->Printf("%s, ", var_name);
+  f->Printf("kernel_offset: %" Pd ", ", kernel_offset());
+  if (HasIndex()) {
+    auto index_value = index().value();
+    if (index().value() == VariableIndex::kInvalidIndex) {
+      f->AddString("index: invalid");
+    } else {
+      f->Printf("index: %i", index_value);
+    }
+  } else {
+    f->AddString("index: none");
+  }
+  if (is_captured()) {
+    f->AddString(", is_captured");
+  }
+  if (is_captured_parameter()) {
+    f->AddString(", is_captured_parameter");
+  }
+  if (is_invisible()) {
+    f->AddString(", is_invisible");
+  }
+  if (scope != nullptr && owner() != scope) {
+    f->AddString(" (not owner)");
+  }
+  f->AddString("\n");
+}
+
+const char* LocalVariable::ToCString() const {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTo(&f);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
 bool LocalVariable::ComputeIfIsAwaiterLink(const Library& library) {
