@@ -10,15 +10,18 @@ import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/type_builder.dart';
 import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart';
+import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_field_builder.dart';
+import '../source/source_procedure_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../source/type_parameter_scope_builder.dart';
 
@@ -516,6 +519,132 @@ class FieldFragment implements Fragment {
   }
 
   void set builder(SourceFieldBuilder value) {
+    assert(
+        _builder == null, // Coverage-ignore(suite): Not run.
+        "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$charOffset)';
+}
+
+class MethodFragment implements Fragment {
+  final String name;
+  final Uri fileUri;
+  final int startCharOffset;
+  final int charOffset;
+  final int charOpenParenOffset;
+  final int charEndOffset;
+  final List<MetadataBuilder>? metadata;
+  final int modifiers;
+  final TypeBuilder returnType;
+  final List<NominalVariableBuilder>? typeParameters;
+  final List<FormalParameterBuilder>? formals;
+  final ProcedureKind kind;
+  final Reference? procedureReference;
+  final Reference? tearOffReference;
+  final AsyncMarker asyncModifier;
+  final NameScheme nameScheme;
+  final String? nativeMethodName;
+
+  SourceProcedureBuilder? _builder;
+
+  MethodFragment(
+      {required this.name,
+      required this.fileUri,
+      required this.startCharOffset,
+      required this.charOffset,
+      required this.charOpenParenOffset,
+      required this.charEndOffset,
+      required this.metadata,
+      required this.modifiers,
+      required this.returnType,
+      required this.typeParameters,
+      required this.formals,
+      required this.kind,
+      required this.procedureReference,
+      required this.tearOffReference,
+      required this.asyncModifier,
+      required this.nameScheme,
+      required this.nativeMethodName});
+
+  @override
+  SourceProcedureBuilder get builder {
+    assert(
+        _builder != null, // Coverage-ignore(suite): Not run.
+        "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(SourceProcedureBuilder value) {
+    assert(
+        _builder == null, // Coverage-ignore(suite): Not run.
+        "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$charOffset)';
+}
+
+class ConstructorFragment implements Fragment {
+  final String name;
+  final Uri fileUri;
+  final int startCharOffset;
+  final int charOffset;
+  final int charOpenParenOffset;
+  final int charEndOffset;
+  final int modifiers;
+  final List<MetadataBuilder>? metadata;
+  final OmittedTypeBuilder returnType;
+  final List<NominalVariableBuilder>? typeParameters;
+  final List<FormalParameterBuilder>? formals;
+  final Reference? constructorReference;
+  final Reference? tearOffReference;
+  final NameScheme nameScheme;
+  final String? nativeMethodName;
+  final bool forAbstractClassOrMixin;
+  Token? _beginInitializers;
+
+  AbstractSourceConstructorBuilder? _builder;
+
+  ConstructorFragment(
+      {required this.name,
+      required this.fileUri,
+      required this.startCharOffset,
+      required this.charOffset,
+      required this.charOpenParenOffset,
+      required this.charEndOffset,
+      required this.modifiers,
+      required this.metadata,
+      required this.returnType,
+      required this.typeParameters,
+      required this.formals,
+      required this.constructorReference,
+      required this.tearOffReference,
+      required this.nameScheme,
+      required this.nativeMethodName,
+      required this.forAbstractClassOrMixin,
+      required Token? beginInitializers})
+      : _beginInitializers = beginInitializers;
+
+  Token? get beginInitializers {
+    Token? result = _beginInitializers;
+    // Ensure that we don't hold onto the token.
+    _beginInitializers = null;
+    return result;
+  }
+
+  @override
+  AbstractSourceConstructorBuilder get builder {
+    assert(
+        _builder != null, // Coverage-ignore(suite): Not run.
+        "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(AbstractSourceConstructorBuilder value) {
     assert(
         _builder == null, // Coverage-ignore(suite): Not run.
         "Builder has already been computed for $this.");

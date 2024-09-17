@@ -123,6 +123,7 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   LibraryBuilder get libraryBuilder {
     if (parent is LibraryBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       LibraryBuilder library = parent as LibraryBuilder;
       return library.partOfLibrary ?? library;
     } else if (parent is ExtensionBuilder) {

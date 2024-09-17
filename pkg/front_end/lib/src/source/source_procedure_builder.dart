@@ -31,6 +31,9 @@ import 'source_member_builder.dart';
 
 class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     implements ProcedureBuilder {
+  @override
+  final SourceLibraryBuilder libraryBuilder;
+
   final int charOpenParenOffset;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
@@ -84,7 +87,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
       this.kind,
-      SourceLibraryBuilder libraryBuilder,
+      this.libraryBuilder,
+      DeclarationBuilder? declarationBuilder,
       Uri fileUri,
       int startCharOffset,
       int charOffset,
@@ -102,8 +106,16 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         this.isExtensionTypeInstanceMember =
             nameScheme.isInstanceMember && nameScheme.isExtensionTypeMember,
         _memberName = nameScheme.getDeclaredName(name),
-        super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
-            fileUri, charOffset, nativeMethodName) {
+        super(
+            metadata,
+            modifiers,
+            name,
+            typeVariables,
+            formals,
+            declarationBuilder ?? libraryBuilder,
+            fileUri,
+            charOffset,
+            nativeMethodName) {
     _procedure = new Procedure(
         dummyName,
         isExtensionInstanceMember || isExtensionTypeInstanceMember

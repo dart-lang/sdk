@@ -19,12 +19,14 @@ import '../fragment/fragment.dart';
 import 'name_scheme.dart';
 import 'source_builder_factory.dart';
 import 'source_class_builder.dart';
+import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
+import 'source_procedure_builder.dart';
 import 'source_type_alias_builder.dart';
 
 sealed class _Added {
@@ -383,6 +385,78 @@ class _AddedFragment implements _Added {
         fragment.builder = fieldBuilder;
         builders.add(new _AddBuilder(fragment.name, fieldBuilder,
             fragment.fileUri, fragment.charOffset));
+      case MethodFragment():
+        SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
+            fragment.metadata,
+            fragment.modifiers,
+            fragment.returnType,
+            fragment.name,
+            fragment.typeParameters,
+            fragment.formals,
+            fragment.kind,
+            enclosingLibraryBuilder,
+            declarationBuilder,
+            fragment.fileUri,
+            fragment.startCharOffset,
+            fragment.charOffset,
+            fragment.charOpenParenOffset,
+            fragment.charEndOffset,
+            fragment.procedureReference,
+            fragment.tearOffReference,
+            fragment.asyncModifier,
+            fragment.nameScheme,
+            nativeMethodName: fragment.nativeMethodName);
+        fragment.builder = procedureBuilder;
+        builders.add(new _AddBuilder(fragment.name, procedureBuilder,
+            fragment.fileUri, fragment.charOffset));
+      case ConstructorFragment():
+        AbstractSourceConstructorBuilder constructorBuilder;
+        if (declarationBuilder is SourceExtensionTypeDeclarationBuilder) {
+          constructorBuilder = new SourceExtensionTypeConstructorBuilder(
+              fragment.metadata,
+              fragment.modifiers,
+              fragment.returnType,
+              fragment.name,
+              fragment.typeParameters,
+              fragment.formals,
+              enclosingLibraryBuilder,
+              declarationBuilder,
+              fragment.fileUri,
+              fragment.startCharOffset,
+              fragment.charOffset,
+              fragment.charOpenParenOffset,
+              fragment.charEndOffset,
+              fragment.constructorReference,
+              fragment.tearOffReference,
+              fragment.nameScheme,
+              nativeMethodName: fragment.nativeMethodName,
+              forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
+              beginInitializers: fragment.beginInitializers);
+        } else {
+          constructorBuilder = new DeclaredSourceConstructorBuilder(
+              fragment.metadata,
+              fragment.modifiers,
+              fragment.returnType,
+              fragment.name,
+              fragment.typeParameters,
+              fragment.formals,
+              enclosingLibraryBuilder,
+              declarationBuilder!,
+              fragment.fileUri,
+              fragment.startCharOffset,
+              fragment.charOffset,
+              fragment.charOpenParenOffset,
+              fragment.charEndOffset,
+              fragment.constructorReference,
+              fragment.tearOffReference,
+              fragment.nameScheme,
+              nativeMethodName: fragment.nativeMethodName,
+              forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
+              beginInitializers: fragment.beginInitializers);
+        }
+        fragment.builder = constructorBuilder;
+        builders.add(new _AddBuilder(fragment.name, constructorBuilder,
+            fragment.fileUri, fragment.charOffset));
     }
   }
 }
@@ -394,6 +468,7 @@ class LibraryNameSpaceBuilder {
 
   List<_Added> _added = [];
 
+  // Coverage-ignore(suite): Not run.
   void addBuilder(
       String name, Builder declaration, Uri fileUri, int charOffset) {
     _added.add(new _AddedBuilder(

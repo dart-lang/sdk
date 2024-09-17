@@ -210,7 +210,7 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
         FieldIndex.suspendStateContext, closures, context, thisLocal,
         cloneContextFor: functionNode);
 
-    visitStatement(functionNode.body!);
+    translateStatement(functionNode.body!);
 
     // Final state: just keep returning.
     emitTargetLabel(targets.last);
@@ -227,7 +227,7 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
     // `_yieldStarIterable` for `yield*`.
     b.local_get(_suspendStateLocal);
     b.struct_get(suspendStateInfo.struct, FieldIndex.suspendStateIterator);
-    wrap(node.expression, translator.topInfo.nullableType);
+    translateExpression(node.expression, translator.topInfo.nullableType);
     if (node.isYieldStar) {
       b.ref_cast(translator.objectInfo.nonNullableType);
       b.struct_set(syncStarIteratorInfo.struct,

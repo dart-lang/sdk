@@ -57,13 +57,11 @@ import 'builder_factory.dart';
 import 'name_scheme.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
-import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
-import 'source_procedure_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
@@ -124,6 +122,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   final List<StructuralVariableBuilder> _unboundStructuralVariables = [];
 
   final List<SourceFunctionBuilder> _nativeMethods = [];
+
+  final List<MethodFragment> _nativeMethodFragments = [];
+
+  final List<ConstructorFragment> _nativeConstructorFragments = [];
 
   final LibraryName libraryName;
 
@@ -1692,7 +1694,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       String? nativeMethodName,
       {Token? beginInitializers,
       required bool forAbstractClassOrMixin}) {
-    SourceFunctionBuilder builder = _addConstructor(
+    ConstructorFragment fragment = _addConstructor(
         metadata,
         modifiers,
         constructorName,
@@ -1704,8 +1706,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         charEndOffset,
         nativeMethodName,
         beginInitializers: beginInitializers,
-        forAbstractClassOrMixin: forAbstractClassOrMixin);
-    offsetMap.registerConstructor(identifier, builder);
+        forAbstractClassOrMixin: forAbstractClassOrMixin,
+        isConst: modifiers & constMask != 0);
+    offsetMap.registerConstructorFragment(identifier, fragment);
   }
 
   @override
@@ -1725,7 +1728,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     List<NominalVariableBuilder>? typeVariables =
         nominalVariableCopy?.newVariableBuilders;
 
-    SourceFunctionBuilder builder = _addConstructor(
+    ConstructorFragment builder = _addConstructor(
         null,
         isConst ? constMask : 0,
         constructorName,
@@ -1740,6 +1743,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         charOffset,
         /* nativeMethodName = */
         null,
+        isConst: isConst,
         forAbstractClassOrMixin: false);
     offsetMap.registerPrimaryConstructor(beginToken, builder);
   }
@@ -1767,7 +1771,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         false));
   }
 
-  SourceFunctionBuilder _addConstructor(
+  ConstructorFragment _addConstructor(
       List<MetadataBuilder>? metadata,
       int modifiers,
       String constructorName,
@@ -1779,6 +1783,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       int charEndOffset,
       String? nativeMethodName,
       {Token? beginInitializers,
+      required bool isConst,
       required bool forAbstractClassOrMixin}) {
     ContainerType containerType = _declarationFragments.current.containerType;
     ContainerName? containerName = _declarationFragments.current.containerName;
@@ -1803,71 +1808,47 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           .getConstructorMemberName(constructorName, isTearOff: true)
           .name);
     }
-    AbstractSourceConstructorBuilder constructorBuilder;
 
-    if (_declarationFragments.current.kind ==
-        DeclarationFragmentKind.extensionTypeDeclaration) {
-      constructorBuilder = new SourceExtensionTypeConstructorBuilder(
-          metadata,
-          modifiers & ~abstractMask,
-          addInferableType(),
-          constructorName,
-          typeVariables,
-          formals,
-          _parent,
-          _compilationUnit.fileUri,
-          startCharOffset,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          constructorReference,
-          tearOffReference,
-          nameScheme,
-          nativeMethodName: nativeMethodName,
-          forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
-    } else {
-      constructorBuilder = new DeclaredSourceConstructorBuilder(
-          metadata,
-          modifiers & ~abstractMask,
-          addInferableType(),
-          constructorName,
-          typeVariables,
-          formals,
-          _parent,
-          _compilationUnit.fileUri,
-          startCharOffset,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          constructorReference,
-          tearOffReference,
-          nameScheme,
-          nativeMethodName: nativeMethodName,
-          forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
-    }
+    ConstructorFragment fragment = new ConstructorFragment(
+        name: constructorName,
+        fileUri: _compilationUnit.fileUri,
+        startCharOffset: startCharOffset,
+        charOffset: charOffset,
+        charOpenParenOffset: charOpenParenOffset,
+        charEndOffset: charEndOffset,
+        modifiers: modifiers & ~abstractMask,
+        metadata: metadata,
+        returnType: addInferableType(),
+        typeParameters: typeVariables,
+        formals: formals,
+        constructorReference: constructorReference,
+        tearOffReference: tearOffReference,
+        nameScheme: nameScheme,
+        nativeMethodName: nativeMethodName,
+        forAbstractClassOrMixin: forAbstractClassOrMixin,
+        beginInitializers: isConst || libraryFeatures.superParameters.isEnabled
+
+            // const constructors will have their initializers compiled and
+            // written into the outline. In case of super-parameters language
+            // feature, the super initializers are required to infer the types
+            // of super parameters.
+            // TODO(johnniwinther): Avoid using a dummy token to ensure building
+            // of constant constructors in the outline phase.
+            ? (beginInitializers ?? new Token.eof(-1))
+            : null);
+
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
-        ownerName: constructorBuilder.name, allowNameConflict: true);
+        ownerName: constructorName, allowNameConflict: true);
     // TODO(johnniwinther): There is no way to pass the tear off reference here.
-    _addBuilder(constructorName, constructorBuilder, charOffset,
-        getterReference: constructorReference);
+    _addFragment(fragment, getterReference: constructorReference);
     if (nativeMethodName != null) {
-      _addNativeMethod(constructorBuilder);
+      _addNativeConstructorFragment(fragment);
     }
-    if (constructorBuilder.isConst) {
+    if (isConst) {
       _declarationFragments.current.declaresConstConstructor = true;
     }
-    if (constructorBuilder.isConst ||
-        libraryFeatures.superParameters.isEnabled) {
-      // const constructors will have their initializers compiled and written
-      // into the outline. In case of super-parameters language feature, the
-      // super initializers are required to infer the types of super parameters.
-      constructorBuilder.beginInitializers =
-          // TODO(johnniwinther): Avoid using a dummy token to ensure building
-          // of constant constructors in the outline phase.
-          beginInitializers ?? new Token.eof(-1);
-    }
-    return constructorBuilder;
+    return fragment;
   }
 
   @override
@@ -2124,6 +2105,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     return suffix;
   }
 
+  void _addNativeMethodFragment(MethodFragment fragment) {
+    _nativeMethodFragments.add(fragment);
+  }
+
+  void _addNativeConstructorFragment(ConstructorFragment fragment) {
+    _nativeConstructorFragments.add(fragment);
+  }
+
   void _addNativeMethod(SourceFunctionBuilder method) {
     _nativeMethods.add(method);
   }
@@ -2203,34 +2192,32 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         }
       }
     }
-    SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
-        metadata,
-        modifiers,
-        returnType ?? addInferableType(),
-        name,
-        typeVariables,
-        formals,
-        kind,
-        _parent,
-        _compilationUnit.fileUri,
-        startCharOffset,
-        charOffset,
-        charOpenParenOffset,
-        charEndOffset,
-        procedureReference,
-        tearOffReference,
-        asyncModifier,
-        nameScheme,
+    MethodFragment fragment = new MethodFragment(
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        startCharOffset: startCharOffset,
+        charOffset: charOffset,
+        charOpenParenOffset: charOpenParenOffset,
+        charEndOffset: charEndOffset,
+        metadata: metadata,
+        modifiers: modifiers,
+        returnType: returnType ?? addInferableType(),
+        typeParameters: typeVariables,
+        formals: formals,
+        kind: kind,
+        procedureReference: procedureReference,
+        tearOffReference: tearOffReference,
+        asyncModifier: asyncModifier,
+        nameScheme: nameScheme,
         nativeMethodName: nativeMethodName);
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
-        ownerName: procedureBuilder.name, allowNameConflict: true);
-    _addBuilder(name, procedureBuilder, charOffset,
-        getterReference: procedureReference);
+        ownerName: name, allowNameConflict: true);
+    _addFragment(fragment, getterReference: procedureReference);
     if (nativeMethodName != null) {
-      _addNativeMethod(procedureBuilder);
+      _addNativeMethodFragment(fragment);
     }
-    offsetMap.registerProcedure(identifier, procedureBuilder);
+    offsetMap.registerProcedure(identifier, fragment);
   }
 
   @override
@@ -2662,6 +2649,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       loader.buildersCreatedWithReferences[setterReference] = declaration;
     }
     if (_declarationFragments.isEmpty) {
+      // Coverage-ignore-block(suite): Not run.
       _libraryNameSpaceBuilder.addBuilder(
           name, declaration, _compilationUnit.fileUri, charOffset);
     } else {
@@ -2741,6 +2729,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   int finishNativeMethods() {
     for (SourceFunctionBuilder method in _nativeMethods) {
       method.becomeNative(loader);
+    }
+    for (MethodFragment fragment in _nativeMethodFragments) {
+      fragment.builder.becomeNative(loader);
+    }
+    for (ConstructorFragment fragment in _nativeConstructorFragments) {
+      fragment.builder.becomeNative(loader);
     }
     return _nativeMethods.length;
   }
