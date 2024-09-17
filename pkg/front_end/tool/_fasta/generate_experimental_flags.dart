@@ -179,7 +179,8 @@ class Version {
 }
 ''');
 
-  return new DartFormatter().format("$sb");
+  return new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+      .format("$sb");
 }
 
 String generateKernelFile(Uri repoDir) {
@@ -213,7 +214,8 @@ import "ast.dart";
 const Version defaultLanguageVersion = const Version($currentVersionMajor, $currentVersionMinor);
 ''');
 
-  return new DartFormatter().format("$sb");
+  return new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+      .format("$sb");
 }
 
 String generateCfeFile(Uri repoDir) {
@@ -525,7 +527,8 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   };
   ''');
 
-  return new DartFormatter().format("$sb");
+  return new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+      .format("$sb");
 }
 
 String keyToIdentifier(String key, {bool upperCaseFirst = false}) {

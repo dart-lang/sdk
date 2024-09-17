@@ -119,7 +119,8 @@ abstract class AbstractParserAstListener implements Listener {
   }
   out.write(r"}");
 
-  return new DartFormatter().format("$out");
+  return new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+      .format("$out");
 }
 
 class ParserCreatorListener extends Listener {

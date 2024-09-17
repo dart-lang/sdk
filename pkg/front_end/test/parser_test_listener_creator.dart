@@ -114,7 +114,8 @@ class ParserTestListener implements Listener {
 
   out.writeln("}");
 
-  return new DartFormatter().format("$out");
+  return new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+      .format("$out");
 }
 
 class ParserCreatorListener extends Listener {
