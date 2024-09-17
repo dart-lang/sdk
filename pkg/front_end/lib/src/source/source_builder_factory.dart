@@ -1256,7 +1256,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                 new NominalParameterNameSpace();
 
             NominalVariableCopy nominalVariableCopy = copyTypeVariables(
-                enclosingLibraryBuilder, unboundNominalVariables, typeVariables,
+                unboundNominalVariables, typeVariables,
                 kind: TypeVariableKind.extensionSynthesized,
                 instanceTypeVariableAccess:
                     InstanceTypeVariableAccessState.Allowed)!;
@@ -1524,7 +1524,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       switch (declarationFragment) {
         case ExtensionFragment():
         case ExtensionTypeFragment():
-          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(_parent,
+          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
               _unboundNominalVariables, declarationFragment.typeParameters,
               kind: TypeVariableKind.extensionSynthesized,
               instanceTypeVariableAccess:
@@ -1546,7 +1546,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     } else if (!isStatic) {
       switch (declarationFragment) {
         case ExtensionFragment():
-          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(_parent,
+          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
               _unboundNominalVariables, declarationFragment.typeParameters,
               kind: TypeVariableKind.extensionSynthesized,
               instanceTypeVariableAccess:
@@ -1580,7 +1580,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           }
           formals = synthesizedFormals;
         case ExtensionTypeFragment():
-          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(_parent,
+          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
               _unboundNominalVariables, declarationFragment.typeParameters,
               kind: TypeVariableKind.extensionSynthesized,
               instanceTypeVariableAccess:
@@ -1719,7 +1719,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isConst}) {
     beginConstructor();
     endConstructor();
-    NominalVariableCopy? nominalVariableCopy = copyTypeVariables(_parent,
+    NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
         _unboundNominalVariables, _declarationFragments.current.typeParameters,
         kind: TypeVariableKind.extensionSynthesized,
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
@@ -1962,8 +1962,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           staticMask | modifiers,
           returnType,
           procedureName,
-          typeVariables = copyTypeVariables(_parent, _unboundNominalVariables,
-                  enclosingDeclaration.typeParameters,
+          typeVariables = copyTypeVariables(
+                  _unboundNominalVariables, enclosingDeclaration.typeParameters,
                   kind: TypeVariableKind.function,
                   instanceTypeVariableAccess:
                       InstanceTypeVariableAccessState.Allowed)
@@ -1987,8 +1987,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           staticMask | modifiers,
           returnType,
           procedureName,
-          typeVariables = copyTypeVariables(_parent, _unboundNominalVariables,
-                  enclosingDeclaration.typeParameters,
+          typeVariables = copyTypeVariables(
+                  _unboundNominalVariables, enclosingDeclaration.typeParameters,
                   kind: TypeVariableKind.function,
                   instanceTypeVariableAccess:
                       InstanceTypeVariableAccessState.Allowed)
@@ -2553,7 +2553,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       wildcardVariableIndex++;
     }
     NominalVariableBuilder builder = new NominalVariableBuilder(
-        variableName, _parent, charOffset, fileUri,
+        variableName, charOffset, fileUri,
         bound: bound, metadata: metadata, kind: kind, isWildcard: isWildcard);
 
     _unboundNominalVariables.add(builder);
@@ -2575,7 +2575,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       wildcardVariableIndex++;
     }
     StructuralVariableBuilder builder = new StructuralVariableBuilder(
-        variableName, _parent, charOffset, fileUri,
+        variableName, charOffset, fileUri,
         bound: bound, metadata: metadata, isWildcard: isWildcard);
 
     _unboundStructuralVariables.add(builder);
@@ -2589,7 +2589,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   /// methods and unnamed mixin applications, and for adding copies of
   /// extension type parameters to extension instance methods.
   static NominalVariableCopy? copyTypeVariables(
-      Builder _parent,
       List<NominalVariableBuilder> _unboundNominalVariables,
       List<NominalVariableBuilder>? oldVariableBuilders,
       {required TypeVariableKind kind,
@@ -2608,10 +2607,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         <NominalVariableBuilder>[];
     for (NominalVariableBuilder oldVariable in oldVariableBuilders) {
       NominalVariableBuilder newVariable = new NominalVariableBuilder(
-          oldVariable.name,
-          _parent,
-          oldVariable.charOffset,
-          oldVariable.fileUri,
+          oldVariable.name, oldVariable.charOffset, oldVariable.fileUri,
           kind: kind,
           variableVariance: oldVariable.parameter.isLegacyCovariant
               ? null
