@@ -60,7 +60,6 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_factory_builder.dart';
-import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
@@ -1816,6 +1815,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           typeVariables,
           formals,
           _parent,
+          _compilationUnit.fileUri,
           startCharOffset,
           charOffset,
           charOpenParenOffset,
@@ -1970,6 +1970,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
               ?.newVariableBuilders,
           formals,
           _parent,
+          _compilationUnit.fileUri,
           startCharOffset,
           charOffset,
           charOpenParenOffset,
@@ -1995,6 +1996,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
               ?.newVariableBuilders,
           formals,
           _parent,
+          _compilationUnit.fileUri,
           startCharOffset,
           charOffset,
           charOpenParenOffset,
@@ -2272,7 +2274,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
   }
 
-  SourceFieldBuilder _addField(
+  FieldFragment _addField(
       List<MetadataBuilder>? metadata,
       int modifiers,
       bool isTopLevel,
@@ -2379,31 +2381,30 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       }
     }
 
-    SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
-        metadata,
-        type,
-        name,
-        modifiers,
-        isTopLevel,
-        _parent,
-        _compilationUnit.fileUri,
-        charOffset,
-        charEndOffset,
-        nameScheme,
+    FieldFragment fragment = new FieldFragment(
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        charOffset: charOffset,
+        charEndOffset: charEndOffset,
+        initializerToken: initializerToken,
+        constInitializerToken: constInitializerToken,
+        metadata: metadata,
+        type: type,
         fieldReference: fieldReference,
         fieldGetterReference: fieldGetterReference,
         fieldSetterReference: fieldSetterReference,
+        lateGetterReference: lateGetterReference,
+        lateSetterReference: lateSetterReference,
         lateIsSetFieldReference: lateIsSetFieldReference,
         lateIsSetGetterReference: lateIsSetGetterReference,
         lateIsSetSetterReference: lateIsSetSetterReference,
-        lateGetterReference: lateGetterReference,
-        lateSetterReference: lateSetterReference,
-        initializerToken: initializerToken,
-        constInitializerToken: constInitializerToken);
-    _addBuilder(name, fieldBuilder, charOffset,
+        isTopLevel: isTopLevel,
+        modifiers: modifiers,
+        nameScheme: nameScheme);
+    _addFragment(fragment,
         getterReference: fieldGetterReference,
         setterReference: fieldSetterReference);
-    return fieldBuilder;
+    return fragment;
   }
 
   @override
@@ -2657,6 +2658,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       loader.buildersCreatedWithReferences[getterReference] = declaration;
     }
     if (setterReference != null) {
+      // Coverage-ignore-block(suite): Not run.
       loader.buildersCreatedWithReferences[setterReference] = declaration;
     }
     if (_declarationFragments.isEmpty) {
@@ -2674,13 +2676,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       loader.fragmentsCreatedWithReferences[getterReference] = fragment;
     }
     if (setterReference != null) {
-      // Coverage-ignore-block(suite): Not run.
       loader.fragmentsCreatedWithReferences[setterReference] = fragment;
     }
     if (_declarationFragments.isEmpty) {
       _libraryNameSpaceBuilder.addFragment(fragment);
     } else {
-      // Coverage-ignore-block(suite): Not run.
       _declarationFragments.current.addFragment(fragment);
     }
   }

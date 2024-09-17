@@ -109,9 +109,8 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   final Uri fileUri;
 
-  MemberBuilderImpl(this.parent, int charOffset, [Uri? fileUri])
-      : this.fileUri = (fileUri ?? parent?.fileUri)!,
-        super(parent, charOffset);
+  MemberBuilderImpl(this.parent, this.fileUri, int charOffset)
+      : super(parent, charOffset);
 
   @override
   DeclarationBuilder? get declarationBuilder =>

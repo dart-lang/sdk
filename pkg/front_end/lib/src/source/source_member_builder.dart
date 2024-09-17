@@ -115,13 +115,13 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   @override
   MemberDataForTesting? dataForTesting;
 
-  SourceMemberBuilderImpl(Builder parent, int charOffset, [Uri? fileUri])
+  SourceMemberBuilderImpl(Builder parent, Uri fileUri, int charOffset)
       : dataForTesting = retainDataForTesting
             ?
             // Coverage-ignore(suite): Not run.
             new MemberDataForTesting()
             : null,
-        super(parent, charOffset, fileUri);
+        super(parent, fileUri, charOffset);
 
   @override
   SourceLibraryBuilder get libraryBuilder =>

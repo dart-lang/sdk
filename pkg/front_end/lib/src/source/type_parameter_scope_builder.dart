@@ -32,7 +32,7 @@ sealed class _Added {
       {required ProblemReporting problemReporting,
       required SourceLoader loader,
       required SourceLibraryBuilder enclosingLibraryBuilder,
-      IDeclarationBuilder? declarationBuilder,
+      DeclarationBuilder? declarationBuilder,
       required List<NominalVariableBuilder> unboundNominalVariables,
       required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
       required List<_AddBuilder> builders});
@@ -48,7 +48,7 @@ class _AddedBuilder implements _Added {
       {required ProblemReporting problemReporting,
       required SourceLoader loader,
       required SourceLibraryBuilder enclosingLibraryBuilder,
-      IDeclarationBuilder? declarationBuilder,
+      DeclarationBuilder? declarationBuilder,
       required List<NominalVariableBuilder> unboundNominalVariables,
       required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
       required List<_AddBuilder> builders}) {
@@ -66,7 +66,7 @@ class _AddedFragment implements _Added {
       {required ProblemReporting problemReporting,
       required SourceLoader loader,
       required SourceLibraryBuilder enclosingLibraryBuilder,
-      IDeclarationBuilder? declarationBuilder,
+      DeclarationBuilder? declarationBuilder,
       required List<NominalVariableBuilder> unboundNominalVariables,
       required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
       required List<_AddBuilder> builders}) {
@@ -326,12 +326,12 @@ class _AddedFragment implements _Added {
         builders.add(new _AddBuilder(fragment.name, extensionBuilder,
             fragment.fileUri, fragment.fileOffset));
       case ExtensionTypeFragment():
-        List<SourceFieldBuilder>? primaryConstructorFields =
+        List<FieldFragment>? primaryConstructorFields =
             fragment.primaryConstructorFields;
-        SourceFieldBuilder? representationFieldBuilder;
+        FieldFragment? representationFieldFragment;
         if (primaryConstructorFields != null &&
             primaryConstructorFields.isNotEmpty) {
-          representationFieldBuilder = primaryConstructorFields.first;
+          representationFieldFragment = primaryConstructorFields.first;
         }
         SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
             new SourceExtensionTypeDeclarationBuilder(
@@ -349,7 +349,7 @@ class _AddedFragment implements _Added {
                 nameOffset: fragment.nameOffset,
                 endOffset: fragment.endOffset,
                 indexedContainer: fragment.indexedContainer,
-                representationFieldBuilder: representationFieldBuilder);
+                representationFieldFragment: representationFieldFragment);
         fragment.builder = extensionTypeDeclarationBuilder;
         fragment.bodyScope.declarationBuilder = extensionTypeDeclarationBuilder;
         builders.add(new _AddBuilder(
@@ -357,6 +357,32 @@ class _AddedFragment implements _Added {
             extensionTypeDeclarationBuilder,
             fragment.fileUri,
             fragment.fileOffset));
+      case FieldFragment():
+        SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
+            fragment.metadata,
+            fragment.type,
+            fragment.name,
+            fragment.modifiers,
+            fragment.isTopLevel,
+            enclosingLibraryBuilder,
+            declarationBuilder,
+            fragment.fileUri,
+            fragment.charOffset,
+            fragment.charEndOffset,
+            fragment.nameScheme,
+            fieldReference: fragment.fieldReference,
+            fieldGetterReference: fragment.fieldGetterReference,
+            fieldSetterReference: fragment.fieldSetterReference,
+            lateIsSetFieldReference: fragment.lateIsSetFieldReference,
+            lateIsSetGetterReference: fragment.lateIsSetGetterReference,
+            lateIsSetSetterReference: fragment.lateIsSetSetterReference,
+            lateGetterReference: fragment.lateGetterReference,
+            lateSetterReference: fragment.lateSetterReference,
+            initializerToken: fragment.initializerToken,
+            constInitializerToken: fragment.constInitializerToken);
+        fragment.builder = fieldBuilder;
+        builders.add(new _AddBuilder(fragment.name, fieldBuilder,
+            fragment.fileUri, fragment.charOffset));
     }
   }
 }
@@ -587,7 +613,7 @@ abstract class DeclarationFragment {
   final DeclarationBuilderScope bodyScope = new DeclarationBuilderScope();
   final List<_Added> _added = [];
 
-  List<SourceFieldBuilder>? primaryConstructorFields;
+  List<FieldFragment>? primaryConstructorFields;
 
   final List<NominalVariableBuilder>? typeParameters;
 
@@ -610,7 +636,7 @@ abstract class DeclarationFragment {
 
   DeclarationBuilder get builder;
 
-  void addPrimaryConstructorField(SourceFieldBuilder builder) {
+  void addPrimaryConstructorField(FieldFragment builder) {
     (primaryConstructorFields ??= []).add(builder);
   }
 
@@ -620,7 +646,6 @@ abstract class DeclarationFragment {
         new _AddBuilder(name, declaration, fileUri, charOffset)));
   }
 
-  // Coverage-ignore(suite): Not run.
   void addFragment(Fragment fragment) {
     _added.add(new _AddedFragment(fragment));
   }
@@ -746,7 +771,7 @@ class DeclarationNameSpaceBuilder {
       {required SourceLoader loader,
       required ProblemReporting problemReporting,
       required SourceLibraryBuilder enclosingLibraryBuilder,
-      required IDeclarationBuilder declarationBuilder,
+      required DeclarationBuilder declarationBuilder,
       bool includeConstructors = true}) {
     Map<String, Builder> getables = {};
     Map<String, MemberBuilder> setables = {};

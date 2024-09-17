@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/source/source_type_alias_builder.dart';
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/reference_from_index.dart';
 
@@ -18,6 +18,8 @@ import '../source/source_class_builder.dart';
 import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
+import '../source/source_field_builder.dart';
+import '../source/source_type_alias_builder.dart';
 import '../source/type_parameter_scope_builder.dart';
 
 sealed class Fragment {
@@ -243,6 +245,9 @@ class NamedMixinApplicationFragment implements Fragment {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$charOffset)';
 }
 
 class EnumFragment extends DeclarationFragment implements Fragment {
@@ -440,4 +445,83 @@ class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
 
   @override
   String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
+}
+
+class FieldFragment implements Fragment {
+  final String name;
+  final Uri fileUri;
+  final int charOffset;
+  final int charEndOffset;
+  Token? _initializerToken;
+  Token? _constInitializerToken;
+  final List<MetadataBuilder>? metadata;
+  final TypeBuilder type;
+  final Reference? fieldReference;
+  final Reference? fieldGetterReference;
+  final Reference? fieldSetterReference;
+  final Reference? lateGetterReference;
+  final Reference? lateSetterReference;
+  final Reference? lateIsSetFieldReference;
+  final Reference? lateIsSetGetterReference;
+  final Reference? lateIsSetSetterReference;
+  final bool isTopLevel;
+  final int modifiers;
+  final NameScheme nameScheme;
+
+  SourceFieldBuilder? _builder;
+
+  FieldFragment(
+      {required this.name,
+      required this.fileUri,
+      required this.charOffset,
+      required this.charEndOffset,
+      required Token? initializerToken,
+      required Token? constInitializerToken,
+      required this.metadata,
+      required this.type,
+      required this.fieldReference,
+      required this.fieldGetterReference,
+      required this.fieldSetterReference,
+      required this.lateGetterReference,
+      required this.lateSetterReference,
+      required this.lateIsSetFieldReference,
+      required this.lateIsSetGetterReference,
+      required this.lateIsSetSetterReference,
+      required this.isTopLevel,
+      required this.modifiers,
+      required this.nameScheme})
+      : _initializerToken = initializerToken,
+        _constInitializerToken = constInitializerToken;
+
+  Token? get initializerToken {
+    Token? result = _initializerToken;
+    // Ensure that we don't hold onto the token.
+    _initializerToken = null;
+    return result;
+  }
+
+  Token? get constInitializerToken {
+    Token? result = _constInitializerToken;
+    // Ensure that we don't hold onto the token.
+    _constInitializerToken = null;
+    return result;
+  }
+
+  @override
+  SourceFieldBuilder get builder {
+    assert(
+        _builder != null, // Coverage-ignore(suite): Not run.
+        "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(SourceFieldBuilder value) {
+    assert(
+        _builder == null, // Coverage-ignore(suite): Not run.
+        "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$charOffset)';
 }

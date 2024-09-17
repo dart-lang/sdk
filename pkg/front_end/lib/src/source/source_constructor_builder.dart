@@ -95,11 +95,12 @@ abstract class AbstractSourceConstructorBuilder
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
       SourceLibraryBuilder compilationUnit,
+      Uri fileUri,
       int charOffset,
       this.charOpenParenOffset,
       String? nativeMethodName)
       : super(metadata, modifiers, name, typeVariables, formals,
-            compilationUnit, charOffset, nativeMethodName) {
+            compilationUnit, fileUri, charOffset, nativeMethodName) {
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
         if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
@@ -427,6 +428,7 @@ class DeclaredSourceConstructorBuilder
             typeVariables,
             formals,
             compilationUnit,
+            fileUri,
             charOffset,
             charOpenParenOffset,
             nativeMethodName) {
@@ -1148,6 +1150,7 @@ class SourceExtensionTypeConstructorBuilder
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
       SourceLibraryBuilder compilationUnit,
+      Uri fileUri,
       int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
@@ -1166,6 +1169,7 @@ class SourceExtensionTypeConstructorBuilder
             typeVariables,
             formals,
             compilationUnit,
+            fileUri,
             charOffset,
             charOpenParenOffset,
             nativeMethodName) {

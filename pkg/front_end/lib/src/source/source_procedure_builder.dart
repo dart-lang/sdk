@@ -103,7 +103,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
             nameScheme.isInstanceMember && nameScheme.isExtensionTypeMember,
         _memberName = nameScheme.getDeclaredName(name),
         super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
-            charOffset, nativeMethodName) {
+            fileUri, charOffset, nativeMethodName) {
     _procedure = new Procedure(
         dummyName,
         isExtensionInstanceMember || isExtensionTypeInstanceMember
