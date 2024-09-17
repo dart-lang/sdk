@@ -99,14 +99,12 @@ class AotExecutor implements TargetExecutor {
 
     var testDir = _tmp.uri.resolve(test.name).toFilePath();
     var args = [
-      'compile',
-      'exe',
+      '--snapshot-kind=app-aot-elf',
+      '--elf=${test.main}.snapshot',
       '${test.main}_aot.dill',
-      '--output',
-      '${test.main}.exe',
     ];
-    await runProcess(Platform.resolvedExecutable, args, testDir, _logger,
-        'compile exe ${test.name}/${test.main}');
+    await runProcess(genSnapshotBin.toFilePath(), args, testDir, _logger,
+        'aot snapshot ${test.name}/${test.main}');
   }
 
   @override
@@ -151,8 +149,10 @@ class AotExecutor implements TargetExecutor {
     // and finally launches the app.
     var testDir = _tmp.uri.resolve('${test.name}/');
     var result = await runProcess(
-        testDir.resolve('${test.main}.exe').toFilePath(),
-        [],
+        aotRuntimeBin.toFilePath(),
+        [
+          '${test.main}.snapshot',
+        ],
         testDir.toFilePath(),
         _logger,
         'executable test ${test.main}.exe');

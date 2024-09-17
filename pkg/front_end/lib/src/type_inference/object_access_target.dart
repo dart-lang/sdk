@@ -408,15 +408,12 @@ abstract class ObjectAccessTarget {
       // TODO(johnniwinther): Unify stub kinds. Should we always make this a
       // member signature, merge member signature and abstract forwarding stub,
       // or add a new stub kind for abstract extension type members?
-      assert(
-          member.enclosingExtensionTypeDeclaration != null,
-          // Coverage-ignore(suite): Not run.
+      assert(member.enclosingExtensionTypeDeclaration != null,
           "Unexpected member without an enclosing class $member.");
       member = (member as Procedure).stubTarget!;
     }
     assert(
-        member.enclosingClass != null, // Coverage-ignore(suite): Not run.
-        "No enclosing class found on $member.");
+        member.enclosingClass != null, "No enclosing class found on $member.");
     return member;
   }
 

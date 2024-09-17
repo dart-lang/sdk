@@ -4,7 +4,6 @@
 
 import 'arguments.dart';
 import 'constant.dart';
-import 'instance_constant.dart';
 import 'location.dart';
 
 sealed class Reference {
@@ -15,9 +14,13 @@ sealed class Reference {
 
   const Reference({this.loadingUnit, required this.location});
 
-  Map<String, dynamic> toJson(List<String> uris, List<Constant> constants) => {
+  Map<String, dynamic> toJson(
+    Map<String, int> uris,
+    Map<Constant, int> constants,
+  ) =>
+      {
         'loadingUnit': loadingUnit,
-        '@': location.toJson(uris: uris),
+        '@': location.toJson(uris),
       };
 
   @override
@@ -53,13 +56,15 @@ final class CallReference extends Reference {
               json['arguments'] as Map<String, dynamic>, constants)
           : null,
       loadingUnit: json['loadingUnit'] as String?,
-      location:
-          Location.fromJson(json['@'] as Map<String, dynamic>, null, uris),
+      location: Location.fromJson(json['@'] as Map<String, dynamic>, uris),
     );
   }
 
   @override
-  Map<String, dynamic> toJson(List<String> uris, List<Constant> constants) {
+  Map<String, dynamic> toJson(
+    Map<String, int> uris,
+    Map<Constant, int> constants,
+  ) {
     final argumentJson = arguments?.toJson(constants) ?? {};
     return {
       if (argumentJson.isNotEmpty) 'arguments': argumentJson,
@@ -94,22 +99,20 @@ final class InstanceReference extends Reference {
     List<Constant> constants,
   ) {
     return InstanceReference(
-      instanceConstant: InstanceConstant.fromJson(
-        json['instanceConstant'] as Map<String, dynamic>,
-        constants,
-      ),
+      instanceConstant:
+          constants[json['instanceConstant'] as int] as InstanceConstant,
       loadingUnit: json['loadingUnit'] as String?,
-      location: Location.fromJson(
-        json['@'] as Map<String, dynamic>,
-        null,
-        uris,
-      ),
+      location: Location.fromJson(json['@'] as Map<String, dynamic>, uris),
     );
   }
 
   @override
-  Map<String, dynamic> toJson(List<String> uris, List<Constant> constants) => {
-        'instanceConstant': instanceConstant.toJson(constants),
+  Map<String, dynamic> toJson(
+    Map<String, int> uris,
+    Map<Constant, int> constants,
+  ) =>
+      {
+        'instanceConstant': constants[instanceConstant]!,
         ...super.toJson(uris, constants),
       };
 

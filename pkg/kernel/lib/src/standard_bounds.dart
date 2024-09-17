@@ -869,39 +869,11 @@ mixin StandardBounds {
         ):
       case (_, _) when coreTypes.isNull(type1) && coreTypes.isNull(type2):
         return morebottom(type1, type2) ? type2 : type1;
-      case (_, IntersectionType intersectionType2) when coreTypes.isNull(type1):
-        // Intersection types are treated specially because of the
-        // semantics of the declared nullability and the fact that the
-        // point of declaration of the intersection type is taken as the
-        // point of declaration of the
-        // corresponding type-parameter type.
-        //
-        // In case of the upper bound, both the left-hand side and the
-        // right-hand side should be updated.
-        return new IntersectionType(
-            intersectionType2.left
-                .withDeclaredNullability(Nullability.nullable),
-            intersectionType2.right
-                .withDeclaredNullability(Nullability.nullable));
       case (NullType(), _):
       case (NeverType(nullability: Nullability.nullable), _):
       case (NeverType(nullability: Nullability.legacy), _):
       case (_, _) when coreTypes.isNull(type1):
         return type2.withDeclaredNullability(Nullability.nullable);
-      case (IntersectionType intersectionType1, _) when coreTypes.isNull(type2):
-        // Intersection types are treated specially because of the
-        // semantics of the declared nullability and the fact that the
-        // point of declaration of the intersection type is taken as the
-        // point of declaration of the
-        // corresponding type-parameter type.
-        //
-        // In case of the upper bound, both the left-hand side and the
-        // right-hand side should be updated.
-        return new IntersectionType(
-            intersectionType1.left
-                .withDeclaredNullability(Nullability.nullable),
-            intersectionType1.right
-                .withDeclaredNullability(Nullability.nullable));
       case (_, NullType()):
       case (_, NeverType(nullability: Nullability.nullable)):
       case (_, NeverType(nullability: Nullability.legacy)):

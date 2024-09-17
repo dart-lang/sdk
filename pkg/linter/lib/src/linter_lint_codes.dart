@@ -207,6 +207,12 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
+  static const LintCode avoid_futureor_void = LinterLintCode(
+    'avoid_futureor_void',
+    "Don't use the type 'FutureOr<void>'.",
+    correctionMessage: "Try using 'Future<void>?' or 'void'.",
+  );
+
   static const LintCode avoid_implementing_value_types = LinterLintCode(
     'avoid_implementing_value_types',
     "Classes that override '==' should not be implemented.",

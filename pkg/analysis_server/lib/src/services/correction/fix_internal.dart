@@ -193,6 +193,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_boolean_wit
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_in.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_container_with_colored_box.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_container_with_sized_box.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_empty_map_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_const.dart';
@@ -703,6 +704,9 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   ],
   LinterLintCode.unreachable_from_main: [
     RemoveUnusedElement.new,
+  ],
+  LinterLintCode.use_colored_box: [
+    ReplaceContainerWithColoredBox.new,
   ],
   LinterLintCode.use_decorated_box: [
     ReplaceWithDecoratedBox.new,

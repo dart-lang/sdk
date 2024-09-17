@@ -1540,7 +1540,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     // TypedData in them, without using guards because they are force
     // optimized. We immediately set the guarded_cid_ to kDynamicCid, which
     // is effectively the same as calling this method first with Pointer and
-    // subsequently with TypedData with field guards.
+    // subsequently with TypedData with field guards. We also set
+    // guarded_list_length_ to kNoFixedLength for similar reasons.
     if (klass.UserVisibleName() == Symbols::Compound().ptr() &&
         Library::Handle(Z, klass.library()).url() == Symbols::DartFfi().ptr()) {
       ASSERT_EQUAL(fields_.length(), 2);
@@ -1548,6 +1549,9 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                  .StartsWith(Symbols::_typedDataBase()));
       fields_[0]->set_guarded_cid(kDynamicCid);
       fields_[0]->set_is_nullable(true);
+      fields_[0]->set_guarded_list_length(Field::kNoFixedLength);
+      fields_[0]->set_guarded_list_length_in_object_offset(
+          Field::kUnknownLengthOffset);
     }
 
     // Check that subclasses of AbiSpecificInteger have a mapping for the

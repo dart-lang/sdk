@@ -534,7 +534,7 @@ class Forwarder {
           b.local_get(typeArgsLocal);
           b.local_get(positionalArgsLocal);
           b.local_get(namedArgsLocal);
-          b.call(callForwarder);
+          translator.callFunction(callForwarder, b);
           b.return_();
           b.end();
 

@@ -900,7 +900,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       constants.instantiateConstant(b, typeArgs, typeArgsListLocal.type);
       b.local_get(posArgsListLocal);
       b.local_get(namedArgsListLocal);
-      b.call(tearOffClosure.dynamicCallEntry);
+      translator.callFunction(tearOffClosure.dynamicCallEntry, b);
       b.end();
 
       return function;
@@ -929,7 +929,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         for (int i = 1; i < signature.inputs.length; i++) {
           b.local_get(function.locals[i]);
         }
-        b.call(tearOffFunction);
+        translator.callFunction(tearOffFunction, b);
         b.end();
         return function;
       }
@@ -1032,12 +1032,13 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     final List<Constant> arguments = constant.positional.toList();
     arguments.addAll(constant.named.values);
 
+    bool lazy = false;
     for (Constant argument in arguments) {
-      ensureConstant(argument);
+      lazy |= ensureConstant(argument)?.isLazy ?? false;
     }
 
-    return createConstant(constant, recordClassInfo.nonNullableType,
-        lazy: false, (b) {
+    return createConstant(constant, recordClassInfo.nonNullableType, lazy: lazy,
+        (b) {
       b.i32_const(recordClassInfo.classId);
       b.i32_const(initialIdentityHash);
       for (Constant argument in arguments) {

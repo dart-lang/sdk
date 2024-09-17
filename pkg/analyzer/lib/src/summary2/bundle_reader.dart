@@ -1296,7 +1296,7 @@ class LibraryReader {
     for (var import in containerUnit.libraryImports_unresolved) {
       var prefixElement = import.prefix?.element;
       if (prefixElement is PrefixElementImpl) {
-        prefixElement.enclosingElement = containerLibrary;
+        prefixElement.enclosingElement = containerUnit;
         prefixElement.enclosingElement3 = containerUnit;
       }
     }
@@ -1531,8 +1531,6 @@ class LibraryReader {
     List<PropertyInducingElement> properties,
     String containerRefName,
   ) {
-    var containerRef = enclosingReference.getChild(containerRefName);
-
     var accessorCount = _reader.readUInt30();
     for (var i = 0; i < accessorCount; i++) {
       var accessor = _readPropertyAccessorElement(
@@ -1546,6 +1544,9 @@ class LibraryReader {
         continue;
       }
 
+      // Read the property reference.
+      var propertyReference = _readReference();
+
       var name = accessor.displayName;
       var isGetter = accessor.isGetter;
 
@@ -1555,8 +1556,7 @@ class LibraryReader {
       }
 
       PropertyInducingElementImpl property;
-      var reference = containerRef.getChild(name);
-      var existing = reference.element;
+      var existing = propertyReference.element;
       if (enclosingElement is CompilationUnitElementImpl) {
         if (existing is TopLevelVariableElementImpl &&
             canUseExisting(existing)) {
@@ -1564,9 +1564,10 @@ class LibraryReader {
         } else {
           property = TopLevelVariableElementImpl(name, -1)
             ..enclosingElement = enclosingElement
-            ..reference = reference
+            ..enclosingElement3 = enclosingElement
+            ..reference = propertyReference
             ..isSynthetic = true;
-          reference.element ??= property;
+          propertyReference.element ??= property;
           properties.add(property);
         }
       } else {
@@ -1575,10 +1576,11 @@ class LibraryReader {
         } else {
           property = FieldElementImpl(name, -1)
             ..enclosingElement = enclosingElement
-            ..reference = reference
+            ..enclosingElement3 = enclosingElement
+            ..reference = propertyReference
             ..isStatic = accessor.isStatic
             ..isSynthetic = true;
-          reference.element ??= property;
+          propertyReference.element ??= property;
           properties.add(property);
         }
       }

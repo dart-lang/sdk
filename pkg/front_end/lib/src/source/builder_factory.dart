@@ -11,7 +11,6 @@ import '../base/configuration.dart' show Configuration;
 import '../base/export.dart';
 import '../base/identifiers.dart' show Identifier;
 import '../base/import.dart';
-import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -20,7 +19,6 @@ import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
-import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart';
@@ -43,9 +41,6 @@ abstract class BuilderFactoryResult {
   List<Import> get imports;
 
   List<Export> get exports;
-
-  /// List of [PrefixBuilder]s for imports with prefixes.
-  List<PrefixBuilder>? get prefixBuilders;
 
   List<MetadataBuilder>? get metadata;
 
@@ -488,21 +483,8 @@ abstract class BuilderFactory {
       int charOffset,
       Uri fileUri);
 
-  /// Creates a [NominalVariableCopy] object containing a copy of
-  /// [oldVariableBuilders] into the scope of [declaration].
-  ///
-  /// This is used for adding copies of class type parameters to factory
-  /// methods and unnamed mixin applications, and for adding copies of
-  /// extension type parameters to extension instance methods.
-  NominalVariableCopy? copyTypeVariables(
-      List<NominalVariableBuilder>? oldVariableBuilders,
-      {required TypeVariableKind kind,
-      required InstanceTypeVariableAccessState instanceTypeVariableAccess});
-
   void registerUnboundStructuralVariables(
       List<StructuralVariableBuilder> variableBuilders);
-
-  Builder addBuilder(String name, Builder declaration, int charOffset);
 }
 
 class NominalVariableCopy {

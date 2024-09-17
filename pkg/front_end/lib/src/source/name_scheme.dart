@@ -62,13 +62,9 @@ class NameScheme {
       required ContainerName? containerName,
       required ContainerType containerType,
       bool isSynthesized = false}) {
-    assert(
-        isSynthesized || fieldNameType == FieldNameType.Field,
-        // Coverage-ignore(suite): Not run.
+    assert(isSynthesized || fieldNameType == FieldNameType.Field,
         "Unexpected field name type for non-synthesized field: $fieldNameType");
-    assert(
-        (containerName == null) == (containerType == ContainerType.Library),
-        // Coverage-ignore(suite): Not run.
+    assert((containerName == null) == (containerType == ContainerType.Library),
         "Missing container name for ${containerType}");
 
     String baseName;

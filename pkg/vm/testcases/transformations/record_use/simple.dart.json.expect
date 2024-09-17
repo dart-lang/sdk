@@ -1,0 +1,52 @@
+{
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.1.0"
+  },
+  "uris": [
+    "simple.dart"
+  ],
+  "ids": [
+    {
+      "uri": 0,
+      "parent": "SomeClass",
+      "name": "someStaticMethod"
+    }
+  ],
+  "constants": [
+    {
+      "type": "int",
+      "value": 42
+    }
+  ],
+  "calls": [
+    {
+      "definition": {
+        "id": 0,
+        "@": {
+          "uri": 0,
+          "line": 13,
+          "column": 10
+        },
+        "loadingUnit": "1"
+      },
+      "references": [
+        {
+          "arguments": {
+            "const": {
+              "positional": {
+                "0": 0
+              }
+            }
+          },
+          "loadingUnit": "1",
+          "@": {
+            "uri": 0,
+            "line": 8,
+            "column": 19
+          }
+        }
+      ]
+    }
+  ]
+}

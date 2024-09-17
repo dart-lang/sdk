@@ -318,7 +318,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeElementReference('reference', e);
+      _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -349,7 +349,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
       // _writeNonSyntheticElement(e);
       _writeMacroDiagnostics(e);
-      _writeFragmentReference('firstFragment', e.firstFragment);
     });
 
     // if (e.isSynthetic) {
@@ -567,7 +566,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeElementReference('reference', e);
+      _writeFragmentReference('firstFragment', e.firstFragment);
       // _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
       // _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -579,7 +578,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(e);
       // writeLinking();
       _writeMacroDiagnostics(e);
-      _writeFragmentReference('firstFragment', e.firstFragment);
       _writeElementReference('getter', e.getter);
       _writeElementReference('setter', e.setter);
     });
@@ -693,7 +691,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeElementReference('reference', e);
+      _writeFragmentReference('firstFragment', e.firstFragment);
       _writeType('type', e.type);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -902,7 +900,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeElementReference('reference', e);
+      _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -914,7 +912,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(e);
       // writeLinking();
       _writeMacroDiagnostics(e);
-      _writeFragmentReference('firstFragment', e.firstFragment);
     });
   }
 
@@ -1023,7 +1020,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeElementReference('reference', e);
+      _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -1031,7 +1028,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementList(
           'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
       _writeMacroDiagnostics(e);
-      _writeFragmentReference('firstFragment', e.firstFragment);
 
       if (e is InterfaceElement2) {
         var supertype = e.supertype;
@@ -1530,7 +1526,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeElementReference('reference', e);
+      _writeFragmentReference('firstFragment', e.firstFragment);
       // _writeElementReference(e.enclosingElement2, label: 'enclosingElement2');
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
@@ -1544,7 +1540,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       _writeMacroDiagnostics(e);
-      _writeFragmentReference('firstFragment', e.firstFragment);
     });
 
     // if (e.isSynthetic && e.enclosingElement2 is EnumElementImpl) {
@@ -1640,7 +1635,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeElementReference('reference', e);
+      _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -1652,7 +1647,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(e);
       // writeLinking();
       _writeMacroDiagnostics(e);
-      _writeFragmentReference('firstFragment', e.firstFragment);
     });
   }
 
@@ -1737,7 +1731,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeElementReference('reference', e);
+      _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -1820,7 +1814,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
-      _writeElementReference('reference', e);
+      _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -1831,7 +1825,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(e);
       // writeLinking();
       _writeMacroDiagnostics(e);
-      _writeFragmentReference('firstFragment', e.firstFragment);
       _writeElementReference('getter', e.getter);
       _writeElementReference('setter', e.setter);
     });
@@ -1921,7 +1914,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeElementReference('reference', e);
+      _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
@@ -2396,40 +2389,9 @@ class _ElementWriter extends _AbstractElementWriter {
 
   void _writeEnclosingElement(ElementImpl e) {
     _elementPrinter.writeNamedElement(
-      'enclosingElement',
-      // ignore: deprecated_member_use_from_same_package
-      e.enclosingElement,
+      'enclosingElement3',
+      e.enclosingElement3,
     );
-
-    switch (e) {
-      case CompilationUnitElementImpl():
-        if (identical(e.library.definingCompilationUnit, e)) {
-          expect(e.enclosingElement3, isNull);
-        } else {
-          expect(
-            e.enclosingElement3,
-            TypeMatcher<CompilationUnitElementImpl>(),
-          );
-          _elementPrinter.writeNamedElement(
-            'enclosingElement3',
-            e.enclosingElement3,
-          );
-        }
-      case LibraryImportElementImpl():
-      case LibraryExportElementImpl():
-      case PartElementImpl():
-      case PrefixElementImpl():
-        expect(
-          e.enclosingElement3,
-          TypeMatcher<CompilationUnitElementImpl>(),
-        );
-        _elementPrinter.writeNamedElement(
-          'enclosingElement3',
-          e.enclosingElement3,
-        );
-      default:
-        expect(e.enclosingElement3, same(e.enclosingElement3));
-    }
   }
 
   void _writeExportNamespace(LibraryElement e) {

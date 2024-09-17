@@ -11,7 +11,7 @@ front_end/lib/src/api_prototype/constant_evaluator/Exports: Fail
 front_end/lib/src/api_prototype/front_end/Exports: Fail
 front_end/lib/src/api_prototype/incremental_kernel_generator/Exports: Fail
 front_end/lib/src/api_prototype/lowering_predicates/Exports: Fail
-front_end/lib/src/api_prototype/resource_identifier/Exports: Fail
+front_end/lib/src/api_prototype/record_use/Exports: Fail
 front_end/lib/src/api_prototype/static_weak_references/Exports: Fail
 front_end/lib/src/api_prototype/terminal_color_support/Exports: Fail
 front_end/lib/src/api_prototype/testing/Exports: Fail

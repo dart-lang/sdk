@@ -255,9 +255,7 @@ class ForwardingNode {
             .applyCovariance(interfaceMember);
       }
       if (needsNoSuchMethodForwarder) {
-        assert(
-            interfaceMember is Procedure,
-            // Coverage-ignore(suite): Not run.
+        assert(interfaceMember is Procedure,
             "Unexpected abstract member: ${interfaceMember}");
         (interfaceMember as Procedure).stubKind =
             ProcedureStubKind.NoSuchMethodForwarder;
@@ -302,7 +300,6 @@ class ForwardingNode {
     Expression superCall;
     assert(
         !superTarget.isAbstract,
-        // Coverage-ignore(suite): Not run.
         "Abstract super target $superTarget found for '${name}' in "
         "${typeDeclaration}.");
     switch (kind) {

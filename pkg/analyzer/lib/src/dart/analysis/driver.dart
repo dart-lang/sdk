@@ -96,7 +96,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 384;
+  static const int DATA_VERSION = 386;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -346,15 +346,16 @@ class AnalysisDriver {
     return libraryContext.elementFactory.analysisSession;
   }
 
-  /// Return a set of the names of all the plugins enabled in analysis options
-  /// in this driver.
-  Set<String> get enabledPluginNames {
-    // We currently only support plugins enabled at the very root of a context
-    // (and we create contexts for any analysis options that changes plugins
-    // from its parent context).
+  /// The set of legacy plugin names enabled in analysis options in this driver.
+  Set<String> get enabledLegacyPluginNames {
+    // We currently only support legacy plugins enabled at the very root of a
+    // context (and we create contexts for any analysis options that changes
+    // plugins from its parent context).
     var rootOptionsFile = analysisContext?.contextRoot.optionsFile;
     return rootOptionsFile != null
-        ? getAnalysisOptionsForFile(rootOptionsFile).enabledPluginNames.toSet()
+        ? getAnalysisOptionsForFile(rootOptionsFile)
+            .enabledLegacyPluginNames
+            .toSet()
         : const {};
   }
 

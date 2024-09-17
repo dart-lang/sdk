@@ -56,7 +56,7 @@ import 'type_parameter_scope_builder.dart';
 Class initializeClass(
     List<NominalVariableBuilder>? typeVariables,
     String name,
-    SourceLibraryBuilder parent,
+    Uri fileUri,
     int startCharOffset,
     int charOffset,
     int charEndOffset,
@@ -71,7 +71,7 @@ Class initializeClass(
       // TODO(johnniwinther): Avoid creating [Class] so early in the builder
       // that we end up creating unneeded nodes.
       reference: isAugmentation ? null : indexedClass?.reference,
-      fileUri: parent.fileUri);
+      fileUri: fileUri);
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
   }
@@ -157,9 +157,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void set isConflictingAugmentationMember(bool value) {
-    assert(
-        _isConflictingAugmentationMember == null,
-        // Coverage-ignore(suite): Not run.
+    assert(_isConflictingAugmentationMember == null,
         '$this.isConflictingAugmentationMember has already been fixed.');
     _isConflictingAugmentationMember = value;
   }
@@ -180,6 +178,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.nameSpaceBuilder,
       SourceLibraryBuilder parent,
       this.constructorReferences,
+      Uri fileUri,
       int startCharOffset,
       int nameOffset,
       int charEndOffset,
@@ -193,11 +192,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isFinal = false,
       bool isAugmentation = false,
       this.isMixinClass = false})
-      : actualCls = initializeClass(typeVariables, name, parent,
+      : actualCls = initializeClass(typeVariables, name, fileUri,
             startCharOffset, nameOffset, charEndOffset, indexedClass,
             isAugmentation: isAugmentation),
         isAugmentation = isAugmentation,
-        super(metadata, modifiers, name, parent, nameOffset) {
+        super(metadata, modifiers, name, parent, fileUri, nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 
@@ -212,7 +211,11 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
-    _nameSpace = nameSpaceBuilder.buildNameSpace(libraryBuilder, this);
+    _nameSpace = nameSpaceBuilder.buildNameSpace(
+        loader: libraryBuilder.loader,
+        problemReporting: libraryBuilder,
+        enclosingLibraryBuilder: libraryBuilder,
+        declarationBuilder: this);
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "class $name",
         parent: typeParameterScope);
@@ -864,9 +867,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     if (classHierarchyNode.isMixinApplication) {
-      assert(
-          mixedInTypeBuilder != null,
-          // Coverage-ignore(suite): Not run.
+      assert(mixedInTypeBuilder != null,
           "No mixed in type builder for mixin application $this.");
       ClassHierarchyNode mixedInNode = classHierarchyNode.mixedInNode!;
       ClassHierarchyNode? mixinSuperClassNode =

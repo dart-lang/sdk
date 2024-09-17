@@ -200,6 +200,7 @@ class OSThread : public BaseThread {
   static void SetThreadLocal(ThreadLocalKey key, uword value);
   static intptr_t GetMaxStackSize();
   static void Join(ThreadJoinId id);
+  static void Detach(ThreadJoinId id);
   static intptr_t ThreadIdToIntPtr(ThreadId id);
   static ThreadId ThreadIdFromIntPtr(intptr_t id);
 

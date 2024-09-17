@@ -74,6 +74,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
       SourceLibraryBuilder libraryBuilder,
+      Uri fileUri,
       int startCharOffset,
       int charOffset,
       this.charOpenParenOffset,
@@ -85,7 +86,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       {String? nativeMethodName})
       : _memberName = nameScheme.getDeclaredName(name),
         super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
-            charOffset, nativeMethodName) {
+            fileUri, charOffset, nativeMethodName) {
     _procedureInternal = new Procedure(
         dummyName,
         nameScheme.isExtensionTypeMember
@@ -366,6 +367,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
       SourceLibraryBuilder libraryBuilder,
+      Uri fileUri,
       int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
@@ -383,6 +385,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             typeVariables,
             formals,
             libraryBuilder,
+            fileUri,
             startCharOffset,
             charOffset,
             charOpenParenOffset,

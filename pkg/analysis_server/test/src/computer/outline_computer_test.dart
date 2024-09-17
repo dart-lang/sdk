@@ -405,7 +405,7 @@ R fb<R, P>(P p) {}
 part 'test.dart';
 
 class C {
-  // Endure that the outline for the augment doesn't include members from the
+  // Ensure that the outline for the augment doesn't include members from the
   // augmented class.
   void n() {}
 }

@@ -8,20 +8,8 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../api_prototype/lowering_predicates.dart';
-import '../base/local_scope.dart';
-import '../builder/builder.dart';
-import '../builder/constructor_builder.dart';
-import '../builder/declaration_builders.dart';
-import '../builder/formal_parameter_builder.dart';
-import '../builder/function_builder.dart';
-import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
-import '../builder/metadata_builder.dart';
-import '../builder/omitted_type_builder.dart';
-import '../builder/type_builder.dart';
 import '../base/identifiers.dart';
-import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
-import '../kernel/kernel_helper.dart';
+import '../base/local_scope.dart';
 import '../base/messages.dart'
     show
         messagePatchDeclarationMismatch,
@@ -31,11 +19,22 @@ import '../base/messages.dart'
         templateRequiredNamedParameterHasDefaultValueError;
 import '../base/modifier.dart';
 import '../base/scope.dart';
-import 'source_loader.dart' show SourceLoader;
+import '../builder/builder.dart';
+import '../builder/constructor_builder.dart';
+import '../builder/declaration_builders.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/function_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/omitted_type_builder.dart';
+import '../builder/type_builder.dart';
+import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
+import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import 'source_builder_mixins.dart';
 import 'source_extension_type_declaration_builder.dart';
+import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';
 
 abstract class SourceFunctionBuilder
@@ -155,10 +154,11 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       this.name,
       this.typeVariables,
       this.formals,
-      LibraryBuilder compilationUnit,
+      Builder parent,
+      Uri fileUri,
       int charOffset,
       this.nativeMethodName)
-      : super(compilationUnit, charOffset) {
+      : super(parent, fileUri, charOffset) {
     returnType.registerInferredTypeListener(this);
     if (formals != null) {
       for (int i = 0; i < formals!.length; i++) {

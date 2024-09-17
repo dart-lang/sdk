@@ -136,7 +136,6 @@ mixin ElementsTypesMixin {
     element.isAbstract = isAbstract;
     element.isAugmentation = isAugmentation;
     element.isSealed = isSealed;
-    element.enclosingElement = testLibrary.definingCompilationUnit;
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.supertype = superType ?? typeProvider.objectType;
@@ -169,7 +168,6 @@ mixin ElementsTypesMixin {
     required List<ConstFieldElementImpl> constants,
   }) {
     var element = EnumElementImpl(name, 0);
-    element.enclosingElement = testLibrary.definingCompilationUnit;
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.fields = constants;
     return element;
@@ -191,7 +189,6 @@ mixin ElementsTypesMixin {
     var element = ExtensionElementImpl(name, 0);
     element.augmented.extendedType = extendedType;
     element.isAugmentation = isAugmentation;
-    element.enclosingElement = testLibrary.definingCompilationUnit;
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.methods = methods;
@@ -206,7 +203,6 @@ mixin ElementsTypesMixin {
     List<InterfaceType> interfaces = const [],
   }) {
     var element = ExtensionTypeElementImpl(name, -1);
-    element.enclosingElement = testLibrary.definingCompilationUnit;
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.interfaces = interfaces;
@@ -417,7 +413,6 @@ mixin ElementsTypesMixin {
   }) {
     var element = MixinElementImpl(name, 0);
     element.isAugmentation = isAugmentation;
-    element.enclosingElement = testLibrary.definingCompilationUnit;
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints ?? [typeProvider.objectType];
@@ -571,7 +566,6 @@ mixin ElementsTypesMixin {
     required DartType aliasedType,
   }) {
     var element = TypeAliasElementImpl(name, 0);
-    element.enclosingElement = testLibrary.definingCompilationUnit;
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.aliasedType = aliasedType;

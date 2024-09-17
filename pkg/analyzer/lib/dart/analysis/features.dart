@@ -93,6 +93,9 @@ abstract class Feature {
   /// Feature information for unnamed libraries.
   static final unnamedLibraries = ExperimentalFeatures.unnamed_libraries;
 
+  /// Feature information for unquoted imports.
+  static final unquotedImports = ExperimentalFeatures.unquoted_imports;
+
   /// Feature information for variance.
   static final variance = ExperimentalFeatures.variance;
 

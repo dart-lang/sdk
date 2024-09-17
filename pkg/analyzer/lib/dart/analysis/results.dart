@@ -6,11 +6,13 @@ import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:meta/meta.dart';
 
 /// The result of performing some kind of analysis on a single file. Every
 /// result that implements this interface will also implement a sub-interface.
@@ -58,6 +60,10 @@ class DisposedAnalysisContextResult
 abstract class ElementDeclarationResult {
   /// The [Element] that this object describes.
   Element get element;
+
+  /// The element that this object describes.
+  @experimental
+  Element2 get element2;
 
   /// The node that declares the [element]. Depending on whether it is returned
   /// from [ResolvedLibraryResult] or [ParsedLibraryResult] it might be resolved
@@ -152,6 +158,10 @@ abstract class InvalidResult {}
 abstract class LibraryElementResult implements SomeLibraryElementResult {
   /// The element of the library.
   LibraryElement get element;
+
+  /// The element representing the library.
+  @experimental
+  LibraryElement2 get element2;
 }
 
 /// The type of [InvalidResult] returned when the given element was not
@@ -204,6 +214,14 @@ abstract class ParsedLibraryResult
   /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
   /// this library.
   ElementDeclarationResult? getElementDeclaration(Element element);
+
+  /// Returns the declaration of the [fragment].
+  ///
+  /// Returns `null` if the [fragment] is synthetic.
+  ///
+  /// Throws [ArgumentError] if the [fragment] is not defined in this library.
+  @experimental
+  ElementDeclarationResult? getElementDeclaration2(Fragment fragment);
 }
 
 /// The result of parsing of a single file. The errors returned include only
@@ -245,6 +263,10 @@ abstract class ResolvedLibraryResult
   /// The element representing this library.
   LibraryElement get element;
 
+  /// The element representing this library.
+  @experimental
+  LibraryElement2 get element2;
+
   /// The type provider used when resolving the library.
   TypeProvider get typeProvider;
 
@@ -268,6 +290,10 @@ abstract class ResolvedUnitResult
 
   /// The element representing the library containing the compilation [unit].
   LibraryElement get libraryElement;
+
+  /// The element representing the library containing the compilation [unit].
+  @experimental
+  LibraryElement2 get libraryElement2;
 
   /// The type provider used when resolving the compilation [unit].
   TypeProvider get typeProvider;
@@ -352,6 +378,10 @@ abstract class SomeUnitElementResult {}
 abstract class UnitElementResult implements SomeUnitElementResult, FileResult {
   /// The element of the file.
   CompilationUnitElement get element;
+
+  /// The fragment representing the content of the file.
+  @experimental
+  LibraryFragment get fragment;
 }
 
 /// The type of [InvalidResult] returned when something is wrong, but we

@@ -3,25 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Identifier {
-  final String uri;
+  final String importUri;
   final String? parent; // Optional since not all elements have parents
   final String name;
 
   const Identifier({
-    required this.uri,
+    required this.importUri,
     this.parent,
     required this.name,
   });
 
   factory Identifier.fromJson(Map<String, dynamic> json, List<String> uris) =>
       Identifier(
-        uri: uris[json['uri'] as int],
+        importUri: uris[json['uri'] as int],
         parent: json['parent'] as String?,
         name: json['name'] as String,
       );
 
-  Map<String, dynamic> toJson(List<String> uris) => {
-        'uri': uris.indexOf(uri),
+  Map<String, dynamic> toJson(Map<String, int> uris) => {
+        'uri': uris[importUri]!,
         if (parent != null) 'parent': parent,
         'name': name,
       };
@@ -31,11 +31,11 @@ class Identifier {
     if (identical(this, other)) return true;
 
     return other is Identifier &&
-        other.uri == uri &&
+        other.importUri == importUri &&
         other.parent == parent &&
         other.name == name;
   }
 
   @override
-  int get hashCode => Object.hash(uri, parent, name);
+  int get hashCode => Object.hash(importUri, parent, name);
 }

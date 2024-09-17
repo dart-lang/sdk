@@ -7,7 +7,7 @@ import '../helper.dart';
 sealed class Constant {
   const Constant();
 
-  Map<String, dynamic> toJson(List<Constant> constants);
+  Map<String, dynamic> toJson(Map<Constant, int> constants);
 
   static Constant fromJson(
           Map<String, dynamic> value, List<Constant> constants) =>
@@ -17,10 +17,14 @@ sealed class Constant {
         IntConstant._type => IntConstant(value['value'] as int),
         StringConstant._type => StringConstant(value['value'] as String),
         ListConstant._type => ListConstant((value['value'] as List<dynamic>)
-            .map((e) => constants[e as int])
+            .map((value) => value as int)
+            .map((value) => constants[value])
             .toList()),
         MapConstant._type => MapConstant(
             (value['value'] as Map<String, dynamic>)
+                .map((key, value) => MapEntry(key, constants[value as int]))),
+        InstanceConstant._type => InstanceConstant(
+            fields: (value['value'] as Map<String, dynamic>)
                 .map((key, value) => MapEntry(key, constants[value as int]))),
         String() =>
           throw UnimplementedError('This type is not a supported constant'),
@@ -33,7 +37,8 @@ final class NullConstant extends Constant {
   const NullConstant() : super();
 
   @override
-  Map<String, dynamic> toJson(List<Constant> constants) => _toJson(_type, null);
+  Map<String, dynamic> toJson(Map<Constant, int> constants) =>
+      _toJson(_type, null);
 }
 
 sealed class PrimitiveConstant<T extends Object> extends Constant {
@@ -52,7 +57,7 @@ sealed class PrimitiveConstant<T extends Object> extends Constant {
   }
 
   @override
-  Map<String, dynamic> toJson(List<Constant> constants) => valueToJson();
+  Map<String, dynamic> toJson(Map<Constant, int> constants) => valueToJson();
 
   Map<String, dynamic> valueToJson();
 }
@@ -102,9 +107,9 @@ final class ListConstant<T extends Constant> extends Constant {
   }
 
   @override
-  Map<String, dynamic> toJson(List<Constant> constants) => _toJson(
+  Map<String, dynamic> toJson(Map<Constant, int> constants) => _toJson(
         _type,
-        value.map((constant) => constants.indexOf(constant)).toList(),
+        value.map((constant) => constants[constant]).toList(),
       );
 }
 
@@ -126,11 +131,49 @@ final class MapConstant<T extends Constant> extends Constant {
   }
 
   @override
-  Map<String, dynamic> toJson(List<Constant> constants) => _toJson(
+  Map<String, dynamic> toJson(Map<Constant, int> constants) => _toJson(
         _type,
-        value
-            .map((key, constant) => MapEntry(key, constants.indexOf(constant))),
+        value.map((key, constant) => MapEntry(key, constants[constant]!)),
       );
+}
+
+final class InstanceConstant extends Constant {
+  static const _type = 'Instance';
+
+  final Map<String, Constant> fields;
+
+  const InstanceConstant({
+    required this.fields,
+  });
+
+  factory InstanceConstant.fromJson(
+    Map<String, dynamic> json,
+    List<Constant> constants,
+  ) {
+    return InstanceConstant(
+      fields: json.map((key, constantIndex) =>
+          MapEntry(key, constants[constantIndex as int])),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson(Map<Constant, int> constants) => _toJson(
+        _type,
+        fields.isNotEmpty
+            ? fields.map((name, constantIndex) =>
+                MapEntry(name, constants[constantIndex]!))
+            : null,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is InstanceConstant && deepEquals(other.fields, fields);
+  }
+
+  @override
+  int get hashCode => deepHash(fields);
 }
 
 Map<String, dynamic> _toJson(String type, Object? value) {

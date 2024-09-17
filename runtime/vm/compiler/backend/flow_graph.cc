@@ -35,12 +35,9 @@ static bool ShouldReorderBlocks(const Function& function,
          FLAG_reorder_basic_blocks && !function.IsFfiCallbackTrampoline();
 }
 
-static bool IsMarkedWithNoBoundsChecks(const Function& function) {
-  Object& options = Object::Handle();
-  return Library::FindPragma(dart::Thread::Current(),
-                             /*only_core=*/false, function,
-                             Symbols::vm_unsafe_no_bounds_checks(),
-                             /*multiple=*/false, &options);
+static bool ShouldOmitCheckBoundsIn(const Function& function) {
+  auto& state = CompilerState::Current();
+  return state.is_aot() && state.PragmasOf(function).unsafe_no_bounds_checks;
 }
 
 FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
@@ -74,9 +71,8 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       captured_parameters_(new(zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1),
       should_print_(false),
-      should_remove_all_bounds_checks_(
-          CompilerState::Current().is_aot() &&
-          IsMarkedWithNoBoundsChecks(parsed_function.function())) {
+      should_omit_check_bounds_(
+          dart::ShouldOmitCheckBoundsIn(parsed_function.function())) {
   should_print_ = FlowGraphPrinter::ShouldPrint(parsed_function.function(),
                                                 &compiler_pass_filters_);
   ComputeLocationsOfFixedParameters(
@@ -613,15 +609,36 @@ Instruction* FlowGraph::CreateCheckClass(Definition* to_check,
       CheckClassInstr(new (zone()) Value(to_check), deopt_id, cids, source);
 }
 
-Definition* FlowGraph::CreateCheckBound(Definition* length,
-                                        Definition* index,
-                                        intptr_t deopt_id) {
-  Value* val1 = new (zone()) Value(length);
-  Value* val2 = new (zone()) Value(index);
-  if (CompilerState::Current().is_aot()) {
-    return new (zone()) GenericCheckBoundInstr(val1, val2, deopt_id);
+bool FlowGraph::ShouldOmitCheckBoundsIn(const Function& caller) {
+  if (caller.ptr() == function().ptr()) {
+    return should_omit_check_bounds();
   }
-  return new (zone()) CheckArrayBoundInstr(val1, val2, deopt_id);
+
+  return dart::ShouldOmitCheckBoundsIn(caller);
+}
+
+static Definition* CreateCheckBound(Zone* zone,
+                                    Definition* length,
+                                    Definition* index,
+                                    intptr_t deopt_id) {
+  Value* val1 = new (zone) Value(length);
+  Value* val2 = new (zone) Value(index);
+  if (CompilerState::Current().is_aot()) {
+    return new (zone) GenericCheckBoundInstr(val1, val2, deopt_id);
+  }
+  return new (zone) CheckArrayBoundInstr(val1, val2, deopt_id);
+}
+
+Instruction* FlowGraph::AppendCheckBound(Instruction* cursor,
+                                         Definition* length,
+                                         Definition** index,
+                                         intptr_t deopt_id,
+                                         Environment* env) {
+  if (!ShouldOmitCheckBoundsIn(env->function())) {
+    *index = CreateCheckBound(zone(), length, *index, deopt_id);
+    cursor = AppendTo(cursor, *index, env, FlowGraph::kValue);
+  }
+  return cursor;
 }
 
 void FlowGraph::AddExactnessGuard(InstanceCallInstr* call,

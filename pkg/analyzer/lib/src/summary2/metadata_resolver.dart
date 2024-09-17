@@ -22,7 +22,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
     this._linker,
     this._unitElement,
     this._libraryBuilder,
-  ) : _containerScope = _unitElement.enclosingElement.scope {
+  ) : _containerScope = _unitElement.scope {
     _scope = _containerScope;
   }
 

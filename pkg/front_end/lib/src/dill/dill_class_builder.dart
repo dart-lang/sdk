@@ -67,7 +67,7 @@ class DillClassBuilder extends ClassBuilderImpl
   DillClassBuilder(this.cls, DillLibraryBuilder parent)
       : _nameSpace = new DeclarationNameSpaceImpl(),
         super(/*metadata builders*/ null, computeModifiers(cls), cls.name,
-            parent, cls.fileOffset) {
+            parent, cls.fileUri, cls.fileOffset) {
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "class ${cls.name}",
         parent: parent.scope);

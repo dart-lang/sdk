@@ -407,8 +407,20 @@ class Types with StandardBounds {
         return result.and(new IsSubtypeOf.basedSolelyOnNullabilities(
             sTypeParameterType, tTypeParameterType));
 
-      case (StructuralParameterType(), TypeParameterType()):
-        return const IsSubtypeOf.never();
+      case (
+          StructuralParameterType sStructuralParameterType,
+          TypeParameterType tTypeParameterType
+        ):
+        IsSubtypeOf result = performNullabilityAwareSubtypeCheck(
+            sStructuralParameterType.bound, t);
+        if (sStructuralParameterType.nullability == Nullability.undetermined &&
+            tTypeParameterType.nullability == Nullability.undetermined) {
+          // The two nullabilities are undetermined, but are connected via
+          // additional constraint, namely that they will be equal at run time.
+          return result;
+        }
+        return result.and(new IsSubtypeOf.basedSolelyOnNullabilities(
+            sStructuralParameterType, tTypeParameterType));
 
       case (
           IntersectionType sIntersectionType,

@@ -2057,9 +2057,11 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
       RepresentationUtils::RepresentationOfArrayElement(class_id());
   if (RepresentationUtils::IsUnboxedInteger(rep)) {
     if (rep == kUnboxedUint8 || rep == kUnboxedInt8) {
-      // TODO(fschneider): Add location constraint for byte registers (RAX,
-      // RBX, RCX, RDX) instead of using a fixed register.
-      locs->set_in(2, LocationFixedRegisterOrSmiConstant(value(), RAX));
+      if (IsClampedTypedDataBaseClassId(class_id())) {
+        locs->set_in(2, LocationWritableRegisterOrSmiConstant(value()));
+      } else {
+        locs->set_in(2, LocationRegisterOrSmiConstant(value()));
+      }
     } else {
       locs->set_in(2, Location::RequiresRegister());
     }
@@ -2128,18 +2130,18 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       __ movb(element_address, compiler::Immediate(static_cast<int8_t>(value)));
     } else {
-      const Register storedValueReg = locs()->in(2).reg();
+      const Register value = locs()->in(2).reg();
       compiler::Label store_value, store_0xff;
-      __ CompareImmediate(storedValueReg, compiler::Immediate(0xFF));
+      __ CompareImmediate(value, compiler::Immediate(0xFF));
       __ j(BELOW_EQUAL, &store_value, compiler::Assembler::kNearJump);
       // Clamp to 0x0 or 0xFF respectively.
       __ j(GREATER, &store_0xff);
-      __ xorq(storedValueReg, storedValueReg);
+      __ xorq(value, value);
       __ jmp(&store_value, compiler::Assembler::kNearJump);
       __ Bind(&store_0xff);
-      __ LoadImmediate(storedValueReg, compiler::Immediate(0xFF));
+      __ LoadImmediate(value, compiler::Immediate(0xFF));
       __ Bind(&store_value);
-      __ movb(element_address, ByteRegisterOf(storedValueReg));
+      __ movb(element_address, ByteRegisterOf(value));
     }
   } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
     if (rep == kUnboxedUint8 || rep == kUnboxedInt8) {
@@ -3788,6 +3790,11 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
     case kUnboxedDouble: {
       const FpuRegister result = locs()->out(0).fpu_reg();
       __ SmiUntag(box);
+      // cvtsi2sd only writes to the lower part of the register and leaves upper
+      // bits intact. This creates false dependency and causes performance
+      // problems for subsequent uses of the XMM register. To break the
+      // dependency XORPS is recommended.
+      __ xorps(result, result);
       __ OBJ(cvtsi2sd)(result, box);
       break;
     }
@@ -4793,6 +4800,11 @@ LocationSummary* Int32ToDoubleInstr::MakeLocationSummary(Zone* zone,
 void Int32ToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   FpuRegister result = locs()->out(0).fpu_reg();
+  // cvtsi2sd only writes to the lower part of the register and leaves upper
+  // bits intact. This creates false dependency and causes performance
+  // problems for subsequent uses of the XMM register. To break the
+  // dependency XORPS is recommended.
+  __ xorps(result, result);
   __ cvtsi2sdl(result, value);
 }
 
@@ -4811,10 +4823,20 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   FpuRegister result = locs()->out(0).fpu_reg();
   __ SmiUntag(value);
+  // cvtsi2sd only writes to the lower part of the register and leaves upper
+  // bits intact. This creates false dependency and causes performance
+  // problems for subsequent uses of the XMM register. To break the
+  // dependency XORPS is recommended.
+  __ xorps(result, result);
   __ OBJ(cvtsi2sd)(result, value);
 }
 
 DEFINE_BACKEND(Int64ToDouble, (FpuRegister result, Register value)) {
+  // cvtsi2sd only writes to the lower part of the register and leaves upper
+  // bits intact. This creates false dependency and causes performance
+  // problems for subsequent uses of the XMM register. To break the
+  // dependency XORPS is recommended.
+  __ xorps(result, result);
   __ cvtsi2sdq(result, value);
 }
 
@@ -5349,6 +5371,11 @@ void HashDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler::Label hash_double;
 
+  // cvtsi2sd only writes to the lower part of the register and leaves upper
+  // bits intact. This creates false dependency and causes performance
+  // problems for subsequent uses of the XMM register. To break the
+  // dependency XORPS is recommended.
+  __ xorps(temp_fpu_reg, temp_fpu_reg);
   __ cvttsd2siq(RAX, value);
   __ cvtsi2sdq(temp_fpu_reg, RAX);
   __ comisd(value, temp_fpu_reg);

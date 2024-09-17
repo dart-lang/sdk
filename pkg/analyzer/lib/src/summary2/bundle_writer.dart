@@ -639,6 +639,11 @@ class BundleWriter {
     _resolutionSink.writeType(element.returnType);
     _writeList(element.parameters, _writeParameterElement);
 
+    // Write the reference for the variable, the reader will use it.
+    if (!element.isAugmentation) {
+      _writeReference(element.variable2!);
+    }
+
     _resolutionSink.writeElement(element.augmentationTargetAny);
     if (element.isAugmentation) {
       _accessorAugmentations.add(element);

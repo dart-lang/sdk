@@ -148,9 +148,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   @override
   DartType buildAliased(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
-    assert(
-        hierarchy != null || isExplicit, // Coverage-ignore(suite): Not run.
-        "Cannot build $this.");
+    assert(hierarchy != null || isExplicit, "Cannot build $this.");
     const List<String> forbiddenObjectMemberNames = [
       "noSuchMethod",
       "toString",

@@ -61,6 +61,7 @@ import '../codes/cfe_codes.dart';
 import '../codes/denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
 import '../dill/dill_library_builder.dart';
+import '../fragment/fragment.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
@@ -94,7 +95,8 @@ import 'source_library_builder.dart'
         InvalidLanguageVersion,
         LanguageVersion,
         LibraryAccess,
-        SourceLibraryBuilder;
+        SourceLibraryBuilder,
+        SourceLibraryBuilderState;
 import 'source_procedure_builder.dart';
 import 'stack_listener_impl.dart' show offsetForToken;
 
@@ -122,6 +124,8 @@ class SourceLoader extends Loader {
   /// that builder. This is used for looking up source builders when finalizing
   /// exports in dill builders.
   Map<Reference, Builder> buildersCreatedWithReferences = {};
+
+  Map<Reference, Fragment> fragmentsCreatedWithReferences = {};
 
   /// Used when checking whether a return type of an async function is valid.
   ///
@@ -254,7 +258,6 @@ class SourceLoader extends Loader {
     };
     assert(
         expectedFutureProblemsForCurrentPhase.isEmpty || hasSeenError,
-        // Coverage-ignore(suite): Not run.
         "Expected problems to be reported, but there were none.\n"
         "Current compilation phase: ${currentPhase}\n"
         "Expected at these locations:\n"
@@ -344,12 +347,8 @@ class SourceLoader extends Loader {
   Iterable<Uri> get loadedLibraryImportUris => _loadedLibraryBuilders.keys;
 
   void registerLoadedDillLibraryBuilder(DillLibraryBuilder libraryBuilder) {
-    assert(
-        !libraryBuilder.isPart, // Coverage-ignore(suite): Not run.
-        "Unexpected part $libraryBuilder.");
-    assert(
-        !libraryBuilder.isAugmenting,
-        // Coverage-ignore(suite): Not run.
+    assert(!libraryBuilder.isPart, "Unexpected part $libraryBuilder.");
+    assert(!libraryBuilder.isAugmenting,
         "Unexpected augmenting library $libraryBuilder.");
     Uri uri = libraryBuilder.importUri;
     _markDartLibraries(uri, libraryBuilder, libraryBuilder.mainCompilationUnit);
@@ -1384,6 +1383,7 @@ severity: $severity
         /* formals = */ null,
         ProcedureKind.Method,
         libraryBuilder,
+        null,
         libraryBuilder.fileUri,
         /* start char offset = */ 0,
         /* char offset = */ 0,
@@ -1477,13 +1477,16 @@ severity: $severity
     for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
       _compilationUnits.remove(augmentationLibrary.fileUri);
       augmentationLibrary.origin.addAugmentationLibrary(augmentationLibrary);
+      augmentationLibrary.state = SourceLibraryBuilderState.resolvedParts;
+    }
+    for (SourceLibraryBuilder sourceLibrary in sourceLibraries) {
+      sourceLibrary.state = SourceLibraryBuilderState.resolvedParts;
     }
     _sourceLibraryBuilders = sourceLibraries;
     assert(
         _compilationUnits.values.every((compilationUnit) =>
             !(compilationUnit is SourceCompilationUnit &&
                 compilationUnit.isAugmenting)),
-        // Coverage-ignore(suite): Not run.
         "Augmentation library found in libraryBuilders: " +
             _compilationUnits.values
                 .where((compilationUnit) =>
@@ -1493,14 +1496,12 @@ severity: $severity
             ".");
     assert(
         sourceLibraries.every((library) => !library.isAugmenting),
-        // Coverage-ignore(suite): Not run.
         "Augmentation library found in sourceLibraryBuilders: "
         "${sourceLibraries.where((library) => library.isAugmenting)}.");
     assert(
         _compilationUnits.values.every((compilationUnit) =>
             compilationUnit.loader != this ||
             sourceLibraries.contains(compilationUnit.libraryBuilder)),
-        // Coverage-ignore(suite): Not run.
         "Source library not found in sourceLibraryBuilders:" +
             _compilationUnits.values
                 .where((compilationUnit) =>
@@ -1509,6 +1510,13 @@ severity: $severity
                 .join(', ') +
             ".");
     ticker.logMs("Applied augmentations");
+  }
+
+  void buildNameSpaces(Iterable<SourceLibraryBuilder> sourceLibraryBuilders) {
+    for (SourceLibraryBuilder sourceLibraryBuilder in sourceLibraryBuilders) {
+      sourceLibraryBuilder.buildNameSpace();
+    }
+    ticker.logMs("Built name spaces");
   }
 
   void buildScopes(Iterable<SourceLibraryBuilder> sourceLibraryBuilders) {
@@ -1523,9 +1531,8 @@ severity: $severity
     Set<LibraryBuilder> exporters = new Set<LibraryBuilder>();
     Set<LibraryBuilder> exportees = new Set<LibraryBuilder>();
     for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
-        sourceLibrary.buildInitialScopes();
+      if (library is SourceLibraryBuilder) {
+        library.buildInitialScopes();
       }
       if (library.exporters.isNotEmpty) {
         exportees.add(library);
@@ -1563,9 +1570,8 @@ severity: $severity
       }
     } while (wasChanged);
     for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
-        sourceLibrary.addImportsToScope();
+      if (library is SourceLibraryBuilder) {
+        library.addImportsToScope();
       }
     }
     for (LibraryBuilder exportee in exportees) {
@@ -1910,6 +1916,10 @@ severity: $severity
       }
     }
 
+    for (SourceLibraryBuilder libraryBuilder in libraryBuilders) {
+      libraryBuilder.state = SourceLibraryBuilderState.typeVariablesFinished;
+    }
+
     ticker.logMs("Resolved ${sortedTypeVariables.length} type-variable bounds");
   }
 
@@ -1922,10 +1932,14 @@ severity: $severity
     ticker.logMs("Computed variances of $count type variables");
   }
 
-  void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
-      TypeBuilder bottomType, ClassBuilder objectClass) {
+  void computeDefaultTypes(
+      List<SourceLibraryBuilder> libraryBuilders,
+      TypeBuilder dynamicType,
+      TypeBuilder nullType,
+      TypeBuilder bottomType,
+      ClassBuilder objectClass) {
     int count = 0;
-    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+    for (SourceLibraryBuilder library in libraryBuilders) {
       count += library.computeDefaultTypes(
           dynamicType, nullType, bottomType, objectClass);
     }
@@ -2600,9 +2614,7 @@ severity: $severity
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
     for (LibraryBuilder libraryBuilder in loadedLibraryBuilders) {
-      assert(
-          !libraryBuilder.isAugmenting,
-          // Coverage-ignore(suite): Not run.
+      assert(!libraryBuilder.isAugmenting,
           "Unexpected augmentation library $libraryBuilder.");
       if ((libraryBuilder.loader == this ||
           libraryBuilder.importUri.isScheme("dart") ||

@@ -65,6 +65,10 @@ library;
 //   void element() {}
 //        ^^^^^^^
 //
+// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:58:6: Error: A constant constructor can't call a non-constant super constructor.
+// enum E9 with A9 {
+//      ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -152,6 +156,7 @@ class E8 extends self::_E8&_Enum&A8 /*isEnum*/  {
   static const field core::List<self::E8> values = const <self::E8>[self::E8::element];
   enum-element static const field self::E8 element = const self::E8::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::E8
+    : super self::_E8&_Enum&A8::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E8.${this.{core::_Enum::_name}{core::String}}";
@@ -172,6 +177,7 @@ class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
   static const field core::List<self::E9> values = const <self::E9>[self::E9::element];
   enum-element static const field self::E9 element = const self::E9::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::E9
+    : super self::_E9&_Enum&A9::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E9.${this.{core::_Enum::_name}{core::String}}";
@@ -191,6 +197,7 @@ class E10 extends self::_E10&_Enum&A10 /*isEnum*/  {
   static const field core::List<self::E10> values = const <self::E10>[self::E10::element];
   enum-element static const field self::E10 element = const self::E10::•(0, "element");
   const synthetic constructor •(core::int #index, core::String #name) → self::E10
+    : super self::_E10&_Enum&A10::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E10.${this.{core::_Enum::_name}{core::String}}";
@@ -210,10 +217,8 @@ Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:34:6
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:35:3 -> InstanceConstant(const E6{_Enum.index: 0, _Enum._name: "element"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:40:6 -> ListConstant(const <E7>[const E7{_Enum.index: 0, _Enum._name: "element"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:41:3 -> InstanceConstant(const E7{_Enum.index: 0, _Enum._name: "element"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:50:6 -> ListConstant(const <E8>[const E8{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:51:3 -> InstanceConstant(const E8{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:58:6 -> ListConstant(const <E9>[const E9{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:59:3 -> InstanceConstant(const E9{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:66:6 -> ListConstant(const <E10>[const E10{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:67:3 -> InstanceConstant(const E10{})
-Extra constant evaluation: evaluated: 72, effectively constant: 16
+Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:50:6 -> ListConstant(const <E8>[const E8{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:51:3 -> InstanceConstant(const E8{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:66:6 -> ListConstant(const <E10>[const E10{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:67:3 -> InstanceConstant(const E10{_Enum.index: 0, _Enum._name: "element"})
+Extra constant evaluation: evaluated: 79, effectively constant: 14

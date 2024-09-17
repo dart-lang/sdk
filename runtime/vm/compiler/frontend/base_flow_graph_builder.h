@@ -144,6 +144,7 @@ class BaseFlowGraphBuilder {
  public:
   BaseFlowGraphBuilder(
       const ParsedFunction* parsed_function,
+      bool optimizing,
       intptr_t last_used_block_id,
       intptr_t osr_id = DeoptId::kNone,
       ZoneGrowableArray<intptr_t>* context_level_array = nullptr,
@@ -151,6 +152,10 @@ class BaseFlowGraphBuilder {
       bool inlining_unchecked_entry = false)
       : parsed_function_(parsed_function),
         function_(parsed_function_->function()),
+        optimizing_(optimizing),
+        should_omit_stack_overflow_checks_(
+            ShouldOmitStackOverflowChecks(optimizing,
+                                          parsed_function->function())),
         thread_(Thread::Current()),
         zone_(thread_->zone()),
         osr_id_(osr_id),
@@ -504,13 +509,25 @@ class BaseFlowGraphBuilder {
     return saved_args_desc_array_;
   }
 
+  bool optimizing() const { return optimizing_; }
+
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
   Fragment RecordCoverageImpl(TokenPosition position, bool is_branch_coverage);
   intptr_t GetCoverageIndexFor(intptr_t encoded_position);
 
+  static bool ShouldOmitStackOverflowChecks(bool optimizing,
+                                            const Function& function);
+
+  bool should_omit_stack_overflow_checks() const {
+    return should_omit_stack_overflow_checks_;
+  }
+
   const ParsedFunction* parsed_function_;
   const Function& function_;
+  const bool optimizing_;
+  const bool should_omit_stack_overflow_checks_;
+
   Thread* thread_;
   Zone* zone_;
   intptr_t osr_id_;

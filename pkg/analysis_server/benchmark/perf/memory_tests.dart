@@ -217,7 +217,8 @@ class LspAnalysisServerMemoryUsageTest
       '--enable-vm-service=$_vmServicePort',
       '-DSILENT_OBSERVATORY=true',
       '--disable-service-auth-codes',
-      '--disable-dart-dev'
+      '--disable-dart-dev',
+      '--no-dds',
     ]);
     await super.setUp();
 

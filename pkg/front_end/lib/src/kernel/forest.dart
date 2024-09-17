@@ -750,21 +750,15 @@ class Forest {
   }
 
   ConstructorTearOff createConstructorTearOff(int fileOffset, Member target) {
-    assert(
-        target is Constructor || (target is Procedure && target.isFactory),
-        // Coverage-ignore(suite): Not run.
+    assert(target is Constructor || (target is Procedure && target.isFactory),
         "Unexpected constructor tear off target: $target");
     return new ConstructorTearOff(target)..fileOffset = fileOffset;
   }
 
   StaticTearOff createStaticTearOff(int fileOffset, Procedure procedure) {
-    assert(
-        procedure.kind == ProcedureKind.Method,
-        // Coverage-ignore(suite): Not run.
+    assert(procedure.kind == ProcedureKind.Method,
         "Unexpected static tear off target: $procedure");
-    assert(
-        !procedure.isRedirectingFactory,
-        // Coverage-ignore(suite): Not run.
+    assert(!procedure.isRedirectingFactory,
         "Unexpected static tear off target: $procedure");
     return new StaticTearOff(procedure)..fileOffset = fileOffset;
   }

@@ -40,9 +40,10 @@ class PrologueBuilder : public BaseFlowGraphBuilder {
  public:
   PrologueBuilder(const ParsedFunction* parsed_function,
                   intptr_t last_used_id,
+                  bool optimizing,
                   bool compiling_for_osr,
                   bool is_inlining)
-      : BaseFlowGraphBuilder(parsed_function, last_used_id),
+      : BaseFlowGraphBuilder(parsed_function, optimizing, last_used_id),
         compiling_for_osr_(compiling_for_osr),
         is_inlining_(is_inlining) {}
 

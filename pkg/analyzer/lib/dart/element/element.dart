@@ -2316,6 +2316,7 @@ abstract class PatternVariableElement implements LocalVariableElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixElement implements _ExistingElement {
   /// The library, or library augmentation that encloses this element.
+  @Deprecated('Use enclosingElement3 instead')
   @override
   LibraryOrAugmentationElement get enclosingElement;
 

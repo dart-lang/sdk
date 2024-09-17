@@ -346,7 +346,7 @@ class Package implements Comparable<Package> {
           'pkg/front_end/testcases/',
           'pkg/linter/test/rules/',
           'pkg/linter/test_data/',
-          'pkg/native_assets_builder/test/test_projects/',
+          'pkg/record_use/test_data/',
           'pkg/vm/testcases/',
         };
         if (excludedPaths.contains(uriPath)) {

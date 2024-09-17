@@ -30,7 +30,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   DillExtensionBuilder(this.extension, LibraryBuilder parent)
       : _nameSpace = new DeclarationNameSpaceImpl(),
         super(/* metadata = */ null, 0, extension.name, parent,
-            extension.fileOffset) {
+            extension.fileUri, extension.fileOffset) {
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension ${extension.name}",
         parent: parent.scope);
@@ -50,9 +50,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
           } else {
             Procedure procedure = descriptor.memberReference.asProcedure;
             Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
-            assert(
-                tearOff != null, // Coverage-ignore(suite): Not run.
-                "No tear found for ${descriptor}");
+            assert(tearOff != null, "No tear found for ${descriptor}");
             nameSpace.addLocalMember(
                 name.text,
                 new DillExtensionInstanceMethodBuilder(

@@ -33,7 +33,7 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -54,7 +54,7 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -72,7 +72,7 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -98,7 +98,7 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -123,7 +123,7 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -145,7 +145,7 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -168,7 +168,7 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
 ----------------------------------------
 library
   reference: <testLibrary>

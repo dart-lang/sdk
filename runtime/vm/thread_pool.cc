@@ -385,6 +385,9 @@ void ThreadPool::WorkerThreadExit(ThreadPool* pool, Worker* worker) {
     // Asynchronous shutdown was requested and this is the last exiting worker.
     // It needs to delete itself and notify the code which requested the
     // shutdown that we are done.
+    // Start by detaching the thread (because nobody is going to join it) so
+    // that we don't keep any thread related data structures behind.
+    OSThread::Detach(worker->join_id_);
     delete worker;
     pool->last_dead_worker_ = nullptr;
 

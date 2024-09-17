@@ -448,6 +448,21 @@ class FlowGraphBuilderHelper {
   GrowableArray<PendingPhiInput> pending_phis_;
 };
 
+template <typename... Args>
+ObjectPtr Invoke(const Library& lib, const char* name, const Args&... args) {
+  Thread* thread = Thread::Current();
+  Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
+  Dart_Handle argv[] = {Api::NewHandle(thread, args.ptr())...};
+  Dart_Handle result;
+  {
+    TransitionVMToNative transition(thread);
+    result =
+        Dart_Invoke(api_lib, NewString(name), /*argc=*/sizeof...(Args), argv);
+    EXPECT_VALID(result);
+  }
+  return Api::UnwrapHandle(result);
+}
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_COMPILER_BACKEND_IL_TEST_HELPER_H_

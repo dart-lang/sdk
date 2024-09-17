@@ -732,18 +732,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Certain RTIs must be emitted during RTI normalization. We cache these
     // eagerly with 'findType' (without normalization) to avoid infinite loops.
     // See normalization functions in: sdk/lib/_internal/js_shared/lib/rti.dart
-    var prerequisiteRtiTypes = [
-      _coreTypes.objectLegacyRawType,
-      _coreTypes.objectNullableRawType,
-      NeverType.legacy()
-    ];
-    prerequisiteRtiTypes.forEach((type) {
-      var recipe = _typeRecipeGenerator
-          .recipeInEnvironment(type, EmptyTypeEnvironment())
-          .recipe;
-      _moduleItems.add(js.call('#.findType("$recipe")',
-          [_emitLibraryName(_rtiLibrary)]).toStatement());
-    });
+    if (_isBuildingSdk) {
+      var prerequisiteRtiTypes = [
+        _coreTypes.objectLegacyRawType,
+        _coreTypes.objectNullableRawType,
+        NeverType.legacy()
+      ];
+      prerequisiteRtiTypes.forEach((type) {
+        var recipe = _typeRecipeGenerator
+            .recipeInEnvironment(type, EmptyTypeEnvironment())
+            .recipe;
+        _moduleItems.add(js.call('#.findType("$recipe")',
+            [_emitLibraryName(_rtiLibrary)]).toStatement());
+      });
+    }
 
     // Visit directives (for exports)
     libraries.forEach(_emitExports);
@@ -1081,14 +1083,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     body.addAll(jsCtors);
 
     // Emit things that come after the ES6 `class ... { ... }`.
-    var jsPeerNames = _extensionTypes.getNativePeers(c);
-    if (jsPeerNames.length == 1 && c.typeParameters.isNotEmpty) {
-      // Special handling for JSArray<E>
-      body.add(_runtimeStatement('setExtensionBaseClass(#, #)', [
-        className,
-        _runtimeCall('global.#', [jsPeerNames[0]])
-      ]));
-    }
 
     /// Collects all implemented types in the ancestry of [cls].
     Iterable<Supertype> transitiveImplementedTypes(Class cls) {
@@ -1149,7 +1143,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Instead, just assign the identity equals method.
       body.add(_runtimeStatement('_installIdentityEquals()'));
     } else {
-      for (var peer in jsPeerNames) {
+      for (var peer in _extensionTypes.getNativePeers(c)) {
         _registerExtensionType(c, peer, body);
       }
     }
@@ -6172,11 +6166,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             throw UnsupportedError(
                 'JS_CLASS_REF only supports interface types: found $type '
                 '(${type.runtimeType}) at ${node.location}');
-          }
-          if (type.typeArguments.isNotEmpty) {
-            throw UnsupportedError(
-                'JS_CLASS_REF does not support type arguments: found '
-                '${type.typeArguments} at ${node.location}');
           }
           return _emitTopLevelName(type.classNode);
         }

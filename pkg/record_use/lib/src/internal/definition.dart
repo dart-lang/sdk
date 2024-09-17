@@ -21,26 +21,23 @@ class Definition {
   factory Definition.fromJson(
     Map<String, dynamic> json,
     List<Identifier> identifiers,
+    List<String> uris,
   ) {
     final identifier = identifiers[json['id'] as int];
     return Definition(
       identifier: identifier,
-      location: Location.fromJson(
-        json['@'] as Map<String, dynamic>,
-        identifier.uri,
-        null,
-      ),
+      location: Location.fromJson(json['@'] as Map<String, dynamic>, uris),
       loadingUnit: json['loadingUnit'] as String?,
     );
   }
 
   Map<String, dynamic> toJson(
-    List<Identifier> identifiers,
-    List<String> uris,
+    Map<Identifier, int> identifiers,
+    Map<String, int> uris,
   ) =>
       {
-        'id': identifiers.indexOf(identifier),
-        '@': location.toJson(),
+        'id': identifiers[identifier]!,
+        '@': location.toJson(uris),
         'loadingUnit': loadingUnit,
       };
 

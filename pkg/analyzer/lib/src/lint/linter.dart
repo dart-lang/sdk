@@ -195,6 +195,10 @@ abstract class LintRule {
 
   /// Description (in markdown format) suitable for display in a detailed lint
   /// description.
+  ///
+  /// This property is deprecated and will be removed in a future release.
+  @Deprecated('Use .description for a short description and consider placing '
+      'long-form documentation on an external website.')
   final String details;
 
   /// Short description suitable for display in console output.
@@ -206,11 +210,6 @@ abstract class LintRule {
   /// Lint name.
   final String name;
 
-  /// The documentation for the lint that should appear on the Diagnostic
-  /// messages page. This field should never be accessed in any code in `lib` or
-  /// `bin`.
-  final String? documentation;
-
   /// The state of a lint, and optionally since when the state began.
   final State state;
 
@@ -218,9 +217,8 @@ abstract class LintRule {
     required this.name,
     this.categories = const <String>{},
     required this.description,
-    required this.details,
+    this.details = '',
     State? state,
-    this.documentation,
   }) : state = state ?? State.stable();
 
   /// Indicates whether the lint rule can work with just the parsed information

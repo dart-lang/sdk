@@ -89,7 +89,10 @@ import '../kernel/macro/macro.dart' show NeededPrecompilations;
 import '../kernel_generator_impl.dart' show precompileMacros;
 import '../source/source_extension_builder.dart';
 import '../source/source_library_builder.dart'
-    show ImplicitLanguageVersion, SourceLibraryBuilder;
+    show
+        ImplicitLanguageVersion,
+        SourceLibraryBuilder,
+        SourceLibraryBuilderState;
 import '../source/source_loader.dart';
 import '../util/error_reporter_file_copier.dart' show saveAsGzip;
 import '../util/experiment_environment_getter.dart'
@@ -657,6 +660,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
     nextGoodKernelTarget.loader.buildersCreatedWithReferences.clear();
+    nextGoodKernelTarget.loader.fragmentsCreatedWithReferences.clear();
     nextGoodKernelTarget.loader.hierarchyBuilder.clear();
     nextGoodKernelTarget.loader.membersBuilder.clear();
     nextGoodKernelTarget.loader.referenceFromIndex = null;
@@ -881,7 +885,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
         assert(
             !map.containsKey(name),
-            // Coverage-ignore(suite): Not run.
             "Unexpected double-entry for $name in "
             "${mainCompilationUnit.importUri} "
             "(org from ${entry.key.importUri}): "
@@ -1970,6 +1973,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         isPatch: false,
       );
       debugLibrary.compilationUnit.createLibrary();
+      debugLibrary.state = SourceLibraryBuilderState.resolvedParts;
+      debugLibrary.buildNameSpace();
       libraryBuilder.nameSpace.forEachLocalMember((name, member) {
         debugLibrary.nameSpace.addLocalMember(name, member, setter: false);
       });
@@ -1979,6 +1984,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       libraryBuilder.nameSpace.forEachLocalExtension((member) {
         debugLibrary.nameSpace.addExtension(member);
       });
+      debugLibrary.buildScopes(lastGoodKernelTarget.loader.coreLibrary);
       _ticker.logMs("Created debug library");
 
       if (libraryBuilder is DillLibraryBuilder) {
@@ -2005,6 +2011,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               deferred: dependency.isDeferred);
         }
 
+        debugLibrary.buildInitialScopes();
         debugLibrary.addImportsToScope();
         _ticker.logMs("Added imports");
       }
@@ -2053,6 +2060,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       debugLibrary.compilationUnit.createLibrary();
+      debugLibrary.state = SourceLibraryBuilderState.resolvedParts;
+      debugLibrary.buildNameSpace();
       debugLibrary.buildOutlineNodes(lastGoodKernelTarget.loader.coreLibrary);
       Expression compiledExpression = await lastGoodKernelTarget.loader
           .buildExpression(

@@ -559,7 +559,6 @@ class OutlineBuilder extends StackListenerImpl {
   void popDeclarationContext([DeclarationContext? expectedContext]) {
     assert(
         expectedContext == null || expectedContext == declarationContext,
-        // Coverage-ignore(suite): Not run.
         "Unexpected declaration context: "
         "Expected $expectedContext, actual $declarationContext.");
     _declarationContext = _declarationContext.tail!;
@@ -733,9 +732,7 @@ class OutlineBuilder extends StackListenerImpl {
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(importKeyword.charOffset);
     if (prefix is! Identifier?) {
-      assert(
-          prefix is ParserRecovery,
-          // Coverage-ignore(suite): Not run.
+      assert(prefix is ParserRecovery,
           "Unexpected prefix $prefix (${prefix.runtimeType}).");
       return;
     }
@@ -959,9 +956,7 @@ class OutlineBuilder extends StackListenerImpl {
           "Unexpected prefix $prefix (${prefix.runtimeType})");
       push(prefix);
     } else if (suffix is! SimpleIdentifier) {
-      assert(
-          suffix is ParserRecovery,
-          // Coverage-ignore(suite): Not run.
+      assert(suffix is ParserRecovery,
           "Unexpected suffix $suffix (${suffix.runtimeType})");
       push(suffix);
     } else {
@@ -2094,9 +2089,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
 
     if (identifier is! Identifier) {
-      assert(
-          identifier is ParserRecovery,
-          // Coverage-ignore(suite): Not run.
+      assert(identifier is ParserRecovery,
           "Unexpected identifier $identifier (${identifier.runtimeType})");
 
       if (inConstructor) {

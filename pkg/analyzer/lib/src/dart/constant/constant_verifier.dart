@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -894,7 +893,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     var scrutineeType = scrutinee.typeOrThrow;
     var scrutineeTypeEx = _exhaustivenessCache.getStaticType(scrutineeType);
 
-    var caseNodesWithSpace = <AstNode>[];
+    var caseNodesWithSpace = <CaseNodeImpl>[];
+    var caseIsGuarded = <bool>[];
     var caseSpaces = <Space>[];
     SwitchDefault? defaultNode;
 
@@ -909,25 +909,18 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
     // Build spaces for cases.
     for (var caseNode in caseNodes) {
-      GuardedPattern? guardedPattern;
       if (caseNode is SwitchCase) {
         // Should not happen, ignore.
       } else if (caseNode is SwitchDefault) {
         defaultNode = caseNode;
-      } else if (caseNode is SwitchExpressionCase) {
-        guardedPattern = caseNode.guardedPattern;
-      } else if (caseNode is SwitchPatternCase) {
-        guardedPattern = caseNode.guardedPattern;
+      } else if (caseNode is CaseNodeImpl) {
+        Space space = patternConverter.createRootSpace(
+            scrutineeTypeEx, caseNode.guardedPattern.pattern);
+        caseNodesWithSpace.add(caseNode);
+        caseIsGuarded.add(caseNode.guardedPattern.whenClause != null);
+        caseSpaces.add(space);
       } else {
         throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
-      }
-
-      if (guardedPattern != null) {
-        Space space = patternConverter.createRootSpace(
-            scrutineeTypeEx, guardedPattern.pattern,
-            hasGuard: guardedPattern.whenClause != null);
-        caseNodesWithSpace.add(caseNode);
-        caseSpaces.add(space);
       }
     }
     var reportNonExhaustive = mustBeExhaustive && defaultNode == null;
@@ -940,18 +933,14 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     NonExhaustiveness? nonExhaustiveness;
     if (!patternConverter.hasInvalidType) {
       nonExhaustiveness = computeExhaustiveness(
-          _exhaustivenessCache, scrutineeTypeEx, caseSpaces,
+          _exhaustivenessCache, scrutineeTypeEx, caseIsGuarded, caseSpaces,
           caseUnreachabilities: caseUnreachabilities);
       for (var caseUnreachability in caseUnreachabilities) {
         var caseNode = caseNodesWithSpace[caseUnreachability.index];
-        Token errorToken;
-        if (caseNode is SwitchExpressionCase) {
-          errorToken = caseNode.arrow;
-        } else if (caseNode is SwitchPatternCase) {
-          errorToken = caseNode.keyword;
-        } else {
-          throw UnimplementedError('(${caseNode.runtimeType}) $caseNode');
-        }
+        var errorToken = switch (caseNode) {
+          SwitchExpressionCaseImpl() => caseNode.arrow,
+          SwitchPatternCaseImpl() => caseNode.keyword
+        };
         _errorReporter.atToken(
           errorToken,
           WarningCode.UNREACHABLE_SWITCH_CASE,

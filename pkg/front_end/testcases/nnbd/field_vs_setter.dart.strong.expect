@@ -2,34 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:10:10: Error: 'topLevelFieldAndDuplicateSetter' is already declared in this scope.
-// void set topLevelFieldAndDuplicateSetter(int? value) {}
-//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:9:10: Context: Previous declaration of 'topLevelFieldAndDuplicateSetter'.
-// void set topLevelFieldAndDuplicateSetter(int? value) {}
-//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:13:12: Error: 'duplicateTopLevelFieldAndSetter1' is already declared in this scope.
-// final int? duplicateTopLevelFieldAndSetter1 = null;
-//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:12:6: Context: Previous declaration of 'duplicateTopLevelFieldAndSetter1'.
-// int? duplicateTopLevelFieldAndSetter1;
-//      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:17:6: Error: 'duplicateTopLevelFieldAndSetter2' is already declared in this scope.
-// int? duplicateTopLevelFieldAndSetter2;
-//      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:16:12: Context: Previous declaration of 'duplicateTopLevelFieldAndSetter2'.
-// final int? duplicateTopLevelFieldAndSetter2 = null;
-//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:25:10: Error: 'topLevelLateFinalFieldAndDuplicateSetter' is already declared in this scope.
-// void set topLevelLateFinalFieldAndDuplicateSetter(int? value) {}
-//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:24:10: Context: Previous declaration of 'topLevelLateFinalFieldAndDuplicateSetter'.
-// void set topLevelLateFinalFieldAndDuplicateSetter(int? value) {}
-//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:104:8: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
 //   int? extensionInstanceFieldAndSetter;
@@ -89,6 +61,34 @@ library;
 // Try removing the field declaration or making it a static field
 //   int? duplicateExtensionInstanceFieldAndStaticSetter2;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:10:10: Error: 'topLevelFieldAndDuplicateSetter' is already declared in this scope.
+// void set topLevelFieldAndDuplicateSetter(int? value) {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:9:10: Context: Previous declaration of 'topLevelFieldAndDuplicateSetter'.
+// void set topLevelFieldAndDuplicateSetter(int? value) {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:13:12: Error: 'duplicateTopLevelFieldAndSetter1' is already declared in this scope.
+// final int? duplicateTopLevelFieldAndSetter1 = null;
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:12:6: Context: Previous declaration of 'duplicateTopLevelFieldAndSetter1'.
+// int? duplicateTopLevelFieldAndSetter1;
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:17:6: Error: 'duplicateTopLevelFieldAndSetter2' is already declared in this scope.
+// int? duplicateTopLevelFieldAndSetter2;
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:16:12: Context: Previous declaration of 'duplicateTopLevelFieldAndSetter2'.
+// final int? duplicateTopLevelFieldAndSetter2 = null;
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:25:10: Error: 'topLevelLateFinalFieldAndDuplicateSetter' is already declared in this scope.
+// void set topLevelLateFinalFieldAndDuplicateSetter(int? value) {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:24:10: Context: Previous declaration of 'topLevelLateFinalFieldAndDuplicateSetter'.
+// void set topLevelLateFinalFieldAndDuplicateSetter(int? value) {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/field_vs_setter.dart:33:12: Error: 'instanceFieldAndDuplicateSetter' is already declared in this scope.
 //   void set instanceFieldAndDuplicateSetter(int? value) {}

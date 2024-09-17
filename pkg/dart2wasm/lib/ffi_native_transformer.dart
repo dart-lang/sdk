@@ -75,6 +75,8 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
   final Procedure wasmF32ToDouble;
   final Procedure wasmF64FromDouble;
   final Procedure wasmF64ToDouble;
+  final Procedure pointerFromAddressI32;
+  final Field pointerAddressField;
 
   WasmFfiNativeTransformer(super.index, super.coreTypes, super.hierarchy,
       super.diagnosticReporter, super.referenceFromIndex)
@@ -108,7 +110,10 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
         wasmF64FromDouble =
             index.getProcedure('dart:_wasm', 'WasmF64', 'fromDouble'),
         wasmF64ToDouble =
-            index.getProcedure('dart:_wasm', 'WasmF64', 'toDouble');
+            index.getProcedure('dart:_wasm', 'WasmF64', 'toDouble'),
+        pointerFromAddressI32 =
+            index.getProcedure('dart:ffi', 'Pointer', '_fromAddressI32'),
+        pointerAddressField = index.getField('dart:ffi', 'Pointer', '_address');
 
   @override
   visitProcedure(Procedure node) {
@@ -231,6 +236,8 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
   /// For example, converts a Dart `int` for an `Uint8` native type to Wasm I32
   /// and masks high bits.
   ///
+  /// Unboxes `Pointer` values as `i32`.
+  ///
   /// Returns `null` for [Void] values.
   Expression? _dartValueToFfiValue(DartType ffiType, Expression expr) {
     final InterfaceType abiType_ =
@@ -256,7 +263,13 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
         StaticInvocation(wasmF32FromDouble, Arguments([expr])),
       NativeType.kDouble =>
         StaticInvocation(wasmF64FromDouble, Arguments([expr])),
-      NativeType.kPointer => expr,
+      NativeType.kPointer => InstanceGet(
+          InstanceAccessKind.Instance,
+          expr,
+          pointerAddressField.name,
+          interfaceTarget: pointerAddressField,
+          resultType: InterfaceType(wasmI32Class, Nullability.nonNullable),
+        ),
       NativeType.kBool => StaticInvocation(wasmI32FromBool, Arguments([expr])),
       NativeType.kVoid => null,
       _ => throw '_dartValueToFfiValue: $abiTypeNativeType cannot be converted'
@@ -295,6 +308,11 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
         return instanceInvocation(wasmI32ToIntUnsigned, expr);
 
       case NativeType.kPointer:
+        assert(ffiType_.classNode == pointerClass);
+        assert(ffiType_.typeArguments.length == 1);
+        return StaticInvocation(pointerFromAddressI32,
+            Arguments([expr], types: ffiType_.typeArguments));
+
       case NativeType.kVoid:
         return expr;
 
@@ -358,6 +376,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
       case NativeType.kInt32:
       case NativeType.kUint32:
       case NativeType.kBool:
+      case NativeType.kPointer:
         return InterfaceType(wasmI32Class, Nullability.nonNullable);
 
       case NativeType.kInt64:
@@ -370,7 +389,6 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
       case NativeType.kDouble:
         return InterfaceType(wasmF64Class, Nullability.nonNullable);
 
-      case NativeType.kPointer:
       case NativeType.kStruct:
         return ffiType;
 

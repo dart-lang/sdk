@@ -103,8 +103,8 @@ Future<ProcessResult> markExecutable(String outputFile) {
 
 /// Generates kernel by running the provided [genKernel] path.
 ///
-/// Also takes a path to the [resourcesFile] JSON file, where the method calls
-/// to static functions annotated with `@ResourceIdentifier` will be collected.
+/// Also takes a path to the [recordedUsagesFile] JSON file, where the method
+/// calls to static functions annotated with `@RecordUse` will be collected.
 Future<ProcessResult> generateKernelHelper({
   required String dartaotruntime,
   String? sourceFile,
@@ -115,7 +115,7 @@ Future<ProcessResult> generateKernelHelper({
   String? targetOS,
   List<String> extraGenKernelOptions = const [],
   String? nativeAssets,
-  String? resourcesFile,
+  String? recordedUsagesFile,
   String? depFile,
   bool enableAsserts = false,
   bool fromDill = false,
@@ -138,7 +138,8 @@ Future<ProcessResult> generateKernelHelper({
     ...defines.map((d) => '-D$d'),
     if (packages != null) '--packages=$packages',
     if (nativeAssets != null) '--native-assets=$nativeAssets',
-    if (resourcesFile != null) '--resources-file=$resourcesFile',
+    if (recordedUsagesFile != null)
+      '--recorded-usages-file=$recordedUsagesFile',
     if (depFile != null) '--depfile=$depFile',
     '--output=$kernelFile',
     ...extraGenKernelOptions,

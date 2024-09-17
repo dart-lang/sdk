@@ -58,7 +58,7 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
     b.ref_null(translator.topInfo.struct); // await value
     b.ref_null(translator.topInfo.struct); // error value
     b.ref_null(translator.stackTraceInfo.repr.struct); // stack trace
-    b.call(resumeFun);
+    translator.callFunction(resumeFun, b);
     b.drop(); // drop null
 
     // (3) Return the completer's future.
@@ -244,7 +244,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
         thisLocal,
         cloneContextFor: functionNode);
 
-    visitStatement(functionNode.body!);
+    translateStatement(functionNode.body!);
 
     // Final state: return.
     emitTargetLabel(targets.last);
@@ -353,7 +353,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
       types.makeType(this, futureTypeParam);
     }
     b.local_get(_suspendStateLocal);
-    wrap(node.operand, translator.topInfo.nullableType);
+    translateExpression(node.operand, translator.topInfo.nullableType);
     if (runtimeType != null) {
       call(translator.awaitHelperWithTypeCheck.reference);
     } else {
