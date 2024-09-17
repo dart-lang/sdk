@@ -16,7 +16,8 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         Parser,
         lengthForToken,
         lengthOfSpan,
-        optional;
+        optional,
+        optional2;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show
         Quote,
@@ -28,7 +29,8 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart'
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, GrowableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/parser/util.dart' show stripSeparators;
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show Token, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
@@ -2548,7 +2550,7 @@ class BodyBuilder extends StackListenerImpl
       ]),
     ]));
     debugEvent("BinaryExpression");
-    if (optional(".", token) ||
+    if (optional2(TokenType.PERIOD, token) ||
         optional("..", token) ||
         optional("?..", token)) {
       doDotOrCascadeExpression(token);
@@ -2890,7 +2892,8 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Object? send = pop();
     if (send is Selector) {
-      Object? receiver = optional(".", token) ? pop() : popForValue();
+      Object? receiver =
+          optional2(TokenType.PERIOD, token) ? pop() : popForValue();
       push(send.withReceiver(receiver, token.charOffset));
     } else if (send is IncompleteErrorGenerator) {
       // Pop the "receiver" and push the error.

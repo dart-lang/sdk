@@ -4,7 +4,7 @@
 
 library _fe_analyzer_shared.parser.type_info;
 
-import '../scanner/token.dart' show Token, TokenType;
+import '../scanner/token.dart' show Keyword, Token, TokenType;
 
 import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN, KEYWORD_TOKEN;
 
@@ -14,7 +14,7 @@ import 'parser_impl.dart' show Parser;
 
 import 'type_info_impl.dart';
 
-import 'util.dart' show isOneOf, optional;
+import 'util.dart' show isOneOf, optional, optional2;
 
 /// [TypeInfo] provides information collected by [computeType]
 /// about a particular type reference.
@@ -125,12 +125,13 @@ const TypeParamOrArgInfo noTypeParamOrArg = const NoTypeParamOrArg();
 const TypeInfo voidType = const VoidType();
 
 bool isGeneralizedFunctionType(Token token) {
-  return optional('Function', token) &&
-      (optional('<', token.next!) || optional('(', token.next!));
+  return optional2(Keyword.FUNCTION, token) &&
+      (optional2(TokenType.LT, token.next!) ||
+          optional2(TokenType.OPEN_PAREN, token.next!));
 }
 
 bool isPossibleRecordType(Token token) {
-  return optional('(', token) &&
+  return optional2(TokenType.OPEN_PAREN, token) &&
       token.endGroup != null &&
       !token.endGroup!.isSynthetic;
 }
@@ -202,7 +203,7 @@ TypeInfo computeType(final Token token, bool required,
     return noType;
   }
 
-  if (optional('void', next)) {
+  if (optional2(Keyword.VOID, next)) {
     next = next.next!;
     if (isGeneralizedFunctionType(next)) {
       // `void` `Function` ...
@@ -244,7 +245,7 @@ TypeInfo computeType(final Token token, bool required,
     if (typeParamOrArg.isSimpleTypeArgument) {
       // We've seen identifier `<` identifier `>`
       next = typeParamOrArg.skip(next).next!;
-      if (optional('?', next)) {
+      if (optional2(TokenType.QUESTION, next)) {
         next = next.next!;
         if (!isGeneralizedFunctionType(next)) {
           if ((required || looksLikeName(next)) &&
@@ -276,14 +277,14 @@ TypeInfo computeType(final Token token, bool required,
   assert(typeParamOrArg == noTypeParamOrArg);
   next = next.next!;
 
-  if (optional('.', next)) {
+  if (optional2(TokenType.PERIOD, next)) {
     next = next.next!;
     if (isValidNonRecordTypeReference(next)) {
       // We've seen identifier `.` identifier
       typeParamOrArg = computeTypeParamOrArg(next, inDeclaration);
       next = next.next!;
       if (typeParamOrArg == noTypeParamOrArg) {
-        if (optional('?', next)) {
+        if (optional2(TokenType.QUESTION, next)) {
           next = next.next!;
           if (!isGeneralizedFunctionType(next)) {
             if (required || looksLikeName(next)) {
@@ -327,7 +328,7 @@ TypeInfo computeType(final Token token, bool required,
         .computeIdentifierGFT(required);
   }
 
-  if (optional('?', next)) {
+  if (optional2(TokenType.QUESTION, next)) {
     next = next.next!;
     if (isGeneralizedFunctionType(next)) {
       // identifier `?` Function `(`
@@ -383,7 +384,7 @@ TypeInfo computeVariablePatternType(Token token, [bool required = false]) {
 TypeParamOrArgInfo computeTypeParamOrArg(Token token,
     [bool inDeclaration = false, bool allowsVariance = false]) {
   Token beginGroup = token.next!;
-  if (!optional('<', beginGroup)) {
+  if (!optional2(TokenType.LT, beginGroup)) {
     return noTypeParamOrArg;
   }
 
@@ -391,11 +392,11 @@ TypeParamOrArgInfo computeTypeParamOrArg(Token token,
   // are handled by ComplexTypeInfo.
   Token next = beginGroup.next!;
   if ((next.kind == IDENTIFIER_TOKEN || next.type.isPseudo)) {
-    if (optional('>', next.next!)) {
+    if (optional2(TokenType.GT, next.next!)) {
       return simpleTypeArgument1;
-    } else if (optional('>>', next.next!)) {
+    } else if (optional2(TokenType.GT_GT, next.next!)) {
       return simpleTypeArgument1GtGt;
-    } else if (optional('>=', next.next!)) {
+    } else if (optional2(TokenType.GT_EQ, next.next!)) {
       return simpleTypeArgument1GtEq;
     }
   } else if (optional('(', next)) {
