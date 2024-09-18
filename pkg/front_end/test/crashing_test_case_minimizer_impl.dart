@@ -26,7 +26,7 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/incremental_compiler.dart'
-    show IncrementalCompiler;
+    show IncrementalCompiler, IncrementalKernelTarget;
 import 'package:front_end/src/base/messages.dart' show Message;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -58,9 +58,13 @@ class TestMinimizerSettings {
   }
 
   bool _useInitialFs = true;
-  Uri? mainUri;
+  final List<Uri> entryUris = [];
   Uri? platformUri;
+  Uri? packagesFileUri;
   bool noPlatform = false;
+  bool initialOnlyOutline = false;
+  bool loadFromComponentBeforeInvalidate = false;
+  bool invalidateAllAtOnce = false;
   bool experimentalInvalidation = false;
   bool serialize = false;
   bool widgetTransformation = false;
@@ -89,9 +93,13 @@ class TestMinimizerSettings {
         new List<Map<String, dynamic>>.from(this.fileSystems);
     fileSystems.add(_fsNotInitial.toJson());
     return {
-      'mainUri': mainUri.toString(),
+      'entryUris': entryUris.map((uri) => uri.toString()).toList(),
       'platformUri': platformUri.toString(),
+      'packagesFileUri': packagesFileUri.toString(),
       'noPlatform': noPlatform,
+      'loadFromComponentBeforeInvalidate': loadFromComponentBeforeInvalidate,
+      'invalidateAllAtOnce': invalidateAllAtOnce,
+      'initialOnlyOutline': initialOnlyOutline,
       'experimentalInvalidation': experimentalInvalidation,
       'serialize': serialize,
       'widgetTransformation': widgetTransformation,
@@ -112,9 +120,16 @@ class TestMinimizerSettings {
   }
 
   void initializeFromJson(Map<String, dynamic> json) {
-    mainUri = Uri.parse(json["mainUri"]);
+    entryUris.clear();
+    entryUris.addAll(
+        (json["entryUris"] as List).map((uriString) => Uri.parse(uriString)));
     platformUri = Uri.parse(json["platformUri"]);
+    packagesFileUri = Uri.parse(json["packagesFileUri"]);
     noPlatform = json["noPlatform"];
+    loadFromComponentBeforeInvalidate =
+        json["loadFromComponentBeforeInvalidate"];
+    invalidateAllAtOnce = json["invalidateAllAtOnce"];
+    initialOnlyOutline = json["initialOnlyOutline"];
     experimentalInvalidation = json["experimentalInvalidation"];
     serialize = json["serialize"];
     widgetTransformation = json["widgetTransformation"];
@@ -151,7 +166,7 @@ class TestMinimizerSettings {
 class TestMinimizer {
   final TestMinimizerSettings _settings;
   _FakeFileSystem get _fs => _settings._fs;
-  Uri get _mainUri => _settings.mainUri!;
+  List<Uri> get _entryUris => _settings.entryUris;
   String? _expectedCrashLine;
   bool _quit = false;
   bool _skip = false;
@@ -162,6 +177,7 @@ class TestMinimizer {
   Component? _latestComponent;
   IncrementalCompiler? _latestCrashingIncrementalCompiler;
   Map<Uri, LibraryBuilder>? _latestCrashingKnownInitialBuilders;
+  IncrementalKernelTarget? _latestKernelTarget;
   StreamSubscription<List<int>>? _stdinSubscription;
 
   static const int _$LF = 10;
@@ -269,11 +285,16 @@ class TestMinimizer {
   Future _tryToMinimizeImpl() async {
     // Set main to be basically empty up front.
     _settings._useInitialFs = true;
-    _fs.data[_mainUri] = utf8.encode("main() {}");
+    for (Uri entry in _entryUris) {
+      _fs.data[entry] = utf8.encode("main() {}");
+    }
     Component initialComponent = await _getInitialComponent();
     print("Compiled initially (without data)");
     // Remove fake cache.
-    _fs.data.remove(_mainUri);
+    for (Uri entry in _entryUris) {
+      _fs.data.remove(entry);
+    }
+
     _settings._useInitialFs = false;
 
     // First assure it actually crash on the input.
@@ -470,6 +491,7 @@ class TestMinimizer {
 
       for (Uri uri in uris) {
         if (_fs.data[uri] == null || _fs.data[uri]!.isEmpty) continue;
+        if (uri.path.endsWith(".dill")) continue;
         print("Uri $uri has this content:");
 
         try {
@@ -511,7 +533,7 @@ class TestMinimizer {
   /// success.
   Future<bool> _attemptInline(Uri uri, Component initialComponent) async {
     // Don't attempt to inline the main uri --- that's our entry!
-    if (uri == _mainUri) return false;
+    if (_entryUris.contains(uri)) return false;
 
     Uint8List inlineData = _fs.data[uri]!;
     bool hasMultipleLines = false;
@@ -721,7 +743,7 @@ class TestMinimizer {
 
     // TODO(jensj): don't use full uris.
     print("""
-# Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+# Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -734,13 +756,18 @@ type: newworld""");
     }
     print("""
 worlds:
-  - entry: $_mainUri""");
+  - entry:""");
+    for (Uri entry in _settings.entryUris) {
+      print("      - $entry");
+    }
     if (_settings.experimentalInvalidation) {
       print("    experiments: alternative-invalidation-strategy");
     }
     print("    sources:");
     for (MapEntry<Uri?, Uint8List?> entry in _fs.data.entries) {
       if (entry.value == null) continue;
+      if (entry.key == null) continue;
+      if (entry.key!.path.endsWith(".dill")) continue;
       print("      ${entry.key}: |");
       String string = utf8.decode(entry.value!);
       List<String> lines = string.split("\n");
@@ -752,19 +779,42 @@ worlds:
         "# with parts this is not right");
     print("");
 
-    for (Uri uri in _settings.invalidate) {
-      print("  - entry: $_mainUri");
+    if (_settings.invalidateAllAtOnce) {
+      print("  - entry:");
+      for (Uri entry in _settings.entryUris) {
+        print("      - $entry");
+      }
       if (_settings.experimentalInvalidation) {
         print("    experiments: alternative-invalidation-strategy");
       }
       print("    worldType: updated");
       print("    expectInitializeFromDill: false # or true?");
       print("    invalidate:");
-      print("      - $uri");
+      for (Uri uri in _settings.invalidate) {
+        print("      - $uri");
+      }
       print("    expectedLibraryCount: $dartFiles "
           "# with parts this is not right");
       print("    advancedInvalidation: bodiesOnly # or something else?");
       print("");
+    } else {
+      for (Uri uri in _settings.invalidate) {
+        print("  - entry:");
+        for (Uri entry in _settings.entryUris) {
+          print("      - $entry");
+        }
+        if (_settings.experimentalInvalidation) {
+          print("    experiments: alternative-invalidation-strategy");
+        }
+        print("    worldType: updated");
+        print("    expectInitializeFromDill: false # or true?");
+        print("    invalidate:");
+        print("      - $uri");
+        print("    expectedLibraryCount: $dartFiles "
+            "# with parts this is not right");
+        print("    advancedInvalidation: bodiesOnly # or something else?");
+        print("");
+      }
     }
 
     print("------------------------------------------------------------------");
@@ -808,8 +858,7 @@ worlds:
   }
 
   Uri _getImportUri(Uri uri) {
-    return _latestCrashingIncrementalCompiler!.kernelTargetForTesting!
-        .getEntryPointUri(uri);
+    return _latestKernelTarget!.getEntryPointUri(uri);
   }
 
   Uint8List _sublist(Uint8List data, int start, int end) {
@@ -1349,7 +1398,7 @@ worlds:
         shouldCompile = true;
         what = "part of";
       } else if (child.isScript()) {
-        var decl = child.asScript();
+        ScriptHandle decl = child.asScript();
         helper.replacements.add(new _Replacement(
             decl.token.offset - 1, decl.token.offset + decl.token.length));
         shouldCompile = true;
@@ -1595,7 +1644,8 @@ worlds:
     }
     Uint8List candidate = _replaceRange(data.replacements, data.originalData);
 
-    if (!_parsesWithoutError(candidate, _isUriNnbd(uri))) {
+    if (!_parsesWithoutError(candidate, _isUriNnbd(uri)) &&
+        _parsesWithoutError(data.originalData, _isUriNnbd(uri))) {
       print("WARNING: Parser error after stuff at ${StackTrace.current}");
       _parsesWithoutError(candidate, _isUriNnbd(uri));
       _parsesWithoutError(data.originalData, _isUriNnbd(uri));
@@ -1750,8 +1800,7 @@ worlds:
   }
 
   bool _knownByCompiler(Uri uri) {
-    LibraryBuilder? libraryBuilder = _latestCrashingIncrementalCompiler!
-        .kernelTargetForTesting!.loader
+    LibraryBuilder? libraryBuilder = _latestKernelTarget!.loader
         .lookupLoadedLibraryBuilder(_getImportUri(uri));
     if (libraryBuilder != null) {
       return true;
@@ -1777,11 +1826,15 @@ worlds:
     if (libraryBuilder != null) {
       return libraryBuilder.languageVersion;
     }
-    print("Couldn't lookup $uri");
+    print("Couldn't lookup $uri ($asImportUri)");
     for (LibraryBuilder libraryBuilder
         in _latestCrashingKnownInitialBuilders!.values) {
       if (libraryBuilder.importUri == uri) {
         print("Found $uri as ${libraryBuilder.importUri} (!= ${asImportUri})");
+        return libraryBuilder.languageVersion;
+      }
+      if (libraryBuilder.fileUri == uri) {
+        print("Found $uri as file uri ${libraryBuilder.fileUri}");
         return libraryBuilder.languageVersion;
       }
       // Check parts too.
@@ -1791,10 +1844,19 @@ worlds:
           print("Found $uri as part of ${libraryBuilder.importUri}");
           return libraryBuilder.languageVersion;
         }
+        thisPartUri = libraryBuilder.fileUri.resolve(part.partUri);
+        if (thisPartUri == uri || thisPartUri == asImportUri) {
+          print("Found $uri as part of ${libraryBuilder.importUri}");
+          return libraryBuilder.languageVersion;
+        }
       }
     }
     if (crashOnFail) {
-      throw "Couldn't lookup $uri at all!";
+      throw "Couldn't lookup $uri ($asImportUri) at all!"
+          "\n\n"
+          "$_latestCrashingKnownInitialBuilders"
+          "\n\n"
+          "";
     } else {
       return defaultLanguageVersion;
     }
@@ -1809,17 +1871,23 @@ worlds:
     IncrementalCompiler incrementalCompiler;
     _gotWantedError = false;
     bool didNotGetWantedErrorAfterFirstCompile = true;
+    CompilerContext context = _setupCompilerContext();
     if (_settings.noPlatform) {
-      incrementalCompiler = new IncrementalCompiler(_setupCompilerContext());
+      incrementalCompiler = new IncrementalCompiler(context);
+    } else if (_settings.initialOnlyOutline) {
+      incrementalCompiler = new IncrementalCompiler(context, null, true);
     } else {
       incrementalCompiler = new IncrementalCompiler.fromComponent(
-          _setupCompilerContext(), initialComponent);
+          context, initialComponent, true);
     }
-    incrementalCompiler.invalidate(_mainUri);
+    for (Uri entry in _entryUris) {
+      incrementalCompiler.invalidate(entry);
+    }
     Map<Uri, LibraryBuilder>? knownInitialBuilders;
     try {
       IncrementalCompilerResult incrementalCompilerResult =
           await incrementalCompiler.computeDelta();
+      _latestKernelTarget = incrementalCompiler.kernelTargetForTesting!;
       _latestComponent = incrementalCompilerResult.component;
       if (_settings.serialize) {
         // We're asked to serialize, probably because it crashes in
@@ -1830,17 +1898,26 @@ worlds:
       }
 
       knownInitialBuilders = <Uri, LibraryBuilder>{
-        for (var v in incrementalCompiler
-            .kernelTargetForTesting!.loader.loadedLibraryBuilders)
+        for (LibraryBuilder v
+            in _latestKernelTarget!.loader.loadedLibraryBuilders)
           v.importUri: v
       };
 
       if (_gotWantedError) didNotGetWantedErrorAfterFirstCompile = false;
 
-      for (Uri uri in _settings.invalidate) {
-        incrementalCompiler.invalidate(uri);
+      if (_settings.loadFromComponentBeforeInvalidate) {
+        incrementalCompiler =
+            new IncrementalCompiler.fromComponent(context, _latestComponent!);
+      }
+
+      if (_settings.invalidateAllAtOnce && _settings.invalidate.isNotEmpty) {
+        for (Uri uri in _settings.invalidate) {
+          incrementalCompiler.invalidate(uri);
+        }
+
         IncrementalCompilerResult deltaResult =
             await incrementalCompiler.computeDelta();
+        _latestKernelTarget = incrementalCompiler.kernelTargetForTesting!;
         Component delta = deltaResult.component;
         if (_settings.serialize) {
           // We're asked to serialize, probably because it crashes in
@@ -1849,6 +1926,22 @@ worlds:
           BinaryPrinter printer = new BinaryPrinter(sink);
           printer.writeComponentFile(delta);
           sink.builder.takeBytes();
+        }
+      } else {
+        for (Uri uri in _settings.invalidate) {
+          incrementalCompiler.invalidate(uri);
+          IncrementalCompilerResult deltaResult =
+              await incrementalCompiler.computeDelta();
+          _latestKernelTarget = incrementalCompiler.kernelTargetForTesting!;
+          Component delta = deltaResult.component;
+          if (_settings.serialize) {
+            // We're asked to serialize, probably because it crashes in
+            // serialization.
+            ByteSink sink = new ByteSink();
+            BinaryPrinter printer = new BinaryPrinter(sink);
+            printer.writeComponentFile(delta);
+            sink.builder.takeBytes();
+          }
         }
       }
       if (_settings.lookForErrorErrorOnReload != null &&
@@ -1968,6 +2061,7 @@ worlds:
     options.fileSystem = _fs;
     options.sdkRoot = null;
     options.sdkSummary = _settings.platformUri;
+    options.packagesFileUri = _settings.packagesFileUri;
     options.omitPlatform = false;
     options.onDiagnostic = (DiagnosticMessage message) {
       // don't care.
@@ -1983,7 +2077,7 @@ worlds:
     }
 
     CompilerContext compilerContext = new CompilerContext(
-        new ProcessedOptions(options: options, inputs: [_mainUri]));
+        new ProcessedOptions(options: options, inputs: _entryUris));
     return compilerContext;
   }
 
@@ -2126,7 +2220,7 @@ class _FakeFileSystem extends FileSystem {
 
   Map<String, dynamic> toJson() {
     List tmp = [];
-    for (var entry in data.entries) {
+    for (MapEntry<Uri?, Uint8List?> entry in data.entries) {
       if (entry.value == null) continue;
       tmp.add(entry.key == null ? null : entry.key.toString());
       dynamic out = entry.value;
