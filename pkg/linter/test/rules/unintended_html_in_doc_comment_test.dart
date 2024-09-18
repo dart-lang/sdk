@@ -62,11 +62,28 @@ class C {}
     ]);
   }
 
+  test_codeSpan_longQuote() async {
+    await assertNoDiagnostics(r'''
+/// The ```List<int> <tag> and `<tag>` example```
+class C {}
+''');
+  }
+
   test_codeSpan_multiple() async {
     await assertNoDiagnostics(r'''
 /// `<` or `>`
 class C {}
 ''');
+  }
+
+  test_codeSpan_unterminated() async {
+    // An unterminated long code span has no effect.
+    await assertDiagnostics(r'''
+/// A ```List<int> and quoted `<tag>` example
+class C {}
+''', [
+      lint(13, 5), // <int>
+    ]);
   }
 
   test_hangingAngleBracket_left() async {
@@ -225,13 +242,11 @@ class C {}
     ]);
   }
 
-  test_unintendedHtml_reference() async {
-    await assertDiagnostics(r'''
+  test_unintendedHtml_reference_withTypeArgument() async {
+    await assertNoDiagnostics(r'''
 /// Text [List<int>].
 class C {}
-''', [
-      lint(14, 5), // <int>
-    ]);
+''');
   }
 
   test_unintendedHtml_spaces() async {
@@ -243,17 +258,6 @@ class C {}
     ]);
   }
 
-  test_unintendedHtml_tags_multiple() async {
-    await assertDiagnostics(r'''
-/// <assignment> -> <variable> = <expression>
-class C {}
-''', [
-      lint(4, 12), // <assignment>
-      lint(20, 10), // <variable>
-      lint(33, 12), // <expression>
-    ]);
-  }
-
   test_unintendedHtml_tags_slash() async {
     await assertDiagnostics(r'''
 /// </bad> <bad/>
@@ -261,6 +265,31 @@ class C {}
 ''', [
       lint(4, 6), // </bad>
       lint(11, 6), // <bad/>
+    ]);
+  }
+
+  test_unintendedHtml_tagsEntity() async {
+    await assertNoDiagnostics(r'''
+/// &lt;assignment&gt; -> &lt;variable&gt; = &lt;expression&gt;
+class C {}
+''');
+  }
+
+  test_unintendedHtml_tagsEscaped() async {
+    await assertNoDiagnostics(r'''
+/// \<assignment\> -> \<variable\> = \<expression\>
+class C {}
+''');
+  }
+
+  test_unintendedHtml_tagsMultiple() async {
+    await assertDiagnostics(r'''
+/// <assignment> -> <variable> = <expression>
+class C {}
+''', [
+      lint(4, 12), // <assignment>
+      lint(20, 10), // <variable>
+      lint(33, 12), // <expression>
     ]);
   }
 }
