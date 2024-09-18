@@ -15,6 +15,9 @@
 
 namespace dart {
 
+Monitor* NativeMessageHandler::monitor_ = nullptr;
+intptr_t NativeMessageHandler::pending_deletions_ = 0;
+
 NativeMessageHandler::NativeMessageHandler(const char* name,
                                            Dart_NativeMessageHandler func,
                                            intptr_t max_concurrency)
@@ -61,11 +64,48 @@ void NativeMessageHandler::PostMessage(std::unique_ptr<Message> message,
 }
 
 void NativeMessageHandler::RequestDeletion(NativeMessageHandler* handler) {
-  ThreadPool::RequestShutdown(&handler->pool_, [handler]() { delete handler; });
+  {
+    MonitorLocker ml(monitor_);
+    pending_deletions_++;
+  }
+
+  ThreadPool::RequestShutdown(&handler->pool_, [handler]() {
+    delete handler;
+
+    // Once the handler and its pool is gone make sure to wake up
+    // |NativeMessageHandler::Cleanup| which might be waiting.
+    {
+      MonitorLocker ml(monitor_);
+      pending_deletions_--;
+      if (pending_deletions_ == 0) {
+        ml.Notify();
+      }
+    }
+  });
 }
 
 void NativeMessageHandler::Shutdown() {
   pool_.Shutdown();
+}
+
+void NativeMessageHandler::Init() {
+  monitor_ = new Monitor();
+}
+
+void NativeMessageHandler::Cleanup() {
+  {
+    MonitorLocker ml(monitor_);
+    // By the time we get here we don't really expect new deletions to be
+    // requested. We proceed with VM shutdown once we have no pending deletions.
+    // In other words words don't try to guard against a race between
+    // |Dart_CloseNativePort| and |Dart_Cleanup| - that's considered an API
+    // misuse.
+    while (pending_deletions_ > 0) {
+      ml.Wait();
+    }
+  }
+  delete monitor_;
+  monitor_ = nullptr;
 }
 
 }  // namespace dart

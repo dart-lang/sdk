@@ -34,6 +34,7 @@
 #include "vm/message_handler.h"
 #include "vm/metrics.h"
 #include "vm/native_entry.h"
+#include "vm/native_message_handler.h"
 #include "vm/object.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
@@ -337,6 +338,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   Isolate::InitVM();
   UserTags::Init();
   PortMap::Init();
+  NativeMessageHandler::Init();
   Service::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
@@ -702,6 +704,8 @@ char* Dart::Cleanup() {
                  UptimeMillis());
   }
   DartInitializationState::SetUnInitialized();
+
+  NativeMessageHandler::Cleanup();
   PortMap::Shutdown();
   thread_pool_->Shutdown();
   delete thread_pool_;
