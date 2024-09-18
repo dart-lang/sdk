@@ -252,6 +252,7 @@ abstract class AbstractScanner implements Scanner {
   /**
    * Notifies that a new token starts at current offset.
    */
+  @pragma("vm:prefer-inline")
   void beginToken() {
     tokenStart = stringOffset;
   }
