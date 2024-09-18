@@ -37,9 +37,43 @@ Future<void> main(List<String> args, [SendPort? sendPort]) async {
                   includedFiles: work.includedFiles,
                   includedDirectoryUris: work.includedDirectoryUris,
                   repoDir: work.repoDir));
-        } catch (e) {
+        } catch (e, st) {
           // This will make it send false.
           compileAndLintErrorsFound = -1;
+
+          StringBuffer sb = new StringBuffer();
+          sb.writeln("void main() {");
+          sb.writeln("  runCompileAndLintTest(includedFiles: {");
+          String comma = "";
+          for (Uri uri in work.includedFiles) {
+            sb.writeln("    ${comma}Uri.parse('$uri')");
+            comma = ", ";
+          }
+          sb.writeln("    }, includedDirectoryUris: {");
+          comma = "";
+          for (Uri uri in work.includedDirectoryUris) {
+            sb.writeln("    ${comma}Uri.parse('$uri')");
+            comma = ", ";
+          }
+          sb.writeln("    }, repoDir: Uri.parse('${work.repoDir}'));");
+          sb.writeln("}");
+
+          print("""
+WARNING: '${work.name}' crashed:
+============
+${e.toString().trim()}
+============
+$st
+============
+
+To reproduce open up compile_and_lint_impl.dart and insert
+
+$sb
+
+Then run that file through your debugger or similar.
+
+""");
+          print("Got error for ${work.name}: $e");
         }
         print("Sending ok = ${compileAndLintErrorsFound == 0} "
             "for ${work.name} after ${stopwatch.elapsed}");

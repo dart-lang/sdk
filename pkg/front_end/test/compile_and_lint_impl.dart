@@ -181,6 +181,7 @@ Set<Uri> _replaceParts(Uri packageConfigUri, Set<Uri> files) {
         in Directory.fromUri(packageEntry.key.packageUriRoot)
             .listSync(recursive: true)) {
       if (f is! File) continue;
+      if (!f.path.endsWith(".dart")) continue;
       if (helpers[f.uri] == null) {
         FileInfoHelper fileInfo = indexUriHelper(f.uri);
         for (String name in fileInfo.libraryNames) {
