@@ -46,7 +46,7 @@ library
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          element: <none>
+          element: <testLibraryFragment>::@function::f#element
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
@@ -86,11 +86,11 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C#element
           constructors
             new @12
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -137,15 +137,15 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
             m @12
               reference: <testLibraryFragment>::@class::C::@method::m
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@method::m#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -190,17 +190,17 @@ library
       topLevelVariables
         synthetic g @-1
           reference: <testLibraryFragment>::@topLevelVariable::g
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::g#element
           getter2: <testLibraryFragment>::@getter::g
       getters
         get g @4
           reference: <testLibraryFragment>::@getter::g
-          element: <none>
+          element: <testLibraryFragment>::@getter::g#element
   topLevelVariables
     synthetic g
       firstFragment: <testLibraryFragment>::@topLevelVariable::g
       type: dynamic
-      getter: <none>
+      getter: <testLibraryFragment>::@getter::g#element
   getters
     static get g
       firstFragment: <testLibraryFragment>::@getter::g
@@ -243,11 +243,11 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C#element
           constructors
             new @12
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -298,15 +298,15 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
             m @12
               reference: <testLibraryFragment>::@class::C::@method::m
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@method::m#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -350,7 +350,7 @@ library
       functions
         main @0
           reference: <testLibraryFragment>::@function::main
-          element: <none>
+          element: <testLibraryFragment>::@function::main#element
   functions
     main
       firstFragment: <testLibraryFragment>::@function::main

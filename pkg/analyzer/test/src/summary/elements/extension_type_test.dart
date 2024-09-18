@@ -66,23 +66,23 @@ library
       extensionTypes
         extension type A @21
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @27
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             const new @21
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @27
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -91,7 +91,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         const new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -161,27 +161,27 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @27
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             named @17
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
               codeOffset: 16
               codeLength: 14
               periodOffset: 16
               nameEnd: 22
               parameters
                 this.it @27
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -192,7 +192,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         named
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
@@ -262,31 +262,31 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @21
-                  element: <none>
+                  element: <not-implemented>
             named @31
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
               periodOffset: 30
               nameEnd: 36
               parameters
                 this.it @42
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -295,7 +295,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: num
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -370,31 +370,31 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @21
-                  element: <none>
+                  element: <not-implemented>
             named @31
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
               periodOffset: 30
               nameEnd: 36
               parameters
                 this.it @46
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -403,7 +403,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: num
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -488,27 +488,27 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @21
-                  element: <none>
+                  element: <not-implemented>
             const named @37
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
               periodOffset: 36
               nameEnd: 42
               parameters
                 a @47
-                  element: <none>
+                  element: <not-implemented>
               constantInitializers
                 ConstructorFieldInitializer
                   fieldName: SimpleIdentifier
@@ -523,7 +523,7 @@ library
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -532,7 +532,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: num
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -605,25 +605,25 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               codeOffset: 16
               codeLength: 8
               parameters
                 this.it @21
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -634,7 +634,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -696,23 +696,23 @@ library
       extensionTypes
         extension type A @24
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @30
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @24
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @30
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -722,7 +722,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -789,23 +789,23 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @46
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -814,11 +814,11 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         static const foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -881,23 +881,23 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @42
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -906,11 +906,11 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         static const foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -969,23 +969,23 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @35
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -994,11 +994,11 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         final foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -1071,26 +1071,27 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
+          reference: <not-implemented>
       extensionTypes
         extension type A @32
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @43
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @32
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @43
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -1099,7 +1100,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -1161,23 +1162,23 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @37
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -1186,11 +1187,11 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         synthetic foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -1257,26 +1258,26 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
         class B @17
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
         class C @28
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C#element
       extensionTypes
         extension type X @64
           reference: <testLibraryFragment>::@extensionType::X
-          element: <testLibraryFragment>::@extensionType::X
+          element: <testLibraryFragment>::@extensionType::X#element
           fields
             it @68
               reference: <testLibraryFragment>::@extensionType::X::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::X::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::X::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::X::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::X::@getter::it#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -1292,7 +1293,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::X::@field::it
           type: C
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::X::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::X::@getter::it
@@ -1359,28 +1360,28 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @56
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B
+          element: <testLibraryFragment>::@extensionType::B#element
           fields
             it @62
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -1389,7 +1390,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -1400,7 +1401,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
@@ -1448,16 +1449,16 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -1466,7 +1467,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -1531,28 +1532,28 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @43
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B
+          element: <testLibraryFragment>::@extensionType::B#element
           fields
             it @49
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -1561,7 +1562,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: num
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -1572,7 +1573,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
@@ -1620,16 +1621,16 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -1638,7 +1639,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -1684,16 +1685,16 @@ library
       extensionTypes
         extension type X @15
           reference: <testLibraryFragment>::@extensionType::X
-          element: <testLibraryFragment>::@extensionType::X
+          element: <testLibraryFragment>::@extensionType::X#element
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::X::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::X::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::X::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::X::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::X::@getter::it#element
   extensionTypes
     extension type X
       firstFragment: <testLibraryFragment>::@extensionType::X
@@ -1702,7 +1703,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::X::@field::it
           type: int?
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::X::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::X::@getter::it
@@ -1751,19 +1752,19 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           typeParameters
             T @17
-              element: <none>
+              element: <not-implemented>
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -1774,7 +1775,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: T
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -1827,20 +1828,20 @@ library
       extensionTypes
         extension type X @33
           reference: <testLibraryFragment>::@extensionType::X
-          element: <testLibraryFragment>::@extensionType::X
+          element: <testLibraryFragment>::@extensionType::X#element
           fields
             it @39
               reference: <testLibraryFragment>::@extensionType::X::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::X::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::X::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::X::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::X::@getter::it#element
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <none>
+          element: <testLibraryFragment>::@typeAlias::A#element
   extensionTypes
     extension type X
       firstFragment: <testLibraryFragment>::@extensionType::X
@@ -1849,7 +1850,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::X::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::X::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::X::@getter::it
@@ -1910,11 +1911,11 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             promotable _it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::_it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::_it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::_it
   classes
     class B
@@ -1923,8 +1924,8 @@ library
         _it
           firstFragment: <testLibraryFragment>::@class::B::@field::_it
           type: int
-          getter: <none>
-          setter: <none>
+          getter: <testLibraryFragment>::@class::B::@getter::_it#element
+          setter: <testLibraryFragment>::@class::B::@setter::_it#element
       getters
         synthetic get _it
           firstFragment: <testLibraryFragment>::@class::B::@getter::_it
@@ -1940,7 +1941,7 @@ library
         synthetic _it
           firstFragment: <testLibraryFragment>::@class::C::@field::_it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@class::C::@getter::_it#element
       getters
         get _it
           firstFragment: <testLibraryFragment>::@class::C::@getter::_it
@@ -1952,7 +1953,7 @@ library
         final _it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::_it
           type: int?
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::_it#element
       getters
         synthetic get _it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::_it
@@ -2030,26 +2031,27 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
+          reference: <not-implemented>
       extensionTypes
         extension type A @37
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @43
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @37
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @43
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2058,7 +2060,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -2120,23 +2122,23 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
             foo @34
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo#element
               parameters
                 a @42
-                  element: <none>
+                  element: <not-implemented>
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2145,7 +2147,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -2212,24 +2214,24 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
             foo @34
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo#element
               parameters
                 default a @43
                   reference: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
-                  element: <none>
+                  element: <not-implemented>
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2238,7 +2240,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -2307,25 +2309,25 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             <empty> @17
               reference: <testLibraryFragment>::@extensionType::A::@field::<empty>
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::<empty>#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::<empty>
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               codeOffset: 16
               codeLength: 2
               parameters
                 this.<empty> @17
-                  element: <none>
+                  element: <not-implemented>
           getters
             get <empty> @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::<empty>
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::<empty>#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2336,7 +2338,7 @@ library
         final <empty>
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::<empty>
           type: InvalidType
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::<empty>#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -2392,19 +2394,19 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           typeParameters
             T @17
-              element: <none>
+              element: <not-implemented>
           fields
             it @34
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2416,7 +2418,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -2475,27 +2477,27 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           setters
             set foo= @33
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _ @44
-                  element: <none>
+                  element: <not-implemented>
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2504,11 +2506,11 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         synthetic foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: double
-          setter: <none>
+          setter: <testLibraryFragment>::@extensionType::A::@setter::foo#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -2578,28 +2580,28 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @19
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @42
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B
+          element: <testLibraryFragment>::@extensionType::B#element
           fields
             it @46
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2608,7 +2610,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: InvalidType
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -2619,7 +2621,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           type: InvalidType
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
@@ -2683,28 +2685,28 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @19
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @42
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B
+          element: <testLibraryFragment>::@extensionType::B#element
           fields
             it @52
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2713,7 +2715,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: B
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -2724,7 +2726,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           type: InvalidType
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
@@ -2770,16 +2772,16 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @19
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2788,7 +2790,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: InvalidType
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -2852,28 +2854,28 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @44
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B
+          element: <testLibraryFragment>::@extensionType::B#element
           fields
             it @62
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2882,7 +2884,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -2893,7 +2895,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           type: A Function(A)
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
@@ -2960,31 +2962,31 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           typeParameters
             T @17
-              element: <none>
+              element: <not-implemented>
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @45
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B
+          element: <testLibraryFragment>::@extensionType::B#element
           fields
             it @57
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2995,7 +2997,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: T
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -3006,7 +3008,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           type: A<double>
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
@@ -3070,28 +3072,28 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @44
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B
+          element: <testLibraryFragment>::@extensionType::B#element
           fields
             it @54
               reference: <testLibraryFragment>::@extensionType::B::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -3100,7 +3102,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -3111,7 +3113,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
           type: List<A>
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
@@ -3157,16 +3159,16 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -3175,7 +3177,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -3234,28 +3236,28 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           typeParameters
             T @17
-              element: <none>
+              element: <not-implemented>
             U @32
-              element: <none>
+              element: <not-implemented>
           fields
             it @45
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @45
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -3268,7 +3270,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: Map<T, U>
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -3382,24 +3384,24 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -3407,7 +3409,7 @@ library
       extensionTypes
         extension type A @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
@@ -3416,7 +3418,7 @@ library
       extensionTypes
         extension type A @41
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
   extensionTypes
     extension type A
@@ -3426,7 +3428,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -3551,40 +3553,40 @@ library
       extensionTypes
         extension type A @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A#element
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           fields
             it @65
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::it#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
           constructors
             augment new @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new#element
               parameters
                 this.it @65
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it#element
           methods
             foo1 @78
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::foo1
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::foo1#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @41
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A#element
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           methods
             foo2 @60
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@method::foo2
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@method::foo2#element
   extensionTypes
     extension type A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
@@ -3593,7 +3595,7 @@ library
         final it
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
@@ -3695,36 +3697,36 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           constructors
             named @60
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named#element
               periodOffset: 59
               nameEnd: 65
   extensionTypes
@@ -3735,7 +3737,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -3845,47 +3847,47 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           typeParameters
             T1 @32
-              element: <none>
+              element: <not-implemented>
           fields
             it @40
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @40
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T2 @46
-              element: <none>
+              element: <not-implemented>
           constructors
             named @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named#element
               periodOffset: 63
               nameEnd: 69
               parameters
                 a @73
-                  element: <none>
+                  element: <not-implemented>
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -3896,7 +3898,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -3998,38 +4000,38 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @42
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             named @32
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
               periodOffset: 31
               nameEnd: 37
               parameters
                 this.it @42
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @58
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::new
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::new#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -4038,7 +4040,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         named
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
@@ -4172,52 +4174,52 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <none>
+                  element: <not-implemented>
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
             foo @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
@@ -4227,12 +4229,12 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         static foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
-          setter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+          setter: <testLibraryFragment>::@extensionType::A::@setter::foo#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -4402,40 +4404,40 @@ library
       extensionTypes
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @51
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @70
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @51
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <none>
+                  element: <not-implemented>
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4443,13 +4445,13 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           fields
             foo @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
@@ -4458,12 +4460,12 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             foo @77
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
   extensionTypes
     extension type A
@@ -4473,12 +4475,12 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         static foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
-          setter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+          setter: <testLibraryFragment>::@extensionType::A::@setter::foo#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -4648,41 +4650,41 @@ library
       extensionTypes
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @51
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @70
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @51
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <none>
+                  element: <not-implemented>
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4690,13 +4692,13 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           getters
             augment get foo @81
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
@@ -4704,12 +4706,12 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             foo @77
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
@@ -4719,12 +4721,12 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         static foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
-          setter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+          setter: <testLibraryFragment>::@extensionType::A::@setter::foo#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -4897,40 +4899,40 @@ library
       extensionTypes
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @51
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @70
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @51
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <none>
+                  element: <not-implemented>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -4939,16 +4941,16 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           setters
             augment set foo= @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _ @85
-                  element: <none>
+                  element: <not-implemented>
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
@@ -4956,12 +4958,12 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             foo @77
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
@@ -4971,12 +4973,12 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         static foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
-          setter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+          setter: <testLibraryFragment>::@extensionType::A::@setter::foo#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -5116,52 +5118,52 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <none>
+                  element: <not-implemented>
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
             foo @80
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
@@ -5171,12 +5173,12 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         static foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
-          setter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+          setter: <testLibraryFragment>::@extensionType::A::@setter::foo#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -5306,44 +5308,44 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @59
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
             foo @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
@@ -5353,11 +5355,11 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         synthetic static foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -5510,64 +5512,64 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo1 @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo1#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo1
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo1
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo1 @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
           setters
             set foo1= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               parameters
                 _foo1 @-1
-                  element: <none>
+                  element: <not-implemented>
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
             foo2 @69
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
               setter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
           getters
             get foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2#element
           setters
             set foo2= @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2#element
               parameters
                 _foo2 @-1
-                  element: <none>
+                  element: <not-implemented>
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -5576,17 +5578,17 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         static foo1
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo1
           type: int
-          getter: <none>
-          setter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
+          setter: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
         static foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
           type: int
-          getter: <none>
-          setter: <none>
+          getter: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2#element
+          setter: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -5728,48 +5730,48 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo1 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo1#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo1
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo1 @52
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
           getters
             get foo2 @66
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -5778,15 +5780,15 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         synthetic foo1
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo1
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
         synthetic foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
           type: int
-          getter: <none>
+          getter: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -5927,54 +5929,54 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           typeParameters
             T1 @32
-              element: <none>
+              element: <not-implemented>
           fields
             it @40
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo1 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo1#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo1
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @40
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo1 @55
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T2 @46
-              element: <none>
+              element: <not-implemented>
           fields
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
           getters
             get foo2 @69
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -5985,15 +5987,15 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         synthetic foo1
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo1
           type: T1
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
         synthetic foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
           type: T2
-          getter: <none>
+          getter: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -6129,52 +6131,52 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <none>
+                  element: <not-implemented>
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           getters
             augment get foo @81
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
   extensionTypes
     extension type A
@@ -6184,12 +6186,12 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         static foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
-          setter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+          setter: <testLibraryFragment>::@extensionType::A::@setter::foo#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -6359,40 +6361,40 @@ library
       extensionTypes
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @51
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @70
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @51
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <none>
+                  element: <not-implemented>
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -6400,13 +6402,13 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           getters
             augment get foo @81
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
@@ -6415,12 +6417,12 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           getters
             augment get foo @81
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
   extensionTypes
     extension type A
@@ -6430,12 +6432,12 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         static foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
-          setter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+          setter: <testLibraryFragment>::@extensionType::A::@setter::foo#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -6578,51 +6580,51 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo1 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo1#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo1
             foo2 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo2
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo2#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo2
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo1 @52
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo1
             get foo2 @73
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo2
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo2#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           getters
             augment get foo1 @74
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo1
   extensionTypes
     extension type A
@@ -6632,15 +6634,15 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         synthetic foo1
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo1
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
         synthetic foo2
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo2
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo2#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -6794,31 +6796,31 @@ library
       extensionTypes
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @51
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @51
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @67
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -6827,13 +6829,13 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           getters
             augment get foo @74
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
@@ -6842,12 +6844,12 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           getters
             augment get foo @74
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
   extensionTypes
     extension type A
@@ -6857,11 +6859,11 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         synthetic foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -6983,49 +6985,49 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type I1 @72
           reference: <testLibraryFragment>::@extensionType::I1
-          element: <testLibraryFragment>::@extensionType::I1
+          element: <testLibraryFragment>::@extensionType::I1#element
           fields
             it @79
               reference: <testLibraryFragment>::@extensionType::I1::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::I1::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::I1::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::I1::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
         extension type I2 @86
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+          element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2#element
           fields
             it @93
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -7034,7 +7036,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -7045,7 +7047,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::I1::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::I1::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::I1::@getter::it
@@ -7056,7 +7058,7 @@ library
         final it
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
           type: int
-          getter: <none>
+          getter: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
@@ -7242,43 +7244,43 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type I1 @72
           reference: <testLibraryFragment>::@extensionType::I1
-          element: <testLibraryFragment>::@extensionType::I1
+          element: <testLibraryFragment>::@extensionType::I1#element
           fields
             it @79
               reference: <testLibraryFragment>::@extensionType::I1::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::I1::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::I1::@getter::it
           constructors
             new @72
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
               parameters
                 this.it @79
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::I1::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -7286,55 +7288,55 @@ library
       extensionTypes
         extension type A @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
         extension type I2 @101
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+          element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2#element
           fields
             it @108
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
           constructors
             new @101
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
               parameters
                 this.it @108
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @41
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
         extension type I3 @83
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
-          element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
+          element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3#element
           fields
             it @90
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@field::it
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@field::it#element
               getter2: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@getter::it
           constructors
             new @83
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new#element
               parameters
                 this.it @90
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@getter::it
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -7343,7 +7345,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -7360,7 +7362,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::I1::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::I1::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::I1::@constructor::new
@@ -7377,7 +7379,7 @@ library
         final it
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
           type: int
-          getter: <none>
+          getter: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
       constructors
         new
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
@@ -7394,7 +7396,7 @@ library
         final it
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@field::it
           type: int
-          getter: <none>
+          getter: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@getter::it#element
       constructors
         new
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new
@@ -7548,79 +7550,79 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           typeParameters
             T @32
-              element: <none>
+              element: <not-implemented>
           fields
             it @39
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @39
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type I1 @75
           reference: <testLibraryFragment>::@extensionType::I1
-          element: <testLibraryFragment>::@extensionType::I1
+          element: <testLibraryFragment>::@extensionType::I1#element
           fields
             it @82
               reference: <testLibraryFragment>::@extensionType::I1::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::I1::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::I1::@getter::it
           constructors
             new @75
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
               parameters
                 this.it @82
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::I1::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T2 @46
-              element: <none>
+              element: <not-implemented>
         extension type I2 @94
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+          element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2#element
           typeParameters
             E @97
-              element: <none>
+              element: <not-implemented>
           fields
             it @104
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
           constructors
             new @94
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
               parameters
                 this.it @104
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -7631,7 +7633,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -7648,7 +7650,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::I1::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::I1::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::I1::@constructor::new
@@ -7667,7 +7669,7 @@ library
         final it
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
           type: int
-          getter: <none>
+          getter: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
       constructors
         new
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
@@ -7822,81 +7824,81 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           typeParameters
             T @32
-              element: <none>
+              element: <not-implemented>
           fields
             it @39
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @39
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type I1 @75
           reference: <testLibraryFragment>::@extensionType::I1
-          element: <testLibraryFragment>::@extensionType::I1
+          element: <testLibraryFragment>::@extensionType::I1#element
           fields
             it @82
               reference: <testLibraryFragment>::@extensionType::I1::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::I1::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::I1::@getter::it
           constructors
             new @75
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
               parameters
                 this.it @82
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::I1::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T2 @46
-              element: <none>
+              element: <not-implemented>
             T3 @50
-              element: <none>
+              element: <not-implemented>
         extension type I2 @98
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+          element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2#element
           typeParameters
             E @101
-              element: <none>
+              element: <not-implemented>
           fields
             it @108
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
           constructors
             new @98
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
               parameters
                 this.it @108
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -7907,7 +7909,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -7924,7 +7926,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::I1::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::I1::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::I1::@constructor::new
@@ -7943,7 +7945,7 @@ library
         final it
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
           type: int
-          getter: <none>
+          getter: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
       constructors
         new
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
@@ -8048,40 +8050,40 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
             foo @49
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           methods
             bar @63
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -8090,7 +8092,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -8207,44 +8209,44 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
             foo1 @49
               reference: <testLibraryFragment>::@extensionType::A::@method::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo1#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo1
             foo2 @66
               reference: <testLibraryFragment>::@extensionType::A::@method::foo2
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo2#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           methods
             augment foo1 @71
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo1#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@method::foo1
   extensionTypes
     extension type A
@@ -8254,7 +8256,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -8393,28 +8395,28 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
             foo @49
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -8423,13 +8425,13 @@ library
       extensionTypes
         extension type A @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           methods
             augment foo @86
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@method::foo
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
@@ -8438,12 +8440,12 @@ library
       extensionTypes
         extension type A @41
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           methods
             augment foo @68
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo#element
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
   extensionTypes
     extension type A
@@ -8453,7 +8455,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -8569,46 +8571,46 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           typeParameters
             T @32
-              element: <none>
+              element: <not-implemented>
           fields
             it @39
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @39
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
             foo @49
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T2 @46
-              element: <none>
+              element: <not-implemented>
           methods
             bar @65
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -8619,7 +8621,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -8738,31 +8740,31 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           typeParameters
             T @32
-              element: <none>
+              element: <not-implemented>
           fields
             it @39
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @39
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
             foo @49
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -8770,15 +8772,15 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T2 @46
-              element: <none>
+              element: <not-implemented>
           methods
             augment foo @73
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@method::foo
   extensionTypes
     extension type A
@@ -8790,7 +8792,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -8910,47 +8912,47 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
             foo @49
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
             bar @65
               reference: <testLibraryFragment>::@extensionType::A::@method::bar
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::bar#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T @46
-              element: <none>
+              element: <not-implemented>
           methods
             augment foo @74
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@method::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@method::foo
   extensionTypes
     extension type A
@@ -8960,7 +8962,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -9098,55 +9100,55 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo1 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo1#element
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo1
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           setters
             set foo1= @48
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               parameters
                 _ @57
-                  element: <none>
+                  element: <not-implemented>
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
             foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2#element
               setter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
           setters
             set foo2= @62
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
-              element: <none>
+              element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2#element
               parameters
                 _ @71
-                  element: <none>
+                  element: <not-implemented>
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -9155,15 +9157,15 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         synthetic foo1
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo1
           type: int
-          setter: <none>
+          setter: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
         synthetic foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
           type: int
-          setter: <none>
+          setter: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -9309,39 +9311,39 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <none>
+                  element: <not-implemented>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -9349,15 +9351,15 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           setters
             augment set foo= @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _ @85
-                  element: <none>
+                  element: <not-implemented>
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
   extensionTypes
     extension type A
@@ -9367,12 +9369,12 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         static foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
-          getter: <none>
-          setter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+          setter: <testLibraryFragment>::@extensionType::A::@setter::foo#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -9524,61 +9526,61 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
             foo1 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo1#element
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo1
             foo2 @-1
               reference: <testLibraryFragment>::@extensionType::A::@field::foo2
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::foo2#element
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo2
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <none>
+                  element: <not-implemented>
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           setters
             set foo1= @48
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               parameters
                 _ @57
-                  element: <none>
+                  element: <not-implemented>
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
             set foo2= @69
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo2
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo2#element
               parameters
                 _ @78
-                  element: <none>
+                  element: <not-implemented>
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           setters
             augment set foo1= @70
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               parameters
                 _ @79
-                  element: <none>
+                  element: <not-implemented>
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo1
   extensionTypes
     extension type A
@@ -9588,15 +9590,15 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
         synthetic foo1
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo1
           type: int
-          setter: <none>
+          setter: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
         synthetic foo2
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo2
           type: int
-          setter: <none>
+          setter: <testLibraryFragment>::@extensionType::A::@setter::foo2#element
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -9701,16 +9703,16 @@ library
       extensionTypes
         extension type A @46
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           fields
             it @52
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -9718,14 +9720,14 @@ library
       classes
         class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+          element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A#element
   classes
     class A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
@@ -9739,7 +9741,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -9833,17 +9835,17 @@ library
       extensionTypes
         extension type A @46
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           fields
             it @52
               reference: <testLibraryFragment>::@extensionType::A::@field::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              element: <none>
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -9851,14 +9853,14 @@ library
       classes
         class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @45
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A
+          element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
   classes
     class A
@@ -9871,7 +9873,7 @@ library
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it

@@ -70,28 +70,28 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C#element
           fields
             foo @16
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@field::foo#element
               getter2: <testLibraryFragment>::@class::C::@getter::foo
               setter2: <testLibraryFragment>::@class::C::@setter::foo
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::C::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@getter::foo#element
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@class::C::@setter::foo
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <none>
+                  element: <not-implemented>
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -99,8 +99,8 @@ library
         foo
           firstFragment: <testLibraryFragment>::@class::C::@field::foo
           type: int
-          getter: <none>
-          setter: <none>
+          getter: <testLibraryFragment>::@class::C::@getter::foo#element
+          setter: <testLibraryFragment>::@class::C::@setter::foo#element
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -160,20 +160,20 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C#element
           fields
             foo @-1
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@field::foo#element
               getter2: <testLibraryFragment>::@class::C::@getter::foo
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
             get foo @20
               reference: <testLibraryFragment>::@class::C::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@getter::foo#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -181,7 +181,7 @@ library
         synthetic foo
           firstFragment: <testLibraryFragment>::@class::C::@field::foo
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@class::C::@getter::foo#element
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -239,23 +239,23 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C#element
           fields
             foo @-1
               reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@field::foo#element
               setter2: <testLibraryFragment>::@class::C::@setter::foo
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
           setters
             set foo= @16
               reference: <testLibraryFragment>::@class::C::@setter::foo
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@setter::foo#element
               parameters
                 value @24
-                  element: <none>
+                  element: <not-implemented>
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -263,7 +263,7 @@ library
         synthetic foo
           firstFragment: <testLibraryFragment>::@class::C::@field::foo
           type: int
-          setter: <none>
+          setter: <testLibraryFragment>::@class::C::@setter::foo#element
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -381,34 +381,34 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          element: <testLibraryFragment>::@enum::E
+          element: <testLibraryFragment>::@enum::E#element
           fields
             enumConstant a @11
               reference: <testLibraryFragment>::@enum::E::@field::a
-              element: <none>
+              element: <testLibraryFragment>::@enum::E::@field::a#element
               getter2: <testLibraryFragment>::@enum::E::@getter::a
             enumConstant b @14
               reference: <testLibraryFragment>::@enum::E::@field::b
-              element: <none>
+              element: <testLibraryFragment>::@enum::E::@field::b#element
               getter2: <testLibraryFragment>::@enum::E::@getter::b
             values @-1
               reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <none>
+              element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
             get a @-1
               reference: <testLibraryFragment>::@enum::E::@getter::a
-              element: <none>
+              element: <testLibraryFragment>::@enum::E::@getter::a#element
             get b @-1
               reference: <testLibraryFragment>::@enum::E::@getter::b
-              element: <none>
+              element: <testLibraryFragment>::@enum::E::@getter::b#element
             get values @-1
               reference: <testLibraryFragment>::@enum::E::@getter::values
-              element: <none>
+              element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
     enum E
       firstFragment: <testLibraryFragment>::@enum::E
@@ -417,15 +417,15 @@ library
         static const a
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
           type: E
-          getter: <none>
+          getter: <testLibraryFragment>::@enum::E::@getter::a#element
         static const b
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
           type: E
-          getter: <none>
+          getter: <testLibraryFragment>::@enum::E::@getter::b#element
         synthetic static const values
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
           type: List<E>
-          getter: <none>
+          getter: <testLibraryFragment>::@enum::E::@getter::values#element
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
@@ -490,24 +490,24 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M#element
           fields
             foo @16
               reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@mixin::M::@field::foo#element
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@mixin::M::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@mixin::M::@getter::foo#element
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
-              element: <none>
+              element: <testLibraryFragment>::@mixin::M::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <none>
+                  element: <not-implemented>
   mixins
     mixin M
       firstFragment: <testLibraryFragment>::@mixin::M
@@ -517,8 +517,8 @@ library
         foo
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
           type: int
-          getter: <none>
-          setter: <none>
+          getter: <testLibraryFragment>::@mixin::M::@getter::foo#element
+          setter: <testLibraryFragment>::@mixin::M::@setter::foo#element
       getters
         synthetic get foo
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
@@ -572,16 +572,16 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M#element
           fields
             foo @-1
               reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@mixin::M::@field::foo#element
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             get foo @20
               reference: <testLibraryFragment>::@mixin::M::@getter::foo
-              element: <none>
+              element: <testLibraryFragment>::@mixin::M::@getter::foo#element
   mixins
     mixin M
       firstFragment: <testLibraryFragment>::@mixin::M
@@ -591,7 +591,7 @@ library
         synthetic foo
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
           type: int
-          getter: <none>
+          getter: <testLibraryFragment>::@mixin::M::@getter::foo#element
       getters
         get foo
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
@@ -643,19 +643,19 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M#element
           fields
             foo @-1
               reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <none>
+              element: <testLibraryFragment>::@mixin::M::@field::foo#element
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
           setters
             set foo= @16
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
-              element: <none>
+              element: <testLibraryFragment>::@mixin::M::@setter::foo#element
               parameters
                 value @24
-                  element: <none>
+                  element: <not-implemented>
   mixins
     mixin M
       firstFragment: <testLibraryFragment>::@mixin::M
@@ -665,7 +665,7 @@ library
         synthetic foo
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
           type: int
-          setter: <none>
+          setter: <testLibraryFragment>::@mixin::M::@setter::foo#element
       setters
         set foo=
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
@@ -708,17 +708,17 @@ library
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::foo#element
           getter2: <testLibraryFragment>::@getter::foo
       getters
         get foo @8
           reference: <testLibraryFragment>::@getter::foo
-          element: <none>
+          element: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     synthetic foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
-      getter: <none>
+      getter: <testLibraryFragment>::@getter::foo#element
   getters
     static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
@@ -768,26 +768,26 @@ library
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::foo#element
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
         get foo @8
           reference: <testLibraryFragment>::@getter::foo
-          element: <none>
+          element: <testLibraryFragment>::@getter::foo#element
       setters
         set foo= @22
           reference: <testLibraryFragment>::@setter::foo
-          element: <none>
+          element: <testLibraryFragment>::@setter::foo#element
           parameters
             value @30
-              element: <none>
+              element: <not-implemented>
   topLevelVariables
     synthetic foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::foo#element
+      setter: <testLibraryFragment>::@setter::foo#element
   getters
     static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
@@ -837,20 +837,20 @@ library
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::foo#element
           setter2: <testLibraryFragment>::@setter::foo
       setters
         set foo= @4
           reference: <testLibraryFragment>::@setter::foo
-          element: <none>
+          element: <testLibraryFragment>::@setter::foo#element
           parameters
             value @12
-              element: <none>
+              element: <not-implemented>
   topLevelVariables
     synthetic foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
-      setter: <none>
+      setter: <testLibraryFragment>::@setter::foo#element
   setters
     static set foo=
       firstFragment: <testLibraryFragment>::@setter::foo
@@ -903,26 +903,26 @@ library
       topLevelVariables
         foo @4
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::foo#element
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
         get foo @-1
           reference: <testLibraryFragment>::@getter::foo
-          element: <none>
+          element: <testLibraryFragment>::@getter::foo#element
       setters
         set foo= @-1
           reference: <testLibraryFragment>::@setter::foo
-          element: <none>
+          element: <testLibraryFragment>::@setter::foo#element
           parameters
             _foo @-1
-              element: <none>
+              element: <not-implemented>
   topLevelVariables
     foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::foo#element
+      setter: <testLibraryFragment>::@setter::foo#element
   getters
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
