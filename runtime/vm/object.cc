@@ -20727,6 +20727,9 @@ ObjectPtr Instance::HashCode() const {
 // Keep in sync with AsmIntrinsifier::Object_getHash.
 IntegerPtr Instance::IdentityHashCode(Thread* thread) const {
   if (IsInteger()) return Integer::Cast(*this).ptr();
+  if (IsString()) {
+    return Smi::New(String::Cast(*this).Hash());
+  }
 
 #if defined(HASH_IN_OBJECT_HEADER)
   intptr_t hash = Object::GetCachedHash(ptr());
