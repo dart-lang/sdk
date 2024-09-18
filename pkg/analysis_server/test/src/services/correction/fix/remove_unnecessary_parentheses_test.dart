@@ -124,4 +124,43 @@ int f() {
 }
 ''');
   }
+
+  Future<void> test_double_parenthisized_bynaryExpression() async {
+    await resolveTestCode('''
+void f(int? p1, int? p2) {
+  p1 != null && ((p2 != null));
+}
+''');
+    await assertHasFix('''
+void f(int? p1, int? p2) {
+  p1 != null && (p2 != null);
+}
+''');
+  }
+
+  Future<void> test_double_parenthisized_asExpression() async {
+    await resolveTestCode('''
+void f(int? p1, int p2) {
+  ((p1 ?? p2)) as num;
+}
+''');
+    await assertHasFix('''
+void f(int? p1, int p2) {
+  (p1 ?? p2) as num;
+}
+''');
+  }
+
+  Future<void> test_double_parenthisized_isExpression() async {
+    await resolveTestCode('''
+void f(int? p1, num p2) {
+  ((p1 ?? p2)) is int;
+}
+''');
+    await assertHasFix('''
+void f(int? p1, num p2) {
+  (p1 ?? p2) is int;
+}
+''');
+  }
 }

@@ -472,4 +472,14 @@ void f(int p) {
 }
 ''');
   }
+
+  test_parenthisisedExpression_inside_valid_parenthisisedExpression() async {
+    await assertDiagnostics(r'''
+void f(int? p1, int? p2) {
+  (p1 == null) && ((p2 == null));
+}
+''', [
+      lint(45, 14),
+    ]);
+  }
 }

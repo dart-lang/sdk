@@ -25,19 +25,30 @@ class RemoveUnnecessaryParentheses extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var outer = coveringNode;
-    if (outer is ParenthesizedExpression &&
-        outer.parent is! ParenthesizedExpression) {
-      var left = outer.leftParenthesis;
+    if (outer is ParenthesizedExpression) {
+      if (outer.parent is! ParenthesizedExpression) {
+        var left = outer.leftParenthesis;
 
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addReplacement(range.token(left), (builder) {
-          if ((left.previous?.isKeywordOrIdentifier ?? false) &&
-              left.previous?.end == left.offset) {
-            builder.write(' ');
-          }
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addReplacement(range.token(left), (builder) {
+            if ((left.previous?.isKeywordOrIdentifier ?? false) &&
+                left.previous?.end == left.offset) {
+              builder.write(' ');
+            }
+          });
+          builder.addDeletion(range.token(outer.rightParenthesis));
         });
-        builder.addDeletion(range.token(outer.rightParenthesis));
-      });
+      } else if (outer.parent?.parent case Expression expression) {
+        if (expression is! BinaryExpression &&
+            expression is! ConditionalExpression &&
+            expression is! AsExpression &&
+            expression is! IsExpression) return;
+
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addDeletion(range.token(outer.leftParenthesis));
+          builder.addDeletion(range.token(outer.rightParenthesis));
+        });
+      }
     }
   }
 }
