@@ -124,10 +124,6 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
         super(parent, fileUri, charOffset);
 
   @override
-  SourceLibraryBuilder get libraryBuilder =>
-      super.libraryBuilder as SourceLibraryBuilder;
-
-  @override
   bool get isAugmentation => modifiers & augmentMask != 0;
 
   bool? _isConflictingSetter;

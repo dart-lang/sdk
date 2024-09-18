@@ -236,6 +236,7 @@ class LibraryName {
     if (_reference != value) {
       _reference = value;
       for (MemberName name in _memberNames) {
+        // Coverage-ignore-block(suite): Not run.
         name.updateMemberName();
       }
     }

@@ -23,6 +23,7 @@ import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
+import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
@@ -38,24 +39,6 @@ sealed class _Added {
       required List<NominalVariableBuilder> unboundNominalVariables,
       required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
       required List<_AddBuilder> builders});
-}
-
-class _AddedBuilder implements _Added {
-  final _AddBuilder builder;
-
-  _AddedBuilder(this.builder);
-
-  @override
-  void getAddBuilders(
-      {required ProblemReporting problemReporting,
-      required SourceLoader loader,
-      required SourceLibraryBuilder enclosingLibraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      required List<NominalVariableBuilder> unboundNominalVariables,
-      required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
-      required List<_AddBuilder> builders}) {
-    builders.add(builder);
-  }
 }
 
 class _AddedFragment implements _Added {
@@ -457,6 +440,54 @@ class _AddedFragment implements _Added {
         fragment.builder = constructorBuilder;
         builders.add(new _AddBuilder(fragment.name, constructorBuilder,
             fragment.fileUri, fragment.charOffset));
+      case FactoryFragment():
+        SourceFactoryBuilder factoryBuilder;
+        if (fragment.redirectionTarget != null) {
+          factoryBuilder = new RedirectingFactoryBuilder(
+              fragment.metadata,
+              fragment.modifiers,
+              fragment.returnType,
+              fragment.name,
+              fragment.typeParameters,
+              fragment.formals,
+              enclosingLibraryBuilder,
+              declarationBuilder!,
+              fragment.fileUri,
+              fragment.startCharOffset,
+              fragment.charOffset,
+              fragment.charOpenParenOffset,
+              fragment.charEndOffset,
+              fragment.constructorReference,
+              fragment.tearOffReference,
+              fragment.nameScheme,
+              fragment.nativeMethodName,
+              fragment.redirectionTarget!);
+          (enclosingLibraryBuilder.redirectingFactoryBuilders ??= [])
+              .add(factoryBuilder as RedirectingFactoryBuilder);
+        } else {
+          factoryBuilder = new SourceFactoryBuilder(
+              fragment.metadata,
+              fragment.modifiers,
+              fragment.returnType,
+              fragment.name,
+              fragment.typeParameters,
+              fragment.formals,
+              enclosingLibraryBuilder,
+              declarationBuilder!,
+              fragment.fileUri,
+              fragment.startCharOffset,
+              fragment.charOffset,
+              fragment.charOpenParenOffset,
+              fragment.charEndOffset,
+              fragment.constructorReference,
+              fragment.tearOffReference,
+              fragment.asyncModifier,
+              fragment.nameScheme,
+              nativeMethodName: fragment.nativeMethodName);
+        }
+        fragment.builder = factoryBuilder;
+        builders.add(new _AddBuilder(fragment.name, factoryBuilder,
+            fragment.fileUri, fragment.charOffset));
     }
   }
 }
@@ -467,13 +498,6 @@ class LibraryNameSpaceBuilder {
   final Map<String, List<Builder>> setterAugmentations = {};
 
   List<_Added> _added = [];
-
-  // Coverage-ignore(suite): Not run.
-  void addBuilder(
-      String name, Builder declaration, Uri fileUri, int charOffset) {
-    _added.add(new _AddedBuilder(
-        new _AddBuilder(name, declaration, fileUri, charOffset)));
-  }
 
   void addFragment(Fragment fragment) {
     _added.add(new _AddedFragment(fragment));
@@ -713,12 +737,6 @@ abstract class DeclarationFragment {
 
   void addPrimaryConstructorField(FieldFragment builder) {
     (primaryConstructorFields ??= []).add(builder);
-  }
-
-  void addBuilder(
-      String name, Builder declaration, Uri fileUri, int charOffset) {
-    _added.add(new _AddedBuilder(
-        new _AddBuilder(name, declaration, fileUri, charOffset)));
   }
 
   void addFragment(Fragment fragment) {
