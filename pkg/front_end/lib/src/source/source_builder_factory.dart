@@ -58,8 +58,6 @@ import 'name_scheme.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_enum_builder.dart';
-import 'source_factory_builder.dart';
-import 'source_function_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'type_parameter_scope_builder.dart';
@@ -121,7 +119,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   final List<StructuralVariableBuilder> _unboundStructuralVariables = [];
 
-  final List<SourceFunctionBuilder> _nativeMethods = [];
+  final List<FactoryFragment> _nativeFactoryFragments = [];
 
   final List<MethodFragment> _nativeMethodFragments = [];
 
@@ -1934,69 +1932,37 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
               .getConstructorMemberName(procedureName, isTearOff: true)
               .name);
     }
-
-    SourceFactoryBuilder procedureBuilder;
-    List<NominalVariableBuilder>? typeVariables;
-    if (redirectionTarget != null) {
-      procedureBuilder = new RedirectingFactoryBuilder(
-          metadata,
-          staticMask | modifiers,
-          returnType,
-          procedureName,
-          typeVariables = copyTypeVariables(
-                  _unboundNominalVariables, enclosingDeclaration.typeParameters,
-                  kind: TypeVariableKind.function,
-                  instanceTypeVariableAccess:
-                      InstanceTypeVariableAccessState.Allowed)
-              ?.newVariableBuilders,
-          formals,
-          _parent,
-          _compilationUnit.fileUri,
-          startCharOffset,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          constructorReference,
-          tearOffReference,
-          procedureNameScheme,
-          nativeMethodName,
-          redirectionTarget);
-      (_parent.redirectingFactoryBuilders ??= [])
-          .add(procedureBuilder as RedirectingFactoryBuilder);
-    } else {
-      procedureBuilder = new SourceFactoryBuilder(
-          metadata,
-          staticMask | modifiers,
-          returnType,
-          procedureName,
-          typeVariables = copyTypeVariables(
-                  _unboundNominalVariables, enclosingDeclaration.typeParameters,
-                  kind: TypeVariableKind.function,
-                  instanceTypeVariableAccess:
-                      InstanceTypeVariableAccessState.Allowed)
-              ?.newVariableBuilders,
-          formals,
-          _parent,
-          _compilationUnit.fileUri,
-          startCharOffset,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          constructorReference,
-          tearOffReference,
-          asyncModifier,
-          procedureNameScheme,
-          nativeMethodName: nativeMethodName);
-    }
+    List<NominalVariableBuilder>? typeVariables = copyTypeVariables(
+            _unboundNominalVariables, enclosingDeclaration.typeParameters,
+            kind: TypeVariableKind.function,
+            instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed)
+        ?.newVariableBuilders;
+    FactoryFragment fragment = new FactoryFragment(
+        name: procedureName,
+        fileUri: _compilationUnit.fileUri,
+        startCharOffset: startCharOffset,
+        charOffset: charOffset,
+        charOpenParenOffset: charOpenParenOffset,
+        charEndOffset: charEndOffset,
+        modifiers: staticMask | modifiers,
+        metadata: metadata,
+        returnType: returnType,
+        typeParameters: typeVariables,
+        formals: formals,
+        constructorReference: constructorReference,
+        tearOffReference: tearOffReference,
+        asyncModifier: asyncModifier,
+        nameScheme: procedureNameScheme,
+        nativeMethodName: nativeMethodName,
+        redirectionTarget: redirectionTarget);
 
     if (returnTypeArguments != null && typeVariables != null) {
       for (TypeVariableBuilder typeVariable in typeVariables) {
         returnTypeArguments.add(addNamedType(
-            new SyntheticTypeName(
-                typeVariable.name, procedureBuilder.charOffset),
+            new SyntheticTypeName(typeVariable.name, charOffset),
             const NullabilityBuilder.omitted(),
             null,
-            procedureBuilder.charOffset,
+            charOffset,
             instanceTypeVariableAccess:
                 InstanceTypeVariableAccessState.Allowed));
       }
@@ -2009,12 +1975,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _problemReporting, typeVariables,
         ownerName: identifier.name, allowNameConflict: true);
 
-    _addBuilder(procedureName, procedureBuilder, charOffset,
-        getterReference: constructorReference);
+    _addFragment(fragment, getterReference: constructorReference);
     if (nativeMethodName != null) {
-      _addNativeMethod(procedureBuilder);
+      _addNativeFactoryFragment(fragment);
     }
-    offsetMap.registerConstructor(identifier, procedureBuilder);
+    offsetMap.registerFactoryFragment(identifier, fragment);
   }
 
   @override
@@ -2113,8 +2078,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     _nativeConstructorFragments.add(fragment);
   }
 
-  void _addNativeMethod(SourceFunctionBuilder method) {
-    _nativeMethods.add(method);
+  void _addNativeFactoryFragment(FactoryFragment method) {
+    _nativeFactoryFragments.add(method);
   }
 
   @override
@@ -2639,25 +2604,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     return _compilationUnit.loader.inferableTypes.addInferableType();
   }
 
-  void _addBuilder(String name, Builder declaration, int charOffset,
-      {Reference? getterReference, Reference? setterReference}) {
-    if (getterReference != null) {
-      loader.buildersCreatedWithReferences[getterReference] = declaration;
-    }
-    if (setterReference != null) {
-      // Coverage-ignore-block(suite): Not run.
-      loader.buildersCreatedWithReferences[setterReference] = declaration;
-    }
-    if (_declarationFragments.isEmpty) {
-      // Coverage-ignore-block(suite): Not run.
-      _libraryNameSpaceBuilder.addBuilder(
-          name, declaration, _compilationUnit.fileUri, charOffset);
-    } else {
-      _declarationFragments.current
-          .addBuilder(name, declaration, _compilationUnit.fileUri, charOffset);
-    }
-  }
-
   void _addFragment(Fragment fragment,
       {Reference? getterReference, Reference? setterReference}) {
     if (getterReference != null) {
@@ -2727,8 +2673,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   int finishNativeMethods() {
-    for (SourceFunctionBuilder method in _nativeMethods) {
-      method.becomeNative(loader);
+    for (FactoryFragment fragment in _nativeFactoryFragments) {
+      fragment.builder.becomeNative(loader);
     }
     for (MethodFragment fragment in _nativeMethodFragments) {
       fragment.builder.becomeNative(loader);
@@ -2736,7 +2682,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     for (ConstructorFragment fragment in _nativeConstructorFragments) {
       fragment.builder.becomeNative(loader);
     }
-    return _nativeMethods.length;
+    return _nativeFactoryFragments.length;
   }
 
   @override
