@@ -17,7 +17,7 @@ import 'crashing_test_case_minimizer_impl.dart';
 // parser on it and verifies that no syntax errors have been introduced.
 
 Future<void> main(List<String> arguments) async {
-  String? filename;
+  List<String> filenames = [];
   Uri? loadJson;
   for (String arg in arguments) {
     if (arg.startsWith("--json=")) {
@@ -41,8 +41,17 @@ Future<void> main(List<String> arguments) async {
         } else if (arg.startsWith("--platform=")) {
           String platform = arg.substring("--platform=".length);
           settings.platformUri = Uri.base.resolve(platform);
+        } else if (arg.startsWith("--packages=")) {
+          String packages = arg.substring("--packages=".length);
+          settings.packagesFileUri = Uri.base.resolve(packages);
         } else if (arg == "--no-platform") {
           settings.noPlatform = true;
+        } else if (arg == "--initial-only-outline") {
+          settings.initialOnlyOutline = true;
+        } else if (arg == "--load-from-component-before-invalidate") {
+          settings.loadFromComponentBeforeInvalidate = true;
+        } else if (arg == "--invalidate-all-at-once") {
+          settings.invalidateAllAtOnce = true;
         } else if (arg.startsWith("--invalidate=")) {
           for (String s in arg.substring("--invalidate=".length).split(",")) {
             settings.invalidate.add(Uri.base.resolve(s));
@@ -79,11 +88,8 @@ Future<void> main(List<String> arguments) async {
         } else {
           throw "Unknown option $arg";
         }
-      } else if (filename != null) {
-        throw "Already got '$filename', '$arg' is also a filename; "
-            "can only get one";
       } else {
-        filename = arg;
+        filenames.add(arg);
       }
     }
     if (settings.noPlatform) {
@@ -101,12 +107,14 @@ Future<void> main(List<String> arguments) async {
         throw "The platform file '${settings.platformUri}' doesn't exist";
       }
     }
-    if (filename == null) {
-      throw "Need file to operate on";
+    if (filenames.isEmpty) {
+      throw "Need file(s) to operate on";
     }
-    File file = new File(filename);
-    if (!file.existsSync()) throw "File $filename doesn't exist.";
-    settings.mainUri = file.absolute.uri;
+    for (String filename in filenames) {
+      File file = new File(filename);
+      if (!file.existsSync()) throw "File $filename doesn't exist.";
+      settings.entryUris.add(file.absolute.uri);
+    }
   }
 
   TestMinimizer testMinimizer = new TestMinimizer(settings);
