@@ -1,0 +1,17 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+additionalExports = (lib2::Foo)
+
+  export "org-dartlang-test:///lib2.dart";
+
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+
+  typedef Foo = dart.core::int;
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib1.dart";
+
+  static method method(dart.core::int foo) → void {}
+}

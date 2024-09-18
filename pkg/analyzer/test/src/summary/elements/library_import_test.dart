@@ -63,14 +63,15 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
+          reference: <not-implemented>
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::B::@constructor::new#element
               superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
@@ -79,7 +80,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <none>
+          superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -131,14 +132,15 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo_io.dart
+          reference: <not-implemented>
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::B::@constructor::new#element
               superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
@@ -147,7 +149,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <none>
+          superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new#element
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -199,14 +201,15 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo_io.dart
+          reference: <not-implemented>
       classes
         class B @124
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::B::@constructor::new#element
               superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
@@ -215,7 +218,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <none>
+          superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new#element
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -267,14 +270,15 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo_html.dart
+          reference: <not-implemented>
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::B::@constructor::new#element
               superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
@@ -283,7 +287,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <none>
+          superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new#element
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -335,14 +339,15 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo_html.dart
+          reference: <not-implemented>
       classes
         class B @124
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::B::@constructor::new#element
               superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
@@ -351,7 +356,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <none>
+          superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new#element
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -387,7 +392,9 @@ library
       element: <testLibrary>
       libraryImports
         dart:core
+          reference: <not-implemented>
         dart:math
+          reference: <not-implemented>
 ''');
   }
 
@@ -416,6 +423,7 @@ library
       element: <testLibrary>
       libraryImports
         dart:math
+          reference: <not-implemented>
 ''');
   }
 
@@ -453,6 +461,7 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
+          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -531,8 +540,11 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
+          reference: <not-implemented>
         dart:async
+          reference: <not-implemented>
         dart:async
+          reference: <not-implemented>
       prefixes
         i1
           reference: <testLibraryFragment>::@prefix::i1
@@ -589,29 +601,30 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
+          reference: <not-implemented>
       topLevelVariables
         f @51
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::f#element
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
         get f @-1
           reference: <testLibraryFragment>::@getter::f
-          element: <none>
+          element: <testLibraryFragment>::@getter::f#element
       setters
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
-          element: <none>
+          element: <testLibraryFragment>::@setter::f#element
           parameters
             _f @-1
-              element: <none>
+              element: <not-implemented>
   topLevelVariables
     f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: Future<dynamic>
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::f#element
+      setter: <testLibraryFragment>::@setter::f#element
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
@@ -692,6 +705,7 @@ library
       element: <testLibrary>
       libraryImports
         relativeUri 'ht:'
+          reference: <not-implemented>
           metadata
             Annotation
               atSign: @ @0
@@ -752,29 +766,30 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
+          reference: <not-implemented>
       topLevelVariables
         f @52
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::f#element
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
         get f @-1
           reference: <testLibraryFragment>::@getter::f
-          element: <none>
+          element: <testLibraryFragment>::@getter::f#element
       setters
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
-          element: <none>
+          element: <testLibraryFragment>::@setter::f#element
           parameters
             _f @-1
-              element: <none>
+              element: <not-implemented>
   topLevelVariables
     f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: Future<dynamic>
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::f#element
+      setter: <testLibraryFragment>::@setter::f#element
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
@@ -840,32 +855,33 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
+          reference: <not-implemented>
       prefixes
         a
           reference: <testLibraryFragment>::@prefix::a
       topLevelVariables
         c @26
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::c#element
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
         get c @-1
           reference: <testLibraryFragment>::@getter::c
-          element: <none>
+          element: <testLibraryFragment>::@getter::c#element
       setters
         set c= @-1
           reference: <testLibraryFragment>::@setter::c
-          element: <none>
+          element: <testLibraryFragment>::@setter::c#element
           parameters
             _c @-1
-              element: <none>
+              element: <not-implemented>
   topLevelVariables
     c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::c#element
+      setter: <testLibraryFragment>::@setter::c#element
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
@@ -934,24 +950,25 @@ library
       element: <testLibrary>
       libraryImports
         package:test/test.dart
+          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
       classes
         class C @31
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
         class D @42
           reference: <testLibraryFragment>::@class::D
-          element: <testLibraryFragment>::@class::D
+          element: <testLibraryFragment>::@class::D#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::C::@constructor::new
   classes
     class C
@@ -965,7 +982,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
-          superConstructor: <none>
+          superConstructor: <testLibraryFragment>::@class::C::@constructor::new#element
 ''');
   }
 
@@ -1032,48 +1049,49 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
+          reference: <not-implemented>
       topLevelVariables
         f @48
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::f#element
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
         s @58
           reference: <testLibraryFragment>::@topLevelVariable::s
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::s#element
           getter2: <testLibraryFragment>::@getter::s
           setter2: <testLibraryFragment>::@setter::s
       getters
         get f @-1
           reference: <testLibraryFragment>::@getter::f
-          element: <none>
+          element: <testLibraryFragment>::@getter::f#element
         get s @-1
           reference: <testLibraryFragment>::@getter::s
-          element: <none>
+          element: <testLibraryFragment>::@getter::s#element
       setters
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
-          element: <none>
+          element: <testLibraryFragment>::@setter::f#element
           parameters
             _f @-1
-              element: <none>
+              element: <not-implemented>
         set s= @-1
           reference: <testLibraryFragment>::@setter::s
-          element: <none>
+          element: <testLibraryFragment>::@setter::s#element
           parameters
             _s @-1
-              element: <none>
+              element: <not-implemented>
   topLevelVariables
     f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: Future<dynamic>
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::f#element
+      setter: <testLibraryFragment>::@setter::f#element
     s
       firstFragment: <testLibraryFragment>::@topLevelVariable::s
       type: Stream<dynamic>
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::s#element
+      setter: <testLibraryFragment>::@setter::s#element
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
@@ -1174,49 +1192,51 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
+          reference: <not-implemented>
         package:test/b.dart
+          reference: <not-implemented>
       topLevelVariables
         c @36
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::c#element
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         d @41
           reference: <testLibraryFragment>::@topLevelVariable::d
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::d#element
           getter2: <testLibraryFragment>::@getter::d
           setter2: <testLibraryFragment>::@setter::d
       getters
         get c @-1
           reference: <testLibraryFragment>::@getter::c
-          element: <none>
+          element: <testLibraryFragment>::@getter::c#element
         get d @-1
           reference: <testLibraryFragment>::@getter::d
-          element: <none>
+          element: <testLibraryFragment>::@getter::d#element
       setters
         set c= @-1
           reference: <testLibraryFragment>::@setter::c
-          element: <none>
+          element: <testLibraryFragment>::@setter::c#element
           parameters
             _c @-1
-              element: <none>
+              element: <not-implemented>
         set d= @-1
           reference: <testLibraryFragment>::@setter::d
-          element: <none>
+          element: <testLibraryFragment>::@setter::d#element
           parameters
             _d @-1
-              element: <none>
+              element: <not-implemented>
   topLevelVariables
     c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::c#element
+      setter: <testLibraryFragment>::@setter::c#element
     d
       firstFragment: <testLibraryFragment>::@topLevelVariable::d
       type: D
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::d#element
+      setter: <testLibraryFragment>::@setter::d#element
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
@@ -1261,6 +1281,7 @@ library
       element: <testLibrary>
       libraryImports
         noRelativeUriString
+          reference: <not-implemented>
 ''');
   }
 
@@ -1300,6 +1321,7 @@ library
       element: <testLibrary>
       libraryImports
         dart:core synthetic
+          reference: <not-implemented>
 ''');
   }
 
@@ -1328,6 +1350,7 @@ library
       element: <testLibrary>
       libraryImports
         package:test/test.dart
+          reference: <not-implemented>
 ''');
   }
 
@@ -1356,6 +1379,7 @@ library
       element: <testLibrary>
       libraryImports
         relativeUri 'foo:bar'
+          reference: <not-implemented>
 ''');
   }
 
@@ -1384,6 +1408,7 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
+          reference: <not-implemented>
 ''');
   }
 
@@ -1415,6 +1440,7 @@ library
       element: <testLibrary>
       libraryImports
         source 'package:test/a.dart'
+          reference: <not-implemented>
 ''');
   }
 
@@ -1443,6 +1469,7 @@ library
       element: <testLibrary>
       libraryImports
         relativeUriString ':'
+          reference: <not-implemented>
 ''');
   }
 
@@ -1530,6 +1557,7 @@ library
       element: <testLibrary>
       libraryImports
         dart:math
+          reference: <not-implemented>
           metadata
             Annotation
               atSign: @ @0
@@ -1541,17 +1569,17 @@ library
       topLevelVariables
         const a @29
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::a#element
           getter2: <testLibraryFragment>::@getter::a
       getters
         get a @-1
           reference: <testLibraryFragment>::@getter::a
-          element: <none>
+          element: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
-      getter: <none>
+      getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
@@ -1637,6 +1665,7 @@ library
       element: <testLibrary>
       libraryImports
         dart:math
+          reference: <not-implemented>
           metadata
             Annotation
               atSign: @ @0
@@ -1648,17 +1677,17 @@ library
       topLevelVariables
         const a @42
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::a#element
           getter2: <testLibraryFragment>::@getter::a
       getters
         get a @-1
           reference: <testLibraryFragment>::@getter::a
-          element: <none>
+          element: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
-      getter: <none>
+      getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
@@ -1720,30 +1749,32 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
+          reference: <not-implemented>
         package:test/b.dart
+          reference: <not-implemented>
       topLevelVariables
         v @36
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::v#element
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          element: <none>
+          element: <testLibraryFragment>::@getter::v#element
       setters
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          element: <none>
+          element: <testLibraryFragment>::@setter::v#element
           parameters
             _v @-1
-              element: <none>
+              element: <not-implemented>
   topLevelVariables
     v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::v#element
+      setter: <testLibraryFragment>::@setter::v#element
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
@@ -1783,6 +1814,7 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
+          reference: <not-implemented>
 ''');
   }
 }

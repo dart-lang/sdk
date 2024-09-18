@@ -33,7 +33,7 @@ with a scheme of at least two characters followed by a colon, like
 
 Any other other occurrence of `<word...>` or `</word...>` is likely a mistake
 and this lint will warn about it.
-If something looks like an HTML tag, meaning it starts with `<` or `</` 
+If something looks like an HTML tag, meaning it starts with `<` or `</`
 and then a letter, and it has a later matching `>`, then it's considered an
 invalid HTML tag unless it is an auto-link, or it starts with an *allowed*
 HTML tag.
@@ -43,9 +43,10 @@ outside of a code span, for example `The type List<int> is ...`, where `<int>`
 looks like an HTML tag. Missing the end quote of a code span can have the same
 effect: ``The type `List<int> is ...`` will also treat `<int>` as an HTML tag.
 
-Allowed HTML directives are: HTML comments, `<!-- text -->`, processing
-instructions, `<?...?>`, CDATA-sections, `<[CDATA...]>`, and the allowed HTML
-tags are:
+Allows the following HTML directives: HTML comments, `<!-- text -->`, processing
+instructions, `<?...?>`, CDATA-sections, and `<[CDATA...]>`.
+Allows DartDoc links like `[List<int>]` which are not after a `]` or before a
+`[` or `(`, and allows the following recognized HTML tags:
 `a`, `abbr`, `address`, `area`, `article`, `aside`, `audio`, `b`,
 `bdi`, `bdo`, `blockquote`, `br`, `button`, `canvas`, `caption`,
 `cite`, `code`, `col`, `colgroup`, `data`, `datalist`, `dd`, `del`,
@@ -61,15 +62,16 @@ tags are:
 
 **BAD:**
 ```dart
-/// Text List<int>.
-/// Text [List<int>].
+/// The type List<int>.
 /// <assignment> -> <variable> = <expression>
 ```
 
 **GOOD:**
 ```dart
-/// Text `List<int>`.
+/// The type `List<int>`.
+/// The type [List<int>]
 /// `<assignment> -> <variable> = <expression>`
+/// \<assignment\> -> \<variable\> = \<expression\>`
 /// <http://foo.bar.baz>
 ```
 
@@ -208,22 +210,32 @@ class _UnintendedTag {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  /// Pattern for HTML-tags and non-HTML regions.
+  ///
+  /// Pattern which matches sequences of characters with content that is known
+  /// to *not* be interpreted as Markdown or HTML tags,  and anything else that
+  /// looks like an HTML tag.
+  /// Because [RegExp.allMatches] matches do not overlap, including the
+  /// non-HTML sections in the same RegExp ensures that the HTML tag match
+  /// will not be matched against the non-HTML content.
   static final _markdownTokenPattern = RegExp(
-      // Escaped Markdown character.
+      // Escaped Markdown character, including `\<` and `\\`.
       r'\\.'
 
-      // Or code span, from "`"*N to "`"*N or just the start if it's
-      // unterminated, to avoid "```a``" matching the "``a``".
+      // Or a Markdown code span, from "`"*N to "`"*N.
+      // Also matches an unterminated start tag to avoid "```a``"
+      // being matched as "``a``".
       // The ```-sequence is atomic.
-      r'|(?<cq>`+)(?:[^]*?\k<cq>)?'
+      r'|(?<cq>`+)(?:[^]+?\k<cq>)?'
 
-      // Or autolink, start with scheme + `:`.
+      // Or autolink, starting with scheme + `:`, followed by non-whitespace/
+      // control characters until a closing `>`.
       r'|<[a-z][a-z\d\-+.]+:[^\x00-\x20\x7f<>]*>'
 
       // Or HTML comments.
       r'|<!--(?:-?>|[^]*?-->)'
 
-      // Or HTML declarations.
+      // Or HTML declarations, like `<!DOCTYPE ...>`.
       r'|<![a-z][^]*?!>'
 
       // Or HTML processing instructions.
@@ -231,6 +243,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       // Or HTML CDATA sections sections.
       r'|<\[CDATA[^]*\]>'
+
+      // Or plain `[...]` which DartDoc interprets as Dart source links,
+      // and which can contain type parameters like `... [List<int>] ...`.
+      // Here recognized as `[...]` with no `]` inside, not preceded by `]`
+      // or followed by `(` or `[`.
+      r'|(?<!\])\[[^\]]*\](?![(\[])'
 
       // Or valid HTML tag.
       // Matches `<validTag>`, `<validTag ...>`, `<validTag/>`, `</validTag>`

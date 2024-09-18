@@ -53,26 +53,26 @@ library
       topLevelVariables
         f @16
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::f#element
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
         get f @-1
           reference: <testLibraryFragment>::@getter::f
-          element: <none>
+          element: <testLibraryFragment>::@getter::f#element
       setters
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
-          element: <none>
+          element: <testLibraryFragment>::@setter::f#element
           parameters
             _f @-1
-              element: <none>
+              element: <not-implemented>
   topLevelVariables
     f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: void Function()
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::f#element
+      setter: <testLibraryFragment>::@setter::f#element
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
@@ -122,26 +122,26 @@ library
       topLevelVariables
         f @17
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::f#element
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
         get f @-1
           reference: <testLibraryFragment>::@getter::f
-          element: <none>
+          element: <testLibraryFragment>::@getter::f#element
       setters
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
-          element: <none>
+          element: <testLibraryFragment>::@setter::f#element
           parameters
             _f @-1
-              element: <none>
+              element: <not-implemented>
   topLevelVariables
     f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: void Function()?
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::f#element
+      setter: <testLibraryFragment>::@setter::f#element
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
@@ -179,7 +179,7 @@ library
       functions
         f @30
           reference: <testLibraryFragment>::@function::f
-          element: <none>
+          element: <testLibraryFragment>::@function::f#element
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
@@ -218,10 +218,10 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <none>
+          element: <testLibraryFragment>::@function::f#element
           parameters
             p @37
-              element: <none>
+              element: <not-implemented>
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
@@ -264,7 +264,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <none>
+          element: <testLibraryFragment>::@typeAlias::F#element
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -307,15 +307,15 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
             m @42
               reference: <testLibraryFragment>::@class::C::@method::m
-              element: <none>
+              element: <testLibraryFragment>::@class::C::@method::m#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -356,10 +356,10 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <none>
+          element: <testLibraryFragment>::@function::f#element
           parameters
             p @37
-              element: <none>
+              element: <not-implemented>
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
@@ -407,26 +407,26 @@ library
       topLevelVariables
         v @30
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::v#element
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          element: <none>
+          element: <testLibraryFragment>::@getter::v#element
       setters
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          element: <none>
+          element: <testLibraryFragment>::@setter::v#element
           parameters
             _v @-1
-              element: <none>
+              element: <not-implemented>
   topLevelVariables
     v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int Function(int, String)
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::v#element
+      setter: <testLibraryFragment>::@setter::v#element
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
@@ -524,21 +524,21 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           typeParameters
             T @8
-              element: <none>
+              element: <not-implemented>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
         class B @64
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::B::@constructor::new#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -651,18 +651,18 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           typeParameters
             T @8
-              element: <none>
+              element: <not-implemented>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
       topLevelVariables
         v @62
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::v#element
           metadata
             Annotation
               atSign: @ @29
@@ -710,14 +710,14 @@ library
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          element: <none>
+          element: <testLibraryFragment>::@getter::v#element
       setters
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
-          element: <none>
+          element: <testLibraryFragment>::@setter::v#element
           parameters
             _v @-1
-              element: <none>
+              element: <not-implemented>
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -730,8 +730,8 @@ library
     v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int
-      getter: <none>
-      setter: <none>
+      getter: <testLibraryFragment>::@getter::v#element
+      setter: <testLibraryFragment>::@setter::v#element
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
@@ -839,23 +839,23 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           typeParameters
             T @8
-              element: <none>
+              element: <not-implemented>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::v#element
           getter2: <testLibraryFragment>::@getter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          element: <none>
+          element: <testLibraryFragment>::@getter::v#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -868,7 +868,7 @@ library
     const v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function({int? a})>
-      getter: <none>
+      getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
@@ -970,23 +970,23 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           typeParameters
             T @8
-              element: <none>
+              element: <not-implemented>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::v#element
           getter2: <testLibraryFragment>::@getter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          element: <none>
+          element: <testLibraryFragment>::@getter::v#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -999,7 +999,7 @@ library
     const v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function([int?])>
-      getter: <none>
+      getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
@@ -1101,23 +1101,23 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           typeParameters
             T @8
-              element: <none>
+              element: <not-implemented>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::v#element
           getter2: <testLibraryFragment>::@getter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          element: <none>
+          element: <testLibraryFragment>::@getter::v#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -1130,7 +1130,7 @@ library
     const v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function({required int a})>
-      getter: <none>
+      getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
@@ -1226,23 +1226,23 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           typeParameters
             T @8
-              element: <none>
+              element: <not-implemented>
           constructors
             const new @21
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <none>
+          element: <testLibraryFragment>::@topLevelVariable::v#element
           getter2: <testLibraryFragment>::@getter::v
       getters
         get v @-1
           reference: <testLibraryFragment>::@getter::v
-          element: <none>
+          element: <testLibraryFragment>::@getter::v#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -1255,7 +1255,7 @@ library
     const v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function(int)>
-      getter: <none>
+      getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
@@ -1292,10 +1292,10 @@ library
       mixins
         mixin B @6
           reference: <testLibraryFragment>::@mixin::B
-          element: <testLibraryFragment>::@mixin::B
+          element: <testLibraryFragment>::@mixin::B#element
           typeParameters
             X @8
-              element: <none>
+              element: <not-implemented>
   mixins
     mixin B
       firstFragment: <testLibraryFragment>::@mixin::B
@@ -1366,21 +1366,21 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           typeParameters
             T @8
-              element: <none>
+              element: <not-implemented>
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
         class B @31
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <none>
+              element: <testLibraryFragment>::@class::B::@constructor::new#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -1394,7 +1394,7 @@ library
       mixins
         mixin M @20
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -1409,7 +1409,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <none>
+          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
   mixins
     mixin M
       firstFragment: <testLibraryFragment>::@mixin::M
@@ -1461,13 +1461,13 @@ library
       typeAliases
         F1 @8
           reference: <testLibraryFragment>::@typeAlias::F1
-          element: <none>
+          element: <testLibraryFragment>::@typeAlias::F1#element
         F2 @43
           reference: <testLibraryFragment>::@typeAlias::F2
-          element: <none>
+          element: <testLibraryFragment>::@typeAlias::F2#element
           typeParameters
             V2 @46
-              element: <none>
+              element: <not-implemented>
   typeAliases
     F1
       firstFragment: <testLibraryFragment>::@typeAlias::F1

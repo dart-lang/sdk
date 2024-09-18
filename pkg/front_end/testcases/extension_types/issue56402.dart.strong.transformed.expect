@@ -1,0 +1,58 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue56402.dart:6:26: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   E.testPositional([this.x, int y]);
+//                          ^
+//
+// pkg/front_end/testcases/extension_types/issue56402.dart:6:33: Error: The parameter 'y' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   E.testPositional([this.x, int y]);
+//                                 ^
+//
+// pkg/front_end/testcases/extension_types/issue56402.dart:7:21: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   E.testNamed({this.x, String y});
+//                     ^
+//
+// pkg/front_end/testcases/extension_types/issue56402.dart:7:31: Error: The parameter 'y' can't have a value of 'null' because of its type 'String', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   E.testNamed({this.x, String y});
+//                               ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type E(core::int x) {
+  abstract extension-type-member representation-field get x() → core::int;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+  constructor testPositional = self::E|constructor#testPositional;
+  constructor tearoff testPositional = self::E|constructor#_#testPositional#tearOff;
+  constructor testNamed = self::E|constructor#testNamed;
+  constructor tearoff testNamed = self::E|constructor#_#testNamed#tearOff;
+}
+static extension-type-member method E|constructor#(core::int x) → self::E% /* erasure=core::int, declared=! */ {
+  lowered final self::E% /* erasure=core::int, declared=! */ #this = x;
+  return #this;
+}
+static extension-type-member method E|constructor#_#new#tearOff(core::int x) → self::E% /* erasure=core::int, declared=! */
+  return self::E|constructor#(x);
+static extension-type-member method E|constructor#testPositional([core::int x = #C1, core::int y = #C1]) → self::E% /* erasure=core::int, declared=! */ {
+  lowered final self::E% /* erasure=core::int, declared=! */ #this = x;
+  return #this;
+}
+static extension-type-member method E|constructor#_#testPositional#tearOff([core::int x = #C1, core::int y = #C1]) → self::E% /* erasure=core::int, declared=! */
+  return self::E|constructor#testPositional(x, y);
+static extension-type-member method E|constructor#testNamed({core::int x = #C1, core::String y = #C1}) → self::E% /* erasure=core::int, declared=! */ {
+  lowered final self::E% /* erasure=core::int, declared=! */ #this = x;
+  return #this;
+}
+static extension-type-member method E|constructor#_#testNamed#tearOff({core::int x = #C1, core::String y = #C1}) → self::E% /* erasure=core::int, declared=! */
+  return self::E|constructor#testNamed(x: x, y: y);
+
+constants  {
+  #C1 = null
+}

@@ -460,6 +460,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
               -1,
               fileUri);
         }
+        assert(library is DillLibraryBuilder,
+            "No reference for source declaration of $node.");
         if (isSetter) {
           declaration =
               library.exportNameSpace.lookupLocalMember(name, setter: true)!;

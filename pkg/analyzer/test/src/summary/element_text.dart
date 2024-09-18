@@ -482,31 +482,8 @@ class _Element2Writer extends _AbstractElementWriter {
     if (e == null) {
       return;
     }
-    if (e is MaybeAugmentedInstanceElementMixin) {
-      e = e.declaration;
-    }
-    if (e is ElementImpl) {
-      if (e.reference case var reference?) {
-        _sink.writeIndentedLine(() {
-          _sink.write(name);
-          _sink.write(': ');
-          _elementPrinter.writeReference(reference);
-        });
-      }
-      // } else if (e is MethodElementImpl2) {
-      //   if (e.reference case var reference?) {
-      //     _sink.writeIndentedLine(() {
-      //       _sink.write(label ?? 'reference: ');
-      //       _elementPrinter.writeReference(reference);
-      //     });
-      //   }
-    } else {
-      _sink.writeIndentedLine(() {
-        _sink.write(name);
-        _sink.write(': ');
-        _sink.write('<none>');
-      });
-    }
+
+    _elementPrinter.writelnNamedElement2(name, e);
   }
 
   void _writeExportNamespace(LibraryElement2 e) {

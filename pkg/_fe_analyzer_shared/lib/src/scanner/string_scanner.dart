@@ -46,7 +46,8 @@ class StringScanner extends AbstractScanner {
       bool includeComments = false,
       LanguageVersionChanged? languageVersionChanged})
       : string = ensureZeroTermination(string),
-        super(configuration, includeComments, languageVersionChanged);
+        super(configuration, includeComments, languageVersionChanged,
+            numberOfBytesHint: string.length);
 
   StringScanner.recoveryOptionScanner(StringScanner super.copyFrom)
       : string = copyFrom.string,

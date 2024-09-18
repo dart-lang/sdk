@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -78,10 +79,45 @@ class ElementPrinter {
     }
   }
 
+  void writeElement2(Element2? element) {
+    switch (element) {
+      case null:
+        _sink.write('<null>');
+      case FormalParameterElementImpl():
+      case LibraryImportElementImpl():
+      case TypeParameterElementImpl2():
+        // TODO(scheglov): implement
+        _sink.write('<not-implemented>');
+      case LibraryElementImpl e:
+        writeReference(e.reference!);
+      case MaybeAugmentedInstanceElementMixin element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference!;
+        writeReference(reference);
+        _sink.write('#element');
+      case FragmentedElementMixin element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference!;
+        writeReference(reference);
+        _sink.write('#element');
+      case PrefixElementImpl element:
+        writeReference(element.reference!);
+      default:
+        throw UnimplementedError('${element.runtimeType} $element');
+    }
+  }
+
   void writeElementList(String name, List<Element> elements) {
     _sink.writeElements(name, elements, (element) {
       _sink.writeIndent();
       writeElement(element);
+    });
+  }
+
+  void writelnNamedElement2(String name, Element2? element) {
+    _sink.writeIndentedLine(() {
+      _sink.write('$name: ');
+      writeElement2(element);
     });
   }
 
