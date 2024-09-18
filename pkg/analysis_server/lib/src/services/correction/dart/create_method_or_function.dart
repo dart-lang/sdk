@@ -54,10 +54,13 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         argument = nameNode;
       }
       argument = stepUpNamedExpression(argument);
-      // should be argument of some invocation 
+      // should be argument of some invocation
       // or child of an expression that is one
       var parameterElement = argument.staticParameterElement;
-      if (argument.parent case Expression parent) {
+      if (argument.parent case ConditionalExpression parent) {
+        if (argument == parent.condition) {
+          return;
+        }
         parameterElement = parent.staticParameterElement;
       }
       if (parameterElement == null) {
