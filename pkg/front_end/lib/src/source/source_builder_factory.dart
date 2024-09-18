@@ -1467,20 +1467,24 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             VarianceCalculationValue.pending;
       }
     }
-    Typedef? referenceFrom = indexedLibrary?.lookupTypedef(name);
+    Reference? reference = indexedLibrary?.lookupTypedef(name)?.reference;
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
         ownerName: name, allowNameConflict: true);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endTypedef();
-    _addFragment(new TypedefFragment(
+    TypedefFragment fragment = new TypedefFragment(
         metadata: metadata,
         name: name,
         typeVariables: typeVariables,
         type: type,
         fileUri: _compilationUnit.fileUri,
         fileOffset: charOffset,
-        reference: referenceFrom?.reference));
+        reference: reference);
+    _addFragment(fragment);
+    if (reference != null) {
+      loader.fragmentsCreatedWithReferences[reference] = fragment;
+    }
   }
 
   @override
