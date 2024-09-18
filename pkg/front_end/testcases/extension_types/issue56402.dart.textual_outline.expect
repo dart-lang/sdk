@@ -1,0 +1,4 @@
+extension type E(int x) {
+  E.testPositional([this.x, int y]);
+  E.testNamed({this.x, String y});
+}

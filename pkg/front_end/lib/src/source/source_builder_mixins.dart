@@ -143,12 +143,15 @@ mixin SourceDeclarationBuilderMixin
                 setterDeclaration as ProcedureBuilder, typeEnvironment);
           }
         }
-      }
-      // Coverage-ignore(suite): Not run.
-      else if (builder is SourceConstructorBuilder) {
-        builder.checkTypes(libraryBuilder, typeEnvironment);
       } else {
+        // Coverage-ignore-block(suite): Not run.
         assert(false, "Unexpected member: $builder.");
+      }
+    });
+
+    nameSpace.forEachConstructor((String name, MemberBuilder builder) {
+      if (builder is SourceConstructorBuilder) {
+        builder.checkTypes(libraryBuilder, typeEnvironment);
       }
     });
   }
