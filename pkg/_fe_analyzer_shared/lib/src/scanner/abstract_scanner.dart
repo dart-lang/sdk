@@ -146,7 +146,7 @@ abstract class AbstractScanner implements Scanner {
 
   AbstractScanner(ScannerConfiguration? config, this.includeComments,
       this.languageVersionChanged,
-      {int? numberOfBytesHint, this.allowLazyStrings = true})
+      {required int numberOfBytesHint, this.allowLazyStrings = true})
       : lineStarts = new LineStarts(numberOfBytesHint),
         inRecoveryOption = false {
     this.tail = this.tokens;
@@ -2104,7 +2104,7 @@ class LineStarts extends Object with ListMixin<int> {
   List<int> array;
   int arrayLength = 0;
 
-  LineStarts(int? numberOfBytesHint)
+  LineStarts(int numberOfBytesHint)
       : array = _createInitialArray(numberOfBytesHint) {
     // The first line starts at character offset 0.
     add(/* value = */ 0);
@@ -2170,10 +2170,7 @@ class LineStarts extends Object with ListMixin<int> {
     array = newArray;
   }
 
-  static List<int> _createInitialArray(int? numberOfBytesHint) {
-    // Let's assume the average Dart file is 300 bytes.
-    numberOfBytesHint ??= 300;
-
+  static List<int> _createInitialArray(int numberOfBytesHint) {
     // Let's assume we have on average 22 bytes per line.
     final int expectedNumberOfLines = 1 + (numberOfBytesHint ~/ 22);
 
