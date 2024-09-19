@@ -35,8 +35,10 @@ MixinOnClause
         name: math
         period: .
         element: <testLibraryFragment>::@prefix::math
+        element2: <testLibraryFragment>::@prefix::math
       name: Random
       element: dart:math::<fragment>::@class::Random
+      element2: dart:math::<fragment>::@class::Random#element
       type: Random
 ''');
   }

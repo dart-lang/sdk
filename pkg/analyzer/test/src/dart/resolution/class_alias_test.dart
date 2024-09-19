@@ -42,6 +42,7 @@ ClassTypeAlias
   superclass: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   withClause: WithClause
     withKeyword: with
@@ -49,6 +50,7 @@ ClassTypeAlias
       NamedType
         name: B
         element: <testLibraryFragment>::@class::B
+        element2: <testLibraryFragment>::@class::B#element
         type: B
   implementsClause: ImplementsClause
     implementsKeyword: implements
@@ -56,6 +58,7 @@ ClassTypeAlias
       NamedType
         name: C
         element: <testLibraryFragment>::@class::C
+        element2: <testLibraryFragment>::@class::C#element
         type: C
   semicolon: ;
   declaredElement: <testLibraryFragment>::@class::X

@@ -103,8 +103,10 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     staticElement: <testLibraryFragment>::@class::A::@constructor::new
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -138,8 +140,10 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     staticElement: <testLibraryFragment>::@class::A::@constructor::new
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments

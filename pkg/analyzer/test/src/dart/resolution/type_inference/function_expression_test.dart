@@ -65,6 +65,7 @@ FunctionExpression
             methodName: SimpleIdentifier
               token: foo
               staticElement: <testLibraryFragment>::@function::foo
+              element: <testLibraryFragment>::@function::foo#element
               staticType: T Function<T>()
             argumentList: ArgumentList
               leftParenthesis: (
@@ -119,6 +120,7 @@ FunctionExpression
       methodName: SimpleIdentifier
         token: foo
         staticElement: <testLibraryFragment>::@function::foo
+        element: <testLibraryFragment>::@function::foo#element
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -160,6 +162,7 @@ FunctionExpression
       methodName: SimpleIdentifier
         token: foo
         staticElement: <testLibraryFragment>::@function::foo
+        element: <testLibraryFragment>::@function::foo#element
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -194,6 +197,7 @@ FunctionExpression
       methodName: SimpleIdentifier
         token: foo
         staticElement: <testLibraryFragment>::@function::foo
+        element: <testLibraryFragment>::@function::foo#element
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -244,6 +248,7 @@ FunctionExpression
             methodName: SimpleIdentifier
               token: foo
               staticElement: <testLibraryFragment>::@function::foo
+              element: <testLibraryFragment>::@function::foo#element
               staticType: T Function<T>()
             argumentList: ArgumentList
               leftParenthesis: (
@@ -294,6 +299,7 @@ FunctionExpression
             methodName: SimpleIdentifier
               token: foo
               staticElement: <testLibraryFragment>::@function::foo
+              element: <testLibraryFragment>::@function::foo#element
               staticType: T Function<T>()
             argumentList: ArgumentList
               leftParenthesis: (
@@ -347,6 +353,7 @@ FunctionExpression
       methodName: SimpleIdentifier
         token: foo
         staticElement: <testLibraryFragment>::@function::foo
+        element: <testLibraryFragment>::@function::foo#element
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -397,6 +404,7 @@ FunctionExpression
             methodName: SimpleIdentifier
               token: foo
               staticElement: <testLibraryFragment>::@function::foo
+              element: <testLibraryFragment>::@function::foo#element
               staticType: T Function<T>()
             argumentList: ArgumentList
               leftParenthesis: (
@@ -440,6 +448,7 @@ FunctionExpression
           expression: SimpleIdentifier
             token: item
             staticElement: @42::@parameter::item
+            element: <not-implemented>
             staticType: int
           semicolon: ;
       rightBracket: }
@@ -535,6 +544,7 @@ FunctionExpression
       type: NamedType
         name: T
         element: T@24
+        element2: <not-implemented>
         type: T
       name: a
       declaredElement: @23::@parameter::a
@@ -549,6 +559,7 @@ FunctionExpression
           NamedType
             name: T
             element: T@24
+            element2: <not-implemented>
             type: T
         rightBracket: >
       leftBracket: [
@@ -556,6 +567,7 @@ FunctionExpression
         SimpleIdentifier
           token: a
           staticElement: @23::@parameter::a
+          element: <not-implemented>
           staticType: T
       rightBracket: ]
       staticType: List<T>

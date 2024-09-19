@@ -35,6 +35,7 @@ PatternVariableDeclarationStatement
         type: NamedType
           name: num
           element: dart:core::<fragment>::@class::num
+          element2: dart:core::<fragment>::@class::num#element
           type: num
         name: a
         declaredElement: isFinal a@24
@@ -111,8 +112,10 @@ PatternVariableDeclarationStatement
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
+          element2: <testLibraryFragment>::@class::A#element
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
+        element: <testLibraryFragment>::@class::A::@constructor::new#element
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -140,6 +143,7 @@ PatternVariableDeclarationStatement
         type: NamedType
           name: num
           element: dart:core::<fragment>::@class::num
+          element2: dart:core::<fragment>::@class::num#element
           type: num
         name: a
         declaredElement: a@22
@@ -177,6 +181,7 @@ PatternVariableDeclarationStatement
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
         name: a
         declaredElement: a@22
@@ -189,6 +194,7 @@ PatternVariableDeclarationStatement
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
+        element: <testLibraryFragment>::@function::g#element
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -256,6 +262,7 @@ PatternVariableDeclarationStatement
               type: int
             matchedValueType: int
           element: <null>
+          element2: <null>
         PatternField
           pattern: DeclaredVariablePattern
             name: b
@@ -263,12 +270,14 @@ PatternVariableDeclarationStatement
               type: String
             matchedValueType: String
           element: <null>
+          element2: <null>
       rightParenthesis: )
       matchedValueType: (int, String)
     equals: =
     expression: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
+      element: <not-implemented>
       staticType: (int, String)
     patternTypeSchema: (_, _)
   semicolon: ;
@@ -300,6 +309,7 @@ PatternVariableDeclarationStatement
               type: int
             matchedValueType: int
           element: <null>
+          element2: <null>
       rightParenthesis: )
       matchedValueType: (int,)
     equals: =
@@ -307,6 +317,7 @@ PatternVariableDeclarationStatement
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
+        element: <testLibraryFragment>::@function::g#element
         staticType: T Function<T>(T)
       argumentList: ArgumentList
         leftParenthesis: (

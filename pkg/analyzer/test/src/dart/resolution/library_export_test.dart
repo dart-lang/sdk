@@ -34,6 +34,7 @@ ExportDirective
         SimpleIdentifier
           token: Random
           staticElement: dart:math::<fragment>::@class::Random
+          element: dart:math::<fragment>::@class::Random#element
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -62,6 +63,7 @@ ExportDirective
         SimpleIdentifier
           token: Unresolved
           staticElement: <null>
+          element: <null>
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -88,6 +90,7 @@ ExportDirective
         SimpleIdentifier
           token: Random
           staticElement: dart:math::<fragment>::@class::Random
+          element: dart:math::<fragment>::@class::Random#element
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -116,6 +119,7 @@ ExportDirective
         SimpleIdentifier
           token: Unresolved
           staticElement: <null>
+          element: <null>
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -155,14 +159,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: html
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -177,14 +184,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: io
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -229,14 +239,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: html
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -251,14 +264,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: io
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -303,14 +319,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: html
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -325,14 +344,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: io
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral

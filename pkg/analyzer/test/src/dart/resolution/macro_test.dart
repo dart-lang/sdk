@@ -1118,6 +1118,7 @@ augment class A {
       selectedNode: NamedType
         name: NotType
         element: <null>
+        element2: <null>
         type: InvalidType
 ''');
   }
@@ -1169,6 +1170,7 @@ ResolvedLibraryResult #0
             expression: SimpleIdentifier
               token: x
               staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
               staticType: int
             semicolon: ;
         rightBracket: }

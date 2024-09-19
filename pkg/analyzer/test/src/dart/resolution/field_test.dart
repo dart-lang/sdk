@@ -34,6 +34,7 @@ FieldDeclaration
     type: NamedType
       name: Object
       element: dart:core::<fragment>::@class::Object
+      element2: dart:core::<fragment>::@class::Object#element
       type: Object
     variables
       VariableDeclaration
@@ -63,6 +64,7 @@ FieldDeclaration
     type: NamedType
       name: Object
       element: dart:core::<fragment>::@class::Object
+      element2: dart:core::<fragment>::@class::Object#element
       type: Object
     variables
       VariableDeclaration
@@ -95,6 +97,7 @@ FieldDeclaration
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
     variables
       VariableDeclaration
@@ -103,6 +106,7 @@ FieldDeclaration
         initializer: SimpleIdentifier
           token: a
           staticElement: <testLibraryFragment>::@class::A::@getter::a
+          element: <testLibraryFragment>::@class::A::@getter::a#element
           staticType: int
         declaredElement: <testLibraryFragment>::@class::A::@field::b
   semicolon: ;
@@ -128,6 +132,7 @@ FieldDeclaration
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
     variables
       VariableDeclaration
@@ -136,6 +141,7 @@ FieldDeclaration
         initializer: SimpleIdentifier
           token: a
           staticElement: <testLibraryFragment>::@class::A::@getter::a
+          element: <testLibraryFragment>::@class::A::@getter::a#element
           staticType: int
         declaredElement: <testLibraryFragment>::@class::A::@field::b
   semicolon: ;
@@ -161,6 +167,7 @@ FieldDeclaration
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
     variables
       VariableDeclaration
@@ -170,6 +177,7 @@ FieldDeclaration
           methodName: SimpleIdentifier
             token: a
             staticElement: <testLibraryFragment>::@class::A::@method::a
+            element: <testLibraryFragment>::@class::A::@method::a#element
             staticType: int Function()
           argumentList: ArgumentList
             leftParenthesis: (
@@ -281,6 +289,7 @@ FieldDeclaration
               NamedType
                 name: T
                 element: T@8
+                element2: <not-implemented>
                 type: T
             rightBracket: >
           leftBracket: [

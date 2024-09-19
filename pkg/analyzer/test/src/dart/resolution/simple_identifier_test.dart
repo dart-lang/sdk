@@ -37,6 +37,7 @@ void f() {
 SimpleIdentifier
   token: foo
   staticElement: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
+  element: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo#element
   staticType: void Function()
 ''');
   }
@@ -63,6 +64,7 @@ void f() {
 SimpleIdentifier
   token: foo
   staticElement: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
+  element: <testLibraryFragment>::@getter::foo#element
   staticType: int
 ''');
   }
@@ -90,6 +92,7 @@ AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -97,10 +100,13 @@ AssignmentExpression
     parameter: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
+  writeElement2: <testLibraryFragment>::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -127,6 +133,7 @@ void f() {
 SimpleIdentifier
   token: foo
   staticElement: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
+  element: <testLibraryFragment>::@getter::foo#element
   staticType: int
 ''');
   }
@@ -153,6 +160,7 @@ void f() {
 SimpleIdentifier
   token: foo
   staticElement: <testLibraryFragment>::@getter::foo
+  element: <testLibraryFragment>::@getter::foo#element
   staticType: int
 ''');
   }
@@ -171,6 +179,7 @@ main() {
 SimpleIdentifier
   token: dynamic
   staticElement: dynamic@-1
+  element: dynamic@-1
   staticType: Type
 ''');
   }
@@ -191,6 +200,7 @@ main() {
 SimpleIdentifier
   token: dynamic
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -207,6 +217,7 @@ main() {
 SimpleIdentifier
   token: dynamic
   staticElement: dynamic@-1
+  element: dynamic@-1
   staticType: Type
 ''');
   }
@@ -226,6 +237,7 @@ enum E<T> {
 SimpleIdentifier
   token: T
   staticElement: T@7
+  element: <not-implemented>
   staticType: Type
 ''');
   }
@@ -244,6 +256,7 @@ void f() {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@getter::a
+  element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
   }
@@ -266,6 +279,7 @@ class C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@getter::a
+  element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
   }
@@ -288,6 +302,7 @@ class C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@getter::a
+  element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
   }
@@ -309,6 +324,7 @@ SimpleIdentifier
   token: a
   parameter: <testLibraryFragment>::@function::foo::@parameter::a
   staticElement: <testLibraryFragment>::@getter::a
+  element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
   }
@@ -366,6 +382,7 @@ class B extends A {
 SimpleIdentifier
   token: foo
   staticElement: <testLibraryFragment>::@class::A::@getter::foo
+  element: <testLibraryFragment>::@class::A::@getter::foo#element
   staticType: int
 ''');
   }
@@ -395,6 +412,7 @@ class A {
 SimpleIdentifier
   token: foo
   staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
+  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
   staticType: int
 ''');
   }
@@ -413,6 +431,7 @@ extension E on int Function(double) {
 SimpleIdentifier
   token: call
   staticElement: <null>
+  element: <null>
   staticType: int Function(double)
 ''');
   }
@@ -431,6 +450,7 @@ extension E on int Function<T>(T) {
 SimpleIdentifier
   token: call
   staticElement: <null>
+  element: <null>
   staticType: int Function(double)
   tearOffTypeArgumentTypes
     double
@@ -451,6 +471,7 @@ extension E<T extends ({int foo})> on T {
 SimpleIdentifier
   token: foo
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -469,6 +490,7 @@ extension E<T extends (int, String)> on T {
 SimpleIdentifier
   token: $1
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -487,6 +509,7 @@ extension E on ({int foo}) {
 SimpleIdentifier
   token: foo
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -507,6 +530,7 @@ extension E on ({int foo}) {
 SimpleIdentifier
   token: bar
   staticElement: <testLibraryFragment>::@extension::E::@getter::bar
+  element: <testLibraryFragment>::@extension::E::@getter::bar#element
   staticType: bool
 ''');
   }
@@ -527,6 +551,7 @@ extension E on ({int foo}) {
 SimpleIdentifier
   token: bar
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -545,6 +570,7 @@ extension E on (int, String) {
 SimpleIdentifier
   token: $1
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -563,6 +589,7 @@ extension E on (int, String) {
 SimpleIdentifier
   token: $2
   staticElement: <null>
+  element: <null>
   staticType: String
 ''');
   }
@@ -583,6 +610,7 @@ extension E on (int, String) {
 SimpleIdentifier
   token: $3
   staticElement: <testLibraryFragment>::@extension::E::@getter::$3
+  element: <testLibraryFragment>::@extension::E::@getter::$3#element
   staticType: bool
 ''');
   }
@@ -603,6 +631,7 @@ extension E on (int, String) {
 SimpleIdentifier
   token: $3
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -623,6 +652,7 @@ extension type A(int it) {
 SimpleIdentifier
   token: foo
   staticElement: <testLibraryFragment>::@extensionType::A::@getter::foo
+  element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   staticType: int
 ''');
   }
@@ -647,6 +677,7 @@ extension type X(B it) implements A {
 SimpleIdentifier
   token: foo
   staticElement: <testLibraryFragment>::@class::A::@getter::foo
+  element: <testLibraryFragment>::@class::A::@getter::foo#element
   staticType: int
 ''');
   }
@@ -676,6 +707,7 @@ mixin A {
 SimpleIdentifier
   token: foo
   staticElement: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo
+  element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo#element
   staticType: int
 ''');
   }
@@ -707,6 +739,7 @@ main() {
 SimpleIdentifier
   token: Never
   staticElement: Never@-1
+  element: Never@-1
   staticType: Type
 ''');
   }

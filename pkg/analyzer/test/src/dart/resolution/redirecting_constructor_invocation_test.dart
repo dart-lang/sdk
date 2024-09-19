@@ -32,6 +32,7 @@ RedirectingConstructorInvocation
   constructorName: SimpleIdentifier
     token: named
     staticElement: <testLibraryFragment>::@class::C::@constructor::named
+    element: <testLibraryFragment>::@class::C::@constructor::named#element
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -42,6 +43,7 @@ RedirectingConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <testLibraryFragment>::@class::C::@constructor::named
+  element: <testLibraryFragment>::@class::C::@constructor::named#element
 ''');
   }
 
@@ -63,6 +65,7 @@ RedirectingConstructorInvocation
   constructorName: SimpleIdentifier
     token: named
     staticElement: <null>
+    element: <null>
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -73,6 +76,7 @@ RedirectingConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
 ''');
   }
 
@@ -97,6 +101,7 @@ RedirectingConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <testLibraryFragment>::@class::C::@constructor::new
+  element: <testLibraryFragment>::@class::C::@constructor::new#element
 ''');
   }
 
@@ -124,6 +129,7 @@ RedirectingConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
 ''');
   }
 }

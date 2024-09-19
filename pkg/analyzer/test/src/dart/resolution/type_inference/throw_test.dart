@@ -28,6 +28,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::a
+    element: <testLibraryFragment>::@function::a#element
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (

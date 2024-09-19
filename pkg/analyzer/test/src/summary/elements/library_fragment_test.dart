@@ -108,8 +108,10 @@ library
               name: SimpleIdentifier
                 token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
+                element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
+              element2: dart:core::<fragment>::@getter::deprecated#element
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -214,8 +216,10 @@ library
               name: SimpleIdentifier
                 token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
+                element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
+              element2: dart:core::<fragment>::@getter::deprecated#element
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -235,8 +239,10 @@ library
               name: SimpleIdentifier
                 token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
+                element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
+              element2: dart:core::<fragment>::@getter::deprecated#element
 ''');
   }
 

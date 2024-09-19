@@ -35,6 +35,7 @@ SuperConstructorInvocation
   constructorName: SimpleIdentifier
     token: named
     staticElement: <testLibraryFragment>::@class::A::@constructor::named
+    element: <testLibraryFragment>::@class::A::@constructor::named#element
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -45,6 +46,7 @@ SuperConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <testLibraryFragment>::@class::A::@constructor::named
+  element: <testLibraryFragment>::@class::A::@constructor::named#element
 ''');
   }
 
@@ -69,6 +71,7 @@ SuperConstructorInvocation
   constructorName: SimpleIdentifier
     token: named
     staticElement: <null>
+    element: <null>
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
@@ -79,6 +82,7 @@ SuperConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
 ''');
   }
 
@@ -109,6 +113,7 @@ SuperConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+  element: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
   }
 
@@ -136,6 +141,7 @@ SuperConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+  element: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
   }
 
@@ -166,6 +172,7 @@ SuperConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
 ''');
   }
 }

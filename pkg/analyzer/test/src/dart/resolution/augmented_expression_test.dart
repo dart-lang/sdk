@@ -37,6 +37,7 @@ augment class A {
 AugmentedExpression
   augmentedKeyword: augmented
   element: package:test/a.dart::<fragment>::@class::A::@field::foo
+  element2: package:test/a.dart::<fragment>::@class::A::@field::foo#element
   staticType: int
 ''');
   }
@@ -67,6 +68,7 @@ ReturnStatement
   expression: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@class::A::@getter::foo
+    element2: package:test/a.dart::<fragment>::@class::A::@getter::foo#element
     staticType: int
   semicolon: ;
 ''');
@@ -101,6 +103,7 @@ Block
         leftHandSide: AugmentedExpression
           augmentedKeyword: augmented
           element: package:test/a.dart::<fragment>::@class::A::@setter::foo
+          element2: package:test/a.dart::<fragment>::@class::A::@setter::foo#element
           staticType: null
         operator: =
         rightHandSide: IntegerLiteral
@@ -108,10 +111,13 @@ Block
           parameter: package:test/a.dart::<fragment>::@class::A::@setter::foo::@parameter::_
           staticType: int
         readElement: <null>
+        readElement2: <null>
         readType: null
         writeElement: package:test/a.dart::<fragment>::@class::A::@setter::foo
+        writeElement2: package:test/a.dart::<fragment>::@class::A::@setter::foo#element
         writeType: int
         staticElement: <null>
+        element: <null>
         staticType: int
       semicolon: ;
   rightBracket: }
@@ -146,6 +152,7 @@ AssignmentExpression
   leftHandSide: AugmentedExpression
     augmentedKeyword: augmented
     element: <null>
+    element2: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -153,10 +160,13 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <null>
+  writeElement2: <null>
   writeType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -188,6 +198,7 @@ AssignmentExpression
   leftHandSide: AugmentedExpression
     augmentedKeyword: augmented
     element: <null>
+    element2: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -195,10 +206,13 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <null>
+  writeElement2: <null>
   writeType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -225,6 +239,7 @@ ReturnStatement
   expression: AugmentedExpression
     augmentedKeyword: augmented
     element: package:test/a.dart::<fragment>::@getter::foo
+    element2: package:test/a.dart::<fragment>::@getter::foo#element
     staticType: int
   semicolon: ;
 ''');
@@ -255,6 +270,7 @@ Block
         leftHandSide: AugmentedExpression
           augmentedKeyword: augmented
           element: package:test/a.dart::<fragment>::@setter::foo
+          element2: package:test/a.dart::<fragment>::@setter::foo#element
           staticType: null
         operator: =
         rightHandSide: IntegerLiteral
@@ -262,10 +278,13 @@ Block
           parameter: package:test/a.dart::<fragment>::@setter::foo::@parameter::_
           staticType: int
         readElement: <null>
+        readElement2: <null>
         readType: null
         writeElement: package:test/a.dart::<fragment>::@setter::foo
+        writeElement2: package:test/a.dart::<fragment>::@setter::foo#element
         writeType: int
         staticElement: <null>
+        element: <null>
         staticType: int
       semicolon: ;
   rightBracket: }
@@ -290,6 +309,7 @@ augment num foo = augmented;
 AugmentedExpression
   augmentedKeyword: augmented
   element: package:test/a.dart::<fragment>::@topLevelVariable::foo
+  element2: package:test/a.dart::<fragment>::@topLevelVariable::foo#element
   staticType: int
 ''');
   }

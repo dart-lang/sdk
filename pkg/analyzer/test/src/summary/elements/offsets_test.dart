@@ -79,11 +79,13 @@ library
               name: SimpleIdentifier
                 token: Object @69
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @75
                 rightParenthesis: ) @76
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 68
           codeLength: 32
           constructors
@@ -100,11 +102,13 @@ library
               name: SimpleIdentifier
                 token: Object @103
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @109
                 rightParenthesis: ) @110
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 102
           codeLength: 70
           constructors
@@ -121,11 +125,13 @@ library
               name: SimpleIdentifier
                 token: Object @205
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @211
                 rightParenthesis: ) @212
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 174
           codeLength: 70
           constructors
@@ -142,11 +148,13 @@ library
               name: SimpleIdentifier
                 token: Object @262
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @268
                 rightParenthesis: ) @269
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 261
           codeLength: 57
           constructors
@@ -329,6 +337,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class alias HasDocComment @91
           reference: <testLibraryFragment>::@class::HasDocComment
           enclosingElement3: <testLibraryFragment>
@@ -350,6 +359,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class alias HasAnnotation @142
           reference: <testLibraryFragment>::@class::HasAnnotation
           enclosingElement3: <testLibraryFragment>
@@ -359,11 +369,13 @@ library
               name: SimpleIdentifier
                 token: Object @127
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @133
                 rightParenthesis: ) @134
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 126
           codeLength: 49
           supertype: Object
@@ -381,6 +393,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class alias AnnotationThenComment @223
           reference: <testLibraryFragment>::@class::AnnotationThenComment
           enclosingElement3: <testLibraryFragment>
@@ -391,11 +404,13 @@ library
               name: SimpleIdentifier
                 token: Object @178
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @184
                 rightParenthesis: ) @185
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 177
           codeLength: 87
           supertype: Object
@@ -413,6 +428,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class alias CommentThenAnnotation @312
           reference: <testLibraryFragment>::@class::CommentThenAnnotation
           enclosingElement3: <testLibraryFragment>
@@ -423,11 +439,13 @@ library
               name: SimpleIdentifier
                 token: Object @297
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @303
                 rightParenthesis: ) @304
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 266
           codeLength: 87
           supertype: Object
@@ -445,6 +463,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class alias CommentAroundAnnotation @401
           reference: <testLibraryFragment>::@class::CommentAroundAnnotation
           enclosingElement3: <testLibraryFragment>
@@ -455,11 +474,13 @@ library
               name: SimpleIdentifier
                 token: Object @371
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @377
                 rightParenthesis: ) @378
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 370
           codeLength: 74
           supertype: Object
@@ -477,6 +498,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -512,6 +534,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class HasDocComment @91
           reference: <testLibraryFragment>::@class::HasDocComment
           element: <testLibraryFragment>::@class::HasDocComment#element
@@ -526,6 +549,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class HasAnnotation @142
           reference: <testLibraryFragment>::@class::HasAnnotation
           element: <testLibraryFragment>::@class::HasAnnotation#element
@@ -540,6 +564,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class AnnotationThenComment @223
           reference: <testLibraryFragment>::@class::AnnotationThenComment
           element: <testLibraryFragment>::@class::AnnotationThenComment#element
@@ -554,6 +579,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class CommentThenAnnotation @312
           reference: <testLibraryFragment>::@class::CommentThenAnnotation
           element: <testLibraryFragment>::@class::CommentThenAnnotation#element
@@ -568,6 +594,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class CommentAroundAnnotation @401
           reference: <testLibraryFragment>::@class::CommentAroundAnnotation
           element: <testLibraryFragment>::@class::CommentAroundAnnotation#element
@@ -582,6 +609,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -726,11 +754,13 @@ library
                   name: SimpleIdentifier
                     token: Object @93
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @99
                     rightParenthesis: ) @100
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 92
               codeLength: 32
               periodOffset: 105
@@ -745,11 +775,13 @@ library
                   name: SimpleIdentifier
                     token: Object @129
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @135
                     rightParenthesis: ) @136
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 128
               codeLength: 74
               periodOffset: 175
@@ -764,11 +796,13 @@ library
                   name: SimpleIdentifier
                     token: Object @241
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @247
                     rightParenthesis: ) @248
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 206
               codeLength: 74
               periodOffset: 253
@@ -783,11 +817,13 @@ library
                   name: SimpleIdentifier
                     token: Object @302
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @308
                     rightParenthesis: ) @309
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 301
               codeLength: 59
               periodOffset: 331
@@ -832,11 +868,13 @@ library
                   name: SimpleIdentifier
                     token: Object @93
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @99
                     rightParenthesis: ) @100
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 92
               codeLength: 32
               periodOffset: 105
@@ -851,11 +889,13 @@ library
                   name: SimpleIdentifier
                     token: Object @129
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @135
                     rightParenthesis: ) @136
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 128
               codeLength: 74
               periodOffset: 175
@@ -870,11 +910,13 @@ library
                   name: SimpleIdentifier
                     token: Object @241
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @247
                     rightParenthesis: ) @248
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 206
               codeLength: 74
               periodOffset: 253
@@ -889,11 +931,13 @@ library
                   name: SimpleIdentifier
                     token: Object @302
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @308
                     rightParenthesis: ) @309
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 301
               codeLength: 59
               periodOffset: 331
@@ -919,11 +963,13 @@ library
               name: SimpleIdentifier
                 token: Object @93
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @99
                 rightParenthesis: ) @100
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         annotationThenComment
           firstFragment: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -933,11 +979,13 @@ library
               name: SimpleIdentifier
                 token: Object @129
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @135
                 rightParenthesis: ) @136
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         commentThenAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -947,11 +995,13 @@ library
               name: SimpleIdentifier
                 token: Object @241
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @247
                 rightParenthesis: ) @248
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         commentAroundAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
           documentationComment: /// Comment 2.
@@ -961,11 +1011,13 @@ library
               name: SimpleIdentifier
                 token: Object @302
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @308
                 rightParenthesis: ) @309
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
 ''');
   }
 
@@ -1043,11 +1095,13 @@ library
                   name: SimpleIdentifier
                     token: Object @146
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @152
                     rightParenthesis: ) @153
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 145
               codeLength: 49
               periodOffset: 166
@@ -1062,11 +1116,13 @@ library
                   name: SimpleIdentifier
                     token: Object @199
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @205
                     rightParenthesis: ) @206
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 198
               codeLength: 91
               periodOffset: 253
@@ -1081,11 +1137,13 @@ library
                   name: SimpleIdentifier
                     token: Object @328
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @334
                     rightParenthesis: ) @335
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 293
               codeLength: 91
               periodOffset: 348
@@ -1100,11 +1158,13 @@ library
                   name: SimpleIdentifier
                     token: Object @406
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @412
                     rightParenthesis: ) @413
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 405
               codeLength: 76
               periodOffset: 443
@@ -1149,11 +1209,13 @@ library
                   name: SimpleIdentifier
                     token: Object @146
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @152
                     rightParenthesis: ) @153
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 145
               codeLength: 49
               periodOffset: 166
@@ -1168,11 +1230,13 @@ library
                   name: SimpleIdentifier
                     token: Object @199
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @205
                     rightParenthesis: ) @206
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 198
               codeLength: 91
               periodOffset: 253
@@ -1187,11 +1251,13 @@ library
                   name: SimpleIdentifier
                     token: Object @328
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @334
                     rightParenthesis: ) @335
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 293
               codeLength: 91
               periodOffset: 348
@@ -1206,11 +1272,13 @@ library
                   name: SimpleIdentifier
                     token: Object @406
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @412
                     rightParenthesis: ) @413
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 405
               codeLength: 76
               periodOffset: 443
@@ -1236,11 +1304,13 @@ library
               name: SimpleIdentifier
                 token: Object @146
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @152
                 rightParenthesis: ) @153
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         factory annotationThenComment
           firstFragment: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -1250,11 +1320,13 @@ library
               name: SimpleIdentifier
                 token: Object @199
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @205
                 rightParenthesis: ) @206
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         factory commentThenAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -1264,11 +1336,13 @@ library
               name: SimpleIdentifier
                 token: Object @328
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @334
                 rightParenthesis: ) @335
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         factory commentAroundAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
           documentationComment: /// Comment 2.
@@ -1278,11 +1352,13 @@ library
               name: SimpleIdentifier
                 token: Object @406
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @412
                 rightParenthesis: ) @413
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
 ''');
   }
 
@@ -1355,11 +1431,13 @@ library
               name: SimpleIdentifier
                 token: Object @99
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @105
                 rightParenthesis: ) @106
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 98
           codeLength: 41
           extendedType: A
@@ -1373,11 +1451,13 @@ library
               name: SimpleIdentifier
                 token: Object @142
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @148
                 rightParenthesis: ) @149
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 141
           codeLength: 79
           extendedType: A
@@ -1391,11 +1471,13 @@ library
               name: SimpleIdentifier
                 token: Object @253
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @259
                 rightParenthesis: ) @260
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 222
           codeLength: 79
           extendedType: A
@@ -1409,11 +1491,13 @@ library
               name: SimpleIdentifier
                 token: Object @319
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @325
                 rightParenthesis: ) @326
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 318
           codeLength: 66
           extendedType: A
@@ -1833,11 +1917,13 @@ library
                   name: SimpleIdentifier
                     token: Object @85
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @91
                     rightParenthesis: ) @92
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 84
               codeLength: 29
               type: int
@@ -1850,11 +1936,13 @@ library
                   name: SimpleIdentifier
                     token: Object @85
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @91
                     rightParenthesis: ) @92
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 115
               codeLength: 14
               type: int
@@ -1868,11 +1956,13 @@ library
                   name: SimpleIdentifier
                     token: Object @135
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @141
                     rightParenthesis: ) @142
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 134
               codeLength: 71
               type: int
@@ -1886,11 +1976,13 @@ library
                   name: SimpleIdentifier
                     token: Object @135
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @141
                     rightParenthesis: ) @142
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 207
               codeLength: 22
               type: int
@@ -1904,11 +1996,13 @@ library
                   name: SimpleIdentifier
                     token: Object @269
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @275
                     rightParenthesis: ) @276
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 234
               codeLength: 71
               type: int
@@ -1922,11 +2016,13 @@ library
                   name: SimpleIdentifier
                     token: Object @269
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @275
                     rightParenthesis: ) @276
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 307
               codeLength: 22
               type: int
@@ -1940,11 +2036,13 @@ library
                   name: SimpleIdentifier
                     token: Object @352
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @358
                     rightParenthesis: ) @359
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 351
               codeLength: 56
               type: int
@@ -1958,11 +2056,13 @@ library
                   name: SimpleIdentifier
                     token: Object @352
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @358
                     rightParenthesis: ) @359
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 409
               codeLength: 24
               type: int
@@ -2429,11 +2529,13 @@ library
               name: SimpleIdentifier
                 token: Object @71
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @77
                 rightParenthesis: ) @78
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 70
           codeLength: 33
           returnType: void
@@ -2447,11 +2549,13 @@ library
               name: SimpleIdentifier
                 token: Object @106
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @112
                 rightParenthesis: ) @113
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 105
           codeLength: 71
           returnType: void
@@ -2465,11 +2569,13 @@ library
               name: SimpleIdentifier
                 token: Object @209
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @215
                 rightParenthesis: ) @216
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 178
           codeLength: 71
           returnType: void
@@ -2483,11 +2589,13 @@ library
               name: SimpleIdentifier
                 token: Object @267
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @273
                 rightParenthesis: ) @274
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 266
           codeLength: 58
           returnType: void
@@ -2514,11 +2622,13 @@ library
               name: SimpleIdentifier
                 token: Object @71
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @77
                 rightParenthesis: ) @78
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         annotationThenComment @150
           reference: <testLibraryFragment>::@function::annotationThenComment
           element: <testLibraryFragment>::@function::annotationThenComment#element
@@ -2529,11 +2639,13 @@ library
               name: SimpleIdentifier
                 token: Object @106
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @112
                 rightParenthesis: ) @113
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         commentThenAnnotation @223
           reference: <testLibraryFragment>::@function::commentThenAnnotation
           element: <testLibraryFragment>::@function::commentThenAnnotation#element
@@ -2544,11 +2656,13 @@ library
               name: SimpleIdentifier
                 token: Object @209
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @215
                 rightParenthesis: ) @216
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         commentAroundAnnotation @296
           reference: <testLibraryFragment>::@function::commentAroundAnnotation
           element: <testLibraryFragment>::@function::commentAroundAnnotation#element
@@ -2559,11 +2673,13 @@ library
               name: SimpleIdentifier
                 token: Object @267
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @273
                 rightParenthesis: ) @274
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
   functions
     raw
       firstFragment: <testLibraryFragment>::@function::raw
@@ -2580,11 +2696,13 @@ library
           name: SimpleIdentifier
             token: Object @71
             staticElement: dart:core::<fragment>::@class::Object
+            element: dart:core::<fragment>::@class::Object#element
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @77
             rightParenthesis: ) @78
           element: dart:core::<fragment>::@class::Object::@constructor::new
+          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       returnType: void
     annotationThenComment
       firstFragment: <testLibraryFragment>::@function::annotationThenComment
@@ -2595,11 +2713,13 @@ library
           name: SimpleIdentifier
             token: Object @106
             staticElement: dart:core::<fragment>::@class::Object
+            element: dart:core::<fragment>::@class::Object#element
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @112
             rightParenthesis: ) @113
           element: dart:core::<fragment>::@class::Object::@constructor::new
+          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       returnType: void
     commentThenAnnotation
       firstFragment: <testLibraryFragment>::@function::commentThenAnnotation
@@ -2610,11 +2730,13 @@ library
           name: SimpleIdentifier
             token: Object @209
             staticElement: dart:core::<fragment>::@class::Object
+            element: dart:core::<fragment>::@class::Object#element
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @215
             rightParenthesis: ) @216
           element: dart:core::<fragment>::@class::Object::@constructor::new
+          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       returnType: void
     commentAroundAnnotation
       firstFragment: <testLibraryFragment>::@function::commentAroundAnnotation
@@ -2625,11 +2747,13 @@ library
           name: SimpleIdentifier
             token: Object @267
             staticElement: dart:core::<fragment>::@class::Object
+            element: dart:core::<fragment>::@class::Object#element
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @273
             rightParenthesis: ) @274
           element: dart:core::<fragment>::@class::Object::@constructor::new
+          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       returnType: void
 ''');
   }
@@ -2703,11 +2827,13 @@ library
                   name: SimpleIdentifier
                     token: Object @91
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @97
                     rightParenthesis: ) @98
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 90
               codeLength: 35
               returnType: void
@@ -2721,11 +2847,13 @@ library
                   name: SimpleIdentifier
                     token: Object @130
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @136
                     rightParenthesis: ) @137
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 129
               codeLength: 77
               returnType: void
@@ -2739,11 +2867,13 @@ library
                   name: SimpleIdentifier
                     token: Object @245
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @251
                     rightParenthesis: ) @252
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 210
               codeLength: 77
               returnType: void
@@ -2757,11 +2887,13 @@ library
                   name: SimpleIdentifier
                     token: Object @309
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @315
                     rightParenthesis: ) @316
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 308
               codeLength: 62
               returnType: void
@@ -2800,11 +2932,13 @@ library
                   name: SimpleIdentifier
                     token: Object @91
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @97
                     rightParenthesis: ) @98
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 90
               codeLength: 35
             annotationThenComment @180
@@ -2817,11 +2951,13 @@ library
                   name: SimpleIdentifier
                     token: Object @130
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @136
                     rightParenthesis: ) @137
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 129
               codeLength: 77
             commentThenAnnotation @261
@@ -2834,11 +2970,13 @@ library
                   name: SimpleIdentifier
                     token: Object @245
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @251
                     rightParenthesis: ) @252
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 210
               codeLength: 77
             commentAroundAnnotation @342
@@ -2851,11 +2989,13 @@ library
                   name: SimpleIdentifier
                     token: Object @309
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @315
                     rightParenthesis: ) @316
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 308
               codeLength: 62
   classes
@@ -2880,11 +3020,13 @@ library
               name: SimpleIdentifier
                 token: Object @91
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @97
                 rightParenthesis: ) @98
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         annotationThenComment
           firstFragment: <testLibraryFragment>::@class::C::@method::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -2894,11 +3036,13 @@ library
               name: SimpleIdentifier
                 token: Object @130
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @136
                 rightParenthesis: ) @137
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         commentThenAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -2908,11 +3052,13 @@ library
               name: SimpleIdentifier
                 token: Object @245
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @251
                 rightParenthesis: ) @252
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         commentAroundAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::commentAroundAnnotation
           documentationComment: /// Comment 2.
@@ -2922,11 +3068,13 @@ library
               name: SimpleIdentifier
                 token: Object @309
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @315
                 rightParenthesis: ) @316
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
 ''');
   }
 
@@ -3037,11 +3185,13 @@ library
                   name: SimpleIdentifier
                     token: Object @6
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @12
                     rightParenthesis: ) @13
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 5
               codeLength: 15
             requiredPositional b @26
@@ -3056,11 +3206,13 @@ library
                   name: SimpleIdentifier
                     token: Object @30
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @36
                     rightParenthesis: ) @37
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
               codeOffset: 29
               codeLength: 15
           returnType: dynamic
@@ -3083,11 +3235,13 @@ library
                   name: SimpleIdentifier
                     token: Object @6
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @12
                     rightParenthesis: ) @13
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
             b @26
               element: <not-implemented>
             c @43
@@ -3098,11 +3252,13 @@ library
                   name: SimpleIdentifier
                     token: Object @30
                     staticElement: dart:core::<fragment>::@class::Object
+                    element: dart:core::<fragment>::@class::Object#element
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @36
                     rightParenthesis: ) @37
                   element: dart:core::<fragment>::@class::Object::@constructor::new
+                  element2: dart:core::<fragment>::@class::Object::@constructor::new#element
   functions
     main
       firstFragment: <testLibraryFragment>::@function::main
@@ -3115,11 +3271,13 @@ library
               name: SimpleIdentifier
                 token: Object @6
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @12
                 rightParenthesis: ) @13
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         requiredPositional b
           type: int
         requiredPositional c
@@ -3130,11 +3288,13 @@ library
               name: SimpleIdentifier
                 token: Object @30
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @36
                 rightParenthesis: ) @37
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       returnType: dynamic
 ''');
   }
@@ -3446,11 +3606,13 @@ library
               name: SimpleIdentifier
                 token: Object @67
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @73
                 rightParenthesis: ) @74
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 66
           codeLength: 27
           type: int
@@ -3463,11 +3625,13 @@ library
               name: SimpleIdentifier
                 token: Object @67
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @73
                 rightParenthesis: ) @74
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 95
           codeLength: 14
           type: int
@@ -3481,11 +3645,13 @@ library
               name: SimpleIdentifier
                 token: Object @113
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @119
                 rightParenthesis: ) @120
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 112
           codeLength: 65
           type: int
@@ -3499,11 +3665,13 @@ library
               name: SimpleIdentifier
                 token: Object @113
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @119
                 rightParenthesis: ) @120
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 179
           codeLength: 22
           type: int
@@ -3517,11 +3685,13 @@ library
               name: SimpleIdentifier
                 token: Object @235
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @241
                 rightParenthesis: ) @242
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 204
           codeLength: 65
           type: int
@@ -3535,11 +3705,13 @@ library
               name: SimpleIdentifier
                 token: Object @235
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @241
                 rightParenthesis: ) @242
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 271
           codeLength: 22
           type: int
@@ -3553,11 +3725,13 @@ library
               name: SimpleIdentifier
                 token: Object @312
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @318
                 rightParenthesis: ) @319
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 311
           codeLength: 52
           type: int
@@ -3571,11 +3745,13 @@ library
               name: SimpleIdentifier
                 token: Object @312
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @318
                 rightParenthesis: ) @319
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           codeOffset: 365
           codeLength: 24
           type: int
@@ -3718,11 +3894,13 @@ library
               name: SimpleIdentifier
                 token: Object @67
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @73
                 rightParenthesis: ) @74
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           getter2: <testLibraryFragment>::@getter::hasAnnotation
           setter2: <testLibraryFragment>::@setter::hasAnnotation
         hasAnnotation2 @95
@@ -3734,11 +3912,13 @@ library
               name: SimpleIdentifier
                 token: Object @67
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @73
                 rightParenthesis: ) @74
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           getter2: <testLibraryFragment>::@getter::hasAnnotation2
           setter2: <testLibraryFragment>::@setter::hasAnnotation2
         annotationThenComment @156
@@ -3751,11 +3931,13 @@ library
               name: SimpleIdentifier
                 token: Object @113
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @119
                 rightParenthesis: ) @120
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           getter2: <testLibraryFragment>::@getter::annotationThenComment
           setter2: <testLibraryFragment>::@setter::annotationThenComment
         annotationThenComment2 @179
@@ -3768,11 +3950,13 @@ library
               name: SimpleIdentifier
                 token: Object @113
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @119
                 rightParenthesis: ) @120
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           getter2: <testLibraryFragment>::@getter::annotationThenComment2
           setter2: <testLibraryFragment>::@setter::annotationThenComment2
         commentThenAnnotation @248
@@ -3785,11 +3969,13 @@ library
               name: SimpleIdentifier
                 token: Object @235
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @241
                 rightParenthesis: ) @242
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           getter2: <testLibraryFragment>::@getter::commentThenAnnotation
           setter2: <testLibraryFragment>::@setter::commentThenAnnotation
         commentThenAnnotation2 @271
@@ -3802,11 +3988,13 @@ library
               name: SimpleIdentifier
                 token: Object @235
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @241
                 rightParenthesis: ) @242
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           getter2: <testLibraryFragment>::@getter::commentThenAnnotation2
           setter2: <testLibraryFragment>::@setter::commentThenAnnotation2
         commentAroundAnnotation @340
@@ -3819,11 +4007,13 @@ library
               name: SimpleIdentifier
                 token: Object @312
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @318
                 rightParenthesis: ) @319
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           getter2: <testLibraryFragment>::@getter::commentAroundAnnotation
           setter2: <testLibraryFragment>::@setter::commentAroundAnnotation
         commentAroundAnnotation2 @365
@@ -3836,11 +4026,13 @@ library
               name: SimpleIdentifier
                 token: Object @312
                 staticElement: dart:core::<fragment>::@class::Object
+                element: dart:core::<fragment>::@class::Object#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @318
                 rightParenthesis: ) @319
               element: dart:core::<fragment>::@class::Object::@constructor::new
+              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
           getter2: <testLibraryFragment>::@getter::commentAroundAnnotation2
           setter2: <testLibraryFragment>::@setter::commentAroundAnnotation2
       getters

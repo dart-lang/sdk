@@ -35,6 +35,7 @@ ImportDirective
         SimpleIdentifier
           token: Random
           staticElement: dart:math::<fragment>::@class::Random
+          element: dart:math::<fragment>::@class::Random#element
           staticType: null
   semicolon: ;
   element: LibraryImportElement
@@ -64,6 +65,7 @@ ImportDirective
         SimpleIdentifier
           token: Unresolved
           staticElement: <null>
+          element: <null>
           staticType: null
   semicolon: ;
   element: LibraryImportElement
@@ -92,6 +94,7 @@ ImportDirective
         SimpleIdentifier
           token: Random
           staticElement: dart:math::<fragment>::@class::Random
+          element: dart:math::<fragment>::@class::Random#element
           staticType: null
   semicolon: ;
   element: LibraryImportElement
@@ -121,6 +124,7 @@ ImportDirective
         SimpleIdentifier
           token: Unresolved
           staticElement: <null>
+          element: <null>
           staticType: null
   semicolon: ;
   element: LibraryImportElement
@@ -164,14 +168,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -186,14 +193,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -217,8 +227,10 @@ CompilationUnit
                 type: NamedType
                   name: A
                   element: package:test/a.dart::<fragment>::@class::A
+                  element2: package:test/a.dart::<fragment>::@class::A#element
                   type: A
                 staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
@@ -264,14 +276,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -286,14 +301,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -317,8 +335,10 @@ CompilationUnit
                 type: NamedType
                   name: A
                   element: package:test/a_html.dart::<fragment>::@class::A
+                  element2: package:test/a_html.dart::<fragment>::@class::A#element
                   type: A
                 staticElement: package:test/a_html.dart::<fragment>::@class::A::@constructor::new
+                element: package:test/a_html.dart::<fragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
@@ -348,6 +368,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: SimpleStringLiteral
@@ -376,6 +397,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: StringInterpolation
@@ -414,6 +436,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: SimpleStringLiteral
@@ -442,6 +465,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: SimpleStringLiteral
@@ -486,14 +510,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -508,14 +535,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -539,8 +569,10 @@ CompilationUnit
                 type: NamedType
                   name: A
                   element: package:test/a_io.dart::<fragment>::@class::A
+                  element2: package:test/a_io.dart::<fragment>::@class::A#element
                   type: A
                 staticElement: package:test/a_io.dart::<fragment>::@class::A::@constructor::new
+                element: package:test/a_io.dart::<fragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )

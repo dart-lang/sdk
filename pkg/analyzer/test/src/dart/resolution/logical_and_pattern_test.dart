@@ -28,6 +28,7 @@ LogicalAndPattern
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
     name: _
     matchedValueType: dynamic
@@ -36,6 +37,7 @@ LogicalAndPattern
     type: NamedType
       name: double
       element: dart:core::<fragment>::@class::double
+      element2: dart:core::<fragment>::@class::double#element
       type: double
     name: _
     matchedValueType: int
@@ -59,6 +61,7 @@ LogicalAndPattern
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
     name: _
     matchedValueType: dynamic
@@ -67,6 +70,7 @@ LogicalAndPattern
     type: NamedType
       name: double
       element: dart:core::<fragment>::@class::double
+      element2: dart:core::<fragment>::@class::double#element
       type: double
     name: _
     matchedValueType: int

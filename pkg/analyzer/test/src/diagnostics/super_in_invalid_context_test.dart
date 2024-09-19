@@ -278,6 +278,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: m
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
@@ -309,6 +310,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: a
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');

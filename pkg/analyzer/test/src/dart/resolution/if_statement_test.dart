@@ -31,6 +31,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: dynamic
   caseClause: CaseClause
     caseKeyword: case
@@ -64,6 +65,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -73,6 +75,7 @@ IfStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           name: a
           declaredElement: a@37
@@ -86,6 +89,7 @@ IfStatement
               type: NamedType
                 name: int
                 element: dart:core::<fragment>::@class::int
+                element2: dart:core::<fragment>::@class::int#element
                 type: int
               name: a
               declaredElement: a@47
@@ -101,6 +105,7 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: a[a@37, a@47]
+            element: a@-1
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -108,6 +113,7 @@ IfStatement
             parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
           staticElement: dart:core::<fragment>::@class::num::@method::>
+          element: dart:core::<fragment>::@class::num::@method::>#element
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -118,6 +124,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: a[a@37, a@47]
+          element: a@-1
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -143,6 +150,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -154,6 +162,7 @@ IfStatement
             NamedType
               name: int
               element: dart:core::<fragment>::@class::int
+              element2: dart:core::<fragment>::@class::int#element
               type: int
           rightBracket: >
         leftBracket: [
@@ -182,6 +191,7 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: a[a@43, a@52]
+            element: a@-1
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -189,6 +199,7 @@ IfStatement
             parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
           staticElement: dart:core::<fragment>::@class::num::@method::>
+          element: dart:core::<fragment>::@class::num::@method::>#element
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -199,6 +210,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: a[a@43, a@52]
+          element: a@-1
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -225,6 +237,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -234,6 +247,7 @@ IfStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           name: a
           declaredElement: a@37
@@ -248,6 +262,7 @@ IfStatement
               type: NamedType
                 name: int
                 element: dart:core::<fragment>::@class::int
+                element2: dart:core::<fragment>::@class::int#element
                 type: int
               name: a
               declaredElement: isFinal a@53
@@ -263,6 +278,7 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@37, a@53]
+            element: a@-1
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -270,6 +286,7 @@ IfStatement
             parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
           staticElement: dart:core::<fragment>::@class::num::@method::>
+          element: dart:core::<fragment>::@class::num::@method::>#element
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -280,6 +297,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: notConsistent a[a@37, a@53]
+          element: a@-1
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -306,6 +324,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -315,6 +334,7 @@ IfStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           name: a
           declaredElement: a@37
@@ -328,6 +348,7 @@ IfStatement
               type: NamedType
                 name: double
                 element: dart:core::<fragment>::@class::double
+                element2: dart:core::<fragment>::@class::double#element
                 type: double
               name: a
               declaredElement: a@50
@@ -343,6 +364,7 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@37, a@50]
+            element: a@-1
             staticType: InvalidType
           operator: >
           rightOperand: IntegerLiteral
@@ -350,6 +372,7 @@ IfStatement
             parameter: <null>
             staticType: int
           staticElement: <null>
+          element: <null>
           staticInvokeType: null
           staticType: InvalidType
   rightParenthesis: )
@@ -360,6 +383,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: notConsistent a[a@37, a@50]
+          element: a@-1
           staticType: InvalidType
         semicolon: ;
     rightBracket: }
@@ -386,6 +410,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -396,6 +421,7 @@ IfStatement
             type: NamedType
               name: int
               element: dart:core::<fragment>::@class::int
+              element2: dart:core::<fragment>::@class::int#element
               type: int
             name: a
             declaredElement: a@37
@@ -421,6 +447,7 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@37]
+            element: a@-1
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -428,6 +455,7 @@ IfStatement
             parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
           staticElement: dart:core::<fragment>::@class::num::@method::>
+          element: dart:core::<fragment>::@class::num::@method::>#element
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -438,6 +466,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: notConsistent a[a@37]
+          element: a@-1
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -463,6 +492,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -473,6 +503,7 @@ IfStatement
             type: NamedType
               name: int
               element: dart:core::<fragment>::@class::int
+              element2: dart:core::<fragment>::@class::int#element
               type: int
             name: a
             declaredElement: a@37
@@ -483,6 +514,7 @@ IfStatement
             type: NamedType
               name: int
               element: dart:core::<fragment>::@class::int
+              element2: dart:core::<fragment>::@class::int#element
               type: int
             name: a
             declaredElement: a@46
@@ -502,6 +534,7 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@37, a@46]
+            element: a@-1
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -509,6 +542,7 @@ IfStatement
             parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
           staticElement: dart:core::<fragment>::@class::num::@method::>
+          element: dart:core::<fragment>::@class::num::@method::>#element
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -519,6 +553,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: notConsistent a[a@37, a@46]
+          element: a@-1
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -542,6 +577,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -552,6 +588,7 @@ IfStatement
             type: NamedType
               name: int
               element: dart:core::<fragment>::@class::int
+              element2: dart:core::<fragment>::@class::int#element
               type: int
             name: a
             declaredElement: a@37
@@ -562,6 +599,7 @@ IfStatement
             type: NamedType
               name: int
               element: dart:core::<fragment>::@class::int
+              element2: dart:core::<fragment>::@class::int#element
               type: int
             name: a
             declaredElement: a@46
@@ -573,6 +611,7 @@ IfStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           name: a
           declaredElement: a@55
@@ -585,6 +624,7 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: a[a@37, a@46, a@55]
+            element: a@-1
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -592,6 +632,7 @@ IfStatement
             parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
           staticElement: dart:core::<fragment>::@class::num::@method::>
+          element: dart:core::<fragment>::@class::num::@method::>#element
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -602,6 +643,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: a[a@37, a@46, a@55]
+          element: a@-1
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -627,6 +669,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -637,6 +680,7 @@ IfStatement
             type: NamedType
               name: int
               element: dart:core::<fragment>::@class::int
+              element2: dart:core::<fragment>::@class::int#element
               type: int
             name: a
             declaredElement: a@37
@@ -654,6 +698,7 @@ IfStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           name: a
           declaredElement: a@51
@@ -666,6 +711,7 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@37, a@51]
+            element: a@-1
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -673,6 +719,7 @@ IfStatement
             parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
           staticElement: dart:core::<fragment>::@class::num::@method::>
+          element: dart:core::<fragment>::@class::num::@method::>#element
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -683,6 +730,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: notConsistent a[a@37, a@51]
+          element: a@-1
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -709,6 +757,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -725,6 +774,7 @@ IfStatement
             type: NamedType
               name: int
               element: dart:core::<fragment>::@class::int
+              element2: dart:core::<fragment>::@class::int#element
               type: int
             name: a
             declaredElement: a@42
@@ -744,6 +794,7 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@42]
+            element: a@-1
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -751,6 +802,7 @@ IfStatement
             parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
           staticElement: dart:core::<fragment>::@class::num::@method::>
+          element: dart:core::<fragment>::@class::num::@method::>#element
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -761,6 +813,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: notConsistent a[a@42]
+          element: a@-1
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -786,6 +839,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -802,6 +856,7 @@ IfStatement
             type: NamedType
               name: int
               element: dart:core::<fragment>::@class::int
+              element2: dart:core::<fragment>::@class::int#element
               type: int
             name: a
             declaredElement: a@42
@@ -813,6 +868,7 @@ IfStatement
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           name: a
           declaredElement: a@51
@@ -825,6 +881,7 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@42, a@51]
+            element: a@-1
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -832,6 +889,7 @@ IfStatement
             parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
           staticElement: dart:core::<fragment>::@class::num::@method::>
+          element: dart:core::<fragment>::@class::num::@method::>#element
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -842,6 +900,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: notConsistent a[a@42, a@51]
+          element: a@-1
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -879,6 +938,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -890,6 +950,7 @@ IfStatement
             type: NamedType
               name: int
               element: dart:core::<fragment>::@class::int
+              element2: dart:core::<fragment>::@class::int#element
               type: int
             name: a
             declaredElement: a@51
@@ -900,8 +961,10 @@ IfStatement
             operand: SimpleIdentifier
               token: a
               staticElement: a@51
+              element: a@51
               staticType: int
             element: dart:core::<fragment>::@class::Object::@method::==
+            element2: dart:core::<fragment>::@class::Object::@method::==#element
             matchedValueType: Object?
         rightBracket: ]
         matchedValueType: Object?
@@ -912,6 +975,7 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: a@51
+            element: a@51
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -919,6 +983,7 @@ IfStatement
             parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
           staticElement: dart:core::<fragment>::@class::num::@method::>
+          element: dart:core::<fragment>::@class::num::@method::>#element
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -929,6 +994,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: a@51
+          element: a@51
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -940,6 +1006,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: <testLibraryFragment>::@getter::a
+          element: <testLibraryFragment>::@getter::a#element
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -969,6 +1036,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -978,6 +1046,7 @@ IfStatement
           type: NamedType
             name: bool
             element: dart:core::<fragment>::@class::bool
+            element2: dart:core::<fragment>::@class::bool#element
             type: bool
           name: a
           declaredElement: a@51
@@ -988,6 +1057,7 @@ IfStatement
           expression: SimpleIdentifier
             token: a
             staticElement: notConsistent a[a@51]
+            element: a@-1
             staticType: InvalidType
           matchedValueType: Object?
         matchedValueType: Object?
@@ -996,6 +1066,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: notConsistent a[a@51]
+          element: a@-1
           staticType: bool
   rightParenthesis: )
   thenStatement: Block
@@ -1005,6 +1076,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: notConsistent a[a@51]
+          element: a@-1
           staticType: bool
         semicolon: ;
     rightBracket: }
@@ -1016,6 +1088,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: <testLibraryFragment>::@getter::a
+          element: <testLibraryFragment>::@getter::a#element
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -1043,6 +1116,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -1051,6 +1125,7 @@ IfStatement
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
         name: a
         declaredElement: a@37
@@ -1062,6 +1137,7 @@ IfStatement
           leftOperand: SimpleIdentifier
             token: a
             staticElement: a@37
+            element: a@37
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -1069,6 +1145,7 @@ IfStatement
             parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
           staticElement: dart:core::<fragment>::@class::num::@method::>
+          element: dart:core::<fragment>::@class::num::@method::>#element
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -1079,6 +1156,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: a@37
+          element: a@37
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -1090,6 +1168,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: <null>
+          element: <null>
           staticType: InvalidType
         semicolon: ;
     rightBracket: }
@@ -1142,6 +1221,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: dynamic
   caseClause: CaseClause
     caseKeyword: case
@@ -1153,8 +1233,10 @@ IfStatement
             type: NamedType
               name: A
               element: <testLibraryFragment>::@class::A
+              element2: <testLibraryFragment>::@class::A#element
               type: A
             staticElement: <testLibraryFragment>::@class::A::@constructor::new
+            element: <testLibraryFragment>::@class::A::@constructor::new#element
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
@@ -1183,11 +1265,13 @@ IfStatement
     function: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <not-implemented>
       staticType: bool Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     staticElement: <null>
+    element: <null>
     staticInvokeType: bool Function()
     staticType: bool
   rightParenthesis: )
@@ -1213,11 +1297,13 @@ IfStatement
     function: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <not-implemented>
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     staticElement: <null>
+    element: <null>
     staticInvokeType: int Function()
     staticType: int
   caseClause: CaseClause
@@ -1250,6 +1336,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: dynamic
   caseClause: CaseClause
     caseKeyword: case
@@ -1265,11 +1352,13 @@ IfStatement
           function: SimpleIdentifier
             token: a
             staticElement: <testLibraryFragment>::@function::f::@parameter::a
+            element: <not-implemented>
             staticType: bool Function()
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
           staticElement: <null>
+          element: <null>
           staticInvokeType: bool Function()
           staticType: bool
   rightParenthesis: )
@@ -1294,6 +1383,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: dynamic
   caseClause: CaseClause
     caseKeyword: case

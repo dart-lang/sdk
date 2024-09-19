@@ -3299,10 +3299,12 @@ library
                 type: NamedType
                   name: A @45
                   element: <testLibraryFragment>::@class::A
+                  element2: <testLibraryFragment>::@class::A#element
                   type: A<int>
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::A::@constructor::new
                   substitution: {T: int}
+                element: <testLibraryFragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @46
                 rightParenthesis: ) @47
@@ -4264,12 +4266,14 @@ library
               leftOperand: AugmentedExpression
                 augmentedKeyword: augmented @45
                 element: <testLibraryFragment>::@topLevelVariable::foo
+                element2: <testLibraryFragment>::@topLevelVariable::foo#element
                 staticType: int
               operator: + @55
               rightOperand: IntegerLiteral
                 literal: 1 @57
                 staticType: int
               staticElement: dart:core::<fragment>::@class::num::@method::+
+              element: dart:core::<fragment>::@class::num::@method::+#element
               staticInvokeType: num Function(num)
               staticType: int
           augmentationTarget: <testLibraryFragment>::@topLevelVariable::foo

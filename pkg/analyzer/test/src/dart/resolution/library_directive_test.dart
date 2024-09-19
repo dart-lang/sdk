@@ -28,15 +28,19 @@ LibraryDirective
       SimpleIdentifier
         token: foo
         staticElement: <null>
+        element: <null>
         staticType: null
       SimpleIdentifier
         token: bar
         staticElement: <null>
+        element: <null>
         staticType: null
     staticElement: <null>
+    element: <null>
     staticType: null
   semicolon: ;
   element: <testLibrary>
+  element2: <testLibrary>
 ''');
   }
 
@@ -51,6 +55,7 @@ LibraryDirective
   libraryKeyword: library
   semicolon: ;
   element: <testLibrary>
+  element2: <testLibrary>
 ''');
   }
 }

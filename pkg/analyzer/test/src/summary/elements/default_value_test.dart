@@ -144,6 +144,7 @@ library
                       function: SimpleIdentifier
                         token: defaultF @93
                         staticElement: <testLibraryFragment>::@function::defaultF
+                        element: <testLibraryFragment>::@function::defaultF#element
                         staticType: void Function<T>(T)
                       staticType: void Function(dynamic)
                       typeArgumentTypes
@@ -329,10 +330,12 @@ library
                                 type: dynamic Function()
                             rightBracket: > @71
                           element: <testLibraryFragment>::@class::A
+                          element2: <testLibraryFragment>::@class::A#element
                           type: A<dynamic Function()>
                         staticElement: ConstructorMember
                           base: <testLibraryFragment>::@class::A::@constructor::new
                           substitution: {T: dynamic Function()}
+                        element: <testLibraryFragment>::@class::A::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @72
                         rightParenthesis: ) @73
@@ -467,13 +470,16 @@ library
                   prefix: SimpleIdentifier
                     token: Comparable @32
                     staticElement: dart:core::<fragment>::@class::Comparable
+                    element: dart:core::<fragment>::@class::Comparable#element
                     staticType: null
                   period: . @42
                   identifier: SimpleIdentifier
                     token: compare @43
                     staticElement: dart:core::<fragment>::@class::Comparable::@method::compare
+                    element: dart:core::<fragment>::@class::Comparable::@method::compare#element
                     staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
                   staticElement: dart:core::<fragment>::@class::Comparable::@method::compare
+                  element: dart:core::<fragment>::@class::Comparable::@method::compare#element
                   staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
           returnType: void
 ----------------------------------------
@@ -530,6 +536,7 @@ library
                         label: SimpleIdentifier
                           token: f1 @33
                           staticElement: <null>
+                          element: <null>
                           staticType: null
                         colon: : @35
                       expression: IntegerLiteral
@@ -540,6 +547,7 @@ library
                         label: SimpleIdentifier
                           token: f2 @40
                           staticElement: <null>
+                          element: <null>
                           staticType: null
                         colon: : @42
                       expression: BooleanLiteral
@@ -602,6 +610,7 @@ library
                         label: SimpleIdentifier
                           token: f1 @39
                           staticElement: <null>
+                          element: <null>
                           staticType: null
                         colon: : @41
                       expression: IntegerLiteral
@@ -612,6 +621,7 @@ library
                         label: SimpleIdentifier
                           token: f2 @46
                           staticElement: <null>
+                          element: <null>
                           staticType: null
                         colon: : @48
                       expression: BooleanLiteral
@@ -803,6 +813,7 @@ library
                     SimpleIdentifier
                       token: f @79
                       staticElement: <testLibraryFragment>::@extension::E::@method::f
+                      element: <testLibraryFragment>::@extension::E::@method::f#element
                       staticType: void Function()
               returnType: void
 ----------------------------------------
@@ -903,10 +914,12 @@ library
                         type: NamedType
                           name: B @80
                           element: <testLibraryFragment>::@class::B
+                          element2: <testLibraryFragment>::@class::B#element
                           type: B<int, double>
                         staticElement: ConstructorMember
                           base: <testLibraryFragment>::@class::B::@constructor::new
                           substitution: {T1: int, T2: double}
+                        element: <testLibraryFragment>::@class::B::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @81
                         rightParenthesis: ) @82
@@ -1015,10 +1028,12 @@ library
                         type: NamedType
                           name: B @67
                           element: <testLibraryFragment>::@class::B
+                          element2: <testLibraryFragment>::@class::B#element
                           type: B<Never>
                         staticElement: ConstructorMember
                           base: <testLibraryFragment>::@class::B::@constructor::new
                           substitution: {T: Never}
+                        element: <testLibraryFragment>::@class::B::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @68
                         rightParenthesis: ) @69
@@ -1136,10 +1151,12 @@ library
                         type: NamedType
                           name: B @132
                           element: <testLibraryFragment>::@class::B
+                          element2: <testLibraryFragment>::@class::B#element
                           type: B<Never>
                         staticElement: ConstructorMember
                           base: <testLibraryFragment>::@class::B::@constructor::new
                           substitution: {T: Never}
+                        element: <testLibraryFragment>::@class::B::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @133
                         rightParenthesis: ) @134
@@ -1254,10 +1271,12 @@ library
                     type: NamedType
                       name: B @56
                       element: <testLibraryFragment>::@class::B
+                      element2: <testLibraryFragment>::@class::B#element
                       type: B<Never>
                     staticElement: ConstructorMember
                       base: <testLibraryFragment>::@class::B::@constructor::new
                       substitution: {T: Never}
+                    element: <testLibraryFragment>::@class::B::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @57
                     rightParenthesis: ) @58
@@ -1361,10 +1380,12 @@ library
                         type: NamedType
                           name: B @68
                           element: <testLibraryFragment>::@class::B
+                          element2: <testLibraryFragment>::@class::B#element
                           type: B<Never>
                         staticElement: ConstructorMember
                           base: <testLibraryFragment>::@class::B::@constructor::new
                           substitution: {T: Never}
+                        element: <testLibraryFragment>::@class::B::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @69
                         rightParenthesis: ) @70
@@ -1484,10 +1505,12 @@ library
                         type: NamedType
                           name: B @83
                           element: <testLibraryFragment>::@class::B
+                          element2: <testLibraryFragment>::@class::B#element
                           type: B<Never, Never>
                         staticElement: ConstructorMember
                           base: <testLibraryFragment>::@class::B::@constructor::new
                           substitution: {T1: Never, T2: Never}
+                        element: <testLibraryFragment>::@class::B::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @84
                         rightParenthesis: ) @85
@@ -1610,10 +1633,12 @@ library
                         type: NamedType
                           name: B @68
                           element: <testLibraryFragment>::@class::B
+                          element2: <testLibraryFragment>::@class::B#element
                           type: B<Never>
                         staticElement: ConstructorMember
                           base: <testLibraryFragment>::@class::B::@constructor::new
                           substitution: {T: Never}
+                        element: <testLibraryFragment>::@class::B::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @69
                         rightParenthesis: ) @70

@@ -890,12 +890,14 @@ library
                             type: NamedType
                               name: int @17
                               element: dart:core::<fragment>::@class::int
+                              element2: dart:core::<fragment>::@class::int#element
                               type: int
                             name: f1 @21
                           RecordTypeAnnotationNamedField
                             type: NamedType
                               name: String @25
                               element: dart:core::<fragment>::@class::String
+                              element2: dart:core::<fragment>::@class::String#element
                               type: String
                             name: f2 @32
                         rightBracket: } @34
@@ -903,6 +905,7 @@ library
                       type: ({int f1, String f2})
                   rightBracket: > @36
                 element: dart:core::<fragment>::@class::List
+                element2: dart:core::<fragment>::@class::List#element
                 type: List<({int f1, String f2})>
               staticType: Type
       accessors
@@ -967,17 +970,20 @@ library
                           type: NamedType
                             name: int @16
                             element: dart:core::<fragment>::@class::int
+                            element2: dart:core::<fragment>::@class::int#element
                             type: int
                         RecordTypeAnnotationPositionalField
                           type: NamedType
                             name: String @21
                             element: dart:core::<fragment>::@class::String
+                            element2: dart:core::<fragment>::@class::String#element
                             type: String
                           name: f2 @28
                       rightParenthesis: ) @30
                       type: (int, String)
                   rightBracket: > @31
                 element: dart:core::<fragment>::@class::List
+                element2: dart:core::<fragment>::@class::List#element
                 type: List<(int, String)>
               staticType: Type
       accessors

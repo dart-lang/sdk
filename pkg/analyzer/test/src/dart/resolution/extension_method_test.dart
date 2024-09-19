@@ -90,8 +90,10 @@ Annotation
   name: SimpleIdentifier
     token: ann
     staticElement: <testLibraryFragment>::@getter::ann
+    element: <testLibraryFragment>::@getter::ann#element
     staticType: null
   element: <testLibraryFragment>::@getter::ann
+  element2: <testLibraryFragment>::@getter::ann#element
 ''');
   }
 
@@ -226,13 +228,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: a
     staticElement: package:test/lib.dart::<fragment>::@extension::E::@getter::a
+    element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
     staticType: int
   staticElement: package:test/lib.dart::<fragment>::@extension::E::@getter::a
+  element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -261,13 +266,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: o
     staticElement: <testLibraryFragment>::@function::f::@parameter::o
+    element: <not-implemented>
     staticType: Object
   period: .
   identifier: SimpleIdentifier
     token: a
     staticElement: package:test/lib1.dart::<fragment>::@extension::E::@getter::a
+    element: package:test/lib1.dart::<fragment>::@extension::E::@getter::a#element
     staticType: int
   staticElement: package:test/lib1.dart::<fragment>::@extension::E::@getter::a
+  element: package:test/lib1.dart::<fragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -295,13 +303,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: a
     staticElement: package:test/lib.dart::<fragment>::@extension::E::@getter::a
+    element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
     staticType: int
   staticElement: package:test/lib.dart::<fragment>::@extension::E::@getter::a
+  element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -325,13 +336,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@getter::a
+    element: <testLibraryFragment>::@extension::E::@getter::a#element
     staticType: int
   staticElement: <testLibraryFragment>::@extension::E::@getter::a
+  element: <testLibraryFragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -357,13 +371,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: a
     staticElement: package:test/lib.dart::<fragment>::@extension::E::@getter::a
+    element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
     staticType: int
   staticElement: package:test/lib.dart::<fragment>::@extension::E::@getter::a
+  element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -419,9 +436,11 @@ NamedType
       NamedType
         name: S
         element: S@26
+        element2: <not-implemented>
         type: S
     rightBracket: >
   element: <testLibraryFragment>::@class::C
+  element2: <testLibraryFragment>::@class::C#element
   type: C<S>
 ''');
   }
@@ -435,6 +454,7 @@ extension E on dynamic {}
 NamedType
   name: dynamic
   element: dynamic@-1
+  element2: dynamic@-1
   type: dynamic
 ''');
   }
@@ -449,6 +469,7 @@ extension E on A {}
 NamedType
   name: A
   element: <testLibraryFragment>::@enum::A
+  element2: <testLibraryFragment>::@enum::A#element
   type: A
 ''');
   }
@@ -463,6 +484,7 @@ GenericFunctionType
   returnType: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
     type: int
   functionKeyword: Function
   parameters: FormalParameterList
@@ -471,6 +493,7 @@ GenericFunctionType
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       declaredElement: @-1
         type: int
@@ -496,6 +519,7 @@ extension E on C {}
 NamedType
   name: C
   element: <testLibraryFragment>::@class::C
+  element2: <testLibraryFragment>::@class::C#element
   type: C
 ''');
   }
@@ -511,6 +535,7 @@ extension E on M {}
 NamedType
   name: M
   element: <testLibraryFragment>::@mixin::M
+  element2: <testLibraryFragment>::@mixin::M#element
   type: M
 ''');
   }
@@ -530,9 +555,11 @@ NamedType
       NamedType
         name: S
         element: S@24
+        element2: <not-implemented>
         type: S
     rightBracket: >
   element: <testLibraryFragment>::@class::C
+  element2: <testLibraryFragment>::@class::C#element
   type: C<S>
 ''');
   }
@@ -546,6 +573,7 @@ extension on dynamic {}
 NamedType
   name: dynamic
   element: dynamic@-1
+  element2: dynamic@-1
   type: dynamic
 ''');
   }
@@ -560,6 +588,7 @@ extension on A {}
 NamedType
   name: A
   element: <testLibraryFragment>::@enum::A
+  element2: <testLibraryFragment>::@enum::A#element
   type: A
 ''');
   }
@@ -574,6 +603,7 @@ GenericFunctionType
   returnType: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
     type: int
   functionKeyword: Function
   parameters: FormalParameterList
@@ -582,6 +612,7 @@ GenericFunctionType
       type: NamedType
         name: String
         element: dart:core::<fragment>::@class::String
+        element2: dart:core::<fragment>::@class::String#element
         type: String
       declaredElement: @-1
         type: String
@@ -607,6 +638,7 @@ extension on C {}
 NamedType
   name: C
   element: <testLibraryFragment>::@class::C
+  element2: <testLibraryFragment>::@class::C#element
   type: C
 ''');
   }
@@ -622,6 +654,7 @@ extension on M {}
 NamedType
   name: M
   element: <testLibraryFragment>::@mixin::M
+  element2: <testLibraryFragment>::@mixin::M#element
   type: M
 ''');
   }
@@ -669,6 +702,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -679,6 +713,7 @@ FunctionExpressionInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticInvokeType: int Function(int)
   staticType: int
 ''');
@@ -702,6 +737,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -712,6 +748,7 @@ FunctionExpressionInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <testLibraryFragment>::@extension::E::@method::call
+  element: <testLibraryFragment>::@extension::E::@method::call#element
   staticInvokeType: int Function(int)
   staticType: int
 ''');
@@ -742,6 +779,7 @@ FunctionExpressionInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <testLibraryFragment>::@extension::E::@method::call
+  element: <testLibraryFragment>::@extension::E::@method::call#element
   staticInvokeType: int Function(int)
   staticType: int
 ''');
@@ -765,6 +803,7 @@ AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
@@ -772,10 +811,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@class::C::@method::+::@parameter::i
     staticType: int
   readElement: <testLibraryFragment>::@function::f::@parameter::c
+  readElement2: <not-implemented>
   readType: C
   writeElement: <testLibraryFragment>::@function::f::@parameter::c
+  writeElement2: <not-implemented>
   writeType: C
   staticElement: <testLibraryFragment>::@class::C::@method::+
+  element: <testLibraryFragment>::@class::C::@method::+#element
   staticType: C
 ''');
   }
@@ -796,6 +838,7 @@ AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
@@ -803,10 +846,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::i
     staticType: int
   readElement: <testLibraryFragment>::@function::f::@parameter::c
+  readElement2: <not-implemented>
   readType: C
   writeElement: <testLibraryFragment>::@function::f::@parameter::c
+  writeElement2: <not-implemented>
   writeType: C
   staticElement: <testLibraryFragment>::@extension::E::@method::+
+  element: <testLibraryFragment>::@extension::E::@method::+#element
   staticType: C
 ''');
   }
@@ -828,6 +874,7 @@ extension E2<T extends B> on T {
 SimpleIdentifier
   token: g
   staticElement: <testLibraryFragment>::@extension::E1::@getter::g
+  element: <testLibraryFragment>::@extension::E1::@getter::g#element
   staticType: int
 ''');
   }
@@ -849,6 +896,7 @@ extension E2 on C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@extension::E1::@getter::a
+  element: <testLibraryFragment>::@extension::E1::@getter::a#element
   staticType: int
 ''');
   }
@@ -869,6 +917,7 @@ extension E<T extends B> on T {
 SimpleIdentifier
   token: g
   staticElement: <testLibraryFragment>::@class::B::@getter::g
+  element: <testLibraryFragment>::@class::B::@getter::g#element
   staticType: int
 ''');
   }
@@ -889,6 +938,7 @@ extension E on C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@extension::E::@getter::a
+  element: <testLibraryFragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -908,13 +958,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::g::@parameter::f
+    element: <not-implemented>
     staticType: int Function(int)
   period: .
   identifier: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@getter::a
+    element: <testLibraryFragment>::@extension::E::@getter::a#element
     staticType: int
   staticElement: <testLibraryFragment>::@extension::E::@getter::a
+  element: <testLibraryFragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -937,13 +990,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@getter::a
+    element: <testLibraryFragment>::@extension::E::@getter::a#element
     staticType: int
   staticElement: <testLibraryFragment>::@extension::E::@getter::a
+  element: <testLibraryFragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -967,13 +1023,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: A
   period: .
   identifier: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@extension::E::@getter::foo
+    element: <testLibraryFragment>::@extension::E::@getter::foo#element
     staticType: int
   staticElement: <testLibraryFragment>::@extension::E::@getter::foo
+  element: <testLibraryFragment>::@extension::E::@getter::foo#element
   staticType: int
 ''');
   }
@@ -994,13 +1053,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: Never
   period: .
   identifier: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: Never
   staticElement: <null>
+  element: <null>
   staticType: Never
 ''');
   }
@@ -1021,13 +1083,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: int?
   period: .
   identifier: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@extension::E::@getter::foo
+    element: <testLibraryFragment>::@extension::E::@getter::foo#element
     staticType: int
   staticElement: <testLibraryFragment>::@extension::E::@getter::foo
+  element: <testLibraryFragment>::@extension::E::@getter::foo#element
   staticType: int
 ''');
   }
@@ -1048,11 +1113,13 @@ PropertyAccess
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: int?
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@extension::E::@getter::foo
+    element: <testLibraryFragment>::@extension::E::@getter::foo#element
     staticType: int
   staticType: int?
 ''');
@@ -1077,11 +1144,13 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
+      element: <not-implemented>
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@extension::E::@getter::a
+      element: <testLibraryFragment>::@extension::E::@getter::a#element
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -1093,6 +1162,7 @@ FunctionExpressionInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
   staticInvokeType: double Function(int)
   staticType: double
 ''');
@@ -1120,13 +1190,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <not-implemented>
     staticType: B
   period: .
   identifier: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::B_Ext::@getter::a
+    element: <testLibraryFragment>::@extension::B_Ext::@getter::a#element
     staticType: int
   staticElement: <testLibraryFragment>::@extension::B_Ext::@getter::a
+  element: <testLibraryFragment>::@extension::B_Ext::@getter::a#element
   staticType: int
 ''');
   }
@@ -1147,17 +1220,20 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::g::@parameter::f
+      element: <not-implemented>
       staticType: int Function(int)
     operator: .
     propertyName: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@extension::E::@getter::a
+      element: <testLibraryFragment>::@extension::E::@getter::a#element
       staticType: String Function()
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
   staticInvokeType: String Function()
   staticType: String
 ''');
@@ -1181,6 +1257,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: m
     staticElement: <testLibraryFragment>::@extension::E1::@method::m
+    element: <testLibraryFragment>::@extension::E1::@method::m#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1208,6 +1285,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E1::@method::a
+    element: <testLibraryFragment>::@extension::E1::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1234,6 +1312,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: m
     staticElement: <testLibraryFragment>::@class::B::@method::m
+    element: <testLibraryFragment>::@class::B::@method::m#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1260,6 +1339,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@method::a
+    element: <testLibraryFragment>::@extension::E::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1284,11 +1364,13 @@ MethodInvocation
   target: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::g::@parameter::f
+    element: <not-implemented>
     staticType: int Function(int)
   operator: .
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@method::a
+    element: <testLibraryFragment>::@extension::E::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1316,11 +1398,13 @@ MethodInvocation
   target: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <not-implemented>
     staticType: B
   operator: .
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::A::@method::a
+    element: <testLibraryFragment>::@extension::A::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1349,11 +1433,13 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@extension::E::@method::foo
+    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1395,6 +1481,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: package:test/x.dart::<fragment>::@extension::E::@method::foo
+    element: package:test/x.dart::<fragment>::@extension::E::@method::foo#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1424,11 +1511,13 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1454,11 +1543,13 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: int?
   operator: .
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@extension::E::@method::foo
+    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1488,6 +1579,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@extension::E::@method::foo
+    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1513,11 +1605,13 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: int?
   operator: ?.
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@extension::E::@method::foo
+    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1549,6 +1643,7 @@ MethodInvocation
     staticElement: MethodMember
       base: <testLibraryFragment>::@extension::E::@method::foo
       substitution: {T: Null}
+    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1581,11 +1676,13 @@ MethodInvocation
   target: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <not-implemented>
     staticType: B
   operator: .
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::B_Ext::@method::a
+    element: <testLibraryFragment>::@extension::B_Ext::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1621,6 +1718,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: B<C>
   operator: .
   methodName: SimpleIdentifier
@@ -1628,6 +1726,7 @@ MethodInvocation
     staticElement: MethodMember
       base: <testLibraryFragment>::@extension::B_Ext::@method::f
       substitution: {T: C}
+    element: <testLibraryFragment>::@extension::B_Ext::@method::f#element
     staticType: void Function(C)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1636,6 +1735,7 @@ MethodInvocation
         token: o
         parameter: root::@parameter::x
         staticElement: <testLibraryFragment>::@function::f::@parameter::o
+        element: <not-implemented>
         staticType: C
     rightParenthesis: )
   staticInvokeType: void Function(C)
@@ -1661,6 +1761,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   operator: +
   rightOperand: IntegerLiteral
@@ -1668,6 +1769,7 @@ BinaryExpression
     parameter: <testLibraryFragment>::@class::C::@method::+::@parameter::i
     staticType: int
   staticElement: <testLibraryFragment>::@class::C::@method::+
+  element: <testLibraryFragment>::@class::C::@method::+#element
   staticInvokeType: void Function(int)
   staticType: void
 ''');
@@ -1688,6 +1790,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::g::@parameter::f
+    element: <not-implemented>
     staticType: int Function(int)
   operator: +
   rightOperand: IntegerLiteral
@@ -1695,6 +1798,7 @@ BinaryExpression
     parameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::i
     staticType: int
   staticElement: <testLibraryFragment>::@extension::E::@method::+
+  element: <testLibraryFragment>::@extension::E::@method::+#element
   staticInvokeType: void Function(int)
   staticType: void
 ''');
@@ -1716,6 +1820,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   operator: +
   rightOperand: IntegerLiteral
@@ -1723,6 +1828,7 @@ BinaryExpression
     parameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::i
     staticType: int
   staticElement: <testLibraryFragment>::@extension::E::@method::+
+  element: <testLibraryFragment>::@extension::E::@method::+#element
   staticInvokeType: void Function(int)
   staticType: void
 ''');
@@ -1746,6 +1852,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: A?
   operator: +
   rightOperand: IntegerLiteral
@@ -1753,6 +1860,7 @@ BinaryExpression
     parameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::_
     staticType: int
   staticElement: <testLibraryFragment>::@extension::E::@method::+
+  element: <testLibraryFragment>::@extension::E::@method::+#element
   staticInvokeType: int Function(int)
   staticType: int
 ''');
@@ -1787,6 +1895,7 @@ IndexExpression
   target: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   leftBracket: [
   index: IntegerLiteral
@@ -1795,6 +1904,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibraryFragment>::@class::C::@method::[]
+  element: <testLibraryFragment>::@class::C::@method::[]#element
   staticType: void
 ''');
   }
@@ -1814,6 +1924,7 @@ IndexExpression
   target: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::g::@parameter::f
+    element: <not-implemented>
     staticType: int Function(int)
   leftBracket: [
   index: IntegerLiteral
@@ -1822,6 +1933,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibraryFragment>::@extension::E::@method::[]
+  element: <testLibraryFragment>::@extension::E::@method::[]#element
   staticType: void
 ''');
   }
@@ -1842,6 +1954,7 @@ IndexExpression
   target: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   leftBracket: [
   index: IntegerLiteral
@@ -1850,6 +1963,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibraryFragment>::@extension::E::@method::[]
+  element: <testLibraryFragment>::@extension::E::@method::[]#element
   staticType: void
 ''');
   }
@@ -1870,6 +1984,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: int?
   leftBracket: [
   index: IntegerLiteral
@@ -1878,6 +1993,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibraryFragment>::@extension::E::@method::[]
+  element: <testLibraryFragment>::@extension::E::@method::[]#element
   staticType: int
 ''');
   }
@@ -1898,6 +2014,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: int?
   leftBracket: [
   index: IntegerLiteral
@@ -1906,6 +2023,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibraryFragment>::@extension::E::@method::[]
+  element: <testLibraryFragment>::@extension::E::@method::[]#element
   staticType: int?
 ''');
   }
@@ -1929,6 +2047,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
+      element: <not-implemented>
       staticType: C
     leftBracket: [
     index: IntegerLiteral
@@ -1937,6 +2056,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -1944,10 +2064,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@class::C::@method::[]=::@parameter::value
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@class::C::@method::[]=
+  writeElement2: <testLibraryFragment>::@class::C::@method::[]=#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -1968,6 +2091,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::g::@parameter::f
+      element: <not-implemented>
       staticType: int Function(int)
     leftBracket: [
     index: IntegerLiteral
@@ -1976,6 +2100,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -1983,10 +2108,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::value
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@method::[]=
+  writeElement2: <testLibraryFragment>::@extension::E::@method::[]=#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -2008,6 +2136,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
+      element: <not-implemented>
       staticType: C
     leftBracket: [
     index: IntegerLiteral
@@ -2016,6 +2145,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -2023,10 +2153,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::value
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@method::[]=
+  writeElement2: <testLibraryFragment>::@extension::E::@method::[]=#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -2049,13 +2182,17 @@ PostfixExpression
   operand: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: null
   operator: ++
   readElement: <testLibraryFragment>::@function::f::@parameter::c
+  readElement2: <not-implemented>
   readType: C
   writeElement: <testLibraryFragment>::@function::f::@parameter::c
+  writeElement2: <not-implemented>
   writeType: C
   staticElement: <testLibraryFragment>::@class::C::@method::+
+  element: <testLibraryFragment>::@class::C::@method::+#element
   staticType: C
 ''');
   }
@@ -2075,13 +2212,17 @@ PostfixExpression
   operand: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::g::@parameter::f
+    element: <not-implemented>
     staticType: null
   operator: ++
   readElement: <testLibraryFragment>::@function::g::@parameter::f
+  readElement2: <not-implemented>
   readType: int Function(int)
   writeElement: <testLibraryFragment>::@function::g::@parameter::f
+  writeElement2: <not-implemented>
   writeType: int Function(int)
   staticElement: <testLibraryFragment>::@extension::E::@method::+
+  element: <testLibraryFragment>::@extension::E::@method::+#element
   staticType: int Function(int)
 ''');
   }
@@ -2102,13 +2243,17 @@ PostfixExpression
   operand: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: null
   operator: ++
   readElement: <testLibraryFragment>::@function::f::@parameter::c
+  readElement2: <not-implemented>
   readType: C
   writeElement: <testLibraryFragment>::@function::f::@parameter::c
+  writeElement2: <not-implemented>
   writeType: C
   staticElement: <testLibraryFragment>::@extension::E::@method::+
+  element: <testLibraryFragment>::@extension::E::@method::+#element
   staticType: C
 ''');
   }
@@ -2131,13 +2276,17 @@ PostfixExpression
   operand: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: null
   operator: ++
   readElement: <testLibraryFragment>::@function::f::@parameter::a
+  readElement2: <not-implemented>
   readType: A?
   writeElement: <testLibraryFragment>::@function::f::@parameter::a
+  writeElement2: <not-implemented>
   writeType: A?
   staticElement: <testLibraryFragment>::@extension::E::@method::+
+  element: <testLibraryFragment>::@extension::E::@method::+#element
   staticType: A?
 ''');
   }
@@ -2161,12 +2310,16 @@ PrefixExpression
   operand: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: null
   readElement: <testLibraryFragment>::@function::f::@parameter::c
+  readElement2: <not-implemented>
   readType: C
   writeElement: <testLibraryFragment>::@function::f::@parameter::c
+  writeElement2: <not-implemented>
   writeType: C
   staticElement: <testLibraryFragment>::@class::C::@method::+
+  element: <testLibraryFragment>::@class::C::@method::+#element
   staticType: C
 ''');
   }
@@ -2187,12 +2340,16 @@ PrefixExpression
   operand: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::g::@parameter::f
+    element: <not-implemented>
     staticType: null
   readElement: <testLibraryFragment>::@function::g::@parameter::f
+  readElement2: <not-implemented>
   readType: int Function(int)
   writeElement: <testLibraryFragment>::@function::g::@parameter::f
+  writeElement2: <not-implemented>
   writeType: int Function(int)
   staticElement: <testLibraryFragment>::@extension::E::@method::+
+  element: <testLibraryFragment>::@extension::E::@method::+#element
   staticType: int Function(int)
 ''');
   }
@@ -2214,12 +2371,16 @@ PrefixExpression
   operand: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: null
   readElement: <testLibraryFragment>::@function::f::@parameter::c
+  readElement2: <not-implemented>
   readType: C
   writeElement: <testLibraryFragment>::@function::f::@parameter::c
+  writeElement2: <not-implemented>
   writeType: C
   staticElement: <testLibraryFragment>::@extension::E::@method::+
+  element: <testLibraryFragment>::@extension::E::@method::+#element
   staticType: C
 ''');
   }
@@ -2243,12 +2404,16 @@ PrefixExpression
   operand: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: null
   readElement: <testLibraryFragment>::@function::f::@parameter::a
+  readElement2: <not-implemented>
   readType: A?
   writeElement: <testLibraryFragment>::@function::f::@parameter::a
+  writeElement2: <not-implemented>
   writeType: A?
   staticElement: <testLibraryFragment>::@extension::E::@method::+
+  element: <testLibraryFragment>::@extension::E::@method::+#element
   staticType: A?
 ''');
   }
@@ -2272,8 +2437,10 @@ PrefixExpression
   operand: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::unary-
+  element: <testLibraryFragment>::@class::C::@method::unary-#element
   staticType: C
 ''');
   }
@@ -2294,8 +2461,10 @@ PrefixExpression
   operand: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::g::@parameter::f
+    element: <not-implemented>
     staticType: int Function(int)
   staticElement: <testLibraryFragment>::@extension::E::@method::unary-
+  element: <testLibraryFragment>::@extension::E::@method::unary-#element
   staticType: void
 ''');
   }
@@ -2317,8 +2486,10 @@ PrefixExpression
   operand: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   staticElement: <testLibraryFragment>::@extension::E::@method::unary-
+  element: <testLibraryFragment>::@extension::E::@method::unary-#element
   staticType: C
 ''');
   }
@@ -2342,8 +2513,10 @@ PrefixExpression
   operand: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <not-implemented>
     staticType: A?
   staticElement: <testLibraryFragment>::@extension::E::@method::unary-
+  element: <testLibraryFragment>::@extension::E::@method::unary-#element
   staticType: A?
 ''');
   }
@@ -2364,13 +2537,16 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::g::@parameter::f
+      element: <not-implemented>
       staticType: int Function(int)
     period: .
     identifier: SimpleIdentifier
       token: a
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -2378,10 +2554,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::x
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@setter::a
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -2406,13 +2585,16 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <not-implemented>
       staticType: A
     period: .
     identifier: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -2420,10 +2602,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@setter::foo
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -2444,13 +2629,16 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <not-implemented>
       staticType: int?
     period: .
     identifier: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -2458,10 +2646,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@setter::foo
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -2482,11 +2673,13 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <not-implemented>
       staticType: int?
     operator: ?.
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
@@ -2495,10 +2688,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@setter::foo
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int?
 ''');
   }
@@ -2522,13 +2718,16 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
+      element: <not-implemented>
       staticType: C
     period: .
     identifier: SimpleIdentifier
       token: a
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -2536,10 +2735,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::x
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@setter::a
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -2557,13 +2759,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::g::@parameter::f
+    element: <not-implemented>
     staticType: int Function(int)
   period: .
   identifier: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@method::a
+    element: <testLibraryFragment>::@extension::E::@method::a#element
     staticType: void Function(int)
   staticElement: <testLibraryFragment>::@extension::E::@method::a
+  element: <testLibraryFragment>::@extension::E::@method::a#element
   staticType: void Function(int)
 ''');
   }
@@ -2584,13 +2789,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <not-implemented>
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@method::a
+    element: <testLibraryFragment>::@extension::E::@method::a#element
     staticType: void Function(int)
   staticElement: <testLibraryFragment>::@extension::E::@method::a
+  element: <testLibraryFragment>::@extension::E::@method::a#element
   staticType: void Function(int)
 ''');
   }
@@ -2617,18 +2825,22 @@ PropertyAccess
     prefix: SimpleIdentifier
       token: p
       staticElement: <testLibraryFragment>::@prefix::p
+      element: <testLibraryFragment>::@prefix::p
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: E
       staticElement: package:test/lib.dart::<fragment>::@extension::E
+      element: package:test/lib.dart::<fragment>::@extension::E#element
       staticType: null
     staticElement: package:test/lib.dart::<fragment>::@extension::E
+    element: package:test/lib.dart::<fragment>::@extension::E#element
     staticType: null
   operator: .
   propertyName: SimpleIdentifier
     token: a
     staticElement: package:test/lib.dart::<fragment>::@extension::E::@getter::a
+    element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
     staticType: int
   staticType: int
 ''');
@@ -2652,13 +2864,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: E
     staticElement: <testLibraryFragment>::@extension::E
+    element: <testLibraryFragment>::@extension::E#element
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@getter::a
+    element: <testLibraryFragment>::@extension::E::@getter::a#element
     staticType: int
   staticElement: <testLibraryFragment>::@extension::E::@getter::a
+  element: <testLibraryFragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -2685,18 +2900,22 @@ PropertyAccess
     prefix: SimpleIdentifier
       token: p
       staticElement: <testLibraryFragment>::@prefix::p
+      element: <testLibraryFragment>::@prefix::p
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: E
       staticElement: package:test/lib.dart::<fragment>::@extension::E
+      element: package:test/lib.dart::<fragment>::@extension::E#element
       staticType: null
     staticElement: package:test/lib.dart::<fragment>::@extension::E
+    element: package:test/lib.dart::<fragment>::@extension::E#element
     staticType: null
   operator: .
   propertyName: SimpleIdentifier
     token: a
     staticElement: package:test/lib.dart::<fragment>::@extension::E::@getter::a
+    element: package:test/lib.dart::<fragment>::@extension::E::@getter::a#element
     staticType: int
   staticType: int
 ''');
@@ -2720,13 +2939,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: E
     staticElement: <testLibraryFragment>::@extension::E
+    element: <testLibraryFragment>::@extension::E#element
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@getter::a
+    element: <testLibraryFragment>::@extension::E::@getter::a#element
     staticType: int
   staticElement: <testLibraryFragment>::@extension::E::@getter::a
+  element: <testLibraryFragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -2753,18 +2975,22 @@ MethodInvocation
     prefix: SimpleIdentifier
       token: p
       staticElement: <testLibraryFragment>::@prefix::p
+      element: <testLibraryFragment>::@prefix::p
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: E
       staticElement: package:test/lib.dart::<fragment>::@extension::E
+      element: package:test/lib.dart::<fragment>::@extension::E#element
       staticType: null
     staticElement: package:test/lib.dart::<fragment>::@extension::E
+    element: package:test/lib.dart::<fragment>::@extension::E#element
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: a
     staticElement: package:test/lib.dart::<fragment>::@extension::E::@method::a
+    element: package:test/lib.dart::<fragment>::@extension::E::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2792,11 +3018,13 @@ MethodInvocation
   target: SimpleIdentifier
     token: E
     staticElement: <testLibraryFragment>::@extension::E
+    element: <testLibraryFragment>::@extension::E#element
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@method::a
+    element: <testLibraryFragment>::@extension::E::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2829,18 +3057,22 @@ AssignmentExpression
       prefix: SimpleIdentifier
         token: p
         staticElement: <testLibraryFragment>::@prefix::p
+        element: <testLibraryFragment>::@prefix::p
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: E
         staticElement: package:test/lib.dart::<fragment>::@extension::E
+        element: package:test/lib.dart::<fragment>::@extension::E#element
         staticType: null
       staticElement: package:test/lib.dart::<fragment>::@extension::E
+      element: package:test/lib.dart::<fragment>::@extension::E#element
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: a
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
@@ -2849,10 +3081,13 @@ AssignmentExpression
     parameter: package:test/lib.dart::<fragment>::@extension::E::@setter::a::@parameter::x
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: package:test/lib.dart::<fragment>::@extension::E::@setter::a
+  writeElement2: package:test/lib.dart::<fragment>::@extension::E::@setter::a#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -2876,13 +3111,16 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: E
       staticElement: <testLibraryFragment>::@extension::E
+      element: <testLibraryFragment>::@extension::E#element
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: a
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -2890,10 +3128,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::x
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@setter::a
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -2914,13 +3155,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: E
     staticElement: <testLibraryFragment>::@extension::E
+    element: <testLibraryFragment>::@extension::E#element
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@method::a
+    element: <testLibraryFragment>::@extension::E::@method::a#element
     staticType: void Function(int)
   staticElement: <testLibraryFragment>::@extension::E::@method::a
+  element: <testLibraryFragment>::@extension::E::@method::a#element
   staticType: void Function(int)
 ''');
   }
@@ -2981,6 +3225,7 @@ FunctionExpressionInvocation
         staticType: int
     rightParenthesis: )
   staticElement: <testLibraryFragment>::@extension::E::@method::call
+  element: <testLibraryFragment>::@extension::E::@method::call#element
   staticInvokeType: int Function(int)
   staticType: int
 ''');
@@ -3007,6 +3252,7 @@ AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -3014,10 +3260,13 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E2::@getter::foo
+  writeElement2: <testLibraryFragment>::@extension::E2::@getter::foo#element
   writeType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -3038,6 +3287,7 @@ extension E on C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@extension::E::@getter::a
+  element: <testLibraryFragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -3063,6 +3313,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@class::C::@getter::a
+    element: <testLibraryFragment>::@class::C::@getter::a#element
     staticType: int
   staticType: int
 ''');
@@ -3088,6 +3339,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@getter::a
+    element: <testLibraryFragment>::@extension::E::@getter::a#element
     staticType: int
   staticType: int
 ''');
@@ -3109,6 +3361,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@method::a
+    element: <testLibraryFragment>::@extension::E::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3138,6 +3391,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@class::C::@method::a
+    element: <testLibraryFragment>::@class::C::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3165,6 +3419,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@method::a
+    element: <testLibraryFragment>::@extension::E::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3196,6 +3451,7 @@ BinaryExpression
     parameter: <testLibraryFragment>::@class::C::@method::+::@parameter::i
     staticType: int
   staticElement: <testLibraryFragment>::@class::C::@method::+
+  element: <testLibraryFragment>::@class::C::@method::+#element
   staticInvokeType: void Function(int)
   staticType: void
 ''');
@@ -3221,6 +3477,7 @@ BinaryExpression
     parameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::i
     staticType: int
   staticElement: <testLibraryFragment>::@extension::E::@method::+
+  element: <testLibraryFragment>::@extension::E::@method::+#element
   staticInvokeType: void Function(int)
   staticType: void
 ''');
@@ -3249,6 +3506,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibraryFragment>::@class::C::@method::[]
+  element: <testLibraryFragment>::@class::C::@method::[]#element
   staticType: void
 ''');
   }
@@ -3274,6 +3532,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibraryFragment>::@extension::E::@method::[]
+  element: <testLibraryFragment>::@extension::E::@method::[]#element
   staticType: void
 ''');
   }
@@ -3302,6 +3561,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -3309,10 +3569,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@class::C::@method::[]=::@parameter::value
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@class::C::@method::[]=
+  writeElement2: <testLibraryFragment>::@class::C::@method::[]=#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -3339,6 +3602,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -3346,10 +3610,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::value
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@method::[]=
+  writeElement2: <testLibraryFragment>::@extension::E::@method::[]=#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -3372,6 +3639,7 @@ PrefixExpression
     thisKeyword: this
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::unary-
+  element: <testLibraryFragment>::@class::C::@method::unary-#element
   staticType: void
 ''');
   }
@@ -3392,6 +3660,7 @@ PrefixExpression
     thisKeyword: this
     staticType: C
   staticElement: <testLibraryFragment>::@extension::E::@method::unary-
+  element: <testLibraryFragment>::@extension::E::@method::unary-#element
   staticType: void
 ''');
   }
@@ -3416,6 +3685,7 @@ extension E2 on int {
 SimpleIdentifier
   token: foo
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -3439,6 +3709,7 @@ AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -3446,10 +3717,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@setter::a
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -3478,6 +3752,7 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: a
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
@@ -3486,10 +3761,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@class::C::@setter::a::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@class::C::@setter::a
+  writeElement2: <testLibraryFragment>::@class::C::@setter::a#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -3516,6 +3794,7 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: a
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
@@ -3524,10 +3803,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@setter::a
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -3546,6 +3828,7 @@ extension E on C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@extension::E::@method::a
+  element: <testLibraryFragment>::@extension::E::@method::a#element
   staticType: void Function(int)
 ''');
   }
@@ -3569,6 +3852,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@method::a
+    element: <testLibraryFragment>::@extension::E::@method::a#element
     staticType: void Function(int)
   staticType: void Function(int)
 ''');
@@ -3588,6 +3872,7 @@ extension E on C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@extension::E::@getter::a
+  element: <testLibraryFragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -3606,6 +3891,7 @@ extension E on C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@extension::E::@getter::a
+  element: <testLibraryFragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -3624,6 +3910,7 @@ extension E on C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@extension::E::@getter::a
+  element: <testLibraryFragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -3642,6 +3929,7 @@ extension E on C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@extension::E::@getter::a
+  element: <testLibraryFragment>::@extension::E::@getter::a#element
   staticType: int
 ''');
   }
@@ -3660,6 +3948,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@method::a
+    element: <testLibraryFragment>::@extension::E::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3683,6 +3972,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E::@method::a
+    element: <testLibraryFragment>::@extension::E::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3709,6 +3999,7 @@ AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -3716,10 +4007,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::x
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@setter::a
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -3741,6 +4035,7 @@ AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -3748,10 +4043,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@setter::a::@parameter::x
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@setter::a
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::a#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -3770,6 +4068,7 @@ extension E on C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@extension::E::@method::a
+  element: <testLibraryFragment>::@extension::E::@method::a#element
   staticType: void Function(int)
 ''');
   }
@@ -3788,6 +4087,7 @@ extension E on C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@extension::E::@method::a
+  element: <testLibraryFragment>::@extension::E::@method::a#element
   staticType: void Function(int)
 ''');
   }
@@ -3812,6 +4112,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::a
+    element: <testLibraryFragment>::@function::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3841,6 +4142,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::a
+    element: <testLibraryFragment>::@function::a#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3869,6 +4171,7 @@ extension E on C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@getter::a
+  element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
   }
@@ -3892,6 +4195,7 @@ extension E on C {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@getter::a
+  element: <testLibraryFragment>::@getter::a#element
   staticType: int
 ''');
   }
@@ -3916,6 +4220,7 @@ AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -3923,10 +4228,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@setter::a::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@setter::a
+  writeElement2: <testLibraryFragment>::@setter::a#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -3951,6 +4259,7 @@ AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -3958,10 +4267,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@setter::a::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@setter::a
+  writeElement2: <testLibraryFragment>::@setter::a#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }

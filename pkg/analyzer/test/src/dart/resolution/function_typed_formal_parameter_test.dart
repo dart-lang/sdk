@@ -26,6 +26,7 @@ FunctionTypedFormalParameter
   returnType: NamedType
     name: T
     element: T@14
+    element2: <not-implemented>
     type: T
   name: p
   parameters: FormalParameterList
@@ -34,6 +35,7 @@ FunctionTypedFormalParameter
       type: NamedType
         name: U
         element: U@17
+        element2: <not-implemented>
         type: U
       name: a
       declaredElement: <testLibraryFragment>::@function::f::@parameter::p::@parameter::a
@@ -42,6 +44,7 @@ FunctionTypedFormalParameter
       type: NamedType
         name: V
         element: V@7
+        element2: <not-implemented>
         type: V
       name: b
       declaredElement: <testLibraryFragment>::@function::f::@parameter::p::@parameter::b
@@ -63,6 +66,7 @@ FunctionTypedFormalParameter
   returnType: NamedType
     name: void
     element: <null>
+    element2: <null>
     type: void
   name: p
   parameters: FormalParameterList
@@ -71,6 +75,7 @@ FunctionTypedFormalParameter
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       name: a
       declaredElement: <testLibraryFragment>::@function::f::@parameter::p::@parameter::a
