@@ -1,4 +1,4 @@
-## 1.16.0-dev
+## 1.16.0
 
 - Add `TargetKind`s to a few annotations to match custom-wired behavior that the
   Dart analyzer has been providing:
