@@ -339,8 +339,7 @@ int f3(int p1) {
 ''');
   }
 
-  Future<void>
-      test_functionType_inside_conditional_operator_condition() async {
+  Future<void> test_functionType_inside_conditional_operator_condition() async {
     await resolveTestCode('''
 void f1(int i) {
   f2(f3 ? (v) => v : (v) => v);
@@ -372,8 +371,7 @@ void f2(int Function(int) f) {}
 ''');
   }
 
-  Future<void>
-      test_functionType_inside_conditional_operator_else() async {
+  Future<void> test_functionType_inside_conditional_operator_else() async {
     await resolveTestCode('''
 void f1(int i) {
   f2(i == 0 ? (v) => v : f3);
