@@ -20,19 +20,6 @@ class ConvertToSingleQuotedStringTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING;
 
-  Future<void> test_one_embeddedTarget() async {
-    await resolveTestCode('''
-void f() {
-  print("a'b'c");
-}
-''');
-    await assertHasAssistAt('"a', r'''
-void f() {
-  print('a\'b\'c');
-}
-''');
-  }
-
   Future<void> test_one_backslash() async {
     await resolveTestCode(r'''
 void f() {
@@ -44,6 +31,19 @@ void f() {
   print('a"b"c');
 }
 """);
+  }
+
+  Future<void> test_one_embeddedTarget() async {
+    await resolveTestCode('''
+void f() {
+  print("a'b'c");
+}
+''');
+    await assertHasAssistAt('"a', r'''
+void f() {
+  print('a\'b\'c');
+}
+''');
   }
 
   Future<void> test_one_enclosingTarget() async {
