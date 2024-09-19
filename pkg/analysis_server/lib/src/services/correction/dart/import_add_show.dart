@@ -44,7 +44,7 @@ class ImportAddShow extends ResolvedCorrectionProducer {
     }
     var namespace = getImportNamespace(importElement);
     // prepare names of referenced elements (from this import)
-    var visitor = _ReferenceFinder(namespace);
+    var visitor = _ReferenceFinder(namespace, importDirective.prefix);
     unit.accept(visitor);
     var referencedNames = visitor.referencedNames;
     // ignore if unused
@@ -60,10 +60,11 @@ class ImportAddShow extends ResolvedCorrectionProducer {
 
 class _ReferenceFinder extends RecursiveAstVisitor<void> {
   final Map<String, Element> namespace;
+  final SimpleIdentifier? prefix;
 
   Set<String> referencedNames = SplayTreeSet<String>();
 
-  _ReferenceFinder(this.namespace);
+  _ReferenceFinder(this.namespace, this.prefix);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -135,7 +136,12 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   void _addImplicitExtensionName(Element? enclosingElement) {
     if (enclosingElement is ExtensionElement) {
-      if (namespace[enclosingElement.name] == enclosingElement) {
+      var prefixStr = prefix?.name;
+      if (prefixStr != null) {
+        prefixStr += '.';
+      }
+      var name = '${prefixStr ?? ''}${enclosingElement.name}';
+      if (namespace[name] == enclosingElement) {
         referencedNames.add(enclosingElement.displayName);
       }
     }
@@ -143,7 +149,11 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   void _addName(Token nameToken, Element? element) {
     if (element != null) {
-      var name = nameToken.lexeme;
+      var prefixStr = prefix?.name;
+      if (prefixStr != null) {
+        prefixStr += '.';
+      }
+      var name = '${prefixStr ?? ''}${nameToken.lexeme}';
       if (namespace[name] == element ||
           (name != element.name && namespace[element.name] == element)) {
         referencedNames.add(element.displayName);
