@@ -47,16 +47,27 @@ class NativeMessageHandler final : public PortHandler {
   // running Dart_NativeMessageHandler callbacks. No new callbacks will be
   // scheduled after this call.
   //
-  // Note: |handler| might be deleted synchronously if no callback is running,
+  // |handler| might be deleted synchronously if no callback is running,
   // or it can be deleted later on a worker thread.
+  //
+  // |RequestDeletion| should be called after |Init| but before |Cleanup|.
+  // |Cleanup| will wait for all pending deletions to complete - which allows
+  // VM to shutdown cleanly.
   static void RequestDeletion(NativeMessageHandler* handler);
 
   void Shutdown() override;
+
+  static void Init();
+
+  static void Cleanup();
 
  private:
   PortSet<PortSetEntry>* ports(PortMap::Locker& locker) override {
     return nullptr;
   }
+
+  static Monitor* monitor_;
+  static intptr_t pending_deletions_;
 
   CStringUniquePtr name_;
   const Dart_NativeMessageHandler func_;
