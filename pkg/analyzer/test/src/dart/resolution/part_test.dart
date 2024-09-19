@@ -62,14 +62,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -84,14 +87,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -108,6 +114,7 @@ CompilationUnit
           name: A
           question: ?
           element: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          element2: <testLibrary>::@fragment::package:test/a.dart::@class::A#element
           type: A?
         variables
           VariableDeclaration
@@ -164,14 +171,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -186,14 +196,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -210,6 +223,7 @@ CompilationUnit
           name: A
           question: ?
           element: <testLibrary>::@fragment::package:test/a_html.dart::@class::A
+          element2: <testLibrary>::@fragment::package:test/a_html.dart::@class::A#element
           type: A?
         variables
           VariableDeclaration
@@ -242,6 +256,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: SimpleStringLiteral
@@ -273,6 +288,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: StringInterpolation
@@ -314,6 +330,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: SimpleStringLiteral
@@ -369,14 +386,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -391,14 +411,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -415,6 +438,7 @@ CompilationUnit
           name: A
           question: ?
           element: <testLibrary>::@fragment::package:test/a_io.dart::@class::A
+          element2: <testLibrary>::@fragment::package:test/a_io.dart::@class::A#element
           type: A?
         variables
           VariableDeclaration

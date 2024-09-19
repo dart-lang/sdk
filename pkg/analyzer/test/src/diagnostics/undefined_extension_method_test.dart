@@ -48,12 +48,14 @@ MethodInvocation
           literal: 'a'
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
+    element2: <testLibraryFragment>::@extension::E#element
     extendedType: String
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: m
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (

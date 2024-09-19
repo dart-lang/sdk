@@ -31,9 +31,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::G
+  element2: <testLibraryFragment>::@typeAlias::G#element
   type: int Function()
     alias: <testLibraryFragment>::@typeAlias::G
       typeArguments

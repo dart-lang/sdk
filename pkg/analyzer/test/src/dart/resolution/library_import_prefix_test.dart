@@ -31,6 +31,7 @@ main() {
 SimpleIdentifier
   token: p
   staticElement: <testLibraryFragment>::@prefix::p
+  element: <testLibraryFragment>::@prefix::p
   staticType: InvalidType
 ''');
   }
@@ -62,6 +63,7 @@ ForStatement
     iterable: SimpleIdentifier
       token: p
       staticElement: <testLibraryFragment>::@prefix::p
+      element: <testLibraryFragment>::@prefix::p
       staticType: InvalidType
   rightParenthesis: )
   body: Block
@@ -94,10 +96,12 @@ InstanceCreationExpression
     type: NamedType
       name: C
       element: <testLibraryFragment>::@class::C
+      element2: <testLibraryFragment>::@class::C#element
       type: C<dynamic>
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::C::@constructor::new
       substitution: {T: dynamic}
+    element: <testLibraryFragment>::@class::C::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -107,6 +111,7 @@ InstanceCreationExpression
           base: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a
           substitution: {T: dynamic}
         staticElement: <testLibraryFragment>::@prefix::p
+        element: <testLibraryFragment>::@prefix::p
         staticType: InvalidType
     rightParenthesis: )
   staticType: C<dynamic>
@@ -208,6 +213,7 @@ f() {
 SimpleIdentifier
   token: a
   staticElement: package:test/a.dart::<fragment>::@getter::a
+  element: package:test/a.dart::<fragment>::@getter::a#element
   staticType: int
 ''');
   }

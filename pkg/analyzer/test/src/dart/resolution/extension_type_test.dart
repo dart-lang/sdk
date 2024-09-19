@@ -33,6 +33,7 @@ ExtensionTypeDeclaration
     fieldType: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
     fieldName: it
     rightParenthesis: )
@@ -62,6 +63,7 @@ ExtensionTypeDeclaration
     fieldType: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
     fieldName: it
     rightParenthesis: )
@@ -73,6 +75,7 @@ ExtensionTypeDeclaration
       returnType: SimpleIdentifier
         token: A
         staticElement: <testLibraryFragment>::@extensionType::A
+        element: <testLibraryFragment>::@extensionType::A#element
         staticType: null
       period: .
       name: named
@@ -112,6 +115,7 @@ ExtensionTypeDeclaration
     fieldType: NamedType
       name: num
       element: dart:core::<fragment>::@class::num
+      element2: dart:core::<fragment>::@class::num#element
       type: num
     fieldName: it
     rightParenthesis: )
@@ -124,6 +128,7 @@ ExtensionTypeDeclaration
       returnType: SimpleIdentifier
         token: A
         staticElement: <testLibraryFragment>::@extensionType::A
+        element: <testLibraryFragment>::@extensionType::A#element
         staticType: null
       period: .
       name: named
@@ -133,6 +138,7 @@ ExtensionTypeDeclaration
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           name: a
           declaredElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
@@ -144,11 +150,13 @@ ExtensionTypeDeclaration
           fieldName: SimpleIdentifier
             token: it
             staticElement: <testLibraryFragment>::@extensionType::A::@field::it
+            element: <testLibraryFragment>::@extensionType::A::@field::it#element
             staticType: null
           equals: =
           expression: SimpleIdentifier
             token: a
             staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
+            element: <not-implemented>
             staticType: int
       body: EmptyFunctionBody
         semicolon: ;
@@ -175,6 +183,7 @@ ExtensionTypeDeclaration
     fieldType: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
     fieldName: it
     rightParenthesis: )
@@ -202,6 +211,7 @@ ExtensionTypeDeclaration
     fieldType: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
     fieldName: it
     rightParenthesis: )
@@ -213,6 +223,7 @@ ExtensionTypeDeclaration
       NamedType
         name: num
         element: dart:core::<fragment>::@class::num
+        element2: dart:core::<fragment>::@class::num#element
         type: num
   leftBracket: {
   rightBracket: }
@@ -236,6 +247,7 @@ MethodDeclaration
   returnType: NamedType
     name: void
     element: <null>
+    element2: <null>
     type: void
   name: foo
   typeParameters: TypeParameterList
@@ -251,6 +263,7 @@ MethodDeclaration
       type: NamedType
         name: T
         element: T@17
+        element2: <not-implemented>
         type: T
       name: t
       declaredElement: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::t
@@ -259,6 +272,7 @@ MethodDeclaration
       type: NamedType
         name: U
         element: U@41
+        element2: <not-implemented>
         type: U
       name: u
       declaredElement: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::u
@@ -272,12 +286,14 @@ MethodDeclaration
           expression: SimpleIdentifier
             token: T
             staticElement: T@17
+            element: <not-implemented>
             staticType: Type
           semicolon: ;
         ExpressionStatement
           expression: SimpleIdentifier
             token: U
             staticElement: U@41
+            element: <not-implemented>
             staticType: Type
           semicolon: ;
       rightBracket: }
@@ -317,13 +333,16 @@ ExtensionTypeDeclaration
           NamedType
             name: T
             element: T@17
+            element2: <not-implemented>
             type: T
           NamedType
             name: U
             element: U@20
+            element2: <not-implemented>
             type: U
         rightBracket: >
       element: dart:core::<fragment>::@class::Map
+      element2: dart:core::<fragment>::@class::Map#element
       type: Map<T, U>
     fieldName: it
     rightParenthesis: )
@@ -361,6 +380,7 @@ ExtensionTypeDeclaration
         bound: NamedType
           name: num
           element: dart:core::<fragment>::@class::num
+          element2: dart:core::<fragment>::@class::num#element
           type: num
         declaredElement: _@24
     rightBracket: >
@@ -369,6 +389,7 @@ ExtensionTypeDeclaration
     fieldType: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
       type: int
     fieldName: _
     rightParenthesis: )

@@ -468,11 +468,13 @@ library
                   fieldName: SimpleIdentifier
                     token: it @52
                     staticElement: <testLibraryFragment>::@extensionType::A::@field::it
+                    element: <testLibraryFragment>::@extensionType::A::@field::it#element
                     staticType: null
                   equals: = @55
                   expression: SimpleIdentifier
                     token: a @57
                     staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
+                    element: <not-implemented>
                     staticType: int
           accessors
             synthetic get it @-1
@@ -514,11 +516,13 @@ library
                   fieldName: SimpleIdentifier
                     token: it @52
                     staticElement: <testLibraryFragment>::@extensionType::A::@field::it
+                    element: <testLibraryFragment>::@extensionType::A::@field::it#element
                     staticType: null
                   equals: = @55
                   expression: SimpleIdentifier
                     token: a @57
                     staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
+                    element: <not-implemented>
                     staticType: int
           getters
             get it @-1
@@ -1047,8 +1051,10 @@ library
                   name: SimpleIdentifier
                     token: foo @35
                     staticElement: package:test/a.dart::<fragment>::@getter::foo
+                    element: package:test/a.dart::<fragment>::@getter::foo#element
                     staticType: null
                   element: package:test/a.dart::<fragment>::@getter::foo
+                  element2: package:test/a.dart::<fragment>::@getter::foo#element
               type: int
           constructors
             @32
@@ -2000,8 +2006,10 @@ library
               name: SimpleIdentifier
                 token: foo @18
                 staticElement: package:test/a.dart::<fragment>::@getter::foo
+                element: package:test/a.dart::<fragment>::@getter::foo#element
                 staticType: null
               element: package:test/a.dart::<fragment>::@getter::foo
+              element2: package:test/a.dart::<fragment>::@getter::foo#element
           representation: <testLibraryFragment>::@extensionType::A::@field::it
           primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
           typeErasure: int

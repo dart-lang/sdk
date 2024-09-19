@@ -38,8 +38,10 @@ ImplementsClause
         name: a
         period: .
         element: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix::a
       name: A
       element: package:test/lib1.dart::<fragment>::@class::A
+      element2: package:test/lib1.dart::<fragment>::@class::A#element
       type: A
 ''');
   }
@@ -68,8 +70,10 @@ ImplementsClause
         name: a
         period: .
         element: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix::a
       name: B
       element: package:test/lib1.dart::<fragment>::@typeAlias::B
+      element2: package:test/lib1.dart::<fragment>::@typeAlias::B#element
       type: A
         alias: package:test/lib1.dart::<fragment>::@typeAlias::B
 ''');
@@ -100,8 +104,10 @@ ImplementsClause
         name: a
         period: .
         element: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix::a
       name: A
       element: package:test/lib1.dart::<fragment>::@class::A
+      element2: package:test/lib1.dart::<fragment>::@class::A#element
       type: A
 ''');
   }
@@ -128,8 +134,10 @@ ImplementsClause
         name: a
         period: .
         element: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix::a
       name: A
       element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A
 ''');
   }
@@ -156,8 +164,10 @@ ImplementsClause
         name: a
         period: .
         element: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix::a
       name: A
       element: package:test/a.dart::<fragment>::@extensionType::A
+      element2: package:test/a.dart::<fragment>::@extensionType::A#element
       type: A
 ''');
   }
@@ -180,8 +190,10 @@ ImplementsClause
         name: math
         period: .
         element: <testLibraryFragment>::@prefix::math
+        element2: <testLibraryFragment>::@prefix::math
       name: Random
       element: dart:math::<fragment>::@class::Random
+      element2: dart:math::<fragment>::@class::Random#element
       type: Random
 ''');
   }

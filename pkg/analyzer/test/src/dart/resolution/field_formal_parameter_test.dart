@@ -28,6 +28,7 @@ FieldFormalParameter
   type: NamedType
     name: void
     element: <null>
+    element2: <null>
     type: void
   thisKeyword: this
   period: .
@@ -38,6 +39,7 @@ FieldFormalParameter
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       name: a
       declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f::@parameter::a
@@ -64,6 +66,7 @@ FieldFormalParameter
   type: NamedType
     name: U
     element: U@45
+    element2: <not-implemented>
     type: U
   thisKeyword: this
   period: .
@@ -81,6 +84,7 @@ FieldFormalParameter
       type: NamedType
         name: U
         element: U@45
+        element2: <not-implemented>
         type: U
       name: a
       declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f::@parameter::a
@@ -105,6 +109,7 @@ FieldFormalParameter
   type: NamedType
     name: T
     element: T@54
+    element2: <not-implemented>
     type: T
   thisKeyword: this
   period: .
@@ -125,6 +130,7 @@ FieldFormalParameter
       type: NamedType
         name: U
         element: U@57
+        element2: <not-implemented>
         type: U
       name: a
       declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f::@parameter::a
@@ -133,6 +139,7 @@ FieldFormalParameter
       type: NamedType
         name: V
         element: V@8
+        element2: <not-implemented>
         type: V
       name: b
       declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f::@parameter::b
@@ -176,6 +183,7 @@ FieldFormalParameter
   type: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
     type: int
   thisKeyword: this
   period: .

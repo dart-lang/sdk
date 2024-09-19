@@ -30,6 +30,7 @@ WithClause
     NamedType
       name: M
       element: <testLibraryFragment>::@mixin::M
+      element2: <testLibraryFragment>::@mixin::M#element
       type: M
 ''');
   }
@@ -48,6 +49,7 @@ WithClause
     NamedType
       name: M
       element: <testLibraryFragment>::@mixin::M
+      element2: <testLibraryFragment>::@mixin::M#element
       type: M
 ''');
   }
@@ -140,6 +142,7 @@ FieldDeclaration
     type: NamedType
       name: T
       element: T@8
+      element2: <not-implemented>
       type: T
     variables
       VariableDeclaration
@@ -163,6 +166,7 @@ MethodDeclaration
   returnType: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
     type: int
   propertyKeyword: get
   name: foo
@@ -193,10 +197,12 @@ ImplementsClause
     NamedType
       name: A
       element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     NamedType
       name: B
       element: <testLibraryFragment>::@class::B
+      element2: <testLibraryFragment>::@class::B#element
       type: B
 ''');
   }
@@ -268,6 +274,7 @@ MethodDeclaration
   returnType: NamedType
     name: void
     element: <null>
+    element2: <null>
     type: void
   name: foo
   parameters: FormalParameterList
@@ -301,11 +308,13 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::g::@parameter::f
+    element: <not-implemented>
     staticType: M<T> Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
+  element: <null>
   staticInvokeType: M<int> Function()
   staticType: M<int>
   typeArgumentTypes
@@ -329,10 +338,12 @@ MixinOnClause
     NamedType
       name: A
       element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     NamedType
       name: B
       element: <testLibraryFragment>::@class::B
+      element2: <testLibraryFragment>::@class::B#element
       type: B
 ''');
   }
@@ -350,6 +361,7 @@ MethodDeclaration
   returnType: NamedType
     name: void
     element: <null>
+    element2: <null>
     type: void
   propertyKeyword: set
   name: foo
@@ -359,6 +371,7 @@ MethodDeclaration
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       name: _
       declaredElement: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_
@@ -418,6 +431,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@class::A::@method::foo
+    element: <testLibraryFragment>::@class::A::@method::foo#element
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -458,6 +472,7 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
@@ -466,10 +481,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@class::A::@setter::foo
+  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
   writeType: int
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }

@@ -216,6 +216,7 @@ TryStatement
       exceptionType: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       catchKeyword: catch
       leftParenthesis: (

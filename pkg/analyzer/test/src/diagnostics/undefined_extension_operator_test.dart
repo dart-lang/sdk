@@ -48,6 +48,7 @@ BinaryExpression
           literal: 'a'
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
+    element2: <testLibraryFragment>::@extension::E#element
     extendedType: String
     staticType: null
   operator: +
@@ -56,6 +57,7 @@ BinaryExpression
     parameter: <null>
     staticType: int
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: InvalidType
 ''');

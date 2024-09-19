@@ -253,13 +253,16 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
+      element: <not-implemented>
       staticType: C
     period: .
     identifier: SimpleIdentifier
       token: a
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -267,10 +270,13 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <null>
+  writeElement2: <null>
   writeType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }

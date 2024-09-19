@@ -38,13 +38,16 @@ InstanceCreationExpression
     type: NamedType
       name: M
       element: <testLibraryFragment>::@mixin::M
+      element2: <testLibraryFragment>::@mixin::M#element
       type: M
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -71,8 +74,10 @@ InstanceCreationExpression
     type: NamedType
       name: M
       element: <testLibraryFragment>::@mixin::M
+      element2: <testLibraryFragment>::@mixin::M#element
       type: M
     staticElement: <null>
+    element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )

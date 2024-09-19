@@ -61,6 +61,7 @@ LabeledStatement
       label: SimpleIdentifier
         token: L
         staticElement: L@13
+        element: L@13
         staticType: null
       colon: :
   statement: WhileStatement
@@ -78,6 +79,7 @@ LabeledStatement
           label: SimpleIdentifier
             token: L
             staticElement: L@13
+            element: L@13
             staticType: null
           semicolon: ;
       rightBracket: }
@@ -112,6 +114,7 @@ WhileStatement
         label: SimpleIdentifier
           token: L
           staticElement: <null>
+          element: <null>
           staticType: null
         semicolon: ;
     rightBracket: }
@@ -190,6 +193,7 @@ LabeledStatement
       label: SimpleIdentifier
         token: L
         staticElement: L@13
+        element: L@13
         staticType: null
       colon: :
   statement: WhileStatement
@@ -207,6 +211,7 @@ LabeledStatement
           label: SimpleIdentifier
             token: L
             staticElement: L@13
+            element: L@13
             staticType: null
           semicolon: ;
       rightBracket: }
@@ -241,6 +246,7 @@ WhileStatement
         label: SimpleIdentifier
           token: L
           staticElement: <null>
+          element: <null>
           staticType: null
         semicolon: ;
     rightBracket: }

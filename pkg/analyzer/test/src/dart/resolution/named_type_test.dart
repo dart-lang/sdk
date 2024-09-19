@@ -32,6 +32,7 @@ f(A a) {}
 NamedType
   name: A
   element: <testLibraryFragment>::@class::A
+  element2: <testLibraryFragment>::@class::A#element
   type: A
 ''');
   }
@@ -48,6 +49,7 @@ f(A a) {}
 NamedType
   name: A
   element: <testLibraryFragment>::@class::A
+  element2: <testLibraryFragment>::@class::A#element
   type: A<num>
 ''');
   }
@@ -64,6 +66,7 @@ f(A a) {}
 NamedType
   name: A
   element: <testLibraryFragment>::@class::A
+  element2: <testLibraryFragment>::@class::A#element
   type: A<dynamic>
 ''');
   }
@@ -85,9 +88,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@class::A
+  element2: <testLibraryFragment>::@class::A#element
   type: A<int>
 ''');
   }
@@ -104,6 +109,7 @@ dynamic a;
 NamedType
   name: dynamic
   element: dynamic@-1
+  element2: dynamic@-1
   type: dynamic
 ''');
   }
@@ -122,8 +128,10 @@ NamedType
     name: myCore
     period: .
     element: <testLibraryFragment>::@prefix::myCore
+    element2: <testLibraryFragment>::@prefix::myCore
   name: dynamic
   element: dynamic@-1
+  element2: dynamic@-1
   type: dynamic
 ''');
   }
@@ -142,6 +150,7 @@ dynamic a;
 NamedType
   name: dynamic
   element: <null>
+  element2: <null>
   type: InvalidType
 ''');
   }
@@ -156,6 +165,7 @@ dynamic a;
 NamedType
   name: dynamic
   element: dynamic@-1
+  element2: dynamic@-1
   type: dynamic
 ''');
   }
@@ -177,9 +187,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@class::A
+  element2: <testLibraryFragment>::@class::A#element
   type: A<int>
 ''');
   }
@@ -203,9 +215,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@class::A
+  element2: <testLibraryFragment>::@class::A#element
   type: A<InvalidType, InvalidType>
 ''');
   }
@@ -229,13 +243,16 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
+        element2: dart:core::<fragment>::@class::String#element
         type: String
     rightBracket: >
   element: <testLibraryFragment>::@class::A
+  element2: <testLibraryFragment>::@class::A#element
   type: A<InvalidType>
 ''');
   }
@@ -258,9 +275,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: T@8
+  element2: <not-implemented>
   type: T
 ''');
   }
@@ -276,6 +295,7 @@ void f(A a) {}
 NamedType
   name: A
   element: <testLibraryFragment>::@extensionType::A
+  element2: <testLibraryFragment>::@extensionType::A#element
   type: A<num>
 ''');
   }
@@ -291,6 +311,7 @@ void f(A a) {}
 NamedType
   name: A
   element: <testLibraryFragment>::@extensionType::A
+  element2: <testLibraryFragment>::@extensionType::A#element
   type: A<dynamic>
 ''');
   }
@@ -311,9 +332,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@extensionType::A
+  element2: <testLibraryFragment>::@extensionType::A#element
   type: A<int>
 ''');
   }
@@ -330,6 +353,7 @@ f(F a) {}
 NamedType
   name: F
   element: <testLibraryFragment>::@typeAlias::F
+  element2: <testLibraryFragment>::@typeAlias::F#element
   type: int Function()
     alias: <testLibraryFragment>::@typeAlias::F
 ''');
@@ -347,6 +371,7 @@ f(F a) {}
 NamedType
   name: F
   element: <testLibraryFragment>::@typeAlias::F
+  element2: <testLibraryFragment>::@typeAlias::F#element
   type: num Function()
     alias: <testLibraryFragment>::@typeAlias::F
       typeArguments
@@ -366,6 +391,7 @@ f(F a) {}
 NamedType
   name: F
   element: <testLibraryFragment>::@typeAlias::F
+  element2: <testLibraryFragment>::@typeAlias::F#element
   type: dynamic Function()
     alias: <testLibraryFragment>::@typeAlias::F
       typeArguments
@@ -390,9 +416,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::F
+  element2: <testLibraryFragment>::@typeAlias::F#element
   type: int Function()
     alias: <testLibraryFragment>::@typeAlias::F
       typeArguments
@@ -414,6 +442,7 @@ NamedType
     name: async
     period: .
     element: <testLibraryFragment>::@prefix::async
+    element2: <testLibraryFragment>::@prefix::async
   name: Future
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -421,9 +450,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: dart:async::<fragment>::@class::Future
+  element2: dart:async::<fragment>::@class::Future#element
   type: Future<int>
 ''');
   }
@@ -444,6 +475,7 @@ NamedType
     name: math
     period: .
     element: <testLibraryFragment>::@prefix::math
+    element2: <testLibraryFragment>::@prefix::math
   name: Unresolved
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -451,9 +483,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <null>
+  element2: <null>
   type: InvalidType
 ''');
   }
@@ -476,8 +510,10 @@ NamedType
     name: math
     period: .
     element: <testLibraryFragment>::@prefix::math
+    element2: <testLibraryFragment>::@prefix::math
   name: A
   element: <null>
+  element2: <null>
   type: InvalidType
 ''');
   }
@@ -496,6 +532,7 @@ main() {
 NamedType
   name: A
   element: <testLibraryFragment>::@class::A
+  element2: <testLibraryFragment>::@class::A#element
   type: A
 ''');
   }
@@ -514,6 +551,7 @@ main() {
 NamedType
   name: A
   element: <null>
+  element2: <null>
   type: InvalidType
 ''');
   }
@@ -537,6 +575,7 @@ NamedType
     name: async
     period: .
     element: <testLibraryFragment>::@prefix::async
+    element2: <testLibraryFragment>::@prefix::async
   name: Future
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -544,9 +583,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: dart:async::<fragment>::@class::Future
+  element2: dart:async::<fragment>::@class::Future#element
   type: Future<int>
 ''');
   }
@@ -565,6 +606,7 @@ void f(prefix a) {}
 NamedType
   name: prefix
   element: <testLibraryFragment>::@prefix::prefix
+  element2: <testLibraryFragment>::@prefix::prefix
   type: InvalidType
 ''');
   }
@@ -588,9 +630,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@prefix::prefix
+  element2: <testLibraryFragment>::@prefix::prefix
   type: InvalidType
 ''');
   }
@@ -611,8 +655,10 @@ NamedType
     name: int
     period: .
     element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
   name: double
   element: <null>
+  element2: <null>
   type: InvalidType
 ''');
   }
@@ -633,8 +679,10 @@ NamedType
     name: int
     period: .
     element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
   name: double
   element: <null>
+  element2: <null>
   type: InvalidType
 ''');
   }
@@ -653,6 +701,7 @@ void T() {}
 NamedType
   name: T
   element: <testLibraryFragment>::@function::T
+  element2: <testLibraryFragment>::@function::T#element
   type: InvalidType
 ''');
   }
@@ -676,9 +725,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@function::T
+  element2: <testLibraryFragment>::@function::T#element
   type: InvalidType
 ''');
   }
@@ -697,6 +748,7 @@ NamedType
     name: T
     period: .
     element: T@7
+    element2: <not-implemented>
   name: name
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -704,9 +756,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <null>
+  element2: <null>
   type: InvalidType
 ''');
   }
@@ -734,6 +788,7 @@ void f(A a) {}
 NamedType
   name: A
   element: <null>
+  element2: <null>
   type: InvalidType
 ''');
   }
@@ -748,6 +803,7 @@ f(Never a) {}
 NamedType
   name: Never
   element: Never@-1
+  element2: Never@-1
   type: Never
 ''');
   }
@@ -773,9 +829,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
+  element2: <testLibraryFragment>::@typeAlias::X#element
   type: A<int>
 ''');
   }
@@ -796,6 +854,7 @@ void f() {
 NamedType
   name: X
   element: <testLibraryFragment>::@typeAlias::X
+  element2: <testLibraryFragment>::@typeAlias::X#element
   type: A<int>
 ''');
   }
@@ -821,9 +880,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
+  element2: <testLibraryFragment>::@typeAlias::X#element
   type: A<int>
 ''');
   }
@@ -844,9 +905,11 @@ NamedType
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
+        element2: dart:core::<fragment>::@class::String#element
         type: String
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
+  element2: <testLibraryFragment>::@typeAlias::X#element
   type: Map<int, String>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -864,9 +927,11 @@ NamedType
         name: String
         question: ?
         element: dart:core::<fragment>::@class::String
+        element2: dart:core::<fragment>::@class::String#element
         type: String?
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
+  element2: <testLibraryFragment>::@typeAlias::X#element
   type: Map<int, String?>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -890,9 +955,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
+  element2: <testLibraryFragment>::@typeAlias::X#element
   type: List<int?>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -910,9 +977,11 @@ NamedType
         name: int
         question: ?
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int?
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
+  element2: <testLibraryFragment>::@typeAlias::X#element
   type: List<int?>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -931,6 +1000,7 @@ void f(X a, X? b) {}
 NamedType
   name: X
   element: <testLibraryFragment>::@typeAlias::X
+  element2: <testLibraryFragment>::@typeAlias::X#element
   type: Never
 ''');
 
@@ -940,6 +1010,7 @@ NamedType
   name: X
   question: ?
   element: <testLibraryFragment>::@typeAlias::X
+  element2: <testLibraryFragment>::@typeAlias::X#element
   type: Never?
 ''');
   }
@@ -955,6 +1026,7 @@ void f(X a, X? b) {}
 NamedType
   name: X
   element: <testLibraryFragment>::@typeAlias::X
+  element2: <testLibraryFragment>::@typeAlias::X#element
   type: Never?
 ''');
 
@@ -964,6 +1036,7 @@ NamedType
   name: X
   question: ?
   element: <testLibraryFragment>::@typeAlias::X
+  element2: <testLibraryFragment>::@typeAlias::X#element
   type: Never?
 ''');
   }
@@ -984,9 +1057,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
+  element2: <testLibraryFragment>::@typeAlias::X#element
   type: int?
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -1010,9 +1085,11 @@ NamedType
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
+        element2: dart:core::<fragment>::@class::String#element
         type: String
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
+  element2: <testLibraryFragment>::@typeAlias::X#element
   type: Map<int, String>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -1031,6 +1108,7 @@ Nothing f() {}
 NamedType
   name: Nothing
   element: <testLibraryFragment>::@typeAlias::Nothing
+  element2: <testLibraryFragment>::@typeAlias::Nothing#element
   type: void
 ''');
   }
@@ -1052,9 +1130,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <null>
+  element2: <null>
   type: InvalidType
 ''');
   }
@@ -1073,6 +1153,7 @@ NamedType
     name: unresolved
     period: .
     element: <null>
+    element2: <null>
   name: List
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1080,9 +1161,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <null>
+  element2: <null>
   type: InvalidType
 ''');
   }

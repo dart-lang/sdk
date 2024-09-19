@@ -222,6 +222,7 @@ library
             SimpleIdentifier
               token: FutureOr @31
               staticElement: dart:async::<fragment>::@class::FutureOr
+              element: dart:async::<fragment>::@class::FutureOr#element
               staticType: Type
       accessors
         synthetic static get x @-1
@@ -556,6 +557,7 @@ library
                   constructorName: SimpleIdentifier
                     token: named @62
                     staticElement: <testLibraryFragment>::@class::D::@constructor::named
+                    element: <testLibraryFragment>::@class::D::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @67
@@ -564,11 +566,14 @@ library
                         expression: SimpleIdentifier
                           token: c @68
                           staticElement: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c
+                          element: <not-implemented>
                           staticType: C
                         staticElement: <testLibraryFragment>::@class::C::@method::call
+                        element: <testLibraryFragment>::@class::C::@method::call#element
                         staticType: void Function()
                     rightParenthesis: ) @69
                   staticElement: <testLibraryFragment>::@class::D::@constructor::named
+                  element: <testLibraryFragment>::@class::D::@constructor::named#element
               redirectedConstructor: <testLibraryFragment>::@class::D::@constructor::named
             const named @83
               reference: <testLibraryFragment>::@class::D::@constructor::named
@@ -613,6 +618,7 @@ library
                   constructorName: SimpleIdentifier
                     token: named @62
                     staticElement: <testLibraryFragment>::@class::D::@constructor::named
+                    element: <testLibraryFragment>::@class::D::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @67
@@ -621,11 +627,14 @@ library
                         expression: SimpleIdentifier
                           token: c @68
                           staticElement: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c
+                          element: <not-implemented>
                           staticType: C
                         staticElement: <testLibraryFragment>::@class::C::@method::call
+                        element: <testLibraryFragment>::@class::C::@method::call#element
                         staticType: void Function()
                     rightParenthesis: ) @69
                   staticElement: <testLibraryFragment>::@class::D::@constructor::named
+                  element: <testLibraryFragment>::@class::D::@constructor::named#element
               redirectedConstructor: <testLibraryFragment>::@class::D::@constructor::named
             const named @83
               reference: <testLibraryFragment>::@class::D::@constructor::named
@@ -2593,6 +2602,7 @@ library
                 SimpleIdentifier
                   token: V @43
                   staticElement: <null>
+                  element: <null>
                   staticType: InvalidType
           returnType: dynamic
 ----------------------------------------
@@ -2658,6 +2668,7 @@ library
                 SimpleIdentifier
                   token: V @26
                   staticElement: package:test/a.dart::<fragment>::@function::V
+                  element: package:test/a.dart::<fragment>::@function::V#element
                   staticType: dynamic Function()
           returnType: dynamic
 ----------------------------------------
@@ -2727,6 +2738,7 @@ library
                 SimpleIdentifier
                   token: V @9
                   staticElement: <testLibraryFragment>::@getter::V
+                  element: <testLibraryFragment>::@getter::V#element
                   staticType: dynamic
           returnType: dynamic
         V @16

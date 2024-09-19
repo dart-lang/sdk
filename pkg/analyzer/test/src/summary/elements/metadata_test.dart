@@ -44,6 +44,7 @@ library
               name: SimpleIdentifier
                 token: A @1
                 staticElement: <testLibraryFragment>::@class::A
+                element: <testLibraryFragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @2
@@ -59,6 +60,7 @@ library
                           label: SimpleIdentifier
                             token: a @7
                             staticElement: <null>
+                            element: <null>
                             staticType: null
                           colon: : @8
                         expression: IntegerLiteral
@@ -68,6 +70,7 @@ library
                     staticType: (int, {int a})
                 rightParenthesis: ) @12
               element: <testLibraryFragment>::@class::A::@constructor::new
+              element2: <testLibraryFragment>::@class::A::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -148,6 +151,7 @@ library
               name: SimpleIdentifier
                 token: A @1
                 staticElement: <testLibraryFragment>::@class::A
+                element: <testLibraryFragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @2
@@ -162,6 +166,7 @@ library
                     staticType: (String,)
                 rightParenthesis: ) @14
               element: <testLibraryFragment>::@class::A::@constructor::new
+              element2: <testLibraryFragment>::@class::A::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -260,20 +265,25 @@ library
                 prefix: SimpleIdentifier
                   token: a @23
                   staticElement: <testLibraryFragment>::@prefix::a
+                  element: <testLibraryFragment>::@prefix::a
                   staticType: null
                 period: . @24
                 identifier: SimpleIdentifier
                   token: A @25
                   staticElement: package:test/a.dart::<fragment>::@class::A
+                  element: package:test/a.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
+                element: package:test/a.dart::<fragment>::@class::A#element
                 staticType: null
               period: . @26
               constructorName: SimpleIdentifier
                 token: named @27
                 staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
                 staticType: null
               element: package:test/a.dart::<fragment>::@class::A::@constructor::named
+              element2: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -342,15 +352,19 @@ library
                 prefix: SimpleIdentifier
                   token: A @18
                   staticElement: package:test/a.dart::<fragment>::@class::A
+                  element: package:test/a.dart::<fragment>::@class::A#element
                   staticType: null
                 period: . @19
                 identifier: SimpleIdentifier
                   token: named @20
                   staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
+                  element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
                 staticType: null
               element: package:test/a.dart::<fragment>::@class::A::@constructor::named
+              element2: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -415,8 +429,10 @@ library
                   name: SimpleIdentifier
                     token: a @26
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
               type: int
               shouldUseTypeForInitializerInference: true
           constructors
@@ -550,8 +566,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             covariant T @34
               defaultType: dynamic
@@ -561,8 +579,10 @@ library
                   name: SimpleIdentifier
                     token: foo @30
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           fields
             static const foo @54
               reference: <testLibraryFragment>::@class::C::@field::foo
@@ -592,8 +612,10 @@ library
                   name: SimpleIdentifier
                     token: foo @66
                     staticElement: <testLibraryFragment>::@class::C::@getter::foo
+                    element: <testLibraryFragment>::@class::C::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@class::C::@getter::foo
+                  element2: <testLibraryFragment>::@class::C::@getter::foo#element
               returnType: void
       topLevelVariables
         static const foo @6
@@ -629,8 +651,10 @@ library
                   name: SimpleIdentifier
                     token: foo @30
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           fields
             foo @54
               reference: <testLibraryFragment>::@class::C::@field::foo
@@ -654,8 +678,10 @@ library
                   name: SimpleIdentifier
                     token: foo @66
                     staticElement: <testLibraryFragment>::@class::C::@getter::foo
+                    element: <testLibraryFragment>::@class::C::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@class::C::@getter::foo
+                  element2: <testLibraryFragment>::@class::C::@getter::foo#element
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -676,8 +702,10 @@ library
               name: SimpleIdentifier
                 token: foo @30
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
       fields
         static const foo
           firstFragment: <testLibraryFragment>::@class::C::@field::foo
@@ -698,8 +726,10 @@ library
               name: SimpleIdentifier
                 token: foo @66
                 staticElement: <testLibraryFragment>::@class::C::@getter::foo
+                element: <testLibraryFragment>::@class::C::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@class::C::@getter::foo
+              element2: <testLibraryFragment>::@class::C::@getter::foo#element
   topLevelVariables
     const foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -735,15 +765,19 @@ library
               name: SimpleIdentifier
                 token: a @33
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
             Annotation
               atSign: @ @35
               name: SimpleIdentifier
                 token: b @36
                 staticElement: <testLibraryFragment>::@getter::b
+                element: <testLibraryFragment>::@getter::b#element
                 staticType: null
               element: <testLibraryFragment>::@getter::b
+              element2: <testLibraryFragment>::@getter::b#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -849,8 +883,10 @@ library
               name: SimpleIdentifier
                 token: a @17
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
           supertype: D
           mixins
             E
@@ -865,6 +901,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @45
           reference: <testLibraryFragment>::@class::D
@@ -916,6 +953,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @45
           reference: <testLibraryFragment>::@class::D
@@ -1007,13 +1045,16 @@ library
                 prefix: SimpleIdentifier
                   token: A @37
                   staticElement: <testLibraryFragment>::@class::A
+                  element: <testLibraryFragment>::@class::A#element
                   staticType: null
                 period: . @38
                 identifier: SimpleIdentifier
                   token: named @39
                   staticElement: <testLibraryFragment>::@class::A::@constructor::named
+                  element: <testLibraryFragment>::@class::A::@constructor::named#element
                   staticType: null
                 staticElement: <testLibraryFragment>::@class::A::@constructor::named
+                element: <testLibraryFragment>::@class::A::@constructor::named#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @44
@@ -1023,6 +1064,7 @@ library
                     staticType: int
                 rightParenthesis: ) @46
               element: <testLibraryFragment>::@class::A::@constructor::named
+              element2: <testLibraryFragment>::@class::A::@constructor::named#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1112,6 +1154,7 @@ library
                 prefix: SimpleIdentifier
                   token: A @39
                   staticElement: <testLibraryFragment>::@class::A
+                  element: <testLibraryFragment>::@class::A#element
                   staticType: null
                 period: . @40
                 identifier: SimpleIdentifier
@@ -1119,10 +1162,12 @@ library
                   staticElement: ConstructorMember
                     base: <testLibraryFragment>::@class::A::@constructor::named
                     substitution: {T: int}
+                  element: <testLibraryFragment>::@class::A::@constructor::named#element
                   staticType: null
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::A::@constructor::named
                   substitution: {T: int}
+                element: <testLibraryFragment>::@class::A::@constructor::named#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @46
@@ -1134,6 +1179,7 @@ library
               element: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::named
                 substitution: {T: int}
+              element2: <testLibraryFragment>::@class::A::@constructor::named#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1224,6 +1270,7 @@ library
               name: SimpleIdentifier
                 token: A @36
                 staticElement: <testLibraryFragment>::@class::A
+                element: <testLibraryFragment>::@class::A#element
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @37
@@ -1231,6 +1278,7 @@ library
                   NamedType
                     name: int @38
                     element: dart:core::<fragment>::@class::int
+                    element2: dart:core::<fragment>::@class::int#element
                     type: int
                 rightBracket: > @41
               period: . @42
@@ -1239,6 +1287,7 @@ library
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::A::@constructor::named
                   substitution: {T: int}
+                element: <testLibraryFragment>::@class::A::@constructor::named#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @48
@@ -1246,6 +1295,7 @@ library
               element: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::named
                 substitution: {T: int}
+              element2: <testLibraryFragment>::@class::A::@constructor::named#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1330,6 +1380,7 @@ library
               name: SimpleIdentifier
                 token: A @36
                 staticElement: <testLibraryFragment>::@class::A
+                element: <testLibraryFragment>::@class::A#element
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @37
@@ -1337,6 +1388,7 @@ library
                   NamedType
                     name: int @38
                     element: dart:core::<fragment>::@class::int
+                    element2: dart:core::<fragment>::@class::int#element
                     type: int
                 rightBracket: > @41
               period: . @42
@@ -1345,6 +1397,7 @@ library
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::A::@constructor::named
                   substitution: {T: int}
+                element: <testLibraryFragment>::@class::A::@constructor::named#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @48
@@ -1352,6 +1405,7 @@ library
               element: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::named
                 substitution: {T: int}
+              element2: <testLibraryFragment>::@class::A::@constructor::named#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1441,18 +1495,22 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
                   token: A @31
                   staticElement: package:test/foo.dart::<fragment>::@class::A
+                  element: package:test/foo.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@class::A
+                element: package:test/foo.dart::<fragment>::@class::A#element
                 staticType: null
               period: . @32
               constructorName: SimpleIdentifier
                 token: named @33
                 staticElement: package:test/foo.dart::<fragment>::@class::A::@constructor::named
+                element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @38
@@ -1462,6 +1520,7 @@ library
                     staticType: int
                 rightParenthesis: ) @40
               element: package:test/foo.dart::<fragment>::@class::A::@constructor::named
+              element2: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1538,13 +1597,16 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
                   token: A @31
                   staticElement: package:test/foo.dart::<fragment>::@class::A
+                  element: package:test/foo.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@class::A
+                element: package:test/foo.dart::<fragment>::@class::A#element
                 staticType: null
               period: . @32
               constructorName: SimpleIdentifier
@@ -1552,6 +1614,7 @@ library
                 staticElement: ConstructorMember
                   base: package:test/foo.dart::<fragment>::@class::A::@constructor::named
                   substitution: {T: int}
+                element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @38
@@ -1563,6 +1626,7 @@ library
               element: ConstructorMember
                 base: package:test/foo.dart::<fragment>::@class::A::@constructor::named
                 substitution: {T: int}
+              element2: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1639,13 +1703,16 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
                   token: A @31
                   staticElement: package:test/foo.dart::<fragment>::@class::A
+                  element: package:test/foo.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@class::A
+                element: package:test/foo.dart::<fragment>::@class::A#element
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @32
@@ -1653,6 +1720,7 @@ library
                   NamedType
                     name: int @33
                     element: dart:core::<fragment>::@class::int
+                    element2: dart:core::<fragment>::@class::int#element
                     type: int
                 rightBracket: > @36
               period: . @37
@@ -1661,6 +1729,7 @@ library
                 staticElement: ConstructorMember
                   base: package:test/foo.dart::<fragment>::@class::A::@constructor::named
                   substitution: {T: int}
+                element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @43
@@ -1668,6 +1737,7 @@ library
               element: ConstructorMember
                 base: package:test/foo.dart::<fragment>::@class::A::@constructor::named
                 substitution: {T: int}
+              element2: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1751,11 +1821,13 @@ library
                   constructorName: SimpleIdentifier
                     token: named @-1
                     staticElement: <testLibraryFragment>::@class::A::@constructor::named
+                    element: <testLibraryFragment>::@class::A::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::named
+                  element: <testLibraryFragment>::@class::A::@constructor::named#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::named
         class D @85
           reference: <testLibraryFragment>::@class::D
@@ -1767,6 +1839,7 @@ library
                 prefix: SimpleIdentifier
                   token: C @69
                   staticElement: <testLibraryFragment>::@class::C
+                  element: <testLibraryFragment>::@class::C#element
                   staticType: null
                 period: . @70
                 identifier: SimpleIdentifier
@@ -1774,10 +1847,12 @@ library
                   staticElement: ConstructorMember
                     base: <testLibraryFragment>::@class::C::@constructor::named
                     substitution: {T: dynamic}
+                  element: <testLibraryFragment>::@class::C::@constructor::named#element
                   staticType: null
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::C::@constructor::named
                   substitution: {T: dynamic}
+                element: <testLibraryFragment>::@class::C::@constructor::named#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @76
@@ -1785,6 +1860,7 @@ library
               element: ConstructorMember
                 base: <testLibraryFragment>::@class::C::@constructor::named
                 substitution: {T: dynamic}
+              element2: <testLibraryFragment>::@class::C::@constructor::named#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
@@ -1828,11 +1904,13 @@ library
                   constructorName: SimpleIdentifier
                     token: named @-1
                     staticElement: <testLibraryFragment>::@class::A::@constructor::named
+                    element: <testLibraryFragment>::@class::A::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::named
+                  element: <testLibraryFragment>::@class::A::@constructor::named#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::named
         class D @85
           reference: <testLibraryFragment>::@class::D
@@ -1908,6 +1986,7 @@ library
               name: SimpleIdentifier
                 token: A @31
                 staticElement: <testLibraryFragment>::@class::A
+                element: <testLibraryFragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @32
@@ -1917,6 +1996,7 @@ library
                     staticType: int
                 rightParenthesis: ) @34
               element: <testLibraryFragment>::@class::A::@constructor::new
+              element2: <testLibraryFragment>::@class::A::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2001,6 +2081,7 @@ library
               name: SimpleIdentifier
                 token: A @33
                 staticElement: <testLibraryFragment>::@class::A
+                element: <testLibraryFragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @34
@@ -2012,6 +2093,7 @@ library
               element: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int}
+              element2: <testLibraryFragment>::@class::A::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2098,6 +2180,7 @@ library
               name: SimpleIdentifier
                 token: A @30
                 staticElement: <testLibraryFragment>::@class::A
+                element: <testLibraryFragment>::@class::A#element
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @31
@@ -2105,6 +2188,7 @@ library
                   NamedType
                     name: int @32
                     element: dart:core::<fragment>::@class::int
+                    element2: dart:core::<fragment>::@class::int#element
                     type: int
                 rightBracket: > @35
               arguments: ArgumentList
@@ -2113,6 +2197,7 @@ library
               element: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int}
+              element2: <testLibraryFragment>::@class::A::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2193,13 +2278,16 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
                   token: A @31
                   staticElement: package:test/foo.dart::<fragment>::@class::A
+                  element: package:test/foo.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@class::A
+                element: package:test/foo.dart::<fragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @32
@@ -2209,6 +2297,7 @@ library
                     staticType: int
                 rightParenthesis: ) @34
               element: package:test/foo.dart::<fragment>::@class::A::@constructor::new
+              element2: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2285,13 +2374,16 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
                   token: A @31
                   staticElement: package:test/foo.dart::<fragment>::@class::A
+                  element: package:test/foo.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@class::A
+                element: package:test/foo.dart::<fragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @32
@@ -2303,6 +2395,7 @@ library
               element: ConstructorMember
                 base: package:test/foo.dart::<fragment>::@class::A::@constructor::new
                 substitution: {T: int}
+              element2: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2379,13 +2472,16 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
                   token: A @31
                   staticElement: package:test/foo.dart::<fragment>::@class::A
+                  element: package:test/foo.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@class::A
+                element: package:test/foo.dart::<fragment>::@class::A#element
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @32
@@ -2393,6 +2489,7 @@ library
                   NamedType
                     name: int @33
                     element: dart:core::<fragment>::@class::int
+                    element2: dart:core::<fragment>::@class::int#element
                     type: int
                 rightBracket: > @36
               arguments: ArgumentList
@@ -2401,6 +2498,7 @@ library
               element: ConstructorMember
                 base: package:test/foo.dart::<fragment>::@class::A::@constructor::new
                 substitution: {T: int}
+              element2: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2482,6 +2580,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class D @73
           reference: <testLibraryFragment>::@class::D
@@ -2492,6 +2591,7 @@ library
               name: SimpleIdentifier
                 token: C @63
                 staticElement: <testLibraryFragment>::@class::C
+                element: <testLibraryFragment>::@class::C#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @64
@@ -2499,6 +2599,7 @@ library
               element: ConstructorMember
                 base: <testLibraryFragment>::@class::C::@constructor::new
                 substitution: {T: dynamic}
+              element2: <testLibraryFragment>::@class::C::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
@@ -2540,6 +2641,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class D @73
           reference: <testLibraryFragment>::@class::D
@@ -2610,6 +2712,7 @@ library
               name: SimpleIdentifier
                 token: A @25
                 staticElement: <testLibraryFragment>::@class::A
+                element: <testLibraryFragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @26
@@ -2619,6 +2722,7 @@ library
                     staticType: Null
                 rightParenthesis: ) @31
               element: <testLibraryFragment>::@class::A::@constructor::new
+              element2: <testLibraryFragment>::@class::A::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2688,8 +2792,10 @@ library
                   name: SimpleIdentifier
                     token: a @27
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
               periodOffset: 30
               nameEnd: 36
       topLevelVariables
@@ -2727,8 +2833,10 @@ library
                   name: SimpleIdentifier
                     token: a @27
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
               periodOffset: 30
               nameEnd: 36
       topLevelVariables
@@ -2752,8 +2860,10 @@ library
               name: SimpleIdentifier
                 token: a @27
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -2788,8 +2898,10 @@ library
                   name: SimpleIdentifier
                     token: a @27
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         static const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -2825,8 +2937,10 @@ library
                   name: SimpleIdentifier
                     token: a @27
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -2848,8 +2962,10 @@ library
               name: SimpleIdentifier
                 token: a @27
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -2873,8 +2989,10 @@ library
       name: SimpleIdentifier
         token: a @1
         staticElement: <testLibraryFragment>::@getter::a
+        element: <testLibraryFragment>::@getter::a#element
         staticType: null
       element: <testLibraryFragment>::@getter::a
+      element2: <testLibraryFragment>::@getter::a#element
   libraryExports
     package:test/foo.dart
       enclosingElement3: <testLibraryFragment>
@@ -2884,8 +3002,10 @@ library
           name: SimpleIdentifier
             token: a @1
             staticElement: <testLibraryFragment>::@getter::a
+            element: <testLibraryFragment>::@getter::a#element
             staticType: null
           element: <testLibraryFragment>::@getter::a
+          element2: <testLibraryFragment>::@getter::a#element
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2899,8 +3019,10 @@ library
               name: SimpleIdentifier
                 token: a @1
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         static const a @28
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -2925,8 +3047,10 @@ library
       name: SimpleIdentifier
         token: a @1
         staticElement: <testLibraryFragment>::@getter::a
+        element: <testLibraryFragment>::@getter::a#element
         staticType: null
       element: <testLibraryFragment>::@getter::a
+      element2: <testLibraryFragment>::@getter::a#element
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2973,8 +3097,10 @@ library
                   name: SimpleIdentifier
                     token: a @27
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
               type: int
           constructors
             synthetic @-1
@@ -3116,8 +3242,10 @@ library
                       name: SimpleIdentifier
                         token: a @40
                         staticElement: <testLibraryFragment>::@getter::a
+                        element: <testLibraryFragment>::@getter::a#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::a
+                      element2: <testLibraryFragment>::@getter::a#element
                   field: <testLibraryFragment>::@class::C::@field::x
           accessors
             synthetic get x @-1
@@ -3175,8 +3303,10 @@ library
                       name: SimpleIdentifier
                         token: a @40
                         staticElement: <testLibraryFragment>::@getter::a
+                        element: <testLibraryFragment>::@getter::a#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::a
+                      element2: <testLibraryFragment>::@getter::a#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -3218,8 +3348,10 @@ library
                   name: SimpleIdentifier
                     token: a @40
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
@@ -3272,8 +3404,10 @@ library
                       name: SimpleIdentifier
                         token: a @37
                         staticElement: <testLibraryFragment>::@getter::a
+                        element: <testLibraryFragment>::@getter::a#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::a
+                      element2: <testLibraryFragment>::@getter::a#element
                   constantInitializer
                     NullLiteral
                       literal: null @48
@@ -3335,8 +3469,10 @@ library
                       name: SimpleIdentifier
                         token: a @37
                         staticElement: <testLibraryFragment>::@getter::a
+                        element: <testLibraryFragment>::@getter::a#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::a
+                      element2: <testLibraryFragment>::@getter::a#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -3378,8 +3514,10 @@ library
                   name: SimpleIdentifier
                     token: a @37
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
@@ -3438,8 +3576,10 @@ library
               name: SimpleIdentifier
                 token: a @17
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
           returnType: dynamic
 ----------------------------------------
 library
@@ -3466,8 +3606,10 @@ library
               name: SimpleIdentifier
                 token: a @17
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -3485,8 +3627,10 @@ library
           name: SimpleIdentifier
             token: a @17
             staticElement: <testLibraryFragment>::@getter::a
+            element: <testLibraryFragment>::@getter::a#element
             staticType: null
           element: <testLibraryFragment>::@getter::a
+          element2: <testLibraryFragment>::@getter::a#element
       returnType: dynamic
 ''');
   }
@@ -3528,8 +3672,10 @@ library
               name: SimpleIdentifier
                 token: a @17
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
           returnType: dynamic
 ----------------------------------------
 library
@@ -3559,8 +3705,10 @@ library
               name: SimpleIdentifier
                 token: a @17
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -3581,8 +3729,10 @@ library
           name: SimpleIdentifier
             token: a @17
             staticElement: <testLibraryFragment>::@getter::a
+            element: <testLibraryFragment>::@getter::a#element
             staticType: null
           element: <testLibraryFragment>::@getter::a
+          element2: <testLibraryFragment>::@getter::a#element
 ''');
   }
 
@@ -3623,8 +3773,10 @@ library
               name: SimpleIdentifier
                 token: a @17
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
           parameters
             requiredPositional value @25
               type: dynamic
@@ -3658,8 +3810,10 @@ library
               name: SimpleIdentifier
                 token: a @17
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
           parameters
             value @25
               element: <not-implemented>
@@ -3684,8 +3838,10 @@ library
           name: SimpleIdentifier
             token: a @17
             staticElement: <testLibraryFragment>::@getter::a
+            element: <testLibraryFragment>::@getter::a#element
             staticType: null
           element: <testLibraryFragment>::@getter::a
+          element2: <testLibraryFragment>::@getter::a#element
       parameters
         requiredPositional value
           type: dynamic
@@ -3710,8 +3866,10 @@ library
               name: SimpleIdentifier
                 token: a @17
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
           aliasedType: dynamic Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: dynamic
@@ -3746,8 +3904,10 @@ library
               name: SimpleIdentifier
                 token: a @17
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -3766,8 +3926,10 @@ library
           name: SimpleIdentifier
             token: a @17
             staticElement: <testLibraryFragment>::@getter::a
+            element: <testLibraryFragment>::@getter::a#element
             staticType: null
           element: <testLibraryFragment>::@getter::a
+          element2: <testLibraryFragment>::@getter::a#element
       aliasedType: dynamic Function()
   topLevelVariables
     const a
@@ -3817,8 +3979,10 @@ library
                   name: SimpleIdentifier
                     token: a @19
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
           returnType: dynamic
 ----------------------------------------
 library
@@ -3848,8 +4012,10 @@ library
                   name: SimpleIdentifier
                     token: a @19
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -3870,8 +4036,10 @@ library
               name: SimpleIdentifier
                 token: a @19
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
       returnType: dynamic
 ''');
   }
@@ -3913,8 +4081,10 @@ library
                   name: SimpleIdentifier
                     token: a @20
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
               constantInitializer
                 NullLiteral
                   literal: null @28
@@ -3948,8 +4118,10 @@ library
                   name: SimpleIdentifier
                     token: a @20
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -3970,8 +4142,10 @@ library
               name: SimpleIdentifier
                 token: a @20
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
       returnType: dynamic
 ''');
   }
@@ -3999,15 +4173,19 @@ library
               name: SimpleIdentifier
                 token: a @33
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
             Annotation
               atSign: @ @35
               name: SimpleIdentifier
                 token: b @36
                 staticElement: <testLibraryFragment>::@getter::b
+                element: <testLibraryFragment>::@getter::b#element
                 staticType: null
               element: <testLibraryFragment>::@getter::b
+              element2: <testLibraryFragment>::@getter::b#element
           aliasedType: void Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void
@@ -4055,15 +4233,19 @@ library
               name: SimpleIdentifier
                 token: a @33
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
             Annotation
               atSign: @ @35
               name: SimpleIdentifier
                 token: b @36
                 staticElement: <testLibraryFragment>::@getter::b
+                element: <testLibraryFragment>::@getter::b#element
                 staticType: null
               element: <testLibraryFragment>::@getter::b
+              element2: <testLibraryFragment>::@getter::b#element
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -4089,15 +4271,19 @@ library
           name: SimpleIdentifier
             token: a @33
             staticElement: <testLibraryFragment>::@getter::a
+            element: <testLibraryFragment>::@getter::a#element
             staticType: null
           element: <testLibraryFragment>::@getter::a
+          element2: <testLibraryFragment>::@getter::a#element
         Annotation
           atSign: @ @35
           name: SimpleIdentifier
             token: b @36
             staticElement: <testLibraryFragment>::@getter::b
+            element: <testLibraryFragment>::@getter::b#element
             staticType: null
           element: <testLibraryFragment>::@getter::b
+          element2: <testLibraryFragment>::@getter::b#element
       aliasedType: void Function()
   topLevelVariables
     const a
@@ -4142,8 +4328,10 @@ library
                     name: SimpleIdentifier
                       token: a @41
                       staticElement: <testLibraryFragment>::@getter::a
+                      element: <testLibraryFragment>::@getter::a#element
                       staticType: null
                     element: <testLibraryFragment>::@getter::a
+                    element2: <testLibraryFragment>::@getter::a#element
             returnType: void
       topLevelVariables
         static const a @6
@@ -4223,8 +4411,10 @@ library
                         name: SimpleIdentifier
                           token: a @49
                           staticElement: <testLibraryFragment>::@getter::a
+                          element: <testLibraryFragment>::@getter::a#element
                           staticType: null
                         element: <testLibraryFragment>::@getter::a
+                        element2: <testLibraryFragment>::@getter::a#element
             returnType: void
       topLevelVariables
         static const a @6
@@ -4300,8 +4490,10 @@ library
                     name: SimpleIdentifier
                       token: a @41
                       staticElement: <testLibraryFragment>::@getter::a
+                      element: <testLibraryFragment>::@getter::a#element
                       staticType: null
                     element: <testLibraryFragment>::@getter::a
+                    element2: <testLibraryFragment>::@getter::a#element
             parameters
               requiredPositional first @50
                 type: int
@@ -4374,6 +4566,7 @@ library
               name: SimpleIdentifier
                 token: f @9
                 staticElement: <testLibraryFragment>::@function::f
+                element: <testLibraryFragment>::@function::f#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @10
@@ -4383,6 +4576,7 @@ library
                     staticType: int
                 rightParenthesis: ) @13
               element: <testLibraryFragment>::@function::f
+              element2: <testLibraryFragment>::@function::f#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -4459,8 +4653,10 @@ library
               name: SimpleIdentifier
                 token: deprecated @1
                 staticElement: dart:core::<fragment>::@getter::deprecated
+                element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
+              element2: dart:core::<fragment>::@getter::deprecated#element
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
@@ -4502,8 +4698,10 @@ library
               name: SimpleIdentifier
                 token: deprecated @1
                 staticElement: dart:core::<fragment>::@getter::deprecated
+                element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
+              element2: dart:core::<fragment>::@getter::deprecated#element
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -4526,8 +4724,10 @@ library
       name: SimpleIdentifier
         token: a @1
         staticElement: <testLibraryFragment>::@getter::a
+        element: <testLibraryFragment>::@getter::a#element
         staticType: null
       element: <testLibraryFragment>::@getter::a
+      element2: <testLibraryFragment>::@getter::a#element
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -4557,8 +4757,10 @@ library
       name: SimpleIdentifier
         token: a @1
         staticElement: <testLibraryFragment>::@getter::a
+        element: <testLibraryFragment>::@getter::a#element
         staticType: null
       element: <testLibraryFragment>::@getter::a
+      element2: <testLibraryFragment>::@getter::a#element
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4615,8 +4817,10 @@ library
                   name: SimpleIdentifier
                     token: a @27
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
               returnType: dynamic
       topLevelVariables
         static const a @6
@@ -4662,8 +4866,10 @@ library
                   name: SimpleIdentifier
                     token: a @27
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -4693,8 +4899,10 @@ library
               name: SimpleIdentifier
                 token: a @27
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -4741,15 +4949,19 @@ library
                   name: SimpleIdentifier
                     token: a @45
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
                 Annotation
                   atSign: @ @49
                   name: SimpleIdentifier
                     token: b @50
                     staticElement: <testLibraryFragment>::@getter::b
+                    element: <testLibraryFragment>::@getter::b#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::b
+                  element2: <testLibraryFragment>::@getter::b#element
               returnType: dynamic
       topLevelVariables
         static const a @6
@@ -4803,15 +5015,19 @@ library
                   name: SimpleIdentifier
                     token: a @45
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
                 Annotation
                   atSign: @ @49
                   name: SimpleIdentifier
                     token: b @50
                     staticElement: <testLibraryFragment>::@getter::b
+                    element: <testLibraryFragment>::@getter::b#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::b
+                  element2: <testLibraryFragment>::@getter::b#element
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -4843,15 +5059,19 @@ library
               name: SimpleIdentifier
                 token: a @45
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
             Annotation
               atSign: @ @49
               name: SimpleIdentifier
                 token: b @50
                 staticElement: <testLibraryFragment>::@getter::b
+                element: <testLibraryFragment>::@getter::b#element
                 staticType: null
               element: <testLibraryFragment>::@getter::b
+              element2: <testLibraryFragment>::@getter::b#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -4902,15 +5122,19 @@ library
                   name: SimpleIdentifier
                     token: a @45
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
                 Annotation
                   atSign: @ @49
                   name: SimpleIdentifier
                     token: b @50
                     staticElement: <testLibraryFragment>::@getter::b
+                    element: <testLibraryFragment>::@getter::b#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::b
+                  element2: <testLibraryFragment>::@getter::b#element
               returnType: dynamic
       topLevelVariables
         static const a @6
@@ -4960,15 +5184,19 @@ library
                   name: SimpleIdentifier
                     token: a @45
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
                 Annotation
                   atSign: @ @49
                   name: SimpleIdentifier
                     token: b @50
                     staticElement: <testLibraryFragment>::@getter::b
+                    element: <testLibraryFragment>::@getter::b#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::b
+                  element2: <testLibraryFragment>::@getter::b#element
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -4999,15 +5227,19 @@ library
               name: SimpleIdentifier
                 token: a @45
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
             Annotation
               atSign: @ @49
               name: SimpleIdentifier
                 token: b @50
                 staticElement: <testLibraryFragment>::@getter::b
+                element: <testLibraryFragment>::@getter::b#element
                 staticType: null
               element: <testLibraryFragment>::@getter::b
+              element2: <testLibraryFragment>::@getter::b#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -5063,8 +5295,10 @@ library
                   name: SimpleIdentifier
                     token: a @29
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
               parameters
                 requiredPositional value @39
                   type: dynamic
@@ -5113,8 +5347,10 @@ library
                   name: SimpleIdentifier
                     token: a @29
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
               parameters
                 value @39
                   element: <not-implemented>
@@ -5147,8 +5383,10 @@ library
               name: SimpleIdentifier
                 token: a @29
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
           parameters
             requiredPositional value
               type: dynamic
@@ -5191,8 +5429,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             covariant T @34
               defaultType: dynamic
@@ -5202,8 +5442,10 @@ library
                   name: SimpleIdentifier
                     token: foo @30
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           superclassConstraints
             Object
           fields
@@ -5231,8 +5473,10 @@ library
                   name: SimpleIdentifier
                     token: foo @66
                     staticElement: <testLibraryFragment>::@mixin::M::@getter::foo
+                    element: <testLibraryFragment>::@mixin::M::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@mixin::M::@getter::foo
+                  element2: <testLibraryFragment>::@mixin::M::@getter::foo#element
               returnType: void
       topLevelVariables
         static const foo @6
@@ -5268,8 +5512,10 @@ library
                   name: SimpleIdentifier
                     token: foo @30
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           fields
             foo @54
               reference: <testLibraryFragment>::@mixin::M::@field::foo
@@ -5289,8 +5535,10 @@ library
                   name: SimpleIdentifier
                     token: foo @66
                     staticElement: <testLibraryFragment>::@mixin::M::@getter::foo
+                    element: <testLibraryFragment>::@mixin::M::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@mixin::M::@getter::foo
+                  element2: <testLibraryFragment>::@mixin::M::@getter::foo#element
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -5311,8 +5559,10 @@ library
               name: SimpleIdentifier
                 token: foo @30
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
       superclassConstraints
         Object
       fields
@@ -5332,8 +5582,10 @@ library
               name: SimpleIdentifier
                 token: foo @66
                 staticElement: <testLibraryFragment>::@mixin::M::@getter::foo
+                element: <testLibraryFragment>::@mixin::M::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@mixin::M::@getter::foo
+              element2: <testLibraryFragment>::@mixin::M::@getter::foo#element
   topLevelVariables
     const foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -5369,15 +5621,19 @@ library
               name: SimpleIdentifier
                 token: a @33
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
             Annotation
               atSign: @ @35
               name: SimpleIdentifier
                 token: b @36
                 staticElement: <testLibraryFragment>::@getter::b
+                element: <testLibraryFragment>::@getter::b#element
                 staticType: null
               element: <testLibraryFragment>::@getter::b
+              element2: <testLibraryFragment>::@getter::b#element
           superclassConstraints
             Object
       topLevelVariables
@@ -5480,8 +5736,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             covariant T @34
               defaultType: dynamic
@@ -5491,8 +5749,10 @@ library
                   name: SimpleIdentifier
                     token: foo @30
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -5531,8 +5791,10 @@ library
                   name: SimpleIdentifier
                     token: foo @30
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -5557,8 +5819,10 @@ library
               name: SimpleIdentifier
                 token: foo @30
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
@@ -5603,8 +5867,10 @@ library
                   name: SimpleIdentifier
                     token: foo @29
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
               parameters
                 requiredPositional a @46
                   type: int
@@ -5614,8 +5880,10 @@ library
                       name: SimpleIdentifier
                         token: foo @38
                         staticElement: <testLibraryFragment>::@getter::foo
+                        element: <testLibraryFragment>::@getter::foo#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::foo
+                      element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         static const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -5651,8 +5919,10 @@ library
                   name: SimpleIdentifier
                     token: foo @29
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
               parameters
                 a @46
                   element: <not-implemented>
@@ -5662,8 +5932,10 @@ library
                       name: SimpleIdentifier
                         token: foo @38
                         staticElement: <testLibraryFragment>::@getter::foo
+                        element: <testLibraryFragment>::@getter::foo#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::foo
+                      element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -5685,8 +5957,10 @@ library
               name: SimpleIdentifier
                 token: foo @29
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           parameters
             requiredPositional a
               type: int
@@ -5696,8 +5970,10 @@ library
                   name: SimpleIdentifier
                     token: foo @38
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -5748,8 +6024,10 @@ library
                   name: SimpleIdentifier
                     token: foo @29
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
               returnType: int
       topLevelVariables
         static const foo @6
@@ -5795,8 +6073,10 @@ library
                   name: SimpleIdentifier
                     token: foo @29
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -5826,8 +6106,10 @@ library
               name: SimpleIdentifier
                 token: foo @29
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -5873,8 +6155,10 @@ library
                   name: SimpleIdentifier
                     token: foo @29
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
               typeParameters
                 covariant T @52
                   defaultType: dynamic
@@ -5884,8 +6168,10 @@ library
                       name: SimpleIdentifier
                         token: foo @48
                         staticElement: <testLibraryFragment>::@getter::foo
+                        element: <testLibraryFragment>::@getter::foo#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::foo
+                      element2: <testLibraryFragment>::@getter::foo#element
               parameters
                 requiredPositional a @64
                   type: int
@@ -5895,8 +6181,10 @@ library
                       name: SimpleIdentifier
                         token: foo @56
                         staticElement: <testLibraryFragment>::@getter::foo
+                        element: <testLibraryFragment>::@getter::foo#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::foo
+                      element2: <testLibraryFragment>::@getter::foo#element
               returnType: void
       topLevelVariables
         static const foo @6
@@ -5937,8 +6225,10 @@ library
                   name: SimpleIdentifier
                     token: foo @29
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
               typeParameters
                 T @52
                   element: <not-implemented>
@@ -5948,8 +6238,10 @@ library
                       name: SimpleIdentifier
                         token: foo @48
                         staticElement: <testLibraryFragment>::@getter::foo
+                        element: <testLibraryFragment>::@getter::foo#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::foo
+                      element2: <testLibraryFragment>::@getter::foo#element
               parameters
                 a @64
                   element: <not-implemented>
@@ -5959,8 +6251,10 @@ library
                       name: SimpleIdentifier
                         token: foo @56
                         staticElement: <testLibraryFragment>::@getter::foo
+                        element: <testLibraryFragment>::@getter::foo#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::foo
+                      element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -5985,8 +6279,10 @@ library
               name: SimpleIdentifier
                 token: foo @29
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             T
               metadata
@@ -5995,8 +6291,10 @@ library
                   name: SimpleIdentifier
                     token: foo @48
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           parameters
             requiredPositional a
               type: int
@@ -6006,8 +6304,10 @@ library
                   name: SimpleIdentifier
                     token: foo @56
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -6058,8 +6358,10 @@ library
                   name: SimpleIdentifier
                     token: foo @29
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
               parameters
                 requiredPositional a @55
                   type: int
@@ -6069,8 +6371,10 @@ library
                       name: SimpleIdentifier
                         token: foo @47
                         staticElement: <testLibraryFragment>::@getter::foo
+                        element: <testLibraryFragment>::@getter::foo#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::foo
+                      element2: <testLibraryFragment>::@getter::foo#element
               returnType: void
       topLevelVariables
         static const foo @6
@@ -6116,8 +6420,10 @@ library
                   name: SimpleIdentifier
                     token: foo @29
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
               parameters
                 a @55
                   element: <not-implemented>
@@ -6127,8 +6433,10 @@ library
                       name: SimpleIdentifier
                         token: foo @47
                         staticElement: <testLibraryFragment>::@getter::foo
+                        element: <testLibraryFragment>::@getter::foo#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::foo
+                      element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -6158,8 +6466,10 @@ library
               name: SimpleIdentifier
                 token: foo @29
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           parameters
             requiredPositional a
               type: int
@@ -6169,8 +6479,10 @@ library
                   name: SimpleIdentifier
                     token: foo @47
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -6216,8 +6528,10 @@ library
               name: SimpleIdentifier
                 token: foo @40
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             covariant T @57
               defaultType: dynamic
@@ -6227,8 +6541,10 @@ library
                   name: SimpleIdentifier
                     token: foo @53
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           supertype: A
           mixins
             M
@@ -6243,6 +6559,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
       mixins
         mixin M @33
@@ -6291,8 +6608,10 @@ library
                   name: SimpleIdentifier
                     token: foo @53
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -6304,6 +6623,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
       mixins
         mixin M @33
@@ -6334,8 +6654,10 @@ library
               name: SimpleIdentifier
                 token: foo @53
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
       supertype: A
       constructors
         synthetic new
@@ -6385,8 +6707,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           supertype: Enum
           fields
             static const enumConstant e1 @37
@@ -6398,8 +6722,10 @@ library
                   name: SimpleIdentifier
                     token: foo @33
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6408,8 +6734,10 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
+                      element2: <testLibraryFragment>::@enum::E#element
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -6425,8 +6753,10 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
+                      element2: <testLibraryFragment>::@enum::E#element
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -6440,8 +6770,10 @@ library
                   name: SimpleIdentifier
                     token: foo @50
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
               type: E
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6450,8 +6782,10 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
+                      element2: <testLibraryFragment>::@enum::E#element
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -6467,14 +6801,17 @@ library
                     SimpleIdentifier
                       token: e1 @-1
                       staticElement: <testLibraryFragment>::@enum::E::@getter::e1
+                      element: <testLibraryFragment>::@enum::E::@getter::e1#element
                       staticType: E
                     SimpleIdentifier
                       token: e2 @-1
                       staticElement: <testLibraryFragment>::@enum::E::@getter::e2
+                      element: <testLibraryFragment>::@enum::E::@getter::e2#element
                       staticType: E
                     SimpleIdentifier
                       token: e3 @-1
                       staticElement: <testLibraryFragment>::@enum::E::@getter::e3
+                      element: <testLibraryFragment>::@enum::E::@getter::e3#element
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
@@ -6635,8 +6972,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             covariant T @38
               defaultType: dynamic
@@ -6646,8 +6985,10 @@ library
                   name: SimpleIdentifier
                     token: foo @34
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           extendedType: List<T>
       topLevelVariables
         static const foo @6
@@ -6683,8 +7024,10 @@ library
                   name: SimpleIdentifier
                     token: foo @34
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -6705,8 +7048,10 @@ library
               name: SimpleIdentifier
                 token: foo @34
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -6754,8 +7099,10 @@ library
                   name: SimpleIdentifier
                     token: foo @29
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
               type: int
               shouldUseTypeForInitializerInference: false
             static const isStaticConst @79
@@ -6767,8 +7114,10 @@ library
                   name: SimpleIdentifier
                     token: foo @60
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
               type: int
               shouldUseTypeForInitializerInference: false
               constantInitializer
@@ -6784,8 +7133,10 @@ library
                   name: SimpleIdentifier
                     token: foo @102
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
               type: int
               shouldUseTypeForInitializerInference: false
           constructors
@@ -6965,8 +7316,10 @@ library
       name: SimpleIdentifier
         token: foo @25
         staticElement: <testLibraryFragment>::@getter::foo
+        element: <testLibraryFragment>::@getter::foo#element
         staticType: null
       element: <testLibraryFragment>::@getter::foo
+      element2: <testLibraryFragment>::@getter::foo#element
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -6997,8 +7350,10 @@ library
       name: SimpleIdentifier
         token: foo @25
         staticElement: <testLibraryFragment>::@getter::foo
+        element: <testLibraryFragment>::@getter::foo#element
         staticType: null
       element: <testLibraryFragment>::@getter::foo
+      element2: <testLibraryFragment>::@getter::foo#element
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7046,8 +7401,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             covariant T @34
               defaultType: dynamic
@@ -7057,8 +7414,10 @@ library
                   name: SimpleIdentifier
                     token: foo @30
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           superclassConstraints
             Object
       topLevelVariables
@@ -7095,8 +7454,10 @@ library
                   name: SimpleIdentifier
                     token: foo @30
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -7117,8 +7478,10 @@ library
               name: SimpleIdentifier
                 token: foo @30
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
       superclassConstraints
         Object
   topLevelVariables
@@ -7155,8 +7518,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             unrelated T @41
               defaultType: dynamic
@@ -7166,8 +7531,10 @@ library
                   name: SimpleIdentifier
                     token: foo @37
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           aliasedType: void Function(int)
           aliasedElement: GenericFunctionTypeElement
             parameters
@@ -7179,8 +7546,10 @@ library
                     name: SimpleIdentifier
                       token: foo @45
                       staticElement: <testLibraryFragment>::@getter::foo
+                      element: <testLibraryFragment>::@getter::foo#element
                       staticType: null
                     element: <testLibraryFragment>::@getter::foo
+                    element2: <testLibraryFragment>::@getter::foo#element
             returnType: void
       topLevelVariables
         static const foo @6
@@ -7213,8 +7582,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             T @41
               element: <not-implemented>
@@ -7224,8 +7595,10 @@ library
                   name: SimpleIdentifier
                     token: foo @37
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -7244,8 +7617,10 @@ library
           name: SimpleIdentifier
             token: foo @17
             staticElement: <testLibraryFragment>::@getter::foo
+            element: <testLibraryFragment>::@getter::foo#element
             staticType: null
           element: <testLibraryFragment>::@getter::foo
+          element2: <testLibraryFragment>::@getter::foo#element
       typeParameters
         T
           metadata
@@ -7254,8 +7629,10 @@ library
               name: SimpleIdentifier
                 token: foo @37
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
       aliasedType: void Function(int)
   topLevelVariables
     const foo
@@ -7291,8 +7668,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             unrelated T @36
               defaultType: dynamic
@@ -7302,8 +7681,10 @@ library
                   name: SimpleIdentifier
                     token: foo @32
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           aliasedType: void Function<U>(int)
           aliasedElement: GenericFunctionTypeElement
             typeParameters
@@ -7314,8 +7695,10 @@ library
                     name: SimpleIdentifier
                       token: foo @56
                       staticElement: <testLibraryFragment>::@getter::foo
+                      element: <testLibraryFragment>::@getter::foo#element
                       staticType: null
                     element: <testLibraryFragment>::@getter::foo
+                    element2: <testLibraryFragment>::@getter::foo#element
             parameters
               requiredPositional a @72
                 type: int
@@ -7325,8 +7708,10 @@ library
                     name: SimpleIdentifier
                       token: foo @64
                       staticElement: <testLibraryFragment>::@getter::foo
+                      element: <testLibraryFragment>::@getter::foo#element
                       staticType: null
                     element: <testLibraryFragment>::@getter::foo
+                    element2: <testLibraryFragment>::@getter::foo#element
             returnType: void
       topLevelVariables
         static const foo @6
@@ -7359,8 +7744,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             T @36
               element: <not-implemented>
@@ -7370,8 +7757,10 @@ library
                   name: SimpleIdentifier
                     token: foo @32
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -7390,8 +7779,10 @@ library
           name: SimpleIdentifier
             token: foo @17
             staticElement: <testLibraryFragment>::@getter::foo
+            element: <testLibraryFragment>::@getter::foo#element
             staticType: null
           element: <testLibraryFragment>::@getter::foo
+          element2: <testLibraryFragment>::@getter::foo#element
       typeParameters
         T
           metadata
@@ -7400,8 +7791,10 @@ library
               name: SimpleIdentifier
                 token: foo @32
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
       aliasedType: void Function<U>(int)
   topLevelVariables
     const foo
@@ -7456,8 +7849,10 @@ library
               name: SimpleIdentifier
                 token: foo @18
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
@@ -7468,8 +7863,10 @@ library
               name: SimpleIdentifier
                 token: foo @39
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           unit: <testLibrary>::@fragment::package:test/b.dart
       topLevelVariables
         static const foo @65
@@ -7564,8 +7961,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             covariant T @33
               defaultType: dynamic
@@ -7575,8 +7974,10 @@ library
                   name: SimpleIdentifier
                     token: foo @29
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           parameters
             optionalNamed default a @47
               reference: <testLibraryFragment>::@function::f::@parameter::a
@@ -7587,8 +7988,10 @@ library
                   name: SimpleIdentifier
                     token: foo @38
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
               constantInitializer
                 IntegerLiteral
                   literal: 42 @51
@@ -7619,8 +8022,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             T @33
               element: <not-implemented>
@@ -7630,8 +8035,10 @@ library
                   name: SimpleIdentifier
                     token: foo @29
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           parameters
             default a @47
               reference: <testLibraryFragment>::@function::f::@parameter::a
@@ -7642,8 +8049,10 @@ library
                   name: SimpleIdentifier
                     token: foo @38
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -7661,8 +8070,10 @@ library
           name: SimpleIdentifier
             token: foo @17
             staticElement: <testLibraryFragment>::@getter::foo
+            element: <testLibraryFragment>::@getter::foo#element
             staticType: null
           element: <testLibraryFragment>::@getter::foo
+          element2: <testLibraryFragment>::@getter::foo#element
       typeParameters
         T
           metadata
@@ -7671,8 +8082,10 @@ library
               name: SimpleIdentifier
                 token: foo @29
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
       parameters
         optionalNamed a
           firstFragment: <testLibraryFragment>::@function::f::@parameter::a
@@ -7683,8 +8096,10 @@ library
               name: SimpleIdentifier
                 token: foo @38
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
       returnType: void
 ''');
   }
@@ -7731,8 +8146,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           returnType: int
 ----------------------------------------
 library
@@ -7762,8 +8179,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -7784,8 +8203,10 @@ library
           name: SimpleIdentifier
             token: foo @17
             staticElement: <testLibraryFragment>::@getter::foo
+            element: <testLibraryFragment>::@getter::foo#element
             staticType: null
           element: <testLibraryFragment>::@getter::foo
+          element2: <testLibraryFragment>::@getter::foo#element
 ''');
   }
 
@@ -7831,8 +8252,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           parameters
             requiredPositional a @41
               type: int
@@ -7842,8 +8265,10 @@ library
                   name: SimpleIdentifier
                     token: foo @33
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
           returnType: void
 ----------------------------------------
 library
@@ -7874,8 +8299,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           parameters
             a @41
               element: <not-implemented>
@@ -7885,8 +8312,10 @@ library
                   name: SimpleIdentifier
                     token: foo @33
                     staticElement: <testLibraryFragment>::@getter::foo
+                    element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
+                  element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -7908,8 +8337,10 @@ library
           name: SimpleIdentifier
             token: foo @17
             staticElement: <testLibraryFragment>::@getter::foo
+            element: <testLibraryFragment>::@getter::foo#element
             staticType: null
           element: <testLibraryFragment>::@getter::foo
+          element2: <testLibraryFragment>::@getter::foo#element
       parameters
         requiredPositional a
           type: int
@@ -7919,8 +8350,10 @@ library
               name: SimpleIdentifier
                 token: foo @33
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
 ''');
   }
 
@@ -7960,8 +8393,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           type: int
           shouldUseTypeForInitializerInference: false
         static const isConst @53
@@ -7973,8 +8408,10 @@ library
               name: SimpleIdentifier
                 token: foo @43
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           type: int
           shouldUseTypeForInitializerInference: false
           constantInitializer
@@ -8021,8 +8458,10 @@ library
               name: SimpleIdentifier
                 token: foo @17
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           getter2: <testLibraryFragment>::@getter::isNotConst
           setter2: <testLibraryFragment>::@setter::isNotConst
         const isConst @53
@@ -8034,8 +8473,10 @@ library
               name: SimpleIdentifier
                 token: foo @43
                 staticElement: <testLibraryFragment>::@getter::foo
+                element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
+              element2: <testLibraryFragment>::@getter::foo#element
           getter2: <testLibraryFragment>::@getter::isConst
       getters
         get foo @-1
@@ -8112,8 +8553,10 @@ library
               name: SimpleIdentifier
                 token: a @12
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
           unit: <testLibrary>::@fragment::package:test/foo.dart
       topLevelVariables
         static const a @37
@@ -8215,8 +8658,10 @@ library
               name: SimpleIdentifier
                 token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
+                element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
+              element2: dart:core::<fragment>::@getter::deprecated#element
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
@@ -8282,8 +8727,10 @@ library
               name: SimpleIdentifier
                 token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
+                element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
+              element2: dart:core::<fragment>::@getter::deprecated#element
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -8331,8 +8778,10 @@ library
               name: SimpleIdentifier
                 token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
+                element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
+              element2: dart:core::<fragment>::@getter::deprecated#element
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -8352,8 +8801,10 @@ library
               name: SimpleIdentifier
                 token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
+                element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
+              element2: dart:core::<fragment>::@getter::deprecated#element
 ''');
   }
 
@@ -8398,8 +8849,10 @@ library
               name: SimpleIdentifier
                 token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
+                element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
+              element2: dart:core::<fragment>::@getter::deprecated#element
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
@@ -8455,15 +8908,19 @@ library
                 prefix: SimpleIdentifier
                   token: a @23
                   staticElement: <testLibraryFragment>::@prefix::a
+                  element: <testLibraryFragment>::@prefix::a
                   staticType: null
                 period: . @24
                 identifier: SimpleIdentifier
                   token: b @25
                   staticElement: package:test/a.dart::<fragment>::@getter::b
+                  element: package:test/a.dart::<fragment>::@getter::b#element
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@getter::b
+                element: package:test/a.dart::<fragment>::@getter::b#element
                 staticType: null
               element: package:test/a.dart::<fragment>::@getter::b
+              element2: package:test/a.dart::<fragment>::@getter::b#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -8534,8 +8991,10 @@ library
                   name: SimpleIdentifier
                     token: a @19
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
           returnType: dynamic
 ----------------------------------------
 library
@@ -8565,8 +9024,10 @@ library
                   name: SimpleIdentifier
                     token: a @19
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -8587,8 +9048,10 @@ library
               name: SimpleIdentifier
                 token: a @19
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
       returnType: dynamic
 ''');
   }
@@ -8629,8 +9092,10 @@ library
                       name: SimpleIdentifier
                         token: a @32
                         staticElement: <testLibraryFragment>::@getter::a
+                        element: <testLibraryFragment>::@getter::a#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::a
+                      element2: <testLibraryFragment>::@getter::a#element
               returnType: dynamic
       topLevelVariables
         static const a @6
@@ -8674,8 +9139,10 @@ library
                       name: SimpleIdentifier
                         token: a @32
                         staticElement: <testLibraryFragment>::@getter::a
+                        element: <testLibraryFragment>::@getter::a#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::a
+                      element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -8703,8 +9170,10 @@ library
                   name: SimpleIdentifier
                     token: a @32
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -8760,8 +9229,10 @@ library
                   name: SimpleIdentifier
                     token: a @26
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
           returnType: void
 ----------------------------------------
 library
@@ -8795,8 +9266,10 @@ library
                   name: SimpleIdentifier
                     token: a @26
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -8821,8 +9294,10 @@ library
               name: SimpleIdentifier
                 token: a @26
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
 ''');
   }
 
@@ -8863,8 +9338,10 @@ library
                   name: SimpleIdentifier
                     token: a @20
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
               constantInitializer
                 NullLiteral
                   literal: null @26
@@ -8898,8 +9375,10 @@ library
                   name: SimpleIdentifier
                     token: a @20
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -8920,8 +9399,10 @@ library
               name: SimpleIdentifier
                 token: a @20
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
       returnType: dynamic
 ''');
   }
@@ -8973,8 +9454,10 @@ library
                       name: SimpleIdentifier
                         token: a @67
                         staticElement: <testLibraryFragment>::@getter::a
+                        element: <testLibraryFragment>::@getter::a#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::a
+                      element2: <testLibraryFragment>::@getter::a#element
                   superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
       topLevelVariables
@@ -9025,8 +9508,10 @@ library
                       name: SimpleIdentifier
                         token: a @67
                         staticElement: <testLibraryFragment>::@getter::a
+                        element: <testLibraryFragment>::@getter::a#element
                         staticType: null
                       element: <testLibraryFragment>::@getter::a
+                      element2: <testLibraryFragment>::@getter::a#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
       topLevelVariables
         const a @6
@@ -9061,8 +9546,10 @@ library
                   name: SimpleIdentifier
                     token: a @67
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
   topLevelVariables
     const a
@@ -9103,8 +9590,10 @@ library
               name: SimpleIdentifier
                 token: a @17
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
           type: int
       accessors
         synthetic static get a @-1
@@ -9142,8 +9631,10 @@ library
               name: SimpleIdentifier
                 token: a @17
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
@@ -9206,8 +9697,10 @@ library
                   name: SimpleIdentifier
                     token: a @25
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -9246,8 +9739,10 @@ library
                   name: SimpleIdentifier
                     token: a @25
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -9272,8 +9767,10 @@ library
               name: SimpleIdentifier
                 token: a @25
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -9314,8 +9811,10 @@ library
                   name: SimpleIdentifier
                     token: a @25
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
           supertype: D
           mixins
             E
@@ -9330,6 +9829,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @48
           reference: <testLibraryFragment>::@class::D
@@ -9379,8 +9879,10 @@ library
                   name: SimpleIdentifier
                     token: a @25
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -9392,6 +9894,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @48
           reference: <testLibraryFragment>::@class::D
@@ -9427,8 +9930,10 @@ library
               name: SimpleIdentifier
                 token: a @25
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
       supertype: D
       constructors
         synthetic new
@@ -9492,8 +9997,10 @@ library
                   name: SimpleIdentifier
                     token: a @19
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
           returnType: dynamic
 ----------------------------------------
 library
@@ -9523,8 +10030,10 @@ library
                   name: SimpleIdentifier
                     token: a @19
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -9544,8 +10053,10 @@ library
               name: SimpleIdentifier
                 token: a @19
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
       returnType: dynamic
 ''');
   }
@@ -9571,8 +10082,10 @@ library
                   name: SimpleIdentifier
                     token: a @27
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
           aliasedType: dynamic Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: dynamic
@@ -9610,8 +10123,10 @@ library
                   name: SimpleIdentifier
                     token: a @27
                     staticElement: <testLibraryFragment>::@getter::a
+                    element: <testLibraryFragment>::@getter::a#element
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
+                  element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -9632,8 +10147,10 @@ library
               name: SimpleIdentifier
                 token: a @27
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
       aliasedType: dynamic Function()
   topLevelVariables
     const a
@@ -9683,8 +10200,10 @@ library
               name: SimpleIdentifier
                 token: a @14
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
           type: int
           shouldUseTypeForInitializerInference: true
       accessors
@@ -9723,8 +10242,10 @@ library
               name: SimpleIdentifier
                 token: a @14
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -9813,15 +10334,19 @@ library
                 prefix: SimpleIdentifier
                   token: A @35
                   staticElement: <testLibraryFragment>::@class::A
+                  element: <testLibraryFragment>::@class::A#element
                   staticType: null
                 period: . @36
                 identifier: SimpleIdentifier
                   token: x @37
                   staticElement: <testLibraryFragment>::@class::A::@getter::x
+                  element: <testLibraryFragment>::@class::A::@getter::x#element
                   staticType: null
                 staticElement: <testLibraryFragment>::@class::A::@getter::x
+                element: <testLibraryFragment>::@class::A::@getter::x#element
                 staticType: null
               element: <testLibraryFragment>::@class::A::@getter::x
+              element2: <testLibraryFragment>::@class::A::@getter::x#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -9902,15 +10427,19 @@ library
                 prefix: SimpleIdentifier
                   token: E @18
                   staticElement: <testLibraryFragment>::@enum::E
+                  element: <testLibraryFragment>::@enum::E#element
                   staticType: null
                 period: . @19
                 identifier: SimpleIdentifier
                   token: b @20
                   staticElement: <testLibraryFragment>::@enum::E::@getter::b
+                  element: <testLibraryFragment>::@enum::E::@getter::b#element
                   staticType: null
                 staticElement: <testLibraryFragment>::@enum::E::@getter::b
+                element: <testLibraryFragment>::@enum::E::@getter::b#element
                 staticType: null
               element: <testLibraryFragment>::@enum::E::@getter::b
+              element2: <testLibraryFragment>::@enum::E::@getter::b#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -9932,8 +10461,10 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
+                      element2: <testLibraryFragment>::@enum::E#element
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -9949,8 +10480,10 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
+                      element2: <testLibraryFragment>::@enum::E#element
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -9966,8 +10499,10 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
+                      element2: <testLibraryFragment>::@enum::E#element
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -9983,14 +10518,17 @@ library
                     SimpleIdentifier
                       token: a @-1
                       staticElement: <testLibraryFragment>::@enum::E::@getter::a
+                      element: <testLibraryFragment>::@enum::E::@getter::a#element
                       staticType: E
                     SimpleIdentifier
                       token: b @-1
                       staticElement: <testLibraryFragment>::@enum::E::@getter::b
+                      element: <testLibraryFragment>::@enum::E::@getter::b#element
                       staticType: E
                     SimpleIdentifier
                       token: c @-1
                       staticElement: <testLibraryFragment>::@enum::E::@getter::c
+                      element: <testLibraryFragment>::@enum::E::@getter::c#element
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
@@ -10135,15 +10673,19 @@ library
                 prefix: SimpleIdentifier
                   token: E @46
                   staticElement: <testLibraryFragment>::@extension::E
+                  element: <testLibraryFragment>::@extension::E#element
                   staticType: null
                 period: . @47
                 identifier: SimpleIdentifier
                   token: x @48
                   staticElement: <testLibraryFragment>::@extension::E::@getter::x
+                  element: <testLibraryFragment>::@extension::E::@getter::x#element
                   staticType: null
                 staticElement: <testLibraryFragment>::@extension::E::@getter::x
+                element: <testLibraryFragment>::@extension::E::@getter::x#element
                 staticType: null
               element: <testLibraryFragment>::@extension::E::@getter::x
+              element2: <testLibraryFragment>::@extension::E::@getter::x#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -10258,20 +10800,25 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
                   token: E @31
                   staticElement: package:test/foo.dart::<fragment>::@extension::E
+                  element: package:test/foo.dart::<fragment>::@extension::E#element
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@extension::E
+                element: package:test/foo.dart::<fragment>::@extension::E#element
                 staticType: null
               period: . @32
               constructorName: SimpleIdentifier
                 token: x @33
                 staticElement: package:test/foo.dart::<fragment>::@extension::E::@getter::x
+                element: package:test/foo.dart::<fragment>::@extension::E::@getter::x#element
                 staticType: null
               element: package:test/foo.dart::<fragment>::@extension::E::@getter::x
+              element2: package:test/foo.dart::<fragment>::@extension::E::@getter::x#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -10341,6 +10888,7 @@ library
               name: SimpleIdentifier
                 token: A @28
                 staticElement: <testLibraryFragment>::@class::A
+                element: <testLibraryFragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @29
@@ -10350,6 +10898,7 @@ library
                     staticType: InvalidType
                 rightParenthesis: ) @35
               element: <testLibraryFragment>::@class::A::@constructor::new
+              element2: <testLibraryFragment>::@class::A::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -10431,6 +10980,7 @@ library
               name: SimpleIdentifier
                 token: A @28
                 staticElement: <testLibraryFragment>::@class::A
+                element: <testLibraryFragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @29
@@ -10440,6 +10990,7 @@ library
                     staticType: dynamic
                 rightParenthesis: ) @34
               element: <testLibraryFragment>::@class::A::@constructor::new
+              element2: <testLibraryFragment>::@class::A::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -10505,18 +11056,22 @@ library
                 prefix: SimpleIdentifier
                   token: foo @1
                   staticElement: <null>
+                  element: <null>
                   staticType: null
                 period: . @4
                 identifier: SimpleIdentifier
                   token: bar @5
                   staticElement: <null>
+                  element: <null>
                   staticType: null
                 staticElement: <null>
+                element: <null>
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @8
                 rightParenthesis: ) @9
               element: <null>
+              element2: <null>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -10564,18 +11119,22 @@ library
                 prefix: SimpleIdentifier
                   token: String @1
                   staticElement: dart:core::<fragment>::@class::String
+                  element: dart:core::<fragment>::@class::String#element
                   staticType: null
                 period: . @7
                 identifier: SimpleIdentifier
                   token: foo @8
                   staticElement: <null>
+                  element: <null>
                   staticType: null
                 staticElement: <null>
+                element: <null>
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @11
                 rightParenthesis: ) @12
               element: <null>
+              element2: <null>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -10623,15 +11182,19 @@ library
                 prefix: SimpleIdentifier
                   token: foo @1
                   staticElement: <null>
+                  element: <null>
                   staticType: null
                 period: . @4
                 identifier: SimpleIdentifier
                   token: bar @5
                   staticElement: <null>
+                  element: <null>
                   staticType: null
                 staticElement: <null>
+                element: <null>
                 staticType: null
               element: <null>
+              element2: <null>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -10694,15 +11257,19 @@ library
                 prefix: SimpleIdentifier
                   token: foo @29
                   staticElement: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix::foo
                   staticType: null
                 period: . @32
                 identifier: SimpleIdentifier
                   token: bar @33
                   staticElement: <null>
+                  element: <null>
                   staticType: null
                 staticElement: <null>
+                element: <null>
                 staticType: null
               element: <null>
+              element2: <null>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -10756,23 +11323,28 @@ library
                 prefix: SimpleIdentifier
                   token: foo @1
                   staticElement: <null>
+                  element: <null>
                   staticType: null
                 period: . @4
                 identifier: SimpleIdentifier
                   token: bar @5
                   staticElement: <null>
+                  element: <null>
                   staticType: null
                 staticElement: <null>
+                element: <null>
                 staticType: null
               period: . @8
               constructorName: SimpleIdentifier
                 token: baz @9
                 staticElement: <null>
+                element: <null>
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @12
                 rightParenthesis: ) @13
               element: <null>
+              element2: <null>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -10835,23 +11407,28 @@ library
                 prefix: SimpleIdentifier
                   token: foo @29
                   staticElement: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix::foo
                   staticType: null
                 period: . @32
                 identifier: SimpleIdentifier
                   token: bar @33
                   staticElement: <null>
+                  element: <null>
                   staticType: null
                 staticElement: <null>
+                element: <null>
                 staticType: null
               period: . @36
               constructorName: SimpleIdentifier
                 token: baz @37
                 staticElement: <null>
+                element: <null>
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @40
                 rightParenthesis: ) @41
               element: <null>
+              element2: <null>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -10920,23 +11497,28 @@ library
                 prefix: SimpleIdentifier
                   token: foo @29
                   staticElement: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix::foo
                   staticType: null
                 period: . @32
                 identifier: SimpleIdentifier
                   token: Future @33
                   staticElement: dart:async::<fragment>::@class::Future
+                  element: dart:async::<fragment>::@class::Future#element
                   staticType: null
                 staticElement: dart:async::<fragment>::@class::Future
+                element: dart:async::<fragment>::@class::Future#element
                 staticType: null
               period: . @39
               constructorName: SimpleIdentifier
                 token: bar @40
                 staticElement: <null>
+                element: <null>
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @43
                 rightParenthesis: ) @44
               element: <null>
+              element2: <null>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -10990,18 +11572,22 @@ library
                 prefix: SimpleIdentifier
                   token: foo @1
                   staticElement: <null>
+                  element: <null>
                   staticType: null
                 period: . @4
                 identifier: SimpleIdentifier
                   token: bar @5
                   staticElement: <null>
+                  element: <null>
                   staticType: null
                 staticElement: <null>
+                element: <null>
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @8
                 rightParenthesis: ) @9
               element: <null>
+              element2: <null>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -11064,18 +11650,22 @@ library
                 prefix: SimpleIdentifier
                   token: foo @29
                   staticElement: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix::foo
                   staticType: null
                 period: . @32
                 identifier: SimpleIdentifier
                   token: bar @33
                   staticElement: <null>
+                  element: <null>
                   staticType: null
                 staticElement: <null>
+                element: <null>
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @36
                 rightParenthesis: ) @37
               element: <null>
+              element2: <null>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -11128,8 +11718,10 @@ library
               name: SimpleIdentifier
                 token: foo @1
                 staticElement: <null>
+                element: <null>
                 staticType: null
               element: <null>
+              element2: <null>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -11194,8 +11786,10 @@ library
               name: SimpleIdentifier
                 token: v @36
                 staticElement: <null>
+                element: <null>
                 staticType: null
               element: <null>
+              element2: <null>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -11247,11 +11841,13 @@ library
               name: SimpleIdentifier
                 token: foo @1
                 staticElement: <null>
+                element: <null>
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @4
                 rightParenthesis: ) @5
               element: <null>
+              element2: <null>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new

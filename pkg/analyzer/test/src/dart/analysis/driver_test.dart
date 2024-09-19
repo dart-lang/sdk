@@ -858,6 +858,7 @@ var B = 0;
     selectedNode: SimpleIdentifier
       token: B
       staticElement: package:test/b.dart::<fragment>::@getter::B
+      element: package:test/b.dart::<fragment>::@getter::B#element
       staticType: int
 [status] idle
 ''');
@@ -884,6 +885,7 @@ var B = 1.2;
     selectedNode: SimpleIdentifier
       token: B
       staticElement: package:test/b.dart::<fragment>::@getter::B
+      element: package:test/b.dart::<fragment>::@getter::B#element
       staticType: double
 [status] idle
 ''');

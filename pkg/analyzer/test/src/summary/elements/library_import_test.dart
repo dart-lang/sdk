@@ -661,8 +661,10 @@ library
       name: SimpleIdentifier
         token: foo @1
         staticElement: <null>
+        element: <null>
         staticType: null
       element: <null>
+      element2: <null>
   libraryImports
     relativeUri 'ht:'
       enclosingElement3: <testLibraryFragment>
@@ -672,8 +674,10 @@ library
           name: SimpleIdentifier
             token: foo @1
             staticElement: <null>
+            element: <null>
             staticType: null
           element: <null>
+          element2: <null>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -687,8 +691,10 @@ library
               name: SimpleIdentifier
                 token: foo @1
                 staticElement: <null>
+                element: <null>
                 staticType: null
               element: <null>
+              element2: <null>
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -698,8 +704,10 @@ library
       name: SimpleIdentifier
         token: foo @1
         staticElement: <null>
+        element: <null>
         staticType: null
       element: <null>
+      element2: <null>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -712,8 +720,10 @@ library
               name: SimpleIdentifier
                 token: foo @1
                 staticElement: <null>
+                element: <null>
                 staticType: null
               element: <null>
+              element2: <null>
 ''');
   }
 
@@ -1498,8 +1508,10 @@ library
       name: SimpleIdentifier
         token: a @1
         staticElement: <testLibraryFragment>::@getter::a
+        element: <testLibraryFragment>::@getter::a#element
         staticType: null
       element: <testLibraryFragment>::@getter::a
+      element2: <testLibraryFragment>::@getter::a#element
   libraryImports
     dart:math
       enclosingElement3: <testLibraryFragment>
@@ -1509,8 +1521,10 @@ library
           name: SimpleIdentifier
             token: a @1
             staticElement: <testLibraryFragment>::@getter::a
+            element: <testLibraryFragment>::@getter::a#element
             staticType: null
           element: <testLibraryFragment>::@getter::a
+          element2: <testLibraryFragment>::@getter::a#element
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1524,8 +1538,10 @@ library
               name: SimpleIdentifier
                 token: a @1
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         static const a @29
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -1550,8 +1566,10 @@ library
       name: SimpleIdentifier
         token: a @1
         staticElement: <testLibraryFragment>::@getter::a
+        element: <testLibraryFragment>::@getter::a#element
         staticType: null
       element: <testLibraryFragment>::@getter::a
+      element2: <testLibraryFragment>::@getter::a#element
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1564,8 +1582,10 @@ library
               name: SimpleIdentifier
                 token: a @1
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         const a @29
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -1602,8 +1622,10 @@ library
       name: SimpleIdentifier
         token: a @1
         staticElement: <testLibraryFragment>::@getter::a
+        element: <testLibraryFragment>::@getter::a#element
         staticType: null
       element: <testLibraryFragment>::@getter::a
+      element2: <testLibraryFragment>::@getter::a#element
   libraryImports
     dart:math
       enclosingElement3: <testLibraryFragment>
@@ -1613,8 +1635,10 @@ library
           name: SimpleIdentifier
             token: a @1
             staticElement: <testLibraryFragment>::@getter::a
+            element: <testLibraryFragment>::@getter::a#element
             staticType: null
           element: <testLibraryFragment>::@getter::a
+          element2: <testLibraryFragment>::@getter::a#element
       combinators
         show: Random
   definingUnit: <testLibraryFragment>
@@ -1630,8 +1654,10 @@ library
               name: SimpleIdentifier
                 token: a @1
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
           combinators
             show: Random
       topLevelVariables
@@ -1658,8 +1684,10 @@ library
       name: SimpleIdentifier
         token: a @1
         staticElement: <testLibraryFragment>::@getter::a
+        element: <testLibraryFragment>::@getter::a#element
         staticType: null
       element: <testLibraryFragment>::@getter::a
+      element2: <testLibraryFragment>::@getter::a#element
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1672,8 +1700,10 @@ library
               name: SimpleIdentifier
                 token: a @1
                 staticElement: <testLibraryFragment>::@getter::a
+                element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element: <testLibraryFragment>::@getter::a
+              element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         const a @42
           reference: <testLibraryFragment>::@topLevelVariable::a

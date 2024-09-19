@@ -35,6 +35,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -60,6 +61,7 @@ SwitchExpression
         methodName: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
+          element: <testLibraryFragment>::@function::g#element
           staticType: void Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -114,6 +116,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@class::A::@method::bar::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -128,6 +131,7 @@ SwitchExpression
         methodName: SimpleIdentifier
           token: foo
           staticElement: <testLibraryFragment>::@class::A::@method::foo
+          element: <testLibraryFragment>::@class::A::@method::foo#element
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -160,6 +164,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: void
   rightParenthesis: )
   leftBracket: {
@@ -196,6 +201,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@getter::a
+    element: <testLibraryFragment>::@getter::a#element
     staticType: num
   rightParenthesis: )
   leftBracket: {
@@ -206,6 +212,7 @@ SwitchExpression
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           leftParenthesis: (
           fields
@@ -219,6 +226,7 @@ SwitchExpression
                   type: bool
                 matchedValueType: bool
               element: dart:core::<fragment>::@class::int::@getter::isEven
+              element2: dart:core::<fragment>::@class::int::@getter::isEven#element
           rightParenthesis: )
           matchedValueType: num
         whenClause: WhenClause
@@ -226,6 +234,7 @@ SwitchExpression
           expression: SimpleIdentifier
             token: isEven
             staticElement: isEven@46
+            element: isEven@46
             staticType: bool
       arrow: =>
       expression: IntegerLiteral
@@ -266,11 +275,13 @@ SwitchExpressionCase
     function: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <not-implemented>
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     staticElement: <null>
+    element: <null>
     staticInvokeType: int Function()
     staticType: int
 ''');
@@ -301,8 +312,10 @@ SwitchExpressionCase
           type: NamedType
             name: A
             element: <testLibraryFragment>::@class::A
+            element2: <testLibraryFragment>::@class::A#element
             type: A
           staticElement: <testLibraryFragment>::@class::A::@constructor::new
+          element: <testLibraryFragment>::@class::A::@constructor::new#element
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
@@ -340,11 +353,13 @@ SwitchExpressionCase
         function: SimpleIdentifier
           token: a
           staticElement: <testLibraryFragment>::@function::f::@parameter::a
+          element: <not-implemented>
           staticType: bool Function()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
         staticElement: <null>
+        element: <null>
         staticInvokeType: bool Function()
         staticType: bool
   arrow: =>
@@ -372,11 +387,13 @@ SwitchExpression
     function: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <not-implemented>
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     staticElement: <null>
+    element: <null>
     staticInvokeType: int Function()
     staticType: int
   rightParenthesis: )
@@ -414,6 +431,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -461,6 +479,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -510,6 +529,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -523,6 +543,7 @@ SwitchExpression
               NamedType
                 name: int
                 element: dart:core::<fragment>::@class::int
+                element2: dart:core::<fragment>::@class::int#element
                 type: int
             rightBracket: >
           leftBracket: [
@@ -549,6 +570,7 @@ SwitchExpression
       expression: SimpleIdentifier
         token: a
         staticElement: a[a@50, a@59]
+        element: a@-1
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
@@ -588,6 +610,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -601,6 +624,7 @@ SwitchExpression
               type: NamedType
                 name: int
                 element: dart:core::<fragment>::@class::int
+                element2: dart:core::<fragment>::@class::int#element
                 type: int
               name: a
               declaredElement: a@58
@@ -611,8 +635,10 @@ SwitchExpression
               operand: SimpleIdentifier
                 token: a
                 staticElement: a@58
+                element: a@58
                 staticType: int
               element: dart:core::<fragment>::@class::Object::@method::==
+              element2: dart:core::<fragment>::@class::Object::@method::==#element
               matchedValueType: Object?
           rightBracket: ]
           matchedValueType: Object?
@@ -623,6 +649,7 @@ SwitchExpression
             leftOperand: SimpleIdentifier
               token: a
               staticElement: a@58
+              element: a@58
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -630,12 +657,14 @@ SwitchExpression
               parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
               staticType: int
             staticElement: dart:core::<fragment>::@class::num::@method::>
+            element: dart:core::<fragment>::@class::num::@method::>#element
             staticInvokeType: bool Function(num)
             staticType: bool
       arrow: =>
       expression: SimpleIdentifier
         token: a
         staticElement: a@58
+        element: a@58
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
@@ -671,6 +700,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <not-implemented>
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -681,6 +711,7 @@ SwitchExpression
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           name: a
           declaredElement: a@44
@@ -692,6 +723,7 @@ SwitchExpression
             leftOperand: SimpleIdentifier
               token: a
               staticElement: a@44
+              element: a@44
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -699,12 +731,14 @@ SwitchExpression
               parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
               staticType: int
             staticElement: dart:core::<fragment>::@class::num::@method::>
+            element: dart:core::<fragment>::@class::num::@method::>#element
             staticInvokeType: bool Function(num)
             staticType: bool
       arrow: =>
       expression: SimpleIdentifier
         token: a
         staticElement: a@44
+        element: a@44
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
@@ -715,6 +749,7 @@ SwitchExpression
       expression: SimpleIdentifier
         token: a
         staticElement: <null>
+        element: <null>
         staticType: InvalidType
   rightBracket: }
   staticType: InvalidType

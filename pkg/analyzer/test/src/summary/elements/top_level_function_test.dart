@@ -1408,6 +1408,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::C::@constructor::new
+                  element: <testLibraryFragment>::@class::C::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::C::@constructor::new
         class C @29
           reference: <testLibraryFragment>::@class::C
@@ -1444,6 +1445,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::C::@constructor::new
+                  element: <testLibraryFragment>::@class::C::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::C::@constructor::new
         class C @29
           reference: <testLibraryFragment>::@class::C

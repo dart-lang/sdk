@@ -3974,15 +3974,19 @@ library
                     prefix: SimpleIdentifier
                       token: prefix0 @108
                       staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                      element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
                       staticType: null
                     period: . @115
                     identifier: SimpleIdentifier
                       token: a @116
                       staticElement: package:test/a.dart::<fragment>::@getter::a
+                      element: package:test/a.dart::<fragment>::@getter::a#element
                       staticType: null
                     staticElement: package:test/a.dart::<fragment>::@getter::a
+                    element: package:test/a.dart::<fragment>::@getter::a#element
                     staticType: null
                   element: package:test/a.dart::<fragment>::@getter::a
+                  element2: package:test/a.dart::<fragment>::@getter::a#element
 ''');
   }
 
@@ -4029,15 +4033,19 @@ library
                     prefix: SimpleIdentifier
                       token: prefix0 @107
                       staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                      element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
                       staticType: null
                     period: . @114
                     identifier: SimpleIdentifier
                       token: a @115
                       staticElement: package:test/a.dart::<fragment>::@getter::a
+                      element: package:test/a.dart::<fragment>::@getter::a#element
                       staticType: null
                     staticElement: package:test/a.dart::<fragment>::@getter::a
+                    element: package:test/a.dart::<fragment>::@getter::a#element
                     staticType: null
                   element: package:test/a.dart::<fragment>::@getter::a
+                  element2: package:test/a.dart::<fragment>::@getter::a#element
 ''');
   }
 
@@ -4089,15 +4097,19 @@ library
                     prefix: SimpleIdentifier
                       token: prefix0 @106
                       staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                      element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
                       staticType: null
                     period: . @113
                     identifier: SimpleIdentifier
                       token: a @114
                       staticElement: package:test/a.dart::<fragment>::@getter::a
+                      element: package:test/a.dart::<fragment>::@getter::a#element
                       staticType: null
                     staticElement: package:test/a.dart::<fragment>::@getter::a
+                    element: package:test/a.dart::<fragment>::@getter::a#element
                     staticType: null
                   element: package:test/a.dart::<fragment>::@getter::a
+                  element2: package:test/a.dart::<fragment>::@getter::a#element
 ''');
   }
 
@@ -4530,18 +4542,22 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @98
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
                   staticType: null
                 period: . @105
                 identifier: SimpleIdentifier
                   token: A @106
                   staticElement: package:test/a.dart::<fragment>::@class::A
+                  element: package:test/a.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
+                element: package:test/a.dart::<fragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @107
                 rightParenthesis: ) @108
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+              element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
 ''');
   }
 
@@ -4690,18 +4706,22 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @98
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
                   staticType: null
                 period: . @105
                 identifier: SimpleIdentifier
                   token: A @106
                   staticElement: package:test/a.dart::<fragment>::@class::A
+                  element: package:test/a.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
+                element: package:test/a.dart::<fragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @107
                 rightParenthesis: ) @108
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+              element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
 ''');
   }
 
@@ -4749,18 +4769,22 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @98
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
                   staticType: null
                 period: . @105
                 identifier: SimpleIdentifier
                   token: A @106
                   staticElement: package:test/a.dart::<fragment>::@class::A
+                  element: package:test/a.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
+                element: package:test/a.dart::<fragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @107
                 rightParenthesis: ) @108
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+              element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
 ''');
   }
 
@@ -4813,18 +4837,22 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @98
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
                   staticType: null
                 period: . @105
                 identifier: SimpleIdentifier
                   token: A @106
                   staticElement: package:test/a.dart::<fragment>::@class::A
+                  element: package:test/a.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
+                element: package:test/a.dart::<fragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @107
                 rightParenthesis: ) @108
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+              element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
           parameters
             requiredPositional _
               type: int
@@ -4875,18 +4903,22 @@ library
             prefix: SimpleIdentifier
               token: prefix0 @78
               staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
               staticType: null
             period: . @85
             identifier: SimpleIdentifier
               token: A @86
               staticElement: package:test/a.dart::<fragment>::@class::A
+              element: package:test/a.dart::<fragment>::@class::A#element
               staticType: null
             staticElement: package:test/a.dart::<fragment>::@class::A
+            element: package:test/a.dart::<fragment>::@class::A#element
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @87
             rightParenthesis: ) @88
           element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+          element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       returnType: void
 ''');
   }
@@ -4980,18 +5012,22 @@ library
             prefix: SimpleIdentifier
               token: prefix0 @78
               staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
               staticType: null
             period: . @85
             identifier: SimpleIdentifier
               token: A @86
               staticElement: package:test/a.dart::<fragment>::@class::A
+              element: package:test/a.dart::<fragment>::@class::A#element
               staticType: null
             staticElement: package:test/a.dart::<fragment>::@class::A
+            element: package:test/a.dart::<fragment>::@class::A#element
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @87
             rightParenthesis: ) @88
           element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+          element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
 ''');
   }
 
@@ -5044,18 +5080,22 @@ library
             prefix: SimpleIdentifier
               token: prefix0 @78
               staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
               staticType: null
             period: . @85
             identifier: SimpleIdentifier
               token: A @86
               staticElement: package:test/a.dart::<fragment>::@class::A
+              element: package:test/a.dart::<fragment>::@class::A#element
               staticType: null
             staticElement: package:test/a.dart::<fragment>::@class::A
+            element: package:test/a.dart::<fragment>::@class::A#element
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @87
             rightParenthesis: ) @88
           element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+          element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       parameters
         requiredPositional _
           type: int
@@ -5110,15 +5150,19 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @86
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
                   staticType: null
                 period: . @93
                 identifier: SimpleIdentifier
                   token: a @94
                   staticElement: package:test/a.dart::<fragment>::@getter::a
+                  element: package:test/a.dart::<fragment>::@getter::a#element
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@getter::a
+                element: package:test/a.dart::<fragment>::@getter::a#element
                 staticType: null
               element: package:test/a.dart::<fragment>::@getter::a
+              element2: package:test/a.dart::<fragment>::@getter::a#element
 ''');
   }
 
@@ -10737,6 +10781,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
@@ -10764,6 +10809,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M

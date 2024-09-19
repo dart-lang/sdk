@@ -103,6 +103,7 @@ AwaitExpression
     propertyName: SimpleIdentifier
       token: hashCode
       staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
+      element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
       staticType: int
     staticType: int
   staticType: int
@@ -125,6 +126,7 @@ AwaitExpression
   expression: SimpleIdentifier
     token: unresolved
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -149,13 +151,16 @@ AwaitExpression
     prefix: SimpleIdentifier
       token: prefix
       staticElement: <testLibraryFragment>::@prefix::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: unresolved
       staticElement: <null>
+      element: <null>
       staticType: InvalidType
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -183,12 +188,14 @@ AwaitExpression
       propertyName: SimpleIdentifier
         token: isEven
         staticElement: dart:core::<fragment>::@class::int::@getter::isEven
+        element: dart:core::<fragment>::@class::int::@getter::isEven#element
         staticType: bool
       staticType: bool
     operator: .
     propertyName: SimpleIdentifier
       token: unresolved
       staticElement: <null>
+      element: <null>
       staticType: InvalidType
     staticType: InvalidType
   staticType: InvalidType

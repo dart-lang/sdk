@@ -781,6 +781,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class alias C @51
           reference: <testLibraryFragment>::@class::C
           enclosingElement3: <testLibraryFragment>
@@ -798,6 +799,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int}
@@ -835,6 +837,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class C @51
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -849,6 +852,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int}
@@ -940,6 +944,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class Base @75
           reference: <testLibraryFragment>::@class::Base
           enclosingElement3: <testLibraryFragment>
@@ -966,6 +971,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::Base::@constructor::new
+                  element: <testLibraryFragment>::@class::Base::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::Base::@constructor::new
 ----------------------------------------
 library
@@ -1011,6 +1017,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class Base @75
           reference: <testLibraryFragment>::@class::Base
           element: <testLibraryFragment>::@class::Base#element
@@ -1032,6 +1039,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::Base::@constructor::new
+                  element: <testLibraryFragment>::@class::Base::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::Base::@constructor::new
   classes
     class A1
@@ -1330,6 +1338,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::I::@constructor::new
+                  element: <testLibraryFragment>::@class::I::@constructor::new#element
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::I::@constructor::new
                 substitution: {X: int}
@@ -1381,6 +1390,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::I::@constructor::new
+                  element: <testLibraryFragment>::@class::I::@constructor::new#element
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::I::@constructor::new
                 substitution: {X: int}

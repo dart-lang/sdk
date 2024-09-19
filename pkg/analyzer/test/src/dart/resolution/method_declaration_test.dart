@@ -68,6 +68,7 @@ class A {
 SimpleIdentifier
   token: _
   staticElement: <testLibraryFragment>::@class::A::@getter::_
+  element: <testLibraryFragment>::@class::A::@getter::_#element
   staticType: int
 ''');
   }
@@ -144,6 +145,7 @@ VariableDeclaration
   initializer: SimpleIdentifier
     token: _
     staticElement: <testLibraryFragment>::@class::C::@getter::_
+    element: <testLibraryFragment>::@class::C::@getter::_#element
     staticType: int
   declaredElement: _@51
     type: int

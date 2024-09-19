@@ -64,6 +64,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::a
+    element: <testLibraryFragment>::@function::a#element
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -92,6 +93,7 @@ ConditionalExpression
   condition: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@class::A::@method::f::@parameter::c
+    element: <not-implemented>
     staticType: bool
   question: ?
   thenExpression: IntegerLiteral
@@ -125,16 +127,19 @@ ConditionalExpression
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <not-implemented>
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: c1
     staticElement: <testLibraryFragment>::@function::f::@parameter::c1
+    element: <not-implemented>
     staticType: C1
   colon: :
   elseExpression: SimpleIdentifier
     token: c2
     staticElement: <testLibraryFragment>::@function::f::@parameter::c2
+    element: <not-implemented>
     staticType: C2
   parameter: <null>
   staticType: A
@@ -161,11 +166,13 @@ ConditionalExpression
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <not-implemented>
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: t
     staticElement: <testLibraryFragment>::@function::f::@parameter::t
+    element: <not-implemented>
     staticType: T & int
   colon: :
   elseExpression: NullLiteral
@@ -188,16 +195,19 @@ ConditionalExpression
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <not-implemented>
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: r1
     staticElement: <testLibraryFragment>::@function::f::@parameter::r1
+    element: <not-implemented>
     staticType: (int, String)
   colon: :
   elseExpression: SimpleIdentifier
     token: r2
     staticElement: <testLibraryFragment>::@function::f::@parameter::r2
+    element: <not-implemented>
     staticType: ({int a})
   staticType: Record
 ''');
@@ -216,16 +226,19 @@ ConditionalExpression
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <not-implemented>
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: r1
     staticElement: <testLibraryFragment>::@function::f::@parameter::r1
+    element: <not-implemented>
     staticType: ({int a})
   colon: :
   elseExpression: SimpleIdentifier
     token: r2
     staticElement: <testLibraryFragment>::@function::f::@parameter::r2
+    element: <not-implemented>
     staticType: ({double a})
   staticType: ({num a})
 ''');
@@ -248,6 +261,7 @@ ConditionalExpression
   condition: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@class::A::@method::f::@parameter::c
+    element: <not-implemented>
     staticType: bool
   question: ?
   thenExpression: SuperExpression
@@ -274,6 +288,7 @@ ConditionalExpression
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <not-implemented>
     staticType: bool
   question: ?
   thenExpression: IntegerLiteral
@@ -300,6 +315,7 @@ ConditionalExpression
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <not-implemented>
     staticType: bool
   question: ?
   thenExpression: IntegerLiteral
@@ -352,16 +368,19 @@ f(bool b, C1<int> c1, C2<double> c2) {
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <not-implemented>
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: c1
     staticElement: <testLibraryFragment>::@function::f::@parameter::c1
+    element: <not-implemented>
     staticType: C1<int>
   colon: :
   elseExpression: SimpleIdentifier
     token: c2
     staticElement: <testLibraryFragment>::@function::f::@parameter::c2
+    element: <not-implemented>
     staticType: C2<double>
   parameter: ParameterMember
     base: <testLibraryFragment>::@function::contextB1::@parameter::b1
@@ -389,16 +408,19 @@ f(bool b, B2 b2, C1 c1, Object? o) {
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <not-implemented>
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: b2
     staticElement: <testLibraryFragment>::@function::f::@parameter::b2
+    element: <not-implemented>
     staticType: B2
   colon: :
   elseExpression: SimpleIdentifier
     token: c1
     staticElement: <testLibraryFragment>::@function::f::@parameter::c1
+    element: <not-implemented>
     staticType: C1
   parameter: <null>
   staticType: B2
@@ -424,16 +446,19 @@ f(bool b, C1 c1, B2 b2, Object? o) {
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <not-implemented>
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: c1
     staticElement: <testLibraryFragment>::@function::f::@parameter::c1
+    element: <not-implemented>
     staticType: C1
   colon: :
   elseExpression: SimpleIdentifier
     token: b2
     staticElement: <testLibraryFragment>::@function::f::@parameter::b2
+    element: <not-implemented>
     staticType: B2
   parameter: <null>
   staticType: B2
@@ -455,16 +480,19 @@ ConditionalExpression
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <not-implemented>
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: c1
     staticElement: <testLibraryFragment>::@function::f::@parameter::c1
+    element: <not-implemented>
     staticType: C1
   colon: :
   elseExpression: SimpleIdentifier
     token: c2
     staticElement: <testLibraryFragment>::@function::f::@parameter::c2
+    element: <not-implemented>
     staticType: C2
   staticType: B1
 ''');

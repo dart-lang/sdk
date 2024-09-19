@@ -2360,12 +2360,14 @@ library
                     leftOperand: SimpleIdentifier
                       token: x @36
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
+                      element: <not-implemented>
                       staticType: int
                     operator: >= @38
                     rightOperand: IntegerLiteral
                       literal: 42 @41
                       staticType: int
                     staticElement: dart:core::<fragment>::@class::num::@method::>=
+                    element: dart:core::<fragment>::@class::num::@method::>=#element
                     staticInvokeType: bool Function(num)
                     staticType: bool
                   rightParenthesis: ) @43
@@ -2394,12 +2396,14 @@ library
                     leftOperand: SimpleIdentifier
                       token: x @36
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
+                      element: <not-implemented>
                       staticType: int
                     operator: >= @38
                     rightOperand: IntegerLiteral
                       literal: 42 @41
                       staticType: int
                     staticElement: dart:core::<fragment>::@class::num::@method::>=
+                    element: dart:core::<fragment>::@class::num::@method::>=#element
                     staticInvokeType: bool Function(num)
                     staticType: bool
                   rightParenthesis: ) @43
@@ -2447,12 +2451,14 @@ library
                     leftOperand: SimpleIdentifier
                       token: x @36
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
+                      element: <not-implemented>
                       staticType: int
                     operator: >= @38
                     rightOperand: IntegerLiteral
                       literal: 42 @41
                       staticType: int
                     staticElement: dart:core::<fragment>::@class::num::@method::>=
+                    element: dart:core::<fragment>::@class::num::@method::>=#element
                     staticInvokeType: bool Function(num)
                     staticType: bool
                   comma: , @43
@@ -2484,12 +2490,14 @@ library
                     leftOperand: SimpleIdentifier
                       token: x @36
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
+                      element: <not-implemented>
                       staticType: int
                     operator: >= @38
                     rightOperand: IntegerLiteral
                       literal: 42 @41
                       staticType: int
                     staticElement: dart:core::<fragment>::@class::num::@method::>=
+                    element: dart:core::<fragment>::@class::num::@method::>=#element
                     staticInvokeType: bool Function(num)
                     staticType: bool
                   comma: , @43
@@ -2540,6 +2548,7 @@ library
                   fieldName: SimpleIdentifier
                     token: x @35
                     staticElement: <testLibraryFragment>::@class::C::@field::x
+                    element: <testLibraryFragment>::@class::C::@field::x#element
                     staticType: null
                   equals: = @37
                   expression: IntegerLiteral
@@ -2574,6 +2583,7 @@ library
                   fieldName: SimpleIdentifier
                     token: x @35
                     staticElement: <testLibraryFragment>::@class::C::@field::x
+                    element: <testLibraryFragment>::@class::C::@field::x#element
                     staticType: null
                   equals: = @37
                   expression: IntegerLiteral
@@ -2634,12 +2644,14 @@ library
                   fieldName: SimpleIdentifier
                     token: x @35
                     staticElement: <testLibraryFragment>::@class::C::@field::x
+                    element: <testLibraryFragment>::@class::C::@field::x#element
                     staticType: null
                   equals: = @37
                   expression: MethodInvocation
                     methodName: SimpleIdentifier
                       token: foo @39
                       staticElement: <testLibraryFragment>::@function::foo
+                      element: <testLibraryFragment>::@function::foo#element
                       staticType: int Function()
                     argumentList: ArgumentList
                       leftParenthesis: ( @42
@@ -2680,12 +2692,14 @@ library
                   fieldName: SimpleIdentifier
                     token: x @35
                     staticElement: <testLibraryFragment>::@class::C::@field::x
+                    element: <testLibraryFragment>::@class::C::@field::x#element
                     staticType: null
                   equals: = @37
                   expression: MethodInvocation
                     methodName: SimpleIdentifier
                       token: foo @39
                       staticElement: <testLibraryFragment>::@function::foo
+                      element: <testLibraryFragment>::@function::foo#element
                       staticType: int Function()
                     argumentList: ArgumentList
                       leftParenthesis: ( @42
@@ -2760,11 +2774,13 @@ library
                   fieldName: SimpleIdentifier
                     token: _f @51
                     staticElement: <testLibraryFragment>::@class::A::@field::_f
+                    element: <testLibraryFragment>::@class::A::@field::_f#element
                     staticType: null
                   equals: = @54
                   expression: SimpleIdentifier
                     token: f @56
                     staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f
+                    element: <not-implemented>
                     staticType: int
           accessors
             synthetic get _f @-1
@@ -2798,11 +2814,13 @@ library
                   fieldName: SimpleIdentifier
                     token: _f @51
                     staticElement: <testLibraryFragment>::@class::A::@field::_f
+                    element: <testLibraryFragment>::@class::A::@field::_f#element
                     staticType: null
                   equals: = @54
                   expression: SimpleIdentifier
                     token: f @56
                     staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f
+                    element: <not-implemented>
                     staticType: int
           getters
             get _f @-1
@@ -2863,6 +2881,7 @@ library
                   fieldName: SimpleIdentifier
                     token: x @47
                     staticElement: <testLibraryFragment>::@class::C::@field::x
+                    element: <testLibraryFragment>::@class::C::@field::x#element
                     staticType: null
                   equals: = @49
                   expression: RecordLiteral
@@ -2874,6 +2893,7 @@ library
                       SimpleIdentifier
                         token: a @55
                         staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @56
                     staticType: (int, int)
@@ -2909,6 +2929,7 @@ library
                   fieldName: SimpleIdentifier
                     token: x @47
                     staticElement: <testLibraryFragment>::@class::C::@field::x
+                    element: <testLibraryFragment>::@class::C::@field::x#element
                     staticType: null
                   equals: = @49
                   expression: RecordLiteral
@@ -2920,6 +2941,7 @@ library
                       SimpleIdentifier
                         token: a @55
                         staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @56
                     staticType: (int, int)
@@ -2982,6 +3004,7 @@ library
                   fieldName: SimpleIdentifier
                     token: x @40
                     staticElement: <testLibraryFragment>::@class::C::@field::x
+                    element: <testLibraryFragment>::@class::C::@field::x#element
                     staticType: null
                   equals: = @42
                   expression: BinaryExpression
@@ -2992,8 +3015,10 @@ library
                     rightOperand: SimpleIdentifier
                       token: p @48
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::p
+                      element: <not-implemented>
                       staticType: int
                     staticElement: dart:core::<fragment>::@class::num::@method::+
+                    element: dart:core::<fragment>::@class::num::@method::+#element
                     staticInvokeType: num Function(num)
                     staticType: int
           accessors
@@ -3028,6 +3053,7 @@ library
                   fieldName: SimpleIdentifier
                     token: x @40
                     staticElement: <testLibraryFragment>::@class::C::@field::x
+                    element: <testLibraryFragment>::@class::C::@field::x#element
                     staticType: null
                   equals: = @42
                   expression: BinaryExpression
@@ -3038,8 +3064,10 @@ library
                     rightOperand: SimpleIdentifier
                       token: p @48
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::p
+                      element: <not-implemented>
                       staticType: int
                     staticElement: dart:core::<fragment>::@class::num::@method::+
+                    element: dart:core::<fragment>::@class::num::@method::+#element
                     staticInvokeType: num Function(num)
                     staticType: int
           getters
@@ -3135,16 +3163,19 @@ library
                                   type: dynamic Function()
                               rightBracket: > @96
                             element: <testLibraryFragment>::@class::A
+                            element2: <testLibraryFragment>::@class::A#element
                             type: A<dynamic Function()>
                           staticElement: ConstructorMember
                             base: <testLibraryFragment>::@class::A::@constructor::new
                             substitution: {T: dynamic Function()}
+                          element: <testLibraryFragment>::@class::A::@constructor::new#element
                         argumentList: ArgumentList
                           leftParenthesis: ( @97
                           rightParenthesis: ) @98
                         staticType: A<dynamic Function()>
                     rightParenthesis: ) @99
                   staticElement: <testLibraryFragment>::@class::B::@constructor::new
+                  element: <testLibraryFragment>::@class::B::@constructor::new#element
               redirectedConstructor: <testLibraryFragment>::@class::B::@constructor::new
 ----------------------------------------
 library
@@ -3203,16 +3234,19 @@ library
                                   type: dynamic Function()
                               rightBracket: > @96
                             element: <testLibraryFragment>::@class::A
+                            element2: <testLibraryFragment>::@class::A#element
                             type: A<dynamic Function()>
                           staticElement: ConstructorMember
                             base: <testLibraryFragment>::@class::A::@constructor::new
                             substitution: {T: dynamic Function()}
+                          element: <testLibraryFragment>::@class::A::@constructor::new#element
                         argumentList: ArgumentList
                           leftParenthesis: ( @97
                           rightParenthesis: ) @98
                         staticType: A<dynamic Function()>
                     rightParenthesis: ) @99
                   staticElement: <testLibraryFragment>::@class::B::@constructor::new
+                  element: <testLibraryFragment>::@class::B::@constructor::new#element
               redirectedConstructor: <testLibraryFragment>::@class::B::@constructor::new
   classes
     class A
@@ -3284,6 +3318,7 @@ library
                         staticType: List<String>
                     rightParenthesis: ) @92
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
 ----------------------------------------
 library
@@ -3322,6 +3357,7 @@ library
                         staticType: List<String>
                     rightParenthesis: ) @92
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -3386,6 +3422,7 @@ library
                   constructorName: SimpleIdentifier
                     token: aaa @74
                     staticElement: <testLibraryFragment>::@class::A::@constructor::aaa
+                    element: <testLibraryFragment>::@class::A::@constructor::aaa#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @77
@@ -3395,6 +3432,7 @@ library
                         staticType: int
                     rightParenthesis: ) @80
                   staticElement: <testLibraryFragment>::@class::A::@constructor::aaa
+                  element: <testLibraryFragment>::@class::A::@constructor::aaa#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::aaa
 ----------------------------------------
 library
@@ -3429,6 +3467,7 @@ library
                   constructorName: SimpleIdentifier
                     token: aaa @74
                     staticElement: <testLibraryFragment>::@class::A::@constructor::aaa
+                    element: <testLibraryFragment>::@class::A::@constructor::aaa#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @77
@@ -3438,6 +3477,7 @@ library
                         staticType: int
                     rightParenthesis: ) @80
                   staticElement: <testLibraryFragment>::@class::A::@constructor::aaa
+                  element: <testLibraryFragment>::@class::A::@constructor::aaa#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::aaa
   classes
     class A
@@ -3499,11 +3539,13 @@ library
                   constructorName: SimpleIdentifier
                     token: _ @67
                     staticElement: <testLibraryFragment>::@class::A::@constructor::_
+                    element: <testLibraryFragment>::@class::A::@constructor::_#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @68
                     rightParenthesis: ) @69
                   staticElement: <testLibraryFragment>::@class::A::@constructor::_
+                  element: <testLibraryFragment>::@class::A::@constructor::_#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::_
 ----------------------------------------
 library
@@ -3535,11 +3577,13 @@ library
                   constructorName: SimpleIdentifier
                     token: _ @67
                     staticElement: <testLibraryFragment>::@class::A::@constructor::_
+                    element: <testLibraryFragment>::@class::A::@constructor::_#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @68
                     rightParenthesis: ) @69
                   staticElement: <testLibraryFragment>::@class::A::@constructor::_
+                  element: <testLibraryFragment>::@class::A::@constructor::_#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::_
   classes
     class A
@@ -3604,6 +3648,7 @@ library
                   constructorName: SimpleIdentifier
                     token: aaa @79
                     staticElement: <testLibraryFragment>::@class::A::@constructor::aaa
+                    element: <testLibraryFragment>::@class::A::@constructor::aaa#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @82
@@ -3616,6 +3661,7 @@ library
                           label: SimpleIdentifier
                             token: b @86
                             staticElement: <testLibraryFragment>::@class::A::@constructor::aaa::@parameter::b
+                            element: <not-implemented>
                             staticType: null
                           colon: : @87
                         expression: IntegerLiteral
@@ -3623,6 +3669,7 @@ library
                           staticType: int
                     rightParenthesis: ) @90
                   staticElement: <testLibraryFragment>::@class::A::@constructor::aaa
+                  element: <testLibraryFragment>::@class::A::@constructor::aaa#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::aaa
 ----------------------------------------
 library
@@ -3660,6 +3707,7 @@ library
                   constructorName: SimpleIdentifier
                     token: aaa @79
                     staticElement: <testLibraryFragment>::@class::A::@constructor::aaa
+                    element: <testLibraryFragment>::@class::A::@constructor::aaa#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @82
@@ -3672,6 +3720,7 @@ library
                           label: SimpleIdentifier
                             token: b @86
                             staticElement: <testLibraryFragment>::@class::A::@constructor::aaa::@parameter::b
+                            element: <not-implemented>
                             staticType: null
                           colon: : @87
                         expression: IntegerLiteral
@@ -3679,6 +3728,7 @@ library
                           staticType: int
                     rightParenthesis: ) @90
                   staticElement: <testLibraryFragment>::@class::A::@constructor::aaa
+                  element: <testLibraryFragment>::@class::A::@constructor::aaa#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::aaa
   classes
     class A
@@ -3750,6 +3800,7 @@ library
                         staticType: int
                     rightParenthesis: ) @76
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
 ----------------------------------------
 library
@@ -3788,6 +3839,7 @@ library
                         staticType: int
                     rightParenthesis: ) @76
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -3851,6 +3903,7 @@ library
                         staticType: List<String>
                     rightParenthesis: ) @75
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               redirectedConstructor: <testLibraryFragment>::@class::A::@constructor::new
 ----------------------------------------
 library
@@ -3887,6 +3940,7 @@ library
                         staticType: List<String>
                     rightParenthesis: ) @75
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               redirectedConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -3932,6 +3986,7 @@ library
                   constructorName: SimpleIdentifier
                     token: named @29
                     staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                    element: <testLibraryFragment>::@class::C::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @34
@@ -3943,6 +3998,7 @@ library
                         literal: 'bbb' @38
                     rightParenthesis: ) @43
                   staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                  element: <testLibraryFragment>::@class::C::@constructor::named#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::named
             const named @56
               reference: <testLibraryFragment>::@class::C::@constructor::named
@@ -3975,6 +4031,7 @@ library
                   constructorName: SimpleIdentifier
                     token: named @29
                     staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                    element: <testLibraryFragment>::@class::C::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @34
@@ -3986,6 +4043,7 @@ library
                         literal: 'bbb' @38
                     rightParenthesis: ) @43
                   staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                  element: <testLibraryFragment>::@class::C::@constructor::named#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::named
             const named @56
               reference: <testLibraryFragment>::@class::C::@constructor::named
@@ -4043,6 +4101,7 @@ library
                   constructorName: SimpleIdentifier
                     token: named @29
                     staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                    element: <testLibraryFragment>::@class::C::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @34
@@ -4055,6 +4114,7 @@ library
                           label: SimpleIdentifier
                             token: b @38
                             staticElement: <testLibraryFragment>::@class::C::@constructor::named::@parameter::b
+                            element: <not-implemented>
                             staticType: null
                           colon: : @39
                         expression: IntegerLiteral
@@ -4062,6 +4122,7 @@ library
                           staticType: int
                     rightParenthesis: ) @42
                   staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                  element: <testLibraryFragment>::@class::C::@constructor::named#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::named
             const named @55
               reference: <testLibraryFragment>::@class::C::@constructor::named
@@ -4095,6 +4156,7 @@ library
                   constructorName: SimpleIdentifier
                     token: named @29
                     staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                    element: <testLibraryFragment>::@class::C::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @34
@@ -4107,6 +4169,7 @@ library
                           label: SimpleIdentifier
                             token: b @38
                             staticElement: <testLibraryFragment>::@class::C::@constructor::named::@parameter::b
+                            element: <not-implemented>
                             staticType: null
                           colon: : @39
                         expression: IntegerLiteral
@@ -4114,6 +4177,7 @@ library
                           staticType: int
                     rightParenthesis: ) @42
                   staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                  element: <testLibraryFragment>::@class::C::@constructor::named#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::named
             const named @55
               reference: <testLibraryFragment>::@class::C::@constructor::named
@@ -4181,6 +4245,7 @@ library
                         literal: 'bbb' @38
                     rightParenthesis: ) @43
                   staticElement: <testLibraryFragment>::@class::C::@constructor::new
+                  element: <testLibraryFragment>::@class::C::@constructor::new#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::new
             const @54
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -4219,6 +4284,7 @@ library
                         literal: 'bbb' @38
                     rightParenthesis: ) @43
                   staticElement: <testLibraryFragment>::@class::C::@constructor::new
+                  element: <testLibraryFragment>::@class::C::@constructor::new#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::new
             const new @54
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -7886,11 +7952,13 @@ library
                   constructorName: SimpleIdentifier
                     token: named @48
                     staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                    element: <testLibraryFragment>::@class::C::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @53
                     rightParenthesis: ) @54
                   staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                  element: <testLibraryFragment>::@class::C::@constructor::named#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::named
 ----------------------------------------
 library
@@ -7918,11 +7986,13 @@ library
                   constructorName: SimpleIdentifier
                     token: named @48
                     staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                    element: <testLibraryFragment>::@class::C::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @53
                     rightParenthesis: ) @54
                   staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                  element: <testLibraryFragment>::@class::C::@constructor::named#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::named
   classes
     class C
@@ -7973,11 +8043,13 @@ library
                   constructorName: SimpleIdentifier
                     token: named @51
                     staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                    element: <testLibraryFragment>::@class::C::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @56
                     rightParenthesis: ) @57
                   staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                  element: <testLibraryFragment>::@class::C::@constructor::named#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::named
 ----------------------------------------
 library
@@ -8008,11 +8080,13 @@ library
                   constructorName: SimpleIdentifier
                     token: named @51
                     staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                    element: <testLibraryFragment>::@class::C::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @56
                     rightParenthesis: ) @57
                   staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                  element: <testLibraryFragment>::@class::C::@constructor::named#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::named
   classes
     class C
@@ -8122,6 +8196,7 @@ library
                     leftParenthesis: ( @47
                     rightParenthesis: ) @48
                   staticElement: <testLibraryFragment>::@class::C::@constructor::new
+                  element: <testLibraryFragment>::@class::C::@constructor::new#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::new
 ----------------------------------------
 library
@@ -8149,6 +8224,7 @@ library
                     leftParenthesis: ( @47
                     rightParenthesis: ) @48
                   staticElement: <testLibraryFragment>::@class::C::@constructor::new
+                  element: <testLibraryFragment>::@class::C::@constructor::new#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::new
   classes
     class C
@@ -8199,6 +8275,7 @@ library
                     leftParenthesis: ( @50
                     rightParenthesis: ) @51
                   staticElement: <testLibraryFragment>::@class::C::@constructor::new
+                  element: <testLibraryFragment>::@class::C::@constructor::new#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::new
 ----------------------------------------
 library
@@ -8229,6 +8306,7 @@ library
                     leftParenthesis: ( @50
                     rightParenthesis: ) @51
                   staticElement: <testLibraryFragment>::@class::C::@constructor::new
+                  element: <testLibraryFragment>::@class::C::@constructor::new#element
               redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::new
   classes
     class C
@@ -8758,6 +8836,7 @@ library
                   fieldName: SimpleIdentifier
                     token: x @35
                     staticElement: <testLibraryFragment>::@class::C::@field::x
+                    element: <testLibraryFragment>::@class::C::@field::x#element
                     staticType: null
                   equals: = @37
                   expression: InstanceCreationExpression
@@ -8766,8 +8845,10 @@ library
                       type: NamedType
                         name: D @45
                         element: <testLibraryFragment>::@class::D
+                        element2: <testLibraryFragment>::@class::D#element
                         type: D
                       staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                      element: <testLibraryFragment>::@class::D::@constructor::new#element
                     argumentList: ArgumentList
                       leftParenthesis: ( @46
                       rightParenthesis: ) @47
@@ -8794,6 +8875,7 @@ library
                   fieldName: SimpleIdentifier
                     token: x @87
                     staticElement: <testLibraryFragment>::@class::D::@field::x
+                    element: <testLibraryFragment>::@class::D::@field::x#element
                     staticType: null
                   equals: = @89
                   expression: InstanceCreationExpression
@@ -8802,8 +8884,10 @@ library
                       type: NamedType
                         name: C @97
                         element: <testLibraryFragment>::@class::C
+                        element2: <testLibraryFragment>::@class::C#element
                         type: C
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new
+                      element: <testLibraryFragment>::@class::C::@constructor::new#element
                     argumentList: ArgumentList
                       leftParenthesis: ( @98
                       rightParenthesis: ) @99
@@ -8837,6 +8921,7 @@ library
                   fieldName: SimpleIdentifier
                     token: x @35
                     staticElement: <testLibraryFragment>::@class::C::@field::x
+                    element: <testLibraryFragment>::@class::C::@field::x#element
                     staticType: null
                   equals: = @37
                   expression: InstanceCreationExpression
@@ -8845,8 +8930,10 @@ library
                       type: NamedType
                         name: D @45
                         element: <testLibraryFragment>::@class::D
+                        element2: <testLibraryFragment>::@class::D#element
                         type: D
                       staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                      element: <testLibraryFragment>::@class::D::@constructor::new#element
                     argumentList: ArgumentList
                       leftParenthesis: ( @46
                       rightParenthesis: ) @47
@@ -8872,6 +8959,7 @@ library
                   fieldName: SimpleIdentifier
                     token: x @87
                     staticElement: <testLibraryFragment>::@class::D::@field::x
+                    element: <testLibraryFragment>::@class::D::@field::x#element
                     staticType: null
                   equals: = @89
                   expression: InstanceCreationExpression
@@ -8880,8 +8968,10 @@ library
                       type: NamedType
                         name: C @97
                         element: <testLibraryFragment>::@class::C
+                        element2: <testLibraryFragment>::@class::C#element
                         type: C
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new
+                      element: <testLibraryFragment>::@class::C::@constructor::new#element
                     argumentList: ArgumentList
                       leftParenthesis: ( @98
                       rightParenthesis: ) @99
@@ -9668,11 +9758,13 @@ library
               name: SimpleIdentifier
                 token: Annotation @29
                 staticElement: <testLibraryFragment>::@class::Annotation
+                element: <testLibraryFragment>::@class::Annotation#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @39
                 rightParenthesis: ) @40
               element: <testLibraryFragment>::@class::Annotation::@constructor::new
+              element2: <testLibraryFragment>::@class::Annotation::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::BeforeMeta::@constructor::new
@@ -9688,18 +9780,22 @@ library
                 prefix: SimpleIdentifier
                   token: Annotation @92
                   staticElement: <testLibraryFragment>::@class::Annotation
+                  element: <testLibraryFragment>::@class::Annotation#element
                   staticType: null
                 period: . @102
                 identifier: SimpleIdentifier
                   token: named @103
                   staticElement: <testLibraryFragment>::@class::Annotation::@constructor::named
+                  element: <testLibraryFragment>::@class::Annotation::@constructor::named#element
                   staticType: null
                 staticElement: <testLibraryFragment>::@class::Annotation::@constructor::named
+                element: <testLibraryFragment>::@class::Annotation::@constructor::named#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @108
                 rightParenthesis: ) @109
               element: <testLibraryFragment>::@class::Annotation::@constructor::named
+              element2: <testLibraryFragment>::@class::Annotation::@constructor::named#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::BeforeMetaNamed::@constructor::new
@@ -9714,11 +9810,13 @@ library
               name: SimpleIdentifier
                 token: Annotation @138
                 staticElement: <testLibraryFragment>::@class::Annotation
+                element: <testLibraryFragment>::@class::Annotation#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @148
                 rightParenthesis: ) @149
               element: <testLibraryFragment>::@class::Annotation::@constructor::new
+              element2: <testLibraryFragment>::@class::Annotation::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::AfterMeta::@constructor::new
@@ -9733,11 +9831,13 @@ library
               name: SimpleIdentifier
                 token: Annotation @214
                 staticElement: <testLibraryFragment>::@class::Annotation
+                element: <testLibraryFragment>::@class::Annotation#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @224
                 rightParenthesis: ) @225
               element: <testLibraryFragment>::@class::Annotation::@constructor::new
+              element2: <testLibraryFragment>::@class::Annotation::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::AroundMeta::@constructor::new
@@ -9752,11 +9852,13 @@ library
               name: SimpleIdentifier
                 token: Annotation @280
                 staticElement: <testLibraryFragment>::@class::Annotation
+                element: <testLibraryFragment>::@class::Annotation#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @290
                 rightParenthesis: ) @291
               element: <testLibraryFragment>::@class::Annotation::@constructor::new
+              element2: <testLibraryFragment>::@class::Annotation::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::DocBeforeMetaNotDocAfter::@constructor::new
@@ -10799,6 +10901,7 @@ library
                             returnType: NamedType
                               name: int @58
                               element: dart:core::<fragment>::@class::int
+                              element2: dart:core::<fragment>::@class::int#element
                               type: int
                             functionKeyword: Function @62
                             parameters: FormalParameterList
@@ -10807,6 +10910,7 @@ library
                                 type: NamedType
                                   name: double @71
                                   element: dart:core::<fragment>::@class::double
+                                  element2: dart:core::<fragment>::@class::double#element
                                   type: double
                                 name: a @78
                                 declaredElement: a@78
@@ -10822,10 +10926,12 @@ library
                             type: int Function(double)
                         rightBracket: > @80
                       element: <testLibraryFragment>::@class::A
+                      element2: <testLibraryFragment>::@class::A#element
                       type: A<int Function(double)>
                     staticElement: ConstructorMember
                       base: <testLibraryFragment>::@class::A::@constructor::new
                       substitution: {T: int Function(double)}
+                    element: <testLibraryFragment>::@class::A::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @81
                     rightParenthesis: ) @82
@@ -11785,6 +11891,7 @@ library
                     SimpleIdentifier
                       token: a @112
                       staticElement: <testLibraryFragment>::@getter::a
+                      element: <testLibraryFragment>::@getter::a#element
                       staticType: int
                   rightBracket: ] @113
                   staticType: List<int>
@@ -25005,6 +25112,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @32
           reference: <testLibraryFragment>::@class::D
@@ -25055,6 +25163,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @32
           reference: <testLibraryFragment>::@class::D
@@ -25146,6 +25255,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @35
           reference: <testLibraryFragment>::@class::D
@@ -25182,6 +25292,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @35
           reference: <testLibraryFragment>::@class::D
@@ -25248,6 +25359,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @36
           reference: <testLibraryFragment>::@mixin::M
@@ -25275,6 +25387,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @36
           reference: <testLibraryFragment>::@mixin::M
@@ -25339,6 +25452,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
 ----------------------------------------
 library
@@ -25375,6 +25489,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -25462,9 +25577,11 @@ library
                       SimpleIdentifier
                         token: i @-1
                         staticElement: <testLibraryFragment>::@class::C2::@constructor::new::@parameter::i
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::C1::@constructor::new
+                  element: <testLibraryFragment>::@class::C1::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::C1::@constructor::new
         class alias C1 @90
           reference: <testLibraryFragment>::@class::C1
@@ -25488,9 +25605,11 @@ library
                       SimpleIdentifier
                         token: i @-1
                         staticElement: <testLibraryFragment>::@class::C1::@constructor::new::@parameter::i
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
 ----------------------------------------
 library
@@ -25542,9 +25661,11 @@ library
                       SimpleIdentifier
                         token: i @-1
                         staticElement: <testLibraryFragment>::@class::C2::@constructor::new::@parameter::i
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::C1::@constructor::new
+                  element: <testLibraryFragment>::@class::C1::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::C1::@constructor::new
         class C1 @90
           reference: <testLibraryFragment>::@class::C1
@@ -25565,9 +25686,11 @@ library
                       SimpleIdentifier
                         token: i @-1
                         staticElement: <testLibraryFragment>::@class::C1::@constructor::new::@parameter::i
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -25698,6 +25821,7 @@ library
                   constructorName: SimpleIdentifier
                     token: c1 @-1
                     staticElement: <testLibraryFragment>::@class::A::@constructor::c1
+                    element: <testLibraryFragment>::@class::A::@constructor::c1#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -25705,9 +25829,11 @@ library
                       SimpleIdentifier
                         token: a @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c1::@parameter::a
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::c1
+                  element: <testLibraryFragment>::@class::A::@constructor::c1#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::c1
             synthetic c2 @-1
               reference: <testLibraryFragment>::@class::C::@constructor::c2
@@ -25730,6 +25856,7 @@ library
                   constructorName: SimpleIdentifier
                     token: c2 @-1
                     staticElement: <testLibraryFragment>::@class::A::@constructor::c2
+                    element: <testLibraryFragment>::@class::A::@constructor::c2#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -25737,17 +25864,21 @@ library
                       SimpleIdentifier
                         token: a @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::a
+                        element: <not-implemented>
                         staticType: int
                       SimpleIdentifier
                         token: b @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::b
+                        element: <not-implemented>
                         staticType: int?
                       SimpleIdentifier
                         token: c @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::c
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::c2
+                  element: <testLibraryFragment>::@class::A::@constructor::c2#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::c2
             synthetic c3 @-1
               reference: <testLibraryFragment>::@class::C::@constructor::c3
@@ -25772,6 +25903,7 @@ library
                   constructorName: SimpleIdentifier
                     token: c3 @-1
                     staticElement: <testLibraryFragment>::@class::A::@constructor::c3
+                    element: <testLibraryFragment>::@class::A::@constructor::c3#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -25779,17 +25911,21 @@ library
                       SimpleIdentifier
                         token: a @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::a
+                        element: <not-implemented>
                         staticType: int
                       SimpleIdentifier
                         token: b @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::b
+                        element: <not-implemented>
                         staticType: int?
                       SimpleIdentifier
                         token: c @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::c
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::c3
+                  element: <testLibraryFragment>::@class::A::@constructor::c3#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::c3
       mixins
         mixin M @106
@@ -25859,6 +25995,7 @@ library
                   constructorName: SimpleIdentifier
                     token: c1 @-1
                     staticElement: <testLibraryFragment>::@class::A::@constructor::c1
+                    element: <testLibraryFragment>::@class::A::@constructor::c1#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -25866,9 +26003,11 @@ library
                       SimpleIdentifier
                         token: a @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c1::@parameter::a
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::c1
+                  element: <testLibraryFragment>::@class::A::@constructor::c1#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::c1
             synthetic c2 @-1
               reference: <testLibraryFragment>::@class::C::@constructor::c2
@@ -25887,6 +26026,7 @@ library
                   constructorName: SimpleIdentifier
                     token: c2 @-1
                     staticElement: <testLibraryFragment>::@class::A::@constructor::c2
+                    element: <testLibraryFragment>::@class::A::@constructor::c2#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -25894,17 +26034,21 @@ library
                       SimpleIdentifier
                         token: a @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::a
+                        element: <not-implemented>
                         staticType: int
                       SimpleIdentifier
                         token: b @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::b
+                        element: <not-implemented>
                         staticType: int?
                       SimpleIdentifier
                         token: c @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::c
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::c2
+                  element: <testLibraryFragment>::@class::A::@constructor::c2#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::c2
             synthetic c3 @-1
               reference: <testLibraryFragment>::@class::C::@constructor::c3
@@ -25925,6 +26069,7 @@ library
                   constructorName: SimpleIdentifier
                     token: c3 @-1
                     staticElement: <testLibraryFragment>::@class::A::@constructor::c3
+                    element: <testLibraryFragment>::@class::A::@constructor::c3#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -25932,17 +26077,21 @@ library
                       SimpleIdentifier
                         token: a @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::a
+                        element: <not-implemented>
                         staticType: int
                       SimpleIdentifier
                         token: b @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::b
+                        element: <not-implemented>
                         staticType: int?
                       SimpleIdentifier
                         token: c @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::c
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::c3
+                  element: <testLibraryFragment>::@class::A::@constructor::c3#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::c3
       mixins
         mixin M @106
@@ -26079,13 +26228,16 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::x
+                        element: <not-implemented>
                         staticType: E
                       SimpleIdentifier
                         token: y @-1
                         staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::y
+                        element: <not-implemented>
                         staticType: E
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: E}
@@ -26141,13 +26293,16 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::x
+                        element: <not-implemented>
                         staticType: E
                       SimpleIdentifier
                         token: y @-1
                         staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::y
+                        element: <not-implemented>
                         staticType: E
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: E}
@@ -26228,6 +26383,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @43
           reference: <testLibraryFragment>::@class::D
@@ -26264,6 +26420,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @43
           reference: <testLibraryFragment>::@class::D
@@ -26337,6 +26494,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @48
           reference: <testLibraryFragment>::@class::D
@@ -26373,6 +26531,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @48
           reference: <testLibraryFragment>::@class::D
@@ -26446,6 +26605,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @87
           reference: <testLibraryFragment>::@class::D
@@ -26482,6 +26642,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @87
           reference: <testLibraryFragment>::@class::D
@@ -26549,6 +26710,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @37
           reference: <testLibraryFragment>::@mixin::M
@@ -26576,6 +26738,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @37
           reference: <testLibraryFragment>::@mixin::M
@@ -26628,6 +26791,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class A @42
           reference: <testLibraryFragment>::@class::A
@@ -26677,6 +26841,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class A @42
           reference: <testLibraryFragment>::@class::A
@@ -26765,6 +26930,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @41
           reference: <testLibraryFragment>::@mixin::M
@@ -26792,6 +26958,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @41
           reference: <testLibraryFragment>::@mixin::M
@@ -26852,6 +27019,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -26876,6 +27044,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
   classes
     class alias A
       firstFragment: <testLibraryFragment>::@class::A
@@ -26917,6 +27086,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M1 @6
           reference: <testLibraryFragment>::@mixin::M1
@@ -26949,6 +27119,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M1 @6
           reference: <testLibraryFragment>::@mixin::M1
@@ -27005,6 +27176,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @37
           reference: <testLibraryFragment>::@mixin::M
@@ -27032,6 +27204,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @37
           reference: <testLibraryFragment>::@mixin::M
@@ -27086,6 +27259,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @39
           reference: <testLibraryFragment>::@class::D
@@ -27125,6 +27299,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @39
           reference: <testLibraryFragment>::@class::D
@@ -27200,6 +27375,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @29
           reference: <testLibraryFragment>::@class::D
@@ -27239,6 +27415,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @29
           reference: <testLibraryFragment>::@class::D
@@ -27310,6 +27487,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @26
           reference: <testLibraryFragment>::@class::D
@@ -27346,6 +27524,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @26
           reference: <testLibraryFragment>::@class::D
@@ -27412,6 +27591,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @38
           reference: <testLibraryFragment>::@mixin::M
@@ -27439,6 +27619,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @38
           reference: <testLibraryFragment>::@mixin::M
@@ -27509,6 +27690,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::new
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::new#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::new
             synthetic const named @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::named
@@ -27520,11 +27702,13 @@ library
                   constructorName: SimpleIdentifier
                     token: named @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::named
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::named
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::named#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::named
 ----------------------------------------
 library
@@ -27557,6 +27741,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::new
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::new#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::new
             synthetic const named @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::named
@@ -27568,11 +27753,13 @@ library
                   constructorName: SimpleIdentifier
                     token: named @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::named
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::named#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::named
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::named#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::named
   classes
     class M
@@ -27652,6 +27839,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::new
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::new#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::new
             synthetic noArgs @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::noArgs
@@ -27663,11 +27851,13 @@ library
                   constructorName: SimpleIdentifier
                     token: noArgs @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::noArgs
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::noArgs#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::noArgs
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::noArgs#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::noArgs
             synthetic requiredArg @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::requiredArg
@@ -27682,6 +27872,7 @@ library
                   constructorName: SimpleIdentifier
                     token: requiredArg @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::requiredArg
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::requiredArg#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -27689,9 +27880,11 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::requiredArg::@parameter::x
+                        element: <not-implemented>
                         staticType: dynamic
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::requiredArg
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::requiredArg#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::requiredArg
             synthetic positionalArg @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg
@@ -27710,6 +27903,7 @@ library
                   constructorName: SimpleIdentifier
                     token: positionalArg @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -27717,9 +27911,11 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg::@parameter::x
+                        element: <not-implemented>
                         staticType: bool
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg
             synthetic positionalArg2 @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2
@@ -27738,6 +27934,7 @@ library
                   constructorName: SimpleIdentifier
                     token: positionalArg2 @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg2
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg2#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -27745,9 +27942,11 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2::@parameter::x
+                        element: <not-implemented>
                         staticType: bool
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg2
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg2#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg2
             synthetic namedArg @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg
@@ -27767,6 +27966,7 @@ library
                   constructorName: SimpleIdentifier
                     token: namedArg @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -27774,9 +27974,11 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg::@parameter::x
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg
             synthetic namedArg2 @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2
@@ -27796,6 +27998,7 @@ library
                   constructorName: SimpleIdentifier
                     token: namedArg2 @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg2
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg2#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -27803,9 +28006,11 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2::@parameter::x
+                        element: <not-implemented>
                         staticType: bool
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg2
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg2#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg2
 ----------------------------------------
 library
@@ -27838,6 +28043,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::new
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::new#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::new
             synthetic noArgs @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::noArgs
@@ -27849,11 +28055,13 @@ library
                   constructorName: SimpleIdentifier
                     token: noArgs @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::noArgs
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::noArgs#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::noArgs
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::noArgs#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::noArgs
             synthetic requiredArg @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::requiredArg
@@ -27868,6 +28076,7 @@ library
                   constructorName: SimpleIdentifier
                     token: requiredArg @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::requiredArg
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::requiredArg#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -27875,9 +28084,11 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::requiredArg::@parameter::x
+                        element: <not-implemented>
                         staticType: dynamic
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::requiredArg
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::requiredArg#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::requiredArg
             synthetic positionalArg @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg
@@ -27892,6 +28103,7 @@ library
                   constructorName: SimpleIdentifier
                     token: positionalArg @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -27899,9 +28111,11 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg::@parameter::x
+                        element: <not-implemented>
                         staticType: bool
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg
             synthetic positionalArg2 @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2
@@ -27916,6 +28130,7 @@ library
                   constructorName: SimpleIdentifier
                     token: positionalArg2 @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg2
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg2#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -27923,9 +28138,11 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2::@parameter::x
+                        element: <not-implemented>
                         staticType: bool
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg2
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg2#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg2
             synthetic namedArg @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg
@@ -27941,6 +28158,7 @@ library
                   constructorName: SimpleIdentifier
                     token: namedArg @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -27948,9 +28166,11 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg::@parameter::x
+                        element: <not-implemented>
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg
             synthetic namedArg2 @-1
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2
@@ -27966,6 +28186,7 @@ library
                   constructorName: SimpleIdentifier
                     token: namedArg2 @-1
                     staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg2
+                    element: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg2#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -27973,9 +28194,11 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2::@parameter::x
+                        element: <not-implemented>
                         staticType: bool
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg2
+                  element: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg2#element
               superConstructor: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg2
   classes
     class M
@@ -28090,6 +28313,7 @@ library
                   constructorName: SimpleIdentifier
                     token: ctor @-1
                     staticElement: <testLibraryFragment>::@class::Base::@constructor::ctor
+                    element: <testLibraryFragment>::@class::Base::@constructor::ctor#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -28097,13 +28321,16 @@ library
                       SimpleIdentifier
                         token: t @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t
+                        element: <not-implemented>
                         staticType: dynamic
                       SimpleIdentifier
                         token: l @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l
+                        element: <not-implemented>
                         staticType: List<dynamic>
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::Base::@constructor::ctor
+                  element: <testLibraryFragment>::@class::Base::@constructor::ctor#element
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::Base::@constructor::ctor
                 substitution: {T: dynamic}
@@ -28157,6 +28384,7 @@ library
                   constructorName: SimpleIdentifier
                     token: ctor @-1
                     staticElement: <testLibraryFragment>::@class::Base::@constructor::ctor
+                    element: <testLibraryFragment>::@class::Base::@constructor::ctor#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -28164,13 +28392,16 @@ library
                       SimpleIdentifier
                         token: t @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t
+                        element: <not-implemented>
                         staticType: dynamic
                       SimpleIdentifier
                         token: l @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l
+                        element: <not-implemented>
                         staticType: List<dynamic>
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::Base::@constructor::ctor
+                  element: <testLibraryFragment>::@class::Base::@constructor::ctor#element
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::Base::@constructor::ctor
                 substitution: {T: dynamic}
@@ -28272,6 +28503,7 @@ library
                   constructorName: SimpleIdentifier
                     token: ctor @-1
                     staticElement: <testLibraryFragment>::@class::Base::@constructor::ctor
+                    element: <testLibraryFragment>::@class::Base::@constructor::ctor#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -28279,13 +28511,16 @@ library
                       SimpleIdentifier
                         token: t @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t
+                        element: <not-implemented>
                         staticType: List<U>
                       SimpleIdentifier
                         token: l @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l
+                        element: <not-implemented>
                         staticType: List<List<U>>
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::Base::@constructor::ctor
+                  element: <testLibraryFragment>::@class::Base::@constructor::ctor#element
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::Base::@constructor::ctor
                 substitution: {T: List<U>}
@@ -28342,6 +28577,7 @@ library
                   constructorName: SimpleIdentifier
                     token: ctor @-1
                     staticElement: <testLibraryFragment>::@class::Base::@constructor::ctor
+                    element: <testLibraryFragment>::@class::Base::@constructor::ctor#element
                     staticType: null
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -28349,13 +28585,16 @@ library
                       SimpleIdentifier
                         token: t @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t
+                        element: <not-implemented>
                         staticType: List<U>
                       SimpleIdentifier
                         token: l @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l
+                        element: <not-implemented>
                         staticType: List<List<U>>
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::Base::@constructor::ctor
+                  element: <testLibraryFragment>::@class::Base::@constructor::ctor#element
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::Base::@constructor::ctor
                 substitution: {T: List<U>}
@@ -28429,6 +28668,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @26
           reference: <testLibraryFragment>::@class::D
@@ -28506,6 +28746,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::D::@constructor::new
+                  element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @26
           reference: <testLibraryFragment>::@class::D
@@ -28723,13 +28964,16 @@ library
                 type: NamedType
                   name: C @65
                   element: <testLibraryFragment>::@class::C
+                  element2: <testLibraryFragment>::@class::C#element
                   type: C
                 period: . @66
                 name: SimpleIdentifier
                   token: named @67
                   staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                  element: <testLibraryFragment>::@class::C::@constructor::named#element
                   staticType: null
                 staticElement: <testLibraryFragment>::@class::C::@constructor::named
+                element: <testLibraryFragment>::@class::C::@constructor::named#element
               argumentList: ArgumentList
                 leftParenthesis: ( @72
                 arguments
@@ -31397,6 +31641,7 @@ library
                   fieldName: SimpleIdentifier
                     token: f @59
                     staticElement: <testLibraryFragment>::@class::A::@field::f
+                    element: <testLibraryFragment>::@class::A::@field::f#element
                     staticType: null
                   equals: = @61
                   expression: IntegerLiteral
@@ -31442,6 +31687,7 @@ library
                   fieldName: SimpleIdentifier
                     token: f @59
                     staticElement: <testLibraryFragment>::@class::A::@field::f
+                    element: <testLibraryFragment>::@class::A::@field::f#element
                     staticType: null
                   equals: = @61
                   expression: IntegerLiteral
@@ -32430,6 +32676,7 @@ library
                     leftParenthesis: ( @82
                     rightParenthesis: ) @83
                   element: <null>
+                  element2: <null>
                   staticType: InvalidType
               augmentationTarget: <testLibraryFragment>::@class::A::@field::foo
 ----------------------------------------
@@ -32727,12 +32974,14 @@ library
                   leftOperand: AugmentedExpression
                     augmentedKeyword: augmented @65
                     element: <testLibraryFragment>::@class::A::@field::foo
+                    element2: <testLibraryFragment>::@class::A::@field::foo#element
                     staticType: int
                   operator: + @75
                   rightOperand: IntegerLiteral
                     literal: 1 @77
                     staticType: int
                   staticElement: dart:core::<fragment>::@class::num::@method::+
+                  element: dart:core::<fragment>::@class::num::@method::+#element
                   staticInvokeType: num Function(num)
                   staticType: int
               augmentationTarget: <testLibraryFragment>::@class::A::@field::foo
@@ -33768,6 +34017,7 @@ library
                   fieldName: SimpleIdentifier
                     token: foo @39
                     staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
+                    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo#element
                     staticType: null
                   equals: = @43
                   expression: IntegerLiteral
@@ -33818,6 +34068,7 @@ library
                   fieldName: SimpleIdentifier
                     token: foo @39
                     staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
+                    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo#element
                     staticType: null
                   equals: = @43
                   expression: IntegerLiteral

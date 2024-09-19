@@ -29,6 +29,7 @@ ExtendsClause
   superclass: NamedType
     name: dynamic
     element: dynamic@-1
+    element2: dynamic@-1
     type: dynamic
 ''');
   }
@@ -48,6 +49,7 @@ ExtendsClause
   superclass: NamedType
     name: E
     element: <testLibraryFragment>::@enum::E
+    element2: <testLibraryFragment>::@enum::E#element
     type: E
 ''');
   }
@@ -67,6 +69,7 @@ ExtendsClause
   superclass: NamedType
     name: A
     element: <testLibraryFragment>::@extensionType::A
+    element2: <testLibraryFragment>::@extensionType::A#element
     type: A
 ''');
   }
@@ -86,6 +89,7 @@ ExtendsClause
   superclass: NamedType
     name: M
     element: <testLibraryFragment>::@mixin::M
+    element2: <testLibraryFragment>::@mixin::M#element
     type: M
 ''');
   }
@@ -105,6 +109,7 @@ ExtendsClause
   superclass: NamedType
     name: v
     element: <testLibraryFragment>::@getter::v
+    element2: <testLibraryFragment>::@getter::v#element
     type: InvalidType
 ''');
   }
@@ -129,9 +134,11 @@ ExtendsClause
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@getter::v
+    element2: <testLibraryFragment>::@getter::v#element
     type: InvalidType
 ''');
   }
@@ -150,6 +157,7 @@ ExtendsClause
   superclass: NamedType
     name: Never
     element: Never@-1
+    element2: Never@-1
     type: Never
 ''');
   }
@@ -168,6 +176,7 @@ ExtendsClause
   superclass: NamedType
     name: A
     element: <null>
+    element2: <null>
     type: InvalidType
 ''');
   }
@@ -190,8 +199,10 @@ ExtendsClause
       name: p
       period: .
       element: <testLibraryFragment>::@prefix::p
+      element2: <testLibraryFragment>::@prefix::p
     name: A
     element: <null>
+    element2: <null>
     type: InvalidType
 ''');
   }
@@ -292,8 +303,10 @@ ExtendsClause
       name: p
       period: .
       element: <testLibraryFragment>::@prefix::p
+      element2: <testLibraryFragment>::@prefix::p
     name: A
     element: <null>
+    element2: <null>
     type: InvalidType
 ''');
   }

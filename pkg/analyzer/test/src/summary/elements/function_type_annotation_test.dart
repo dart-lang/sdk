@@ -475,6 +475,7 @@ library
               name: SimpleIdentifier
                 token: A @30
                 staticElement: <testLibraryFragment>::@class::A
+                element: <testLibraryFragment>::@class::A#element
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @31
@@ -483,6 +484,7 @@ library
                     returnType: NamedType
                       name: int @32
                       element: dart:core::<fragment>::@class::int
+                      element2: dart:core::<fragment>::@class::int#element
                       type: int
                     functionKeyword: Function @36
                     parameters: FormalParameterList
@@ -491,6 +493,7 @@ library
                         type: NamedType
                           name: String @45
                           element: dart:core::<fragment>::@class::String
+                          element2: dart:core::<fragment>::@class::String#element
                           type: String
                         name: a @52
                         declaredElement: a@52
@@ -511,6 +514,7 @@ library
               element: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int Function(String)}
+              element2: <testLibraryFragment>::@class::A::@constructor::new#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -592,6 +596,7 @@ library
               name: SimpleIdentifier
                 token: A @30
                 staticElement: <testLibraryFragment>::@class::A
+                element: <testLibraryFragment>::@class::A#element
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @31
@@ -600,6 +605,7 @@ library
                     returnType: NamedType
                       name: int @32
                       element: dart:core::<fragment>::@class::int
+                      element2: dart:core::<fragment>::@class::int#element
                       type: int
                     functionKeyword: Function @36
                     parameters: FormalParameterList
@@ -608,6 +614,7 @@ library
                         type: NamedType
                           name: String @45
                           element: dart:core::<fragment>::@class::String
+                          element2: dart:core::<fragment>::@class::String#element
                           type: String
                         name: a @52
                         declaredElement: a@52
@@ -628,6 +635,7 @@ library
               element: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int Function(String)}
+              element2: <testLibraryFragment>::@class::A::@constructor::new#element
           type: int
           shouldUseTypeForInitializerInference: false
       accessors
@@ -669,6 +677,7 @@ library
               name: SimpleIdentifier
                 token: A @30
                 staticElement: <testLibraryFragment>::@class::A
+                element: <testLibraryFragment>::@class::A#element
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @31
@@ -677,6 +686,7 @@ library
                     returnType: NamedType
                       name: int @32
                       element: dart:core::<fragment>::@class::int
+                      element2: dart:core::<fragment>::@class::int#element
                       type: int
                     functionKeyword: Function @36
                     parameters: FormalParameterList
@@ -685,6 +695,7 @@ library
                         type: NamedType
                           name: String @45
                           element: dart:core::<fragment>::@class::String
+                          element2: dart:core::<fragment>::@class::String#element
                           type: String
                         name: a @52
                         declaredElement: a@52
@@ -705,6 +716,7 @@ library
               element: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int Function(String)}
+              element2: <testLibraryFragment>::@class::A::@constructor::new#element
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
@@ -788,6 +800,7 @@ library
                         returnType: NamedType
                           name: String @41
                           element: dart:core::<fragment>::@class::String
+                          element2: dart:core::<fragment>::@class::String#element
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
@@ -799,6 +812,7 @@ library
                                 name: int @58
                                 question: ? @61
                                 element: dart:core::<fragment>::@class::int
+                                element2: dart:core::<fragment>::@class::int#element
                                 type: int?
                               name: a @63
                               declaredElement: a@63
@@ -817,10 +831,12 @@ library
                         type: String Function({int? a})
                     rightBracket: > @66
                   element: <testLibraryFragment>::@class::A
+                  element2: <testLibraryFragment>::@class::A#element
                   type: A<String Function({int? a})>
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::A::@constructor::new
                   substitution: {T: String Function({int? a})}
+                element: <testLibraryFragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @67
                 rightParenthesis: ) @68
@@ -919,6 +935,7 @@ library
                         returnType: NamedType
                           name: String @41
                           element: dart:core::<fragment>::@class::String
+                          element2: dart:core::<fragment>::@class::String#element
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
@@ -930,6 +947,7 @@ library
                                 name: int @58
                                 question: ? @61
                                 element: dart:core::<fragment>::@class::int
+                                element2: dart:core::<fragment>::@class::int#element
                                 type: int?
                               name: a @63
                               declaredElement: a@63
@@ -948,10 +966,12 @@ library
                         type: String Function([int?])
                     rightBracket: > @66
                   element: <testLibraryFragment>::@class::A
+                  element2: <testLibraryFragment>::@class::A#element
                   type: A<String Function([int?])>
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::A::@constructor::new
                   substitution: {T: String Function([int?])}
+                element: <testLibraryFragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @67
                 rightParenthesis: ) @68
@@ -1050,6 +1070,7 @@ library
                         returnType: NamedType
                           name: String @41
                           element: dart:core::<fragment>::@class::String
+                          element2: dart:core::<fragment>::@class::String#element
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
@@ -1061,6 +1082,7 @@ library
                               type: NamedType
                                 name: int @67
                                 element: dart:core::<fragment>::@class::int
+                                element2: dart:core::<fragment>::@class::int#element
                                 type: int
                               name: a @71
                               declaredElement: a@71
@@ -1079,10 +1101,12 @@ library
                         type: String Function({required int a})
                     rightBracket: > @74
                   element: <testLibraryFragment>::@class::A
+                  element2: <testLibraryFragment>::@class::A#element
                   type: A<String Function({required int a})>
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::A::@constructor::new
                   substitution: {T: String Function({required int a})}
+                element: <testLibraryFragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @75
                 rightParenthesis: ) @76
@@ -1181,6 +1205,7 @@ library
                         returnType: NamedType
                           name: String @41
                           element: dart:core::<fragment>::@class::String
+                          element2: dart:core::<fragment>::@class::String#element
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
@@ -1189,6 +1214,7 @@ library
                             type: NamedType
                               name: int @57
                               element: dart:core::<fragment>::@class::int
+                              element2: dart:core::<fragment>::@class::int#element
                               type: int
                             name: a @61
                             declaredElement: a@61
@@ -1204,10 +1230,12 @@ library
                         type: String Function(int)
                     rightBracket: > @63
                   element: <testLibraryFragment>::@class::A
+                  element2: <testLibraryFragment>::@class::A#element
                   type: A<String Function(int)>
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::A::@constructor::new
                   substitution: {T: String Function(int)}
+                element: <testLibraryFragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @64
                 rightParenthesis: ) @65
@@ -1348,6 +1376,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: void Function()}
@@ -1388,6 +1417,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
+                  element: <testLibraryFragment>::@class::A::@constructor::new#element
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: void Function()}
