@@ -353,7 +353,7 @@ extension E on String {
 ''');
     await assertHasFix('''
 extension E on String {
-  get g => null;
+  int get g => null;
 
   int m()  => g;
 }
@@ -368,7 +368,7 @@ extension E on String {
 ''');
     await assertHasFix('''
 extension E on String {
-  static get g => null;
+  static int get g => null;
 
   static int m()  => g;
 }
