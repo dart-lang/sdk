@@ -52,7 +52,6 @@ import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'prefix_builder.dart';
 import 'type_builder.dart';
-import 'void_type_declaration_builder.dart';
 
 /// Enum used to determine how instance type variable access is allowed.
 enum InstanceTypeVariableAccessState {
@@ -192,7 +191,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  bool get isVoidType => _declaration is VoidTypeDeclarationBuilder;
+  bool get isVoidType => false;
 
   @override
   void bind(

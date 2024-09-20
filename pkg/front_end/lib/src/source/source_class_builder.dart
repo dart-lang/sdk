@@ -36,7 +36,6 @@ import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/void_type_declaration_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
@@ -327,9 +326,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       mixedInTypeBuilder = null;
       actualCls.isAnonymousMixin = false;
       isMixinDeclaration = false;
-    }
-    if (mixedInType == null && mixedInTypeBuilder is! NamedTypeBuilder) {
-      mixedInTypeBuilder = null;
     }
     actualCls.isMixinDeclaration = isMixinDeclaration;
     actualCls.mixedInType = mixedInType;
@@ -826,10 +822,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           superClassType.computeUnaliasedDeclaration(isUsedAsClass: true);
       // TODO(eernst): Should gather 'restricted supertype' checks in one place,
       // e.g., dynamic/int/String/Null and more are checked elsewhere.
-      if (unaliasedSuperDeclaration is VoidTypeDeclarationBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        fail(superClassType, messageExtendsVoid, superDeclaration);
-      } else if (unaliasedSuperDeclaration is NeverTypeDeclarationBuilder) {
+      if (unaliasedSuperDeclaration is NeverTypeDeclarationBuilder) {
         fail(superClassType, messageExtendsNever, superDeclaration);
       } else if (unaliasedSuperDeclaration is ClassBuilder) {
         superClass = unaliasedSuperDeclaration;
@@ -918,10 +911,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
       if (unaliasedDeclaration != superClass) {
         // TODO(eernst): Have all 'restricted supertype' checks in one place.
-        if (unaliasedDeclaration is VoidTypeDeclarationBuilder) {
-          // Coverage-ignore-block(suite): Not run.
-          fail(type, messageImplementsVoid, typeDeclaration);
-        } else if (unaliasedDeclaration is NeverTypeDeclarationBuilder) {
+        if (unaliasedDeclaration is NeverTypeDeclarationBuilder) {
           fail(type, messageImplementsNever, typeDeclaration);
         }
       }

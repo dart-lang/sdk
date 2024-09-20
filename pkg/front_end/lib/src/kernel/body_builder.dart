@@ -78,7 +78,7 @@ import '../builder/prefix_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
-import '../builder/void_type_declaration_builder.dart';
+import '../builder/void_type_builder.dart';
 import '../codes/cfe_codes.dart'
     show
         LocatedMessage,
@@ -5183,15 +5183,7 @@ class BodyBuilder extends StackListenerImpl
   void handleVoidKeyword(Token token) {
     debugEvent("VoidKeyword");
     int offset = offsetForToken(token);
-    // "void" is always nullable.
-    push(new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        new VoidTypeDeclarationBuilder(
-            const VoidType(), libraryBuilder, offset),
-        const NullabilityBuilder.inherent(),
-        fileUri: uri,
-        charOffset: offset,
-        instanceTypeVariableAccess:
-            InstanceTypeVariableAccessState.Unexpected));
+    push(new VoidTypeBuilder(uri, offset));
   }
 
   @override
@@ -6583,9 +6575,13 @@ class BodyBuilder extends StackListenerImpl
                   buildProblem(message.messageObject, nameToken.charOffset,
                       nameToken.lexeme.length));
             case TypeAliasBuilder():
+            // Coverage-ignore(suite): Not run.
             case NominalVariableBuilder():
+            // Coverage-ignore(suite): Not run.
             case StructuralVariableBuilder():
+            // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
+            // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             // Coverage-ignore(suite): Not run.
             // TODO(johnniwinther): How should we handle this case?
@@ -6625,10 +6621,15 @@ class BodyBuilder extends StackListenerImpl
               assert(forest.argumentsTypeArguments(arguments).isEmpty);
               forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
             case TypeAliasBuilder():
+            // Coverage-ignore(suite): Not run.
             case NominalVariableBuilder():
+            // Coverage-ignore(suite): Not run.
             case StructuralVariableBuilder():
+            // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
+            // Coverage-ignore(suite): Not run.
             case InvalidTypeDeclarationBuilder():
+            // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             // Coverage-ignore(suite): Not run.
             // TODO(johnniwinther): How should we handle this case?
@@ -6727,6 +6728,7 @@ class BodyBuilder extends StackListenerImpl
         case StructuralVariableBuilder():
         case ExtensionBuilder():
         case InvalidTypeDeclarationBuilder():
+        // Coverage-ignore(suite): Not run.
         case BuiltinTypeDeclarationBuilder():
         // Coverage-ignore(suite): Not run.
         // TODO(johnniwinther): How should we handle this case?

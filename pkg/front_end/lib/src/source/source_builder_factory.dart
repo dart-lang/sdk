@@ -50,7 +50,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/void_type_declaration_builder.dart';
+import '../builder/void_type_builder.dart';
 import '../fragment/fragment.dart';
 import '../util/local_stack.dart';
 import 'builder_factory.dart';
@@ -2489,13 +2489,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   TypeBuilder addVoidType(int charOffset) {
-    // 'void' is always nullable.
-    return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        new VoidTypeDeclarationBuilder(const VoidType(), _parent, charOffset),
-        const NullabilityBuilder.inherent(),
-        charOffset: charOffset,
-        fileUri: _compilationUnit.fileUri,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+    return new VoidTypeBuilder(_compilationUnit.fileUri, charOffset);
   }
 
   @override
