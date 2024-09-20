@@ -1915,40 +1915,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       arguments.named = uniqueNamed;
     }
 
-    if (inferenceNeeded) {
-      inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer!, calleeTypeParameters, inferredTypes!);
-      assert(inferredTypes.every((type) => isKnown(type)),
-          "Unknown type(s) in inferred types: $inferredTypes.");
-      assert(inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
-          "Promoted type variable(s) in inferred types: $inferredTypes.");
-      instantiator = new FunctionTypeInstantiator.fromIterables(
-          calleeTypeParameters, inferredTypes);
-      instrumentation?.record(uriForInstrumentation, offset, 'typeArgs',
-          new InstrumentationValueForTypeArgs(inferredTypes));
-      arguments.types.clear();
-      arguments.types.addAll(inferredTypes);
-      if (dataForTesting != null) {
-        // Coverage-ignore-block(suite): Not run.
-        assert(arguments.fileOffset != TreeNode.noOffset);
-        dataForTesting!.typeInferenceResult.inferredTypeArguments[arguments] =
-            inferredTypes;
-      }
-    }
-    LocatedMessage? argMessage = helper.checkArgumentsForType(
-        calleeType, arguments, offset,
-        isExtensionMemberInvocation: isExtensionMemberInvocation);
-    if (argMessage != null) {
-      return new WrapInProblemInferenceResult(
-          const InvalidType(),
-          const InvalidType(),
-          argMessage.messageObject,
-          argMessage.charOffset,
-          argMessage.length,
-          helper,
-          isInapplicable: true,
-          hoistedArguments: localHoistedExpressions);
-    } else {
+    void forEachArgument(
+        void Function(
+                {required DartType actualType,
+                required DartType expectedType,
+                required DartType formalType,
+                required Expression argumentExpression,
+                required bool coerceExpression,
+                required NamedExpression? namedArgumentExpression,
+                required int positionalArgumentIndex,
+                required int overallArgumentIndex})
+            argumentHandlingCallback) {
       // Argument counts and names match. Compare types.
       int positionalShift = isImplicitExtensionMember ? 1 : 0;
       int positionalIndex = 0;
@@ -1974,11 +1951,115 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   ?.contains(namedExpression.name) ??
               false);
         }
-        expression = ensureAssignable(expectedType, actualType, expression,
-            isVoidAllowed: expectedType is VoidType,
+
+        argumentHandlingCallback(
+            actualType: actualType,
+            expectedType: expectedType,
+            formalType: formalType,
+            argumentExpression: expression,
+            namedArgumentExpression: namedExpression,
             coerceExpression: coerceExpression,
-            // TODO(johnniwinther): Specialize message for operator
-            // invocations.
+            positionalArgumentIndex: positionalShift + positionalIndex,
+            overallArgumentIndex: i);
+
+        if (namedExpression == null) {
+          positionalIndex++;
+        } else {
+          namedIndex++;
+        }
+      }
+    }
+
+    List<ExpressionInferenceResult> argumentInferenceResultsToCheck = [];
+
+    // Before choosing the final types, we perform coercion and feed the
+    // resulting types back into the type inference via constraint generation.
+    forEachArgument((
+        {required DartType actualType,
+        required DartType expectedType,
+        required DartType formalType,
+        required Expression argumentExpression,
+        required bool coerceExpression,
+        required NamedExpression? namedArgumentExpression,
+        required int positionalArgumentIndex,
+        required int overallArgumentIndex}) {
+      ExpressionInferenceResult argumentResult =
+          new ExpressionInferenceResult(actualType, argumentExpression);
+      if (coerceExpression) {
+        ExpressionInferenceResult? coercionResult =
+            coerceExpressionForAssignment(expectedType, argumentResult,
+                isVoidAllowed: expectedType is VoidType,
+                treeNodeForTesting: argumentResult.expression);
+
+        if (coercionResult != null) {
+          argumentResult = coercionResult;
+          argumentExpression = argumentResult.expression;
+          if (namedArgumentExpression == null) {
+            arguments.positional[positionalArgumentIndex] = argumentExpression
+              ..parent = arguments;
+          } else {
+            namedArgumentExpression.value = argumentExpression
+              ..parent = namedArgumentExpression;
+          }
+
+          // Feed the coercion result back to the inference.
+          gatherer?.tryConstrainLower(formalType, argumentResult.inferredType,
+              treeNodeForTesting: arguments);
+        }
+      }
+      argumentInferenceResultsToCheck.add(argumentResult);
+    });
+
+    if (inferenceNeeded) {
+      inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
+          gatherer!, calleeTypeParameters, inferredTypes!);
+      assert(inferredTypes.every((type) => isKnown(type)),
+          "Unknown type(s) in inferred types: $inferredTypes.");
+      assert(inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
+          "Promoted type variable(s) in inferred types: $inferredTypes.");
+      instantiator = new FunctionTypeInstantiator.fromIterables(
+          calleeTypeParameters, inferredTypes);
+      instrumentation?.record(uriForInstrumentation, offset, 'typeArgs',
+          new InstrumentationValueForTypeArgs(inferredTypes));
+      arguments.types.clear();
+      arguments.types.addAll(inferredTypes);
+      if (dataForTesting != null) {
+        // Coverage-ignore-block(suite): Not run.
+        assert(arguments.fileOffset != TreeNode.noOffset);
+        dataForTesting!.typeInferenceResult.inferredTypeArguments[arguments] =
+            inferredTypes;
+      }
+    }
+
+    LocatedMessage? argMessage = helper.checkArgumentsForType(
+        calleeType, arguments, offset,
+        isExtensionMemberInvocation: isExtensionMemberInvocation);
+    if (argMessage != null) {
+      return new WrapInProblemInferenceResult(
+          const InvalidType(),
+          const InvalidType(),
+          argMessage.messageObject,
+          argMessage.charOffset,
+          argMessage.length,
+          helper,
+          isInapplicable: true,
+          hoistedArguments: localHoistedExpressions);
+    } else {
+      forEachArgument((
+          {required DartType actualType,
+          required DartType expectedType,
+          required DartType formalType,
+          required Expression argumentExpression,
+          required bool coerceExpression,
+          required NamedExpression? namedArgumentExpression,
+          required int positionalArgumentIndex,
+          required int overallArgumentIndex}) {
+        ExpressionInferenceResult? argumentResultToCheck =
+            argumentInferenceResultsToCheck[overallArgumentIndex];
+        argumentResultToCheck = reportAssignabilityErrors(
+            expectedType, argumentResultToCheck,
+            isVoidAllowed: expectedType is VoidType,
+            isCoercionAllowed: coerceExpression,
             errorTemplate: templateArgumentTypeNotAssignable,
             nullabilityErrorTemplate:
                 templateArgumentTypeNotAssignableNullability,
@@ -1988,16 +2069,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 templateArgumentTypeNotAssignableNullabilityNull,
             nullabilityNullTypeErrorTemplate:
                 templateArgumentTypeNotAssignableNullabilityNullType);
-        if (namedExpression == null) {
-          arguments.positional[positionalShift + positionalIndex] = expression
+
+        argumentExpression = argumentResultToCheck.expression;
+        if (namedArgumentExpression == null) {
+          arguments.positional[positionalArgumentIndex] = argumentExpression
             ..parent = arguments;
-          positionalIndex++;
         } else {
-          namedExpression.value = expression..parent = namedExpression;
-          namedIndex++;
+          namedArgumentExpression.value = argumentExpression
+            ..parent = namedArgumentExpression;
         }
-      }
+      });
     }
+
     DartType inferredType;
     if (instantiator != null) {
       calleeType = instantiator.substitute(calleeType.withoutTypeParameters)
