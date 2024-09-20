@@ -104,6 +104,7 @@ import 'package:analysis_server/src/services/correction/dart/extend_class_for_mi
 import 'package:analysis_server/src/services/correction/dart/extract_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_remove_widget.dart';
 import 'package:analysis_server/src/services/correction/dart/ignore_diagnostic.dart';
+import 'package:analysis_server/src/services/correction/dart/import_add_hide.dart';
 import 'package:analysis_server/src/services/correction/dart/import_library.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
@@ -544,6 +545,9 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
 };
 
 final _builtInNonLintMultiProducers = {
+  CompileTimeErrorCode.AMBIGUOUS_IMPORT: [
+    ImportAddHide.new,
+  ],
   CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO: [
     AddExtensionOverride.new,
   ],
