@@ -467,18 +467,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   bool hasBuiltOutlineExpressions = false;
 
-  // Coverage-ignore(suite): Not run.
-  bool get needsDefaultValuesBuiltAsOutlineExpressions {
-    if (formals != null) {
-      for (FormalParameterBuilder formal in formals!) {
-        if (formal.needsDefaultValuesBuiltAsOutlineExpressions) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   @override
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {

@@ -251,7 +251,7 @@ final TypeBuilder dummyTypeBuilder =
     new FixedTypeBuilderImpl(dummyDartType, dummyUri, -1);
 final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(FormalParameterKind.requiredPositional, 0,
-        const ImplicitTypeBuilder(), '', null, -1,
+        const ImplicitTypeBuilder(), '', -1,
         fileUri: dummyUri, hasImmediatelyDeclaredInitializer: false);
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(FormalParameterKind.requiredPositional,

@@ -171,28 +171,20 @@ class SourceEnumBuilder extends SourceClassBuilder {
       MemberBuilder member = iterator.current;
       if (member is DeclaredSourceConstructorBuilder) {
         member.ensureGrowableFormals();
-        member.formals!.insert(
-            0,
-            new FormalParameterBuilder(
-                FormalParameterKind.requiredPositional,
-                /* modifiers = */ 0,
-                stringType,
-                "#name",
-                libraryBuilder,
-                charOffset,
-                fileUri: fileUri,
-                hasImmediatelyDeclaredInitializer: false));
-        member.formals!.insert(
-            0,
-            new FormalParameterBuilder(
-                FormalParameterKind.requiredPositional,
-                /* modifiers = */ 0,
-                intType,
-                "#index",
-                libraryBuilder,
-                charOffset,
-                fileUri: fileUri,
-                hasImmediatelyDeclaredInitializer: false));
+
+        FormalParameterBuilder nameFormalParameterBuilder =
+            new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+                /* modifiers = */ 0, stringType, "#name", charOffset,
+                fileUri: fileUri, hasImmediatelyDeclaredInitializer: false);
+        member.formals!.insert(0, nameFormalParameterBuilder);
+        nameFormalParameterBuilder.parent = member;
+
+        FormalParameterBuilder indexFormalParameterBuilder =
+            new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+                /* modifiers = */ 0, intType, "#index", charOffset,
+                fileUri: fileUri, hasImmediatelyDeclaredInitializer: false);
+        member.formals!.insert(0, indexFormalParameterBuilder);
+        indexFormalParameterBuilder.parent = member;
       }
     }
 
