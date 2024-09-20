@@ -479,7 +479,7 @@ void f(int? p1, int? p2) {
   (p1 == null) && ((p2 == null));
 }
 ''', [
-      lint(45, 14),
+      lint(46, 12),
     ]);
   }
 }
