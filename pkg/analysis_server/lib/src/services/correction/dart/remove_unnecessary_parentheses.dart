@@ -26,7 +26,7 @@ class RemoveUnnecessaryParentheses extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var outer = coveringNode;
     if (outer is ParenthesizedExpression) {
-      if (outer.parent is! ParenthesizedExpression) {
+      if (outer.expression is! ParenthesizedExpression) {
         var left = outer.leftParenthesis;
 
         await builder.addDartFileEdit(file, (builder) {
@@ -36,16 +36,6 @@ class RemoveUnnecessaryParentheses extends ResolvedCorrectionProducer {
               builder.write(' ');
             }
           });
-          builder.addDeletion(range.token(outer.rightParenthesis));
-        });
-      } else if (outer.parent?.parent case Expression expression) {
-        if (expression is! BinaryExpression &&
-            expression is! ConditionalExpression &&
-            expression is! AsExpression &&
-            expression is! IsExpression) return;
-
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addDeletion(range.token(outer.leftParenthesis));
           builder.addDeletion(range.token(outer.rightParenthesis));
         });
       }

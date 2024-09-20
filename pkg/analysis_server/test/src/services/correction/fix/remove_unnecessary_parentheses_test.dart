@@ -53,9 +53,13 @@ void f() {
   ((42));
 }
 ''');
-    await assertNoFix(
-      errorFilter: (e) => e.offset == testCode.indexOf('(42'),
-    );
+    await assertHasFix('''
+void f() {
+  (42);
+}
+''',
+        errorFilter: (e) => e.offset == testCode.indexOf('(42'),
+        allowFixAllFixes: true);
   }
 
   Future<void> test_double_atOuter() async {
@@ -64,13 +68,9 @@ void f() {
   ((42));
 }
 ''');
-    await assertHasFix('''
-void f() {
-  (42);
-}
-''',
-        errorFilter: (e) => e.offset == testCode.indexOf('((42'),
-        allowFixAllFixes: true);
+    await assertNoFix(
+      errorFilter: (e) => e.offset == testCode.indexOf('((42'),
+    );
   }
 
   Future<void> test_previous_notKeyword() async {
@@ -125,7 +125,7 @@ int f() {
 ''');
   }
 
-  Future<void> test_double_parenthisized_bynaryExpression() async {
+  Future<void> test_double_parenthesized_bynaryExpression() async {
     await resolveTestCode('''
 void f(int? p1, int? p2) {
   p1 != null && ((p2 != null));
@@ -138,7 +138,7 @@ void f(int? p1, int? p2) {
 ''');
   }
 
-  Future<void> test_double_parenthisized_asExpression() async {
+  Future<void> test_double_parenthesized_asExpression() async {
     await resolveTestCode('''
 void f(int? p1, int p2) {
   ((p1 ?? p2)) as num;
@@ -151,7 +151,7 @@ void f(int? p1, int p2) {
 ''');
   }
 
-  Future<void> test_double_parenthisized_isExpression() async {
+  Future<void> test_double_parenthesized_isExpression() async {
     await resolveTestCode('''
 void f(int? p1, num p2) {
   ((p1 ?? p2)) is int;
