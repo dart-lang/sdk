@@ -73,6 +73,45 @@ void f() {
     );
   }
 
+  Future<void> test_double_parenthesized_asExpression() async {
+    await resolveTestCode('''
+void f(int? p1, int p2) {
+  ((p1 ?? p2)) as num;
+}
+''');
+    await assertHasFix('''
+void f(int? p1, int p2) {
+  (p1 ?? p2) as num;
+}
+''');
+  }
+
+  Future<void> test_double_parenthesized_bynaryExpression() async {
+    await resolveTestCode('''
+void f(int? p1, int? p2) {
+  p1 != null && ((p2 != null));
+}
+''');
+    await assertHasFix('''
+void f(int? p1, int? p2) {
+  p1 != null && (p2 != null);
+}
+''');
+  }
+
+  Future<void> test_double_parenthesized_isExpression() async {
+    await resolveTestCode('''
+void f(int? p1, num p2) {
+  ((p1 ?? p2)) is int;
+}
+''');
+    await assertHasFix('''
+void f(int? p1, num p2) {
+  (p1 ?? p2) is int;
+}
+''');
+  }
+
   Future<void> test_previous_notKeyword() async {
     await resolveTestCode('''
 int f(int i) {
@@ -121,45 +160,6 @@ int f() {
     await assertHasFix('''
 int f() {
   return 2;
-}
-''');
-  }
-
-  Future<void> test_double_parenthesized_bynaryExpression() async {
-    await resolveTestCode('''
-void f(int? p1, int? p2) {
-  p1 != null && ((p2 != null));
-}
-''');
-    await assertHasFix('''
-void f(int? p1, int? p2) {
-  p1 != null && (p2 != null);
-}
-''');
-  }
-
-  Future<void> test_double_parenthesized_asExpression() async {
-    await resolveTestCode('''
-void f(int? p1, int p2) {
-  ((p1 ?? p2)) as num;
-}
-''');
-    await assertHasFix('''
-void f(int? p1, int p2) {
-  (p1 ?? p2) as num;
-}
-''');
-  }
-
-  Future<void> test_double_parenthesized_isExpression() async {
-    await resolveTestCode('''
-void f(int? p1, num p2) {
-  ((p1 ?? p2)) is int;
-}
-''');
-    await assertHasFix('''
-void f(int? p1, num p2) {
-  (p1 ?? p2) is int;
 }
 ''');
   }
