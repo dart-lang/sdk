@@ -1849,6 +1849,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
             Location::RegisterLocation(AllocateFreeRegister(blocked_registers));
         break;
       case Location::kSameAsFirstInput:
+      case Location::kSameAsFirstOrSecondInput:
         result_location = locs->in(0);
         break;
       case Location::kRequiresFpuRegister:

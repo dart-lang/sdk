@@ -4090,7 +4090,9 @@ LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresFpuRegister());
-  summary->set_out(0, Location::SameAsFirstInput());
+  summary->set_out(0, Token::IsCommutativeOp(op_kind())
+                          ? Location::SameAsFirstOrSecondInput()
+                          : Location::SameAsFirstInput());
   return summary;
 }
 
@@ -5934,7 +5936,9 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
           zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
       summary->set_in(0, Location::RequiresRegister());
       summary->set_in(1, LocationRegisterOrConstant(right()));
-      summary->set_out(0, Location::SameAsFirstInput());
+      summary->set_out(0, Token::IsCommutativeOp(op_kind())
+                              ? Location::SameAsFirstOrSecondInput()
+                              : Location::SameAsFirstInput());
       return summary;
     }
   }
@@ -6341,7 +6345,9 @@ LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
-  summary->set_out(0, Location::SameAsFirstInput());
+  summary->set_out(0, Token::IsCommutativeOp(op_kind())
+                          ? Location::SameAsFirstOrSecondInput()
+                          : Location::SameAsFirstInput());
   return summary;
 }
 

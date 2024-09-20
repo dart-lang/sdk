@@ -2226,28 +2226,19 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
     return square;
   }
 
+  if (left()->BindsToConstant() && !right()->BindsToConstant() &&
+      Token::IsCommutativeOp(op_kind())) {
+    Value* l = left();
+    Value* r = right();
+    SetInputAt(0, r);
+    SetInputAt(1, l);
+  }
+
   return this;
 }
 
 Definition* DoubleTestOpInstr::Canonicalize(FlowGraph* flow_graph) {
   return HasUses() ? this : nullptr;
-}
-
-static bool IsCommutative(Token::Kind op) {
-  switch (op) {
-    case Token::kMUL:
-      FALL_THROUGH;
-    case Token::kADD:
-      FALL_THROUGH;
-    case Token::kBIT_AND:
-      FALL_THROUGH;
-    case Token::kBIT_OR:
-      FALL_THROUGH;
-    case Token::kBIT_XOR:
-      return true;
-    default:
-      return false;
-  }
 }
 
 UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
@@ -2430,7 +2421,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if (left()->BindsToConstant() && !right()->BindsToConstant() &&
-      IsCommutative(op_kind())) {
+      Token::IsCommutativeOp(op_kind())) {
     Value* l = left();
     Value* r = right();
     SetInputAt(0, r);

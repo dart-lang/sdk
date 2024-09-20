@@ -325,6 +325,7 @@ class Location : public ValueObject {
     kRequiresFpuRegister,
     kWritableRegister,
     kSameAsFirstInput,
+    kSameAsFirstOrSecondInput,
     // Forces the location to be spilled to the stack.
     // Currently only used for `Handle` arguments in `FfiCall` instructions.
     // Only available in optimized mode.
@@ -376,6 +377,14 @@ class Location : public ValueObject {
   // used to replace this unallocated location.
   static Location SameAsFirstInput() {
     return UnallocatedLocation(kSameAsFirstInput);
+  }
+
+  // Used for output of a symetric binary operation which have to
+  // destroy one its inputs (e.g. consider two address arithmetic
+  // operations live `add`). If any of the inputs is the last use
+  // of the value then it is cheap to destroy.
+  static Location SameAsFirstOrSecondInput() {
+    return UnallocatedLocation(kSameAsFirstOrSecondInput);
   }
 
   // Empty location. Used if there the location should be ignored.
