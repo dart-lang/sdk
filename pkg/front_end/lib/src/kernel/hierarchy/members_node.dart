@@ -698,14 +698,13 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
 
     if (classBuilder.isMixinApplication) {
       TypeBuilder mixedInTypeBuilder = classBuilder.mixedInTypeBuilder!;
-      TypeDeclarationBuilder mixin = mixedInTypeBuilder.declaration!;
-      while (mixin.isNamedMixinApplication) {
-        ClassBuilder named = mixin as ClassBuilder;
-        mixedInTypeBuilder = named.mixedInTypeBuilder!;
-        mixin = mixedInTypeBuilder.declaration!;
+      TypeDeclarationBuilder? mixin = mixedInTypeBuilder.declaration;
+      while (mixin is ClassBuilder && mixin.isNamedMixinApplication) {
+        mixedInTypeBuilder = mixin.mixedInTypeBuilder!;
+        mixin = mixedInTypeBuilder.declaration;
       }
       mixin =
-          mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true)!;
+          mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true);
       if (mixin is ClassBuilder) {
         Iterator<MemberBuilder> iterator =
             mixin.fullMemberIterator<MemberBuilder>();

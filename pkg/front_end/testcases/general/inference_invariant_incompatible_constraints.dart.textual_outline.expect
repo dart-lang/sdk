@@ -1,0 +1,7 @@
+typedef Invariant<X> = X Function(X x);
+
+X inferable<X>() => throw 0;
+
+void context<X>(Invariant<X> Function() g) => g();
+
+test() => context(() => inferable());

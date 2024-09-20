@@ -94,7 +94,7 @@ void main(List<String> args) async {
 
   test('dart link assets succeeds', timeout: longTimeout, () async {
     await nativeAssetsTest('drop_dylib_link', (dartAppUri) async {
-      final result = await runDart(
+      await runDart(
         arguments: [
           '--enable-experiment=native-assets',
           'run',
@@ -103,9 +103,8 @@ void main(List<String> args) async {
         ],
         workingDirectory: dartAppUri,
         logger: logger,
-        expectExitCodeZero: false,
+        expectExitCodeZero: true,
       );
-      expect(result.exitCode, 0);
     });
   });
 

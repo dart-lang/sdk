@@ -152,7 +152,7 @@ void main(List<String> args) {
 
   test('dart link assets', timeout: longTimeout, () async {
     await nativeAssetsTest('drop_dylib_link', (dartAppUri) async {
-      final result = await runDart(
+      await runDart(
         arguments: [
           '--enable-experiment=native-assets',
           'build',
@@ -160,9 +160,8 @@ void main(List<String> args) {
         ],
         workingDirectory: dartAppUri,
         logger: logger,
-        expectExitCodeZero: false,
+        expectExitCodeZero: true,
       );
-      expect(result.exitCode, 0);
 
       // Check that the build directory exists
       final directory =

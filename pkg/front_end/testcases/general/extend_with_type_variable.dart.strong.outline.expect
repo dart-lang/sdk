@@ -34,6 +34,7 @@ class Class1<T extends core::Object? = dynamic, S extends self::SuperClass> exte
 }
 abstract class _Class2&SuperClass&M<T extends core::Object? = dynamic, M extends self::Mixin<self::_Class2&SuperClass&M::T%> = self::Mixin<dynamic>> extends self::SuperClass /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class2&SuperClass&M<self::_Class2&SuperClass&M::T%, self::_Class2&SuperClass&M::M>
+    : super self::SuperClass::•()
     ;
 }
 class Class2<T extends core::Object? = dynamic, M extends self::Mixin<self::Class2::T%> = self::Mixin<dynamic>> extends self::_Class2&SuperClass&M<self::Class2::T%, self::Class2::M> {

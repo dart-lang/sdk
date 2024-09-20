@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Exactly<invariant X extends core::Object? = dynamic> = (X%) → X%;
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  method call<T extends core::Object? = dynamic>(self::C::call::T% t) → self::C::call::T%
+    ;
+}
+class Checker<X extends core::Object? = dynamic> extends core::Object {
+  final field self::Checker::X% x;
+  constructor •(self::Checker::X% x) → self::Checker<self::Checker::X%>
+    ;
+  method expectStaticType<covariant-by-class Y extends (self::Checker::X%) → self::Checker::X%>() → self::Checker::X%
+    ;
+}
+static method f<X extends core::Object? = dynamic>((core::String) → self::f::X% g) → (core::String) → self::f::X%
+  ;
+static method main() → void
+  ;

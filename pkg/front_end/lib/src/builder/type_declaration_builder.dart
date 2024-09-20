@@ -81,6 +81,7 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
   TypeDeclarationBuilder get origin => this as TypeDeclarationBuilder;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isNamedMixinApplication => false;
 
   @override

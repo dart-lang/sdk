@@ -345,7 +345,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/named_type_builder.dart": (
-    hitCount: 613,
+    hitCount: 611,
     missCount: 0,
   ),
   // 100.0%.
@@ -400,7 +400,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/type_declaration_builder.dart": (
-    hitCount: 9,
+    hitCount: 8,
     missCount: 0,
   ),
   // 100.0%.
@@ -409,8 +409,8 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 0,
   ),
   // 100.0%.
-  "package:front_end/src/builder/void_type_declaration_builder.dart": (
-    hitCount: 2,
+  "package:front_end/src/builder/void_type_builder.dart": (
+    hitCount: 28,
     missCount: 0,
   ),
   // 100.0%.
@@ -495,7 +495,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/body_builder.dart": (
-    hitCount: 7155,
+    hitCount: 7143,
     missCount: 0,
   ),
   // 100.0%.
@@ -600,7 +600,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/hierarchy/members_node.dart": (
-    hitCount: 1162,
+    hitCount: 1163,
     missCount: 0,
   ),
   // 100.0%.
@@ -715,7 +715,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/type_builder_computer.dart": (
-    hitCount: 175,
+    hitCount: 169,
     missCount: 0,
   ),
   // 100.0%.
@@ -805,7 +805,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_builder_factory.dart": (
-    hitCount: 1373,
+    hitCount: 1371,
     missCount: 0,
   ),
   // 100.0%.
@@ -815,7 +815,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_class_builder.dart": (
-    hitCount: 1227,
+    hitCount: 1222,
     missCount: 0,
   ),
   // 100.0%.

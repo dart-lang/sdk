@@ -1,0 +1,15 @@
+X Function(String) f<X>(X Function(String) g) => g;
+
+class C {
+  T call<T>(T t) => t;
+}
+
+class Checker<X> {
+  Checker(this.x);
+  X expectStaticType<Y extends Exactly<X>>() => x;
+  final X x;
+}
+
+typedef Exactly<X> = X Function(X);
+
+void main() {}

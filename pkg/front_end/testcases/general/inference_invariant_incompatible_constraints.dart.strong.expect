@@ -1,0 +1,22 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/inference_invariant_incompatible_constraints.dart:8:19: Error: The argument type 'Object? Function(Never) Function()' can't be assigned to the parameter type 'Object? Function(Object?) Function()'.
+//  - 'Object' is from 'dart:core'.
+// test() => context(() => inferable());
+//                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Invariant<invariant X extends core::Object? = dynamic> = (X%) → X%;
+static method inferable<X extends core::Object? = dynamic>() → self::inferable::X%
+  return throw 0;
+static method context<X extends core::Object? = dynamic>(() → (self::context::X%) → self::context::X% g) → void
+  return g(){() → (self::context::X%) → self::context::X%};
+static method test() → dynamic
+  return self::context<core::Object?>(invalid-expression "pkg/front_end/testcases/general/inference_invariant_incompatible_constraints.dart:8:19: Error: The argument type 'Object? Function(Never) Function()' can't be assigned to the parameter type 'Object? Function(Object?) Function()'.
+ - 'Object' is from 'dart:core'.
+test() => context(() => inferable());
+                  ^" in (() → (Never) → core::Object? => self::inferable<(Never) → core::Object?>()) as{TypeError} () → (core::Object?) → core::Object?);
