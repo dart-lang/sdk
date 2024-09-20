@@ -1338,8 +1338,11 @@ void FlowGraphAllocator::ProcessOneOutput(BlockEntryInstr* block,
            in_ref->Equals(Location::RequiresFpuRegister()));
     *out = *in_ref;
     // Create move that will copy value between input and output.
-    MoveOperands* move =
-        AddMoveAt(pos, Location::RequiresRegister(), Location::Any());
+    // Inside loops prefer to allocate a register for the value for this
+    // move, but do not require it.
+    MoveOperands* move = AddMoveAt(
+        pos, Location::RequiresRegister(),
+        block->IsInsideLoop() ? Location::PrefersRegister() : Location::Any());
 
     // Add uses to the live range of the input.
     LiveRange* input_range = GetLiveRange(input_vreg);
@@ -1375,6 +1378,34 @@ void FlowGraphAllocator::ProcessOneOutput(BlockEntryInstr* block,
 
   AssignSafepoints(def, range);
   CompleteRange(range, def->RegisterKindForResult());
+}
+
+bool FlowGraphAllocator::IsDeadAfterCurrentInstruction(BlockEntryInstr* block,
+                                                       Instruction* current,
+                                                       Definition* defn) {
+  // Do not bother with pair representations for now.
+  if (defn->HasPairRepresentation()) {
+    return false;
+  }
+
+  auto range = GetLiveRange(defn->vreg(0));
+
+  // Register allocator is building live ranges by visiting blocks in
+  // postorder and iterating instructions within blocks backwards. When
+  // we start iterating the block for each value which is live out of the block
+  // we prepend a use interval covering the whole block to the live range of
+  // the block. This means all uses which we encounter are being monotonically
+  // prepended to the start of the range. See |BuildLiveRanges| and |DefineAt|
+  // for more details.
+  //
+  // In other words: it is only possible for a value to have a use *after* the
+  // current instruction if corresponding range is not empty and it starts
+  // with a use interval which starts within the current block. It might be
+  // either interval corresponding to the real use within the block or an
+  // artificial interval which spans the whole block created for the value
+  // which flows out of the block.
+  return range->first_use_interval() == nullptr ||
+         range->first_use_interval()->start() >= block->end_pos();
 }
 
 // Create and update live ranges corresponding to instruction's inputs,
@@ -1434,6 +1465,26 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       // Single input, single output.
       locs->set_out(0, locs->in(0));
     }
+  }
+
+  if (locs->out(0).IsUnallocated() &&
+      (locs->out(0).policy() == Location::kSameAsFirstOrSecondInput)) {
+    auto in_left = locs->in(0);
+    auto in_right = locs->in(1);
+    // Check if operation has the same constraint on both inputs.
+    if (in_left.Equals(in_right)) {
+      // If the first input outlives this instruction but the second does not,
+      // then we should flip them to reduce register pressure and avoid
+      // redundant move.
+      auto defn_left = current->InputAt(0)->definition();
+      auto defn_right = current->InputAt(1)->definition();
+      if (!IsDeadAfterCurrentInstruction(block, current, defn_left) &&
+          IsDeadAfterCurrentInstruction(block, current, defn_right)) {
+        current->InputAt(0)->BindTo(defn_right);
+        current->InputAt(1)->BindTo(defn_left);
+      }
+    }
+    locs->set_out(0, Location::SameAsFirstInput());
   }
 
   const bool output_same_as_first_input =

@@ -25,7 +25,6 @@ import '../source/source_library_builder.dart';
 import 'builder.dart';
 import 'constructor_builder.dart';
 import 'declaration_builders.dart';
-import 'library_builder.dart';
 import 'modifier_builder.dart';
 import 'omitted_type_builder.dart';
 import 'type_builder.dart';
@@ -94,15 +93,15 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   /// Whether this formal parameter is a wildcard variable.
   final bool isWildcard;
 
-  FormalParameterBuilder(this.kind, this.modifiers, this.type, this.name,
-      LibraryBuilder? compilationUnit, int charOffset,
+  FormalParameterBuilder(
+      this.kind, this.modifiers, this.type, this.name, int charOffset,
       {required Uri fileUri,
       this.isExtensionThis = false,
       required this.hasImmediatelyDeclaredInitializer,
       this.isWildcard = false})
       : this.fileUri = fileUri,
         this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
-        super(compilationUnit, charOffset) {
+        super(null, charOffset) {
     type.registerInferredTypeListener(this);
   }
 
@@ -182,7 +181,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   FormalParameterBuilder forPrimaryConstructor(BuilderFactory builderFactory) {
     return new FormalParameterBuilder(kind, modifiers | initializingFormalMask,
-        builderFactory.addInferableType(), name, null, charOffset,
+        builderFactory.addInferableType(), name, charOffset,
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
@@ -197,7 +196,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           modifiers | finalMask | initializingFormalMask,
           type,
           name,
-          null,
           charOffset,
           fileUri: fileUri,
           isExtensionThis: isExtensionThis,
@@ -210,7 +208,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           modifiers | finalMask | superInitializingFormalMask,
           type,
           name,
-          null,
           charOffset,
           fileUri: fileUri,
           isExtensionThis: isExtensionThis,

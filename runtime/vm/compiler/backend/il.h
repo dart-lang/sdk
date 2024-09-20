@@ -1733,6 +1733,7 @@ class BlockEntryInstr : public TemplateInstruction<0, NoThrow> {
   bool InsideTryBlock() const { return try_index_ != kInvalidTryIndex; }
 
   // Loop related methods.
+  bool IsInsideLoop() { return loop_info_ != nullptr; }
   LoopInfo* loop_info() const { return loop_info_; }
   void set_loop_info(LoopInfo* loop_info) { loop_info_ = loop_info; }
   bool IsLoopHeader() const;

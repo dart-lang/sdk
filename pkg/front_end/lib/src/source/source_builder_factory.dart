@@ -1573,7 +1573,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           }
           List<FormalParameterBuilder> synthesizedFormals = [
             new FormalParameterBuilder(FormalParameterKind.requiredPositional,
-                finalMask, thisType, syntheticThisName, null, charOffset,
+                finalMask, thisType, syntheticThisName, charOffset,
                 fileUri: _compilationUnit.fileUri,
                 isExtensionThis: true,
                 hasImmediatelyDeclaredInitializer: false)
@@ -1623,7 +1623,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           }
           List<FormalParameterBuilder> synthesizedFormals = [
             new FormalParameterBuilder(FormalParameterKind.requiredPositional,
-                finalMask, thisType, syntheticThisName, null, charOffset,
+                finalMask, thisType, syntheticThisName, charOffset,
                 fileUri: _compilationUnit.fileUri,
                 isExtensionThis: true,
                 hasImmediatelyDeclaredInitializer: false)
@@ -2391,7 +2391,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       wildcardVariableIndex++;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-        kind, modifiers, type, formalName, _parent, charOffset,
+        kind, modifiers, type, formalName, charOffset,
         fileUri: _compilationUnit.fileUri,
         hasImmediatelyDeclaredInitializer: initializerToken != null,
         isWildcard: isWildcard)
