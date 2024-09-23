@@ -19,6 +19,32 @@ class InvertConditionalExpressionTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.INVERT_CONDITIONAL_EXPRESSION;
 
+  Future<void> test_thenStatement_elseStatement_on_colon() async {
+    await resolveTestCode('''
+void f() {
+  true ? 0 /*caret*/: 1;
+}
+''');
+    await assertHasAssist('''
+void f() {
+  false ? 1 : 0;
+}
+''');
+  }
+
+  Future<void> test_thenStatement_elseStatement_on_condition() async {
+    await resolveTestCode('''
+void f() {
+  /*caret*/true ? 0 : 1;
+}
+''');
+    await assertHasAssist('''
+void f() {
+  false ? 1 : 0;
+}
+''');
+  }
+
   Future<void>
       test_thenStatement_elseStatement_on_conditionParentheses() async {
     await resolveTestCode('''
@@ -47,21 +73,42 @@ void f() {
 ''');
   }
 
-  Future<void>
-      test_thenStatement_elseStatement_on_thenParenthesesAsyncFunction() async {
+  Future<void> test_thenStatement_elseStatement_on_else() async {
     await resolveTestCode('''
-void f() async {
-  (true) ? (await f/*caret*/n()) : 1;
+void f() {
+  true ? 0 : /*caret*/1;
 }
-
-Future<void> fn() async {}
 ''');
     await assertHasAssist('''
-void f() async {
-  false ? 1 : (await fn());
+void f() {
+  false ? 1 : 0;
 }
+''');
+  }
 
-Future<void> fn() async {}
+  Future<void> test_thenStatement_elseStatement_on_question() async {
+    await resolveTestCode('''
+void f() {
+  true /*caret*/? 0 : 1;
+}
+''');
+    await assertHasAssist('''
+void f() {
+  false ? 1 : 0;
+}
+''');
+  }
+
+  Future<void> test_thenStatement_elseStatement_on_then() async {
+    await resolveTestCode('''
+void f() {
+  true ? /*caret*/0 : 1;
+}
+''');
+    await assertHasAssist('''
+void f() {
+  false ? 1 : 0;
+}
 ''');
   }
 
@@ -83,45 +130,19 @@ Future<int> fn() async => 0;
 ''');
   }
 
-  Future<void>
-      test_thenStatement_elseStatement_on_thenLambdaBody() async {
-    await resolveTestCode('''
-void f() async {
-  (true) ? () => /*caret*/1 : 1;
-}
-''');
-    await assertNoAssist();
-  }
-
-  Future<void>
-      test_thenStatement_elseStatement_on_thenLambdaParenthesized() async {
-    await resolveTestCode('''
-void f() async {
-  (true) ? (/*caret*/() => 1) : 1;
-}
-''');
-    await assertNoAssist();
-  }
-
-  Future<void>
-      test_thenStatement_elseStatement_on_thenParenthesized() async {
-    await resolveTestCode('''
-void f() async {
-  (true) ? /*caret*/(() => 1) : 1;
-}
-''');
-    await assertHasAssist('''
-void f() async {
-  false ? 1 : (() => 1);
-}
-''');
-  }
-
-  Future<void>
-      test_thenStatement_elseStatement_on_thenLambda() async {
+  Future<void> test_thenStatement_elseStatement_on_thenLambda() async {
     await resolveTestCode('''
 void f() async {
   (true) ? () =>/*caret*/ 1 : 1;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_thenStatement_elseStatement_on_thenLambdaBody() async {
+    await resolveTestCode('''
+void f() async {
+  (true) ? () => /*caret*/1 : 1;
 }
 ''');
     await assertNoAssist();
@@ -138,20 +159,30 @@ void f() async {
   }
 
   Future<void>
-      test_thenStatement_elseStatement_on_thenParenthesesTearoff() async {
+      test_thenStatement_elseStatement_on_thenLambdaParenthesized() async {
     await resolveTestCode('''
-void f() {
-  (true) ? (f/*caret*/n) : 1;
+void f() async {
+  (true) ? (/*caret*/() => 1) : 1;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void>
+      test_thenStatement_elseStatement_on_thenParenthesesAsyncFunction() async {
+    await resolveTestCode('''
+void f() async {
+  (true) ? (await f/*caret*/n()) : 1;
 }
 
-void fn() {}
+Future<void> fn() async {}
 ''');
     await assertHasAssist('''
-void f() {
-  false ? 1 : (fn);
+void f() async {
+  false ? 1 : (await fn());
 }
 
-void fn() {}
+Future<void> fn() async {}
 ''');
   }
 
@@ -191,67 +222,46 @@ bool fn() => true;
 ''');
   }
 
-  Future<void> test_thenStatement_elseStatement_on_question() async {
+  Future<void>
+      test_thenStatement_elseStatement_on_thenParenthesesTearoff() async {
     await resolveTestCode('''
 void f() {
-  true /*caret*/? 0 : 1;
+  (true) ? (f/*caret*/n) : 1;
 }
+
+void fn() {}
 ''');
     await assertHasAssist('''
 void f() {
-  false ? 1 : 0;
+  false ? 1 : (fn);
+}
+
+void fn() {}
+''');
+  }
+
+  Future<void> test_thenStatement_elseStatement_on_thenParenthesized() async {
+    await resolveTestCode('''
+void f() async {
+  (true) ? /*caret*/(() => 1) : 1;
+}
+''');
+    await assertHasAssist('''
+void f() async {
+  false ? 1 : (() => 1);
 }
 ''');
   }
 
-  Future<void> test_thenStatement_elseStatement_on_colon() async {
+  Future<void> test_thenStatement_elseStatement_on_thenSumExp() async {
     await resolveTestCode('''
-void f() {
-  true ? 0 /*caret*/: 1;
+void f() async {
+  (true) ? (1 + /*caret*/2) : 1;
 }
 ''');
     await assertHasAssist('''
-void f() {
-  false ? 1 : 0;
-}
-''');
-  }
-
-  Future<void> test_thenStatement_elseStatement_on_condition() async {
-    await resolveTestCode('''
-void f() {
-  /*caret*/true ? 0 : 1;
-}
-''');
-    await assertHasAssist('''
-void f() {
-  false ? 1 : 0;
-}
-''');
-  }
-
-  Future<void> test_thenStatement_elseStatement_on_then() async {
-    await resolveTestCode('''
-void f() {
-  true ? /*caret*/0 : 1;
-}
-''');
-    await assertHasAssist('''
-void f() {
-  false ? 1 : 0;
-}
-''');
-  }
-
-  Future<void> test_thenStatement_elseStatement_on_else() async {
-    await resolveTestCode('''
-void f() {
-  true ? 0 : /*caret*/1;
-}
-''');
-    await assertHasAssist('''
-void f() {
-  false ? 1 : 0;
+void f() async {
+  false ? 1 : (1 + 2);
 }
 ''');
   }
