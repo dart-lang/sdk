@@ -289,7 +289,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
   }
 
   {
-    ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
+    ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
     RelaxedAtomic<intptr_t> next_planning_task = {0};
     RelaxedAtomic<intptr_t> next_setup_task = {0};
     RelaxedAtomic<intptr_t> next_sliding_task = {0};

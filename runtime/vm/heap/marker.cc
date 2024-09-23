@@ -1359,7 +1359,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       marked_bytes_ += visitor.marked_bytes();
       marked_micros_ += visitor.marked_micros();
     } else {
-      ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
+      ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
 
       ResetSlices();
       // Used to coordinate draining among tasks; all start out as 'busy'.

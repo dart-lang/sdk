@@ -19,6 +19,7 @@
 #include "vm/object.h"
 #include "vm/object_set.h"
 #include "vm/os_thread.h"
+#include "vm/thread_barrier.h"
 #include "vm/unwinding_records.h"
 #include "vm/virtual_memory.h"
 
@@ -1012,6 +1013,70 @@ void PageSpace::CollectGarbage(Thread* thread, bool compact, bool finalize) {
   }
 }
 
+class ParallelSweepTask : public SafepointTask {
+ public:
+  ParallelSweepTask(PageSpace* old_space,
+                    IsolateGroup* isolate_group,
+                    ThreadBarrier* barrier,
+                    bool new_space_is_swept)
+      : old_space_(old_space),
+        isolate_group_(isolate_group),
+        barrier_(barrier),
+        new_space_is_swept_(new_space_is_swept) {}
+  ~ParallelSweepTask() { barrier_->Release(); }
+
+  void Run() override {
+    if (!barrier_->TryEnter()) {
+      return;
+    }
+
+    bool result = Thread::EnterIsolateGroupAsHelper(
+        isolate_group_, Thread::kSweeperTask, /*bypass_safepoint=*/true);
+    ASSERT(result);
+
+    RunEnteredIsolateGroup();
+
+    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
+
+    barrier_->Sync();
+  }
+
+  void RunBlockedAtSafepoint() override {
+    if (!barrier_->TryEnter()) {
+      return;
+    }
+
+    Thread* thread = Thread::Current();
+    Thread::TaskKind saved_task_kind = thread->task_kind();
+    thread->set_task_kind(Thread::kSweeperTask);
+
+    RunEnteredIsolateGroup();
+
+    thread->set_task_kind(saved_task_kind);
+
+    barrier_->Sync();
+  }
+
+  void RunMain() override {
+    RunEnteredIsolateGroup();
+
+    barrier_->Sync();
+  }
+
+  void RunEnteredIsolateGroup() {
+    old_space_->SweepExecutable();
+    if (!new_space_is_swept_) {
+      old_space_->SweepNew();
+    }
+  }
+
+ private:
+  PageSpace* old_space_;
+  IsolateGroup* isolate_group_;
+  ThreadBarrier* barrier_;
+  bool new_space_is_swept_;
+};
+
 void PageSpace::CollectGarbageHelper(Thread* thread,
                                      bool compact,
                                      bool finalize) {
@@ -1095,28 +1160,6 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   }
 
   {
-    // Executable pages are always swept immediately to simplify
-    // code protection.
-    TIMELINE_FUNCTION_GC_DURATION(thread, "SweepExecutable");
-    GCSweeper sweeper;
-    Page* prev_page = nullptr;
-    Page* page = exec_pages_;
-    FreeList* freelist = &freelists_[kExecutableFreelist];
-    MutexLocker ml(freelist->mutex());
-    while (page != nullptr) {
-      Page* next_page = page->next();
-      bool page_in_use = sweeper.SweepPage(page, freelist);
-      if (page_in_use) {
-        prev_page = page;
-      } else {
-        FreePage(page, prev_page);
-      }
-      // Advance to the next page.
-      page = next_page;
-    }
-  }
-
-  {
     // Move pages to sweeper work lists.
     MutexLocker ml(&pages_lock_);
     ASSERT(sweep_large_ == nullptr);
@@ -1127,11 +1170,27 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
       sweep_regular_ = pages_;
       pages_ = pages_tail_ = nullptr;
     }
+    if (!new_space_is_swept) {
+      sweep_new_ = heap_->new_space()->head();
+      heap_->new_space()->set_freed_in_words(0);
+    }
+    sweep_executable_ = exec_pages_;
   }
 
-  if (!new_space_is_swept) {
-    SweepNew();
+  {
+    // STW sweeping: executable and new pages.
+    // Executable pages are always swept during the STW phase to simplify
+    // code protection.
+    const intptr_t num_tasks = heap_->new_space()->NumScavengeWorkers();
+    ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
+    IntrusiveDList<SafepointTask> tasks;
+    for (intptr_t i = 0; i < num_tasks; i++) {
+      tasks.Append(new ParallelSweepTask(this, isolate_group, barrier,
+                                         new_space_is_swept));
+    }
+    isolate_group->safepoint_handler()->RunTasks(&tasks);
   }
+
   bool is_concurrent_sweep_running = false;
   if (compact) {
     Compact(thread);
@@ -1331,18 +1390,52 @@ void PageSpace::VerifyStoreBuffers(const char* msg) {
   }
 }
 
+void PageSpace::SweepExecutable() {
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "SweepExecutable");
+
+  Page* page;
+  {
+    MutexLocker ml(&pages_lock_);
+    page = sweep_executable_;
+    sweep_executable_ = nullptr;
+  }
+  if (page == nullptr) {
+    return;
+  }
+
+  GCSweeper sweeper;
+  Page* prev_page = nullptr;
+  FreeList* freelist = &freelists_[kExecutableFreelist];
+  MutexLocker ml(freelist->mutex());
+  while (page != nullptr) {
+    Page* next_page = page->next();
+    bool page_in_use = sweeper.SweepPage(page, freelist);
+    if (page_in_use) {
+      prev_page = page;
+    } else {
+      FreePage(page, prev_page);
+    }
+    page = next_page;
+  }
+}
+
 void PageSpace::SweepNew() {
-  // TODO(rmacnak): Run in parallel with SweepExecutable.
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "SweepNew");
 
   GCSweeper sweeper;
   intptr_t free = 0;
-  for (Page* page = heap_->new_space()->head(); page != nullptr;
-       page = page->next()) {
-    page->Release();
-    free += sweeper.SweepNewPage(page);
+  {
+    MutexLocker ml(&pages_lock_);
+    while (sweep_new_ != nullptr) {
+      Page* page = sweep_new_;
+      sweep_new_ = page->next();
+      ml.Unlock();
+      page->Release();
+      free += sweeper.SweepNewPage(page);
+      ml.Lock();
+    }
   }
-  heap_->new_space()->set_freed_in_words(free >> kWordSizeLog2);
+  heap_->new_space()->add_freed_in_words(free >> kWordSizeLog2);
 }
 
 void PageSpace::SweepLarge() {

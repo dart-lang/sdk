@@ -2057,7 +2057,7 @@ intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
   intptr_t bytes_promoted = 0;
   const intptr_t num_tasks = NumScavengeWorkers();
 
-  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
+  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
   RelaxedAtomic<uintptr_t> num_busy = 0;
 
   IsolateGroup* isolate_group = heap_->isolate_group();

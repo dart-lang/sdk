@@ -277,7 +277,7 @@ bool GCIncrementalCompactor::SelectEvacuationCandidates(PageSpace* old_space) {
   const intptr_t num_tasks =
       isolate_group->heap()->new_space()->NumScavengeWorkers();
   RELEASE_ASSERT(num_tasks > 0);
-  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
+  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
   IntrusiveDList<SafepointTask> tasks;
   for (intptr_t i = 0; i < num_tasks; i++) {
     tasks.Append(new PrologueTask(barrier, isolate_group, old_space, &state));
@@ -911,7 +911,7 @@ void GCIncrementalCompactor::Evacuate(PageSpace* old_space) {
   const intptr_t num_tasks =
       isolate_group->heap()->new_space()->NumScavengeWorkers();
   RELEASE_ASSERT(num_tasks > 0);
-  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, num_tasks);
+  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/num_tasks);
   IntrusiveDList<SafepointTask> tasks;
   for (intptr_t i = 0; i < num_tasks; i++) {
     tasks.Append(new EpilogueTask(barrier, isolate_group, old_space,
