@@ -20,6 +20,8 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -355,6 +357,10 @@ abstract class ResolvedCorrectionProducer
   AnalysisOptionsImpl get analysisOptions =>
       sessionHelper.session.analysisContext
           .getAnalysisOptionsForFile(unitResult.file) as AnalysisOptionsImpl;
+
+  InheritanceManager3 get inheritanceManager {
+    return (libraryElement as LibraryElementImpl).session.inheritanceManager;
+  }
 
   /// Whether [node] is in a static context.
   bool get inStaticContext {
