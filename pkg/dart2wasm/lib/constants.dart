@@ -875,10 +875,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         tearOffConstant.function.namedParameters.map((p) => p.name!).toList();
     ClosureRepresentation instantiationOfTearOffRepresentation = translator
         .closureLayouter
-        .getClosureRepresentation(module, 0, positionalCount, names)!;
+        .getClosureRepresentation(0, positionalCount, names)!;
     ClosureRepresentation tearOffRepresentation = translator.closureLayouter
-        .getClosureRepresentation(
-            module, types.length, positionalCount, names)!;
+        .getClosureRepresentation(types.length, positionalCount, names)!;
     w.StructType struct = instantiationOfTearOffRepresentation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
 

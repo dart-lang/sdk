@@ -615,7 +615,6 @@ class Translator with KernelNodes {
     if (type is FunctionType) {
       ClosureRepresentation? representation =
           closureLayouter.getClosureRepresentation(
-              mainModule,
               type.typeParameters.length,
               type.positionalParameters.length,
               type.namedParameters.map((p) => p.name).toList());
@@ -724,9 +723,8 @@ class Translator with KernelNodes {
             paramInfo.typeParamCount +
             paramInfo.positional.length +
             paramInfo.named.length);
-    ClosureRepresentation representation =
-        closureLayouter.getClosureRepresentation(
-            targetModule, typeCount, positionalCount, names)!;
+    ClosureRepresentation representation = closureLayouter
+        .getClosureRepresentation(typeCount, positionalCount, names)!;
     assert(representation.vtableStruct.fields.length ==
         representation.vtableBaseIndex +
             (1 + positionalCount) +
@@ -819,12 +817,11 @@ class Translator with KernelNodes {
     final dynamicCallEntry = makeDynamicCallEntry();
     ib.ref_func(dynamicCallEntry);
     if (representation.isGeneric) {
-      ib.ref_func(representation.instantiationTypeComparisonFunctionForModule(
-          this, ib.module));
-      ib.ref_func(representation.instantiationTypeHashFunctionForModule(
-          this, ib.module));
+      ib.ref_func(representation
+          .instantiationTypeComparisonFunctionForModule(ib.module));
       ib.ref_func(
-          representation.instantiationFunctionForModule(this, ib.module));
+          representation.instantiationTypeHashFunctionForModule(ib.module));
+      ib.ref_func(representation.instantiationFunctionForModule(ib.module));
     }
     for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
       fillVtableEntry(ib, posArgCount, const []);
