@@ -144,7 +144,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "5d35f4d829ffb8532d345d95d3e9504ae6cd839e", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "8100ccf1c1b8a462fd08adcc0cfd8db0f941f44a",
+  "dartdoc_rev": "526dbd55b5a2d8acb8af4e2d5510f6c807c9dc04",
   "ecosystem_rev": "4ba6f15e2849ebd19419695d0ae931b4c38498ae",
   "file_rev": "855831c242a17c2dee163828d52710d9043c7c8d",
   "fixnum_rev": "6c19e60366ce3d5edfaed51a7c12c98e7977977e",
@@ -162,7 +162,7 @@ vars = {
   "markdown_rev": "f6eaea38146d8901756418c4e7123eb7bd77249e",
   "matcher_rev": "d6d573d0f8d65b36550ce62aad3ce6b5e987b642",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "mockito_rev": "d0fda0ce7883fed0238be9c3698fed0c3632c3e3",
+  "mockito_rev": "b66be81e38e1ac76d12ee2fe4f93757a40bbb7ba",
   "native_rev": "20f8160b54b9b209390d51b6e3edec4ab0c65009", # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "76934c2ca25922ec72909bbff7dfbddaf0d02bd9",
   "path_rev": "e969f42ed112dd702a9453beb9df6c12ae2d3805",
@@ -174,13 +174,13 @@ vars = {
   "source_maps_rev": "5f82c613664ade03c7a6d0e6c59687c69dec894b",
   "source_span_rev": "f81cd4a2df630a97264fb4015fb93944b5b98b11",
   "sse_rev": "af2c5c572a8da6d2f7551b80d75121f2a38a4c79",
-  "stack_trace_rev": "090d3d186c085fdb913fe5350c666f8d0bd0f60f",
+  "stack_trace_rev": "5b829650d47c66a3b6786256fd955403cd56a169",
   "stream_channel_rev": "c0c5a978b225d2e02be858e98e24455b7f79b1a0",
   "string_scanner_rev": "a40bbbd83f1176bcc0021b336f5841310f91d8cb",
   "sync_http_rev": "91c0dd5ef9a008f0277aadcfd83036f82e572d09",
   "tar_rev": "32ceb55e673141abff4e84b99483fe5eb881c291",
   "term_glyph_rev": "38a158f55006cf30942c928171ea601ee5e0308f",
-  "test_rev": "9a2d155b648ecf3c2e979233ee5e94d199a7d6dd",
+  "test_rev": "22835e2ec81169a5c05ed1ceb4fd6d0e8f4e87d6",
   "test_descriptor_rev": "3b85d384997bd8cc0454475045cbb4ffc68797ee",
   "test_process_rev": "6223572ca16d7585d5f08d9281de6a5734e45150",
   "test_reflective_loader_rev": "6e648863b39aab8d0204e769d25805eea9db0ac4",
@@ -188,7 +188,7 @@ vars = {
   "typed_data_rev": "2bb9e6ead6394e2d4ec6068c5ece8b2ec0e2b945",
   "vector_math_rev": "2cfbe2c115a57b368ccbc3c89ebd38a06764d3d1",
   "watcher_rev": "0484625589d8512b36a7ad898a6cc6351d24c556",
-  "web_rev": "933a37d2235a63fd63185b3055d6bc0fd23edcfd",
+  "web_rev": "d8549a35a947848f925b47c07101d400e01deaad",
   "web_socket_channel_rev": "0e1d6e2eb5a0bfd62e45b772ac7107d796176cf6",
   "webdev_rev": "5f30c560dc4e3df341356c43ec1a766ee6b74a7c",
   "webdriver_rev": "b181c9e5eca657ea4a12621332f47d9579106fda",
