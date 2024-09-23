@@ -47,6 +47,21 @@ void f() {
 ''');
   }
 
+  Future<void> test_convertUnusedLocalVariable_listPatternAssignment() async {
+    await resolveTestCode('''
+void f() {
+  var x = 0;
+  [x, _] = [1, 2];
+}
+''');
+    await assertHasFix('''
+void f() {
+  var _ = 0;
+  [_, _] = [1, 2];
+}
+''');
+  }
+
   Future<void> test_convertUnusedLocalVariable_preWildcards() async {
     await resolveTestCode('''
 // @dart = 3.4
@@ -56,6 +71,48 @@ void f() {
   var x = '';
 }
 ''');
+    await assertNoFix();
+  }
+
+  Future<void> test_convertUnusedLocalVariable_recordAssignment() async {
+    await resolveTestCode('''
+void f() {
+  var x = 0;
+  (x, _) = (1, 2);
+}
+''');
+    await assertHasFix('''
+void f() {
+  var _ = 0;
+  (_, _) = (1, 2);
+}
+''');
+  }
+
+  Future<void>
+      test_convertUnusedLocalVariable_recordAssignment_parenthesized() async {
+    await resolveTestCode('''
+void f() {
+  var x = 0;
+  ((x, _)) = (1, 2);
+}
+''');
+    await assertHasFix('''
+void f() {
+  var _ = 0;
+  ((_, _)) = (1, 2);
+}
+''');
+  }
+
+  Future<void> test_convertUnusedLocalVariable_reference() async {
+    await resolveTestCode('''
+void f() {
+  var x = '';
+  x = '';
+}
+''');
+    // Converting the simple identifier `x` would result in invalid code.
     await assertNoFix();
   }
 }
