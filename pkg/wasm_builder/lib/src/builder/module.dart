@@ -8,6 +8,7 @@ import 'builder.dart';
 // TODO(joshualitt): Get rid of cycles in the builder graph.
 /// A Wasm module builder.
 class ModuleBuilder with Builder<ir.Module> {
+  final String moduleName;
   final Uri? sourceMapUrl;
   final List<int> watchPoints;
   late final TypesBuilder types;
@@ -25,7 +26,7 @@ class ModuleBuilder with Builder<ir.Module> {
   /// bytes to watch. When the module is serialized, the stack traces leading
   /// to the production of all watched bytes are printed. This can be used to
   /// debug runtime errors happening at specific offsets within the module.
-  ModuleBuilder(this.sourceMapUrl,
+  ModuleBuilder(this.moduleName, this.sourceMapUrl,
       {ModuleBuilder? parent, this.watchPoints = const []}) {
     types = TypesBuilder(this, parent: parent?.types);
   }
@@ -38,6 +39,7 @@ class ModuleBuilder with Builder<ir.Module> {
     final finalGlobals = globals.build();
     final finalTags = tags.build();
     return ir.Module(
+        moduleName,
         sourceMapUrl,
         finalFunctions,
         finalTables,

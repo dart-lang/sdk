@@ -357,7 +357,11 @@ class Translator with KernelNodes {
 
   void _initModules(Uri Function(String moduleName)? sourceMapUrlGenerator) {
     for (final outputModule in _moduleOutputData.modules) {
-      final builder = w.ModuleBuilder(
+      // `moduleName` is the suffix appended to the filename which is the empty
+      // string for the main module. `moduleImportName` provides a non-empty
+      // name for every module. We provide the former to generate source map
+      // uris and the latter to fill the NameSection of the module.
+      final builder = w.ModuleBuilder(outputModule.moduleImportName,
           sourceMapUrlGenerator?.call(outputModule.moduleName),
           parent: outputModule.isMain ? null : mainModule,
           watchPoints: options.watchPoints);

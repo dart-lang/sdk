@@ -364,6 +364,7 @@ abstract class CustomSection extends Section {
 }
 
 class NameSection extends CustomSection {
+  final String moduleName;
   final List<ir.BaseFunction> functions;
   final List<ir.DefType> types;
   final List<ir.Global> globals;
@@ -371,7 +372,8 @@ class NameSection extends CustomSection {
   final int typeNameCount;
   final int globalNameCount;
 
-  NameSection(this.functions, this.types, this.globals, super.watchPoints,
+  NameSection(this.moduleName, this.functions, this.types, this.globals,
+      super.watchPoints,
       {required this.functionNameCount,
       required this.typeNameCount,
       required this.globalNameCount});
@@ -382,6 +384,9 @@ class NameSection extends CustomSection {
   @override
   void serializeContents(Serializer s) {
     s.writeName("name");
+
+    final moduleNameSubsection = Serializer();
+    moduleNameSubsection.writeName(moduleName);
 
     final functionNameSubsection = Serializer();
     functionNameSubsection.writeUnsigned(functionNameCount);
@@ -412,6 +417,10 @@ class NameSection extends CustomSection {
         globalNameSubsection.writeName(globalName);
       }
     }
+
+    s.writeByte(0); // Module name subsection
+    s.writeUnsigned(moduleNameSubsection.data.length);
+    s.writeData(moduleNameSubsection);
 
     s.writeByte(1); // Function names subsection
     s.writeUnsigned(functionNameSubsection.data.length);
