@@ -330,6 +330,27 @@ void f() {
     ]);
   }
 
+  test_notDeprecated_class_exportedFromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'c.dart';
+export 'a.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+part 'b.dart';
+''');
+
+    await assertNoErrorsInCode('''
+import 'c.dart';
+
+void f(A a) {}
+''');
+  }
+
   test_notDeprecated_class_hasDirectImport() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}

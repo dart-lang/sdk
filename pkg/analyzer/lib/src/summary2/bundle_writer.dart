@@ -317,7 +317,7 @@ class BundleWriter {
   }
 
   void _writeExportLocation(ExportLocation location) {
-    _sink.writeUInt30(location.containerIndex);
+    _sink.writeUInt30(location.fragmentIndex);
     _sink.writeUInt30(location.exportIndex);
   }
 
