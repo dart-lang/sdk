@@ -521,16 +521,6 @@ class MemberDuplicateDefinitionVerifier {
       return;
     }
 
-    ErrorCode getError(Element previous, Element current) {
-      if (previous is FieldFormalParameterElement &&
-          current is FieldFormalParameterElement) {
-        return CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER;
-      } else if (previous is PrefixElement) {
-        return CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER;
-      }
-      return CompileTimeErrorCode.DUPLICATE_DEFINITION;
-    }
-
     var name = identifier.lexeme;
     if (element is MethodElement) {
       name = element.name;
@@ -539,12 +529,14 @@ class MemberDuplicateDefinitionVerifier {
     var previous = getterScope[name];
     if (previous != null) {
       if (!_isGetterSetterPair(element, previous)) {
-        _errorReporter.reportError(_diagnosticFactory.duplicateDefinition(
-          getError(previous, element),
-          element,
-          previous,
-          [name],
-        ));
+        _errorReporter.reportError(
+          _diagnosticFactory.duplicateDefinition(
+            CompileTimeErrorCode.DUPLICATE_DEFINITION,
+            element,
+            previous,
+            [name],
+          ),
+        );
       }
     } else {
       getterScope[name] = element;
@@ -554,12 +546,14 @@ class MemberDuplicateDefinitionVerifier {
       if (element is PropertyAccessorElement && element.isSetter) {
         previous = setterScope[name];
         if (previous != null) {
-          _errorReporter.reportError(_diagnosticFactory.duplicateDefinition(
-            getError(previous, element),
-            element,
-            previous,
-            [name],
-          ));
+          _errorReporter.reportError(
+            _diagnosticFactory.duplicateDefinition(
+              CompileTimeErrorCode.DUPLICATE_DEFINITION,
+              element,
+              previous,
+              [name],
+            ),
+          );
         } else {
           setterScope[name] = element;
         }
