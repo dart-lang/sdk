@@ -158,6 +158,7 @@ class ElementPrinter {
         if (_configuration.withInterfaceTypeElements) {
           _sink.withIndent(() {
             writeNamedElement('element', type.element);
+            writelnNamedElement2('element', type.element3);
           });
         }
       }

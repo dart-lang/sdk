@@ -67,6 +67,7 @@ library
           enclosingElement3: <testLibraryFragment>
           supertype: A
             element: <testLibrary>::@fragment::package:test/foo.dart::@class::A
+            element: <testLibrary>::@fragment::package:test/foo.dart::@class::A#element
     <testLibrary>::@fragment::package:test/foo.dart
       enclosingElement3: <testLibraryFragment>
       classes
@@ -96,6 +97,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo.dart::@class::A
+        element: <testLibrary>::@fragment::package:test/foo.dart::@class::A#element
     class A
       firstFragment: <testLibrary>::@fragment::package:test/foo.dart::@class::A
 ''');
@@ -153,6 +155,7 @@ library
           enclosingElement3: <testLibraryFragment>
           supertype: A
             element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+            element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A#element
     <testLibrary>::@fragment::package:test/foo_io.dart
       enclosingElement3: <testLibraryFragment>
       classes
@@ -182,6 +185,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+        element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A#element
     class A
       firstFragment: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
 ''');
@@ -239,6 +243,7 @@ library
           enclosingElement3: <testLibraryFragment>
           supertype: A
             element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+            element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A#element
     <testLibrary>::@fragment::package:test/foo_io.dart
       enclosingElement3: <testLibraryFragment>
       classes
@@ -268,6 +273,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+        element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A#element
     class A
       firstFragment: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
 ''');
@@ -325,6 +331,7 @@ library
           enclosingElement3: <testLibraryFragment>
           supertype: A
             element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+            element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A#element
     <testLibrary>::@fragment::package:test/foo_html.dart
       enclosingElement3: <testLibraryFragment>
       classes
@@ -354,6 +361,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+        element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A#element
     class A
       firstFragment: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
 ''');
@@ -411,6 +419,7 @@ library
           enclosingElement3: <testLibraryFragment>
           supertype: A
             element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+            element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A#element
     <testLibrary>::@fragment::package:test/foo_html.dart
       enclosingElement3: <testLibraryFragment>
       classes
@@ -440,6 +449,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+        element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A#element
     class A
       firstFragment: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
 ''');
