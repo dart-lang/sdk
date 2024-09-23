@@ -27272,12 +27272,12 @@ interpolation would achieve the same result.
 
 #### Example
 
-The following code produces this diagnostic because the elements of the
-list `l` are being concatenated with other strings using the `+` operator:
+The following code produces this diagnostic because the String `s` is
+concatenated with other strings using the `+` operator:
 
 ```dart
-String f(List<String> l) {
-  return [!'(' + l[0] + ', ' + l[1] + ')'!];
+String f(String s) {
+  return [!'(' + s!] + ')';
 }
 ```
 
