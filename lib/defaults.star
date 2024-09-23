@@ -29,6 +29,7 @@ _EMSCRIPTEN = {"custom_vars": {"download_emscripten": True}}
 _FIREFOX = {"custom_vars": {"download_firefox": True}}
 _FUCHSIA_DEPS = {"custom_vars": {"download_fuchsia_deps": True}}
 _JS_ENGINES = {"custom_vars": {"checkout_javascript_engines": True}}
+_FLUTE = {"custom_vars": {"checkout_flute": True}}
 _SLOW_SHARDS = {"shard_timeout": (90 * time.minute) // time.second}
 
 _ARM64 = {"cpu": "arm64"}
@@ -68,6 +69,7 @@ android_deps = _ANDROID_DEPS
 chrome = _CHROME
 emscripten = _EMSCRIPTEN
 firefox = _FIREFOX
+flute = _FLUTE
 fuchsia_deps = _FUCHSIA_DEPS
 js_engines = _JS_ENGINES
 no_android = _NO_ANDROID
