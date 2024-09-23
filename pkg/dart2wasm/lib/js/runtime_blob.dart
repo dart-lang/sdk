@@ -134,6 +134,9 @@ const jsRuntimeBlobPart3 = r'''
             ? WebAssembly.compileStreaming(source, this.builtins)
             : WebAssembly.compile(source, this.builtins));
         return await WebAssembly.instantiate(module, {
+          ...baseImports,
+          ...additionalImports,
+          "wasm:js-string": jsStringPolyfill,
           "module0": dartInstance.exports,
         });
       },

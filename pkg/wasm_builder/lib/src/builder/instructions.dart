@@ -988,6 +988,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     assert(_verifyTypes(
         const [], [ir.RefType.def(function.type, nullable: false)],
         trace: ['ref.func', function]));
+    assert(function.enclosingModule == module);
     _add(ir.RefFunc(function));
   }
 

@@ -840,7 +840,9 @@ abstract class AstCodeGenerator
       }
     } else if (local != null && !local.type.defaultable) {
       // Uninitialized variable
-      translator.globals.instantiateDummyValue(b, local.type);
+      translator
+          .getDummyValuesCollectorForModule(b.module)
+          .instantiateDummyValue(b, local.type);
       b.local_set(local);
     }
   }
@@ -2366,8 +2368,11 @@ abstract class AstCodeGenerator
         b.ref_as_non_null();
       }
     } else {
-      translator.globals
-          .readGlobal(b, translator.globals.dummyStructGlobal); // Dummy context
+      translator.globals.readGlobal(
+          b,
+          translator
+              .getDummyValuesCollectorForModule(b.module)
+              .dummyStructGlobal); // Dummy context
     }
   }
 

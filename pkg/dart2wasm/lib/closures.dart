@@ -520,9 +520,9 @@ class ClosureLayouter extends RecursiveVisitor {
                     vtableBaseIndexGeneric +
                         (positionalCount + 1) +
                         genericIndex)
-                : translator.globals.getDummyFunction(
-                    module,
-                    (instantiatedRepresentation
+                : translator
+                    .getDummyValuesCollectorForModule(module)
+                    .getDummyFunction((instantiatedRepresentation
                             .vtableStruct
                             .fields[vtableBaseIndexNonGeneric +
                                 instantiationTrampolines.length]
