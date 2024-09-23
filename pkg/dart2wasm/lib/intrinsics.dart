@@ -1440,7 +1440,7 @@ class Intrinsifier {
     }
 
     // _typeArguments
-    if (name == "_typeArguments" &&
+    if (member.name == translator.objectTypeArguments.name &&
         member.enclosingClass != translator.coreTypes.objectClass) {
       Class cls = member.enclosingClass!;
       ClassInfo classInfo = translator.classInfo[cls]!;
