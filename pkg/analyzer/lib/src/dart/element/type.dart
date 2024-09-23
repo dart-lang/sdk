@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -45,6 +46,9 @@ class DynamicTypeImpl extends TypeImpl
   @Deprecated('Use element instead')
   @override
   DynamicElementImpl get element2 => element;
+
+  @override
+  Element2? get element3 => (element as Fragment).element;
 
   @override
   int get hashCode => 1;
@@ -118,6 +122,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   Null get element2 => element;
 
   @override
+  Null get element3 => null;
+
+  @override
   int get hashCode {
     // Reference the arrays of parameters
     var normalParameterTypes = this.normalParameterTypes;
@@ -185,6 +192,16 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     });
     return types;
   }
+
+  @override
+  List<FormalParameterElement> get parameters2 => parameters
+      .map((fragment) => (fragment as FormalParameterFragment).element)
+      .toList();
+
+  @override
+  List<TypeParameterElement2> get typeFormals2 => typeFormals
+      .map((fragment) => (fragment as TypeParameterFragment).element)
+      .toList();
 
   @override
   bool operator ==(Object other) {
@@ -449,6 +466,9 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
     required this.element,
     required this.typeArguments,
   });
+
+  @override
+  TypeAliasElement2 get element2 => (element as TypeAliasFragment).element;
 }
 
 /// A concrete implementation of an [InterfaceType].
@@ -523,9 +543,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }).toFixedList();
   }
 
+  @override
+  List<ConstructorElement2> get constructors2 => constructors
+      .map((fragment) => (fragment as ConstructorFragment).element)
+      .toList();
+
   @Deprecated('Use element instead')
   @override
   InterfaceElement get element2 => element;
+
+  @override
+  InterfaceElement2 get element3 => (element as InterfaceFragment).element;
+
+  @override
+  List<GetterElement> get getters => accessors
+      .where((accessor) => accessor.isGetter)
+      .map((fragment) => (fragment as GetterFragment).element as GetterElement)
+      .toList();
 
   @override
   int get hashCode {
@@ -647,6 +681,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  List<MethodElement2> get methods2 =>
+      methods.map((fragment) => (fragment as MethodFragment).element).toList();
+
+  @override
   List<InterfaceType> get mixins {
     List<InterfaceType> mixins = element.mixins;
     return _instantiateSuperTypes(mixins);
@@ -665,6 +703,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     return null;
   }
+
+  @override
+  List<SetterElement> get setters => accessors
+      .where((accessor) => accessor.isSetter)
+      .map((fragment) => (fragment as SetterFragment).element as SetterElement)
+      .toList();
 
   @override
   InterfaceType? get superclass {
@@ -736,6 +780,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
     for (var rawInterface in element.allSupertypes) {
       if (rawInterface.element == targetElement) {
+        var substitution = Substitution.fromInterfaceType(this);
+        return substitution.substituteType(rawInterface) as InterfaceType;
+      }
+    }
+
+    return null;
+  }
+
+  @override
+  InterfaceType? asInstanceOf2(InterfaceElement2 targetElement) {
+    if ((element as InterfaceFragment).element == targetElement) {
+      return this;
+    }
+
+    for (var rawInterface in element.allSupertypes) {
+      var realElement = (rawInterface.element as InterfaceFragment).element;
+      if (realElement == targetElement) {
         var substitution = Substitution.fromInterfaceType(this);
         return substitution.substituteType(rawInterface) as InterfaceType;
       }
@@ -951,6 +1012,9 @@ class InvalidTypeImpl extends TypeImpl
   Null get element2 => element;
 
   @override
+  Null get element3 => null;
+
+  @override
   int get hashCode => 1;
 
   @Deprecated('Use `is DynamicType` instead')
@@ -1012,6 +1076,10 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   @Deprecated('Use element instead')
   @override
   Element? get element2 => element;
+
+  @override
+  // TODO(augmentations): Implement this.
+  Element2? get element3 => throw UnimplementedError();
 
   @override
   int get hashCode => 0;
@@ -1118,6 +1186,9 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   @Deprecated('Use element instead')
   @override
   Null get element2 => element;
+
+  @override
+  Null get element3 => null;
 
   @override
   int get hashCode {
@@ -1340,6 +1411,9 @@ abstract class TypeImpl implements DartType {
   InterfaceType? asInstanceOf(InterfaceElement targetElement) => null;
 
   @override
+  InterfaceType? asInstanceOf2(InterfaceElement2 targetElement) => null;
+
+  @override
   String getDisplayString({
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
@@ -1433,6 +1507,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   TypeParameterElement get element2 => element;
 
   @override
+  TypeParameterElement2 get element3 =>
+      (element as TypeParameterFragment).element;
+
+  @override
   int get hashCode => element.hashCode;
 
   @override
@@ -1508,6 +1586,11 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
+  InterfaceType? asInstanceOf2(InterfaceElement2 targetElement) {
+    return bound.asInstanceOf2(targetElement);
+  }
+
+  @override
   bool referencesAny(Set<TypeParameterElement> parameters) {
     return parameters.contains(element);
   }
@@ -1563,6 +1646,9 @@ class VoidTypeImpl extends TypeImpl
   @Deprecated('Use element instead')
   @override
   Null get element2 => element;
+
+  @override
+  Null get element3 => null;
 
   @override
   int get hashCode => 2;

@@ -164,6 +164,9 @@ abstract class AugmentedInterfaceElementImpl
 
   @override
   List<ConstructorElement> constructors = [];
+
+  @override
+  String get name => super.name!;
 }
 
 class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
@@ -3844,7 +3847,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   ElementKind get kind => ElementKind.FIELD;
 
   @override
-  String? get name => firstFragment.name;
+  String get name => firstFragment.name;
 
   @override
   SetterElement? get setter => firstFragment.setter?.element as SetterElement?;
@@ -3906,6 +3909,9 @@ class FieldFormalParameterElementImpl2 extends FormalParameterElementImpl
       ((firstFragment as FieldFormalParameterElementImpl).field
               as FieldFragment)
           .element;
+
+  @override
+  String get name => firstFragment.name;
 }
 
 class FormalParameterElementImpl extends PromotableElementImpl2
@@ -4003,7 +4009,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
           as LibraryElement2;
 
   @override
-  String? get name => firstFragment.name;
+  String get name => firstFragment.name;
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
@@ -4752,7 +4758,7 @@ class GetterElementImpl extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.GETTER;
 
   @override
-  String? get name => firstFragment.name;
+  String get name => firstFragment.name;
 
   @override
   PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
@@ -7280,7 +7286,7 @@ class MethodElementImpl2 extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.METHOD;
 
   @override
-  String? get name => firstFragment.name;
+  String get name => firstFragment.name;
 }
 
 /// A [ClassElementImpl] representing a mixin declaration.
@@ -7949,6 +7955,9 @@ abstract class NotAugmentedInterfaceElementImpl
   List<InterfaceType> get mixins {
     return element.mixins;
   }
+
+  @override
+  String get name => element.name;
 
   @override
   ConstructorElement? get unnamedConstructor {
@@ -8922,7 +8931,10 @@ abstract class PropertyInducingElementImpl
 }
 
 abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
-    implements PropertyInducingElement2 {}
+    implements PropertyInducingElement2 {
+  @override
+  String get name;
+}
 
 /// Instances of this class are set for fields and top-level variables
 /// to perform top-level type inference during linking.
@@ -8966,7 +8978,7 @@ class SetterElementImpl extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.SETTER;
 
   @override
-  String? get name => firstFragment.name;
+  String get name => firstFragment.name;
 
   @override
   PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
@@ -9221,7 +9233,7 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
 
   @override
-  String? get name => firstFragment.name;
+  String get name => firstFragment.name;
 
   @override
   SetterElement? get setter => firstFragment.setter2?.element as SetterElement?;
@@ -9532,7 +9544,7 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   ElementKind get kind => ElementKind.TYPE_ALIAS;
 
   @override
-  String? get name => firstFragment.name;
+  String get name => firstFragment.name;
 
   @override
   List<TypeParameterElement2> get typeParameters2 =>
@@ -9764,7 +9776,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   LibraryElement2 get library2 => super.library2!;
 
   @override
-  String? get name => firstFragment.name;
+  String get name => firstFragment.name;
 
   @override
   TypeParameterType instantiate(
@@ -9990,7 +10002,7 @@ mixin WrappedElementMixin implements ElementImpl2 {
   LibraryElement2? get library2 => _wrappedElement.library2;
 
   @override
-  String? get name => _wrappedElement.name;
+  String get name => _wrappedElement.name!;
 
   ElementImpl get _wrappedElement;
 

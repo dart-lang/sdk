@@ -794,6 +794,9 @@ abstract class GetterElement implements ExecutableElement2, _Fragmented {
   /// `null` if there is no corresponding setter.
   SetterElement? get correspondingSetter2;
 
+  @override
+  String get name;
+
   /// The field or top-level variable associated with this getter.
   ///
   /// If this getter was explicitly defined (is not synthetic) then the variable
@@ -813,6 +816,9 @@ abstract class GetterFragment implements ExecutableFragment {
   //  but can't because the Impl class supports both getters and setters.
   // @override
   // GetterElement get element;
+
+  @override
+  String get name;
 
   /// The field or top-level variable associated with this getter.
   ///
@@ -919,6 +925,9 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   /// guard against infinite loops.
   List<InterfaceType> get mixins;
 
+  @override
+  String get name;
+
   /// The superclass of this element.
   ///
   /// For [ClassElement] returns `null` only if this class is `Object`. If the
@@ -970,6 +979,9 @@ abstract class InterfaceFragment implements InstanceFragment {
   /// [MixinFragment] cannot have mixins, so the empty list is returned.
   List<InterfaceType> get mixins;
 
+  @override
+  String get name;
+
   /// The superclass declared by this fragment.
   InterfaceType? get supertype;
 }
@@ -1000,6 +1012,9 @@ abstract class LabelElement2 implements Element2 {
 
   @override
   LibraryElement2 get library2;
+
+  @override
+  String get name;
 }
 
 /// A library.
@@ -1306,6 +1321,9 @@ abstract class MethodElement2 implements ExecutableElement2, _Fragmented {
   /// The test might be based on the name of the executable element, in which
   /// case the result will be correct when the name is legal.
   bool get isOperator;
+
+  @override
+  String get name;
 }
 
 /// The portion of a [MethodElement2] contributed by a single declaration.
@@ -1317,6 +1335,9 @@ abstract class MethodFragment implements ExecutableFragment {
 
   @override
   InstanceFragment? get enclosingFragment;
+
+  @override
+  String get name;
 
   @override
   MethodFragment? get nextFragment;
@@ -1409,6 +1430,9 @@ abstract class PrefixElement2 implements Element2, _Fragmented {
   @override
   LibraryElement2 get library2;
 
+  @override
+  String get name;
+
   /// The name lookup scope for this import prefix.
   ///
   /// It consists of elements imported into the enclosing library with this
@@ -1428,6 +1452,9 @@ abstract class PrefixFragment implements Fragment {
   LibraryFragment? get enclosingFragment;
 
   @override
+  String get name;
+
+  @override
   PrefixFragment? get nextFragment;
 
   @override
@@ -1438,7 +1465,10 @@ abstract class PrefixFragment implements Fragment {
 /// variable or a parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PromotableElement2 implements VariableElement2 {}
+abstract class PromotableElement2 implements VariableElement2 {
+  @override
+  String get name;
+}
 
 /// The portion of a [PromotableElement2] contributed by a single declaration.
 ///
@@ -1446,6 +1476,9 @@ abstract class PromotableElement2 implements VariableElement2 {}
 abstract class PromotableFragment implements VariableFragment {
   @override
   PromotableElement2 get element;
+
+  @override
+  String get name;
 }
 
 /// A variable that has an associated getter and possibly a setter. Note that
@@ -1472,6 +1505,9 @@ abstract class PropertyInducingElement2
   /// If this variable was explicitly defined (is not synthetic) then the
   /// getter associated with it will be synthetic.
   GetterElement? get getter;
+
+  @override
+  String get name;
 
   /// The setter associated with this variable.
   ///
@@ -1525,6 +1561,9 @@ abstract class PropertyInducingFragment
   bool get isSynthetic;
 
   @override
+  String get name;
+
+  @override
   PropertyInducingFragment? get nextFragment;
 
   @override
@@ -1557,6 +1596,9 @@ abstract class SetterElement implements ExecutableElement2, _Fragmented {
   /// `null` if there is no corresponding getter.
   GetterElement? get correspondingGetter2;
 
+  @override
+  String get name;
+
   /// The field or top-level variable associated with this setter.
   ///
   /// If this setter was explicitly defined (is not synthetic) then the variable
@@ -1576,6 +1618,9 @@ abstract class SetterFragment implements ExecutableFragment {
   //  but can't because the Impl class supports both getters and setters.
   // @override
   // SetterElement get element;
+
+  @override
+  String get name;
 
   /// The field or top-level variable associated with this setter.
   ///
@@ -1687,6 +1732,9 @@ abstract class TypeAliasElement2
   @override
   LibraryElement2 get enclosingElement2;
 
+  @override
+  String get name;
+
   /// Returns the type resulting from instantiating this typedef with the given
   /// [typeArguments] and [nullabilitySuffix].
   ///
@@ -1711,6 +1759,9 @@ abstract class TypeAliasFragment
 
   @override
   LibraryFragment? get enclosingFragment;
+
+  @override
+  String get name;
 
   @override
   TypeAliasFragment? get nextFragment;
@@ -1753,6 +1804,9 @@ abstract class TypeParameterElement2 implements TypeDefiningElement2 {
   @override
   LibraryElement2 get library2;
 
+  @override
+  String get name;
+
   /// Returns the [TypeParameterType] with the given [nullabilitySuffix] for
   /// this type parameter.
   TypeParameterType instantiate({
@@ -1767,6 +1821,9 @@ abstract class TypeParameterElement2 implements TypeDefiningElement2 {
 abstract class TypeParameterFragment implements TypeDefiningFragment {
   @override
   TypeParameterElement2 get element;
+
+  @override
+  String get name;
 
   @override
   TypeParameterFragment? get nextFragment;

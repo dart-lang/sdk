@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -70,6 +71,11 @@ abstract class LinterContext {
 
   LibraryElement? get libraryElement;
 
+  /// The library element representing the library that contains the compilation
+  /// unit being linted.
+  @experimental
+  LibraryElement2? get libraryElement2;
+
   /// The package in which the library being analyzed lives, or `null` if it
   /// does not live in a package.
   WorkspacePackage? get package;
@@ -108,6 +114,11 @@ final class LinterContextWithParsedResults implements LinterContext {
 
   @override
   LibraryElement get libraryElement => throw UnsupportedError(
+      'LinterContext with parsed results does not include a LibraryElement');
+
+  @experimental
+  @override
+  LibraryElement2 get libraryElement2 => throw UnsupportedError(
       'LinterContext with parsed results does not include a LibraryElement');
 
   @override
@@ -167,6 +178,10 @@ final class LinterContextWithResolvedResults implements LinterContext {
   @override
   LibraryElement get libraryElement =>
       definingUnit.unit.declaredElement!.library;
+
+  @experimental
+  @override
+  LibraryElement2 get libraryElement2 => libraryElement as LibraryElement2;
 }
 
 class LinterOptions extends DriverOptions {
@@ -378,6 +393,10 @@ class LintRuleUnitContext {
     required this.errorReporter,
     required this.unit,
   });
+
+  /// The library fragment representing the compilation unit.
+  @experimental
+  LibraryFragment get libraryFragment => unit as LibraryFragment;
 }
 
 /// An error listener that only records whether any constant related errors have
