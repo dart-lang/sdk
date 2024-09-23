@@ -72,7 +72,7 @@ ConstructorFieldInitializer
   expression: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
     staticType: int
 ''');
   }
@@ -111,7 +111,7 @@ ConstructorFieldInitializer
                   leftOperand: SimpleIdentifier
                     token: a
                     staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
-                    element: <not-implemented>
+                    element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
                     staticType: int
                   operator: +
                   rightOperand: IntegerLiteral
@@ -169,7 +169,7 @@ ConstructorFieldInitializer
             leftOperand: SimpleIdentifier
               token: a
               staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
-              element: <not-implemented>
+              element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
               staticType: int
             operator: +
             rightOperand: IntegerLiteral

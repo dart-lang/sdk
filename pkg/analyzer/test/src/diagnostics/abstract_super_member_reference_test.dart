@@ -615,7 +615,7 @@ AssignmentExpression
     token: a
     parameter: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::a
     staticElement: <testLibraryFragment>::@class::B::@setter::foo::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@class::B::@setter::foo::@parameter::a#element
     staticType: int
   readElement: <null>
   readElement2: <null>
@@ -660,7 +660,7 @@ AssignmentExpression
     token: a
     parameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::a
     staticElement: <testLibraryFragment>::@class::B::@setter::foo::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@class::B::@setter::foo::@parameter::a#element
     staticType: int
   readElement: <null>
   readElement2: <null>

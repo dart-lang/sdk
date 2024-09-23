@@ -73,7 +73,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   operator: ==
   rightOperand: BinaryExpression
@@ -112,7 +112,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   operator: +
   rightOperand: ParenthesizedExpression
@@ -152,7 +152,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   operator: ==
   rightOperand: BinaryExpression
@@ -193,7 +193,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   operator: +
   rightOperand: ParenthesizedExpression
@@ -322,7 +322,7 @@ IndexExpression
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   leftBracket: [
   index: IntegerLiteral
@@ -353,7 +353,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never
     leftBracket: [
     index: IntegerLiteral
@@ -407,7 +407,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never
     leftBracket: [
     index: IntegerLiteral
@@ -460,7 +460,7 @@ IndexExpression
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   leftBracket: [
   index: IntegerLiteral
@@ -491,7 +491,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never?
     leftBracket: [
     index: IntegerLiteral
@@ -545,7 +545,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never?
     leftBracket: [
     index: IntegerLiteral
@@ -607,7 +607,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
@@ -654,7 +654,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
@@ -700,7 +700,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   operator: .
   methodName: SimpleIdentifier
@@ -781,14 +781,14 @@ PostfixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   operator: ++
   readElement: <testLibraryFragment>::@function::f::@parameter::x
-  readElement2: <not-implemented>
+  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: Never
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
-  writeElement2: <not-implemented>
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: Never
   staticElement: <null>
   element: <null>
@@ -811,14 +811,14 @@ PostfixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   operator: ++
   readElement: <testLibraryFragment>::@function::f::@parameter::x
-  readElement2: <not-implemented>
+  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: Never?
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
-  writeElement2: <not-implemented>
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: Never?
   staticElement: <null>
   element: <null>
@@ -842,13 +842,13 @@ PrefixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   readElement: <testLibraryFragment>::@function::f::@parameter::x
-  readElement2: <not-implemented>
+  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: Never
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
-  writeElement2: <not-implemented>
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: Never
   staticElement: <null>
   element: <null>
@@ -872,13 +872,13 @@ PrefixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   readElement: <testLibraryFragment>::@function::f::@parameter::x
-  readElement2: <not-implemented>
+  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: Never?
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
-  writeElement2: <not-implemented>
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: Never?
   staticElement: <null>
   element: <null>
@@ -899,7 +899,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   period: .
   identifier: SimpleIdentifier
@@ -926,7 +926,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   period: .
   identifier: SimpleIdentifier
@@ -956,7 +956,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never
     period: .
     identifier: SimpleIdentifier
@@ -997,7 +997,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   period: .
   identifier: SimpleIdentifier
@@ -1027,7 +1027,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never
     period: .
     identifier: SimpleIdentifier
@@ -1071,7 +1071,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   period: .
   identifier: SimpleIdentifier
@@ -1098,7 +1098,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   period: .
   identifier: SimpleIdentifier
@@ -1125,7 +1125,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   period: .
   identifier: SimpleIdentifier

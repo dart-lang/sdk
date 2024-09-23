@@ -1901,7 +1901,7 @@ library
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::a#element
           parameters
             _a @-1
-              element: <not-implemented>
+              element: <testLibrary>::@fragment::package:test/a.dart::@setter::a::@parameter::_a#element
   topLevelVariables
     a
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a

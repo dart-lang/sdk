@@ -580,7 +580,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.t @41
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::t#element
             const named @55
               reference: <testLibraryFragment>::@class::C::@constructor::named
               element: <testLibraryFragment>::@class::C::@constructor::named#element
@@ -588,7 +588,7 @@ library
               nameEnd: 60
               parameters
                 this.t @66
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::t#element
           getters
             get t @-1
               reference: <testLibraryFragment>::@class::C::@getter::t
@@ -901,7 +901,7 @@ library
               element: <not-implemented>
           parameters
             a @12
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::a#element
   topLevelVariables
     const v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
@@ -999,7 +999,7 @@ library
               element: <not-implemented>
           parameters
             a @12
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::a#element
   topLevelVariables
     const v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
@@ -1961,9 +1961,9 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 a @27
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
                 b @37
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b#element
             const named @51
               reference: <testLibraryFragment>::@class::A::@constructor::named
               element: <testLibraryFragment>::@class::A::@constructor::named#element
@@ -2075,9 +2075,9 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 a @27
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
                 b @37
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b#element
         class B @49
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -2595,9 +2595,9 @@ library
               nameEnd: 31
               parameters
                 k @34
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::k#element
                 v @39
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::v#element
       topLevelVariables
         const V @51
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -3063,7 +3063,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 this.t @41
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::t#element
           getters
             get t @-1
               reference: <testLibraryFragment>::@class::A::@getter::t
@@ -3505,7 +3505,7 @@ library
                       label: SimpleIdentifier
                         token: d @109
                         staticElement: <testLibraryFragment>::@class::C::@constructor::named::@parameter::d
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::d#element
                         staticType: null
                       colon: : @110
                     expression: SimpleStringLiteral
@@ -3515,7 +3515,7 @@ library
                       label: SimpleIdentifier
                         token: e @119
                         staticElement: <testLibraryFragment>::@class::C::@constructor::named::@parameter::e
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::e#element
                         staticType: null
                       colon: : @120
                     expression: DoubleLiteral
@@ -3546,17 +3546,17 @@ library
               nameEnd: 25
               parameters
                 a @31
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::a#element
                 b @38
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::b#element
                 c @45
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::c#element
                 default d @56
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::d
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::d#element
                 default e @66
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::e
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::e#element
       topLevelVariables
         const V @79
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -6439,7 +6439,7 @@ library
               element: <not-implemented>
           parameters
             a @9
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::a#element
   topLevelVariables
     const b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
@@ -6531,7 +6531,7 @@ library
               parameters
                 default this.x @37
                   reference: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -6637,7 +6637,7 @@ library
               parameters
                 default this.x @37
                   reference: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -6733,7 +6733,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 default this.x @37
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -6899,7 +6899,7 @@ library
               nameEnd: 30
               parameters
                 default p @32
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::positional::@parameter::p#element
             const named @55
               reference: <testLibraryFragment>::@class::C::@constructor::named
               element: <testLibraryFragment>::@class::C::@constructor::named#element
@@ -6908,34 +6908,34 @@ library
               parameters
                 default p @62
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::p
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::p#element
           methods
             methodPositional @81
               reference: <testLibraryFragment>::@class::C::@method::methodPositional
               element: <testLibraryFragment>::@class::C::@method::methodPositional#element
               parameters
                 default p @99
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::methodPositional::@parameter::p#element
             methodPositionalWithoutDefault @121
               reference: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault
               element: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault#element
               parameters
                 default p @153
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault::@parameter::p#element
             methodNamed @167
               reference: <testLibraryFragment>::@class::C::@method::methodNamed
               element: <testLibraryFragment>::@class::C::@method::methodNamed#element
               parameters
                 default p @180
                   reference: <testLibraryFragment>::@class::C::@method::methodNamed::@parameter::p
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::methodNamed::@parameter::p#element
             methodNamedWithoutDefault @201
               reference: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault
               element: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault#element
               parameters
                 default p @228
                   reference: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault::@parameter::p
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault::@parameter::p#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -7984,9 +7984,9 @@ library
               element: <testLibraryFragment>::@class::C::@method::m#element
               parameters
                 a @29
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::m::@parameter::a#element
                 b @39
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::m::@parameter::b#element
       topLevelVariables
         const V @57
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -8448,7 +8448,7 @@ library
               element: <not-implemented>
           parameters
             p @14
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::foo::@parameter::p#element
   topLevelVariables
     const V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V

@@ -64,7 +64,7 @@ ImplicitCallReference
         base: dart:core::<fragment>::@class::Map::@method::[]=::@parameter::value
         substitution: {K: int, V: C}
       staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::c#element
       staticType: C
     readElement: <null>
     readElement2: <null>
@@ -100,19 +100,19 @@ ConditionalExpression
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   colon: :
   elseExpression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   staticType: A
 ''');
@@ -135,19 +135,19 @@ ConditionalExpression
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   colon: :
   elseExpression: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   staticType: A
 ''');
@@ -210,14 +210,14 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   operator: ??
   rightOperand: SimpleIdentifier
     token: a
     parameter: <null>
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   staticElement: <null>
   element: <null>
@@ -244,14 +244,14 @@ ImplicitCallReference
     leftOperand: SimpleIdentifier
       token: c1
       staticElement: <testLibraryFragment>::@function::foo::@parameter::c1
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::c1#element
       staticType: C?
     operator: ??
     rightOperand: SimpleIdentifier
       token: c2
       parameter: <null>
       staticElement: <testLibraryFragment>::@function::foo::@parameter::c2
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::c2#element
       staticType: C
     staticElement: <null>
     element: <null>
@@ -280,7 +280,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
   element: <testLibraryFragment>::@class::C::@method::call#element
@@ -307,7 +307,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
   element: <testLibraryFragment>::@class::C::@method::call#element
@@ -334,7 +334,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
   element: <testLibraryFragment>::@class::C::@method::call#element
@@ -362,7 +362,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c2
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c2
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::c2#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
   element: <testLibraryFragment>::@class::C::@method::call#element
@@ -388,7 +388,7 @@ ImplicitCallReference
       expression: SimpleIdentifier
         token: c
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: C
       rightParenthesis: )
       staticType: C
@@ -431,7 +431,7 @@ ImplicitCallReference
     prefix: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::c#element
       staticType: C
     period: .
     identifier: SimpleIdentifier
@@ -468,7 +468,7 @@ ImplicitCallReference
       prefix: SimpleIdentifier
         token: c
         staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::foo::@parameter::c#element
         staticType: C
       period: .
       identifier: SimpleIdentifier
@@ -509,7 +509,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
   element: <testLibraryFragment>::@class::C::@method::call#element
@@ -534,7 +534,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
   element: <testLibraryFragment>::@class::C::@method::call#element
@@ -559,7 +559,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
   element: <testLibraryFragment>::@class::C::@method::call#element
@@ -584,7 +584,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
   element: <testLibraryFragment>::@class::C::@method::call#element
@@ -607,7 +607,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: A
       alias: <testLibraryFragment>::@typeAlias::B
   staticElement: <testLibraryFragment>::@class::A::@method::call
@@ -630,7 +630,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: X
   staticElement: <testLibraryFragment>::@class::A::@method::call
   element: <testLibraryFragment>::@class::A::@method::call#element
@@ -652,7 +652,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: y
     staticElement: <testLibraryFragment>::@function::f::@parameter::y
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::y#element
     staticType: Y
   staticElement: <testLibraryFragment>::@class::A::@method::call
   element: <testLibraryFragment>::@class::A::@method::call#element
@@ -676,7 +676,7 @@ Function f<X extends A, Y extends X?>(Y y) => y;
 SimpleIdentifier
   token: y
   staticElement: <testLibraryFragment>::@function::f::@parameter::y
-  element: <not-implemented>
+  element: <testLibraryFragment>::@function::f::@parameter::y#element
   staticType: Y
 ''');
   }
@@ -697,7 +697,7 @@ Function f<X extends A>(X? x) => x;
 SimpleIdentifier
   token: x
   staticElement: <testLibraryFragment>::@function::f::@parameter::x
-  element: <not-implemented>
+  element: <testLibraryFragment>::@function::f::@parameter::x#element
   staticType: X?
 ''');
   }
@@ -808,7 +808,7 @@ ExtensionOverride
         token: a
         parameter: <null>
         staticElement: <testLibraryFragment>::@function::f::@parameter::a
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
     rightParenthesis: )
   element: <testLibraryFragment>::@extension::E
@@ -1534,7 +1534,7 @@ ExtensionOverride
         token: a
         parameter: <null>
         staticElement: <testLibraryFragment>::@function::f::@parameter::a
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@extension::E

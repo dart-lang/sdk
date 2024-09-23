@@ -507,7 +507,7 @@ FunctionReference
             token: a
             parameter: <null>
             staticElement: <testLibraryFragment>::@function::bar::@parameter::a
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::bar::@parameter::a#element
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
@@ -640,7 +640,7 @@ FunctionReference
             token: a
             parameter: <null>
             staticElement: <testLibraryFragment>::@function::bar::@parameter::a
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::bar::@parameter::a#element
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
@@ -741,7 +741,7 @@ FunctionReference
             token: a
             parameter: <null>
             staticElement: <testLibraryFragment>::@function::bar::@parameter::a
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::bar::@parameter::a#element
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
@@ -795,7 +795,7 @@ FunctionReference
             token: a
             parameter: <null>
             staticElement: <testLibraryFragment>::@function::bar::@parameter::a
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::bar::@parameter::a#element
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
@@ -1306,7 +1306,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   parameter: <testLibraryFragment>::@function::g::@parameter::f
   staticElement: <testLibraryFragment>::@extensionType::A::@method::call
@@ -1535,7 +1535,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::bar::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::bar::@parameter::a#element
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -1650,7 +1650,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::foo::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::a#element
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -1696,7 +1696,7 @@ FunctionReference
       expression: SimpleIdentifier
         token: a
         staticElement: <testLibraryFragment>::@function::foo::@parameter::a
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::foo::@parameter::a#element
         staticType: A
       rightParenthesis: )
       staticType: A
@@ -1823,7 +1823,7 @@ FunctionReference
       prefix: SimpleIdentifier
         token: c
         staticElement: <testLibraryFragment>::@function::bar::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::bar::@parameter::c#element
         staticType: C
       period: .
       identifier: SimpleIdentifier
@@ -1928,7 +1928,7 @@ FunctionReference
       expression: SimpleIdentifier
         token: a
         staticElement: <testLibraryFragment>::@function::f::@parameter::a
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
       rightParenthesis: )
       staticType: A
@@ -1973,14 +1973,14 @@ FunctionReference
         leftOperand: SimpleIdentifier
           token: a
           staticElement: <testLibraryFragment>::@function::f::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A?
         operator: ??
         rightOperand: SimpleIdentifier
           token: b
           parameter: <null>
           staticElement: <testLibraryFragment>::@function::f::@parameter::b
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::b#element
           staticType: A
         staticElement: <null>
         element: <null>
@@ -2034,7 +2034,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: int
     period: .
     identifier: SimpleIdentifier
@@ -2263,7 +2263,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::bar::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::bar::@parameter::a#element
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -2541,7 +2541,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::bar::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::bar::@parameter::a#element
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -2805,10 +2805,10 @@ ExpressionStatement
     identifier: SimpleIdentifier
       token: loadLibrary
       staticElement: loadLibrary@-1
-      element: <exception>
+<exception>
       staticType: Future<dynamic> Function()
     staticElement: loadLibrary@-1
-    element: <exception>
+<exception>
     staticType: Future<dynamic> Function()
   semicolon: ;
 ''');
@@ -2829,7 +2829,7 @@ FunctionReference
   function: SimpleIdentifier
     token: foo
     staticElement: foo@20
-    element: <exception>
+<exception>
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2859,7 +2859,7 @@ FunctionReference
   function: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::bar::@parameter::foo
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::bar::@parameter::foo#element
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2985,7 +2985,7 @@ FunctionReference
   function: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::bar::@parameter::foo
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::bar::@parameter::foo#element
     staticType: T
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3013,7 +3013,7 @@ FunctionReference
   function: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::bar::@parameter::foo
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::bar::@parameter::foo#element
     staticType: T
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3046,7 +3046,7 @@ FunctionReference
   function: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::bar::@parameter::foo
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::bar::@parameter::foo#element
     staticType: T
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3175,7 +3175,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::bar::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::bar::@parameter::a#element
       staticType: dynamic
     period: .
     identifier: SimpleIdentifier
@@ -3215,7 +3215,7 @@ FunctionReference
     target: SimpleIdentifier
       token: r
       staticElement: <testLibraryFragment>::@function::f::@parameter::r
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::r#element
       staticType: ({T Function<T>(T) f1, String f2})
     operator: .
     propertyName: SimpleIdentifier
@@ -3246,7 +3246,7 @@ FunctionReference
     target: SimpleIdentifier
       token: r
       staticElement: <testLibraryFragment>::@function::f::@parameter::r
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::r#element
       staticType: (T Function<T>(T), String)
     operator: .
     propertyName: SimpleIdentifier
@@ -4127,7 +4127,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@class::B::@method::bar::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@class::B::@method::bar::@parameter::a#element
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -4214,7 +4214,7 @@ FunctionReference
         expression: SimpleIdentifier
           token: f
           staticElement: <testLibraryFragment>::@function::foo::@parameter::f
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::foo::@parameter::f#element
           staticType: void Function<T>(T)
         asOperator: as
         type: NamedType
@@ -4287,7 +4287,7 @@ FunctionReference
       token: f
       parameter: <testLibraryFragment>::@setter::g::@parameter::_g
       staticElement: <testLibraryFragment>::@function::foo::@parameter::f
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::f#element
       staticType: void Function<T>(T)
     readElement: <null>
     readElement2: <null>
@@ -4323,7 +4323,7 @@ FunctionReference
     leftHandSide: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::foo::@parameter::f
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::f#element
       staticType: null
     operator: +=
     rightHandSide: IntegerLiteral
@@ -4331,10 +4331,10 @@ FunctionReference
       parameter: <testLibraryFragment>::@extension::0::@method::+::@parameter::i
       staticType: int
     readElement: <testLibraryFragment>::@function::foo::@parameter::f
-    readElement2: <not-implemented>
+    readElement2: <testLibraryFragment>::@function::foo::@parameter::f#element
     readType: void Function<T>(T)
     writeElement: <testLibraryFragment>::@function::foo::@parameter::f
-    writeElement2: <not-implemented>
+    writeElement2: <testLibraryFragment>::@function::foo::@parameter::f#element
     writeType: void Function<T>(T)
     staticElement: <testLibraryFragment>::@extension::0::@method::+
     element: <testLibraryFragment>::@extension::0::@method::+#element
@@ -4359,7 +4359,7 @@ FunctionReference
     expression: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::foo::@parameter::f
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::f#element
       staticType: Future<void Function<T>(T)>
     staticType: void Function<T>(T)
   staticType: void Function(int)
@@ -4387,7 +4387,7 @@ FunctionReference
     leftOperand: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::c#element
       staticType: C
     operator: +
     rightOperand: IntegerLiteral
@@ -4416,7 +4416,7 @@ FunctionReference
   function: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::foo::@parameter::f
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::f#element
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -4515,7 +4515,7 @@ FunctionReference
       expression: SimpleIdentifier
         token: f
         staticElement: <testLibraryFragment>::@function::foo::@parameter::f
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::foo::@parameter::f#element
         staticType: void Function<T>(T) Function()
       rightParenthesis: )
       staticType: void Function<T>(T) Function()
@@ -4546,7 +4546,7 @@ FunctionReference
   function: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::foo::@parameter::f
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::f#element
     staticType: void Function<U>(U)
       alias: <testLibraryFragment>::@typeAlias::Fn
   staticType: void Function(int)
@@ -4572,7 +4572,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
   element: <testLibraryFragment>::@class::C::@method::call#element
@@ -4595,7 +4595,7 @@ FunctionReference
     target: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::foo::@parameter::f
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::f#element
       staticType: List<void Function<T>(T)>
     leftBracket: [
     index: IntegerLiteral
@@ -4634,7 +4634,7 @@ FunctionReference
     target: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::c#element
       staticType: C
     operator: .
     methodName: SimpleIdentifier
@@ -4672,14 +4672,14 @@ FunctionReference
     operand: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::foo::@parameter::f
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::f#element
       staticType: null
     operator: ++
     readElement: <testLibraryFragment>::@function::foo::@parameter::f
-    readElement2: <not-implemented>
+    readElement2: <testLibraryFragment>::@function::foo::@parameter::f#element
     readType: void Function<T>(T)
     writeElement: <testLibraryFragment>::@function::foo::@parameter::f
-    writeElement2: <not-implemented>
+    writeElement2: <testLibraryFragment>::@function::foo::@parameter::f#element
     writeType: void Function<T>(T)
     staticElement: <testLibraryFragment>::@extension::0::@method::+
     element: <testLibraryFragment>::@extension::0::@method::+#element
@@ -4707,7 +4707,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::c#element
       staticType: C
     period: .
     identifier: SimpleIdentifier
@@ -4744,13 +4744,13 @@ FunctionReference
     operand: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::foo::@parameter::f
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::foo::@parameter::f#element
       staticType: null
     readElement: <testLibraryFragment>::@function::foo::@parameter::f
-    readElement2: <not-implemented>
+    readElement2: <testLibraryFragment>::@function::foo::@parameter::f#element
     readType: void Function<T>(T)
     writeElement: <testLibraryFragment>::@function::foo::@parameter::f
-    writeElement2: <not-implemented>
+    writeElement2: <testLibraryFragment>::@function::foo::@parameter::f#element
     writeType: void Function<T>(T)
     staticElement: <testLibraryFragment>::@extension::0::@method::+
     element: <testLibraryFragment>::@extension::0::@method::+#element
@@ -4780,7 +4780,7 @@ FunctionReference
       expression: SimpleIdentifier
         token: c
         staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::foo::@parameter::c#element
         staticType: C
       rightParenthesis: )
       staticType: C
@@ -4809,7 +4809,7 @@ FunctionReference
   function: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::foo::@parameter::f
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::f#element
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -4839,7 +4839,7 @@ FunctionReference
   function: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::bar::@parameter::foo
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::bar::@parameter::foo#element
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <

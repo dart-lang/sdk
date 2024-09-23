@@ -625,7 +625,7 @@ library
               element: <testLibraryFragment>::@extension::E::@setter::foo#element
               parameters
                 value @35
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value#element
   extensions
     extension E
       firstFragment: <testLibraryFragment>::@extension::E
@@ -971,7 +971,7 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -1148,7 +1148,7 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -1342,7 +1342,7 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -1537,7 +1537,7 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -1555,7 +1555,7 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               parameters
                 _ @72
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo::@parameter::_#element
               previousFragment: <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
@@ -1703,7 +1703,7 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -1990,7 +1990,7 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo1#element
               parameters
                 _foo1 @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -2015,7 +2015,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2#element
               parameters
                 _foo2 @-1
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2::@parameter::_foo2#element
   extensions
     extension A
       firstFragment: <testLibraryFragment>::@extension::A
@@ -2451,7 +2451,7 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -2628,7 +2628,7 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -3780,7 +3780,7 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo1#element
               parameters
                 _ @51
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::A::@setter::foo1::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -3800,7 +3800,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2#element
               parameters
                 _ @58
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2::@parameter::_#element
   extensions
     extension A
       firstFragment: <testLibraryFragment>::@extension::A
@@ -3941,7 +3941,7 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -3957,7 +3957,7 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               parameters
                 _ @72
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo::@parameter::_#element
               previousFragment: <testLibraryFragment>::@extension::A::@setter::foo
   extensions
     extension A
@@ -4102,14 +4102,14 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo1#element
               parameters
                 _ @51
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::A::@setter::foo1::@parameter::_#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
             set foo2= @63
               reference: <testLibraryFragment>::@extension::A::@setter::foo2
               element: <testLibraryFragment>::@extension::A::@setter::foo2#element
               parameters
                 _ @72
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::A::@setter::foo2::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4124,7 +4124,7 @@ library
               element: <testLibraryFragment>::@extension::A::@setter::foo1#element
               parameters
                 _ @66
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1::@parameter::_#element
               previousFragment: <testLibraryFragment>::@extension::A::@setter::foo1
   extensions
     extension A

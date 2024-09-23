@@ -40,7 +40,7 @@ RecordLiteral
         target: SimpleIdentifier
           token: r
           staticElement: <testLibraryFragment>::@function::f::@parameter::r
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::r#element
           staticType: (int, String)
         operator: .
         propertyName: SimpleIdentifier
@@ -70,7 +70,7 @@ RecordLiteral
       target: SimpleIdentifier
         token: r
         staticElement: <testLibraryFragment>::@function::f::@parameter::r
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::r#element
         staticType: (int, String)
       operator: .
       propertyName: SimpleIdentifier
@@ -99,12 +99,12 @@ RecordLiteral
     SimpleIdentifier
       token: d
       staticElement: <testLibraryFragment>::@function::test::@parameter::d
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::test::@parameter::d#element
       staticType: dynamic
     SimpleIdentifier
       token: d
       staticElement: <testLibraryFragment>::@function::test::@parameter::d
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::test::@parameter::d#element
       staticType: dynamic
   rightParenthesis: )
   staticType: (List<Object?>, List<Object?>)
@@ -938,12 +938,12 @@ RecordLiteral
     SimpleIdentifier
       token: d
       staticElement: <testLibraryFragment>::@function::test::@parameter::d
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::test::@parameter::d#element
       staticType: dynamic
     SimpleIdentifier
       token: d
       staticElement: <testLibraryFragment>::@function::test::@parameter::d
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::test::@parameter::d#element
       staticType: dynamic
   rightParenthesis: )
   staticType: (dynamic, dynamic)

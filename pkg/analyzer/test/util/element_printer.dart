@@ -84,22 +84,26 @@ class ElementPrinter {
     switch (element) {
       case null:
         _sink.write('<null>');
+      case LibraryImportElementImpl():
+      case TypeParameterElementImpl2():
+        // TODO(scheglov): update when implemented
+        _sink.write('<not-implemented>');
       case DynamicElementImpl():
         _sink.write('dynamic@-1');
       case FormalParameterElementImpl():
-      case LibraryImportElementImpl():
-      case TypeParameterElementImpl2():
-        // TODO(scheglov): implement
-        _sink.write('<not-implemented>');
+        var firstFragment = element.firstFragment;
+        var referenceStr = _elementToReferenceString(firstFragment);
+        _sink.write(referenceStr);
+        _sink.write('#element');
       case FragmentedElementMixin element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference!;
         writeReference(reference);
         _sink.write('#element');
-      case LibraryElementImpl e:
-        writeReference(e.reference!);
       case LabelElementImpl():
         _sink.write('${element.name}@${element.nameOffset}');
+      case LibraryElementImpl e:
+        writeReference(e.reference!);
       case LocalVariableElementImpl():
         _sink.write('${element.name}@${element.nameOffset}');
       case MaybeAugmentedInstanceElementMixin element:
@@ -110,6 +114,7 @@ class ElementPrinter {
       case NeverElementImpl():
         _sink.write('Never@-1');
       case PrefixElementImpl element:
+        // TODO(scheglov): update when implemented
         writeReference(element.reference!);
       default:
         throw UnimplementedError('${element.runtimeType} $element');

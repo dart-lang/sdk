@@ -110,7 +110,7 @@ CascadeExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   cascadeSections
     MethodInvocation
@@ -165,7 +165,7 @@ MethodInvocation
         target: SimpleIdentifier
           token: a
           staticElement: <testLibraryFragment>::@function::g::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::g::@parameter::a#element
           staticType: double
         operator: .
         methodName: SimpleIdentifier
@@ -240,7 +240,7 @@ MethodInvocation
         target: SimpleIdentifier
           token: a
           staticElement: <testLibraryFragment>::@function::g::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::g::@parameter::a#element
           staticType: double
         operator: .
         methodName: SimpleIdentifier
@@ -303,7 +303,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::g::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::g::@parameter::a#element
     staticType: double
   operator: .
   methodName: SimpleIdentifier
@@ -361,7 +361,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: double
   operator: .
   methodName: SimpleIdentifier
@@ -376,13 +376,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: double
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -403,7 +403,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: double
   operator: .
   methodName: SimpleIdentifier
@@ -418,13 +418,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: double
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -445,7 +445,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: double
   operator: .
   methodName: SimpleIdentifier
@@ -460,13 +460,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -487,7 +487,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: double
   operator: .
   methodName: SimpleIdentifier
@@ -502,13 +502,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -542,7 +542,7 @@ MethodInvocation
         target: SimpleIdentifier
           token: a
           staticElement: <testLibraryFragment>::@function::g::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::g::@parameter::a#element
           staticType: int
         operator: .
         methodName: SimpleIdentifier
@@ -615,7 +615,7 @@ MethodInvocation
         target: SimpleIdentifier
           token: a
           staticElement: <testLibraryFragment>::@function::g::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::g::@parameter::a#element
           staticType: int
         operator: .
         methodName: SimpleIdentifier
@@ -678,7 +678,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::g::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::g::@parameter::a#element
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -736,7 +736,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -751,13 +751,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: double
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -778,7 +778,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -793,13 +793,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: double
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -820,7 +820,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -835,13 +835,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: double
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -862,7 +862,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -877,13 +877,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: dynamic
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -904,7 +904,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -919,13 +919,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: dynamic
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -946,7 +946,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -961,13 +961,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -988,7 +988,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -1003,13 +1003,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1030,7 +1030,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -1045,13 +1045,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1082,13 +1082,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1118,7 +1118,7 @@ MethodInvocation
           token: a
           parameter: <null>
           staticElement: <testLibraryFragment>::@function::f::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: int
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
@@ -1138,13 +1138,13 @@ MethodInvocation
         token: b
         parameter: <testLibraryFragment>::@extension::E::@method::clamp::@parameter::x
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
       SimpleIdentifier
         token: c
         parameter: <testLibraryFragment>::@extension::E::@method::clamp::@parameter::y
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -1165,7 +1165,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -1180,13 +1180,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: Never
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1209,7 +1209,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -1224,13 +1224,13 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: Never
       SimpleIdentifier
         token: c
         parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1254,7 +1254,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
@@ -1269,13 +1269,13 @@ MethodInvocation
         token: b
         parameter: <null>
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
       SimpleIdentifier
         token: c
         parameter: <null>
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -1312,7 +1312,7 @@ MethodInvocation
         target: SimpleIdentifier
           token: a
           staticElement: <testLibraryFragment>::@function::g::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::g::@parameter::a#element
           staticType: A
         operator: .
         methodName: SimpleIdentifier
@@ -1377,7 +1377,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   operator: .
   methodName: SimpleIdentifier
@@ -1392,13 +1392,13 @@ MethodInvocation
         token: b
         parameter: <testLibraryFragment>::@class::A::@method::clamp::@parameter::x
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
       SimpleIdentifier
         token: c
         parameter: <testLibraryFragment>::@class::A::@method::clamp::@parameter::y
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -1429,7 +1429,7 @@ MethodInvocation
           token: a
           parameter: <null>
           staticElement: <testLibraryFragment>::@function::f::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
@@ -1449,13 +1449,13 @@ MethodInvocation
         token: b
         parameter: <testLibraryFragment>::@extension::E::@method::clamp::@parameter::x
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
       SimpleIdentifier
         token: c
         parameter: <testLibraryFragment>::@extension::E::@method::clamp::@parameter::y
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -1480,7 +1480,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   operator: .
   methodName: SimpleIdentifier
@@ -1495,13 +1495,13 @@ MethodInvocation
         token: b
         parameter: <testLibraryFragment>::@extension::E::@method::clamp::@parameter::x
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
       SimpleIdentifier
         token: c
         parameter: <testLibraryFragment>::@extension::E::@method::clamp::@parameter::y
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -1728,7 +1728,7 @@ MethodInvocation
           base: <testLibraryFragment>::@function::test::@parameter::t
           substitution: {T: S}
         staticElement: <testLibraryFragment>::@function::f::@parameter::s
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::s#element
         staticType: S & int
     rightParenthesis: )
   staticInvokeType: void Function(S)
@@ -1843,7 +1843,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   operator: .
   methodName: SimpleIdentifier
@@ -1883,7 +1883,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1913,7 +1913,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
@@ -2005,7 +2005,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::f::@parameter::foo
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::foo#element
     staticType: Function
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2080,7 +2080,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::main::@parameter::foo
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::main::@parameter::foo#element
     staticType: Object
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2105,7 +2105,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::main::@parameter::foo
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::main::@parameter::foo#element
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2286,7 +2286,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: loadLibrary
     staticElement: loadLibrary@-1
-    element: <exception>
+<exception>
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2968,7 +2968,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C<void>
     operator: .
     propertyName: SimpleIdentifier
@@ -3252,7 +3252,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: g
     staticElement: <testLibraryFragment>::@function::f::@parameter::g
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::g#element
     staticType: double Function(int)
   operator: .
   methodName: SimpleIdentifier
@@ -3290,7 +3290,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   operator: .
   methodName: SimpleIdentifier
@@ -3554,7 +3554,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: loadLibrary
     staticElement: loadLibrary@-1
-    element: <exception>
+<exception>
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3588,7 +3588,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: loadLibrary
     staticElement: loadLibrary@-1
-    element: <exception>
+<exception>
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3626,7 +3626,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
@@ -4120,7 +4120,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
@@ -4206,7 +4206,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
@@ -4242,7 +4242,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   operator: .
   methodName: SimpleIdentifier
@@ -4282,7 +4282,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   operator: .
   methodName: SimpleIdentifier
@@ -4334,7 +4334,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   operator: .
   methodName: SimpleIdentifier
@@ -4409,7 +4409,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::f::@parameter::foo
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::foo#element
     staticType: Function?
   operator: ?.
   methodName: SimpleIdentifier
@@ -4441,7 +4441,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::f::@parameter::foo
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::foo#element
     staticType: Function?
   operator: .
   methodName: SimpleIdentifier
@@ -4476,7 +4476,7 @@ MethodInvocation
     target: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::testShort::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::testShort::@parameter::c#element
       staticType: C?
     operator: ?.
     methodName: SimpleIdentifier
@@ -4521,7 +4521,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -4537,7 +4537,7 @@ FunctionExpressionInvocation
         token: c
         parameter: root::@parameter::
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: C
     rightParenthesis: )
   staticElement: <null>
@@ -4573,7 +4573,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   operator: .
   methodName: SimpleIdentifier
@@ -4613,7 +4613,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   operator: .
   methodName: SimpleIdentifier
@@ -4647,7 +4647,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: e
     staticElement: <testLibraryFragment>::@function::f::@parameter::e
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::e#element
     staticType: E
   operator: .
   methodName: SimpleIdentifier
@@ -4684,7 +4684,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: e
     staticElement: <testLibraryFragment>::@function::f::@parameter::e
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::e#element
     staticType: E
   operator: .
   methodName: SimpleIdentifier
@@ -4717,7 +4717,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   operator: .
   methodName: SimpleIdentifier
@@ -4750,7 +4750,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   operator: .
   methodName: SimpleIdentifier
@@ -4786,7 +4786,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -4819,7 +4819,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   operator: ?.
   methodName: SimpleIdentifier
@@ -4856,7 +4856,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: X
   operator: .
   methodName: SimpleIdentifier
@@ -4895,7 +4895,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: X
   operator: .
   methodName: SimpleIdentifier
@@ -4932,7 +4932,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: X
   operator: .
   methodName: SimpleIdentifier
@@ -4974,7 +4974,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   operator: .
   methodName: SimpleIdentifier
@@ -5014,7 +5014,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   operator: .
   methodName: SimpleIdentifier
@@ -5118,7 +5118,7 @@ MethodInvocation
     expression: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -5168,7 +5168,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -5208,7 +5208,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -5245,7 +5245,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -5278,7 +5278,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int?
   operator: .
   methodName: SimpleIdentifier
@@ -5314,7 +5314,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -5352,7 +5352,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -5387,7 +5387,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -5528,7 +5528,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   methodName: SimpleIdentifier
@@ -5566,7 +5566,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)?
   operator: .
   methodName: SimpleIdentifier
@@ -5607,7 +5607,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)?
   operator: .
   methodName: SimpleIdentifier
@@ -6020,7 +6020,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: t
     staticElement: <testLibraryFragment>::@function::f::@parameter::t
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::t#element
     staticType: T & int
   operator: .
   methodName: SimpleIdentifier
@@ -6057,7 +6057,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: T & U
   operator: .
   methodName: SimpleIdentifier
@@ -6190,7 +6190,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::f::@parameter::foo
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::foo#element
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6236,7 +6236,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: p
             staticElement: <testLibraryFragment>::@function::foo::@parameter::p
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::foo::@parameter::p#element
             staticType: null
           colon: :
         expression: IntegerLiteral
@@ -6248,7 +6248,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: p
             staticElement: <testLibraryFragment>::@function::foo::@parameter::p
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::foo::@parameter::p#element
             staticType: null
           colon: :
         expression: SimpleIdentifier
@@ -6604,7 +6604,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: g@20
-    element: <exception>
+<exception>
     staticType: double Function(int, String)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6635,7 +6635,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: g@15
-    element: <exception>
+<exception>
     staticType: T Function<T, U>(T, U)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6671,7 +6671,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: g@15
-    element: <exception>
+<exception>
     staticType: T Function<T>([T?])
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6704,7 +6704,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: g@15
-    element: <exception>
+<exception>
     staticType: T Function<T>({required T a})
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6834,7 +6834,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: b
             staticElement: <testLibraryFragment>::@function::foo::@parameter::b
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::foo::@parameter::b#element
             staticType: null
           colon: :
         expression: BooleanLiteral
@@ -6846,7 +6846,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: a
             staticElement: <testLibraryFragment>::@function::foo::@parameter::a
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::foo::@parameter::a#element
             staticType: null
           colon: :
         expression: IntegerLiteral
@@ -6908,7 +6908,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: c
             staticElement: <testLibraryFragment>::@function::foo::@parameter::c
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::foo::@parameter::c#element
             staticType: null
           colon: :
         expression: MethodInvocation
@@ -6944,7 +6944,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: d
             staticElement: <testLibraryFragment>::@function::foo::@parameter::d
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::foo::@parameter::d#element
             staticType: null
           colon: :
         expression: MethodInvocation
@@ -7129,7 +7129,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: foo@16
-    element: <exception>
+<exception>
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7161,7 +7161,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7290,7 +7290,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::f::@parameter::foo
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::foo#element
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7358,7 +7358,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: void Function()
       alias: <testLibraryFragment>::@typeAlias::F
   argumentList: ArgumentList
@@ -7484,7 +7484,7 @@ CascadeExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   cascadeSections
     MethodInvocation
@@ -7533,7 +7533,7 @@ CascadeExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   cascadeSections
     PropertyAccess
@@ -7630,7 +7630,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
@@ -7645,7 +7645,7 @@ MethodInvocation
         token: b
         parameter: <null>
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -7666,7 +7666,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
@@ -7886,7 +7886,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -7901,7 +7901,7 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num)
@@ -7922,7 +7922,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int
   operator: .
   methodName: SimpleIdentifier
@@ -7937,7 +7937,7 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num)
@@ -7959,7 +7959,7 @@ MethodInvocation
     function: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -7981,7 +7981,7 @@ MethodInvocation
         token: b
         parameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num)
@@ -8289,7 +8289,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: b
             staticElement: <testLibraryFragment>::@function::foo::@parameter::b
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::foo::@parameter::b#element
             staticType: null
           colon: :
         expression: BooleanLiteral
@@ -8365,7 +8365,7 @@ MethodInvocation
           base: <testLibraryFragment>::@function::foo::@parameter::value
           substitution: {T: Object}
         staticElement: <testLibraryFragment>::@function::f::@parameter::o
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::o#element
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: void Function(Object?)
@@ -8401,7 +8401,7 @@ MethodInvocation
           base: <testLibraryFragment>::@function::foo::@parameter::value
           substitution: {T: Object}
         staticElement: <testLibraryFragment>::@function::f::@parameter::o
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::o#element
         staticType: List<void>
     rightParenthesis: )
   staticInvokeType: void Function(List<Object?>)

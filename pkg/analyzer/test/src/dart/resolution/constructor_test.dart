@@ -115,7 +115,7 @@ ConstructorDeclaration
           expression: SimpleIdentifier
             token: a
             staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
-            element: <not-implemented>
+            element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
             staticType: a
           semicolon: ;
       rightBracket: }

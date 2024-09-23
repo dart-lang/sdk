@@ -90,7 +90,7 @@ PatternVariableDeclaration
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: int?
   patternTypeSchema: _
 ''');

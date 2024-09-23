@@ -179,7 +179,7 @@ library
               sinceSdkVersion: 2.15.0
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: dart:foo::<fragment>::@class::A::@setter::foo::@parameter::_foo#element
   classes
     class A
       firstFragment: dart:foo::<fragment>::@class::A
@@ -489,7 +489,7 @@ library
               sinceSdkVersion: 2.15.0
               parameters
                 _ @65
-                  element: <not-implemented>
+                  element: dart:foo::<fragment>::@class::A::@setter::foo::@parameter::_#element
   classes
     class A
       firstFragment: dart:foo::<fragment>::@class::A
@@ -1091,10 +1091,10 @@ library
           element: dart:foo::<fragment>::@function::f#element
           parameters
             p1 @37
-              element: <not-implemented>
+              element: dart:foo::<fragment>::@function::f::@parameter::p1#element
             default p2 @67
               reference: dart:foo::<fragment>::@function::f::@parameter::p2
-              element: <not-implemented>
+              element: dart:foo::<fragment>::@function::f::@parameter::p2#element
               sinceSdkVersion: 2.15.0
   functions
     f
@@ -1149,9 +1149,9 @@ library
           element: dart:foo::<fragment>::@function::f#element
           parameters
             p1 @37
-              element: <not-implemented>
+              element: dart:foo::<fragment>::@function::f::@parameter::p1#element
             default p2 @67
-              element: <not-implemented>
+              element: dart:foo::<fragment>::@function::f::@parameter::p2#element
               sinceSdkVersion: 2.15.0
   functions
     f

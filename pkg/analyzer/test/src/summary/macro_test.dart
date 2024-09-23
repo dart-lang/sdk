@@ -3151,7 +3151,7 @@ library
               nameEnd: 62
               parameters
                 this.f @68
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named::@parameter::f#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -3264,7 +3264,7 @@ library
               nameEnd: 62
               parameters
                 a @67
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named::@parameter::a#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -3365,7 +3365,7 @@ library
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new#element
               parameters
                 a @61
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new::@parameter::a#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -3492,7 +3492,7 @@ library
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::_foo#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -3717,7 +3717,7 @@ library
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo#element
               parameters
                 a @70
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo::@parameter::a#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -3833,7 +3833,7 @@ library
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
               parameters
                 a @67
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::a#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -6094,7 +6094,7 @@ library
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::_foo#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -6567,14 +6567,14 @@ library
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
               parameters
                 value @189
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::value#element
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
             augment set foo= @216
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
               parameters
                 value @232
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::value#element
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
   classes
     class A
@@ -8349,13 +8349,13 @@ library
           element: <testLibraryFragment>::@function::foo#element
           parameters
             a @101
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::foo::@parameter::a#element
             default b @113
               reference: <testLibraryFragment>::@function::foo::@parameter::b
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::foo::@parameter::b#element
             default c @122
               reference: <testLibraryFragment>::@function::foo::@parameter::c
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::foo::@parameter::c#element
   functions
     foo
       firstFragment: <testLibraryFragment>::@function::foo
@@ -8439,9 +8439,9 @@ library
           element: <testLibraryFragment>::@function::foo#element
           parameters
             a @106
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::foo::@parameter::a#element
             b @116
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::foo::@parameter::b#element
   functions
     foo
       firstFragment: <testLibraryFragment>::@function::foo
@@ -8945,7 +8945,7 @@ library
           element: <testLibraryFragment>::@function::foo#element
           parameters
             a @102
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::foo::@parameter::a#element
   functions
     foo
       firstFragment: <testLibraryFragment>::@function::foo
@@ -9401,9 +9401,9 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo#element
               parameters
                 a @124
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@method::foo::@parameter::a#element
                 b @134
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@method::foo::@parameter::b#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -10346,7 +10346,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -12907,7 +12907,7 @@ library
               nameEnd: 185
               parameters
                 json @231
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson::@parameter::json#element
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
             augment fromJson @336
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
@@ -12916,7 +12916,7 @@ library
               nameEnd: 344
               parameters
                 json @390
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson::@parameter::json#element
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
           methods
             toJson @314
@@ -18616,7 +18616,7 @@ library
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo#element
               parameters
                 _ @114
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo::@parameter::_#element
   classes
     class X
       firstFragment: <testLibraryFragment>::@class::X

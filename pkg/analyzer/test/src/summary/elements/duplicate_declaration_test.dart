@@ -459,13 +459,13 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo::@def::0#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@def::0::@parameter::_foo#element
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo::@def::1
               element: <testLibraryFragment>::@class::A::@setter::foo::@def::1#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@def::1::@parameter::_foo#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -1166,7 +1166,7 @@ library
               element: <testLibraryFragment>::@extension::E::@def::1::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::E::@def::1::@setter::x::@parameter::_x#element
         extension E @71
           reference: <testLibraryFragment>::@extension::E::@def::2
           element: <testLibraryFragment>::@extension::E::@def::2#element
@@ -1186,7 +1186,7 @@ library
               element: <testLibraryFragment>::@extension::E::@def::2::@setter::y#element
               parameters
                 _y @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extension::E::@def::2::@setter::y::@parameter::_y#element
   extensions
     extension E
       firstFragment: <testLibraryFragment>::@extension::E::@def::0
@@ -1310,7 +1310,7 @@ library
               element: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new#element
               parameters
                 this.it @21
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::E::@def::0::@getter::it
@@ -1329,7 +1329,7 @@ library
               element: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new#element
               parameters
                 this.it @52
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::E::@def::1::@getter::it
@@ -1422,15 +1422,15 @@ library
           element: <testLibraryFragment>::@function::f::@def::1#element
           parameters
             a @23
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@def::1::@parameter::a#element
         f @34
           reference: <testLibraryFragment>::@function::f::@def::2
           element: <testLibraryFragment>::@function::f::@def::2#element
           parameters
             default b @41
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@def::2::@parameter::b#element
             default c @51
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@def::2::@parameter::c#element
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f::@def::0
@@ -1489,10 +1489,10 @@ library
           parameters
             default a @12
               reference: <testLibraryFragment>::@function::f::@parameter::a::@def::0
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::a::@def::0#element
             default a @22
               reference: <testLibraryFragment>::@function::f::@parameter::a::@def::1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::a::@def::1#element
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
@@ -1672,7 +1672,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@def::1::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@def::1::@setter::x::@parameter::_x#element
         mixin A @38
           reference: <testLibraryFragment>::@mixin::A::@def::2
           element: <testLibraryFragment>::@mixin::A::@def::2#element
@@ -1692,7 +1692,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@def::2::@setter::y#element
               parameters
                 _y @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@def::2::@setter::y::@parameter::_y#element
   mixins
     mixin A
       firstFragment: <testLibraryFragment>::@mixin::A::@def::0
@@ -1881,19 +1881,19 @@ library
           element: <testLibraryFragment>::@setter::x::@def::0#element
           parameters
             _x @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@def::0::@parameter::_x#element
         set x= @-1
           reference: <testLibraryFragment>::@setter::x::@def::1
           element: <testLibraryFragment>::@setter::x::@def::1#element
           parameters
             _x @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@def::1::@parameter::_x#element
         set x= @-1
           reference: <testLibraryFragment>::@setter::x::@def::2
           element: <testLibraryFragment>::@setter::x::@def::2#element
           parameters
             _x @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@def::2::@parameter::_x#element
   topLevelVariables
     x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x::@def::0
@@ -2062,13 +2062,13 @@ library
           element: <testLibraryFragment>::@setter::foo::@def::0#element
           parameters
             _ @12
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::foo::@def::0::@parameter::_#element
         set foo= @22
           reference: <testLibraryFragment>::@setter::foo::@def::1
           element: <testLibraryFragment>::@setter::foo::@def::1#element
           parameters
             _ @33
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::foo::@def::1::@parameter::_#element
   topLevelVariables
     synthetic foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo

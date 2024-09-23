@@ -200,20 +200,20 @@ library
               element: <testLibraryFragment>::@mixin::M::@setter::f#element
               parameters
                 _f @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::M::@setter::f::@parameter::_f#element
             set s= @126
               reference: <testLibraryFragment>::@mixin::M::@setter::s
               element: <testLibraryFragment>::@mixin::M::@setter::s#element
               parameters
                 v @132
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::M::@setter::s::@parameter::v#element
           methods
             m @144
               reference: <testLibraryFragment>::@mixin::M::@method::m
               element: <testLibraryFragment>::@mixin::M::@method::m#element
               parameters
                 v @153
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::M::@method::m::@parameter::v#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -2018,7 +2018,7 @@ library
               element: <testLibraryFragment>::@mixin::M::@setter::foo#element
               parameters
                 _ @29
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_#element
   mixins
     mixin M
       firstFragment: <testLibraryFragment>::@mixin::M
@@ -2093,7 +2093,7 @@ library
               element: <testLibraryFragment>::@mixin::M::@setter::foo#element
               parameters
                 _ @29
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_#element
   mixins
     mixin M
       firstFragment: <testLibraryFragment>::@mixin::M
@@ -3034,7 +3034,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -3216,7 +3216,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -3415,7 +3415,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -3615,7 +3615,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -3633,7 +3633,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               parameters
                 _ @61
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo::@parameter::_#element
               previousFragment: <testLibraryFragment>::@mixin::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
@@ -3786,7 +3786,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4083,7 +4083,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
               parameters
                 _foo1 @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4108,7 +4108,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2#element
               parameters
                 _foo2 @-1
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2::@parameter::_foo2#element
   mixins
     mixin A
       firstFragment: <testLibraryFragment>::@mixin::A
@@ -4290,7 +4290,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
               parameters
                 _foo1 @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4318,7 +4318,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2#element
               parameters
                 _foo2 @-1
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2::@parameter::_foo2#element
   mixins
     mixin A
       firstFragment: <testLibraryFragment>::@mixin::A
@@ -4771,7 +4771,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4953,7 +4953,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -6448,7 +6448,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
               parameters
                 _ @40
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@setter::foo1::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -6468,7 +6468,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2#element
               parameters
                 _ @54
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2::@parameter::_#element
   mixins
     mixin A
       firstFragment: <testLibraryFragment>::@mixin::A
@@ -6614,7 +6614,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -6630,7 +6630,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               parameters
                 _ @61
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo::@parameter::_#element
               previousFragment: <testLibraryFragment>::@mixin::A::@setter::foo
   mixins
     mixin A
@@ -6780,14 +6780,14 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
               parameters
                 _ @40
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@setter::foo1::@parameter::_#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
             set foo2= @52
               reference: <testLibraryFragment>::@mixin::A::@setter::foo2
               element: <testLibraryFragment>::@mixin::A::@setter::foo2#element
               parameters
                 _ @61
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::A::@setter::foo2::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -6802,7 +6802,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
               parameters
                 _ @62
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1::@parameter::_#element
               previousFragment: <testLibraryFragment>::@mixin::A::@setter::foo1
   mixins
     mixin A
@@ -7668,7 +7668,7 @@ library
               element: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@method::foo#element
               parameters
                 a @45
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@method::foo::@parameter::a#element
   mixins
     mixin B
       firstFragment: <testLibraryFragment>::@mixin::B
@@ -7770,7 +7770,7 @@ library
               element: <testLibraryFragment>::@mixin::B::@method::foo#element
               parameters
                 a @32
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -7879,7 +7879,7 @@ library
               element: <testLibraryFragment>::@mixin::B::@method::foo#element
               parameters
                 a @32
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -8007,7 +8007,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
               parameters
                 a @54
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -8023,7 +8023,7 @@ library
               previousFragment: <testLibraryFragment>::@mixin::B::@method::foo
               parameters
                 a @53
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo::@parameter::a#element
   mixins
     mixin B
       firstFragment: <testLibraryFragment>::@mixin::B

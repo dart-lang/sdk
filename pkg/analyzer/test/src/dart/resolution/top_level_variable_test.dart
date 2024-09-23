@@ -63,7 +63,7 @@ VariableDeclaration
               prefix: SimpleIdentifier
                 token: z
                 staticElement: @99::@parameter::z
-                element: <not-implemented>
+                element: @99::@parameter::z#element
                 staticType: Object?
               period: .
               identifier: SimpleIdentifier
@@ -133,7 +133,7 @@ VariableDeclaration
               prefix: SimpleIdentifier
                 token: z
                 staticElement: @107::@parameter::z
-                element: <not-implemented>
+                element: @107::@parameter::z#element
                 staticType: String
               period: .
               identifier: SimpleIdentifier

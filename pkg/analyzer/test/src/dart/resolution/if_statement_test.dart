@@ -31,7 +31,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: dynamic
   caseClause: CaseClause
     caseKeyword: case
@@ -65,7 +65,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -150,7 +150,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -237,7 +237,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -324,7 +324,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -410,7 +410,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -492,7 +492,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -577,7 +577,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -669,7 +669,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -757,7 +757,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -839,7 +839,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -938,7 +938,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -1036,7 +1036,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -1116,7 +1116,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   caseClause: CaseClause
     caseKeyword: case
@@ -1221,7 +1221,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: dynamic
   caseClause: CaseClause
     caseKeyword: case
@@ -1265,7 +1265,7 @@ IfStatement
     function: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: bool Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1297,7 +1297,7 @@ IfStatement
     function: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1336,7 +1336,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: dynamic
   caseClause: CaseClause
     caseKeyword: case
@@ -1352,7 +1352,7 @@ IfStatement
           function: SimpleIdentifier
             token: a
             staticElement: <testLibraryFragment>::@function::f::@parameter::a
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::f::@parameter::a#element
             staticType: bool Function()
           argumentList: ArgumentList
             leftParenthesis: (
@@ -1383,7 +1383,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: dynamic
   caseClause: CaseClause
     caseKeyword: case

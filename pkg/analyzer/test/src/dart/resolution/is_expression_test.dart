@@ -60,7 +60,7 @@ IsExpression
     expression: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -99,7 +99,7 @@ IsExpression
   expression: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: Object?
   isOperator: is
   type: NamedType
@@ -124,7 +124,7 @@ IsExpression
   expression: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: Object?
   isOperator: is
   notOperator: !

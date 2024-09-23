@@ -59,7 +59,7 @@ PrefixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: bool
   staticElement: <null>
   element: <null>
@@ -83,7 +83,7 @@ PrefixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: int
   staticElement: <null>
   element: <null>
@@ -112,7 +112,7 @@ PrefixExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -170,13 +170,13 @@ PrefixExpression
     operand: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: null
     readElement: <testLibraryFragment>::@function::f::@parameter::x
-    readElement2: <not-implemented>
+    readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
     readType: int
     writeElement: <testLibraryFragment>::@function::f::@parameter::x
-    writeElement2: <not-implemented>
+    writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
     writeType: int
     staticElement: dart:core::<fragment>::@class::num::@method::+
     element: dart:core::<fragment>::@class::num::@method::+#element
@@ -211,13 +211,13 @@ PrefixExpression
   operand: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: null
   readElement: <testLibraryFragment>::@function::f::@parameter::a
-  readElement2: <not-implemented>
+  readElement2: <testLibraryFragment>::@function::f::@parameter::a#element
   readType: A
   writeElement: <testLibraryFragment>::@function::f::@parameter::a
-  writeElement2: <not-implemented>
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::a#element
   writeType: A
   staticElement: <null>
   element: <null>
@@ -245,7 +245,7 @@ PrefixExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     leftBracket: [
     index: IntegerLiteral
@@ -568,7 +568,7 @@ PrefixExpression
   operand: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: dynamic
   staticElement: <null>
   element: <null>
@@ -597,7 +597,7 @@ PrefixExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -626,7 +626,7 @@ PrefixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: int
   staticElement: dart:core::<fragment>::@class::int::@method::unary-
   element: dart:core::<fragment>::@class::int::@method::unary-#element
@@ -653,13 +653,13 @@ PrefixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   readElement: <testLibraryFragment>::@function::f::@parameter::x
-  readElement2: <not-implemented>
+  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: A
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
-  writeElement2: <not-implemented>
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: Object
   staticElement: <testLibraryFragment>::@class::A::@method::+
   element: <testLibraryFragment>::@class::A::@method::+#element
@@ -697,7 +697,7 @@ PrefixExpression
           token: c
           parameter: <null>
           staticElement: <testLibraryFragment>::@function::f::@parameter::c
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::c#element
           staticType: C
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::Ext
@@ -764,7 +764,7 @@ PrefixExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -805,7 +805,7 @@ PrefixExpression
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -847,7 +847,7 @@ PrefixExpression
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -1058,13 +1058,13 @@ PrefixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   readElement: <testLibraryFragment>::@function::f::@parameter::x
-  readElement2: <not-implemented>
+  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: double
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
-  writeElement2: <not-implemented>
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: double
   staticElement: dart:core::<fragment>::@class::double::@method::+
   element: dart:core::<fragment>::@class::double::@method::+#element
@@ -1086,13 +1086,13 @@ PrefixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   readElement: <testLibraryFragment>::@function::f::@parameter::x
-  readElement2: <not-implemented>
+  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: int
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
-  writeElement2: <not-implemented>
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: int
   staticElement: dart:core::<fragment>::@class::num::@method::+
   element: dart:core::<fragment>::@class::num::@method::+#element
@@ -1114,13 +1114,13 @@ PrefixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   readElement: <testLibraryFragment>::@function::f::@parameter::x
-  readElement2: <not-implemented>
+  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: num
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
-  writeElement2: <not-implemented>
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: num
   staticElement: dart:core::<fragment>::@class::num::@method::+
   element: dart:core::<fragment>::@class::num::@method::+#element
@@ -1144,13 +1144,13 @@ PrefixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   readElement: <testLibraryFragment>::@function::f::@parameter::x
-  readElement2: <not-implemented>
+  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: T
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
-  writeElement2: <not-implemented>
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: T
   staticElement: dart:core::<fragment>::@class::num::@method::+
   element: dart:core::<fragment>::@class::num::@method::+#element
@@ -1342,7 +1342,7 @@ PrefixExpression
     expression: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -1459,7 +1459,7 @@ PrefixExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -1488,7 +1488,7 @@ PrefixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: int
   staticElement: dart:core::<fragment>::@class::int::@method::~
   element: dart:core::<fragment>::@class::int::@method::~#element

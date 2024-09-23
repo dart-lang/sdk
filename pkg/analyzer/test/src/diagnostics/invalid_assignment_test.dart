@@ -538,7 +538,7 @@ FunctionReference
   function: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::foo::@parameter::f
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::f#element
     staticType: int Function<T extends int>()
   staticType: int Function()
   typeArgumentTypes

@@ -91,7 +91,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_foo#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -255,7 +255,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::foo#element
               parameters
                 value @24
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::value#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -513,7 +513,7 @@ library
               element: <testLibraryFragment>::@mixin::M::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_foo#element
   mixins
     mixin M
       firstFragment: <testLibraryFragment>::@mixin::M
@@ -661,7 +661,7 @@ library
               element: <testLibraryFragment>::@mixin::M::@setter::foo#element
               parameters
                 value @24
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::value#element
   mixins
     mixin M
       firstFragment: <testLibraryFragment>::@mixin::M
@@ -787,7 +787,7 @@ library
           element: <testLibraryFragment>::@setter::foo#element
           parameters
             value @30
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::foo::@parameter::value#element
   topLevelVariables
     synthetic foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -851,7 +851,7 @@ library
           element: <testLibraryFragment>::@setter::foo#element
           parameters
             value @12
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::foo::@parameter::value#element
   topLevelVariables
     synthetic foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -922,7 +922,7 @@ library
           element: <testLibraryFragment>::@setter::foo#element
           parameters
             _foo @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
   topLevelVariables
     foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
