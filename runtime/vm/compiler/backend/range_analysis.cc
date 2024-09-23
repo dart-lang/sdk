@@ -2931,8 +2931,7 @@ void LoadClassIdInstr::InferRange(uword* lower, uword* upper) {
     HierarchyInfo* hi = Thread::Current()->hierarchy_info();
     if (hi != nullptr) {
       const auto& type = *ctype->ToAbstractType();
-      if (type.IsType() && !type.IsFutureOrType() &&
-          !Instance::NullIsAssignableTo(type)) {
+      if (type.IsType() && !type.IsFutureOrType() && !ctype->is_nullable()) {
         const auto& type_class = Class::Handle(type.type_class());
         if (!type_class.has_dynamically_extendable_subtypes()) {
           const auto& ranges =
