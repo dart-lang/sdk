@@ -157,7 +157,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       topLevelVariables
         x @35
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -237,7 +236,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       topLevelVariables
         const x @27
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -330,7 +328,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       topLevelVariables
         x @52
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -851,7 +848,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       topLevelVariables
         v @25
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -931,7 +927,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       topLevelVariables
         v @25
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -1011,7 +1006,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       topLevelVariables
         v @25
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -1274,7 +1268,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/nullSafe.dart
-          reference: <not-implemented>
       classes
         class X1 @30
           reference: <testLibraryFragment>::@class::X1
@@ -1850,7 +1843,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/b.dart
-          reference: <not-implemented>
       classes
         class C @23
           reference: <testLibraryFragment>::@class::C
@@ -2513,7 +2505,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       prefixes
         ppp
           reference: <testLibraryFragment>::@prefix::ppp
@@ -2613,9 +2604,7 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
         package:test/b.dart
-          reference: <not-implemented>
       functions
         foo @34
           reference: <testLibraryFragment>::@function::foo
@@ -2679,7 +2668,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/c.dart
-          reference: <not-implemented>
       functions
         foo @17
           reference: <testLibraryFragment>::@function::foo
@@ -2855,7 +2843,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/c.dart
-          reference: <not-implemented>
       topLevelVariables
         v @19
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -2941,7 +2928,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/d.dart
-          reference: <not-implemented>
       topLevelVariables
         v @19
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -3031,7 +3017,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/c.dart
-          reference: <not-implemented>
       topLevelVariables
         v @19
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -4325,7 +4310,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:core
-          reference: <not-implemented>
       prefixes
         core
           reference: <testLibraryFragment>::@prefix::core

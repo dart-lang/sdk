@@ -84,7 +84,6 @@ class ElementPrinter {
     switch (element) {
       case null:
         _sink.write('<null>');
-      case LibraryImportElementImpl():
       case TypeParameterElementImpl2():
         // TODO(scheglov): update when implemented
         _sink.write('<not-implemented>');

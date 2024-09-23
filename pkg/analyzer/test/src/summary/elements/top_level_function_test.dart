@@ -50,7 +50,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       functions
         f @28
           reference: <testLibraryFragment>::@function::f
@@ -93,7 +92,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       functions
         f @28
           reference: <testLibraryFragment>::@function::f

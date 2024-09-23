@@ -1202,7 +1202,6 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeElementReference('reference', e);
       _writeMetadata(e.metadata);
       // _writeNamespaceCombinators(e.combinators);
     });

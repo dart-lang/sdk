@@ -6458,7 +6458,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       classes
         class C @25
           reference: <testLibraryFragment>::@class::C
@@ -6541,7 +6540,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       classes
         class C @25
           reference: <testLibraryFragment>::@class::C
@@ -6635,7 +6633,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -6729,7 +6726,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -7290,7 +7286,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       classes
         class C @25
           reference: <testLibraryFragment>::@class::C
@@ -7373,7 +7368,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       classes
         class C @25
           reference: <testLibraryFragment>::@class::C
@@ -7460,7 +7454,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       classes
         class C @25
           reference: <testLibraryFragment>::@class::C
@@ -7544,7 +7537,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -7638,7 +7630,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -7736,7 +7727,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -13675,7 +13665,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
@@ -14369,7 +14358,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class C @23
           reference: <testLibraryFragment>::@class::C
@@ -17603,7 +17591,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       classes
         class C @27
           reference: <testLibraryFragment>::@class::C
@@ -17669,7 +17656,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       classes
         class C @27
           reference: <testLibraryFragment>::@class::C
@@ -27028,7 +27014,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class A @23
           reference: <testLibraryFragment>::@class::A
@@ -27718,7 +27703,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class M @23
           reference: <testLibraryFragment>::@class::M
@@ -28020,7 +28004,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class M @23
           reference: <testLibraryFragment>::@class::M
@@ -39802,7 +39785,6 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class B @39
           reference: <testLibraryFragment>::@class::B
@@ -39944,7 +39926,6 @@ library
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class B @52
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
@@ -40064,7 +40045,6 @@ library
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class B @52
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
@@ -40179,7 +40159,6 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class B @39
           reference: <testLibraryFragment>::@class::B

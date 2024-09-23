@@ -20552,7 +20552,6 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       enums
         enum B @38
           reference: <testLibraryFragment>::@enum::B
@@ -20768,7 +20767,6 @@ library
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       enums
         enum B @51
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
@@ -20949,7 +20947,6 @@ library
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       enums
         enum B @51
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B

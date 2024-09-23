@@ -1077,7 +1077,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       extensionTypes
         extension type A @32
           reference: <testLibraryFragment>::@extensionType::A
@@ -2039,7 +2038,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       extensionTypes
         extension type A @37
           reference: <testLibraryFragment>::@extensionType::A

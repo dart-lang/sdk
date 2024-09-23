@@ -863,7 +863,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/bar.dart
-          reference: <not-implemented>
       classes
         class B @25
           reference: <testLibraryFragment>::@class::B
@@ -934,7 +933,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/bar.dart
-          reference: <not-implemented>
       classes
         class B @25
           reference: <testLibraryFragment>::@class::B
@@ -1005,7 +1003,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/bar.dart
-          reference: <not-implemented>
       classes
         class B @25
           reference: <testLibraryFragment>::@class::B

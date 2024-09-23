@@ -2719,7 +2719,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         const V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -2840,7 +2839,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -3297,7 +3295,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         const V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -3404,7 +3401,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -3659,7 +3655,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         const V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -3756,7 +3751,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -4015,7 +4009,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -4111,7 +4104,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -4454,7 +4446,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         const V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -4545,7 +4536,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -4698,7 +4688,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -5073,7 +5062,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         const v @27
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -5176,7 +5164,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -5405,7 +5392,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         const v @23
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -5498,7 +5484,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -7295,7 +7280,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         const b @23
           reference: <testLibraryFragment>::@topLevelVariable::b
@@ -7786,7 +7770,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         const V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -7881,7 +7864,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -8079,7 +8061,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         const V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -8174,7 +8155,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -8516,7 +8496,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         const V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -8601,7 +8580,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -8770,7 +8748,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         const B @23
           reference: <testLibraryFragment>::@topLevelVariable::B
@@ -8864,7 +8841,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -9535,7 +9511,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         const vClass @23
           reference: <testLibraryFragment>::@topLevelVariable::vClass
@@ -9700,7 +9675,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -10043,7 +10017,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -12792,7 +12765,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         const v @23
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -12879,7 +12851,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p

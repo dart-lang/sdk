@@ -7648,7 +7648,6 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       mixins
         mixin B @39
           reference: <testLibraryFragment>::@mixin::B
@@ -7776,7 +7775,6 @@ library
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       mixins
         mixin B @52
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
@@ -7885,7 +7883,6 @@ library
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       mixins
         mixin B @52
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
@@ -7994,7 +7991,6 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       mixins
         mixin B @39
           reference: <testLibraryFragment>::@mixin::B

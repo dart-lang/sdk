@@ -105,7 +105,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -2727,7 +2726,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         final b @23
           reference: <testLibraryFragment>::@topLevelVariable::b
@@ -2921,7 +2919,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/b.dart
-          reference: <not-implemented>
       topLevelVariables
         final x @23
           reference: <testLibraryFragment>::@topLevelVariable::x

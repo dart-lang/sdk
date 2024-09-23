@@ -1881,7 +1881,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       topLevelVariables
         uValue @80
           reference: <testLibraryFragment>::@topLevelVariable::uValue
@@ -3840,7 +3839,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         x @21
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -4071,7 +4069,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         x @21
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -4156,7 +4153,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         x @21
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -4387,7 +4383,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         x @21
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -5480,7 +5475,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       topLevelVariables
         vFuture @25
           reference: <testLibraryFragment>::@topLevelVariable::vFuture
@@ -20105,7 +20099,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/other.dart
-          reference: <not-implemented>
       classes
         class A1 @27
           reference: <testLibraryFragment>::@class::A1
