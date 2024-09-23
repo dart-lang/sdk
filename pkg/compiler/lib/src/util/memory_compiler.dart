@@ -93,7 +93,9 @@ Future<api.CompilationResult> runCompiler(
     Map<String, String>? environment,
     bool showDiagnostics = true,
     Uri? librariesSpecificationUri,
+    Uri? platformBinaries,
     Uri? packageConfig,
+    bool skipPackageConfig = false,
     void beforeRun(Compiler compiler)?}) async {
   if (entryPoint == null) {
     entryPoint = Uri.parse('memory:main.dart');
@@ -107,7 +109,9 @@ Future<api.CompilationResult> runCompiler(
       environment: environment,
       showDiagnostics: showDiagnostics,
       librariesSpecificationUri: librariesSpecificationUri,
-      packageConfig: packageConfig);
+      platformBinaries: platformBinaries,
+      packageConfig: packageConfig,
+      skipPackageConfig: skipPackageConfig);
   if (beforeRun != null) {
     beforeRun(compiler);
   }
@@ -127,11 +131,13 @@ Compiler compilerFor(
     Map<String, String>? environment,
     bool showDiagnostics = true,
     Uri? librariesSpecificationUri,
-    Uri? packageConfig}) {
+    Uri? platformBinaries,
+    Uri? packageConfig,
+    bool skipPackageConfig = false}) {
   retainDataForTesting = true;
   librariesSpecificationUri ??= sdkLibrariesSpecificationUri;
 
-  if (packageConfig == null) {
+  if (packageConfig == null && !skipPackageConfig) {
     if (Platform.packageConfig != null) {
       packageConfig = Uri.base.resolve(Platform.packageConfig!);
     } else {
@@ -157,7 +163,8 @@ Compiler compilerFor(
   options = [...options, '${Flags.entryUri}=$entryPoint'];
 
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
-      librariesSpecificationUri: librariesSpecificationUri)
+      librariesSpecificationUri: librariesSpecificationUri,
+      platformBinaries: platformBinaries)
     ..environment = environment ?? {}
     ..packageConfig = packageConfig;
 

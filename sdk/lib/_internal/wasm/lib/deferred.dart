@@ -35,14 +35,17 @@ Future<void> loadLibrary(String enclosingLibrary, String importPrefix) {
     // Import already loaded.
     return Future.value();
   }
-  final importNameMapping = _importMapping[enclosingLibrary]!;
-  final moduleNames = importNameMapping[importPrefix];
+  final importNameMapping = _importMapping[enclosingLibrary];
+  final moduleNames = importNameMapping?[importPrefix];
 
   if (moduleNames == null) {
     // Since loadLibrary calls get lowered to static invocations of this method,
     // TFA will tree-shake libraries (and their associated imports) that are
     // only referenced via a loadLibrary call. In this case, we won't have an
     // import mapping for the lowered loadLibrary call.
+    // This can also occur in module test mode where all imports are deferred
+    // but loaded eagerly.
+    (_loadedLibraries[enclosingLibrary] ??= {}).add(importPrefix);
     return Future.value();
   }
 

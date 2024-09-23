@@ -51,6 +51,7 @@ class TranslatorOptions {
   bool enableExperimentalWasmInterop = false;
   bool generateSourceMaps = true;
   bool enableDeferredLoading = false;
+  bool enableMultiModuleStressTestMode = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
   List<int> watchPoints = [];

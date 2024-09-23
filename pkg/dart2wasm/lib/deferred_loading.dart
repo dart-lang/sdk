@@ -4,9 +4,11 @@
 
 import 'package:collection/collection.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 
+import 'await_transformer.dart' as await_transformer;
 import 'compiler_options.dart';
 import 'generate_wasm.dart';
 import 'util.dart';
@@ -132,13 +134,44 @@ class _LibraryAnalysis {
   _LibraryAnalysis(
       this.component, this.options, this.kernelTarget, this.coreTypes);
 
+  ModuleOutputData _buildModuleOutputDataForTestModule() {
+    int moduleIdCounter = _mainModuleId;
+    final mainModule = ModuleOutput._(moduleIdCounter++);
+    final initLibraries =
+        _getTestModeMainLibraries(component, coreTypes, kernelTarget);
+    mainModule._libraries.addAll(initLibraries);
+    final modules = <ModuleOutput>[];
+    final importMap = <String, List<ModuleOutput>>{};
+
+    // Put each library in a separate module.
+    for (final library in component.libraries) {
+      if (initLibraries.contains(library)) continue;
+      final module = ModuleOutput._(moduleIdCounter++);
+      modules.add(module);
+      module._libraries.add(library);
+      final importName = '${library.importUri}';
+      importMap[importName] = [module];
+    }
+
+    final invokeMain =
+        coreTypes.index.getTopLevelProcedure('dart:_internal', '_invokeMain');
+    return ModuleOutputData(
+        [mainModule, ...modules], {invokeMain.enclosingLibrary: importMap});
+  }
+
+  ModuleOutputData _buildModuleOutputDataDisabled() {
+// If deferred loading is not enabled then put every library in the main
+    // module.
+    final mainModule = ModuleOutput._(_mainModuleId);
+    mainModule._libraries.addAll(component.libraries);
+    return ModuleOutputData([mainModule], const {});
+  }
+
   ModuleOutputData buildModuleOutputData() {
-    if (!options.translatorOptions.enableDeferredLoading) {
-      // If deferred loading is not enabled then put every library in the main
-      // module.
-      final mainModule = ModuleOutput._(_mainModuleId);
-      mainModule._libraries.addAll(component.libraries);
-      return ModuleOutputData([mainModule], const {});
+    if (options.translatorOptions.enableMultiModuleStressTestMode) {
+      return _buildModuleOutputDataForTestModule();
+    } else if (!options.translatorOptions.enableDeferredLoading) {
+      return _buildModuleOutputDataDisabled();
     }
 
     final (libraryToRootSet, importTargetMap) = _buildLibraryToImports();
@@ -185,16 +218,6 @@ class _LibraryAnalysis {
     return ModuleOutputData([mainModule, ...rootSetToModule.values], importMap);
   }
 
-  bool _hasWasmExportPragma(Member m) =>
-      getPragma(coreTypes, m, 'wasm:export', defaultValue: m.name.text) != null;
-
-  bool _containsWasmExport(Library lib) {
-    if (lib.members.any(_hasWasmExportPragma)) {
-      return true;
-    }
-    return lib.classes.any((c) => c.members.any(_hasWasmExportPragma));
-  }
-
   bool _isRequiredLibrary(Library lib) {
     final importUri = lib.importUri;
     if (importUri.scheme == 'dart' && importUri.path == 'core') return true;
@@ -221,7 +244,7 @@ class _LibraryAnalysis {
         // dependencies on these. Also add libraries containing 'wasm:export'
         // since embedders might need access to these from the main module.
         for (final lib in component.libraries) {
-          if (_containsWasmExport(lib) || _isRequiredLibrary(lib)) {
+          if (_containsExport(coreTypes, lib) || _isRequiredLibrary(lib)) {
             if (enqueuedEagerLibraries.add(lib)) {
               eagerWorkStack.add(lib);
             }
@@ -309,3 +332,78 @@ ModuleOutputData modulesForComponent(Component component,
   return _LibraryAnalysis(component, options, kernelTarget, coreTypes)
       .buildModuleOutputData();
 }
+
+Set<Library> _getReachableLibraries(
+    Component component, CoreTypes coreTypes, Target kernelTarget) {
+  final entryPoint = component.mainMethod!.enclosingLibrary;
+  final List<Library> queue = [entryPoint];
+  final Set<Library> reachable = {entryPoint};
+  while (queue.isNotEmpty) {
+    final current = queue.removeLast();
+    for (final dep in current.dependencies) {
+      final importedLib = dep.targetLibrary;
+      if (reachable.add(importedLib)) {
+        queue.add(importedLib);
+      }
+    }
+  }
+  return reachable;
+}
+
+bool _hasWasmExportPragma(CoreTypes coreTypes, Member m) =>
+    getPragma(coreTypes, m, 'wasm:export', defaultValue: m.name.text) != null;
+
+bool _containsExport(CoreTypes coreTypes, Library lib) {
+  if (lib.members.any((m) => _hasWasmExportPragma(coreTypes, m))) {
+    return true;
+  }
+  return lib.classes
+      .any((c) => c.members.any((m) => _hasWasmExportPragma(coreTypes, m)));
+}
+
+/// Augments the `_invokeMain` JS->WASM entry point with test mode setup.
+///
+/// Choosing to augment `_invokeMain` allows us to defer the user-defined `main`
+/// into a second module ensuring that we always have at least 2 modules in test
+/// mode.
+void transformComponentForTestMode(Component component,
+    ClassHierarchy classHierarchy, CoreTypes coreTypes, Target kernelTarget) {
+  final initLibraries =
+      _getTestModeMainLibraries(component, coreTypes, kernelTarget);
+  final loadLibrary =
+      coreTypes.index.getTopLevelProcedure('dart:_internal', 'loadLibrary');
+  final invokeMain =
+      coreTypes.index.getTopLevelProcedure('dart:_internal', '_invokeMain');
+  final loadStatements = <Statement>[];
+  for (final library
+      in _getReachableLibraries(component, coreTypes, kernelTarget)) {
+    if (initLibraries.contains(library)) continue;
+    final loadLibraryCall = StaticInvocation(
+        loadLibrary,
+        Arguments([
+          StringLiteral('${invokeMain.enclosingLibrary.importUri}'),
+          StringLiteral('${library.importUri}')
+        ]));
+    loadStatements.add(ExpressionStatement(AwaitExpression(loadLibraryCall)));
+  }
+
+  invokeMain.function.asyncMarker = AsyncMarker.Async;
+  invokeMain.function.emittedValueType = const VoidType();
+
+  final oldBody = invokeMain.function.body!;
+  invokeMain.function.body = Block([...loadStatements, oldBody]);
+
+  // The await transformer runs modularly before this transform so we need to
+  // rerun it on the transformed `_invokeMain` method.
+  await_transformer.transformLibraries(
+      [invokeMain.enclosingLibrary], classHierarchy, coreTypes);
+}
+
+/// We load all 'dart:*' libraries since just doing the deferred load of modules
+/// requires a significant portion of the SDK libraries.
+Set<Library> _getTestModeMainLibraries(
+        Component component, CoreTypes coreTypes, Target kernelTarget) =>
+    {
+      ...component.libraries.where(
+          (l) => l.importUri.scheme == 'dart' || _containsExport(coreTypes, l))
+    };
