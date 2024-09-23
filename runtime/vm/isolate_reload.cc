@@ -1790,15 +1790,23 @@ void ProgramReloadContext::CommitBeforeInstanceMorphing() {
 }
 
 void ProgramReloadContext::CommitAfterInstanceMorphing() {
-  // Rehash constants map for all classes. Constants are hashed by content, and
-  // content may have changed from fields being added or removed.
   {
+    // Rehash constants map for all classes. Constants are hashed by content,
+    // and content may have changed from fields being added or removed.
     TIMELINE_SCOPE(RehashConstants);
     IG->RehashConstants(&become_);
   }
   {
+    // Forward old enum values to new enum values. Note this is a nop if the
+    // become operation is empty.
     TIMELINE_SCOPE(ForwardEnums);
     become_.Forward();
+  }
+  {
+    // Rehash again, since the become operation may have merged some constants
+    // and various things are unhappy with duplicates in the canonical tables.
+    TIMELINE_SCOPE(RehashConstants);
+    IG->RehashConstants(nullptr);
   }
 
   if (FLAG_identity_reload) {

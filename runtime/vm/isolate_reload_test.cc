@@ -2259,6 +2259,49 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
                SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_EnumDeleteMultiple) {
+  // See https://github.com/dart-lang/sdk/issues/56583.
+  // Accessing Fruit.values will cause a const array with all the enum values
+  // to stick around in the canonical table for _List.
+  const char* kScript =
+      "enum Fruit { Apple, Banana, Cherry }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.values[0];\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+
+  // Both Banana and Cherry forwarded to the deleted-enum sentinel, and
+  // two copies of the sentinel remain in Fruit's canonical table.
+  const char* kReloadScript0 =
+      "enum Fruit { Apple }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript0);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+
+  // When visiting Fruit's canonical table, we try to forward both entries of
+  // the old sentinel to the new sentinel, creating a become conflict.
+  const char* kReloadScript1 =
+      "enum Fruit { Apple }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript1);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+}
+
 TEST_CASE(IsolateReload_EnumShapeChange) {
   const char* kScript =
       "enum Fruit { Apple, Banana }\n"
