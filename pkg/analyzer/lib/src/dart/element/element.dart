@@ -8436,9 +8436,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   /// this field contains the base method.
   PropertyAccessorElement? prototype;
 
-  /// Optimizes the resolution of the `name` getter.
-  String? _setterNameResolved;
-
   /// The element corresponding to this fragment.
   ///
   /// The element will always be an instance of either `GetterElement` or
@@ -8579,8 +8576,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   @override
   String get name {
     if (isSetter) {
-      return _setterNameResolved ??=
-          considerCanonicalizeString("${super.name}=");
+      return "${super.name}=";
     }
     return super.name;
   }
