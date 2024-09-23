@@ -598,7 +598,7 @@ ISOLATE_UNIT_TEST_CASE(SerializeByteArray) {
     serialized_array ^= ReadMessage(thread, message.get());                    \
     for (int i = 0; i < kArrayLength; i++) {                                   \
       EXPECT_EQ(static_cast<ctype>(i),                                         \
-                serialized_array.Get##darttype(i* scale));                     \
+                serialized_array.Get##darttype(i * scale));                    \
     }                                                                          \
   }
 
@@ -618,7 +618,7 @@ ISOLATE_UNIT_TEST_CASE(SerializeByteArray) {
     serialized_array ^= ReadMessage(thread, message.get());                    \
     for (int i = 0; i < length; i++) {                                         \
       EXPECT_EQ(static_cast<ctype>(data[i]),                                   \
-                serialized_array.Get##darttype(i* scale));                     \
+                serialized_array.Get##darttype(i * scale));                    \
     }                                                                          \
   }
 
@@ -639,7 +639,7 @@ ISOLATE_UNIT_TEST_CASE(SerializeByteArray) {
     serialized_view ^= ReadMessage(thread, message.get());                     \
     for (int i = 0; i < length; i++) {                                         \
       EXPECT_EQ(static_cast<ctype>(data[i]),                                   \
-                serialized_view.Get##darttype(i* scale));                      \
+                serialized_view.Get##darttype(i * scale));                     \
     }                                                                          \
   }
 

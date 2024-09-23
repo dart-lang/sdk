@@ -25974,7 +25974,7 @@ const intptr_t
         16,  // kTypedDataFloat32x4ArrayCid.
         16,  // kTypedDataInt32x4ArrayCid.
         16,  // kTypedDataFloat64x2ArrayCid,
-    };
+};
 
 bool TypedData::CanonicalizeEquals(const Instance& other) const {
   if (this->ptr() == other.ptr()) {
