@@ -4235,12 +4235,16 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
   bool HasZeroRepresentation() const {
     switch (representation()) {
       case kTagged:
+      case kUntagged:
+      case kUnboxedInt8:
       case kUnboxedUint8:
+      case kUnboxedInt16:
       case kUnboxedUint16:
-      case kUnboxedUint32:
       case kUnboxedInt32:
+      case kUnboxedUint32:
       case kUnboxedInt64:
         return IsSmi() && compiler::target::SmiValue(value()) == 0;
+      case kUnboxedFloat:
       case kUnboxedDouble:
         return compiler::target::IsDouble(value()) &&
                bit_cast<uint64_t>(compiler::target::DoubleValue(value())) == 0;

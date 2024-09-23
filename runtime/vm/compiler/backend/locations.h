@@ -97,6 +97,17 @@ struct RepresentationUtils : AllStatic {
     }
   }
 
+  // Whether the representation is for a type of unboxed float.
+  static constexpr bool IsUnboxedFloat(Representation rep) {
+    switch (rep) {
+      case kUnboxedFloat:
+      case kUnboxedDouble:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   // Whether the representation is for a type of unboxed value.
   static constexpr bool IsUnboxed(Representation rep) {
     switch (rep) {

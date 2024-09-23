@@ -14,33 +14,39 @@
 namespace dart {
 
 compiler::OperandSize RepresentationUtils::OperandSize(Representation rep) {
-  if (rep == kTagged) return compiler::kObjectBytes;
+  switch (rep) {
+    case kTagged:
+      return compiler::kObjectBytes;
+    case kUntagged:
+      // Untagged addresses are either loaded from and stored to word size
+      // native fields or generated from already-extended tagged addresses when
+      // compressed pointers are enabled.
+      return compiler::kWordBytes;
 
-  // Untagged addresses are either loaded from and stored to word size native
-  // fields or generated from already-extended tagged addresses when
-  // compressed pointers are enabled.
-  if (rep == kUntagged) return compiler::kWordBytes;
+    case kUnboxedInt8:
+      return compiler::kByte;
+    case kUnboxedUint8:
+      return compiler::kUnsignedByte;
+    case kUnboxedInt16:
+      return compiler::kTwoBytes;
+    case kUnboxedUint16:
+      return compiler::kUnsignedTwoBytes;
+    case kUnboxedInt32:
+      return compiler::kFourBytes;
+    case kUnboxedUint32:
+      return compiler::kUnsignedFourBytes;
+    case kUnboxedInt64:
+      return compiler::kEightBytes;
 
-  if (IsUnboxedInteger(rep)) {
-    switch (ValueSize(rep)) {
-      case 8:
-        ASSERT(!IsUnsignedInteger(rep));
-        ASSERT_EQUAL(compiler::target::kWordSize, 8);
-        return compiler::kEightBytes;
-      case 4:
-        return IsUnsignedInteger(rep) ? compiler::kUnsignedFourBytes
-                                      : compiler::kFourBytes;
-      case 2:
-        return IsUnsignedInteger(rep) ? compiler::kUnsignedTwoBytes
-                                      : compiler::kTwoBytes;
-      case 1:
-        return IsUnsignedInteger(rep) ? compiler::kUnsignedByte
-                                      : compiler::kByte;
-    }
+    case kUnboxedFloat:
+      return compiler::kFourBytes;
+    case kUnboxedDouble:
+      return compiler::kEightBytes;
+
+    default:
+      UNREACHABLE();
+      return compiler::kObjectBytes;
   }
-
-  UNREACHABLE();
-  return compiler::kObjectBytes;
 }
 
 #define REP_MIN_VALUE_CLAUSE(name, ___, ____, type)                            \
