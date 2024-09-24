@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
@@ -230,14 +231,14 @@ extension IdentifierImplExtension on IdentifierImpl {
         name2: self.identifier.token,
         typeArguments: typeArguments,
         question: question,
-      )..element = self.identifier.staticElement;
+      )..element2 = self.identifier.staticElement.asElement2;
     } else if (self is SimpleIdentifierImpl) {
       return NamedTypeImpl(
         importPrefix: null,
         name2: self.token,
         typeArguments: typeArguments,
         question: question,
-      )..element = self.staticElement;
+      )..element2 = self.staticElement.asElement2;
     } else {
       throw UnimplementedError('(${self.runtimeType}) $self');
     }

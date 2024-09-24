@@ -3,11 +3,36 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:meta/meta.dart';
+
+extension Element2OrNullExtension on Element2? {
+  Element? get asElement {
+    var self = this;
+    switch (self) {
+      case DynamicElementImpl():
+        return self;
+      case GetterElement():
+        return self.firstFragment as Element;
+      case MultiplyDefinedElement element2:
+        return element2;
+      case NeverElementImpl():
+        return self;
+      case PrefixElementImpl():
+        return self;
+      case TopLevelFunctionElementImpl():
+        return self.firstFragment as Element;
+      case TypeDefiningElement2():
+        return self.firstFragment as Element;
+      default:
+        return null;
+    }
+  }
+}
 
 extension ElementExtension on Element {
   // TODO(scheglov): Maybe just add to `Element`?
@@ -81,6 +106,29 @@ extension ElementExtension on Element {
 extension ElementImplExtension on ElementImpl {
   AnnotationImpl annotationAst(int index) {
     return metadata[index].annotationAst;
+  }
+}
+
+extension ElementOrNullExtension on Element? {
+  Element2? get asElement2 {
+    var self = this;
+    if (self is DynamicElementImpl) {
+      return self;
+    } else if (self is FunctionElementImpl &&
+        self.enclosingElement3 is! CompilationUnitElement) {
+      // TODO(scheglov): update `FunctionElementImpl.element` return type?
+      return LocalFunctionElementImpl(self);
+    } else if (self is LocalVariableElementImpl) {
+      return self;
+    } else if (self is MultiplyDefinedElementImpl) {
+      return self;
+    } else if (self is NeverElementImpl) {
+      return self;
+    } else if (self is PrefixElementImpl) {
+      return self;
+    } else {
+      return (self as Fragment?)?.element;
+    }
   }
 }
 

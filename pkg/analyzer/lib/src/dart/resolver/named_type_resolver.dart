@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving types.
 ///
@@ -295,7 +296,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   void _resolveToElement(NamedTypeImpl node, Element? element,
       {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
-    node.element = element;
+    node.element2 = element.asElement2;
 
     if (element == null) {
       node.type = InvalidTypeImpl.instance;
@@ -346,7 +347,7 @@ class NamedTypeResolver with ScopeHelpers {
         name2: importPrefix.name,
         typeArguments: null,
         question: null,
-      )..element = importPrefixElement;
+      )..element2 = importPrefixElement.asElement2;
       if (identical(node, redirectedConstructor_namedType)) {
         redirectedConstructor_namedType = namedType;
       }

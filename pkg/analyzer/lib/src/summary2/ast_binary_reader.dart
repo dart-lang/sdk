@@ -17,6 +17,7 @@ import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/unlinked_token_type.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 /// Deserializer of ASTs.
@@ -951,7 +952,7 @@ class AstBinaryReader {
       typeArguments: typeArguments,
       question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
     );
-    node.element = _reader.readElement();
+    node.element2 = _reader.readElement().asElement2;
     node.type = _reader.readType();
     return node;
   }

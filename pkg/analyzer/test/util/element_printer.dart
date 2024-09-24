@@ -110,6 +110,8 @@ class ElementPrinter {
         var reference = firstFragment.reference!;
         writeReference(reference);
         _sink.write('#element');
+      case MultiplyDefinedElementImpl():
+        _sink.write('<null>');
       case NeverElementImpl():
         _sink.write('Never@-1');
       case PrefixElementImpl element:
