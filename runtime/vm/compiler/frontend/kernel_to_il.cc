@@ -69,14 +69,16 @@ FlowGraphBuilder::FlowGraphBuilder(
     bool optimizing,
     intptr_t osr_id,
     intptr_t first_block_id,
-    bool inlining_unchecked_entry)
+    bool inlining_unchecked_entry,
+    const Function* caller)
     : BaseFlowGraphBuilder(parsed_function,
                            optimizing,
                            first_block_id - 1,
                            osr_id,
                            context_level_array,
                            exit_collector,
-                           inlining_unchecked_entry),
+                           inlining_unchecked_entry,
+                           caller),
       translation_helper_(Thread::Current()),
       thread_(translation_helper_.thread()),
       zone_(translation_helper_.zone()),
