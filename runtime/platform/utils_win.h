@@ -40,6 +40,24 @@ inline uint64_t Utils::HostToLittleEndian64(uint64_t value) {
   return value;
 }
 
+inline char* Utils::StrError(int err, char* buffer, size_t bufsize) {
+  DWORD message_size =
+      FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                     nullptr, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                     buffer, static_cast<DWORD>(bufsize), nullptr);
+  if (message_size == 0) {
+    if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+      snprintf(buffer, bufsize,
+               "FormatMessage failed for error code %d (error %d)\n", err,
+               GetLastError());
+    }
+    snprintf(buffer, bufsize, "OS Error %d", err);
+  }
+  // Ensure string termination.
+  buffer[bufsize - 1] = 0;
+  return buffer;
+}
+
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_UTILS_WIN_H_

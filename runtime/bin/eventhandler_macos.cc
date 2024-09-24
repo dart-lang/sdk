@@ -473,12 +473,9 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
 }
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
-  int result = Thread::Start("dart:io EventHandler",
-                             &EventHandlerImplementation::EventHandlerEntry,
-                             reinterpret_cast<uword>(handler));
-  if (result != 0) {
-    FATAL("Failed to start event handler thread %d", result);
-  }
+  Thread::Start("dart:io EventHandler",
+                &EventHandlerImplementation::EventHandlerEntry,
+                reinterpret_cast<uword>(handler));
 }
 
 void EventHandlerImplementation::Shutdown() {

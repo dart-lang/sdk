@@ -330,11 +330,7 @@ ThreadPool::Worker::Worker(ThreadPool* pool)
     : pool_(pool), join_id_(OSThread::kInvalidThreadJoinId) {}
 
 void ThreadPool::Worker::StartThread() {
-  int result = OSThread::Start("DartWorker", &Worker::Main,
-                               reinterpret_cast<uword>(this));
-  if (result != 0) {
-    FATAL("Could not start worker thread: result = %d.", result);
-  }
+  OSThread::Start("DartWorker", &Worker::Main, reinterpret_cast<uword>(this));
 }
 
 void ThreadPool::Worker::Main(uword args) {

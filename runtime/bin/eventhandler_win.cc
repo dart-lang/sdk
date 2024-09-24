@@ -364,7 +364,7 @@ bool Handle::IssueReadLocked(MonitorLocker* ml) {
     Retain();
     buffer.release();  // HandleIOCompletion will take ownership.
     read_thread_starting_ = true;
-    int result = Thread::Start(
+    Thread::Start(
         "dart:io ReadFile",
         [](uword args) {
           auto handle = reinterpret_cast<Handle*>(args);
@@ -372,9 +372,6 @@ bool Handle::IssueReadLocked(MonitorLocker* ml) {
           handle->Release();
         },
         reinterpret_cast<uword>(this));
-    if (result != 0) {
-      FATAL("Failed to start read file thread %d", result);
-    }
     return true;
   }
 }
@@ -808,7 +805,7 @@ intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
     // The write thread gets a reference to the Handle, which it places in
     // the events it puts on the IO completion port.
     Retain();
-    int result = Thread::Start(
+    Thread::Start(
         "dart:io WriteFile",
         [](uword args) {
           auto handle = reinterpret_cast<StdHandle*>(args);
@@ -816,9 +813,6 @@ intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
           handle->Release();
         },
         reinterpret_cast<uword>(this));
-    if (result != 0) {
-      FATAL("Failed to start write file thread %d", result);
-    }
     while (!write_thread_running_) {
       // Wait until we the thread is running.
       ml.Wait(Monitor::kNoTimeout);
@@ -1486,11 +1480,8 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
 }
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
-  int result = Thread::Start("dart:io EventHandler", EventHandlerEntry,
-                             reinterpret_cast<uword>(handler));
-  if (result != 0) {
-    FATAL("Failed to start event handler thread %d", result);
-  }
+  Thread::Start("dart:io EventHandler", EventHandlerEntry,
+                reinterpret_cast<uword>(handler));
 
   {
     MonitorLocker ml(&monitor_);
