@@ -29,6 +29,7 @@ dart.ci_sandbox_builder(
     "analyzer-linux-release",
     category = "analyzer|l",
     channels = dart.channels,
+    location_filters = paths.to_location_filters(paths.analyzer),
 )
 dart.ci_sandbox_builder(
     "analyzer-mac-release",
@@ -41,5 +42,4 @@ dart.ci_sandbox_builder(
     category = "analyzer|w",
     channels = dart.channels,
     dimensions = windows,
-    location_filters = paths.to_location_filters(paths.analyzer),
 )
