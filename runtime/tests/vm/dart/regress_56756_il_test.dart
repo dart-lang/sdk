@@ -9,13 +9,21 @@ import 'package:vm/testing/il_matchers.dart';
 
 import 'dart:math';
 
+@pragma('vm:never-inline')
+void myprint(Object o) {
+  print(o);
+}
+
 class RandomValue {
   final bool shouldReturnValue;
   const RandomValue(this.shouldReturnValue);
 
+  @pragma('vm:never-inline')
+  String randomString() => Random().nextInt(42).toString();
+
   @pragma('vm:prefer-inline')
   String? get valueOrNull {
-    return shouldReturnValue ? "${Random().nextInt(42)}" : null;
+    return shouldReturnValue ? randomString() : null;
   }
 }
 
@@ -23,7 +31,7 @@ class RandomValue {
 @pragma('vm:testing:print-flow-graph')
 void doTest(RandomValue value) {
   if (value.valueOrNull case final String aString) {
-    print(aString);
+    myprint(aString);
   }
 }
 
@@ -48,8 +56,6 @@ void matchIL$doTest(FlowGraph graph) {
     ]),
     'B8' <<
         match.block('Target', [
-          match.StaticCall(),
-          match.StaticCall(),
           'v19' << match.StaticCall(),
           match.Goto('B10'),
         ]),

@@ -641,8 +641,15 @@
         "compiler": "fasta"
       }
     },
-    "analyzer-(linux|mac|win)": {
+    "analyzer-(linux|win)": {
       "options": {
+        "compiler": "dart2analyzer",
+        "use-sdk": true
+      }
+    },
+    "analyzer-mac": {
+      "options": {
+        "architecture": "arm64",
         "compiler": "dart2analyzer",
         "use-sdk": true
       }
@@ -3000,21 +3007,6 @@
             "analyze",
             "--suppress-analytics",
             "runtime/observatory"
-          ]
-        },
-        {
-          "_comment": "This uses analyzer_cli which is deprecated.",
-          "name": "dartanalyzer --batch tests",
-          "arguments": [
-            "-nanalyzer-${system}"
-          ]
-        },
-        {
-          "_comment": "This uses analyzer_cli which is deprecated.",
-          "name": "dartanalyzer --batch pkg tests",
-          "arguments": [
-            "-nanalyzer-${system}",
-            "pkg"
           ]
         }
       ]
