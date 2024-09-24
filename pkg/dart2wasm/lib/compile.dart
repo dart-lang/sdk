@@ -37,7 +37,7 @@ import 'package:wasm_builder/wasm_builder.dart' show Serializer;
 
 import 'compiler_options.dart' as compiler;
 import 'constant_evaluator.dart';
-import 'deferred_loading.dart';
+import 'deferred_loading.dart' as deferred_loading;
 import 'js/runtime_generator.dart' as js;
 import 'record_class_generator.dart';
 import 'records.dart';
@@ -184,6 +184,11 @@ Future<CompilationResult> compileToModule(
         component, options.deleteToStringPackageUri);
   }
 
+  if (options.translatorOptions.enableMultiModuleStressTestMode) {
+    deferred_loading.transformComponentForTestMode(
+        component, classHierarchy, coreTypes, target);
+  }
+
   ConstantEvaluator constantEvaluator = ConstantEvaluator(
       options, target, component, coreTypes, classHierarchy, libraryIndex);
   unreachable_code_elimination.transformComponent(target, component,
@@ -227,8 +232,8 @@ Future<CompilationResult> compileToModule(
     return true;
   }());
 
-  final moduleOutputData =
-      modulesForComponent(component, options, target, coreTypes);
+  final moduleOutputData = deferred_loading.modulesForComponent(
+      component, options, target, coreTypes);
 
   var translator = Translator(component, coreTypes, libraryIndex, recordClasses,
       moduleOutputData, options.translatorOptions);

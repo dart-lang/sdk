@@ -29,6 +29,7 @@ extension type CrossOriginWindow(JSAny? _) {
   external bool get closed;
   external int get length;
   external CrossOriginLocation get location;
+  @JS('location')
   external set locationString(String value);
   external CrossOriginWindow get opener;
   external CrossOriginWindow get parent;

@@ -102,7 +102,7 @@ InstanceCreationExpression
           label: SimpleIdentifier
             token: b
             staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b
-            element: <not-implemented>
+            element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b#element
             staticType: null
           colon: :
         expression: BooleanLiteral
@@ -114,7 +114,7 @@ InstanceCreationExpression
           label: SimpleIdentifier
             token: c
             staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::c
-            element: <not-implemented>
+            element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::c#element
             staticType: null
           colon: :
         expression: DoubleLiteral
@@ -716,7 +716,7 @@ InstanceCreationExpression
           base: <testLibraryFragment>::@class::A::@constructor::new::@parameter::t
           substitution: {T: S}
         staticElement: <testLibraryFragment>::@function::f::@parameter::s
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::s#element
         staticType: S & int
     rightParenthesis: )
   staticType: A<S>
@@ -1924,7 +1924,7 @@ InstanceCreationExpression
           label: SimpleIdentifier
             token: c
             staticElement: <testLibraryFragment>::@class::X::@constructor::new::@parameter::c
-            element: <not-implemented>
+            element: <testLibraryFragment>::@class::X::@constructor::new::@parameter::c#element
             staticType: null
           colon: :
         expression: MethodInvocation
@@ -1960,7 +1960,7 @@ InstanceCreationExpression
           label: SimpleIdentifier
             token: d
             staticElement: <testLibraryFragment>::@class::X::@constructor::new::@parameter::d
-            element: <not-implemented>
+            element: <testLibraryFragment>::@class::X::@constructor::new::@parameter::d#element
             staticType: null
           colon: :
         expression: MethodInvocation

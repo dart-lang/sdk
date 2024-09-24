@@ -1004,8 +1004,12 @@ void IsolateGroup::RehashConstants(Become* become) {
         ASSERT(!old_value.IsNull());
 
         if (become == nullptr) {
-          ASSERT(old_value.IsCanonical());
-          cls.InsertCanonicalConstant(zone, old_value);
+          if (old_value.IsCanonical()) {
+            cls.InsertCanonicalConstant(zone, old_value);
+          } else {
+            // The deleted enum value sentinel is not marked canonical.
+            ASSERT(cls.is_enum_class());
+          }
         } else {
           new_value = old_value.Canonicalize(thread);
           if (old_value.ptr() != new_value.ptr()) {

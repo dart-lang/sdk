@@ -2197,6 +2197,7 @@ class RecordFieldAccessTypeInformation extends TypeInformation {
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
     final recordType = receiver.type;
+    inferrer.dataOfMember(caller).setReceiverTypeMask(node, recordType);
     if (inferrer.abstractValueDomain.isEmpty(recordType).isDefinitelyTrue) {
       // These field accesses should begin at empty until we have a type for the
       // receiver.
@@ -2206,7 +2207,6 @@ class RecordFieldAccessTypeInformation extends TypeInformation {
     }
     final getterType = inferrer.abstractValueDomain
         .getGetterTypeInRecord(recordType, getterName);
-    inferrer.dataOfMember(caller).setReceiverTypeMask(node, recordType);
     return getterType;
   }
 }

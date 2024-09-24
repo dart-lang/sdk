@@ -35,7 +35,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -116,7 +116,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@class::A::@method::bar::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@class::A::@method::bar::@parameter::x#element
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -164,7 +164,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: void
   rightParenthesis: )
   leftBracket: {
@@ -275,7 +275,7 @@ SwitchExpressionCase
     function: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -353,7 +353,7 @@ SwitchExpressionCase
         function: SimpleIdentifier
           token: a
           staticElement: <testLibraryFragment>::@function::f::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: bool Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -387,7 +387,7 @@ SwitchExpression
     function: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -431,7 +431,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -479,7 +479,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -529,7 +529,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -610,7 +610,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -700,7 +700,7 @@ SwitchExpression
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Object?
   rightParenthesis: )
   leftBracket: {

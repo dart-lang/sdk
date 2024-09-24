@@ -840,7 +840,9 @@ abstract class AstCodeGenerator
       }
     } else if (local != null && !local.type.defaultable) {
       // Uninitialized variable
-      translator.globals.instantiateDummyValue(b, local.type);
+      translator
+          .getDummyValuesCollectorForModule(b.module)
+          .instantiateDummyValue(b, local.type);
       b.local_set(local);
     }
   }
@@ -2366,8 +2368,11 @@ abstract class AstCodeGenerator
         b.ref_as_non_null();
       }
     } else {
-      translator.globals
-          .readGlobal(b, translator.globals.dummyStructGlobal); // Dummy context
+      translator.globals.readGlobal(
+          b,
+          translator
+              .getDummyValuesCollectorForModule(b.module)
+              .dummyStructGlobal); // Dummy context
     }
   }
 
@@ -2393,7 +2398,7 @@ abstract class AstCodeGenerator
     int posArgCount = arguments.positional.length;
     List<String> argNames = arguments.named.map((a) => a.name).toList()..sort();
     ClosureRepresentation? representation = translator.closureLayouter
-        .getClosureRepresentation(b.module, typeCount, posArgCount, argNames);
+        .getClosureRepresentation(typeCount, posArgCount, argNames);
     if (representation == null) {
       // This is a dynamic function call with a signature that matches no
       // functions in the program.
@@ -2465,8 +2470,7 @@ abstract class AstCodeGenerator
       int posArgCount = type.positionalParameters.length;
       List<String> argNames = type.namedParameters.map((a) => a.name).toList();
       ClosureRepresentation representation = translator.closureLayouter
-          .getClosureRepresentation(
-              b.module, typeCount, posArgCount, argNames)!;
+          .getClosureRepresentation(typeCount, posArgCount, argNames)!;
 
       // Operand closure
       w.RefType closureType =

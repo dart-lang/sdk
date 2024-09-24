@@ -7734,6 +7734,19 @@ LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
 
   summary->set_in(kInstancePos, Location::RequiresRegister());
   const Representation rep = slot().representation();
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
+    defined(TARGET_ARCH_RISCV64)
+  // ARM64 and RISC-V have dedicated zero and null registers which can be
+  // used in store instructions.
+  if (RepresentationUtils::ValueSize(rep) <= compiler::target::kWordSize) {
+    if (auto constant = value()->definition()->AsConstant()) {
+      if (constant->value().IsNull() || constant->HasZeroRepresentation()) {
+        summary->set_in(kValuePos, Location::Constant(constant));
+        return summary;
+      }
+    }
+  }
+#endif
   if (rep == kUntagged) {
     summary->set_in(kValuePos, Location::RequiresRegister());
   } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
@@ -7759,18 +7772,6 @@ LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
     // X64 supports emitting `mov mem, Imm32` only with non-pointer
     // immediate.
     summary->set_in(kValuePos, LocationRegisterOrSmiConstant(value()));
-#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \
-    defined(TARGET_ARCH_RISCV64)
-    // ARM64 and RISC-V have dedicated zero and null registers which can be
-    // used in store instructions.
-    Location value_loc = Location::RequiresRegister();
-    if (auto constant = value()->definition()->AsConstant()) {
-      const auto& value = constant->value();
-      if (value.IsNull() || (value.IsSmi() && Smi::Cast(value).Value() == 0)) {
-        value_loc = Location::Constant(constant);
-      }
-    }
-    summary->set_in(kValuePos, value_loc);
 #else
     // No support for moving immediate to memory directly.
     summary->set_in(kValuePos, Location::RequiresRegister());
@@ -7791,6 +7792,14 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
 
   const Representation rep = slot().representation();
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
+    defined(TARGET_ARCH_RISCV64)
+  if (locs()->in(kValuePos).IsConstant() &&
+      locs()->in(kValuePos).constant_instruction()->HasZeroRepresentation()) {
+    __ StoreToSlotNoBarrier(ZR, instance_reg, slot(), memory_order_);
+    return;
+  }
+#endif
   if (rep == kUntagged) {
     __ StoreToSlotNoBarrier(locs()->in(kValuePos).reg(), instance_reg, slot(),
                             memory_order_);

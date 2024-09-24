@@ -142,7 +142,7 @@ class LibraryBuilder with MacroApplicationsContainer {
         var export = Export(
           exporter: this,
           location: ExportLocation(
-            containerIndex: fragmentIndex,
+            fragmentIndex: fragmentIndex,
             exportIndex: exportIndex,
           ),
           combinators: combinators,

@@ -1551,7 +1551,7 @@ CommentReference
   expression: SimpleIdentifier
     token: p
     staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::p
-    element: <not-implemented>
+    element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::p#element
     staticType: null
 ''');
   }
@@ -1568,7 +1568,7 @@ CommentReference
   expression: SimpleIdentifier
     token: p
     staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::p
-    element: <not-implemented>
+    element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::p#element
     staticType: null
 ''');
   }
@@ -1590,7 +1590,7 @@ CommentReference
   expression: SimpleIdentifier
     token: p
     staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::p
-    element: <not-implemented>
+    element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::p#element
     staticType: null
 ''');
   }
@@ -1656,7 +1656,7 @@ CommentReference
   expression: SimpleIdentifier
     token: p
     staticElement: <testLibraryFragment>::@function::foo::@parameter::p
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::p#element
     staticType: null
 ''');
   }
@@ -1672,7 +1672,7 @@ CommentReference
   expression: SimpleIdentifier
     token: p
     staticElement: p@24
-    element: <not-implemented>
+    element: p@24#element
     staticType: null
 ''');
   }
@@ -1706,7 +1706,7 @@ CommentReference
   expression: SimpleIdentifier
     token: p
     staticElement: p@68
-    element: <not-implemented>
+    element: p@68#element
     staticType: null
 ''');
   }
@@ -1742,7 +1742,7 @@ CommentReference
   expression: SimpleIdentifier
     token: p1
     staticElement: <testLibraryFragment>::@class::A::@method::ma::@parameter::p1
-    element: <not-implemented>
+    element: <testLibraryFragment>::@class::A::@method::ma::@parameter::p1#element
     staticType: null
 ''');
 
@@ -1751,7 +1751,7 @@ CommentReference
   expression: SimpleIdentifier
     token: p2
     staticElement: <testLibraryFragment>::@class::A::@method::mb::@parameter::p2
-    element: <not-implemented>
+    element: <testLibraryFragment>::@class::A::@method::mb::@parameter::p2#element
     staticType: null
 ''');
 
@@ -1760,7 +1760,7 @@ CommentReference
   expression: SimpleIdentifier
     token: p3
     staticElement: <testLibraryFragment>::@class::A::@method::mc::@parameter::p3
-    element: <not-implemented>
+    element: <testLibraryFragment>::@class::A::@method::mc::@parameter::p3#element
     staticType: null
 ''');
 
@@ -1769,7 +1769,7 @@ CommentReference
   expression: SimpleIdentifier
     token: p4
     staticElement: <testLibraryFragment>::@class::A::@method::mc::@parameter::p4
-    element: <not-implemented>
+    element: <testLibraryFragment>::@class::A::@method::mc::@parameter::p4#element
     staticType: null
 ''');
 
@@ -1778,7 +1778,7 @@ CommentReference
   expression: SimpleIdentifier
     token: p5
     staticElement: <testLibraryFragment>::@class::A::@method::md::@parameter::p5
-    element: <not-implemented>
+    element: <testLibraryFragment>::@class::A::@method::md::@parameter::p5#element
     staticType: null
 ''');
 
@@ -1787,7 +1787,7 @@ CommentReference
   expression: SimpleIdentifier
     token: p6
     staticElement: <testLibraryFragment>::@class::A::@method::md::@parameter::p6
-    element: <not-implemented>
+    element: <testLibraryFragment>::@class::A::@method::md::@parameter::p6#element
     staticType: null
 ''');
   }
@@ -2128,7 +2128,7 @@ CommentReference
   expression: SimpleIdentifier
     token: bar
     staticElement: <testLibraryFragment>::@function::foo::@parameter::bar
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::foo::@parameter::bar#element
     staticType: null
 ''');
   }

@@ -508,7 +508,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -519,7 +519,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -607,7 +607,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @32
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -618,7 +618,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -706,7 +706,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @28
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -717,7 +717,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -813,7 +813,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @28
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -824,7 +824,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -923,7 +923,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @32
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -934,7 +934,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -1036,7 +1036,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.f @43
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::f#element
           getters
             get f @-1
               reference: <testLibraryFragment>::@class::C::@getter::f
@@ -1047,7 +1047,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::f#element
               parameters
                 _f @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::f::@parameter::_f#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -1160,7 +1160,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @17
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x::@def::0
@@ -1174,13 +1174,13 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x::@def::0#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@def::0::@parameter::_x#element
             set x= @-1
               reference: <testLibraryFragment>::@class::C::@setter::x::@def::1
               element: <testLibraryFragment>::@class::C::@setter::x::@def::1#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@def::1::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -1258,7 +1258,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @17
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -1331,7 +1331,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @32
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -1342,7 +1342,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -1430,7 +1430,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @28
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -1441,7 +1441,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -1529,7 +1529,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @24
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -1540,7 +1540,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -1628,7 +1628,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @32
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -1639,7 +1639,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -1727,7 +1727,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @28
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -1738,7 +1738,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -1826,7 +1826,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @24
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -1837,7 +1837,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -1927,7 +1927,7 @@ library
               parameters
                 default this.x @25
                   reference: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -1938,7 +1938,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -2033,7 +2033,7 @@ library
               parameters
                 default this.x @25
                   reference: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -2044,7 +2044,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -2133,7 +2133,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 default this.x @25
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -2144,7 +2144,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -2236,7 +2236,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 default this.x @25
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -2247,7 +2247,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -2360,7 +2360,7 @@ library
                     leftOperand: SimpleIdentifier
                       token: x @36
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
-                      element: <not-implemented>
+                      element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
                       staticType: int
                     operator: >= @38
                     rightOperand: IntegerLiteral
@@ -2387,7 +2387,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 x @24
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
               constantInitializers
                 AssertInitializer
                   assertKeyword: assert @29
@@ -2396,7 +2396,7 @@ library
                     leftOperand: SimpleIdentifier
                       token: x @36
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
-                      element: <not-implemented>
+                      element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
                       staticType: int
                     operator: >= @38
                     rightOperand: IntegerLiteral
@@ -2451,7 +2451,7 @@ library
                     leftOperand: SimpleIdentifier
                       token: x @36
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
-                      element: <not-implemented>
+                      element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
                       staticType: int
                     operator: >= @38
                     rightOperand: IntegerLiteral
@@ -2481,7 +2481,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 x @24
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
               constantInitializers
                 AssertInitializer
                   assertKeyword: assert @29
@@ -2490,7 +2490,7 @@ library
                     leftOperand: SimpleIdentifier
                       token: x @36
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
-                      element: <not-implemented>
+                      element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
                       staticType: int
                     operator: >= @38
                     rightOperand: IntegerLiteral
@@ -2780,7 +2780,7 @@ library
                   expression: SimpleIdentifier
                     token: f @56
                     staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f
-                    element: <not-implemented>
+                    element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
                     staticType: int
           accessors
             synthetic get _f @-1
@@ -2808,7 +2808,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 default f @41
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
               constantInitializers
                 ConstructorFieldInitializer
                   fieldName: SimpleIdentifier
@@ -2820,7 +2820,7 @@ library
                   expression: SimpleIdentifier
                     token: f @56
                     staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f
-                    element: <not-implemented>
+                    element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
                     staticType: int
           getters
             get _f @-1
@@ -2893,7 +2893,7 @@ library
                       SimpleIdentifier
                         token: a @55
                         staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
                         staticType: int
                     rightParenthesis: ) @56
                     staticType: (int, int)
@@ -2923,7 +2923,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 a @42
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
               constantInitializers
                 ConstructorFieldInitializer
                   fieldName: SimpleIdentifier
@@ -2941,7 +2941,7 @@ library
                       SimpleIdentifier
                         token: a @55
                         staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
                         staticType: int
                     rightParenthesis: ) @56
                     staticType: (int, int)
@@ -3015,7 +3015,7 @@ library
                     rightOperand: SimpleIdentifier
                       token: p @48
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::p
-                      element: <not-implemented>
+                      element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::p#element
                       staticType: int
                     staticElement: dart:core::<fragment>::@class::num::@method::+
                     element: dart:core::<fragment>::@class::num::@method::+#element
@@ -3047,7 +3047,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 p @35
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::p#element
               constantInitializers
                 ConstructorFieldInitializer
                   fieldName: SimpleIdentifier
@@ -3064,7 +3064,7 @@ library
                     rightOperand: SimpleIdentifier
                       token: p @48
                       staticElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::p
-                      element: <not-implemented>
+                      element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::p#element
                       staticType: int
                     staticElement: dart:core::<fragment>::@class::num::@method::+
                     element: dart:core::<fragment>::@class::num::@method::+#element
@@ -3203,7 +3203,7 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               parameters
                 x @56
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::x#element
             const f @70
               reference: <testLibraryFragment>::@class::B::@constructor::f
               element: <testLibraryFragment>::@class::B::@constructor::f#element
@@ -3336,7 +3336,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 values @33
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::values#element
         class B @50
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -3452,7 +3452,7 @@ library
               nameEnd: 23
               parameters
                 p @28
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::aaa::@parameter::p#element
         class C @40
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -3661,7 +3661,7 @@ library
                           label: SimpleIdentifier
                             token: b @86
                             staticElement: <testLibraryFragment>::@class::A::@constructor::aaa::@parameter::b
-                            element: <not-implemented>
+                            element: <testLibraryFragment>::@class::A::@constructor::aaa::@parameter::b#element
                             staticType: null
                           colon: : @87
                         expression: IntegerLiteral
@@ -3689,10 +3689,10 @@ library
               nameEnd: 23
               parameters
                 a @24
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::aaa::@parameter::a#element
                 default b @32
                   reference: <testLibraryFragment>::@class::A::@constructor::aaa::@parameter::b
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::aaa::@parameter::b#element
         class C @45
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -3720,7 +3720,7 @@ library
                           label: SimpleIdentifier
                             token: b @86
                             staticElement: <testLibraryFragment>::@class::A::@constructor::aaa::@parameter::b
-                            element: <not-implemented>
+                            element: <testLibraryFragment>::@class::A::@constructor::aaa::@parameter::b#element
                             staticType: null
                           colon: : @87
                         expression: IntegerLiteral
@@ -3818,7 +3818,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 p @24
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::p#element
         class C @36
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -3921,7 +3921,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 values @33
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::values#element
             const empty @52
               reference: <testLibraryFragment>::@class::A::@constructor::empty
               element: <testLibraryFragment>::@class::A::@constructor::empty#element
@@ -4052,9 +4052,9 @@ library
               nameEnd: 61
               parameters
                 a @66
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::a#element
                 b @76
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::b#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -4114,7 +4114,7 @@ library
                           label: SimpleIdentifier
                             token: b @38
                             staticElement: <testLibraryFragment>::@class::C::@constructor::named::@parameter::b
-                            element: <not-implemented>
+                            element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::b#element
                             staticType: null
                           colon: : @39
                         expression: IntegerLiteral
@@ -4169,7 +4169,7 @@ library
                           label: SimpleIdentifier
                             token: b @38
                             staticElement: <testLibraryFragment>::@class::C::@constructor::named::@parameter::b
-                            element: <not-implemented>
+                            element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::b#element
                             staticType: null
                           colon: : @39
                         expression: IntegerLiteral
@@ -4186,10 +4186,10 @@ library
               nameEnd: 60
               parameters
                 a @61
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::a#element
                 default b @69
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::b
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::b#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -4291,9 +4291,9 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 a @60
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
                 b @70
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::b#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -4374,7 +4374,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 a @22
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         class B @35
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -4384,7 +4384,7 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               parameters
                 super.a @63
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -4468,7 +4468,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 a @18
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         class B @31
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -4478,7 +4478,7 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               parameters
                 super.a @59
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -4559,7 +4559,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 a @19
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         class B @32
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -4569,7 +4569,7 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               parameters
                 super.a @61
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -4625,7 +4625,7 @@ library
           element: <testLibraryFragment>::@function::f#element
           parameters
             super.a @13
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::a#element
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
@@ -4709,10 +4709,10 @@ library
               parameters
                 default a @28
                   reference: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
                 default b @47
                   reference: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b#element
         class B @61
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -4723,16 +4723,16 @@ library
               parameters
                 default o1 @87
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o1#element
                 default super.a @97
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
                 default o2 @107
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o2
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o2#element
                 default super.b @117
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -4835,7 +4835,7 @@ library
               parameters
                 default a @19
                   reference: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         class B @37
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -4846,7 +4846,7 @@ library
               parameters
                 default super.a @62
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -4932,7 +4932,7 @@ library
               parameters
                 default a @28
                   reference: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         class B @42
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -4943,7 +4943,7 @@ library
               parameters
                 default super.b @67
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -5027,7 +5027,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 a @18
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         class B @31
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -5038,7 +5038,7 @@ library
               parameters
                 default super.a @56
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -5129,9 +5129,9 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 a @18
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
                 b @28
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b#element
         class B @41
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -5141,13 +5141,13 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               parameters
                 default o1 @67
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o1#element
                 default super.a @77
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
                 default o2 @87
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o2#element
                 default super.b @97
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -5257,10 +5257,10 @@ library
               parameters
                 default a @28
                   reference: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
                 default b @47
                   reference: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b#element
         class B @61
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -5271,16 +5271,16 @@ library
               parameters
                 default o1 @101
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o1#element
                 default super.a @124
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
                 default o2 @147
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o2
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o2#element
                 default super.b @170
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -5383,7 +5383,7 @@ library
               parameters
                 default a @19
                   reference: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         class B @37
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -5394,7 +5394,7 @@ library
               parameters
                 default super.a @71
                   reference: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -5486,9 +5486,9 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 a @18
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
                 b @28
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b#element
         class B @41
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -5498,13 +5498,13 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               parameters
                 o1 @66
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o1#element
                 super.a @76
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
                 o2 @86
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::o2#element
                 super.b @96
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::b#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -5612,7 +5612,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 a @27
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         class C @40
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -5622,7 +5622,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 super.a @64
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
               superConstructor: <testLibraryFragment>::@class::B::@constructor::new
         class B @77
           reference: <testLibraryFragment>::@class::B
@@ -5633,7 +5633,7 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               parameters
                 super.a @101
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     abstract class A
@@ -5750,7 +5750,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 a @18
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         class C @31
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -5760,7 +5760,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 super.a @63
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::B::@constructor::new
                 substitution: {T: String}
@@ -5776,7 +5776,7 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               parameters
                 super.a @103
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -5871,7 +5871,7 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               parameters
                 super.a @42
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -5951,7 +5951,7 @@ library
               parameters
                 default a @28
                   reference: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         class B @41
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -5961,7 +5961,7 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               parameters
                 super.a @65
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
@@ -6024,9 +6024,9 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 x @12
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
                 y @19
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::y#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -6458,7 +6458,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       classes
         class C @25
           reference: <testLibraryFragment>::@class::C
@@ -6541,7 +6540,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       classes
         class C @25
           reference: <testLibraryFragment>::@class::C
@@ -6635,7 +6633,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -6729,7 +6726,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -7290,7 +7286,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       classes
         class C @25
           reference: <testLibraryFragment>::@class::C
@@ -7373,7 +7368,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       classes
         class C @25
           reference: <testLibraryFragment>::@class::C
@@ -7460,7 +7454,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       classes
         class C @25
           reference: <testLibraryFragment>::@class::C
@@ -7544,7 +7537,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -7638,7 +7630,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -7736,7 +7727,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -8446,7 +8436,7 @@ library
               nameEnd: 22
               parameters
                 a @25
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::named::@parameter::a#element
         class B @37
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -10038,7 +10028,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::i#element
               parameters
                 _i @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::i::@parameter::_i#element
   classes
     abstract class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -10275,7 +10265,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -10371,7 +10361,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -10503,7 +10493,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_foo#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -10641,13 +10631,13 @@ library
               element: <testLibraryFragment>::@class::C::@setter::foo::@def::0#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::foo::@def::0::@parameter::_foo#element
             set foo= @31
               reference: <testLibraryFragment>::@class::C::@setter::foo::@def::1
               element: <testLibraryFragment>::@class::C::@setter::foo::@def::1#element
               parameters
                 _ @39
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::foo::@def::1::@parameter::_#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -10749,7 +10739,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::i#element
               parameters
                 _i @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::i::@parameter::_i#element
   classes
     abstract class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -11148,7 +11138,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 this.foo @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::foo#element
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
@@ -11159,7 +11149,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 newValue @56
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::newValue#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -11267,7 +11257,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.v @34
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::v#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
           getters
             get v @-1
@@ -11279,7 +11269,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::v#element
               parameters
                 _v @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::v::@parameter::_v#element
         class D @55
           reference: <testLibraryFragment>::@class::D
           element: <testLibraryFragment>::@class::D#element
@@ -11402,7 +11392,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -11491,7 +11481,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -11581,7 +11571,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::v#element
               parameters
                 _v @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::v::@parameter::_v#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -11671,7 +11661,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::v#element
               parameters
                 _v @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::v::@parameter::_v#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -11781,7 +11771,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::v#element
               parameters
                 _v @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::v::@parameter::_v#element
         class D @44
           reference: <testLibraryFragment>::@class::D
           element: <testLibraryFragment>::@class::D#element
@@ -12074,7 +12064,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::v#element
               parameters
                 _v @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::v::@parameter::_v#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -13675,7 +13665,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class A @24
           reference: <testLibraryFragment>::@class::A
@@ -14369,7 +14358,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class C @23
           reference: <testLibraryFragment>::@class::C
@@ -14728,7 +14716,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::i#element
               parameters
                 _i @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::i::@parameter::_i#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -14958,7 +14946,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::i#element
               parameters
                 _i @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::i::@parameter::_i#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -15053,7 +15041,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::a#element
               parameters
                 _a @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::a::@parameter::_a#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -15148,7 +15136,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_foo#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -15371,7 +15359,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::a#element
               parameters
                 _a @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::a::@parameter::_a#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -15461,7 +15449,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -15551,7 +15539,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -15663,13 +15651,13 @@ library
               element: <testLibraryFragment>::@class::C::@setter::i#element
               parameters
                 _i @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::i::@parameter::_i#element
             set j= @-1
               reference: <testLibraryFragment>::@class::C::@setter::j
               element: <testLibraryFragment>::@class::C::@setter::j#element
               parameters
                 _j @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::j::@parameter::_j#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -15774,7 +15762,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_foo#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -15867,7 +15855,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_foo#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -16063,7 +16051,7 @@ library
               element: <testLibraryFragment>::@class::B::@setter::f#element
               parameters
                 _f @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@setter::f::@parameter::_f#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -16207,7 +16195,7 @@ library
               element: <testLibraryFragment>::@class::B::@setter::f#element
               parameters
                 _f @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@setter::f::@parameter::_f#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -17003,7 +16991,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 value @45
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::value#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -17097,7 +17085,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 value @27
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::value#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -17603,7 +17591,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       classes
         class C @27
           reference: <testLibraryFragment>::@class::C
@@ -17669,7 +17656,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       classes
         class C @27
           reference: <testLibraryFragment>::@class::C
@@ -17893,7 +17879,7 @@ library
               element: <testLibraryFragment>::@class::C::@method::f#element
               parameters
                 value @27
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::f::@parameter::value#element
         class D @54
           reference: <testLibraryFragment>::@class::D
           element: <testLibraryFragment>::@class::D#element
@@ -17907,7 +17893,7 @@ library
               element: <testLibraryFragment>::@class::D::@method::f#element
               parameters
                 value @69
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::D::@method::f::@parameter::value#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -18273,9 +18259,9 @@ library
               element: <testLibraryFragment>::@class::C::@method::f#element
               parameters
                 x @12
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::f::@parameter::x#element
                 y @15
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::f::@parameter::y#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -18458,7 +18444,7 @@ library
                   element: <not-implemented>
               parameters
                 u @22
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::f::@parameter::u#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -18550,11 +18536,11 @@ library
                   element: <not-implemented>
               parameters
                 t @30
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::f::@parameter::t#element
                 u @35
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::f::@parameter::u#element
                 w @40
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::f::@parameter::w#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -18638,7 +18624,7 @@ library
                   element: <not-implemented>
               parameters
                 x @25
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::f::@parameter::x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -20530,7 +20516,7 @@ library
               element: <testLibraryFragment>::@class::C::@method::+#element
               parameters
                 other @24
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::+::@parameter::other#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -20595,7 +20581,7 @@ library
               element: <testLibraryFragment>::@class::C::@method::==#element
               parameters
                 other @35
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::==::@parameter::other#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -20657,7 +20643,7 @@ library
               element: <testLibraryFragment>::@class::C::@method::+#element
               parameters
                 other @33
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::+::@parameter::other#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -20722,7 +20708,7 @@ library
               element: <testLibraryFragment>::@class::C::@method::>=#element
               parameters
                 other @30
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::>=::@parameter::other#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -20784,7 +20770,7 @@ library
               element: <testLibraryFragment>::@class::C::@method::[]#element
               parameters
                 i @30
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::[]::@parameter::i#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -20851,9 +20837,9 @@ library
               element: <testLibraryFragment>::@class::C::@method::[]=#element
               parameters
                 i @33
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::[]=::@parameter::i#element
                 v @41
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::[]=::@parameter::v#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -20920,7 +20906,7 @@ library
               element: <testLibraryFragment>::@class::C::@method::<=#element
               parameters
                 other @30
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::<=::@parameter::other#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -21003,7 +20989,7 @@ library
           element: <testLibraryFragment>::@setter::c#element
           parameters
             _c @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -21095,7 +21081,7 @@ library
           element: <testLibraryFragment>::@setter::c#element
           parameters
             _c @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -21687,7 +21673,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 value @34
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::value#element
   classes
     abstract class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -21764,7 +21750,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 value @35
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::value#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -21841,7 +21827,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 value @34
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::value#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -21917,7 +21903,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 value @21
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::value#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -21993,7 +21979,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 value @20
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::value#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -22149,7 +22135,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::t#element
               parameters
                 _t @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::t::@parameter::_t#element
         class B @27
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -22174,7 +22160,7 @@ library
               element: <testLibraryFragment>::@class::B::@setter::t#element
               parameters
                 _t @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@setter::t::@parameter::_t#element
         class C @61
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -22202,7 +22188,7 @@ library
               element: <testLibraryFragment>::@class::D::@setter::t#element
               parameters
                 p @123
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::D::@setter::t::@parameter::p#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -22354,7 +22340,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::f#element
               parameters
                 value @31
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::f::@parameter::value#element
         class D @58
           reference: <testLibraryFragment>::@class::D
           element: <testLibraryFragment>::@class::D#element
@@ -22373,7 +22359,7 @@ library
               element: <testLibraryFragment>::@class::D::@setter::f#element
               parameters
                 value @77
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::D::@setter::f::@parameter::value#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -22471,7 +22457,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::f#element
               parameters
                 value @29
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::f::@parameter::value#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -22549,7 +22535,7 @@ library
               parameters
                 default a @22
                   reference: <testLibraryFragment>::@class::C::@setter::x::@parameter::a
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::a#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -22693,7 +22679,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 default a @22
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::a#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -22771,9 +22757,9 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 a @21
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::a#element
                 b @24
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::b#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -22857,7 +22843,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _ @24
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -22939,7 +22925,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _ @24
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -23019,7 +23005,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 value @27
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::value#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -23096,7 +23082,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 value @32
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::value#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -23192,13 +23178,13 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 value @27
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::value#element
             set y= @43
               reference: <testLibraryFragment>::@class::C::@setter::y
               element: <testLibraryFragment>::@class::C::@setter::y#element
               parameters
                 value @45
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::y::@parameter::value#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -25577,7 +25563,7 @@ library
                       SimpleIdentifier
                         token: i @-1
                         staticElement: <testLibraryFragment>::@class::C2::@constructor::new::@parameter::i
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C2::@constructor::new::@parameter::i#element
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::C1::@constructor::new
@@ -25605,7 +25591,7 @@ library
                       SimpleIdentifier
                         token: i @-1
                         staticElement: <testLibraryFragment>::@class::C1::@constructor::new::@parameter::i
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C1::@constructor::new::@parameter::i#element
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
@@ -25627,7 +25613,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 i @18
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::i#element
         class M1 @36
           reference: <testLibraryFragment>::@class::M1
           element: <testLibraryFragment>::@class::M1#element
@@ -25651,7 +25637,7 @@ library
               element: <testLibraryFragment>::@class::C2::@constructor::new#element
               parameters
                 i @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C2::@constructor::new::@parameter::i#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -25661,7 +25647,7 @@ library
                       SimpleIdentifier
                         token: i @-1
                         staticElement: <testLibraryFragment>::@class::C2::@constructor::new::@parameter::i
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C2::@constructor::new::@parameter::i#element
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::C1::@constructor::new
@@ -25676,7 +25662,7 @@ library
               element: <testLibraryFragment>::@class::C1::@constructor::new#element
               parameters
                 i @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C1::@constructor::new::@parameter::i#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -25686,7 +25672,7 @@ library
                       SimpleIdentifier
                         token: i @-1
                         staticElement: <testLibraryFragment>::@class::C1::@constructor::new::@parameter::i
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C1::@constructor::new::@parameter::i#element
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
@@ -25829,7 +25815,7 @@ library
                       SimpleIdentifier
                         token: a @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c1::@parameter::a
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c1::@parameter::a#element
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::c1
@@ -25864,17 +25850,17 @@ library
                       SimpleIdentifier
                         token: a @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::a
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::a#element
                         staticType: int
                       SimpleIdentifier
                         token: b @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::b
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::b#element
                         staticType: int?
                       SimpleIdentifier
                         token: c @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::c
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::c#element
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::c2
@@ -25911,17 +25897,17 @@ library
                       SimpleIdentifier
                         token: a @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::a
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::a#element
                         staticType: int
                       SimpleIdentifier
                         token: b @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::b
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::b#element
                         staticType: int?
                       SimpleIdentifier
                         token: c @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::c
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::c#element
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::c3
@@ -25951,7 +25937,7 @@ library
               nameEnd: 16
               parameters
                 a @21
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::c1::@parameter::a#element
             c2 @29
               reference: <testLibraryFragment>::@class::A::@constructor::c2
               element: <testLibraryFragment>::@class::A::@constructor::c2#element
@@ -25959,11 +25945,11 @@ library
               nameEnd: 31
               parameters
                 a @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::c2::@parameter::a#element
                 default b @45
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::c2::@parameter::b#element
                 default c @52
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::c2::@parameter::c#element
             c3 @65
               reference: <testLibraryFragment>::@class::A::@constructor::c3
               element: <testLibraryFragment>::@class::A::@constructor::c3#element
@@ -25971,13 +25957,13 @@ library
               nameEnd: 67
               parameters
                 a @72
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::c3::@parameter::a#element
                 default b @81
                   reference: <testLibraryFragment>::@class::A::@constructor::c3::@parameter::b
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::c3::@parameter::b#element
                 default c @88
                   reference: <testLibraryFragment>::@class::A::@constructor::c3::@parameter::c
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::c3::@parameter::c#element
         class C @118
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -25987,7 +25973,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::c1#element
               parameters
                 a @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::c1::@parameter::a#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -26003,7 +25989,7 @@ library
                       SimpleIdentifier
                         token: a @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c1::@parameter::a
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c1::@parameter::a#element
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::c1
@@ -26014,11 +26000,11 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::c2#element
               parameters
                 a @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::a#element
                 default b @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::b#element
                 default c @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::c#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -26034,17 +26020,17 @@ library
                       SimpleIdentifier
                         token: a @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::a
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::a#element
                         staticType: int
                       SimpleIdentifier
                         token: b @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::b
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::b#element
                         staticType: int?
                       SimpleIdentifier
                         token: c @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::c
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::c#element
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::c2
@@ -26055,13 +26041,13 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::c3#element
               parameters
                 a @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::a#element
                 default b @-1
                   reference: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::b
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::b#element
                 default c @-1
                   reference: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::c
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::c#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -26077,17 +26063,17 @@ library
                       SimpleIdentifier
                         token: a @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::a
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::a#element
                         staticType: int
                       SimpleIdentifier
                         token: b @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::b
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::b#element
                         staticType: int?
                       SimpleIdentifier
                         token: c @-1
                         staticElement: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::c
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::c#element
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::c3
@@ -26228,12 +26214,12 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::x
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::x#element
                         staticType: E
                       SimpleIdentifier
                         token: y @-1
                         staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::y
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::y#element
                         staticType: E
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
@@ -26266,9 +26252,9 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 x @31
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x#element
                 y @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::y#element
         class B @61
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -26281,9 +26267,9 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               parameters
                 x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::x#element
                 y @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::y#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -26293,12 +26279,12 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::x
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::x#element
                         staticType: E
                       SimpleIdentifier
                         token: y @-1
                         staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::y
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::y#element
                         staticType: E
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::A::@constructor::new
@@ -27028,7 +27014,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class A @23
           reference: <testLibraryFragment>::@class::A
@@ -27718,7 +27703,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class M @23
           reference: <testLibraryFragment>::@class::M
@@ -27880,7 +27864,7 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::requiredArg::@parameter::x
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::requiredArg::@parameter::x#element
                         staticType: dynamic
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::requiredArg
@@ -27911,7 +27895,7 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg::@parameter::x
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg::@parameter::x#element
                         staticType: bool
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg
@@ -27942,7 +27926,7 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2::@parameter::x
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2::@parameter::x#element
                         staticType: bool
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg2
@@ -27974,7 +27958,7 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg::@parameter::x
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg::@parameter::x#element
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg
@@ -28006,7 +27990,7 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2::@parameter::x
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2::@parameter::x#element
                         staticType: bool
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg2
@@ -28020,7 +28004,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class M @23
           reference: <testLibraryFragment>::@class::M
@@ -28068,7 +28051,7 @@ library
               element: <testLibraryFragment>::@class::MixinApp::@constructor::requiredArg#element
               parameters
                 x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::MixinApp::@constructor::requiredArg::@parameter::x#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -28084,7 +28067,7 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::requiredArg::@parameter::x
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::requiredArg::@parameter::x#element
                         staticType: dynamic
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::requiredArg
@@ -28095,7 +28078,7 @@ library
               element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg#element
               parameters
                 default x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg::@parameter::x#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -28111,7 +28094,7 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg::@parameter::x
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg::@parameter::x#element
                         staticType: bool
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg
@@ -28122,7 +28105,7 @@ library
               element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2#element
               parameters
                 default x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2::@parameter::x#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -28138,7 +28121,7 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2::@parameter::x
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2::@parameter::x#element
                         staticType: bool
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::positionalArg2
@@ -28150,7 +28133,7 @@ library
               parameters
                 default x @-1
                   reference: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg::@parameter::x
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg::@parameter::x#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -28166,7 +28149,7 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg::@parameter::x
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg::@parameter::x#element
                         staticType: int
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg
@@ -28178,7 +28161,7 @@ library
               parameters
                 default x @-1
                   reference: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2::@parameter::x
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2::@parameter::x#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -28194,7 +28177,7 @@ library
                       SimpleIdentifier
                         token: x @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2::@parameter::x
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2::@parameter::x#element
                         staticType: bool
                     rightParenthesis: ) @0
                   staticElement: package:test/a.dart::<fragment>::@class::Base::@constructor::namedArg2
@@ -28321,12 +28304,12 @@ library
                       SimpleIdentifier
                         token: t @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t#element
                         staticType: dynamic
                       SimpleIdentifier
                         token: l @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l#element
                         staticType: List<dynamic>
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::Base::@constructor::ctor
@@ -28355,9 +28338,9 @@ library
               nameEnd: 27
               parameters
                 t @30
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::Base::@constructor::ctor::@parameter::t#element
                 l @41
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::Base::@constructor::ctor::@parameter::l#element
         class M @53
           reference: <testLibraryFragment>::@class::M
           element: <testLibraryFragment>::@class::M#element
@@ -28374,9 +28357,9 @@ library
               element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor#element
               parameters
                 t @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t#element
                 l @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -28392,12 +28375,12 @@ library
                       SimpleIdentifier
                         token: t @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t#element
                         staticType: dynamic
                       SimpleIdentifier
                         token: l @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l#element
                         staticType: List<dynamic>
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::Base::@constructor::ctor
@@ -28511,12 +28494,12 @@ library
                       SimpleIdentifier
                         token: t @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t#element
                         staticType: List<U>
                       SimpleIdentifier
                         token: l @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l#element
                         staticType: List<List<U>>
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::Base::@constructor::ctor
@@ -28545,9 +28528,9 @@ library
               nameEnd: 27
               parameters
                 t @30
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::Base::@constructor::ctor::@parameter::t#element
                 l @41
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::Base::@constructor::ctor::@parameter::l#element
         class M @53
           reference: <testLibraryFragment>::@class::M
           element: <testLibraryFragment>::@class::M#element
@@ -28567,9 +28550,9 @@ library
               element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor#element
               parameters
                 t @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t#element
                 l @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -28585,12 +28568,12 @@ library
                       SimpleIdentifier
                         token: t @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t#element
                         staticType: List<U>
                       SimpleIdentifier
                         token: l @-1
                         staticElement: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l
-                        element: <not-implemented>
+                        element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l#element
                         staticType: List<List<U>>
                     rightParenthesis: ) @0
                   staticElement: <testLibraryFragment>::@class::Base::@constructor::ctor
@@ -28789,13 +28772,13 @@ library
               element: <testLibraryFragment>::@class::E::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::E::@setter::x::@parameter::_x#element
             set b= @73
               reference: <testLibraryFragment>::@class::E::@setter::b
               element: <testLibraryFragment>::@class::E::@setter::b#element
               parameters
                 i @79
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::E::@setter::b::@parameter::i#element
           methods
             f @92
               reference: <testLibraryFragment>::@class::E::@method::f
@@ -29010,7 +28993,7 @@ library
               nameEnd: 43
               parameters
                 this.x @49
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
           getters
             get x @-1
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -29137,13 +29120,13 @@ library
               element: <testLibraryFragment>::@class::C::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_foo#element
             set bar= @32
               reference: <testLibraryFragment>::@class::C::@setter::bar
               element: <testLibraryFragment>::@class::C::@setter::bar#element
               parameters
                 this.foo @41
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::bar::@parameter::foo#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -29237,7 +29220,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 this.x @23
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::x#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -29367,13 +29350,13 @@ library
           element: <testLibraryFragment>::@setter::c#element
           parameters
             _c @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::c::@parameter::_c#element
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           parameters
             _v @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -30602,7 +30585,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -30949,7 +30932,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _ @39
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -31160,7 +31143,7 @@ library
               nameEnd: 52
               parameters
                 a @56
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named::@parameter::a#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -31551,7 +31534,7 @@ library
               nameEnd: 48
               parameters
                 this.f @54
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named::@parameter::f#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -31935,7 +31918,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -32124,7 +32107,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -32330,7 +32313,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -32537,7 +32520,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -32555,7 +32538,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _ @61
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_#element
               previousFragment: <testLibraryFragment>::@class::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
@@ -32856,7 +32839,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -33398,7 +33381,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _ @39
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -33571,7 +33554,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo1#element
               parameters
                 _foo1 @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -33596,7 +33579,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2#element
               parameters
                 _foo2 @-1
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2::@parameter::_foo2#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -33785,7 +33768,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo1#element
               parameters
                 _foo1 @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -33813,7 +33796,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2#element
               parameters
                 _foo2 @-1
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2::@parameter::_foo2#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -33936,7 +33919,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 this.foo @34
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -34430,7 +34413,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _ @39
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -34901,7 +34884,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -35090,7 +35073,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -36519,7 +36502,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -36786,7 +36769,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _ @39
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -37019,7 +37002,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo#element
               parameters
                 default x @55
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo::@parameter::x#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -38263,7 +38246,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo#element
               parameters
                 _ @61
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -38397,7 +38380,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo#element
               parameters
                 _ @61
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -38524,7 +38507,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo#element
               parameters
                 _ @61
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -38659,7 +38642,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo1#element
               parameters
                 _ @40
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo1::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -38679,7 +38662,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2#element
               parameters
                 _ @54
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2::@parameter::_#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -38832,7 +38815,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -38848,7 +38831,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               parameters
                 _ @61
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_#element
               previousFragment: <testLibraryFragment>::@class::A::@setter::foo
   classes
     class A
@@ -38955,7 +38938,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo#element
               parameters
                 _ @61
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -39099,14 +39082,14 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo1#element
               parameters
                 _ @40
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo1::@parameter::_#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
             set foo2= @52
               reference: <testLibraryFragment>::@class::A::@setter::foo2
               element: <testLibraryFragment>::@class::A::@setter::foo2#element
               parameters
                 _ @61
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::foo2::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -39121,7 +39104,7 @@ library
               element: <testLibraryFragment>::@class::A::@setter::foo1#element
               parameters
                 _ @62
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1::@parameter::_#element
               previousFragment: <testLibraryFragment>::@class::A::@setter::foo1
   classes
     class A
@@ -39802,7 +39785,6 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class B @39
           reference: <testLibraryFragment>::@class::B
@@ -39827,7 +39809,7 @@ library
               element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@method::foo#element
               parameters
                 a @45
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@method::foo::@parameter::a#element
   classes
     class B
       firstFragment: <testLibraryFragment>::@class::B
@@ -39938,13 +39920,12 @@ library
               element: <testLibraryFragment>::@class::B::@method::foo#element
               parameters
                 a @32
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class B @52
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
@@ -40058,13 +40039,12 @@ library
               element: <testLibraryFragment>::@class::B::@method::foo#element
               parameters
                 a @32
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class B @52
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
@@ -40179,7 +40159,6 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class B @39
           reference: <testLibraryFragment>::@class::B
@@ -40197,7 +40176,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
               parameters
                 a @59
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -40213,7 +40192,7 @@ library
               previousFragment: <testLibraryFragment>::@class::B::@method::foo
               parameters
                 a @53
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo::@parameter::a#element
   classes
     class B
       firstFragment: <testLibraryFragment>::@class::B

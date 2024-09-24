@@ -51,6 +51,7 @@ class TranslatorOptions {
   bool enableExperimentalWasmInterop = false;
   bool generateSourceMaps = true;
   bool enableDeferredLoading = false;
+  bool enableMultiModuleStressTestMode = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
   List<int> watchPoints = [];
@@ -194,6 +195,12 @@ class Translator with KernelNodes {
   final Map<w.ModuleBuilder, DynamicForwarders> _dynamicForwarders = {};
   DynamicForwarders getDynamicForwardersForModule(w.ModuleBuilder module) {
     return _dynamicForwarders[module] ??= DynamicForwarders(this, module);
+  }
+
+  final Map<w.ModuleBuilder, DummyValuesCollector> _dummyValueCollectors = {};
+  DummyValuesCollector getDummyValuesCollectorForModule(
+      w.ModuleBuilder module) {
+    return _dummyValueCollectors[module] ??= DummyValuesCollector(this, module);
   }
 
   /// Dart types that have specialized Wasm representations.
@@ -357,7 +364,11 @@ class Translator with KernelNodes {
 
   void _initModules(Uri Function(String moduleName)? sourceMapUrlGenerator) {
     for (final outputModule in _moduleOutputData.modules) {
-      final builder = w.ModuleBuilder(
+      // `moduleName` is the suffix appended to the filename which is the empty
+      // string for the main module. `moduleImportName` provides a non-empty
+      // name for every module. We provide the former to generate source map
+      // uris and the latter to fill the NameSection of the module.
+      final builder = w.ModuleBuilder(outputModule.moduleImportName,
           sourceMapUrlGenerator?.call(outputModule.moduleName),
           parent: outputModule.isMain ? null : mainModule,
           watchPoints: options.watchPoints);
@@ -615,7 +626,6 @@ class Translator with KernelNodes {
     if (type is FunctionType) {
       ClosureRepresentation? representation =
           closureLayouter.getClosureRepresentation(
-              mainModule,
               type.typeParameters.length,
               type.positionalParameters.length,
               type.namedParameters.map((p) => p.name).toList());
@@ -724,9 +734,8 @@ class Translator with KernelNodes {
             paramInfo.typeParamCount +
             paramInfo.positional.length +
             paramInfo.named.length);
-    ClosureRepresentation representation =
-        closureLayouter.getClosureRepresentation(
-            targetModule, typeCount, positionalCount, names)!;
+    ClosureRepresentation representation = closureLayouter
+        .getClosureRepresentation(typeCount, positionalCount, names)!;
     assert(representation.vtableStruct.fields.length ==
         representation.vtableBaseIndex +
             (1 + positionalCount) +
@@ -807,7 +816,8 @@ class Translator with KernelNodes {
       w.FunctionType signature = representation.getVtableFieldType(fieldIndex);
       w.BaseFunction function = canBeCalledWith(posArgCount, argNames)
           ? makeTrampoline(signature, posArgCount, argNames)
-          : globals.getDummyFunction(ib.module, signature);
+          : getDummyValuesCollectorForModule(ib.module)
+              .getDummyFunction(signature);
       functions.add(function);
       ib.ref_func(function);
     }
@@ -819,12 +829,11 @@ class Translator with KernelNodes {
     final dynamicCallEntry = makeDynamicCallEntry();
     ib.ref_func(dynamicCallEntry);
     if (representation.isGeneric) {
-      ib.ref_func(representation.instantiationTypeComparisonFunctionForModule(
-          this, ib.module));
-      ib.ref_func(representation.instantiationTypeHashFunctionForModule(
-          this, ib.module));
+      ib.ref_func(representation
+          .instantiationTypeComparisonFunctionForModule(ib.module));
       ib.ref_func(
-          representation.instantiationFunctionForModule(this, ib.module));
+          representation.instantiationTypeHashFunctionForModule(ib.module));
+      ib.ref_func(representation.instantiationFunctionForModule(ib.module));
     }
     for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
       fillVtableEntry(ib, posArgCount, const []);
@@ -857,7 +866,7 @@ class Translator with KernelNodes {
         // This can happen e.g. when a `return;` is guaranteed to be never taken
         // but TFA didn't remove the dead code. In that case we synthesize a
         // dummy value.
-        globals.instantiateDummyValue(b, to);
+        getDummyValuesCollectorForModule(b.module).instantiateDummyValue(b, to);
         return;
       }
     }
@@ -1891,6 +1900,124 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
       b.return_();
     }
     b.end();
+  }
+}
+
+class DummyValuesCollector {
+  final w.ModuleBuilder module;
+  final Translator translator;
+
+  final Map<w.FunctionType, w.BaseFunction> _dummyFunctions = {};
+  final Map<w.HeapType, w.Global> _dummyValues = {};
+  late final w.Global dummyStructGlobal;
+
+  DummyValuesCollector(this.translator, this.module) {
+    _init();
+  }
+
+  void _init() {
+    w.StructType structType =
+        translator.typesBuilder.defineStruct("#DummyStruct");
+    final dummyStructGlobalInit = module.globals.define(
+        w.GlobalType(w.RefType.struct(nullable: false), mutable: false));
+    final ib = dummyStructGlobalInit.initializer;
+    ib.struct_new(structType);
+    ib.end();
+    _dummyValues[w.HeapType.any] = dummyStructGlobalInit;
+    _dummyValues[w.HeapType.eq] = dummyStructGlobalInit;
+    _dummyValues[w.HeapType.struct] = dummyStructGlobalInit;
+    dummyStructGlobal = dummyStructGlobalInit;
+  }
+
+  w.Global? _prepareDummyValue(w.ModuleBuilder module, w.ValueType type) {
+    if (type is w.RefType && !type.nullable) {
+      w.HeapType heapType = type.heapType;
+      return _dummyValues.putIfAbsent(heapType, () {
+        if (heapType is w.DefType) {
+          if (heapType is w.StructType) {
+            for (w.FieldType field in heapType.fields) {
+              _prepareDummyValue(module, field.type.unpacked);
+            }
+            final global =
+                module.globals.define(w.GlobalType(type, mutable: false));
+            final ib = global.initializer;
+            for (w.FieldType field in heapType.fields) {
+              instantiateDummyValue(ib, field.type.unpacked);
+            }
+            ib.struct_new(heapType);
+            ib.end();
+            return global;
+          } else if (heapType is w.ArrayType) {
+            final global =
+                module.globals.define(w.GlobalType(type, mutable: false));
+            final ib = global.initializer;
+            ib.array_new_fixed(heapType, 0);
+            ib.end();
+            return global;
+          } else if (heapType is w.FunctionType) {
+            final global =
+                module.globals.define(w.GlobalType(type, mutable: false));
+            final ib = global.initializer;
+            ib.ref_func(getDummyFunction(heapType));
+            ib.end();
+            return global;
+          }
+        }
+        throw 'Unexpected heapType: $heapType';
+      });
+    }
+
+    return null;
+  }
+
+  /// Produce a dummy value of any Wasm type. For non-nullable reference types,
+  /// the value is constructed in a global initializer, and the instantiation
+  /// of the value merely reads the global.
+  void instantiateDummyValue(w.InstructionsBuilder b, w.ValueType type) {
+    switch (type) {
+      case w.NumType.i32:
+        b.i32_const(0);
+        break;
+      case w.NumType.i64:
+        b.i64_const(0);
+        break;
+      case w.NumType.f32:
+        b.f32_const(0);
+        break;
+      case w.NumType.f64:
+        b.f64_const(0);
+        break;
+      default:
+        if (type is w.RefType) {
+          w.HeapType heapType = type.heapType;
+          if (type.nullable) {
+            b.ref_null(heapType.bottomType);
+          } else {
+            translator.globals
+                .readGlobal(b, _prepareDummyValue(b.module, type)!);
+          }
+        } else {
+          throw "Unsupported global type $type ($type)";
+        }
+        break;
+    }
+  }
+
+  /// Provide a dummy function with the given signature. Used for empty entries
+  /// in vtables and for dummy values of function reference type.
+  w.BaseFunction getDummyFunction(w.FunctionType type) {
+    return _dummyFunctions.putIfAbsent(type, () {
+      final function = module.functions.define(type, "#dummy function $type");
+      final b = function.body;
+      b.unreachable();
+      b.end();
+      return function;
+    });
+  }
+
+  /// Returns whether the given function was provided by [getDummyFunction].
+  bool isDummyFunction(w.BaseFunction function) {
+    return _dummyFunctions[function.type] == function;
   }
 }
 

@@ -162,7 +162,7 @@ f() {
 SimpleIdentifier
   token: _
   staticElement: _@52
-  element: <exception>
+<exception>
   staticType: Null Function()
 ''');
   }

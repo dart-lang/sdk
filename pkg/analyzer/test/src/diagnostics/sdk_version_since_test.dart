@@ -473,7 +473,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   period: .
   identifier: SimpleIdentifier
@@ -515,7 +515,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A

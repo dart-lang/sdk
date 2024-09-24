@@ -63,50 +63,47 @@ class ClosureRepresentation {
 
   final String exportSuffix;
 
-  final WasmFunctionImporter _instantationFunctionsImports;
-
   /// Entry point functions for instantiations of this generic closure.
-  late final List<w.BaseFunction> _instantiationTrampolines =
-      _instantiationTrampolinesThunk!();
-  List<w.BaseFunction> Function()? _instantiationTrampolinesThunk;
+  final Map<w.ModuleBuilder, List<w.BaseFunction>> _instantiationTrampolines =
+      {};
+  late List<w.BaseFunction> Function(w.ModuleBuilder module)
+      _instantiationTrampolinesGenerator;
   List<w.BaseFunction> _instantiationTrampolinesForModule(
-      Translator translator, w.ModuleBuilder module) {
-    return [
-      for (final trampoline in _instantiationTrampolines)
-        _instantationFunctionsImports.get(trampoline, module)
-    ];
-  }
+          w.ModuleBuilder module) =>
+      _instantiationTrampolines.putIfAbsent(
+          module, () => _instantiationTrampolinesGenerator(module));
 
   /// The function that instantiates this generic closure.
-  late final w.BaseFunction _instantiationFunction =
-      _instantiationFunctionThunk!();
-  w.BaseFunction Function()? _instantiationFunctionThunk;
-  w.BaseFunction instantiationFunctionForModule(
-      Translator translator, w.ModuleBuilder module) {
-    return _instantationFunctionsImports.get(_instantiationFunction, module);
+  final Map<w.ModuleBuilder, w.BaseFunction> _instantiationFunctions = {};
+  late w.BaseFunction Function(w.ModuleBuilder module)
+      _instantiationFunctionGenerator;
+  w.BaseFunction instantiationFunctionForModule(w.ModuleBuilder module) {
+    return _instantiationFunctions.putIfAbsent(
+        module, () => _instantiationFunctionGenerator(module));
   }
 
   /// The function that takes instantiation context of this generic closure and
   /// another instantiation context (both as `ref
   /// #InstantiationClosureContextBase`) and compares types in the contexts.
   /// This function is used to implement function equality of instantiations.
-  late final w.BaseFunction _instantiationTypeComparisonFunction =
-      _instantiationTypeComparisonFunctionThunk!();
-  w.BaseFunction Function()? _instantiationTypeComparisonFunctionThunk;
+  final Map<w.ModuleBuilder, w.BaseFunction>
+      _instantiationTypeComparisonFunctions = {};
+  late w.BaseFunction Function(w.ModuleBuilder module)
+      _instantiationTypeComparisonFunctionGenerator;
   w.BaseFunction instantiationTypeComparisonFunctionForModule(
-      Translator translator, w.ModuleBuilder module) {
-    return _instantationFunctionsImports.get(
-        _instantiationTypeComparisonFunction, module);
+      w.ModuleBuilder module) {
+    return _instantiationTypeComparisonFunctions.putIfAbsent(
+        module, () => _instantiationTypeComparisonFunctionGenerator(module));
   }
 
-  late final w.BaseFunction _instantiationTypeHashFunction =
-      _instantiationTypeHashFunctionThunk!();
-  w.BaseFunction Function()? _instantiationTypeHashFunctionThunk;
+  final Map<w.ModuleBuilder, w.BaseFunction> _instantiationTypeHashFunction =
+      {};
+  late w.BaseFunction Function(w.ModuleBuilder module)
+      _instantiationTypeHashFunctionGenerator;
   w.BaseFunction instantiationTypeHashFunctionForModule(
-      Translator translator, w.ModuleBuilder module) {
-    return _instantationFunctionsImports.get(
-        _instantiationTypeHashFunction, module);
-  }
+          w.ModuleBuilder module) =>
+      _instantiationTypeHashFunction.putIfAbsent(
+          module, () => _instantiationTypeHashFunctionGenerator(module));
 
   /// The signature of the function that instantiates this generic closure.
   w.FunctionType get instantiationFunctionType {
@@ -125,9 +122,7 @@ class ClosureRepresentation {
       this.closureStruct,
       this._indexOfCombination,
       this.instantiationContextStruct,
-      this.exportSuffix)
-      : _instantationFunctionsImports =
-            WasmFunctionImporter(translator, 'instantiation');
+      this.exportSuffix);
 
   bool get isGeneric => typeCount > 0;
 
@@ -289,17 +284,27 @@ class ClosureLayouter extends RecursiveVisitor {
               ],
               superType: instantiationContextBaseStruct));
 
-  final Map<int, w.BaseFunction> _instantiationTypeComparisonFunctions = {};
+  final Map<int, Map<w.ModuleBuilder, w.BaseFunction>>
+      _instantiationTypeComparisonFunctions = {};
 
-  w.BaseFunction _getInstantiationTypeComparisonFunction(int numTypes) =>
-      _instantiationTypeComparisonFunctions.putIfAbsent(
-          numTypes, () => _createInstantiationTypeComparisonFunction(numTypes));
+  w.BaseFunction _getInstantiationTypeComparisonFunction(
+          w.ModuleBuilder module, int numTypes) =>
+      _instantiationTypeComparisonFunctions
+          .putIfAbsent(numTypes, () => {})
+          .putIfAbsent(
+              module,
+              () =>
+                  _createInstantiationTypeComparisonFunction(module, numTypes));
 
-  final Map<int, w.BaseFunction> _instantiationTypeHashFunctions = {};
+  final Map<int, Map<w.ModuleBuilder, w.BaseFunction>>
+      _instantiationTypeHashFunctions = {};
 
-  w.BaseFunction _getInstantiationTypeHashFunction(int numTypes) =>
-      _instantiationTypeHashFunctions.putIfAbsent(
-          numTypes, () => _createInstantiationTypeHashFunction(numTypes));
+  w.BaseFunction _getInstantiationTypeHashFunction(
+          w.ModuleBuilder module, int numTypes) =>
+      _instantiationTypeHashFunctions
+          .putIfAbsent(numTypes, () => {})
+          .putIfAbsent(module,
+              () => _createInstantiationTypeHashFunction(module, numTypes));
 
   w.StructType _makeClosureStruct(
       String name, w.StructType vtableStruct, w.StructType superType) {
@@ -361,16 +366,15 @@ class ClosureLayouter extends RecursiveVisitor {
   /// Get the representation for closures with a specific signature, described
   /// by the number of type parameters, the maximum number of positional
   /// parameters and the names of named parameters.
-  ClosureRepresentation? getClosureRepresentation(w.ModuleBuilder module,
+  ClosureRepresentation? getClosureRepresentation(
       int typeCount, int positionalCount, List<String> names) {
     final representations =
         _representationsForCounts(typeCount, positionalCount);
     if (representations.withoutNamed == null) {
       ClosureRepresentation? parent = positionalCount == 0
           ? null
-          : getClosureRepresentation(
-              module, typeCount, positionalCount - 1, const [])!;
-      representations.withoutNamed = _createRepresentation(module, typeCount,
+          : getClosureRepresentation(typeCount, positionalCount - 1, const [])!;
+      representations.withoutNamed = _createRepresentation(typeCount,
           positionalCount, const [], parent, null, [positionalCount]);
     }
 
@@ -380,7 +384,6 @@ class ClosureLayouter extends RecursiveVisitor {
         representations.clusterForNames(names);
     if (cluster == null) return null;
     return cluster.representation ??= _createRepresentation(
-        module,
         typeCount,
         positionalCount,
         names,
@@ -391,7 +394,6 @@ class ClosureLayouter extends RecursiveVisitor {
   }
 
   ClosureRepresentation _createRepresentation(
-      w.ModuleBuilder module,
       int typeCount,
       int positionalCount,
       List<String> names,
@@ -413,7 +415,7 @@ class ClosureLayouter extends RecursiveVisitor {
     if (typeCount > 0) {
       // Add or set vtable field for the instantiation function.
       instantiatedRepresentation =
-          getClosureRepresentation(module, 0, positionalCount, names)!;
+          getClosureRepresentation(0, positionalCount, names)!;
       w.RefType inputType = w.RefType.def(closureBaseStruct, nullable: false);
       w.RefType outputType = w.RefType.def(
           instantiatedRepresentation.closureStruct,
@@ -478,15 +480,16 @@ class ClosureLayouter extends RecursiveVisitor {
       // when the instantiation function is needed, which will be during code
       // generation, after the imports have been added.
 
-      representation._instantiationTrampolinesThunk = () {
+      representation._instantiationTrampolinesGenerator = (module) {
         List<w.BaseFunction> instantiationTrampolines = [
-          ...?parent?._instantiationTrampolines
+          ...?parent?._instantiationTrampolinesForModule(module)
         ];
         String instantiationTrampolineFunctionName =
             "${["#Instantiation", ...nameTags].join("-")} trampoline";
         if (names.isEmpty) {
           // Add trampoline to the corresponding entry in the generic closure.
           w.BaseFunction trampoline = _createInstantiationTrampoline(
+              module,
               instantiationTrampolineFunctionName,
               typeCount,
               closureStruct,
@@ -506,6 +509,7 @@ class ClosureLayouter extends RecursiveVisitor {
             int? genericIndex = indexOfCombination![combination];
             w.BaseFunction trampoline = genericIndex != null
                 ? _createInstantiationTrampoline(
+                    module,
                     instantiationTrampolineFunctionName,
                     typeCount,
                     closureStruct,
@@ -516,9 +520,9 @@ class ClosureLayouter extends RecursiveVisitor {
                     vtableBaseIndexGeneric +
                         (positionalCount + 1) +
                         genericIndex)
-                : translator.globals.getDummyFunction(
-                    translator.mainModule,
-                    (instantiatedRepresentation
+                : translator
+                    .getDummyValuesCollectorForModule(module)
+                    .getDummyFunction((instantiatedRepresentation
                             .vtableStruct
                             .fields[vtableBaseIndexNonGeneric +
                                 instantiationTrampolines.length]
@@ -530,32 +534,32 @@ class ClosureLayouter extends RecursiveVisitor {
         return instantiationTrampolines;
       };
 
-      representation._instantiationFunctionThunk = () {
+      representation._instantiationFunctionGenerator = (module) {
         String instantiationFunctionName =
             ["#Instantiation", ...nameTags].join("-");
         return _createInstantiationFunction(
             module,
             typeCount,
             instantiatedRepresentation!,
-            representation._instantiationTrampolinesForModule(
-                translator, module),
+            representation._instantiationTrampolinesForModule(module),
             representation.instantiationFunctionType,
             instantiationContextStruct!,
             closureStruct,
             instantiationFunctionName);
       };
 
-      representation._instantiationTypeComparisonFunctionThunk =
-          () => _getInstantiationTypeComparisonFunction(typeCount);
+      representation._instantiationTypeComparisonFunctionGenerator = (module) =>
+          _getInstantiationTypeComparisonFunction(module, typeCount);
 
-      representation._instantiationTypeHashFunctionThunk =
-          () => _getInstantiationTypeHashFunction(typeCount);
+      representation._instantiationTypeHashFunctionGenerator =
+          (module) => _getInstantiationTypeHashFunction(module, typeCount);
     }
 
     return representation;
   }
 
   w.BaseFunction _createInstantiationTrampoline(
+      w.ModuleBuilder module,
       String name,
       int typeCount,
       w.StructType genericClosureStruct,
@@ -574,8 +578,7 @@ class ClosureLayouter extends RecursiveVisitor {
     assert(genericFunctionType.inputs.length ==
         instantiatedFunctionType.inputs.length + typeCount);
 
-    final trampoline =
-        translator.mainModule.functions.define(instantiatedFunctionType, name);
+    final trampoline = module.functions.define(instantiatedFunctionType, name);
     final b = trampoline.body;
 
     // Cast context reference to actual context type.
@@ -748,8 +751,9 @@ class ClosureLayouter extends RecursiveVisitor {
     return instantiationFunction;
   }
 
-  w.BaseFunction _createInstantiationTypeComparisonFunction(int numTypes) {
-    final function = translator.mainModule.functions.define(
+  w.BaseFunction _createInstantiationTypeComparisonFunction(
+      w.ModuleBuilder module, int numTypes) {
+    final function = module.functions.define(
         instantiationClosureTypeComparisonFunctionType,
         "#InstantiationTypeComparison-$numTypes");
 
@@ -797,8 +801,9 @@ class ClosureLayouter extends RecursiveVisitor {
     return function;
   }
 
-  w.BaseFunction _createInstantiationTypeHashFunction(int numTypes) {
-    final function = translator.mainModule.functions.define(
+  w.BaseFunction _createInstantiationTypeHashFunction(
+      w.ModuleBuilder module, int numTypes) {
+    final function = module.functions.define(
         instantiationClosureTypeHashFunctionType,
         "#InstantiationTypeHash-$numTypes");
 

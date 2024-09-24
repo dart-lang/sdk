@@ -99,6 +99,9 @@ final List<Option> options = [
   Flag("enable-deferred-loading",
       (o, value) => o.translatorOptions.enableDeferredLoading = value,
       defaultsTo: _d.translatorOptions.enableDeferredLoading),
+  Flag("enable-multi-module-stress-test-mode",
+      (o, value) => o.translatorOptions.enableMultiModuleStressTestMode = value,
+      defaultsTo: _d.translatorOptions.enableMultiModuleStressTestMode),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(

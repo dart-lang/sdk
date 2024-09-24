@@ -67,6 +67,20 @@ class UnnecessaryStatements extends LintRule {
   }
 }
 
+/// A visitor that reports expressions that have no clear effect.
+///
+/// This visitor works a little differently from most. It reports lint rule
+/// violations in `visitNode`, a sort of "catch all" location. It also contains
+/// many empty-bodied "visit" method overrides that serve to short-circuit a
+/// traversal down the syntax tree. Each empty-bodied "visit" method represents
+/// a case where an expression can validly act as a statement, as there are
+/// common cases where the expression has a clear effect.
+///
+/// In this way the visitor's visitations are typically very shallow, starting
+/// either with a method that just returns without visiting any children, or
+/// starting with `visitNode`, which reports a violation and also does not
+/// descend. We descend into only a few node types, like binary expressions and
+/// conditional expressions.
 class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   final LintRule rule;
 
@@ -79,12 +93,12 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    // Has a clear effect
+    // Has a clear effect. Do not descend.
   }
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    // Has a clear effect
+    // Has a clear effect. Do not descend.
   }
 
   @override
@@ -93,7 +107,7 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
       case '??':
       case '||':
       case '&&':
-        // these are OK when used for control flow
+        // These are OK when used for control flow.
         node.rightOperand.accept(this);
         return;
     }
@@ -103,7 +117,7 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
 
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    // Has a clear effect
+    // Has a clear effect. Do not descend.
   }
 
   @override
@@ -114,19 +128,19 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    // Has a clear effect
+    // Has a clear effect. Do not descend.
   }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    // A few APIs use this for side effects, like Timer. Also, for constructors
-    // that have side effects, they should have tests. Those tests will often
-    // include an instantiation expression statement with nothing else.
+    // A few APIs use this for side effects, like Timer. Also, constructors
+    // that have side effects typically have tests will often include an
+    // instantiation expression statement.
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    // Has a clear effect
+    // Has a clear effect. Do not descend.
   }
 
   @override
@@ -136,12 +150,12 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
 
   @override
   void visitPatternAssignment(PatternAssignment node) {
-    // Has a clear effect
+    // Has a clear effect. Do not descend.
   }
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    // Has a clear effect
+    // Has a clear effect. Do not descend.
   }
 
   @override
@@ -159,7 +173,7 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   @override
   void visitPrefixExpression(PrefixExpression node) {
     if (node.operator.lexeme == '--' || node.operator.lexeme == '++') {
-      // Has a clear effect
+      // Has a clear effect. Do not descend.
       return;
     }
     super.visitPrefixExpression(node);
@@ -167,8 +181,8 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    // Allow getters; getters with side effects were the main cause of false
-    // positives.
+    // Allow getters; previously getters with side effects were the main cause
+    // of false positives.
     var element = node.propertyName.staticElement;
     if (element is PropertyAccessorElement && !element.isSynthetic) {
       return;
@@ -179,13 +193,13 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
 
   @override
   void visitRethrowExpression(RethrowExpression node) {
-    // Has a clear effect
+    // Has a clear effect. Do not descend.
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    // Allow getters; getters with side effects were the main cause of false
-    // positives.
+    // Allow getter (in this case with an implicit `this.`); previously, getters
+    // with side effects were the main cause of false positives.
     var element = node.staticElement;
     if (element is PropertyAccessorElement && !element.isSynthetic) {
       return;
@@ -196,12 +210,12 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    // Has a clear effect
+    // Has a clear effect. Do not descend.
   }
 
   @override
   void visitThrowExpression(ThrowExpression node) {
-    // Has a clear effect
+    // Has a clear effect. Do not descend.
   }
 }
 

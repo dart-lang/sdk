@@ -377,7 +377,7 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               parameters
                 a @47
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
           getters
             get int @-1
               reference: <testLibraryFragment>::@enum::E::@getter::int
@@ -660,7 +660,7 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               parameters
                 a @41
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
@@ -1183,7 +1183,7 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               parameters
                 this.x @44
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
@@ -1353,7 +1353,7 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               parameters
                 this.x @62
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
@@ -1502,7 +1502,7 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               parameters
                 this.x @29
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
@@ -1661,7 +1661,7 @@ library
               parameters
                 default this.x @45
                   reference: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
@@ -1815,7 +1815,7 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               parameters
                 this.x @48
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
@@ -1968,7 +1968,7 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               parameters
                 this.x @38
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
@@ -2121,7 +2121,7 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               parameters
                 this.x @34
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
@@ -2274,7 +2274,7 @@ library
               nameEnd: 39
               parameters
                 a @44
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@constructor::named::@parameter::a#element
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
@@ -2408,7 +2408,7 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               parameters
                 a @32
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::E::@getter::v
@@ -2522,7 +2522,7 @@ library
                     expression: SimpleIdentifier
                       token: a @57
                       staticElement: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a
-                      element: <not-implemented>
+                      element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
                       staticType: T?
                     isOperator: is @59
                     type: NamedType
@@ -2587,7 +2587,7 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               parameters
                 a @45
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
               constantInitializers
                 AssertInitializer
                   assertKeyword: assert @50
@@ -2596,7 +2596,7 @@ library
                     expression: SimpleIdentifier
                       token: a @57
                       staticElement: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a
-                      element: <not-implemented>
+                      element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
                       staticType: T?
                     isOperator: is @59
                     type: NamedType
@@ -3903,9 +3903,9 @@ library
                   element: <not-implemented>
               parameters
                 t @32
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@method::foo::@parameter::t#element
                 u @37
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@method::foo::@parameter::u#element
   enums
     enum E
       firstFragment: <testLibraryFragment>::@enum::E
@@ -4651,7 +4651,7 @@ library
               element: <testLibraryFragment>::@enum::E::@setter::foo#element
               parameters
                 _ @27
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::E::@setter::foo::@parameter::_#element
   enums
     enum E
       firstFragment: <testLibraryFragment>::@enum::E
@@ -7072,7 +7072,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 this.value @48
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::value#element
           getters
             get value @-1
               reference: <testLibraryFragment>::@class::A::@getter::value
@@ -10465,7 +10465,7 @@ library
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
               parameters
                 value @54
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::A::@constructor::new::@parameter::value#element
           getters
             get v1 @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v1
@@ -10986,7 +10986,7 @@ library
               nameEnd: 58
               parameters
                 a @62
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named::@parameter::a#element
   enums
     enum A
       firstFragment: <testLibraryFragment>::@enum::A
@@ -11616,7 +11616,7 @@ library
               nameEnd: 54
               parameters
                 this.f @60
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named::@parameter::f#element
   enums
     enum A
       firstFragment: <testLibraryFragment>::@enum::A
@@ -12719,7 +12719,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo#element
               parameters
                 _ @61
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo::@parameter::_#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
@@ -13941,7 +13941,7 @@ library
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
               parameters
                 this.foo @47
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::A::@constructor::new::@parameter::foo#element
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
@@ -17081,7 +17081,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo#element
               parameters
                 default x @55
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo::@parameter::x#element
   enums
     enum A
       firstFragment: <testLibraryFragment>::@enum::A
@@ -18861,7 +18861,7 @@ library
               element: <testLibraryFragment>::@enum::A::@setter::foo1#element
               parameters
                 _ @44
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::A::@setter::foo1::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -18881,7 +18881,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2#element
               parameters
                 _ @54
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2::@parameter::_#element
   enums
     enum A
       firstFragment: <testLibraryFragment>::@enum::A
@@ -19093,7 +19093,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo#element
               parameters
                 _ @61
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo::@parameter::_#element
   enums
     enum A
       firstFragment: <testLibraryFragment>::@enum::A
@@ -19274,7 +19274,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo#element
               parameters
                 _ @61
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo::@parameter::_#element
   enums
     enum A
       firstFragment: <testLibraryFragment>::@enum::A
@@ -19486,14 +19486,14 @@ library
               element: <testLibraryFragment>::@enum::A::@setter::foo1#element
               parameters
                 _ @44
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::A::@setter::foo1::@parameter::_#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
             set foo2= @56
               reference: <testLibraryFragment>::@enum::A::@setter::foo2
               element: <testLibraryFragment>::@enum::A::@setter::foo2#element
               parameters
                 _ @65
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::A::@setter::foo2::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -19508,7 +19508,7 @@ library
               element: <testLibraryFragment>::@enum::A::@setter::foo1#element
               parameters
                 _ @62
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1::@parameter::_#element
               previousFragment: <testLibraryFragment>::@enum::A::@setter::foo1
   enums
     enum A
@@ -20552,7 +20552,6 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       enums
         enum B @38
           reference: <testLibraryFragment>::@enum::B
@@ -20592,7 +20591,7 @@ library
               element: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo#element
               parameters
                 a @45
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo::@parameter::a#element
   enums
     enum B
       firstFragment: <testLibraryFragment>::@enum::B
@@ -20762,13 +20761,12 @@ library
               element: <testLibraryFragment>::@enum::B::@method::foo#element
               parameters
                 a @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       enums
         enum B @51
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
@@ -20943,13 +20941,12 @@ library
               element: <testLibraryFragment>::@enum::B::@method::foo#element
               parameters
                 a @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@enum::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       enums
         enum B @51
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B

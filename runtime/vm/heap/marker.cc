@@ -909,53 +909,13 @@ class ParallelMarkTask : public SafepointTask {
                    ThreadBarrier* barrier,
                    SyncMarkingVisitor* visitor,
                    RelaxedAtomic<uintptr_t>* num_busy)
-      : marker_(marker),
-        isolate_group_(isolate_group),
+      : SafepointTask(isolate_group, barrier, Thread::kMarkerTask),
+        marker_(marker),
         marking_stack_(marking_stack),
-        barrier_(barrier),
         visitor_(visitor),
         num_busy_(num_busy) {}
-  ~ParallelMarkTask() { barrier_->Release(); }
 
-  void Run() override {
-    if (!barrier_->TryEnter()) {
-      return;
-    }
-
-    bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kMarkerTask, /*bypass_safepoint=*/true);
-    ASSERT(result);
-
-    RunEnteredIsolateGroup();
-
-    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
-
-    barrier_->Sync();
-  }
-
-  void RunBlockedAtSafepoint() override {
-    if (!barrier_->TryEnter()) {
-      return;
-    }
-
-    Thread* thread = Thread::Current();
-    Thread::TaskKind saved_task_kind = thread->task_kind();
-    thread->set_task_kind(Thread::kMarkerTask);
-
-    RunEnteredIsolateGroup();
-
-    thread->set_task_kind(saved_task_kind);
-
-    barrier_->Sync();
-  }
-
-  void RunMain() override {
-    RunEnteredIsolateGroup();
-
-    barrier_->Sync();
-  }
-
-  void RunEnteredIsolateGroup() {
+  void RunEnteredIsolateGroup() override {
     {
       Thread* thread = Thread::Current();
       TIMELINE_FUNCTION_GC_DURATION(thread, "ParallelMark");
@@ -1030,9 +990,7 @@ class ParallelMarkTask : public SafepointTask {
 
  private:
   GCMarker* marker_;
-  IsolateGroup* isolate_group_;
   MarkingStack* marking_stack_;
-  ThreadBarrier* barrier_;
   SyncMarkingVisitor* visitor_;
   RelaxedAtomic<uintptr_t>* num_busy_;
 
@@ -1359,7 +1317,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       marked_bytes_ += visitor.marked_bytes();
       marked_micros_ += visitor.marked_micros();
     } else {
-      ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
+      ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
 
       ResetSlices();
       // Used to coordinate draining among tasks; all start out as 'busy'.

@@ -34,7 +34,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A<int>
   period: .
   identifier: SimpleIdentifier
@@ -71,7 +71,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A<int>
   operator: .
   methodName: SimpleIdentifier
@@ -112,7 +112,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: other
     staticElement: <testLibraryFragment>::@extension::E::@method::bar::@parameter::other
-    element: <not-implemented>
+    element: <testLibraryFragment>::@extension::E::@method::bar::@parameter::other#element
     staticType: List<T>
   operator: .
   methodName: SimpleIdentifier
@@ -147,7 +147,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: String
   operator: .
   methodName: SimpleIdentifier
@@ -193,7 +193,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A<int>
   period: .
   identifier: SimpleIdentifier
@@ -230,7 +230,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A<int>
     period: .
     identifier: SimpleIdentifier
@@ -279,7 +279,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: S
   operator: .
   methodName: SimpleIdentifier
@@ -316,7 +316,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: S
     rightParenthesis: )
     staticType: S
@@ -354,7 +354,7 @@ AssignmentExpression
       expression: SimpleIdentifier
         token: x
         staticElement: <testLibraryFragment>::@function::f::@parameter::x
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::x#element
         staticType: S
       rightParenthesis: )
       staticType: S
@@ -475,7 +475,7 @@ PropertyAccess
           token: a
           parameter: <null>
           staticElement: <testLibraryFragment>::@function::f::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
@@ -530,7 +530,7 @@ MethodInvocation
           token: a
           parameter: <null>
           staticElement: <testLibraryFragment>::@function::f::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
@@ -598,7 +598,7 @@ PropertyAccess
           token: a
           parameter: <null>
           staticElement: <testLibraryFragment>::@function::f::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
@@ -654,7 +654,7 @@ AssignmentExpression
             token: a
             parameter: <null>
             staticElement: <testLibraryFragment>::@function::f::@parameter::a
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::f::@parameter::a#element
             staticType: A<int>
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
@@ -733,7 +733,7 @@ PropertyAccess
           token: a
           parameter: <null>
           staticElement: <testLibraryFragment>::@function::f::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
@@ -779,7 +779,7 @@ MethodInvocation
           token: a
           parameter: <null>
           staticElement: <testLibraryFragment>::@function::f::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
@@ -838,7 +838,7 @@ PropertyAccess
           token: a
           parameter: <null>
           staticElement: <testLibraryFragment>::@function::f::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
@@ -884,7 +884,7 @@ AssignmentExpression
             token: a
             parameter: <null>
             staticElement: <testLibraryFragment>::@function::f::@parameter::a
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::f::@parameter::a#element
             staticType: A<int>
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E

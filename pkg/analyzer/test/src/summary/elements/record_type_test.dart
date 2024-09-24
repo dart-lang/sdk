@@ -208,7 +208,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo#element
               parameters
                 a @35
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@method::foo::@parameter::a#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -395,7 +395,7 @@ library
           element: <testLibraryFragment>::@function::f#element
           parameters
             b @38
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::b#element
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
@@ -437,7 +437,7 @@ library
           element: <testLibraryFragment>::@function::f#element
           parameters
             a @32
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::a#element
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
@@ -479,7 +479,7 @@ library
           element: <testLibraryFragment>::@function::f#element
           parameters
             a @21
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::a#element
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f

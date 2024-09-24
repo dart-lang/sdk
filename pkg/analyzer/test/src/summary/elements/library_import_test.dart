@@ -63,7 +63,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
@@ -132,7 +131,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo_io.dart
-          reference: <not-implemented>
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
@@ -201,7 +199,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo_io.dart
-          reference: <not-implemented>
       classes
         class B @124
           reference: <testLibraryFragment>::@class::B
@@ -270,7 +267,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo_html.dart
-          reference: <not-implemented>
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
@@ -339,7 +335,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo_html.dart
-          reference: <not-implemented>
       classes
         class B @124
           reference: <testLibraryFragment>::@class::B
@@ -392,9 +387,7 @@ library
       element: <testLibrary>
       libraryImports
         dart:core
-          reference: <not-implemented>
         dart:math
-          reference: <not-implemented>
 ''');
   }
 
@@ -423,7 +416,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:math
-          reference: <not-implemented>
 ''');
   }
 
@@ -461,7 +453,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -540,11 +531,8 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
         dart:async
-          reference: <not-implemented>
         dart:async
-          reference: <not-implemented>
       prefixes
         i1
           reference: <testLibraryFragment>::@prefix::i1
@@ -601,7 +589,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       topLevelVariables
         f @51
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -618,7 +605,7 @@ library
           element: <testLibraryFragment>::@setter::f#element
           parameters
             _f @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
@@ -713,7 +700,6 @@ library
       element: <testLibrary>
       libraryImports
         relativeUri 'ht:'
-          reference: <not-implemented>
           metadata
             Annotation
               atSign: @ @0
@@ -776,7 +762,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       topLevelVariables
         f @52
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -793,7 +778,7 @@ library
           element: <testLibraryFragment>::@setter::f#element
           parameters
             _f @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
@@ -865,7 +850,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         a
           reference: <testLibraryFragment>::@prefix::a
@@ -885,7 +869,7 @@ library
           element: <testLibraryFragment>::@setter::c#element
           parameters
             _c @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   topLevelVariables
     c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
@@ -960,7 +944,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/test.dart
-          reference: <not-implemented>
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
@@ -1059,7 +1042,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       topLevelVariables
         f @48
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -1084,13 +1066,13 @@ library
           element: <testLibraryFragment>::@setter::f#element
           parameters
             _f @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::f::@parameter::_f#element
         set s= @-1
           reference: <testLibraryFragment>::@setter::s
           element: <testLibraryFragment>::@setter::s#element
           parameters
             _s @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::s::@parameter::_s#element
   topLevelVariables
     f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
@@ -1202,9 +1184,7 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
         package:test/b.dart
-          reference: <not-implemented>
       topLevelVariables
         c @36
           reference: <testLibraryFragment>::@topLevelVariable::c
@@ -1229,13 +1209,13 @@ library
           element: <testLibraryFragment>::@setter::c#element
           parameters
             _c @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::c::@parameter::_c#element
         set d= @-1
           reference: <testLibraryFragment>::@setter::d
           element: <testLibraryFragment>::@setter::d#element
           parameters
             _d @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::d::@parameter::_d#element
   topLevelVariables
     c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
@@ -1291,7 +1271,6 @@ library
       element: <testLibrary>
       libraryImports
         noRelativeUriString
-          reference: <not-implemented>
 ''');
   }
 
@@ -1331,7 +1310,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:core synthetic
-          reference: <not-implemented>
 ''');
   }
 
@@ -1360,7 +1338,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/test.dart
-          reference: <not-implemented>
 ''');
   }
 
@@ -1389,7 +1366,6 @@ library
       element: <testLibrary>
       libraryImports
         relativeUri 'foo:bar'
-          reference: <not-implemented>
 ''');
   }
 
@@ -1418,7 +1394,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
 ''');
   }
 
@@ -1450,7 +1425,6 @@ library
       element: <testLibrary>
       libraryImports
         source 'package:test/a.dart'
-          reference: <not-implemented>
 ''');
   }
 
@@ -1479,7 +1453,6 @@ library
       element: <testLibrary>
       libraryImports
         relativeUriString ':'
-          reference: <not-implemented>
 ''');
   }
 
@@ -1575,7 +1548,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:math
-          reference: <not-implemented>
           metadata
             Annotation
               atSign: @ @0
@@ -1693,7 +1665,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:math
-          reference: <not-implemented>
           metadata
             Annotation
               atSign: @ @0
@@ -1779,9 +1750,7 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
         package:test/b.dart
-          reference: <not-implemented>
       topLevelVariables
         v @36
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -1798,7 +1767,7 @@ library
           element: <testLibraryFragment>::@setter::v#element
           parameters
             _v @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
@@ -1844,7 +1813,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
 ''');
   }
 }

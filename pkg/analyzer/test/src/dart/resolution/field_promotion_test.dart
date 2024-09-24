@@ -110,7 +110,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C?
   operator: ?.
   propertyName: SimpleIdentifier
@@ -154,7 +154,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::g::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::g::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
@@ -188,7 +188,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
@@ -227,7 +227,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
@@ -268,7 +268,7 @@ FunctionExpressionInvocation
       expression: SimpleIdentifier
         token: c
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: C
       rightParenthesis: )
       staticType: C
@@ -311,7 +311,7 @@ FunctionExpressionInvocation
       expression: SimpleIdentifier
         token: c
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: C
       rightParenthesis: )
       staticType: C
@@ -503,7 +503,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
@@ -536,7 +536,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
@@ -569,7 +569,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
@@ -604,7 +604,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C
     rightParenthesis: )
     staticType: C
@@ -692,7 +692,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
@@ -747,7 +747,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: e
     staticElement: <testLibraryFragment>::@function::f::@parameter::e
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::e#element
     staticType: E
   period: .
   identifier: SimpleIdentifier
@@ -777,7 +777,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   period: .
   identifier: SimpleIdentifier
@@ -808,7 +808,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
@@ -861,7 +861,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
@@ -913,7 +913,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier
@@ -949,7 +949,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C
     rightParenthesis: )
     staticType: C
@@ -991,7 +991,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   period: .
   identifier: SimpleIdentifier

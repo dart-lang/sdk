@@ -46,7 +46,7 @@ void testMain(String testName, List<(String?, int?, int?)?> expectedFrames) {
   print("-----");
 
   final actualFrames =
-      parseStack(getSourceMapping(testName), stackTraceString!);
+      parseStack(testName, getSourceMapping(testName), stackTraceString!);
   print('Got stack trace:');
   for (final frame in actualFrames) {
     print('  $frame');
@@ -75,16 +75,45 @@ void testMain(String testName, List<(String?, int?, int?)?> expectedFrames) {
   }
 }
 
-SingleMapping getSourceMapping(String testName) {
+String getFilename(String testName, int moduleId) {
+  final compilationDir = const String.fromEnvironment("TEST_COMPILATION_DIR");
+  if (moduleId == 0) {
+    return '$compilationDir/${testName}_test.wasm.map';
+  } else {
+    return '$compilationDir/${testName}_test_module$moduleId.wasm.map';
+  }
+}
+
+Mapping getSourceMapping(String testName) {
+  final allMappings = MappingBundle();
   // Read source map of the current program.
   final compilationDir = const String.fromEnvironment("TEST_COMPILATION_DIR");
-  final sourceMapFileContents =
-      readfile('$compilationDir/${testName}_test.wasm.map');
-  return parse(utf8.decode(sourceMapFileContents)) as SingleMapping;
+  final mainFilename = getFilename(testName, 0);
+  final mainSourceMapFile = readfile(mainFilename);
+  final mainSourceMap = parse(utf8.decode(mainSourceMapFile)) as SingleMapping;
+  mainSourceMap.targetUrl = mainFilename;
+  allMappings.addMapping(mainSourceMap);
+
+  int i = 1;
+  while (true) {
+    // All the modules will have consecutive names. Keep reading them until we
+    // fail to find one.
+    try {
+      final filename = getFilename(testName, i);
+      final fileContents = readfile(filename);
+      final sourceMap = parse(utf8.decode(fileContents)) as SingleMapping;
+      sourceMap.targetUrl = filename;
+      allMappings.addMapping(sourceMap);
+      i++;
+    } catch (e) {
+      break;
+    }
+  }
+  return allMappings;
 }
 
 List<(String?, int?, int?)?> parseStack(
-    SingleMapping mapping, String stackTraceString) {
+    String testName, Mapping mapping, String stackTraceString) {
   final parsed = <(String?, int?, int?)?>[];
   for (final line in stackTraceString.split('\n')) {
     if (line.contains('.mjs') || line.contains('.js')) {
@@ -101,9 +130,15 @@ List<(String?, int?, int?)?> parseStack(
     if (offset == null) {
       throw 'Unable to parse hex number in frame "$line"';
     }
-    final span = mapping.spanFor(0, offset);
+    final moduleIdMatch = stackTraceModuleNameRegExp.firstMatch(line);
+    if (moduleIdMatch == null) {
+      throw 'Unable to parse module name in frame "$line"';
+    }
+    final moduleId = int.parse(moduleIdMatch.group(1)!);
+    final uri = getFilename(testName, moduleId);
+    final span = mapping.spanFor(0, offset, uri: uri);
     if (span == null) {
-      print('Stack frame "$line" not have source mapping');
+      print('Stack frame "$line" does not have a source mapping');
       parsed.add(null);
       continue;
     }
@@ -125,3 +160,4 @@ external JSArrayBuffer readbuffer(JSString path);
 Uint8List readfile(String path) => Uint8List.view(readbuffer(path.toJS).toDart);
 
 final stackTraceHexOffsetRegExp = RegExp(r'wasm-function.*(0x[0-9a-fA-F]+)\)$');
+final stackTraceModuleNameRegExp = RegExp(r'wasm/module([0-9]+)');

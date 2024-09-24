@@ -21,7 +21,7 @@ abstract class SourceFileByteReader {
 }
 
 abstract class SourceFileProvider implements api.CompilerInput {
-  bool isWindows = (Platform.operatingSystem == 'windows');
+  bool get isWindows => Platform.operatingSystem == 'windows';
   Uri cwd = Uri.base;
   int bytesRead = 0;
   int sourceBytesFromDill = 0;

@@ -32,9 +32,18 @@ Expression climbPropertyAccess(Expression node) {
 }
 
 /// Return references to the [element] inside the [root] node.
+// TODO(pq): update to `findLocalElementReferences2`.
 List<SimpleIdentifier> findLocalElementReferences(
     AstNode root, LocalElement element) {
   var collector = _ElementReferenceCollector(element);
+  root.accept(collector);
+  return collector.references;
+}
+
+/// Return references to the [element] inside the [root] node.
+/// (Unlike [findLocalElementReferences], visits list and record pattern assignments).
+List<AstNode> findLocalElementReferences2(AstNode root, LocalElement element) {
+  var collector = _ElementReferenceCollector2(element);
   root.accept(collector);
   return collector.references;
 }
@@ -396,6 +405,50 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   }
 }
 
+class _ElementReferenceCollector2 extends RecursiveAstVisitor<void> {
+  final Element element;
+  final List<AstNode> references = [];
+
+  _ElementReferenceCollector2(this.element);
+
+  @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    if (node.element == element) {
+      references.add(SimpleIdentifierImpl(node.name));
+    }
+  }
+
+  @override
+  void visitListPattern(ListPattern node) {
+    for (var item in node.elements) {
+      if (item is AssignedVariablePattern) {
+        if (item.element == element) {
+          references.add(item);
+        }
+      }
+    }
+  }
+
+  @override
+  void visitRecordPattern(RecordPattern node) {
+    for (var field in node.fields) {
+      var pattern = field.pattern.unparenthesized;
+      if (pattern is AssignedVariablePattern) {
+        if (pattern.element == element) {
+          references.add(field.pattern);
+        }
+      }
+    }
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.staticElement == element) {
+      references.add(node);
+    }
+  }
+}
+
 /// Visitor that collects defined [LocalElement]s.
 class _LocalElementsCollector extends RecursiveAstVisitor<void> {
   final elements = <LocalElement>[];
@@ -408,5 +461,13 @@ class _LocalElementsCollector extends RecursiveAstVisitor<void> {
     }
 
     super.visitVariableDeclaration(node);
+  }
+}
+
+extension on DartPattern {
+  DartPattern get unparenthesized {
+    var self = this;
+    if (self is! ParenthesizedPattern) return self;
+    return self.pattern.unParenthesized;
   }
 }

@@ -46,7 +46,7 @@ BinaryExpression
     function: SimpleIdentifier
       token: b
       staticElement: <testLibraryFragment>::@function::f::@parameter::b
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::b#element
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
@@ -76,14 +76,14 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: bool
   operator: &&
   rightOperand: SimpleIdentifier
     token: b
     parameter: <null>
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: bool
   staticElement: <null>
   element: <null>
@@ -126,7 +126,7 @@ BinaryExpression
     function: SimpleIdentifier
       token: b
       staticElement: <testLibraryFragment>::@function::f::@parameter::b
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::b#element
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
@@ -156,14 +156,14 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: bool
   operator: ||
   rightOperand: SimpleIdentifier
     token: b
     parameter: <null>
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: bool
   staticElement: <null>
   element: <null>

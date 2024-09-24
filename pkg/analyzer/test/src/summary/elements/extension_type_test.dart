@@ -78,7 +78,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @27
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -177,7 +177,7 @@ library
               nameEnd: 22
               parameters
                 this.it @27
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -274,7 +274,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @21
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
             named @31
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
               element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
@@ -282,7 +282,7 @@ library
               nameEnd: 36
               parameters
                 this.it @42
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -382,7 +382,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @21
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
             named @31
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
               element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
@@ -390,7 +390,7 @@ library
               nameEnd: 36
               parameters
                 this.it @46
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -474,7 +474,7 @@ library
                   expression: SimpleIdentifier
                     token: a @57
                     staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
-                    element: <not-implemented>
+                    element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
                     staticType: int
           accessors
             synthetic get it @-1
@@ -502,7 +502,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @21
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
             const named @37
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
               element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
@@ -510,7 +510,7 @@ library
               nameEnd: 42
               parameters
                 a @47
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
               constantInitializers
                 ConstructorFieldInitializer
                   fieldName: SimpleIdentifier
@@ -522,7 +522,7 @@ library
                   expression: SimpleIdentifier
                     token: a @57
                     staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
-                    element: <not-implemented>
+                    element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
                     staticType: int
           getters
             get it @-1
@@ -623,7 +623,7 @@ library
               codeLength: 8
               parameters
                 this.it @21
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -712,7 +712,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @30
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -1077,7 +1077,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       extensionTypes
         extension type A @32
           reference: <testLibraryFragment>::@extensionType::A
@@ -1093,7 +1092,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @43
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -2039,7 +2038,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       extensionTypes
         extension type A @37
           reference: <testLibraryFragment>::@extensionType::A
@@ -2055,7 +2053,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @43
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -2146,7 +2144,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@method::foo#element
               parameters
                 a @42
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2239,7 +2237,7 @@ library
               parameters
                 default a @43
                   reference: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -2331,7 +2329,7 @@ library
               codeLength: 2
               parameters
                 this.<empty> @17
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::<empty>#element
           getters
             get <empty> @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::<empty>
@@ -2505,7 +2503,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _ @44
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -3261,7 +3259,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @45
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -3405,7 +3403,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -3574,7 +3572,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new#element
               parameters
                 this.it @65
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
@@ -3718,7 +3716,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -3871,7 +3869,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @40
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -3895,7 +3893,7 @@ library
               nameEnd: 69
               parameters
                 a @73
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named::@parameter::a#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -4023,7 +4021,7 @@ library
               nameEnd: 37
               parameters
                 this.it @42
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -4201,7 +4199,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -4215,7 +4213,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4431,7 +4429,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @51
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -4445,7 +4443,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4677,7 +4675,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @51
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -4692,7 +4690,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4926,7 +4924,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @51
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -4940,7 +4938,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -4958,7 +4956,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _ @85
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo::@parameter::_#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
@@ -5145,7 +5143,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -5159,7 +5157,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -5334,7 +5332,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -5538,7 +5536,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -5552,7 +5550,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               parameters
                 _foo1 @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -5577,7 +5575,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2#element
               parameters
                 _foo2 @-1
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2::@parameter::_foo2#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -5755,7 +5753,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -5957,7 +5955,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @40
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -6157,7 +6155,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -6172,7 +6170,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -6387,7 +6385,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @51
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -6402,7 +6400,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -6609,7 +6607,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -6821,7 +6819,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @51
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -7265,7 +7263,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -7284,7 +7282,7 @@ library
               element: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
               parameters
                 this.it @79
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::I1::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
@@ -7313,7 +7311,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
               parameters
                 this.it @108
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
@@ -7340,7 +7338,7 @@ library
               element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new#element
               parameters
                 this.it @90
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@getter::it
@@ -7574,7 +7572,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @39
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -7593,7 +7591,7 @@ library
               element: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
               parameters
                 this.it @82
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::I1::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
@@ -7626,7 +7624,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
               parameters
                 this.it @104
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
@@ -7848,7 +7846,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @39
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -7867,7 +7865,7 @@ library
               element: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
               parameters
                 this.it @82
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::I1::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
@@ -7902,7 +7900,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
               parameters
                 this.it @108
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
@@ -8071,7 +8069,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -8230,7 +8228,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -8416,7 +8414,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -8595,7 +8593,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @39
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -8764,7 +8762,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @39
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -8933,7 +8931,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -9125,7 +9123,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -9136,7 +9134,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               parameters
                 _ @57
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@setter::foo1::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -9156,7 +9154,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2#element
               parameters
                 _ @71
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2::@parameter::_#element
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -9337,7 +9335,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -9351,7 +9349,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _foo @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -9367,7 +9365,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               parameters
                 _ @85
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo::@parameter::_#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
   extensionTypes
     extension type A
@@ -9555,7 +9553,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               parameters
                 this.it @36
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
             get it @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -9566,14 +9564,14 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               parameters
                 _ @57
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@setter::foo1::@parameter::_#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
             set foo2= @69
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo2
               element: <testLibraryFragment>::@extensionType::A::@setter::foo2#element
               parameters
                 _ @78
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@extensionType::A::@setter::foo2::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -9588,7 +9586,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               parameters
                 _ @79
-                  element: <not-implemented>
+                  element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1::@parameter::_#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo1
   extensionTypes
     extension type A

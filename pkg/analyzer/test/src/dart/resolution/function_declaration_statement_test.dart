@@ -72,7 +72,7 @@ FunctionDeclarationStatement
         expression: SimpleIdentifier
           token: a
           staticElement: g@15::@parameter::a
-          element: <not-implemented>
+          element: g@15::@parameter::a#element
           staticType: T
         semicolon: ;
       declaredElement: g@15

@@ -361,7 +361,7 @@ if (argsSplit != -1) {
 
   // Constructor function for JS `Response` objects, allows us to test for it
   // via `instanceof`.
-  self.Response = function() {}
+  self.Response = function () { }
 
   self.location = {}
   self.location.href = 'file://' + args[wasmArg];
@@ -399,6 +399,11 @@ const main = async () => {
     // Make its exports available as imports under the 'ffi' module name.
     importObject.ffi = ffiInstance.exports;
   }
+
+  globalThis.loadData = async (relativeToWasmFileUri) => {
+    var path = wasmFilename.slice(0, wasmFilename.lastIndexOf('/'));
+    return await readBytes(`${path}/${relativeToWasmFileUri}`);
+  };
 
   // Instantiate the Dart module, importing from the global scope.
   const wasmFilename = args[wasmArg];

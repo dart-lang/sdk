@@ -3510,6 +3510,7 @@ void Assembler::ArrayStoreBarrier(Register object,
 
 void Assembler::VerifyStoreNeedsNoWriteBarrier(Register object,
                                                Register value) {
+  if (value == ZR) return;
   // We can't assert the incremental barrier is not needed here, only the
   // generational barrier. We sometimes omit the write barrier when 'value' is
   // a constant, but we don't eagerly mark 'value' and instead assume it is also

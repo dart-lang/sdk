@@ -105,52 +105,13 @@ class PrologueTask : public SafepointTask {
                IsolateGroup* isolate_group,
                PageSpace* old_space,
                PrologueState* state)
-      : barrier_(barrier),
-        isolate_group_(isolate_group),
+      : SafepointTask(isolate_group,
+                      barrier,
+                      Thread::kIncrementalCompactorTask),
         old_space_(old_space),
         state_(state) {}
-  ~PrologueTask() { barrier_->Release(); }
 
-  void Run() override {
-    if (!barrier_->TryEnter()) {
-      return;
-    }
-
-    bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kIncrementalCompactorTask,
-        /*bypass_safepoint=*/true);
-    ASSERT(result);
-
-    RunEnteredIsolateGroup();
-
-    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
-
-    barrier_->Sync();
-  }
-
-  void RunBlockedAtSafepoint() override {
-    if (!barrier_->TryEnter()) {
-      return;
-    }
-
-    Thread* thread = Thread::Current();
-    Thread::TaskKind saved_task_kind = thread->task_kind();
-    thread->set_task_kind(Thread::kIncrementalCompactorTask);
-
-    RunEnteredIsolateGroup();
-
-    thread->set_task_kind(saved_task_kind);
-
-    barrier_->Sync();
-  }
-
-  void RunMain() override {
-    RunEnteredIsolateGroup();
-
-    barrier_->Sync();
-  }
-
-  void RunEnteredIsolateGroup() {
+  void RunEnteredIsolateGroup() override {
     MarkEvacuationCandidates();
     PruneFreeLists();
   }
@@ -207,8 +168,6 @@ class PrologueTask : public SafepointTask {
   }
 
  private:
-  ThreadBarrier* barrier_;
-  IsolateGroup* isolate_group_;
   PageSpace* old_space_;
   PrologueState* state_;
 
@@ -277,7 +236,7 @@ bool GCIncrementalCompactor::SelectEvacuationCandidates(PageSpace* old_space) {
   const intptr_t num_tasks =
       isolate_group->heap()->new_space()->NumScavengeWorkers();
   RELEASE_ASSERT(num_tasks > 0);
-  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
+  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
   IntrusiveDList<SafepointTask> tasks;
   for (intptr_t i = 0; i < num_tasks; i++) {
     tasks.Append(new PrologueTask(barrier, isolate_group, old_space, &state));
@@ -646,45 +605,14 @@ class EpilogueTask : public SafepointTask {
                PageSpace* old_space,
                FreeList* freelist,
                EpilogueState* state)
-      : barrier_(barrier),
-        isolate_group_(isolate_group),
+      : SafepointTask(isolate_group,
+                      barrier,
+                      Thread::kIncrementalCompactorTask),
         old_space_(old_space),
         freelist_(freelist),
         state_(state) {}
-  ~EpilogueTask() { barrier_->Release(); }
 
-  void Run() override {
-    bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kIncrementalCompactorTask,
-        /*bypass_safepoint=*/true);
-    ASSERT(result);
-
-    RunEnteredIsolateGroup();
-
-    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
-
-    barrier_->Sync();
-  }
-
-  void RunBlockedAtSafepoint() override {
-    Thread* thread = Thread::Current();
-    Thread::TaskKind saved_task_kind = thread->task_kind();
-    thread->set_task_kind(Thread::kIncrementalCompactorTask);
-
-    RunEnteredIsolateGroup();
-
-    thread->set_task_kind(saved_task_kind);
-
-    barrier_->Sync();
-  }
-
-  void RunMain() override {
-    RunEnteredIsolateGroup();
-
-    barrier_->Sync();
-  }
-
-  void RunEnteredIsolateGroup() {
+  void RunEnteredIsolateGroup() override {
     Thread* thread = Thread::Current();
 
     Evacuate();
@@ -892,8 +820,6 @@ class EpilogueTask : public SafepointTask {
   }
 
  private:
-  ThreadBarrier* barrier_;
-  IsolateGroup* isolate_group_;
   PageSpace* old_space_;
   FreeList* freelist_;
   EpilogueState* state_;
@@ -911,7 +837,7 @@ void GCIncrementalCompactor::Evacuate(PageSpace* old_space) {
   const intptr_t num_tasks =
       isolate_group->heap()->new_space()->NumScavengeWorkers();
   RELEASE_ASSERT(num_tasks > 0);
-  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, num_tasks);
+  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
   IntrusiveDList<SafepointTask> tasks;
   for (intptr_t i = 0; i < num_tasks; i++) {
     tasks.Append(new EpilogueTask(barrier, isolate_group, old_space,

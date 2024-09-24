@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -125,14 +126,36 @@ class Namespace {
   /// namespace.
   Map<String, Element> get definedNames => _definedNames;
 
+  /// Return a table containing the same mappings as those defined by this
+  /// namespace.
+  Map<String, Element2> get definedNames2 =>
+      _definedNames.map((name, element) => MapEntry(name, _convert(element)!));
+
   /// Return the element in this namespace that is available to the containing
   /// scope using the given name, or `null` if there is no such element.
   Element? get(String name) => _definedNames[name];
+
+  /// Return the element in this namespace that is available to the containing
+  /// scope using the given name, or `null` if there is no such element.
+  Element2? get2(String name) => _convert(_definedNames[name]);
 
   /// Return the element in this namespace whose name is the result of combining
   /// the [prefix] and the [name], separated by a period, or `null` if there is
   /// no such element.
   Element? getPrefixed(String prefix, String name) => null;
+
+  /// Return the element in this namespace whose name is the result of combining
+  /// the [prefix] and the [name], separated by a period, or `null` if there is
+  /// no such element.
+  Element2? getPrefixed2(String prefix, String name) => null;
+
+  /// Return the new element that is equivalent to the old [element].
+  static Element2? _convert(Element? element) {
+    if (element is Fragment) {
+      return (element as Fragment).element;
+    }
+    return element as Element2?;
+  }
 }
 
 /// The builder used to build a namespace. Namespace builders are thread-safe
@@ -320,6 +343,10 @@ class PrefixedNamespace implements Namespace {
   }
 
   @override
+  Map<String, Element2> get definedNames2 => _definedNames
+      .map((name, element) => MapEntry(name, Namespace._convert(element)!));
+
+  @override
   Element? get(String name) {
     if (name.length > _length && name.startsWith(_prefix)) {
       if (name.codeUnitAt(_length) == '.'.codeUnitAt(0)) {
@@ -330,9 +357,20 @@ class PrefixedNamespace implements Namespace {
   }
 
   @override
+  Element2? get2(String name) => Namespace._convert(_definedNames[name]);
+
+  @override
   Element? getPrefixed(String prefix, String name) {
     if (prefix == _prefix) {
       return _definedNames[name];
+    }
+    return null;
+  }
+
+  @override
+  Element2? getPrefixed2(String prefix, String name) {
+    if (prefix == _prefix) {
+      return Namespace._convert(_definedNames[name]);
     }
     return null;
   }

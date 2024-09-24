@@ -253,7 +253,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::f::@parameter::c
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::c#element
       staticType: C
     period: .
     identifier: SimpleIdentifier

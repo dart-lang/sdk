@@ -255,7 +255,7 @@ class B extends A {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
-  element: <not-implemented>
+  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
   staticType: int
 ''');
   }

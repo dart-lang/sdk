@@ -216,7 +216,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   leftBracket: [
   index: IntegerLiteral
@@ -289,7 +289,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A<double>
   leftBracket: [
   index: IntegerLiteral
@@ -352,7 +352,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: List<int>
   leftBracket: [
   index: SimpleIdentifier
@@ -389,7 +389,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   leftBracket: [
   index: IntegerLiteral
@@ -491,7 +491,7 @@ IndexExpression
     expression: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -542,7 +542,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: dynamic
   leftBracket: [
   index: IntegerLiteral
@@ -604,7 +604,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     leftBracket: [
     index: IntegerLiteral
@@ -652,7 +652,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A<double>
     leftBracket: [
     index: IntegerLiteral
@@ -706,7 +706,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
     leftBracket: [
     index: IntegerLiteral
@@ -753,7 +753,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     leftBracket: [
     index: IntegerLiteral
@@ -798,7 +798,7 @@ CascadeExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   cascadeSections
     AssignmentExpression
@@ -818,7 +818,7 @@ CascadeExpression
         token: a
         parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::a
         staticElement: <testLibraryFragment>::@function::f::@parameter::a
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
       readElement: <null>
       readElement2: <null>
@@ -846,7 +846,7 @@ CascadeExpression
         token: a
         parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::a
         staticElement: <testLibraryFragment>::@function::f::@parameter::a
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
       readElement: <null>
       readElement2: <null>
@@ -880,7 +880,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A<double>
     leftBracket: [
     index: IntegerLiteral
@@ -933,7 +933,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
     leftBracket: [
     index: IntegerLiteral
@@ -1080,7 +1080,7 @@ AssignmentExpression
       expression: SimpleIdentifier
         token: x
         staticElement: <testLibraryFragment>::@function::f::@parameter::x
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::x#element
         staticType: Object?
       rightParenthesis: )
       leftBracket: {

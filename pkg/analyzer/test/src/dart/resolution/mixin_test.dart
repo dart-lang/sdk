@@ -308,7 +308,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::g::@parameter::f
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::g::@parameter::f#element
     staticType: M<T> Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (

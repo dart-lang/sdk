@@ -1250,7 +1250,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
         _writeElement2('element', node.element);
       } catch (_) {
         // TODO(scheglov): fix it
-        _sink.writelnWithIndent('element: <exception>');
+        _sink.writeln('<exception>');
       }
       _writeType('staticType', node.staticType);
     });
@@ -1450,7 +1450,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
         _writeElement2('element', node.element);
       } catch (_) {
         // TODO(scheglov): fix it
-        _sink.writelnWithIndent('element: <exception>');
+        _sink.writeln('<exception>');
       }
       _writeType('staticType', node.staticType);
       _writeTypeList(

@@ -202,7 +202,9 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
           thisLocal = b.addLocal(localContext
               .struct.fields[localContext.thisFieldIndex].type.unpacked
               .withNullability(false));
-          translator.globals.instantiateDummyValue(b, thisLocal!.type);
+          translator
+              .getDummyValuesCollectorForModule(b.module)
+              .instantiateDummyValue(b, thisLocal!.type);
           b.local_set(thisLocal!);
 
           preciseThisLocal = thisLocal;

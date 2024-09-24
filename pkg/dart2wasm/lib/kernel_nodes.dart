@@ -240,6 +240,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "Object", "noSuchMethod");
   late final Procedure objectGetTypeArguments =
       index.getProcedure("dart:core", "Object", "_getTypeArguments");
+  late final Procedure objectTypeArguments =
+      index.getProcedure("dart:core", "Object", "get:_typeArguments");
   late final Procedure nullToString =
       index.getProcedure("dart:core", "Object", "_nullToString");
   late final Procedure nullNoSuchMethod =

@@ -648,8 +648,16 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   /// Emit a `call_ref` instruction.
   void call_ref(ir.FunctionType type) {
+    assert((() {
+      if (!_reachable) return true;
+      final actualRefType = _topOfStack;
+      if (actualRefType is! ir.RefType) return false;
+      final actualFuncType = actualRefType.heapType;
+      if (actualFuncType is! ir.FunctionType) return false;
+      return actualFuncType.isStructurallyEqualTo(type);
+    })(), '$_topOfStack != $type');
     assert(_verifyTypes(
-        [...type.inputs, ir.RefType.def(type, nullable: true)], type.outputs,
+        [...type.inputs, ir.RefType.func(nullable: true)], type.outputs,
         trace: ['call_ref', type]));
     _add(ir.CallRef(type));
   }
@@ -980,6 +988,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     assert(_verifyTypes(
         const [], [ir.RefType.def(function.type, nullable: false)],
         trace: ['ref.func', function]));
+    assert(function.enclosingModule == module);
     _add(ir.RefFunc(function));
   }
 

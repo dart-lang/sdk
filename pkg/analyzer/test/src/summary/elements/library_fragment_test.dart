@@ -170,13 +170,11 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       libraryImports
         dart:io
-          reference: <not-implemented>
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         dart:math
-          reference: <not-implemented>
 ''');
   }
 
@@ -232,7 +230,6 @@ library
       previousFragment: <testLibraryFragment>
       libraryImports
         dart:math
-          reference: <not-implemented>
           metadata
             Annotation
               atSign: @ @21

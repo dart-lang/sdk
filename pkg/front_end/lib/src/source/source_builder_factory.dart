@@ -979,7 +979,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _constructorReferences.clear();
 
-    _addFragment(declarationFragment);
+    _addFragment(declarationFragment,
+        getterReference: referencesFromIndexedClass?.reference);
 
     offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
@@ -1044,7 +1045,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _constructorReferences.clear();
 
-    _addFragment(declarationFragment);
+    _addFragment(declarationFragment,
+        getterReference: _indexedContainer?.reference);
 
     offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
@@ -1085,28 +1087,32 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _problemReporting, typeVariables,
         ownerName: name, allowNameConflict: false);
 
-    _addFragment(new NamedMixinApplicationFragment(
-      name: name,
-      fileUri: _compilationUnit.fileUri,
-      startCharOffset: startCharOffset,
-      charOffset: charOffset,
-      charEndOffset: charEndOffset,
-      modifiers: modifiers,
-      metadata: metadata,
-      typeParameters: typeVariables,
-      supertype: supertype,
-      mixins: mixinApplication,
-      interfaces: interfaces,
-      isAugmentation: isAugmentation,
-      isBase: isBase,
-      isFinal: isFinal,
-      isInterface: isInterface,
-      isMacro: isMacro,
-      isMixinClass: isMixinClass,
-      isSealed: isSealed,
-      compilationUnitScope: _compilationUnitScope,
-      indexedLibrary: indexedLibrary,
-    ));
+    _addFragment(
+        new NamedMixinApplicationFragment(
+          name: name,
+          fileUri: _compilationUnit.fileUri,
+          startCharOffset: startCharOffset,
+          charOffset: charOffset,
+          charEndOffset: charEndOffset,
+          modifiers: modifiers,
+          metadata: metadata,
+          typeParameters: typeVariables,
+          supertype: supertype,
+          mixins: mixinApplication,
+          interfaces: interfaces,
+          isAugmentation: isAugmentation,
+          isBase: isBase,
+          isFinal: isFinal,
+          isInterface: isInterface,
+          isMacro: isMacro,
+          isMixinClass: isMixinClass,
+          isSealed: isSealed,
+          compilationUnitScope: _compilationUnitScope,
+          indexedLibrary: indexedLibrary,
+        ),
+        // References are looked up in [BuilderFactoryImpl.applyMixin] when the
+        // [SourceClassBuilder] is created.
+        getterReference: null);
   }
 
   static TypeBuilder? applyMixins(
@@ -1481,10 +1487,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         fileUri: _compilationUnit.fileUri,
         fileOffset: charOffset,
         reference: reference);
-    _addFragment(fragment);
-    if (reference != null) {
-      loader.fragmentsCreatedWithReferences[reference] = fragment;
-    }
+    _addFragment(fragment, getterReference: reference);
   }
 
   @override
@@ -2603,7 +2606,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   void _addFragment(Fragment fragment,
-      {Reference? getterReference, Reference? setterReference}) {
+      {required Reference? getterReference, Reference? setterReference}) {
     if (getterReference != null) {
       loader.fragmentsCreatedWithReferences[getterReference] = fragment;
     }

@@ -108,7 +108,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 o @45
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::o#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -204,7 +204,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 o @47
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::o#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -296,7 +296,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         a
           reference: <testLibraryFragment>::@prefix::a
@@ -377,7 +376,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       classes
         class C @32
           reference: <testLibraryFragment>::@class::C
@@ -496,7 +494,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -1087,7 +1085,7 @@ library
               nameEnd: 25
               parameters
                 _ @30
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::named::@parameter::_#element
         class C @54
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -1205,7 +1203,7 @@ library
               nameEnd: 28
               parameters
                 _ @31
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::named::@parameter::_#element
         class C @56
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -1533,7 +1531,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -1639,7 +1636,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -1750,7 +1746,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -2017,7 +2012,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 _ @24
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::_#element
         class C @42
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -2117,7 +2112,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 _ @25
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::_#element
         class C @44
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -2310,7 +2305,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -2408,7 +2402,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -2511,7 +2504,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -2743,7 +2735,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 x @18
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x#element
         class C @39
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -3163,7 +3155,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -3296,7 +3288,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 this.x @47
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
                   metadata
                     Annotation
                       atSign: @ @39
@@ -3317,7 +3309,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -3462,7 +3454,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               parameters
                 default this.x @44
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
                   metadata
                     Annotation
                       atSign: @ @36
@@ -3483,7 +3475,7 @@ library
               element: <testLibraryFragment>::@class::C::@setter::x#element
               parameters
                 _x @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -3816,7 +3808,7 @@ library
               element2: <testLibraryFragment>::@getter::a#element
           parameters
             value @25
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::f::@parameter::value#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -4005,7 +3997,7 @@ library
           element: <testLibraryFragment>::@function::f#element
           parameters
             g @21
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::g#element
               metadata
                 Annotation
                   atSign: @ @18
@@ -4111,7 +4103,7 @@ library
           element: <testLibraryFragment>::@function::f#element
           parameters
             default g @22
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::g#element
               metadata
                 Annotation
                   atSign: @ @19
@@ -4609,7 +4601,7 @@ library
           element: <testLibraryFragment>::@function::f#element
           parameters
             _ @2
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::_#element
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
@@ -5353,7 +5345,7 @@ library
                   element2: <testLibraryFragment>::@getter::a#element
               parameters
                 value @39
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@setter::m::@parameter::value#element
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -5925,7 +5917,7 @@ library
                   element2: <testLibraryFragment>::@getter::foo#element
               parameters
                 a @46
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
                   metadata
                     Annotation
                       atSign: @ @37
@@ -6244,7 +6236,7 @@ library
                       element2: <testLibraryFragment>::@getter::foo#element
               parameters
                 a @64
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@method::method::@parameter::a#element
                   metadata
                     Annotation
                       atSign: @ @55
@@ -6426,7 +6418,7 @@ library
                   element2: <testLibraryFragment>::@getter::foo#element
               parameters
                 a @55
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::setter::@parameter::a#element
                   metadata
                     Annotation
                       atSign: @ @46
@@ -7230,13 +7222,13 @@ library
               element: <testLibraryFragment>::@class::A::@setter::isStatic#element
               parameters
                 _isStatic @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::isStatic::@parameter::_isStatic#element
             set isInstance= @-1
               reference: <testLibraryFragment>::@class::A::@setter::isInstance
               element: <testLibraryFragment>::@class::A::@setter::isInstance#element
               parameters
                 _isInstance @-1
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@setter::isInstance::@parameter::_isInstance#element
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -8042,7 +8034,7 @@ library
           parameters
             default a @47
               reference: <testLibraryFragment>::@function::f::@parameter::a
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::a#element
               metadata
                 Annotation
                   atSign: @ @37
@@ -8305,7 +8297,7 @@ library
               element2: <testLibraryFragment>::@getter::foo#element
           parameters
             a @41
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::setter::@parameter::a#element
               metadata
                 Annotation
                   atSign: @ @32
@@ -8494,7 +8486,7 @@ library
           element: <testLibraryFragment>::@setter::isNotConst#element
           parameters
             _isNotConst @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::isNotConst::@parameter::_isNotConst#element
   topLevelVariables
     const foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -8794,7 +8786,6 @@ library
       previousFragment: <testLibraryFragment>
       libraryImports
         dart:math
-          reference: <not-implemented>
           metadata
             Annotation
               atSign: @ @21
@@ -8933,7 +8924,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       prefixes
         a
           reference: <testLibraryFragment>::@prefix::a
@@ -9017,7 +9007,7 @@ library
           element: <testLibraryFragment>::@function::f#element
           parameters
             x @21
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::x#element
               metadata
                 Annotation
                   atSign: @ @18
@@ -9132,7 +9122,7 @@ library
               element: <testLibraryFragment>::@class::C::@method::m#element
               parameters
                 x @34
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::C::@method::m::@parameter::x#element
                   metadata
                     Annotation
                       atSign: @ @31
@@ -9259,7 +9249,7 @@ library
           element: <testLibraryFragment>::@setter::foo#element
           parameters
             x @32
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::foo::@parameter::x#element
               metadata
                 Annotation
                   atSign: @ @25
@@ -9368,7 +9358,7 @@ library
           element: <testLibraryFragment>::@function::f#element
           parameters
             default x @22
-              element: <not-implemented>
+              element: <testLibraryFragment>::@function::f::@parameter::x#element
               metadata
                 Annotation
                   atSign: @ @19
@@ -9491,7 +9481,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 x @35
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x#element
         class B @48
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
@@ -9501,7 +9491,7 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               parameters
                 super.x @75
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::x#element
                   metadata
                     Annotation
                       atSign: @ @66
@@ -9650,7 +9640,7 @@ library
           element: <testLibraryFragment>::@setter::v#element
           parameters
             _v @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -10261,7 +10251,7 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             _x @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     const a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -10831,7 +10821,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/foo.dart
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -10919,7 +10908,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 _ @20
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::_#element
         class C @43
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -11011,7 +11000,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               parameters
                 _ @20
-                  element: <not-implemented>
+                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::_#element
         class C @42
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
@@ -11282,7 +11271,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -11441,7 +11429,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -11531,7 +11518,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -11678,7 +11664,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       prefixes
         foo
           reference: <testLibraryFragment>::@prefix::foo
@@ -11802,9 +11787,7 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
         package:test/b.dart
-          reference: <not-implemented>
       classes
         class C @44
           reference: <testLibraryFragment>::@class::C

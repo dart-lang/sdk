@@ -8,11 +8,14 @@ worlds:
     sources:
       main.dart: |
         import 'lib1.dart';
-        void method(Foo foo) {}
+        void method(Typedef t, Enum e, Mixin m, NamedMixinApplication a) {}
       lib1.dart: |
         export 'lib2.dart';
       lib2.dart: |
-        typedef Foo = int;
+        typedef Typedef = int;
+        enum Enum { a, b }
+        mixin Mixin {}
+        class NamedMixinApplication = Object with Mixin;
     expectedLibraryCount: 3
 
   - entry: main.dart
@@ -22,8 +25,11 @@ worlds:
     sources:
       main.dart: |
         import 'lib1.dart';
-        void method(Foo foo) {}
+        void method(Typedef t, Enum e, Mixin m, NamedMixinApplication a) {}
       lib2.dart: |
-        typedef Foo = int;
+        typedef Typedef = int;
+        enum Enum { a, b }
+        mixin Mixin {}
+        class NamedMixinApplication = Object with Mixin;
     expectedLibraryCount: 3
     advancedInvalidation: bodiesOnly

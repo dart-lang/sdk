@@ -156,7 +156,7 @@ ExtensionTypeDeclaration
           expression: SimpleIdentifier
             token: a
             staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
-            element: <not-implemented>
+            element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
             staticType: int
       body: EmptyFunctionBody
         semicolon: ;

@@ -350,7 +350,9 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
       w.ValueType sentinelType = expectedType.withNullability(false);
       assert(sentinelType is w.RefType,
           "Default value sentinel for unboxed parameter");
-      translator.globals.instantiateDummyValue(b, sentinelType);
+      translator
+          .getDummyValuesCollectorForModule(b.module)
+          .instantiateDummyValue(b, sentinelType);
       return sentinelType;
     }
     return super.visitUnevaluatedConstant(constant);
@@ -523,7 +525,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       return createConstant(constant, info.nonNullableType, (b) {
         b.i32_const(info.classId);
         b.i32_const(initialIdentityHash);
-        b.global_get(
+        translator.globals.readGlobal(b,
             translator.getInternalizedStringGlobal(b.module, constant.value));
         b.struct_new(info.struct);
       });
@@ -836,14 +838,18 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     // module.
     final isLazy = !translator
         .isMainModule(translator.moduleForReference(constant.targetReference));
+    // The dummy struct must be declared before the constant global so that the
+    // constant's initializer can reference it.
+    final dummyStructGlobal = translator
+        .getDummyValuesCollectorForModule(translator.mainModule)
+        .dummyStructGlobal;
     return createConstant(constant, type, (b) {
       ClassInfo info = translator.closureInfo;
       translator.functions.recordClassAllocation(info.classId);
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      translator.globals
-          .readGlobal(b, translator.globals.dummyStructGlobal); // Dummy context
+      translator.globals.readGlobal(b, dummyStructGlobal); // Dummy context
       translator.globals.readGlobal(b, closure.vtable);
       constants.instantiateConstant(
           b, functionTypeConstant, types.nonNullableTypeType);
@@ -859,7 +865,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         .map((c) => ensureConstant(constants._lowerTypeConstant(c))!)
         .toList();
     Procedure tearOffProcedure = tearOffConstant.targetReference.asProcedure;
-    final module = translator.moduleForReference(tearOffProcedure.reference);
     FunctionType tearOffFunctionType =
         translator.getTearOffType(tearOffProcedure);
     FunctionType instantiatedFunctionType =
@@ -875,17 +880,16 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         tearOffConstant.function.namedParameters.map((p) => p.name!).toList();
     ClosureRepresentation instantiationOfTearOffRepresentation = translator
         .closureLayouter
-        .getClosureRepresentation(module, 0, positionalCount, names)!;
+        .getClosureRepresentation(0, positionalCount, names)!;
     ClosureRepresentation tearOffRepresentation = translator.closureLayouter
-        .getClosureRepresentation(
-            module, types.length, positionalCount, names)!;
+        .getClosureRepresentation(types.length, positionalCount, names)!;
     w.StructType struct = instantiationOfTearOffRepresentation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
 
     final tearOffConstantInfo = ensureConstant(tearOffConstant)!;
 
     w.BaseFunction makeDynamicCallEntry() {
-      final function = module.functions.define(
+      final function = translator.mainModule.functions.define(
           translator.dynamicCallVtableEntryFunctionType, "dynamic call entry");
 
       final b = function.body;
@@ -911,26 +915,44 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     // a constant while creating another one.
     final w.BaseFunction dynamicCallEntry = makeDynamicCallEntry();
 
-    return createConstant(constant, type, (b) {
+    final lazy = tearOffConstantInfo.isLazy;
+
+    return createConstant(constant, type, lazy: lazy, (b) {
       ClassInfo info = translator.closureInfo;
       translator.functions.recordClassAllocation(info.classId);
+
+      void declareAndAddRefFunc(w.BaseFunction function) {
+        // If the constant is lazy the body will be in a function rather than a
+        // global. In order for a function to use a ref.func, the function must
+        // be declared in a global (or via the element section).
+        if (lazy) {
+          final global = b.module.globals
+              .define(w.GlobalType(w.RefType(function.type, nullable: false)));
+          global.initializer
+            ..ref_func(function)
+            ..end();
+          b.global_get(global);
+        } else {
+          b.ref_func(function);
+        }
+      }
 
       w.BaseFunction makeTrampoline(
           w.FunctionType signature, w.BaseFunction tearOffFunction) {
         assert(tearOffFunction.type.inputs.length ==
             signature.inputs.length + types.length);
-        final function = module.functions
+        final function = b.module.functions
             .define(signature, "instantiation constant trampoline");
-        final b = function.body;
-        b.local_get(function.locals[0]);
+        final b2 = function.body;
+        b2.local_get(function.locals[0]);
         for (ConstantInfo typeInfo in types) {
-          typeInfo.readConstant(translator, b);
+          typeInfo.readConstant(translator, b2);
         }
         for (int i = 1; i < signature.inputs.length; i++) {
-          b.local_get(function.locals[i]);
+          b2.local_get(function.locals[i]);
         }
-        translator.callFunction(tearOffFunction, b);
-        b.end();
+        translator.callFunction(tearOffFunction, b2);
+        b2.end();
         return function;
       }
 
@@ -947,29 +969,32 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           //   - non-generic closure / non-generic tear-off definitions
           //   - non-generic callers
           // => We make a dummy entry which is unreachable.
-          function = translator.globals
-              .getDummyFunction(translator.mainModule, signature);
+          function = translator
+              .getDummyValuesCollectorForModule(b.module)
+              .getDummyFunction(signature);
         } else {
           final int tearOffFieldIndex = tearOffRepresentation
               .fieldIndexForSignature(posArgCount, nameCombination.names);
           w.BaseFunction tearOffFunction = tearOffClosure.functions[
               tearOffFieldIndex - tearOffRepresentation.vtableBaseIndex];
-          if (translator.globals
-              .isDummyFunction(translator.mainModule, tearOffFunction)) {
+          if (translator
+              .getDummyValuesCollectorForModule(b.module)
+              .isDummyFunction(tearOffFunction)) {
             // This name combination may not exist for the target, but got
             // clustered together with other name combinations that do exist.
             // => We make a dummy entry which is unreachable.
-            function = translator.globals
-                .getDummyFunction(translator.mainModule, signature);
+            function = translator
+                .getDummyValuesCollectorForModule(b.module)
+                .getDummyFunction(signature);
           } else {
             function = makeTrampoline(signature, tearOffFunction);
           }
         }
-        b.ref_func(function);
+        declareAndAddRefFunc(function);
       }
 
       void makeVtable() {
-        b.ref_func(dynamicCallEntry);
+        declareAndAddRefFunc(dynamicCallEntry);
         assert(!instantiationOfTearOffRepresentation.isGeneric);
         for (int posArgCount = 0;
             posArgCount <= positionalCount;

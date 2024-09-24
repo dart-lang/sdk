@@ -566,7 +566,7 @@ MapPattern
         function: SimpleIdentifier
           token: a
           staticElement: <testLibraryFragment>::@function::f::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: bool Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -619,7 +619,7 @@ PatternVariableDeclaration
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Map<bool, int>
   patternTypeSchema: Map<_, _>
 ''');

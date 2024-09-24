@@ -676,51 +676,11 @@ class ParallelScavengerTask : public SafepointTask {
                         ThreadBarrier* barrier,
                         ParallelScavengerVisitor* visitor,
                         RelaxedAtomic<uintptr_t>* num_busy)
-      : isolate_group_(isolate_group),
-        barrier_(barrier),
+      : SafepointTask(isolate_group, barrier, Thread::kScavengerTask),
         visitor_(visitor),
         num_busy_(num_busy) {}
-  ~ParallelScavengerTask() { barrier_->Release(); }
 
-  void Run() override {
-    if (!barrier_->TryEnter()) {
-      return;
-    }
-
-    bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kScavengerTask, /*bypass_safepoint=*/true);
-    ASSERT(result);
-
-    RunEnteredIsolateGroup();
-
-    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
-
-    barrier_->Sync();
-  }
-
-  void RunBlockedAtSafepoint() override {
-    if (!barrier_->TryEnter()) {
-      return;
-    }
-
-    Thread* thread = Thread::Current();
-    Thread::TaskKind saved_task_kind = thread->task_kind();
-    thread->set_task_kind(Thread::kScavengerTask);
-
-    RunEnteredIsolateGroup();
-
-    thread->set_task_kind(saved_task_kind);
-
-    barrier_->Sync();
-  }
-
-  void RunMain() override {
-    RunEnteredIsolateGroup();
-
-    barrier_->Sync();
-  }
-
-  void RunEnteredIsolateGroup() {
+  void RunEnteredIsolateGroup() override {
     TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ParallelScavenge");
 
     num_busy_->fetch_add(1u);
@@ -771,8 +731,6 @@ class ParallelScavengerTask : public SafepointTask {
   }
 
  private:
-  IsolateGroup* isolate_group_;
-  ThreadBarrier* barrier_;
   ParallelScavengerVisitor* visitor_;
   RelaxedAtomic<uintptr_t>* num_busy_;
 
@@ -2057,7 +2015,7 @@ intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
   intptr_t bytes_promoted = 0;
   const intptr_t num_tasks = NumScavengeWorkers();
 
-  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
+  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
   RelaxedAtomic<uintptr_t> num_busy = 0;
 
   IsolateGroup* isolate_group = heap_->isolate_group();

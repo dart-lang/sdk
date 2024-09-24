@@ -1,17 +1,54 @@
 main = <No Member>;
 library from "org-dartlang-test:///lib1.dart" as lib1 {
-additionalExports = (lib2::Foo)
+additionalExports = (lib2::Enum,
+  lib2::Mixin,
+  lib2::NamedMixinApplication,
+  lib2::Typedef)
 
   export "org-dartlang-test:///lib2.dart";
 
 }
 library from "org-dartlang-test:///lib2.dart" as lib2 {
 
-  typedef Foo = dart.core::int;
+  typedef Typedef = dart.core::int;
+  class Enum extends dart.core::_Enum /*isEnum*/  {
+    static const field dart.core::List<lib2::Enum> values = #C7;
+    enum-element static const field lib2::Enum a = #C3;
+    enum-element static const field lib2::Enum b = #C6;
+    const synthetic constructor •(dart.core::int #index, dart.core::String #name) → lib2::Enum
+      : super dart.core::_Enum::•(#index, #name)
+      ;
+    method _enumToString() → dart.core::String
+      return "Enum.${this.{dart.core::_Enum::_name}{dart.core::String}}";
+  }
+  abstract class Mixin extends dart.core::Object /*isMixinDeclaration*/  {
+  }
+  class NamedMixinApplication extends dart.core::Object implements lib2::Mixin /*isEliminatedMixin,hasConstConstructor*/  {
+    const synthetic constructor •() → lib2::NamedMixinApplication
+      : super dart.core::Object::•()
+      ;
+  }
 }
 library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///lib1.dart";
 
-  static method method(dart.core::int foo) → void {}
+  static method method(dart.core::int t, lib2::Enum e, lib2::Mixin m, lib2::NamedMixinApplication a) → void {}
 }
+constants  {
+  #C1 = 0
+  #C2 = "a"
+  #C3 = lib2::Enum {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "b"
+  #C6 = lib2::Enum {index:#C4, _name:#C5}
+  #C7 = <lib2::Enum>[#C3, #C6]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-test:///lib2.dart:
+- Enum. (from org-dartlang-test:///lib2.dart:2:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+

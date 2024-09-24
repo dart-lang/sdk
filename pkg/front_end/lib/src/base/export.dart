@@ -39,7 +39,9 @@ class Export {
         if (combinator.isShow && !combinator.names.contains(name)) return false;
         if (combinator.isHide &&
             // Coverage-ignore(suite): Not run.
-            combinator.names.contains(name)) return false;
+            combinator.names.contains(name)) {
+          return false;
+        }
       }
     }
     return exporter.libraryBuilder.addToExportScope(name, member,

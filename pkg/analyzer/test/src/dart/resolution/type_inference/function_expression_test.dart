@@ -448,7 +448,7 @@ FunctionExpression
           expression: SimpleIdentifier
             token: item
             staticElement: @42::@parameter::item
-            element: <not-implemented>
+            element: @42::@parameter::item#element
             staticType: int
           semicolon: ;
       rightBracket: }
@@ -567,7 +567,7 @@ FunctionExpression
         SimpleIdentifier
           token: a
           staticElement: @23::@parameter::a
-          element: <not-implemented>
+          element: @23::@parameter::a#element
           staticType: T
       rightBracket: ]
       staticType: List<T>

@@ -1016,7 +1016,7 @@ class LibraryReader {
 
   ExportLocation _readExportLocation() {
     return ExportLocation(
-      containerIndex: _reader.readUInt30(),
+      fragmentIndex: _reader.readUInt30(),
       exportIndex: _reader.readUInt30(),
     );
   }

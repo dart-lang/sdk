@@ -105,7 +105,6 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
-          reference: <not-implemented>
       topLevelVariables
         synthetic foo @-1
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -513,7 +512,7 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             value @31
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::value#element
   topLevelVariables
     synthetic x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -581,7 +580,7 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             value @15
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::value#element
   topLevelVariables
     synthetic x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -646,7 +645,7 @@ library
           documentationComment: /**\n * Docs\n */
           parameters
             value @71
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::value#element
   topLevelVariables
     synthetic x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -701,7 +700,7 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             value @24
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::value#element
   topLevelVariables
     synthetic x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -755,7 +754,7 @@ library
           element: <testLibraryFragment>::@setter::f#element
           parameters
             value @10
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::f::@parameter::value#element
   topLevelVariables
     synthetic f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
@@ -825,13 +824,13 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             value @15
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::value#element
         set y= @29
           reference: <testLibraryFragment>::@setter::y
           element: <testLibraryFragment>::@setter::y#element
           parameters
             value @31
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::y::@parameter::value#element
   topLevelVariables
     synthetic x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -905,7 +904,7 @@ library
           element: <testLibraryFragment>::@setter::i#element
           parameters
             _i @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::i::@parameter::_i#element
   topLevelVariables
     i
       firstFragment: <testLibraryFragment>::@topLevelVariable::i
@@ -975,7 +974,7 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             value @31
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::value#element
   topLevelVariables
     synthetic x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -1045,7 +1044,7 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             value @15
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::value#element
   topLevelVariables
     synthetic x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -1143,7 +1142,7 @@ library
           element: <testLibraryFragment>::@setter::foo#element
           parameters
             _foo @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
   topLevelVariables
     foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo::@def::0
@@ -1247,13 +1246,13 @@ library
           element: <testLibraryFragment>::@setter::foo::@def::0#element
           parameters
             _foo @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::foo::@def::0::@parameter::_foo#element
         set foo= @17
           reference: <testLibraryFragment>::@setter::foo::@def::1
           element: <testLibraryFragment>::@setter::foo::@def::1#element
           parameters
             _ @25
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::foo::@def::1::@parameter::_#element
   topLevelVariables
     foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo::@def::0
@@ -1341,7 +1340,7 @@ library
           element: <testLibraryFragment>::@setter::foo#element
           parameters
             newValue @31
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::foo::@parameter::newValue#element
   topLevelVariables
     final foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -1409,7 +1408,7 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             _x @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -1583,7 +1582,7 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             _x @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -1729,7 +1728,7 @@ library
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::x#element
           parameters
             _ @31
-              element: <not-implemented>
+              element: <testLibrary>::@fragment::package:test/a.dart::@setter::x::@parameter::_#element
   topLevelVariables
     synthetic x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -1821,7 +1820,7 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             _ @46
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -1944,7 +1943,7 @@ library
           element: <testLibrary>::@fragment::package:test/b.dart::@setter::x#element
           parameters
             _ @31
-              element: <not-implemented>
+              element: <testLibrary>::@fragment::package:test/b.dart::@setter::x::@parameter::_#element
   topLevelVariables
     synthetic x
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
@@ -2034,7 +2033,7 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             _x @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -2102,7 +2101,7 @@ library
           element: <testLibraryFragment>::@setter::v#element
           parameters
             _v @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
@@ -2362,7 +2361,7 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             _x @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -2442,7 +2441,7 @@ library
           element: <testLibraryFragment>::@setter::v#element
           parameters
             _v @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
@@ -2510,7 +2509,7 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             _x @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     late x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -2577,7 +2576,7 @@ library
           element: <testLibraryFragment>::@setter::x#element
           parameters
             _x @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     late final x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -2727,7 +2726,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/a.dart
-          reference: <not-implemented>
       topLevelVariables
         final b @23
           reference: <testLibraryFragment>::@topLevelVariable::b
@@ -2921,7 +2919,6 @@ library
       element: <testLibrary>
       libraryImports
         package:test/b.dart
-          reference: <not-implemented>
       topLevelVariables
         final x @23
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -3019,7 +3016,7 @@ library
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::x#element
           parameters
             _ @31
-              element: <not-implemented>
+              element: <testLibrary>::@fragment::package:test/a.dart::@setter::x::@parameter::_#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
@@ -3102,7 +3099,7 @@ library
           element: <testLibraryFragment>::@setter::v#element
           parameters
             _v @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
@@ -3173,7 +3170,7 @@ library
           element: <testLibraryFragment>::@setter::a#element
           parameters
             _a @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::a::@parameter::_a#element
   topLevelVariables
     a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -3243,7 +3240,7 @@ library
           element: <testLibraryFragment>::@setter::a#element
           parameters
             _a @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::a::@parameter::_a#element
   topLevelVariables
     a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
@@ -3430,13 +3427,13 @@ library
           element: <testLibraryFragment>::@setter::i#element
           parameters
             _i @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::i::@parameter::_i#element
         set j= @-1
           reference: <testLibraryFragment>::@setter::j
           element: <testLibraryFragment>::@setter::j#element
           parameters
             _j @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::j::@parameter::_j#element
   topLevelVariables
     i
       firstFragment: <testLibraryFragment>::@topLevelVariable::i
@@ -3597,7 +3594,7 @@ library
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::A#element
           parameters
             _A @-1
-              element: <not-implemented>
+              element: <testLibrary>::@fragment::package:test/a.dart::@setter::A::@parameter::_A#element
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
@@ -3725,7 +3722,7 @@ library
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
           parameters
             _foo @-1
-              element: <not-implemented>
+              element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo::@parameter::_foo#element
   topLevelVariables
     foo
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
@@ -3865,7 +3862,7 @@ library
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
           parameters
             _foo @-1
-              element: <not-implemented>
+              element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo::@parameter::_foo#element
   topLevelVariables
     synthetic foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -3993,7 +3990,7 @@ library
           element: <testLibraryFragment>::@setter::foo#element
           parameters
             _ @27
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::foo::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4013,7 +4010,7 @@ library
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
           parameters
             _foo @-1
-              element: <not-implemented>
+              element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo::@parameter::_foo#element
   topLevelVariables
     synthetic foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -4159,7 +4156,7 @@ library
           element: <testLibraryFragment>::@setter::foo#element
           parameters
             _foo @-1
-              element: <not-implemented>
+              element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4180,7 +4177,7 @@ library
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
           parameters
             _foo @-1
-              element: <not-implemented>
+              element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo::@parameter::_foo#element
   topLevelVariables
     foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo

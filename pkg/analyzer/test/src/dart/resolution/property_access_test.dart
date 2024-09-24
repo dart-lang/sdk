@@ -40,7 +40,7 @@ PropertyAccess
           token: a
           parameter: <null>
           staticElement: <testLibraryFragment>::@function::f::@parameter::a
-          element: <not-implemented>
+          element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
@@ -84,7 +84,7 @@ AssignmentExpression
             token: a
             parameter: <null>
             staticElement: <testLibraryFragment>::@function::f::@parameter::a
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::f::@parameter::a#element
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
@@ -141,7 +141,7 @@ AssignmentExpression
             token: a
             parameter: <null>
             staticElement: <testLibraryFragment>::@function::f::@parameter::a
-            element: <not-implemented>
+            element: <testLibraryFragment>::@function::f::@parameter::a#element
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
@@ -187,7 +187,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: int Function(String)
     rightParenthesis: )
     staticType: int Function(String)
@@ -806,7 +806,7 @@ CascadeExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   cascadeSections
     PropertyAccess
@@ -1017,7 +1017,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
@@ -1057,7 +1057,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
@@ -1086,7 +1086,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: dynamic
     rightParenthesis: )
     staticType: dynamic
@@ -1115,7 +1115,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: dynamic
     rightParenthesis: )
     staticType: dynamic
@@ -1144,7 +1144,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: dynamic
     rightParenthesis: )
     staticType: dynamic
@@ -1173,7 +1173,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: dynamic
     rightParenthesis: )
     staticType: dynamic
@@ -1207,7 +1207,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: e
       staticElement: <testLibraryFragment>::@function::f::@parameter::e
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::e#element
       staticType: E
     rightParenthesis: )
     staticType: E
@@ -1244,7 +1244,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: e
       staticElement: <testLibraryFragment>::@function::f::@parameter::e
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::e#element
       staticType: E
     rightParenthesis: )
     staticType: E
@@ -1279,7 +1279,7 @@ AssignmentExpression
       expression: SimpleIdentifier
         token: e
         staticElement: <testLibraryFragment>::@function::f::@parameter::e
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::e#element
         staticType: E
       rightParenthesis: )
       staticType: E
@@ -1336,7 +1336,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
@@ -1380,7 +1380,7 @@ AssignmentExpression
       expression: SimpleIdentifier
         token: a
         staticElement: <testLibraryFragment>::@function::f::@parameter::a
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
       rightParenthesis: )
       staticType: A
@@ -1437,7 +1437,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A<int>
     rightParenthesis: )
     staticType: A<int>
@@ -1471,7 +1471,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -1500,7 +1500,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -1681,7 +1681,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
@@ -1712,7 +1712,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
@@ -1743,7 +1743,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
@@ -1776,7 +1776,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
@@ -1810,7 +1810,7 @@ AssignmentExpression
       expression: SimpleIdentifier
         token: a
         staticElement: <testLibraryFragment>::@function::f::@parameter::a
-        element: <not-implemented>
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
       rightParenthesis: )
       staticType: A
@@ -1866,7 +1866,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
@@ -1906,7 +1906,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
@@ -1933,7 +1933,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
@@ -1962,7 +1962,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
@@ -2018,7 +2018,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: ({int foo})?
   operator: ?.
   propertyName: SimpleIdentifier
@@ -2043,7 +2043,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: T
   operator: .
   propertyName: SimpleIdentifier
@@ -2068,7 +2068,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
@@ -2093,7 +2093,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -2122,7 +2122,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -2147,7 +2147,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -2176,7 +2176,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -2203,7 +2203,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -2230,7 +2230,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -2257,7 +2257,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -2315,7 +2315,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -2340,7 +2340,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: T
   operator: .
   propertyName: SimpleIdentifier
@@ -2367,7 +2367,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
@@ -2396,7 +2396,7 @@ PropertyAccess
   target: SimpleIdentifier
     token: r
     staticElement: <testLibraryFragment>::@function::f::@parameter::r
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::r#element
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -2426,7 +2426,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
-      element: <not-implemented>
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -2586,7 +2586,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: t
       staticElement: <testLibraryFragment>::@class::A::@method::f::@parameter::t
-      element: <not-implemented>
+      element: <testLibraryFragment>::@class::A::@method::f::@parameter::t#element
       staticType: T
     rightParenthesis: )
     staticType: T
@@ -2620,7 +2620,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: t
       staticElement: <testLibraryFragment>::@class::C::@method::f::@parameter::t
-      element: <not-implemented>
+      element: <testLibraryFragment>::@class::C::@method::f::@parameter::t#element
       staticType: T
     rightParenthesis: )
     staticType: T

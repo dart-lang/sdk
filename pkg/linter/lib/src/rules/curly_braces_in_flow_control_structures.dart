@@ -32,8 +32,8 @@ if (isWeekDay) {
 ```
 
 There is one exception to this: an `if` statement with no `else` clause where
-the entire `if` statement and the then body all fit in one line. In that case,
-you may leave off the braces if you prefer:
+the entire `if` statement (including the condition and the body) fits in one
+line. In that case, you may leave off the braces if you prefer:
 
 **GOOD:**
 ```dart
@@ -105,7 +105,7 @@ class _Visitor extends SimpleAstVisitor {
 
       var unit = node.root as CompilationUnit;
       var lineInfo = unit.lineInfo;
-      if (lineInfo.getLocation(node.rightParenthesis.end).lineNumber !=
+      if (lineInfo.getLocation(node.ifKeyword.offset).lineNumber !=
           lineInfo.getLocation(node.thenStatement.end).lineNumber) {
         rule.reportLint(node.thenStatement, arguments: ['an if']);
       }

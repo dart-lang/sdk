@@ -122,7 +122,9 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     if (node.operator.type != TokenType.PLUS_EQ &&
-        node.operator.type != TokenType.EQ) return;
+        node.operator.type != TokenType.EQ) {
+      return;
+    }
 
     var left = node.leftHandSide;
     var writeType = node.writeType;

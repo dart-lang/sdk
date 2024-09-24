@@ -613,6 +613,18 @@ class _RecordType extends _Type {
     return true;
   }
 
+  @override
+  int get hashCode {
+    int hash = mix64(ClassID.cidRecordType.toIntSigned());
+    for (int i = 0; i < names.length; i++) {
+      hash = mix64(hash ^ names[i].hashCode);
+    }
+    for (int i = 0; i < fieldTypes.length; i++) {
+      hash = mix64(hash ^ fieldTypes[i].hashCode);
+    }
+    return hash;
+  }
+
   bool _sameShape(_RecordType other) =>
       fieldTypes.length == other.fieldTypes.length &&
       // Name lists are constants and can be compared with `identical`.

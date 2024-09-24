@@ -105,7 +105,7 @@ PatternAssignment
       AssignedVariablePattern
         name: a
         element: <testLibraryFragment>::@function::f::@parameter::a
-        element2: <not-implemented>
+        element2: <testLibraryFragment>::@function::f::@parameter::a#element
         matchedValueType: int
     rightBracket: ]
     matchedValueType: List<int>
@@ -114,7 +114,7 @@ PatternAssignment
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: List<int>
   patternTypeSchema: List<num>
   staticType: List<int>
@@ -148,7 +148,7 @@ PatternAssignment
         pattern: AssignedVariablePattern
           name: foo
           element: <testLibraryFragment>::@function::f::@parameter::foo
-          element2: <not-implemented>
+          element2: <testLibraryFragment>::@function::f::@parameter::foo#element
           matchedValueType: int
         element: <testLibraryFragment>::@class::A::@getter::foo
         element2: <testLibraryFragment>::@class::A::@getter::foo#element
@@ -187,7 +187,7 @@ PatternAssignment
     pattern: AssignedVariablePattern
       name: a
       element: <testLibraryFragment>::@function::f::@parameter::a
-      element2: <not-implemented>
+      element2: <testLibraryFragment>::@function::f::@parameter::a#element
       matchedValueType: int
     rightParenthesis: )
     matchedValueType: int
@@ -195,7 +195,7 @@ PatternAssignment
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: int
   patternTypeSchema: num
   staticType: int
@@ -218,7 +218,7 @@ PatternAssignment
     pattern: AssignedVariablePattern
       name: a
       element: <testLibraryFragment>::@function::f::@parameter::a
-      element2: <not-implemented>
+      element2: <testLibraryFragment>::@function::f::@parameter::a#element
       matchedValueType: int
     rightParenthesis: )
     matchedValueType: int
@@ -260,7 +260,7 @@ PatternAssignment
         pattern: AssignedVariablePattern
           name: a
           element: <testLibraryFragment>::@function::f::@parameter::a
-          element2: <not-implemented>
+          element2: <testLibraryFragment>::@function::f::@parameter::a#element
           matchedValueType: int
         element: <null>
         element2: <null>
@@ -270,7 +270,7 @@ PatternAssignment
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: ({int foo})
   patternTypeSchema: ({num foo})
   staticType: ({int foo})
@@ -295,7 +295,7 @@ PatternAssignment
         pattern: AssignedVariablePattern
           name: a
           element: <testLibraryFragment>::@function::f::@parameter::a
-          element2: <not-implemented>
+          element2: <testLibraryFragment>::@function::f::@parameter::a#element
           matchedValueType: int
         element: <null>
         element2: <null>
@@ -339,7 +339,7 @@ PatternAssignment
         pattern: AssignedVariablePattern
           name: a
           element: <testLibraryFragment>::@function::f::@parameter::a
-          element2: <not-implemented>
+          element2: <testLibraryFragment>::@function::f::@parameter::a#element
           matchedValueType: int
         element: <null>
         element2: <null>
@@ -349,7 +349,7 @@ PatternAssignment
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
-    element: <not-implemented>
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: (int,)
   patternTypeSchema: (num,)
   staticType: (int,)
@@ -415,7 +415,7 @@ void f(num a) {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@function::f::@parameter::a
-  element: <not-implemented>
+  element: <testLibraryFragment>::@function::f::@parameter::a#element
   staticType: int
 ''');
   }
