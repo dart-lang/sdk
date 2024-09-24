@@ -739,7 +739,9 @@ void _mergeCoverageInto(
     Coverage coverage, Map<Uri, Set<int>> misses, Map<Uri, Hit> hits) {
   for (FileCoverage fileCoverage in coverage.getAllFileCoverages()) {
     if (fileCoverage.uri.isScheme("package") &&
-        fileCoverage.uri.pathSegments.first != "front_end") continue;
+        fileCoverage.uri.pathSegments.first != "front_end") {
+      continue;
+    }
     if (fileCoverage.misses.isNotEmpty) {
       Set<int> miss = misses[fileCoverage.uri] ??= {};
       miss.addAll(fileCoverage.misses);
@@ -1013,7 +1015,9 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     // possible "double-ignored" coverages should still work fine because of the
     // interval list.
     if (_checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: false)) return;
+        allowReplace: false)) {
+      return;
+    }
     super.visitClassDeclarationEnd(node);
   }
 
@@ -1024,7 +1028,9 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     // possible "double-ignored" coverages should still work fine because of the
     // interval list.
     if (_checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: false)) return;
+        allowReplace: false)) {
+      return;
+    }
     super.visitExtensionDeclarationEnd(node);
   }
 
@@ -1035,7 +1041,9 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     // possible "double-ignored" coverages should still work fine because of the
     // interval list.
     if (_checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: false)) return;
+        allowReplace: false)) {
+      return;
+    }
     super.visitExtensionTypeDeclarationEnd(node);
   }
 
@@ -1064,7 +1072,9 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
   @override
   void visitTopLevelMethodEnd(TopLevelMethodEnd node) {
     if (_checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: false)) return;
+        allowReplace: false)) {
+      return;
+    }
     super.visitTopLevelMethodEnd(node);
     String name = node.getNameIdentifier().token.lexeme;
     if (topLevelMethodNamesToIgnore.contains(name)) {

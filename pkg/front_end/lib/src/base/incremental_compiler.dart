@@ -1765,7 +1765,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Uri? partFileUri = uriTranslator.getPartFileUri(lib.fileUri, part);
       if (partsUsed != null &&
           // Coverage-ignore(suite): Not run.
-          partsUsed.contains(partFileUri)) continue;
+          partsUsed.contains(partFileUri)) {
+        continue;
+      }
 
       // If the builders map contain the "parts" import uri, it's a real library
       // (erroneously) used as a part so we don't want to remove that.

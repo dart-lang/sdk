@@ -165,6 +165,17 @@ void f() {
 ''');
   }
 
+  test_ifStatement_singleStatement_sameLine_multiLineCondition() async {
+    await assertDiagnostics(r'''
+void f() {
+  if (1 ==
+      2) return;
+}
+''', [
+      lint(31, 7),
+    ]);
+  }
+
   test_ifStatementElse_block_sameLine() async {
     await assertNoDiagnostics(r'''
 void f() {
