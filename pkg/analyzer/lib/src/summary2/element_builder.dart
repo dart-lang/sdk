@@ -17,6 +17,7 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
@@ -373,7 +374,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
               name2: StringToken(TokenType.STRING, element.name, -1),
               typeArguments: null,
               question: null,
-            )..element = element,
+            )..element2 = element.asElement2,
           ],
           rightBracket: Tokens.gt(),
         ),

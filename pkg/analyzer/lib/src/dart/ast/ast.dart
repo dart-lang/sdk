@@ -28,6 +28,7 @@ import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
@@ -12630,8 +12631,9 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   final Token name2;
 
+  @experimental
   @override
-  Element? element;
+  Element2? element2;
 
   @override
   TypeArgumentListImpl? typeArguments;
@@ -12658,16 +12660,9 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   Token get beginToken => importPrefix?.beginToken ?? name2;
 
-  @experimental
   @override
-  Element2? get element2 {
-    var element = this.element;
-    if (element case Fragment fragment) {
-      return fragment.element;
-    } else if (element case Element2 element) {
-      return element;
-    }
-    return null;
+  Element? get element {
+    return element2.asElement;
   }
 
   @override

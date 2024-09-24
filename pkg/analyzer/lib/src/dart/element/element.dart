@@ -7512,7 +7512,7 @@ enum Modifier {
 }
 
 /// A concrete implementation of a [MultiplyDefinedElement].
-class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
+class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
   /// The unique integer identifier of this element.
   @override
   final int id = ElementImpl._NEXT_ID++;
@@ -7537,7 +7537,13 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
       this.context, this.session, this.name, this.conflictingElements);
 
   @override
+  Element2? get baseElement => null;
+
+  @override
   List<Element> get children => const [];
+
+  @override
+  List<Element2> get children2 => const [];
 
   @override
   Element? get declaration => null;
@@ -7551,6 +7557,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @Deprecated('Use enclosingElement3 instead')
   @override
   Element? get enclosingElement => null;
+
+  @override
+  Element2? get enclosingElement2 => null;
 
   @override
   Element? get enclosingElement3 => null;
@@ -7658,6 +7667,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   LibraryElement? get library => null;
 
   @override
+  LibraryElement2? get library2 => null;
+
+  @override
   Source? get librarySource => null;
 
   @override
@@ -7678,6 +7690,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   Element get nonSynthetic => this;
 
   @override
+  Element2 get nonSynthetic2 => this;
+
+  @override
   Version? get sinceSdkVersion => null;
 
   @override
@@ -7686,6 +7701,15 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitMultiplyDefinedElement(this);
+
+  @override
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) {
+    // TODO(scheglov): implement displayString2
+    throw UnimplementedError();
+  }
 
   @override
   String getDisplayString({
@@ -7718,8 +7742,21 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @override
+  bool isAccessibleIn2(LibraryElement2 library) {
+    // TODO(scheglov): implement isAccessibleIn2
+    throw UnimplementedError();
+  }
+
+  @override
   E? thisOrAncestorMatching<E extends Element>(
     bool Function(Element) predicate,
+  ) {
+    return null;
+  }
+
+  @override
+  E? thisOrAncestorMatching2<E extends Element2>(
+    bool Function(Element2 p1) predicate,
   ) {
     return null;
   }
@@ -7733,6 +7770,11 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   E? thisOrAncestorOfType<E extends Element>() => null;
+
+  @override
+  E? thisOrAncestorOfType2<E extends Element2>() {
+    return null;
+  }
 
   @override
   E? thisOrAncestorOfType3<E extends Element>() => null;
