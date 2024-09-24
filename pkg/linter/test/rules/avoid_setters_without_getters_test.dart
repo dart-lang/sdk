@@ -17,6 +17,58 @@ class AvoidSettersWithoutGettersTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_setters_without_getters';
 
+  test_class_getter_noSetter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int get x => 0;
+}
+''');
+  }
+
+  test_class_inheritedSetter_noGetter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  // ignore: avoid_setters_without_getters
+  set x(int value) {}
+}
+class B extends A {
+  @override
+  set x(int value) {}
+}
+''');
+  }
+
+  test_class_setter_andGetter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int get x => 0;
+
+  set x(int value) {}
+}
+''');
+  }
+
+  test_class_setter_inheritedGetter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int get x => 0;
+}
+class B extends A {
+  set x(int value) {}
+}
+''');
+  }
+
+  test_class_setter_noGetter() async {
+    await assertDiagnostics(r'''
+class A {
+  set x(int value) {}
+}
+''', [
+      lint(16, 1),
+    ]);
+  }
+
   test_enum() async {
     await assertDiagnostics(r'''
 enum A {

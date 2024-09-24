@@ -196,11 +196,13 @@ import 'prefer_generic_function_type_aliases_test.dart'
     as prefer_generic_function_type_aliases;
 import 'prefer_if_elements_to_conditional_expressions_test.dart'
     as prefer_if_elements_to_conditional_expressions;
+import 'prefer_if_null_operators_test.dart' as prefer_if_null_operators;
 import 'prefer_initializing_formals_test.dart' as prefer_initializing_formals;
 import 'prefer_inlined_adds_test.dart' as prefer_inlined_adds;
 import 'prefer_int_literals_test.dart' as prefer_int_literals;
 import 'prefer_interpolation_to_compose_strings_test.dart'
     as prefer_interpolation_to_compose_strings;
+import 'prefer_is_empty_test.dart' as prefer_is_empty;
 import 'prefer_iterable_whereType_test.dart' as prefer_iterable_whereType;
 import 'prefer_mixin_test.dart' as prefer_mixin;
 import 'prefer_null_aware_method_calls_test.dart'
@@ -444,10 +446,12 @@ void main() {
   prefer_function_declarations_over_variables.main();
   prefer_generic_function_type_aliases.main();
   prefer_if_elements_to_conditional_expressions.main();
+  prefer_if_null_operators.main();
   prefer_initializing_formals.main();
   prefer_inlined_adds.main();
   prefer_int_literals.main();
   prefer_interpolation_to_compose_strings.main();
+  prefer_is_empty.main();
   prefer_iterable_whereType.main();
   prefer_mixin.main();
   prefer_null_aware_method_calls.main();
