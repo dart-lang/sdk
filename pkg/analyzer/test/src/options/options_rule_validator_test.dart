@@ -29,7 +29,6 @@ class DeprecatedLint extends LintRule {
           name: 'deprecated_lint',
           state: State.deprecated(),
           description: '',
-          details: '',
         );
 }
 
@@ -39,7 +38,6 @@ class DeprecatedLintWithReplacement extends LintRule {
           name: 'deprecated_lint_with_replacement',
           state: State.deprecated(replacedBy: 'replacing_lint'),
           description: '',
-          details: '',
         );
 }
 
@@ -49,7 +47,6 @@ class DeprecatedSince3Lint extends LintRule {
           name: 'deprecated_since_3_lint',
           state: State.deprecated(since: dart3),
           description: '',
-          details: '',
         );
 }
 
@@ -292,7 +289,6 @@ class RemovedIn2_12Lint extends LintRule {
           name: 'removed_in_2_12_lint',
           state: State.removed(since: dart2_12),
           description: '',
-          details: '',
         );
 }
 
@@ -302,7 +298,6 @@ class ReplacedLint extends LintRule {
           name: 'replaced_lint',
           state: State.removed(since: dart3, replacedBy: 'replacing_lint'),
           description: '',
-          details: '',
         );
 }
 
@@ -311,7 +306,6 @@ class ReplacingLint extends LintRule {
       : super(
           name: 'replacing_lint',
           description: '',
-          details: '',
         );
 }
 
@@ -320,7 +314,6 @@ class RuleNeg extends LintRule {
       : super(
           name: 'rule_neg',
           description: '',
-          details: '',
         );
 
   @override
@@ -332,7 +325,6 @@ class RulePos extends LintRule {
       : super(
           name: 'rule_pos',
           description: '',
-          details: '',
         );
 
   @override
@@ -345,6 +337,5 @@ class StableLint extends LintRule {
           name: 'stable_lint',
           state: State.stable(),
           description: '',
-          details: '',
         );
 }

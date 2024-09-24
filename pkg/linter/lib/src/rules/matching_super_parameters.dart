@@ -11,59 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Use matching super parameter names.';
 
-const _details = r'''
-**DO** use super parameter names that match their corresponding super
-constructor's parameter names.
-
-**BAD:**
-
-```dart
-class Rectangle {
-  final int width;
-  final int height;
-  
-  Rectangle(this.width, this.height);
-}
-
-class ColoredRectangle extends Rectangle {
-  final Color color;
-  
-  ColoredRectangle(
-    this.color,
-    super.height, // Bad, actually corresponds to the `width` parameter.
-    super.width, // Bad, actually corresponds to the `height` parameter.
-  ); 
-}
-```
-
-**GOOD:**
-
-```dart
-class Rectangle {
-  final int width;
-  final int height;
-  
-  Rectangle(this.width, this.height);
-}
-
-class ColoredRectangle extends Rectangle {
-  final Color color;
-  
-  ColoredRectangle(
-    this.color,
-    super.width,
-    super.height, 
-  ); 
-}
-```
-''';
-
 class MatchingSuperParameters extends LintRule {
   MatchingSuperParameters()
       : super(
           name: 'matching_super_parameters',
           description: _desc,
-          details: _details,
         );
 
   @override

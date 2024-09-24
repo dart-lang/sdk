@@ -79,7 +79,6 @@ class _AvoidIntRule extends LintRule {
       : super(
           name: 'avoid_int',
           description: '',
-          details: '',
         );
 
   @override

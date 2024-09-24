@@ -11,114 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r"Don't assign a variable to itself.";
 
-const _details = r'''
-**DON'T** assign a variable to itself. Usually this is a mistake.
-
-**BAD:**
-```dart
-class C {
-  int x;
-
-  C(int x) {
-    x = x;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class C {
-  int x;
-
-  C(int x) : x = x;
-}
-```
-
-**GOOD:**
-```dart
-class C {
-  int x;
-
-  C(int x) {
-    this.x = x;
-  }
-}
-```
-
-**BAD:**
-```dart
-class C {
-  int _x = 5;
-
-  int get x => _x;
-
-  set x(int x) {
-    _x = x;
-    _customUpdateLogic();
-  }
-
-  void _customUpdateLogic() {
-    print('updated');
-  }
-
-  void example() {
-    x = x;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class C {
-  int _x = 5;
-
-  int get x => _x;
-
-  set x(int x) {
-    _x = x;
-    _customUpdateLogic();
-  }
-
-  void _customUpdateLogic() {
-    print('updated');
-  }
-
-  void example() {
-    _customUpdateLogic();
-  }
-}
-```
-
-**BAD:**
-```dart
-class C {
-  int x = 5;
-
-  void update(C other) {
-    this.x = this.x;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class C {
-  int x = 5;
-
-  void update(C other) {
-    this.x = other.x;
-  }
-}
-```
-
-''';
-
 class NoSelfAssignments extends LintRule {
   NoSelfAssignments()
       : super(
           name: 'no_self_assignments',
           description: _desc,
-          details: _details,
         );
 
   @override

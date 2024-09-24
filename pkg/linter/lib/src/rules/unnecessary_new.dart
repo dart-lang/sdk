@@ -11,33 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Unnecessary new keyword.';
 
-const _details = r'''
-**AVOID** new keyword to create instances.
-
-**BAD:**
-```dart
-class A { A(); }
-m(){
-  final a = new A();
-}
-```
-
-**GOOD:**
-```dart
-class A { A(); }
-m(){
-  final a = A();
-}
-```
-
-''';
-
 class UnnecessaryNew extends LintRule {
   UnnecessaryNew()
       : super(
           name: 'unnecessary_new',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -14,39 +14,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid positional boolean parameters.';
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/design#avoid-positional-boolean-parameters):
-
-**AVOID** positional boolean parameters.
-
-Positional boolean parameters are a bad practice because they are very
-ambiguous.  Using named boolean parameters is much more readable because it
-inherently describes what the boolean value represents.
-
-**BAD:**
-```dart
-Task(true);
-Task(false);
-ListBox(false, true, true);
-Button(false);
-```
-
-**GOOD:**
-```dart
-Task.oneShot();
-Task.repeating();
-ListBox(scroll: true, showScrollbars: true);
-Button(ButtonState.enabled);
-```
-
-''';
-
 class AvoidPositionalBooleanParameters extends LintRule {
   AvoidPositionalBooleanParameters()
       : super(
           name: 'avoid_positional_boolean_parameters',
           description: _desc,
-          details: _details,
         );
 
   @override

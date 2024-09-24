@@ -14,53 +14,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer `const` with constant constructors.';
 
-const _details = r'''
-**PREFER** using `const` for instantiating constant constructors.
-
-If a constructor can be invoked as const to produce a canonicalized instance,
-it's preferable to do so.
-
-**BAD:**
-```dart
-class A {
-  const A();
-}
-
-void accessA() {
-  A a = new A();
-}
-```
-
-**GOOD:**
-```dart
-class A {
-  const A();
-}
-
-void accessA() {
-  A a = const A();
-}
-```
-
-**GOOD:**
-```dart
-class A {
-  final int x;
-
-  const A(this.x);
-}
-
-A foo(int x) => new A(x);
-```
-
-''';
-
 class PreferConstConstructors extends LintRule {
   PreferConstConstructors()
       : super(
           name: 'prefer_const_constructors',
           description: _desc,
-          details: _details,
         );
 
   @override

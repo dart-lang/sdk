@@ -12,45 +12,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid defining a class that contains only static members.';
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/design#avoid-defining-a-class-that-contains-only-static-members):
-
-**AVOID** defining a class that contains only static members.
-
-Creating classes with the sole purpose of providing utility or otherwise static
-methods is discouraged.  Dart allows functions to exist outside of classes for
-this very reason.
-
-**BAD:**
-```dart
-class DateUtils {
-  static DateTime mostRecent(List<DateTime> dates) {
-    return dates.reduce((a, b) => a.isAfter(b) ? a : b);
-  }
-}
-
-class _Favorites {
-  static const mammal = 'weasel';
-}
-```
-
-**GOOD:**
-```dart
-DateTime mostRecent(List<DateTime> dates) {
-  return dates.reduce((a, b) => a.isAfter(b) ? a : b);
-}
-
-const _favoriteMammal = 'weasel';
-```
-
-''';
-
 class AvoidClassesWithOnlyStaticMembers extends LintRule {
   AvoidClassesWithOnlyStaticMembers()
       : super(
           name: 'avoid_classes_with_only_static_members',
           description: _desc,
-          details: _details,
         );
 
   @override

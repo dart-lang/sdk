@@ -11,50 +11,11 @@ import '../rules/control_flow_in_finally.dart';
 
 const _desc = r'Avoid `throw` in `finally` block.';
 
-const _details = r'''
-**AVOID** throwing exceptions in `finally` blocks.
-
-Throwing exceptions in `finally` blocks will inevitably cause unexpected
-behavior that is hard to debug.
-
-**BAD:**
-```dart
-class BadThrow {
-  double nonCompliantMethod() {
-    try {
-      print('hello world! ${1 / 0}');
-    } catch (e) {
-      print(e);
-    } finally {
-      throw 'Find the hidden error :P'; // LINT
-    }
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Ok {
-  double compliantMethod() {
-    var i = 5;
-    try {
-      i = 1 / 0;
-    } catch (e) {
-      print(e); // OK
-    }
-    return i;
-  }
-}
-```
-
-''';
-
 class ThrowInFinally extends LintRule {
   ThrowInFinally()
       : super(
           name: 'throw_in_finally',
           description: _desc,
-          details: _details,
         );
 
   @override

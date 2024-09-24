@@ -13,36 +13,12 @@ import '../extensions.dart';
 import '../linter_lint_codes.dart';
 
 const _desc = r'Use `isEmpty` for `Iterable`s and `Map`s.';
-const _details = r'''
-**DON'T** use `length` to see if a collection is empty.
-
-The `Iterable` contract does not require that a collection know its length or be
-able to provide it in constant time.  Calling `length` just to see if the
-collection contains anything can be painfully slow.
-
-Instead, there are faster and more readable getters: `isEmpty` and
-`isNotEmpty`.  Use the one that doesn't require you to negate the result.
-
-**BAD:**
-```dart
-if (lunchBox.length == 0) return 'so hungry...';
-if (words.length != 0) return words.join(' ');
-```
-
-**GOOD:**
-```dart
-if (lunchBox.isEmpty) return 'so hungry...';
-if (words.isNotEmpty) return words.join(' ');
-```
-
-''';
 
 class PreferIsEmpty extends LintRule {
   PreferIsEmpty()
       : super(
           name: 'prefer_is_empty',
           description: _desc,
-          details: _details,
         );
 
   // TODO(brianwilkerson): Both `alwaysFalse` and `alwaysTrue` should be warnings

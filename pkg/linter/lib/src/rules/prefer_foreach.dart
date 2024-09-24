@@ -12,44 +12,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Use `forEach` to only apply a function to all the elements.';
 
-const _details = r'''
-**DO** use `forEach` if you are only going to apply a function or a method
-to all the elements of an iterable.
-
-Using `forEach` when you are only going to apply a function or method to all
-elements of an iterable is a good practice because it makes your code more
-terse.
-
-**BAD:**
-```dart
-for (final key in map.keys.toList()) {
-  map.remove(key);
-}
-```
-
-**GOOD:**
-```dart
-map.keys.toList().forEach(map.remove);
-```
-
-**NOTE:** Replacing a for each statement with a forEach call may change the
-behavior in the case where there are side-effects on the iterable itself.
-```dart
-for (final v in myList) {
-  foo().f(v); // This code invokes foo() many times.
-}
-
-myList.forEach(foo().f); // But this one invokes foo() just once.
-```
-
-''';
-
 class PreferForeach extends LintRule {
   PreferForeach()
       : super(
           name: 'prefer_foreach',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -12,42 +12,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r"Don't use more than one case with same value.";
 
-const _details = r'''
-**DON'T** use more than one case with same value.
-
-This is usually a typo or changed value of constant.
-
-**BAD:**
-```dart
-const int A = 1;
-switch (v) {
-  case 1:
-  case 2:
-  case A:
-  case 2:
-}
-```
-
-**GOOD:**
-```dart
-const int A = 1;
-switch (v) {
-  case A:
-  case 2:
-}
-```
-
-NOTE: this lint only reports duplicate cases in libraries opted in to Dart 2.19
-and below. In Dart 3.0 and after, duplicate cases are reported as dead code
-by the analyzer.
-''';
-
 class NoDuplicateCaseValues extends LintRule {
   NoDuplicateCaseValues()
       : super(
           name: 'no_duplicate_case_values',
           description: _desc,
-          details: _details,
         );
 
   @override

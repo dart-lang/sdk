@@ -16,40 +16,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = 'Unreachable top-level members in executable libraries.';
 
-const _details = r'''
-Any member declared in an executable library should be used directly inside that
-library.  An executable library is a library that contains a `main` top-level
-function or that contains a top-level function annotated with
-`@pragma('vm:entry-point')`).  Executable libraries are not usually imported
-and it's better to avoid defining unused members.
-
-This rule assumes that an executable library isn't imported by other libraries
-except to execute its `main` function.
-
-**BAD:**
-
-```dart
-main() {}
-void f() {}
-```
-
-**GOOD:**
-
-```dart
-main() {
-  f();
-}
-void f() {}
-```
-
-''';
-
 class UnreachableFromMain extends LintRule {
   UnreachableFromMain()
       : super(
           name: 'unreachable_from_main',
           description: _desc,
-          details: _details,
           state: State.stable(since: Version(3, 1, 0)),
         );
 

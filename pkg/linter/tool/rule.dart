@@ -193,21 +193,6 @@ import '../analyzer.dart';
 
 const _desc = r' ';
 
-const _details = r'''
-**DO** ...
-
-**BAD:**
-```dart
-
-```
-
-**GOOD:**
-```dart
-
-```
-
-''';
-
 class $className extends LintRule {
   static const LintCode code = LintCode(
       '$ruleName', '<add problem message here>',
@@ -217,7 +202,6 @@ class $className extends LintRule {
       : super(
             name: '$ruleName',
             description: _desc,
-            details: _details,
             group: Group.style);
 
   @override

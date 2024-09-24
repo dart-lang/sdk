@@ -11,37 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Unnecessary `await` keyword in return.';
 
-const _details = r'''
-Avoid returning an awaited expression when the expression type is assignable to
-the function's return type.
-
-
-**BAD:**
-```dart
-Future<int> future;
-Future<int> f1() async => await future;
-Future<int> f2() async {
-  return await future;
-}
-```
-
-**GOOD:**
-```dart
-Future<int> future;
-Future<int> f1() => future;
-Future<int> f2() {
-  return future;
-}
-```
-
-''';
-
 class UnnecessaryAwaitInReturn extends LintRule {
   UnnecessaryAwaitInReturn()
       : super(
           name: 'unnecessary_await_in_return',
           description: _desc,
-          details: _details,
         );
 
   @override

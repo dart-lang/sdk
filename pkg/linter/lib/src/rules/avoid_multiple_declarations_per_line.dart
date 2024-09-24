@@ -10,29 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r"Don't declare multiple variables on a single line.";
 
-const _details = r'''
-**DON'T** declare multiple variables on a single line.
-
-**BAD:**
-```dart
-String? foo, bar, baz;
-```
-
-**GOOD:**
-```dart
-String? foo;
-String? bar;
-String? baz;
-```
-
-''';
-
 class AvoidMultipleDeclarationsPerLine extends LintRule {
   AvoidMultipleDeclarationsPerLine()
       : super(
           name: 'avoid_multiple_declarations_per_line',
           description: _desc,
-          details: _details,
         );
 
   @override

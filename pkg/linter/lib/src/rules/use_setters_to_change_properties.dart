@@ -15,29 +15,11 @@ import '../linter_lint_codes.dart';
 const _desc =
     r'Use a setter for operations that conceptually change a property.';
 
-const _details = r'''
-**DO** use a setter for operations that conceptually change a property.
-
-**BAD:**
-```dart
-rectangle.setWidth(3);
-button.setVisible(false);
-```
-
-**GOOD:**
-```dart
-rectangle.width = 3;
-button.visible = false;
-```
-
-''';
-
 class UseSettersToChangeProperties extends LintRule {
   UseSettersToChangeProperties()
       : super(
           name: 'use_setters_to_change_properties',
           description: _desc,
-          details: _details,
         );
 
   @override

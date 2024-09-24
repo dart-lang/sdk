@@ -10,35 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Sort unnamed constructor declarations first.';
 
-const _details = r'''
-**DO** sort unnamed constructor declarations first, before named ones.
-
-**BAD:**
-```dart
-class _PriorityItem {
-  factory _PriorityItem.forName(bool isStatic, String name, _MemberKind kind) => ...
-  _PriorityItem(this.isStatic, this.kind, this.isPrivate);
-  ...
-}
-```
-
-**GOOD:**
-```dart
-abstract class CancelableFuture<T> implements Future<T>  {
-  factory CancelableFuture(computation()) => ...
-  factory CancelableFuture.delayed(Duration duration, [computation()]) => ...
-  ...
-}
-```
-
-''';
-
 class SortUnnamedConstructorsFirst extends LintRule {
   SortUnnamedConstructorsFirst()
       : super(
           name: 'sort_unnamed_constructors_first',
           description: _desc,
-          details: _details,
         );
 
   @override

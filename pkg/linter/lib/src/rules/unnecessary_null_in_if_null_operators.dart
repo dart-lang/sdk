@@ -12,31 +12,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid using `null` in `??` operators.';
 
-const _details = r'''
-**AVOID** using `null` as an operand in `??` operators.
-
-Using `null` in an `if null` operator is redundant, regardless of which side
-`null` is used on.
-
-**BAD:**
-```dart
-var x = a ?? null;
-var y = null ?? 1;
-```
-
-**GOOD:**
-```dart
-var x = a ?? 1;
-```
-
-''';
-
 class UnnecessaryNullInIfNullOperators extends LintRule {
   UnnecessaryNullInIfNullOperators()
       : super(
           name: 'unnecessary_null_in_if_null_operators',
           description: _desc,
-          details: _details,
         );
 
   @override

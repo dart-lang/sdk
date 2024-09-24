@@ -12,36 +12,11 @@ import '../linter_lint_codes.dart';
 const _desc =
     r'Unnecessary null aware operator on extension on a nullable type.';
 
-const _details = r'''
-Avoid null aware operators for members defined in an extension on a nullable
-type.
-
-**BAD:**
-
-```dart
-extension E on int? {
-  int m() => 1;
-}
-f(int? i) => i?.m();
-```
-
-**GOOD:**
-
-```dart
-extension E on int? {
-  int m() => 1;
-}
-f(int? i) => i.m();
-```
-
-''';
-
 class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
   UnnecessaryNullAwareOperatorOnExtensionOnNullable()
       : super(
           name: 'unnecessary_null_aware_operator_on_extension_on_nullable',
           description: _desc,
-          details: _details,
         );
 
   @override

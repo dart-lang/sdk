@@ -13,36 +13,6 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Use super-initializer parameters where possible.';
 
-const _details = r'''
-"Forwarding constructor"s, that do nothing except forward parameters to their 
-superclass constructors should take advantage of super-initializer parameters 
-rather than repeating the names of parameters when passing them to the 
-superclass constructors.  This makes the code more concise and easier to read
-and maintain.
-
-**DO** use super-initializer parameters where possible.
-
-**BAD:**
-```dart
-class A {
-  A({int? x, int? y});
-}
-class B extends A {
-  B({int? x, int? y}) : super(x: x, y: y);
-}
-```
-
-**GOOD:**
-```dart
-class A {
-  A({int? x, int? y});
-}
-class B extends A {
-  B({super.x, super.y});
-}
-```
-''';
-
 /// Return a set containing the elements of all of the parameters that are
 /// referenced in the body of the [constructor].
 Set<ParameterElement> _referencedParameters(
@@ -57,7 +27,6 @@ class UseSuperParameters extends LintRule {
       : super(
           name: 'use_super_parameters',
           description: _desc,
-          details: _details,
           state: State.experimental(),
         );
 

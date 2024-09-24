@@ -21,7 +21,6 @@ class RemovedLint extends LintRule {
           name: 'removed_lint',
           state: State.removed(since: dart3, replacedBy: 'replacing_lint'),
           description: '',
-          details: '',
         );
 }
 
@@ -66,6 +65,5 @@ class ReplacingLint extends LintRule {
           name: 'replacing_lint',
           state: State.removed(since: dart3),
           description: '',
-          details: '',
         );
 }

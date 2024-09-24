@@ -9,40 +9,11 @@ const _desc =
     r'Avoid returning null from members whose return type is bool, double, int,'
     r' or num.';
 
-const _details = r'''
-NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
-
-**AVOID** returning null from members whose return type is bool, double, int,
-or num.
-
-Functions that return primitive types such as bool, double, int, and num are
-generally expected to return non-nullable values.  Thus, returning null where a
-primitive type was expected can lead to runtime exceptions.
-
-**BAD:**
-```dart
-bool getBool() => null;
-num getNum() => null;
-int getInt() => null;
-double getDouble() => null;
-```
-
-**GOOD:**
-```dart
-bool getBool() => false;
-num getNum() => -1;
-int getInt() => -1;
-double getDouble() => -1.0;
-```
-
-''';
-
 class AvoidReturningNull extends LintRule {
   AvoidReturningNull()
       : super(
           name: 'avoid_returning_null',
           description: _desc,
-          details: _details,
           state: State.removed(since: dart3_3),
         );
 

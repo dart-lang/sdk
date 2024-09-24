@@ -11,49 +11,11 @@ import '../util/flutter_utils.dart';
 
 const _desc = r'`SizedBox` for whitespace.';
 
-const _details = r'''
-Use `SizedBox` to add whitespace to a layout.
-
-A `Container` is a heavier Widget than a `SizedBox`, and as bonus, `SizedBox`
-has a `const` constructor.
-
-**BAD:**
-```dart
-Widget buildRow() {
-  return Row(
-    children: <Widget>[
-      const MyLogo(),
-      Container(width: 4),
-      const Expanded(
-        child: Text('...'),
-      ),
-    ],
-  );
-}
-```
-
-**GOOD:**
-```dart
-Widget buildRow() {
-  return Row(
-    children: const <Widget>[
-      MyLogo(),
-      SizedBox(width: 4),
-      Expanded(
-        child: Text('...'),
-      ),
-    ],
-  );
-}
-```
-''';
-
 class SizedBoxForWhitespace extends LintRule {
   SizedBoxForWhitespace()
       : super(
           name: 'sized_box_for_whitespace',
           description: _desc,
-          details: _details,
         );
 
   @override

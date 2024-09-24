@@ -10,54 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid `final` for parameter declarations.';
 
-const _details = r'''
-**AVOID** declaring parameters as `final`.
-
-Declaring parameters as `final` can lead to unnecessarily verbose code,
-especially when using the "parameter_assignments" rule.
-
-**BAD:**
-```dart
-void goodParameter(final String label) { // LINT
-  print(label);
-}
-```
-
-**GOOD:**
-```dart
-void badParameter(String label) { // OK
-  print(label);
-}
-```
-
-**BAD:**
-```dart
-void goodExpression(final int value) => print(value); // LINT
-```
-
-**GOOD:**
-```dart
-void badExpression(int value) => print(value); // OK
-```
-
-**BAD:**
-```dart
-[1, 4, 6, 8].forEach((final value) => print(value + 2)); // LINT
-```
-
-**GOOD:**
-```dart
-[1, 4, 6, 8].forEach((value) => print(value + 2)); // OK
-```
-
-''';
-
 class AvoidFinalParameters extends LintRule {
   AvoidFinalParameters()
       : super(
           name: 'avoid_final_parameters',
           description: _desc,
-          details: _details,
         );
 
   @override

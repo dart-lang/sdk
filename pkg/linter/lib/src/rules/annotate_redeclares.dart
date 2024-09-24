@@ -11,49 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Annotate redeclared members.';
 
-const _details = r'''
-**DO** annotate redeclared members.
-
-This practice improves code readability and helps protect against
-unintentionally redeclaring members or being surprised when a member ceases to
-redeclare (due for example to a rename refactoring).
-
-**BAD:**
-```dart
-class C {
-  void f() { }
-}
-
-extension type E(C c) implements C {
-  void f() {
-    ...
-  }
-}
-```
-
-**GOOD:**
-```dart
-import 'package:meta/meta.dart';
-
-class C {
-  void f() { }
-}
-
-extension type E(C c) implements C {
-  @redeclare
-  void f() {
-    ...
-  }
-}
-```
-''';
-
 class AnnotateRedeclares extends LintRule {
   AnnotateRedeclares()
       : super(
           name: 'annotate_redeclares',
           description: _desc,
-          details: _details,
           state: State.experimental(),
         );
 

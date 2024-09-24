@@ -21,7 +21,6 @@ class RemovedLint extends LintRule {
           name: 'removed_lint',
           state: State.removed(since: dart3),
           description: '',
-          details: '',
         );
 }
 

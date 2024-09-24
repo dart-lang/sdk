@@ -18,71 +18,11 @@ const _desc =
     'Avoid using deprecated elements from within the package in which they are '
     'declared.';
 
-const _details = r'''
-Elements that are annotated with `@Deprecated` should not be referenced from
-within the package in which they are declared.
-
-**AVOID** using deprecated elements.
-
-...
-
-**BAD:**
-```dart
-// Declared in one library:
-class Foo {
-  @Deprecated("Use 'm2' instead")
-  void m1() {}
-
-  void m2({
-      @Deprecated('This is an old parameter') int? p,
-  })
-}
-
-@Deprecated('Do not use')
-int x = 0;
-
-// In the same or another library, but within the same package:
-void m(Foo foo) {
-  foo.m1();
-  foo.m2(p: 7);
-  x = 1;
-}
-```
-
-Deprecated elements can be used from within _other_ deprecated elements, in
-order to allow for the deprecation of a collection of APIs together as one unit.
-
-**GOOD:**
-```dart
-// Declared in one library:
-class Foo {
-  @Deprecated("Use 'm2' instead")
-  void m1() {}
-
-  void m2({
-      @Deprecated('This is an old parameter') int? p,
-  })
-}
-
-@Deprecated('Do not use')
-int x = 0;
-
-// In the same or another library, but within the same package:
-@Deprecated('Do not use')
-void m(Foo foo) {
-  foo.m1();
-  foo.m2(p: 7);
-  x = 1;
-}
-```
-''';
-
 class DeprecatedMemberUseFromSamePackage extends LintRule {
   DeprecatedMemberUseFromSamePackage()
       : super(
           name: 'deprecated_member_use_from_same_package',
           description: _desc,
-          details: _details,
         );
 
   @override

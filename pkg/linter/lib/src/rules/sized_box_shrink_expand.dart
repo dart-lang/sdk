@@ -9,61 +9,11 @@ import '../analyzer.dart';
 import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
-const _details = r'''
-Use `SizedBox.shrink(...)` and `SizedBox.expand(...)` constructors
-appropriately.
-
-Either the `SizedBox.shrink(...)` or `SizedBox.expand(...)` constructor should
-be used instead of the more general `SizedBox(...)` constructor when one of the
-named constructors capture the intent of the code more succinctly.
-
-**Examples**
-
-**BAD:**
-```dart
-Widget buildLogo() {
-  return SizedBox(
-    height: 0,
-    width: 0,
-    child: const MyLogo(),
-  );
-}
-```
-
-```dart
-Widget buildLogo() {
-  return SizedBox(
-    height: double.infinity,
-    width: double.infinity,
-    child: const MyLogo(),
-  );
-}
-```
-
-**GOOD:**
-```dart
-Widget buildLogo() {
-  return SizedBox.shrink(
-    child: const MyLogo(),
-  );
-}
-```
-
-```dart
-Widget buildLogo() {
-  return SizedBox.expand(
-    child: const MyLogo(),
-  );
-}
-```
-''';
-
 class SizedBoxShrinkExpand extends LintRule {
   SizedBoxShrinkExpand()
       : super(
           name: 'sized_box_shrink_expand',
           description: 'Use SizedBox shrink and expand named constructors.',
-          details: _details,
         );
 
   @override

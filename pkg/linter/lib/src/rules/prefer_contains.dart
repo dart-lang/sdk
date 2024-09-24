@@ -13,32 +13,12 @@ import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = r'Use contains for `List` and `String` instances.';
-const _details = r'''
-**DON'T** use `indexOf` to see if a collection contains an element.
-
-Calling `indexOf` to see if a collection contains something is difficult to read
-and may have poor performance.
-
-Instead, prefer `contains`.
-
-**BAD:**
-```dart
-if (lunchBox.indexOf('sandwich') == -1) return 'so hungry...';
-```
-
-**GOOD:**
-```dart
-if (!lunchBox.contains('sandwich')) return 'so hungry...';
-```
-
-''';
 
 class PreferContains extends LintRule {
   PreferContains()
       : super(
           name: 'prefer_contains',
           description: _desc,
-          details: _details,
         );
 
   // TODO(brianwilkerson): Both `alwaysFalse` and `alwaysTrue` should be warnings

@@ -13,45 +13,11 @@ import '../util/ascii_utils.dart';
 
 const _desc = r"Don't use wildcard parameters or variables.";
 
-const _details = r'''
-**DON'T** use wildcard parameters or variables.
-
-Wildcard parameters and local variables
-(e.g. underscore-only names like `_`, `__`, `___`, etc.) will
-become non-binding in a future version of the Dart language.
-Any existing code that uses wildcard parameters or variables will
-break. In anticipation of this change, and to make adoption easier,
-this lint disallows wildcard and variable parameter uses.
-
-
-**BAD:**
-```dart
-var _ = 1;
-print(_); // LINT
-```
-
-```dart
-void f(int __) {
-  print(__); // LINT multiple underscores too
-}
-```
-
-**GOOD:**
-```dart
-for (var _ in [1, 2, 3]) count++;
-```
-
-```dart
-var [a, _, b, _] = [1, 2, 3, 4];
-```
-''';
-
 class NoWildcardVariableUses extends LintRule {
   NoWildcardVariableUses()
       : super(
           name: 'no_wildcard_variable_uses',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -13,44 +13,6 @@ import '../linter_lint_codes.dart';
 const _desc =
     r'Start the name of the method with to/_to or as/_as if applicable.';
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/design#prefer-naming-a-method-to___-if-it-copies-the-objects-state-to-a-new-object):
-
-**PREFER** naming a method `to___()` if it copies the object's state to a new
-object.
-
-**PREFER** naming a method `as___()` if it returns a different representation
-backed by the original object.
-
-**BAD:**
-```dart
-class Bar {
-  Foo myMethod() {
-    return Foo.from(this);
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Bar {
-  Foo toFoo() {
-    return Foo.from(this);
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Bar {
-  Foo asFoo() {
-    return Foo.from(this);
-  }
-}
-```
-
-''';
-
 bool _beginsWithAsOrTo(String name) {
   var regExp = RegExp(r'(to|as|_to|_as)[A-Z]');
   return regExp.matchAsPrefix(name) != null;
@@ -64,7 +26,6 @@ class UseToAndAsIfApplicable extends LintRule {
       : super(
           name: 'use_to_and_as_if_applicable',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -10,27 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid escaping inner quotes by converting surrounding quotes.';
 
-const _details = r'''
-Avoid escaping inner quotes by converting surrounding quotes.
-
-**BAD:**
-```dart
-var s = 'It\'s not fun';
-```
-
-**GOOD:**
-```dart
-var s = "It's not fun";
-```
-
-''';
-
 class AvoidEscapingInnerQuotes extends LintRule {
   AvoidEscapingInnerQuotes()
       : super(
           name: 'avoid_escaping_inner_quotes',
           description: _desc,
-          details: _details,
         );
 
   @override

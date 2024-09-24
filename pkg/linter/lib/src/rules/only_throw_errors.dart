@@ -16,31 +16,6 @@ import '../util/dart_type_utilities.dart';
 const _desc =
     r'Only throw instances of classes extending either Exception or Error.';
 
-const _details = r'''
-**DO** throw only instances of classes that extend `dart.core.Error` or
-`dart.core.Exception`.
-
-Throwing instances that do not extend `Error` or `Exception` is a bad practice;
-doing this is usually a hack for something that should be implemented more
-thoroughly.
-
-**BAD:**
-```dart
-void throwString() {
-  throw 'hello world!'; // LINT
-}
-```
-
-**GOOD:**
-```dart
-void throwArgumentError() {
-  Error error = ArgumentError('oh!');
-  throw error; // OK
-}
-```
-
-''';
-
 const _errorClassName = 'Error';
 
 const _exceptionClassName = 'Exception';
@@ -66,7 +41,6 @@ class OnlyThrowErrors extends LintRule {
       : super(
           name: 'only_throw_errors',
           description: _desc,
-          details: _details,
         );
 
   @override

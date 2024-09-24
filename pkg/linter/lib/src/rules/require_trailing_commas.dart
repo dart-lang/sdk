@@ -12,46 +12,11 @@ import '../linter_lint_codes.dart';
 const _desc =
     r'Use trailing commas for all parameter lists and argument lists.';
 
-const _details = r'''
-**DO** use trailing commas for all multi-line parameter lists and argument
-lists. A parameter list or argument list that fits on one line, including the
-opening parenthesis and closing parenthesis, does not require a trailing comma.
-
-**BAD:**
-```dart
-void run() {
-  method('does not fit on one line',
-      'test test test test test test test test test test test');
-}
-```
-
-**GOOD:**
-```dart
-void run() {
-  method(
-    'does not fit on one line',
-    'test test test test test test test test test test test',
-  );
-}
-```
-
-**EXCEPTION:** If the final argument in an argument list is positional (vs
-named) and is either a function literal with curly braces, a map literal, a set
-literal, or a list literal, then a trailing comma is not required.
-This exception only applies if the final argument does not fit entirely on one
-line.
-
-**NOTE:** This lint rule assumes that code has been formatted with `dart format`
-and may produce false positives on unformatted code.
-
-''';
-
 class RequireTrailingCommas extends LintRule {
   RequireTrailingCommas()
       : super(
           name: 'require_trailing_commas',
           description: _desc,
-          details: _details,
         );
 
   @override

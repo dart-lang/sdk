@@ -11,37 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Property getter recursively returns itself.';
 
-const _details = r'''
-**DON'T** create recursive getters.
-
-Recursive getters are getters which return themselves as a value.  This is
-usually a typo.
-
-**BAD:**
-```dart
-int get field => field; // LINT
-```
-
-**BAD:**
-```dart
-int get otherField {
-  return otherField; // LINT
-}
-```
-
-**GOOD:**
-```dart
-int get field => _field;
-```
-
-''';
-
 class RecursiveGetters extends LintRule {
   RecursiveGetters()
       : super(
           name: 'recursive_getters',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -440,14 +440,12 @@ class TestRule extends LintRule {
       : super(
           name: 'fantastic_test_rule',
           description: '',
-          details: '',
         );
 
   TestRule.withName(String name)
       : super(
           name: name,
           description: '',
-          details: '',
         );
 
   @override

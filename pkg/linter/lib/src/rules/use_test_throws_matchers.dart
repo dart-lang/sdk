@@ -11,52 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Use throwsA matcher instead of fail().';
 
-const _details = r'''
-Use the `throwsA` matcher instead of try-catch with `fail()`.
-
-**BAD:**
-
-```dart
-// sync code
-try {
-  someSyncFunctionThatThrows();
-  fail('expected Error');
-} on Error catch (error) {
-  expect(error.message, contains('some message'));
-}
-
-// async code
-try {
-  await someAsyncFunctionThatThrows();
-  fail('expected Error');
-} on Error catch (error) {
-  expect(error.message, contains('some message'));
-}
-```
-
-**GOOD:**
-```dart
-// sync code
-expect(
-  () => someSyncFunctionThatThrows(),
-  throwsA(isA<Error>().having((Error error) => error.message, 'message', contains('some message'))),
-);
-
-// async code
-await expectLater(
-  () => someAsyncFunctionThatThrows(),
-  throwsA(isA<Error>().having((Error error) => error.message, 'message', contains('some message'))),
-);
-```
-
-''';
-
 class UseTestThrowsMatchers extends LintRule {
   UseTestThrowsMatchers()
       : super(
           name: 'use_test_throws_matchers',
           description: _desc,
-          details: _details,
         );
 
   @override

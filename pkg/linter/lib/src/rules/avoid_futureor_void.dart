@@ -15,51 +15,6 @@ import '../linter_lint_codes.dart';
 
 const _desc = r"Avoid using 'FutureOr<void>' as the type of a result.";
 
-const _details = r'''
-**AVOID** using `FutureOr<void>` as the type of a result. This type is
-problematic because it may appear to encode that a result is either a
-`Future<void>`, or the result should be discarded (when it is `void`).
-However, there is no safe way to detect whether we have one or the other
-case (because an expression of type `void` can evaluate to any object
-whatsoever, including a future of any type).
-
-It is also conceptually unsound to have a type whose meaning is something
-like "ignore this object; also, take a look because it might be a future".
-
-An exception is made for contravariant occurrences of the type
-`FutureOr<void>` (e.g., for the type of a formal parameter), and no
-warning is emitted for these occurrences. The reason for this exception
-is that the type does not describe a result, it describes a constraint
-on a value provided by others. Similarly, an exception is made for type
-alias declarations, because they may well be used in a contravariant
-position (e.g., as the type of a formal parameter). Hence, in type alias
-declarations, only the type parameter bounds are checked.
-
-A replacement for the type `FutureOr<void>` which is often useful is 
-`Future<void>?`. This type encodes that the result is either a 
-`Future<void>` or it is null, and there is no ambiguity at run time
-since no object can have both types.
-
-It may not always be possible to use the type `Future<void>?` as a
-replacement for the type `FutureOr<void>`, because the latter is a
-supertype of all types, and the former is not. In this case it may be a
-useful remedy to replace `FutureOr<void>` by the type `void`.
-
-**BAD:**
-```dart
-FutureOr<void> m() {...}
-```
-
-**GOOD:**
-```dart
-Future<void>? m() {...}
-```
-
-**This rule is experimental.** It is being evaluated, and it may be changed
-or removed. Feedback on its behavior is welcome! The main issue is here:
-https://github.com/dart-lang/linter/issues/4622
-''';
-
 const _in = Variance._in;
 
 const _inout = Variance._inout;
@@ -71,7 +26,6 @@ class AvoidFutureOrVoid extends LintRule {
       : super(
             name: 'avoid_futureor_void',
             description: _desc,
-            details: _details,
             categories: {LintRuleCategory.unintentional},
             state: State.experimental());
 

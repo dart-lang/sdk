@@ -12,38 +12,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer `const` over `final` for declarations.';
 
-const _details = r'''
-**PREFER** using `const` for constant-valued declarations.
-
-Constant declarations are more hot-reload friendly and allow
-values to be used in other constant expressions.
-
-**BAD:**
-```dart
-final o = const <int>[];
-
-class A {
-  static final o = const <int>[];
-}
-```
-
-**GOOD:**
-```dart
-const o = <int>[];
-
-class A {
-  static const o = <int>[];
-}
-```
-
-''';
-
 class PreferConstDeclarations extends LintRule {
   PreferConstDeclarations()
       : super(
           name: 'prefer_const_declarations',
           description: _desc,
-          details: _details,
         );
 
   @override

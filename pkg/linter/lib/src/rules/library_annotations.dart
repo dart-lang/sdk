@@ -14,40 +14,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Attach library annotations to library directives.';
 
-const _details = r'''
-Attach library annotations to library directives, rather than
-some other library-level element.
-
-**BAD:**
-```dart
-@TestOn('browser')
-
-import 'package:test/test.dart';
-
-void main() {}
-```
-
-**GOOD:**
-```dart
-@TestOn('browser')
-library;
-
-import 'package:test/test.dart';
-
-void main() {}
-```
-
-**NOTE:** An unnamed library, like `library;` above, is only supported in Dart
-2.19 and later. Code which might run in earlier versions of Dart will need to
-provide a name in the `library` directive.
-''';
-
 class LibraryAnnotations extends LintRule {
   LibraryAnnotations()
       : super(
           name: 'library_annotations',
           description: _desc,
-          details: _details,
         );
 
   @override

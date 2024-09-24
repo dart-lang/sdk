@@ -13,29 +13,11 @@ import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid leading underscores for library prefixes.';
 
-const _details = r'''
-**DON'T** use a leading underscore for library prefixes.
-There is no concept of "private" for library prefixes. When one of those has a
-name that starts with an underscore, it sends a confusing signal to the reader. 
-To avoid that, don't use leading underscores in those names.
-
-**BAD:**
-```dart
-import 'dart:core' as _core;
-```
-
-**GOOD:**
-```dart
-import 'dart:core' as core;
-```
-''';
-
 class NoLeadingUnderscoresForLibraryPrefixes extends LintRule {
   NoLeadingUnderscoresForLibraryPrefixes()
       : super(
           name: 'no_leading_underscores_for_library_prefixes',
           description: _desc,
-          details: _details,
         );
 
   @override

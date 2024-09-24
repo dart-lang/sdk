@@ -10,27 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Use raw string to avoid escapes.';
 
-const _details = r'''
-A raw string can be used to avoid escaping only backslashes and dollars.
-
-**BAD:**
-```dart
-var s = 'A string with only \\ and \$';
-```
-
-**GOOD:**
-```dart
-var s = r'A string with only \ and $';
-```
-
-''';
-
 class UseRawStrings extends LintRule {
   UseRawStrings()
       : super(
           name: 'use_raw_strings',
           description: _desc,
-          details: _details,
         );
 
   @override

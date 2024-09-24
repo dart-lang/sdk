@@ -11,44 +11,11 @@ import '../linter_lint_codes.dart';
 const _desc =
     r'Explicitly tear-off `call` methods when using an object as a Function.';
 
-const _details = r'''
-**DO**
-Explicitly tear off `.call` methods from objects when assigning to a Function
-type. There is less magic with an explicit tear off. Future language versions
-may remove the implicit call tear off.
-
-**BAD:**
-```dart
-class Callable {
-  void call() {}
-}
-void callIt(void Function() f) {
-  f();
-}
-
-callIt(Callable());
-```
-
-**GOOD:**
-```dart
-class Callable {
-  void call() {}
-}
-void callIt(void Function() f) {
-  f();
-}
-
-callIt(Callable().call);
-```
-
-''';
-
 class ImplicitCallTearoffs extends LintRule {
   ImplicitCallTearoffs()
       : super(
           name: 'implicit_call_tearoffs',
           description: _desc,
-          details: _details,
         );
 
   @override

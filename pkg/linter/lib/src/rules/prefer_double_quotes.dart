@@ -9,45 +9,11 @@ import '../rules/prefer_single_quotes.dart';
 const _desc =
     r"Prefer double quotes where they won't require escape sequences.";
 
-const _details = '''
-**DO** use double quotes where they wouldn't require additional escapes.
-
-That means strings with a double quote may use apostrophes so that the double
-quote isn't escaped (note: we don't lint the other way around, ie, a double
-quoted string with an escaped double quote is not flagged).
-
-It's also rare, but possible, to have strings within string interpolations.  In
-this case, it's much more readable to use a single quote somewhere.  So single
-quotes are allowed either within, or containing, an interpolated string literal.
-Arguably strings within string interpolations should be its own type of lint.
-
-**BAD:**
-```dart
-useStrings(
-    'should be double quote',
-    r'should be double quote',
-    r\'''should be double quotes\''')
-```
-
-**GOOD:**
-```dart
-useStrings(
-    "should be double quote",
-    r"should be double quote",
-    r"""should be double quotes""",
-    'ok with " inside',
-    'nested \${a ? "strings" : "can"} be wrapped by a double quote',
-    "and nested \${a ? 'strings' : 'can be double quoted themselves'}");
-```
-
-''';
-
 class PreferDoubleQuotes extends LintRule {
   PreferDoubleQuotes()
       : super(
           name: 'prefer_double_quotes',
           description: _desc,
-          details: _details,
         );
 
   @override

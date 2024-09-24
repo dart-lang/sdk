@@ -13,31 +13,6 @@ import '../util/dart_type_utilities.dart' as type_utils;
 
 const _desc = r'Prefer using `??=` over testing for `null`.';
 
-const _details = r'''
-**PREFER** using `??=` over testing for `null`.
-
-As Dart has the `??=` operator, it is advisable to use it where applicable to
-improve the brevity of your code.
-
-**BAD:**
-```dart
-String get fullName {
-  if (_fullName == null) {
-    _fullName = getFullUserName(this);
-  }
-  return _fullName;
-}
-```
-
-**GOOD:**
-```dart
-String get fullName {
-  return _fullName ??= getFullUserName(this);
-}
-```
-
-''';
-
 bool _checkExpression(Expression expression, Expression condition) =>
     expression is AssignmentExpression &&
     type_utils.canonicalElementsFromIdentifiersAreEqual(
@@ -72,7 +47,6 @@ class PreferConditionalAssignment extends LintRule {
       : super(
           name: 'prefer_conditional_assignment',
           description: _desc,
-          details: _details,
         );
 
   @override

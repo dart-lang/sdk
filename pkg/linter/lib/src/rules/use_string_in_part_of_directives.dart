@@ -12,31 +12,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Use string in part of directives.';
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/usage#do-use-strings-in-part-of-directives):
-
-**DO** use strings in `part of` directives.
-
-**BAD:**
-
-```dart
-part of my_library;
-```
-
-**GOOD:**
-
-```dart
-part of '../../my_library.dart';
-```
-
-''';
-
 class UseStringInPartOfDirectives extends LintRule {
   UseStringInPartOfDirectives()
       : super(
           name: 'use_string_in_part_of_directives',
           description: _desc,
-          details: _details,
         );
 
   @override

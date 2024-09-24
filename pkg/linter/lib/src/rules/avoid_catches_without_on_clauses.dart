@@ -13,53 +13,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid catches without on clauses.';
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/usage#avoid-catches-without-on-clauses):
-
-**AVOID** catches without on clauses.
-
-Using catch clauses without on clauses make your code prone to encountering
-unexpected errors that won't be thrown (and thus will go unnoticed).
-
-**BAD:**
-```dart
-try {
- somethingRisky()
-} catch(e) {
-  doSomething(e);
-}
-```
-
-**GOOD:**
-```dart
-try {
- somethingRisky()
-} on Exception catch(e) {
-  doSomething(e);
-}
-```
-
-A few exceptional cases are allowed:
-
-* If the body of the catch rethrows the exception.
-* If the caught exception is "directly used" in an argument to `Future.error`,
-  `Completer.completeError`, or `FlutterError.reportError`, or any function with
-  a return type of `Never`.
-* If the caught exception is "directly used" in a new throw-expression.
-
-In these cases, "directly used" means that the exception is referenced within
-the relevant code (like within an argument). If the exception variable is
-referenced _before_ the relevant code, for example to instantiate a wrapper
-exception, the variable is not "directly used."
-
-''';
-
 class AvoidCatchesWithoutOnClauses extends LintRule {
   AvoidCatchesWithoutOnClauses()
       : super(
           name: 'avoid_catches_without_on_clauses',
           description: _desc,
-          details: _details,
         );
 
   @override

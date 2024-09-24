@@ -10,86 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid control flow in `finally` blocks.';
 
-const _details = r'''
-**AVOID** control flow leaving `finally` blocks.
-
-Using control flow in `finally` blocks will inevitably cause unexpected behavior
-that is hard to debug.
-
-**BAD:**
-```dart
-class BadReturn {
-  double nonCompliantMethod() {
-    try {
-      return 1 / 0;
-    } catch (e) {
-      print(e);
-    } finally {
-      return 1.0; // LINT
-    }
-  }
-}
-```
-
-**BAD:**
-```dart
-class BadContinue {
-  double nonCompliantMethod() {
-    for (var o in [1, 2]) {
-      try {
-        print(o / 0);
-      } catch (e) {
-        print(e);
-      } finally {
-        continue; // LINT
-      }
-    }
-    return 1.0;
-  }
-}
-```
-
-**BAD:**
-```dart
-class BadBreak {
-  double nonCompliantMethod() {
-    for (var o in [1, 2]) {
-      try {
-        print(o / 0);
-      } catch (e) {
-        print(e);
-      } finally {
-        break; // LINT
-      }
-    }
-    return 1.0;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Ok {
-  double compliantMethod() {
-    var i = 5;
-    try {
-      i = 1 / 0;
-    } catch (e) {
-      print(e); // OK
-    }
-    return i;
-  }
-}
-```
-
-''';
-
 class ControlFlowInFinally extends LintRule {
   ControlFlowInFinally()
       : super(
           name: 'control_flow_in_finally',
           description: _desc,
-          details: _details,
         );
 
   @override

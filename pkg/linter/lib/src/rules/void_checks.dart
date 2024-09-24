@@ -12,30 +12,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r"Don't assign to `void`.";
 
-const _details = r'''
-**DON'T** assign to `void`.
-
-**BAD:**
-```dart
-class A<T> {
-  T value;
-  void test(T arg) { }
-}
-
-void main() {
-  A<void> a = A<void>();
-  a.value = 1; // LINT
-  a.test(1); // LINT
-}
-```
-''';
-
 class VoidChecks extends LintRule {
   VoidChecks()
       : super(
           name: 'void_checks',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -12,31 +12,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid shadowing type parameters.';
 
-const _details = r'''
-**AVOID** shadowing type parameters.
-
-**BAD:**
-```dart
-class A<T> {
-  void fn<T>() {}
-}
-```
-
-**GOOD:**
-```dart
-class A<T> {
-  void fn<U>() {}
-}
-```
-
-''';
-
 class AvoidShadowingTypeParameters extends LintRule {
   AvoidShadowingTypeParameters()
       : super(
           name: 'avoid_shadowing_type_parameters',
           description: _desc,
-          details: _details,
         );
 
   @override

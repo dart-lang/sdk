@@ -7,40 +7,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Specify `@required` on named parameters without defaults.';
 
-const _details = r'''
-NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
-
-**DO** specify `@required` on named parameters without a default value on which 
-an `assert(param != null)` is done.
-
-**BAD:**
-```dart
-m1({a}) {
-  assert(a != null);
-}
-```
-
-**GOOD:**
-```dart
-m1({@required a}) {
-  assert(a != null);
-}
-
-m2({a: 1}) {
-  assert(a != null);
-}
-```
-
-NOTE: Only asserts at the start of the bodies will be taken into account.
-
-''';
-
 class AlwaysRequireNonNullNamedParameters extends LintRule {
   AlwaysRequireNonNullNamedParameters()
       : super(
           name: 'always_require_non_null_named_parameters',
           description: _desc,
-          details: _details,
           state: State.removed(since: dart3_3),
         );
 

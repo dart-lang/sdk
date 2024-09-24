@@ -12,27 +12,6 @@ import '../linter_lint_codes.dart';
 const _desc = r'Use Flutter TODO format: '
     '// TODO(username): message, https://URL-to-issue.';
 
-const _details = r'''
-**DO** use Flutter TODO format.
-
-From the [Flutter
-docs](https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo#comments):
-
-> TODOs should include the string TODO in all caps, followed by the GitHub
-username of the person with the best context about the problem referenced by the
-TODO in parenthesis. A TODO is not a commitment that the person referenced will
-fix the problem, it is intended to be the person with enough context to explain
-the problem. Thus, when you create a TODO, it is almost always your username
-that is given.
-
-**GOOD:**
-```dart
-// TODO(username): message.
-// TODO(username): message, https://URL-to-issue.
-```
-
-''';
-
 class FlutterStyleTodos extends LintRule {
   static final _todoRegExp = RegExp(r'//+\s*TODO\b', caseSensitive: false);
 
@@ -43,7 +22,6 @@ class FlutterStyleTodos extends LintRule {
       : super(
           name: 'flutter_style_todos',
           description: _desc,
-          details: _details,
         );
 
   @override

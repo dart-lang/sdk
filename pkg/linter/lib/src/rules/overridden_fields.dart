@@ -14,60 +14,6 @@ import '../linter_lint_codes.dart';
 
 const _desc = r"Don't override fields.";
 
-const _details = r'''
-**DON'T** override fields.
-
-Overriding fields is almost always done unintentionally.  Regardless, it is a
-bad practice to do so.
-
-**BAD:**
-```dart
-class Base {
-  Object field = 'lorem';
-
-  Object something = 'change';
-}
-
-class Bad1 extends Base {
-  @override
-  final field = 'ipsum'; // LINT
-}
-
-class Bad2 extends Base {
-  @override
-  Object something = 'done'; // LINT
-}
-```
-
-**GOOD:**
-```dart
-class Base {
-  Object field = 'lorem';
-
-  Object something = 'change';
-}
-
-class Ok extends Base {
-  Object newField; // OK
-
-  final Object newFinal = 'ignore'; // OK
-}
-```
-
-**GOOD:**
-```dart
-abstract class BaseLoggingHandler {
-  Base transformer;
-}
-
-class LogPrintHandler implements BaseLoggingHandler {
-  @override
-  Derived transformer; // OK
-}
-```
-
-''';
-
 Iterable<InterfaceType> _findAllSupertypesAndMixins(
     InterfaceType? interface, List<InterfaceType> accumulator) {
   if (interface == null ||
@@ -103,7 +49,6 @@ class OverriddenFields extends LintRule {
       : super(
           name: 'overridden_fields',
           description: _desc,
-          details: _details,
         );
 
   @override
