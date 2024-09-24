@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.47 Make `augment` a built-in identifier (this happened in the feature
+// specification v1.10, but wasn't done here at the time).
+//
 // v0.46 Rename `libraryDefinition` to `libraryDeclaration`, as in the
 // language specification. Add support for libraries with imports.
 //
@@ -1679,6 +1682,7 @@ reservedWord
 builtInIdentifier
     :    ABSTRACT
     |    AS
+    |    AUGMENT
     |    COVARIANT
     |    DEFERRED
     |    DYNAMIC
@@ -1704,7 +1708,6 @@ builtInIdentifier
 
 otherIdentifierNotType
     :    ASYNC
-    |    AUGMENT
     |    BASE
     |    HIDE
     |    OF
@@ -1889,6 +1892,10 @@ AS
     :    'as'
     ;
 
+AUGMENT
+    :    'augment'
+    ;
+
 COVARIANT
     :    'covariant'
     ;
@@ -1987,10 +1994,6 @@ YIELD
 
 ASYNC
     :    'async'
-    ;
-
-AUGMENT
-    :    'augment'
     ;
 
 BASE
