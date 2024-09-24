@@ -1109,7 +1109,7 @@ LintCode:
     problemMessage: "Don't use the type 'FutureOr<void>'."
     correctionMessage: "Try using 'Future<void>?' or 'void'."
     categories: [errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -7911,7 +7911,7 @@ LintCode:
     problemMessage: "Unnecessary use of single quotes."
     correctionMessage: "Try using double quotes unless the string contains double quotes."
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -9140,7 +9140,7 @@ LintCode:
     problemMessage: "Unnecessary use of double quotes."
     correctionMessage: "Try using single quotes unless the string contains single quotes."
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -9755,7 +9755,7 @@ LintCode:
     problemMessage: "Use 'SizedBox.{0}' to avoid needing to specify the 'height' and 'width'."
     correctionMessage: "Try using 'SizedBox.{0}' and removing the 'height' and 'width' arguments."
     categories: [flutter, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -10033,7 +10033,7 @@ LintCode:
     problemMessage: "Constructor declarations should be before non-constructor declarations."
     correctionMessage: "Try moving the constructor declaration before all other members."
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -10125,7 +10125,7 @@ LintCode:
     problemMessage: "Invalid location for the unnamed constructor."
     correctionMessage: "Try moving the unnamed constructor before all other constructors."
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -10754,7 +10754,7 @@ LintCode:
     problemMessage: "Missing an 'await' for the 'Future' computed by this expression."
     correctionMessage: "Try adding an 'await' or wrapping the expression with 'unawaited'."
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11133,7 +11133,7 @@ LintCode:
     problemMessage: "Local variables should not be marked as 'final'."
     correctionMessage: "Remove the 'final'."
     categories: [effectiveDart, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11279,7 +11279,7 @@ LintCode:
     problemMessage: "Closure should be a tearoff."
     correctionMessage: "Try using a tearoff rather than a closure."
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11810,7 +11810,7 @@ LintCode:
     problemMessage: "Unnecessary use of parentheses."
     correctionMessage: "Try removing the parentheses."
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11865,7 +11865,7 @@ LintCode:
     problemMessage: "Unnecessary use of a raw string."
     correctionMessage: "Try using a normal string."
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -12540,7 +12540,7 @@ LintCode:
     problemMessage: "Use a 'ColoredBox' rather than a 'Container' with only a 'Color'."
     correctionMessage: "Try replacing the 'Container' with a 'ColoredBox'."
     categories: [flutter, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -12606,7 +12606,7 @@ LintCode:
     problemMessage: "Use 'DecoratedBox' rather than a 'Container' with only a 'Decoration'."
     correctionMessage: "Try replacing the 'Container' with a 'DecoratedBox'."
     categories: [flutter, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -12828,7 +12828,7 @@ LintCode:
     problemMessage: "Use an if-null operator to convert a 'null' to a 'bool'."
     correctionMessage: "Try using an if-null operator."
     categories: [effectiveDart, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -12966,7 +12966,7 @@ LintCode:
     problemMessage: "Use 'late' for private members with a non-nullable type."
     correctionMessage: "Try making adding the modifier 'late'."
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -13033,7 +13033,7 @@ LintCode:
     problemMessage: "Use the constant '{0}' rather than a constructor returning the same object."
     correctionMessage: "Try using '{0}'."
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -13074,7 +13074,7 @@ LintCode:
     problemMessage: "Use a raw string to avoid using escapes."
     correctionMessage: "Try making the string a raw string and removing the escapes."
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -13181,7 +13181,7 @@ LintCode:
     problemMessage: "The method is used to change a property."
     correctionMessage: "Try converting the method to a setter."
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -13231,7 +13231,7 @@ LintCode:
     problemMessage: "Use a string buffer rather than '+' to compose strings."
     correctionMessage: "Try writing the parts of a string to a string buffer."
     categories: [nonPerformant]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

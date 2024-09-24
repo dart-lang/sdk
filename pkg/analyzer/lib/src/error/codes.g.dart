@@ -7550,6 +7550,7 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the default clause, or restructuring the preceding "
         "patterns.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -7673,6 +7674,7 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try creating the file referenced by the URI, or try using a URI for a "
         "file that does exist.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
