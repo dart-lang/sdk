@@ -2064,9 +2064,9 @@ abstract class _Annotatable {
 /// An element that can be defined by multiple fragments.
 abstract class _Fragmented {
   /// The first fragment in the chain of fragments that are merged to make this
-  /// element.
+  /// element. Or `null` if this element is synthetic, so has no fragments.
   ///
   /// The other fragments in the chain can be accessed using
   /// [Fragment.nextFragment].
-  Fragment get firstFragment;
+  Fragment? get firstFragment;
 }

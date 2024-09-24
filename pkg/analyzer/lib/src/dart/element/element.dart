@@ -4452,7 +4452,7 @@ mixin FragmentedExecutableElementMixin<E extends ExecutableFragment>
   bool get isStatic => (firstFragment as ExecutableElementImpl).isStatic;
 
   List<FormalParameterElement> get parameters2 =>
-      firstFragment.parameters2.map((fragment) => fragment.element).toList();
+      firstFragment!.parameters2.map((fragment) => fragment.element).toList();
 }
 
 mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
@@ -10057,7 +10057,7 @@ abstract class _ExistingElementImpl extends ElementImpl with _HasLibraryMixin {
 
 /// An element that can be declared in multiple fragments.
 abstract class _Fragmented<E extends Fragment> {
-  E get firstFragment;
+  E? get firstFragment;
 }
 
 mixin _HasLibraryMixin on ElementImpl {
