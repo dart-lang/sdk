@@ -364,7 +364,11 @@ if (argsSplit != -1) {
   self.Response = function () { }
 
   self.location = {}
-  self.location.href = 'file://' + args[wasmArg];
+  if (args[wasmArg].startsWith('/')) {
+    self.location.href = 'file://' + args[wasmArg];
+  } else {
+    self.location.href = args[wasmArg];
+  }
 
   // Signals `Stopwatch._initTicker` to use `Date.now` to get ticks instead of
   // `performance.now`, as it's not available in d8.
