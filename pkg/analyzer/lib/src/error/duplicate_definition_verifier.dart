@@ -20,7 +20,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 
 class DuplicateDefinitionVerifier {
-  final LibraryElement _currentLibrary;
+  final LibraryElementImpl _currentLibrary;
   final ErrorReporter _errorReporter;
   final DuplicationDefinitionContext context;
 
@@ -116,7 +116,8 @@ class DuplicateDefinitionVerifier {
   }
 
   /// Check that there are no members with the same name.
-  void checkUnit(CompilationUnit node) {
+  void checkUnit(CompilationUnitImpl node) {
+    var fragment = node.declaredElement!;
     Map<String, Element> definedGetters = HashMap<String, Element>();
     Map<String, Element> definedSetters = HashMap<String, Element>();
 
@@ -159,12 +160,21 @@ class DuplicateDefinitionVerifier {
       }
     }
 
-    for (var importElement in _currentLibrary.libraryImports) {
-      var prefix = importElement.prefix?.element;
-      if (prefix != null) {
-        definedGetters[prefix.name] = prefix;
+    var libraryDeclarations = _currentLibrary.libraryDeclarations;
+    for (var importPrefix in fragment.libraryImportPrefixes) {
+      var name = importPrefix.name;
+      if (libraryDeclarations.withName(name) case var existing?) {
+        _errorReporter.reportError(
+          _diagnosticFactory.duplicateDefinition(
+            CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+            importPrefix,
+            existing,
+            [name],
+          ),
+        );
       }
     }
+
     CompilationUnitElement element = node.declaredElement!;
     if (element != _currentLibrary.definingCompilationUnit) {
       addWithoutChecking(_currentLibrary.definingCompilationUnit);
@@ -232,8 +242,6 @@ class DuplicateDefinitionVerifier {
       if (previous is FieldFormalParameterElement &&
           current is FieldFormalParameterElement) {
         return CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER;
-      } else if (previous is PrefixElement) {
-        return CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER;
       }
       return CompileTimeErrorCode.DUPLICATE_DEFINITION;
     }

@@ -273,9 +273,17 @@ class GatheringErrorListener implements AnalysisErrorListener {
               if (i > 0) {
                 buffer.write(', ');
               }
-              buffer.write('message(\'');
-              buffer.write(message.filePath);
-              buffer.write('\', ');
+              buffer.write('message(');
+
+              // Special case for `testFile`, used very often.
+              switch (message.filePath) {
+                case '/home/test/lib/test.dart':
+                  buffer.write('testFile');
+                case var filePath:
+                  buffer.write("'$filePath'");
+              }
+
+              buffer.write(', ');
               buffer.write(message.offset);
               buffer.write(', ');
               buffer.write(message.length);

@@ -571,7 +571,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(covariant CompilationUnitImpl node) {
     var element = node.declaredElement as CompilationUnitElement;
     _featureSet = node.featureSet;
     _duplicateDefinitionVerifier.checkUnit(node);

@@ -15,86 +15,131 @@ main() {
 
 @reflectiveTest
 class PrefixCollidesWithTopLevelMemberTest extends PubPackageResolutionTest {
-  test_functionTypeAlias() async {
-    newFile('$testPackageLibPath/lib.dart', r'''
-library lib;
-class A{}
-''');
+  test_library_functionTypeAlias() async {
     await assertErrorsInCode(r'''
-import 'lib.dart' as p;
-typedef p();
-p.A a = p.A();
+import 'dart:math' as foo;
+typedef foo = void Function();
 ''', [
-      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 32, 1,
-          contextMessages: [message(testFile, 21, 1)]),
-      error(CompileTimeErrorCode.NOT_A_TYPE, 37, 3),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 47, 1),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
+      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 22, 3,
+          contextMessages: [message(testFile, 35, 3)]),
     ]);
   }
 
-  test_no_collision() async {
-    newFile('$testPackageLibPath/lib.dart', r'''
-library lib;
-class A {}''');
-    await assertNoErrorsInCode(r'''
-import 'lib.dart' as p;
-typedef P();
-p2() {}
-var p3;
-class p4 {}
-p.A a = p.A();
-''');
-  }
-
-  test_topLevelFunction() async {
-    newFile('$testPackageLibPath/lib.dart', r'''
-library lib;
-class A{}
-''');
+  test_library_no_collision() async {
     await assertErrorsInCode(r'''
-import 'lib.dart' as p;
-p() {}
-p.A a = p.A();
+import 'dart:math' as foo;
+void bar() {}
 ''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 10),
-      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 24, 1,
-          contextMessages: [message(testFile, 21, 1)]),
-      error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 31, 1),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 41, 1),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
   }
 
-  test_topLevelVariable() async {
-    newFile('$testPackageLibPath/lib.dart', r'''
-library lib;
-class A{}
-''');
+  test_library_topLevelFunction() async {
     await assertErrorsInCode(r'''
-import 'lib.dart' as p;
-var p = null;
-p.A a = p.A();
+import 'dart:math' as foo;
+void foo() {}
 ''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 10),
-      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 28, 1,
-          contextMessages: [message(testFile, 21, 1)]),
-      error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 38, 1),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
+      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 22, 3,
+          contextMessages: [message(testFile, 32, 3)]),
     ]);
   }
 
-  test_type() async {
-    newFile('$testPackageLibPath/lib.dart', r'''
-library lib;
-class A{}
-''');
+  test_library_topLevelGetter() async {
     await assertErrorsInCode(r'''
-import 'lib.dart' as p;
-class p {}
-p.A a = p.A();
+import 'dart:math' as foo;
+int get foo => 0;
 ''', [
-      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 30, 1,
-          contextMessages: [message(testFile, 21, 1)]),
-      error(CompileTimeErrorCode.NOT_A_TYPE, 35, 3),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 45, 1),
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
+      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 22, 3,
+          contextMessages: [message(testFile, 35, 3)]),
+    ]);
+  }
+
+  test_library_topLevelSetter() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as foo;
+set foo(int _) {}
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
+      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 22, 3,
+          contextMessages: [message(testFile, 31, 3)]),
+    ]);
+  }
+
+  test_library_topLevelVariable() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as foo;
+var foo = 0;
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
+      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 22, 3,
+          contextMessages: [message(testFile, 31, 3)]),
+    ]);
+  }
+
+  test_library_type() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as foo;
+class foo {}
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
+      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 22, 3,
+          contextMessages: [message(testFile, 33, 3)]),
+    ]);
+  }
+
+  test_part_topLevelFunction_inLibrary() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+void foo() {}
+''');
+
+    await assertErrorsInCode(r'''
+part of 'a.dart';
+import 'dart:math' as foo;
+''', [
+      error(WarningCode.UNUSED_IMPORT, 25, 11),
+      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 40, 3,
+          contextMessages: [message(a, 23, 3)]),
+    ]);
+  }
+
+  test_part_topLevelFunction_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+
+    await assertErrorsInCode(r'''
+part of 'a.dart';
+import 'dart:math' as foo;
+void foo() {}
+''', [
+      error(WarningCode.UNUSED_IMPORT, 25, 11),
+      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 40, 3,
+          contextMessages: [message(testFile, 50, 3)]),
+    ]);
+  }
+
+  test_part_topLevelFunction_inPart2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+void foo() {}
+''');
+
+    await assertErrorsInCode(r'''
+part of 'a.dart';
+import 'dart:math' as foo;
+''', [
+      error(WarningCode.UNUSED_IMPORT, 25, 11),
+      error(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, 40, 3,
+          contextMessages: [message(b, 23, 3)]),
     ]);
   }
 }
