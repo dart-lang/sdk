@@ -149,13 +149,16 @@ class BaseFlowGraphBuilder {
       intptr_t osr_id = DeoptId::kNone,
       ZoneGrowableArray<intptr_t>* context_level_array = nullptr,
       InlineExitCollector* exit_collector = nullptr,
-      bool inlining_unchecked_entry = false)
+      bool inlining_unchecked_entry = false,
+      const Function* caller = nullptr)
       : parsed_function_(parsed_function),
         function_(parsed_function_->function()),
         optimizing_(optimizing),
         should_omit_stack_overflow_checks_(
             ShouldOmitStackOverflowChecks(optimizing,
                                           parsed_function->function())),
+        should_omit_check_bounds_(
+            ShouldOmitCheckBoundsIn(parsed_function->function(), caller)),
         thread_(Thread::Current()),
         zone_(thread_->zone()),
         osr_id_(osr_id),
@@ -516,17 +519,22 @@ class BaseFlowGraphBuilder {
   Fragment RecordCoverageImpl(TokenPosition position, bool is_branch_coverage);
   intptr_t GetCoverageIndexFor(intptr_t encoded_position);
 
+  static bool ShouldOmitCheckBoundsIn(const Function& function,
+                                      const Function* caller);
+
   static bool ShouldOmitStackOverflowChecks(bool optimizing,
                                             const Function& function);
 
   bool should_omit_stack_overflow_checks() const {
     return should_omit_stack_overflow_checks_;
   }
+  bool should_omit_check_bounds() const { return should_omit_check_bounds_; }
 
   const ParsedFunction* parsed_function_;
   const Function& function_;
   const bool optimizing_;
   const bool should_omit_stack_overflow_checks_;
+  const bool should_omit_check_bounds_;
 
   Thread* thread_;
   Zone* zone_;

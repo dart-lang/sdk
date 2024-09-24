@@ -51,7 +51,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                    bool optimizing,
                    intptr_t osr_id,
                    intptr_t first_block_id = 1,
-                   bool inlining_unchecked_entry = false);
+                   bool inlining_unchecked_entry = false,
+                   const Function* caller = nullptr);
   virtual ~FlowGraphBuilder();
 
   FlowGraph* BuildGraph();

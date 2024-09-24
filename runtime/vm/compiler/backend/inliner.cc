@@ -1312,7 +1312,7 @@ class CallSiteInliner : public ValueObject {
             exit_collector,
             /*optimized=*/true, Compiler::kNoOSRDeoptId,
             caller_graph_->max_block_id() + 1,
-            entry_kind == Code::EntryKind::kUnchecked);
+            entry_kind == Code::EntryKind::kUnchecked, &call_data->caller);
         {
           COMPILER_TIMINGS_TIMER_SCOPE(thread(), BuildGraph);
           callee_graph = builder.BuildGraph();
