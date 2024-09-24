@@ -84,6 +84,7 @@ import 'cast_nullable_to_non_nullable_test.dart'
 import 'close_sinks_test.dart' as close_sinks;
 import 'collection_methods_unrelated_type_test.dart'
     as collection_methods_unrelated_type;
+import 'combinators_ordering_test.dart' as combinators_ordering;
 import 'comment_references_test.dart' as comment_references;
 import 'conditional_uri_does_not_exist_test.dart'
     as conditional_uri_does_not_exist;
@@ -159,6 +160,7 @@ import 'omit_obvious_local_variable_types_test.dart'
 import 'one_member_abstracts_test.dart' as one_member_abstracts;
 import 'only_throw_errors_test.dart' as only_throw_errors;
 import 'overridden_fields_test.dart' as overridden_fields;
+import 'package_api_docs_test.dart' as package_api_docs;
 import 'package_names_test.dart' as package_names;
 import 'package_prefixed_library_names_test.dart'
     as package_prefixed_library_names;
@@ -364,6 +366,7 @@ void main() {
   cast_nullable_to_non_nullable.main();
   close_sinks.main();
   collection_methods_unrelated_type.main();
+  combinators_ordering.main();
   comment_references.main();
   conditional_uri_does_not_exist.main();
   constant_identifier_names.main();
@@ -421,6 +424,7 @@ void main() {
   one_member_abstracts.main();
   only_throw_errors.main();
   overridden_fields.main();
+  package_api_docs.main();
   package_names.main();
   package_prefixed_library_names.main();
   parameter_assignments.main();
