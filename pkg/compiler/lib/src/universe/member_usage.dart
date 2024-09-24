@@ -39,10 +39,6 @@ abstract class AbstractUsage<E extends Enum> {
 
 /// Registry for the observed use of a member [entity] in the open world.
 abstract class MemberUsage extends AbstractUsage<MemberUse> {
-  /// Constant empty access set used as the potential access set for impossible
-  /// accesses, for instance writing to a final field or invoking a setter.
-  static const EnumSet<Access> emptySet = EnumSet.empty();
-
   final MemberEntity entity;
 
   MemberUsage.internal(this.entity) : super();
@@ -55,8 +51,7 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
     /// if provided.
     EnumSet<Access> createPotentialAccessSet(EnumSet<Access>? original) {
       if (original != null) {
-        if (original.isEmpty) return emptySet;
-        return original.clone();
+        return original;
       }
       if (member.isTopLevel || member.isStatic || member is ConstructorEntity) {
         // TODO(johnniwinther): Track super constructor invocations?
@@ -96,23 +91,23 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
       } else {
         return FieldUsage(member,
             potentialReads: createPotentialReads(),
-            potentialWrites: emptySet,
+            potentialWrites: EnumSet.empty(),
             potentialInvokes: createPotentialInvokes());
       }
     } else if (member is FunctionEntity) {
       if (member.isGetter) {
         return PropertyUsage(member,
             potentialReads: createPotentialReads(),
-            potentialWrites: emptySet,
+            potentialWrites: EnumSet.empty(),
             potentialInvokes: createPotentialInvokes());
       } else if (member.isSetter) {
         return PropertyUsage(member,
-            potentialReads: emptySet,
+            potentialReads: EnumSet.empty(),
             potentialWrites: createPotentialWrites(),
-            potentialInvokes: emptySet);
+            potentialInvokes: EnumSet.empty());
       } else if (member is ConstructorEntity) {
         return MethodUsage(member,
-            potentialReads: emptySet,
+            potentialReads: EnumSet.empty(),
             potentialInvokes: createPotentialInvokes());
       } else {
         return MethodUsage(member,
@@ -354,13 +349,13 @@ class PropertyUsage extends MemberUsage {
 
   @override
   MemberUsage clone() {
-    return PropertyUsage.cloned(entity, _pendingUse.clone(),
-        potentialReads: potentialReads.clone(),
-        potentialWrites: potentialWrites.clone(),
-        potentialInvokes: potentialInvokes.clone(),
-        reads: reads.clone(),
-        writes: writes.clone(),
-        invokes: invokes.clone());
+    return PropertyUsage.cloned(entity, _pendingUse,
+        potentialReads: potentialReads,
+        potentialWrites: potentialWrites,
+        potentialInvokes: potentialInvokes,
+        reads: reads,
+        writes: writes,
+        invokes: invokes);
   }
 
   @override
@@ -499,14 +494,14 @@ class FieldUsage extends MemberUsage {
 
   @override
   MemberUsage clone() {
-    return FieldUsage.cloned(entity as FieldEntity, _pendingUse.clone(),
-        potentialReads: potentialReads.clone(),
-        potentialWrites: potentialWrites.clone(),
-        potentialInvokes: potentialInvokes.clone(),
+    return FieldUsage.cloned(entity as FieldEntity, _pendingUse,
+        potentialReads: potentialReads,
+        potentialWrites: potentialWrites,
+        potentialInvokes: potentialInvokes,
         hasInit: hasInit,
-        reads: reads.clone(),
-        writes: writes.clone(),
-        invokes: invokes.clone());
+        reads: reads,
+        writes: writes,
+        invokes: invokes);
   }
 
   @override
@@ -626,11 +621,11 @@ class MethodUsage extends MemberUsage {
   @override
   MemberUsage clone() {
     return MethodUsage.cloned(
-        entity as FunctionEntity, parameterUsage.clone(), _pendingUse.clone(),
-        reads: reads.clone(),
-        potentialReads: potentialReads.clone(),
-        invokes: invokes.clone(),
-        potentialInvokes: potentialInvokes.clone());
+        entity as FunctionEntity, parameterUsage.clone(), _pendingUse,
+        reads: reads,
+        potentialReads: potentialReads,
+        invokes: invokes,
+        potentialInvokes: potentialInvokes);
   }
 
   @override

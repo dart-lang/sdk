@@ -72,9 +72,6 @@ extension type const EnumSet<E extends Enum>(int mask) {
   /// Returns `true` if this set is not empty.
   bool get isNotEmpty => mask != 0;
 
-  /// Returns a new mutable enum set that contains the values of this set.
-  EnumSet<E> clone() => EnumSet<E>(mask);
-
   /// Returns an [Iterable] of the values is in this set using [values] to
   /// convert the stored indices to enum values.
   ///
