@@ -185,8 +185,6 @@ library
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      codeOffset: 0
-      codeLength: 33
       typeErasure: int
       fields
         final it
@@ -631,8 +629,6 @@ library
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      codeOffset: 0
-      codeLength: 27
       typeErasure: int
       fields
         final it
@@ -2337,8 +2333,6 @@ library
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
-      codeOffset: 0
-      codeLength: 21
       typeErasure: InvalidType
       fields
         final <empty>

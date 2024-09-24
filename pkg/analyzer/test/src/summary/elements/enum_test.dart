@@ -198,8 +198,6 @@ library
   enums
     enum E
       firstFragment: <testLibraryFragment>::@enum::E
-      codeOffset: 0
-      codeLength: 26
       supertype: Enum
       fields
         static const aaa

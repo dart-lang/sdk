@@ -285,22 +285,6 @@ class _Element2Writer extends _AbstractElementWriter {
     return name;
   }
 
-  void _writeCodeRange(Element2 e) {
-    if (configuration.withCodeRanges && !e.isSynthetic) {
-      if (e is MaybeAugmentedInstanceElementMixin) {
-        e = e.declaration;
-      } else if (e is TypeParameterElementImpl2) {
-        e = e.firstFragment;
-      }
-      if (e is ElementImpl) {
-        _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
-        _sink.writelnWithIndent('codeLength: ${e.codeLength}');
-      } else {
-        throw UnsupportedError('Code range not supported for ${e.runtimeType}');
-      }
-    }
-  }
-
   void _writeConstructorElement(ConstructorElement2 e) {
     // Check that the reference exists, and filled with the element.
     // var reference = e.reference;
@@ -382,7 +366,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeSinceSdkVersion(f.sinceSdkVersion);
-      _writeCodeRange(f);
+      _writeFragmentCodeRange(f);
       // _writeDisplayName(f);
 
       var periodOffset = f.periodOffset;
@@ -1001,7 +985,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e.sinceSdkVersion);
-      _writeCodeRange(e);
       _writeElementList(
           'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
       _writeMacroDiagnostics(e);
@@ -1965,8 +1948,6 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeCodeRange(e);
-
       var bound = e.bound;
       if (bound != null) {
         _writeType('bound', bound);
