@@ -1019,51 +1019,11 @@ class ParallelSweepTask : public SafepointTask {
                     IsolateGroup* isolate_group,
                     ThreadBarrier* barrier,
                     bool new_space_is_swept)
-      : old_space_(old_space),
-        isolate_group_(isolate_group),
-        barrier_(barrier),
+      : SafepointTask(isolate_group, barrier, Thread::kSweeperTask),
+        old_space_(old_space),
         new_space_is_swept_(new_space_is_swept) {}
-  ~ParallelSweepTask() { barrier_->Release(); }
 
-  void Run() override {
-    if (!barrier_->TryEnter()) {
-      return;
-    }
-
-    bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kSweeperTask, /*bypass_safepoint=*/true);
-    ASSERT(result);
-
-    RunEnteredIsolateGroup();
-
-    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
-
-    barrier_->Sync();
-  }
-
-  void RunBlockedAtSafepoint() override {
-    if (!barrier_->TryEnter()) {
-      return;
-    }
-
-    Thread* thread = Thread::Current();
-    Thread::TaskKind saved_task_kind = thread->task_kind();
-    thread->set_task_kind(Thread::kSweeperTask);
-
-    RunEnteredIsolateGroup();
-
-    thread->set_task_kind(saved_task_kind);
-
-    barrier_->Sync();
-  }
-
-  void RunMain() override {
-    RunEnteredIsolateGroup();
-
-    barrier_->Sync();
-  }
-
-  void RunEnteredIsolateGroup() {
+  void RunEnteredIsolateGroup() override {
     old_space_->SweepExecutable();
     if (!new_space_is_swept_) {
       old_space_->SweepNew();
@@ -1072,8 +1032,6 @@ class ParallelSweepTask : public SafepointTask {
 
  private:
   PageSpace* old_space_;
-  IsolateGroup* isolate_group_;
-  ThreadBarrier* barrier_;
   bool new_space_is_swept_;
 };
 
