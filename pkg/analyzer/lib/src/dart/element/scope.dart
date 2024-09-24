@@ -58,7 +58,10 @@ class DocImportScope with _GettersAndSetters implements Scope {
   ScopeLookupResult lookup(String id) {
     var result = innerScope.lookup(id);
     if (result.getter != null || result.setter != null) return result;
-    return ScopeLookupResultImpl(_getters[id], _setters[id]);
+    return ScopeLookupResultImpl(
+      getter: _getters[id],
+      setter: _setters[id],
+    );
   }
 }
 
@@ -75,7 +78,10 @@ class EnclosedScope with _GettersAndSetters implements Scope {
     var getter = _getters[id];
     var setter = _setters[id];
     if (getter != null || setter != null) {
-      return ScopeLookupResultImpl(getter, setter);
+      return ScopeLookupResultImpl(
+        getter: getter,
+        setter: setter,
+      );
     }
 
     return _parent.lookup(id);
@@ -423,7 +429,10 @@ class LibraryFragmentScope implements Scope {
     }
 
     // No result.
-    return ScopeLookupResultImpl(null, null);
+    return ScopeLookupResultImpl(
+      getter: null,
+      setter: null,
+    );
   }
 
   void notifyExtensionUsed(ExtensionElement element) {
@@ -451,7 +460,10 @@ class LibraryFragmentScope implements Scope {
     // Try prefix elements.
     if (_shouldTryPrefixElement(id)) {
       if (_prefixElements[id] case var prefixElement?) {
-        return ScopeLookupResultImpl(prefixElement, null);
+        return ScopeLookupResultImpl(
+          getter: prefixElement,
+          setter: null,
+        );
       }
     }
 
@@ -471,8 +483,8 @@ class LibraryFragmentScope implements Scope {
     var librarySetter = libraryDeclarations._setters[id];
     if (libraryGetter != null || librarySetter != null) {
       return ScopeLookupResultImpl(
-        libraryGetter,
-        librarySetter,
+        getter: libraryGetter,
+        setter: librarySetter,
       );
     }
     return null;
@@ -559,7 +571,10 @@ class PrefixScope implements Scope {
   ScopeLookupResult lookup(String id) {
     var deferredLibrary = _deferredLibrary;
     if (deferredLibrary != null && id == FunctionElement.LOAD_LIBRARY_NAME) {
-      return ScopeLookupResultImpl(deferredLibrary.loadLibraryFunction, null);
+      return ScopeLookupResultImpl(
+        getter: deferredLibrary.loadLibraryFunction,
+        setter: null,
+      );
     }
 
     var getter = _getters[id];
@@ -568,10 +583,12 @@ class PrefixScope implements Scope {
       _importsTracking?.lookupResult(getter);
       _importsTracking?.lookupResult(setter);
       return PrefixScopeLookupResult(
-        getter,
-        setter,
-        _gettersFromDeprecatedExport?.contains(id) ?? false,
-        _settersFromDeprecatedExport?.contains(id) ?? false,
+        getter: getter,
+        setter: setter,
+        getterIsFromDeprecatedExport:
+            _gettersFromDeprecatedExport?.contains(id) ?? false,
+        setterIsFromDeprecatedExport:
+            _settersFromDeprecatedExport?.contains(id) ?? false,
       );
     }
 
@@ -579,7 +596,10 @@ class PrefixScope implements Scope {
       return parent.lookup(id);
     }
 
-    return ScopeLookupResultImpl(null, null);
+    return ScopeLookupResultImpl(
+      getter: null,
+      setter: null,
+    );
   }
 
   /// Usually this is an error, but we allow it in comment references.
@@ -710,12 +730,12 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
 
   final int _deprecatedBits;
 
-  PrefixScopeLookupResult(
-    super.importedGetter,
-    super.importedSetter,
-    bool getterIsFromDeprecatedExport,
-    bool setterIsFromDeprecatedExport,
-  ) : _deprecatedBits = (getterIsFromDeprecatedExport
+  PrefixScopeLookupResult({
+    required super.getter,
+    required super.setter,
+    required bool getterIsFromDeprecatedExport,
+    required bool setterIsFromDeprecatedExport,
+  }) : _deprecatedBits = (getterIsFromDeprecatedExport
                 ? getterIsFromDeprecatedExportBit
                 : 0) |
             (setterIsFromDeprecatedExport
@@ -742,7 +762,10 @@ class ScopeLookupResultImpl implements ScopeLookupResult {
   @override
   final Element? setter;
 
-  ScopeLookupResultImpl(this.getter, this.setter);
+  ScopeLookupResultImpl({
+    required this.getter,
+    required this.setter,
+  });
 }
 
 class TypeParameterScope extends EnclosedScope {
