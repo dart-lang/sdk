@@ -38,7 +38,8 @@ class Utf8BytesScanner extends AbstractScanner {
    *
    * The content is zero-terminated.
    */
-  final Uint8List bytes;
+  final Uint8List _bytes;
+  final int _bytesLengthMinusOne;
 
   /**
    * Points to the offset of the last byte returned by [advance].
@@ -94,15 +95,16 @@ class Utf8BytesScanner extends AbstractScanner {
    * array whose last element is '0' to signal the end of the file. If this
    * is not the case, the entire array is copied before scanning.
    */
-  Utf8BytesScanner(this.bytes,
+  Utf8BytesScanner(this._bytes,
       {ScannerConfiguration? configuration,
       bool includeComments = false,
       LanguageVersionChanged? languageVersionChanged,
       bool allowLazyStrings = true})
-      : super(configuration, includeComments, languageVersionChanged,
-            numberOfBytesHint: bytes.length,
+      : _bytesLengthMinusOne = _bytes.length - 1,
+        super(configuration, includeComments, languageVersionChanged,
+            numberOfBytesHint: _bytes.length,
             allowLazyStrings: allowLazyStrings) {
-    assert(bytes.last == 0);
+    assert(_bytes.last == 0);
     // Skip a leading BOM.
     if (containsBomAt(/* offset = */ 0)) {
       byteOffset += 3;
@@ -111,7 +113,8 @@ class Utf8BytesScanner extends AbstractScanner {
   }
 
   Utf8BytesScanner.createRecoveryOptionScanner(Utf8BytesScanner copyFrom)
-      : bytes = copyFrom.bytes,
+      : _bytes = copyFrom._bytes,
+        _bytesLengthMinusOne = copyFrom._bytesLengthMinusOne,
         super.recoveryOptionScanner(copyFrom) {
     this.byteOffset = copyFrom.byteOffset;
     this.scanSlack = copyFrom.scanSlack;
@@ -127,17 +130,28 @@ class Utf8BytesScanner extends AbstractScanner {
   bool containsBomAt(int offset) {
     const List<int> BOM_UTF8 = const [0xEF, 0xBB, 0xBF];
 
-    return offset + 3 < bytes.length &&
-        bytes[offset] == BOM_UTF8[0] &&
-        bytes[offset + 1] == BOM_UTF8[1] &&
-        bytes[offset + 2] == BOM_UTF8[2];
+    return offset + 3 < _bytes.length &&
+        _bytes[offset] == BOM_UTF8[0] &&
+        _bytes[offset + 1] == BOM_UTF8[1] &&
+        _bytes[offset + 2] == BOM_UTF8[2];
   }
 
   @override
-  int advance() => bytes[++byteOffset];
+  @pragma('vm:unsafe:no-bounds-checks')
+  int advance() {
+    // Always increment so byteOffset goes past the end.
+    ++byteOffset;
+    if (byteOffset > _bytesLengthMinusOne) return 0;
+    return _bytes[byteOffset];
+  }
 
   @override
-  int peek() => bytes[byteOffset + 1];
+  @pragma('vm:unsafe:no-bounds-checks')
+  int peek() {
+    int next = byteOffset + 1;
+    if (next > _bytesLengthMinusOne) return 0;
+    return _bytes[next];
+  }
 
   /// Returns the unicode code point starting at the byte offset [startOffset]
   /// with the byte [nextByte].
@@ -154,9 +168,10 @@ class Utf8BytesScanner extends AbstractScanner {
     } else {
       expectedHighBytes = 1; // Bad code unit.
     }
+    // TODO(jensj): Don't we need a bounds check here? Can't I crash this?
     int numBytes = 0;
     for (int i = 0; i < expectedHighBytes; i++) {
-      if (bytes[byteOffset + i] < 0x80) {
+      if (_bytes[byteOffset + i] < 0x80) {
         break;
       }
       numBytes++;
@@ -169,7 +184,7 @@ class Utf8BytesScanner extends AbstractScanner {
     // TODO(lry): measurably slow, decode creates first a Utf8Decoder and a
     // _Utf8Decoder instance. Also the sublist is eagerly allocated.
     String codePoint =
-        utf8.decode(bytes.sublist(startOffset, end), allowMalformed: true);
+        utf8.decode(_bytes.sublist(startOffset, end), allowMalformed: true);
     if (codePoint.length == 0) {
       // The UTF-8 decoder discards leading BOM characters.
       // TODO(floitsch): don't just assume that removed characters were the
@@ -214,7 +229,7 @@ class Utf8BytesScanner extends AbstractScanner {
     int end = byteOffset;
     // TODO(lry): this measurably slows down the scanner for files with unicode.
     String s =
-        utf8.decode(bytes.sublist(startScanOffset, end), allowMalformed: true);
+        utf8.decode(_bytes.sublist(startScanOffset, end), allowMalformed: true);
     utf8Slack += (end - startScanOffset) - s.length;
   }
 
@@ -246,7 +261,7 @@ class Utf8BytesScanner extends AbstractScanner {
   analyzer.StringToken createSubstringToken(TokenType type, int start,
       bool asciiOnly, int extraOffset, bool allowLazy) {
     return new StringTokenImpl.fromUtf8Bytes(
-        type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart,
+        type, _bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart,
         precedingComments: comments, allowLazyFoo: allowLazy);
   }
 
@@ -254,9 +269,10 @@ class Utf8BytesScanner extends AbstractScanner {
   analyzer.StringToken createSyntheticSubstringToken(
       TokenType type, int start, bool asciiOnly, String syntheticChars) {
     String value = syntheticChars.length == 0
-        ? canonicalizeUtf8SubString(bytes, start, byteOffset, asciiOnly)
+        ? canonicalizeUtf8SubString(_bytes, start, byteOffset, asciiOnly)
         : canonicalizeString(
-            decodeString(bytes, start, byteOffset, asciiOnly) + syntheticChars);
+            decodeString(_bytes, start, byteOffset, asciiOnly) +
+                syntheticChars);
     return new SyntheticStringToken(
         type, value, tokenStart, value.length - syntheticChars.length);
   }
@@ -266,23 +282,23 @@ class Utf8BytesScanner extends AbstractScanner {
       TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new CommentTokenImpl.fromUtf8Bytes(
-        type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
+        type, _bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
   }
 
   @override
   DartDocToken createDartDocToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new DartDocToken.fromUtf8Bytes(
-        type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
+        type, _bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
   }
 
   @override
   LanguageVersionToken createLanguageVersionToken(
       int start, int major, int minor) {
     return new LanguageVersionTokenImpl.fromUtf8Bytes(
-        bytes, start, byteOffset, tokenStart, major, minor);
+        _bytes, start, byteOffset, tokenStart, major, minor);
   }
 
   @override
-  bool atEndOfFile() => byteOffset >= bytes.length - 1;
+  bool atEndOfFile() => byteOffset >= _bytesLengthMinusOne;
 }
