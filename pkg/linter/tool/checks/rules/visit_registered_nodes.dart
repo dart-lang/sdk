@@ -10,59 +10,6 @@ import 'package:linter/src/analyzer.dart';
 
 const _desc = r"Declare 'visit' methods for all registered node types.";
 
-const _details = r'''
-**DO** declare a 'visit' method for all registered node processors.
-
-**BAD:**
-```dart
-  @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
-    registry.addFunctionDeclaration(this, visitor);
-    registry.addFunctionTypeAlias(this, visitor);
-    registry.addMethodDeclaration(this, visitor);
-  }
-  
-  class _Visitor {
-    @override
-    void visitFunctionDeclaration(FunctionDeclaration node) {
-        // ...
-    }
-  }
-```
-
-**GOOD:**
-**BAD:**
-```dart
-  @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
-    registry.addFunctionDeclaration(this, visitor);
-    registry.addFunctionTypeAlias(this, visitor);
-    registry.addMethodDeclaration(this, visitor);
-  }
-  
-  class _Visitor {
-    @override
-    void visitFunctionDeclaration(FunctionDeclaration node) {
-      // ...
-    }
-    
-    @override
-    void visitFunctionTypeAlias(FunctionTypeAlias node) {
-      // ...
-    }
-
-    @override
-    void visitMethodDeclaration(MethodDeclaration node) {
-      // ...
-    }
-  }
-```
-''';
-
 class VisitRegisteredNodes extends LintRule {
   static const LintCode code = LintCode('visit_registered_nodes', _desc,
       correctionMessage:
@@ -73,7 +20,6 @@ class VisitRegisteredNodes extends LintRule {
       : super(
           name: 'visit_registered_nodes',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -14,30 +14,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Document ignore comments.';
 
-const _details = r'''
-**DO** document all ignored diagnostic reports.
-
-**BAD:**
-```dart
-// ignore: unused_element
-int _x = 1;
-```
-
-**GOOD:**
-```dart
-// This private field will be used later.
-// ignore: unused_element
-int _x = 1;
-```
-
-''';
-
 class DocumentIgnores extends LintRule {
   DocumentIgnores()
       : super(
           name: 'document_ignores',
           description: _desc,
-          details: _details,
         );
 
   @override

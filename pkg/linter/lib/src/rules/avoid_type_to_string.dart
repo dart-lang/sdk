@@ -13,50 +13,11 @@ import '../linter_lint_codes.dart';
 const _desc =
     r'Avoid <Type>.toString() in production code since results may be minified.';
 
-const _details = r'''
-**DO** avoid calls to <Type>.toString() in production code, since it does not
-contractually return the user-defined name of the Type (or underlying class).
-Development-mode compilers where code size is not a concern use the full name,
-but release-mode compilers often choose to minify these symbols.
-
-**BAD:**
-```dart
-void bar(Object other) {
-  if (other.runtimeType.toString() == 'Bar') {
-    doThing();
-  }
-}
-
-Object baz(Thing myThing) {
-  return getThingFromDatabase(key: myThing.runtimeType.toString());
-}
-```
-
-**GOOD:**
-```dart
-void bar(Object other) {
-  if (other is Bar) {
-    doThing();
-  }
-}
-
-class Thing {
-  String get thingTypeKey => ...
-}
-
-Object baz(Thing myThing) {
-  return getThingFromDatabase(key: myThing.thingTypeKey);
-}
-```
-
-''';
-
 class AvoidTypeToString extends LintRule {
   AvoidTypeToString()
       : super(
           name: 'avoid_type_to_string',
           description: _desc,
-          details: _details,
         );
 
   @override

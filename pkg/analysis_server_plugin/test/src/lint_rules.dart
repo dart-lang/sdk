@@ -10,12 +10,7 @@ import 'package:analyzer/src/lint/linter.dart';
 class NoBoolsRule extends LintRule {
   static const LintCode code = LintCode('no_bools', 'No bools message');
 
-  NoBoolsRule()
-      : super(
-          name: 'no_bools',
-          description: 'No bools desc',
-          details: 'No bools details',
-        );
+  NoBoolsRule() : super(name: 'no_bools', description: 'No bools desc');
 
   @override
   LintCode get lintCode => code;

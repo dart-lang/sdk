@@ -10,27 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer if elements to conditional expressions where possible.';
 
-const _details = r'''
-When building collections, it is preferable to use `if` elements rather than
-conditionals.
-
-**BAD:**
-```dart
-var list = ['a', 'b', condition ? 'c' : null].where((e) => e != null).toList();
-```
-
-**GOOD:**
-```dart
-var list = ['a', 'b', if (condition) 'c'];
-```
-''';
-
 class PreferIfElementsToConditionalExpressions extends LintRule {
   PreferIfElementsToConditionalExpressions()
       : super(
           name: 'prefer_if_elements_to_conditional_expressions',
           description: _desc,
-          details: _details,
         );
 
   @override

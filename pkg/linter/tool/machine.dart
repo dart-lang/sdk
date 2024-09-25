@@ -70,6 +70,7 @@ Future<String> getMachineListing(
   ) = await _fetchSetRules(fetch: includeSetInfo);
 
   var categories = messagesYaml.categoryMappings;
+  var deprecatedDetails = messagesYaml.deprecatedDetails;
   var json = encoder.convert([
     for (var rule in rules.where((rule) => !rule.state.isInternal))
       {
@@ -85,8 +86,7 @@ Future<String> getMachineListing(
         ],
         'fixStatus':
             fixStatusMap[rule.lintCodes.first.uniqueName] ?? 'unregistered',
-        // ignore: deprecated_member_use
-        'details': rule.details,
+        'details': deprecatedDetails[rule.name],
         if (sinceInfo != null)
           'sinceDartSdk': sinceInfo[rule.name]?.sinceDartSdk ?? 'Unreleased',
       }

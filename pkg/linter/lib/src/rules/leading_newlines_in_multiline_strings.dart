@@ -10,37 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Start multiline strings with a newline.';
 
-const _details = r"""
-Multiline strings are easier to read when they start with a newline (a newline
-starting a multiline string is ignored).
-
-**BAD:**
-```dart
-var s1 = '''{
-  "a": 1,
-  "b": 2
-}''';
-```
-
-**GOOD:**
-```dart
-var s1 = '''
-{
-  "a": 1,
-  "b": 2
-}''';
-
-var s2 = '''This one-liner multiline string is ok. It usually allows to escape both ' and " in the string.''';
-```
-
-""";
-
 class LeadingNewlinesInMultilineStrings extends LintRule {
   LeadingNewlinesInMultilineStrings()
       : super(
           name: 'leading_newlines_in_multiline_strings',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -10,27 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Use generic function type syntax for parameters.';
 
-const _details = r'''
-Use generic function type syntax for parameters.
-
-**BAD:**
-```dart
-Iterable<T> where(bool predicate(T element)) {}
-```
-
-**GOOD:**
-```dart
-Iterable<T> where(bool Function(T) predicate) {}
-```
-
-''';
-
 class UseFunctionTypeSyntaxForParameters extends LintRule {
   UseFunctionTypeSyntaxForParameters()
       : super(
           name: 'use_function_type_syntax_for_parameters',
           description: _desc,
-          details: _details,
         );
 
   @override

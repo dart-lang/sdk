@@ -12,35 +12,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Use `??` operators to convert `null`s to `bool`s.';
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/usage#prefer-using--to-convert-null-to-a-boolean-value):
-
-Use `??` operators to convert `null`s to `bool`s.
-
-**BAD:**
-```dart
-if (nullableBool == true) {
-}
-if (nullableBool != false) {
-}
-```
-
-**GOOD:**
-```dart
-if (nullableBool ?? false) {
-}
-if (nullableBool ?? true) {
-}
-```
-
-''';
-
 class UseIfNullToConvertNullsToBools extends LintRule {
   UseIfNullToConvertNullsToBools()
       : super(
           name: 'use_if_null_to_convert_nulls_to_bools',
           description: _desc,
-          details: _details,
         );
 
   @override

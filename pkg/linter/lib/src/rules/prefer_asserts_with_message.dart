@@ -10,40 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer asserts with message.';
 
-const _details = r'''
-When assertions fail it's not always simple to understand why. Adding a message
-to the `assert` helps the developer to understand why the AssertionError occurs.
-
-**BAD:**
-```dart
-f(a) {
-  assert(a != null);
-}
-
-class A {
-  A(a) : assert(a != null);
-}
-```
-
-**GOOD:**
-```dart
-f(a) {
-  assert(a != null, 'a must not be null');
-}
-
-class A {
-  A(a) : assert(a != null, 'a must not be null');
-}
-```
-
-''';
-
 class PreferAssertsWithMessage extends LintRule {
   PreferAssertsWithMessage()
       : super(
           name: 'prefer_asserts_with_message',
           description: _desc,
-          details: _details,
         );
 
   @override

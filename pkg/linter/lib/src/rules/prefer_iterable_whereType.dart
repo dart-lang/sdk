@@ -12,27 +12,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer to use `whereType` on iterable.';
 
-const _details = r'''
-**PREFER** `iterable.whereType<T>()` over `iterable.where((e) => e is T)`.
-
-**BAD:**
-```dart
-iterable.where((e) => e is MyClass);
-```
-
-**GOOD:**
-```dart
-iterable.whereType<MyClass>();
-```
-
-''';
-
 class PreferIterableWhereType extends LintRule {
   PreferIterableWhereType()
       : super(
           name: 'prefer_iterable_whereType',
           description: _desc,
-          details: _details,
         );
 
   @override

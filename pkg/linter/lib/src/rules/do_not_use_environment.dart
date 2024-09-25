@@ -10,25 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Do not use environment declared variables.';
 
-const _details = r'''
-Using values derived from the environment at compile-time, creates
-hidden global state and makes applications hard to understand and maintain.
-
-**DON'T** use `fromEnvironment` or `hasEnvironment` factory constructors.
-
-**BAD:**
-```dart
-const loggingLevel =
-  bool.hasEnvironment('logging') ? String.fromEnvironment('logging') : null;
-```
-''';
-
 class DoNotUseEnvironment extends LintRule {
   DoNotUseEnvironment()
       : super(
           name: 'do_not_use_environment',
           description: _desc,
-          details: _details,
         );
 
   @override

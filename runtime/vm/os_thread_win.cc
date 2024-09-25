@@ -79,17 +79,14 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   return 0;
 }
 
-int OSThread::Start(const char* name,
-                    ThreadStartFunction function,
-                    uword parameter) {
+int OSThread::TryStart(const char* name,
+                       ThreadStartFunction function,
+                       uword parameter) {
   ThreadStartData* start_data = new ThreadStartData(name, function, parameter);
   uint32_t tid;
   uintptr_t thread = _beginthreadex(nullptr, OSThread::GetMaxStackSize(),
                                     ThreadEntry, start_data, 0, &tid);
   if (thread == -1L || thread == 0) {
-#ifdef DEBUG
-    fprintf(stderr, "_beginthreadex error: %d (%s)\n", errno, strerror(errno));
-#endif
     return errno;
   }
 

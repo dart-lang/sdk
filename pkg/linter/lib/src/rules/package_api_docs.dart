@@ -10,60 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Provide doc comments for all public APIs.';
 
-const _details = r'''
-**DO** provide doc comments for all public APIs.
-
-As described in the [pub package layout doc](https://dart.dev/tools/pub/package-layout#implementation-files),
-public APIs consist in everything in your package's `lib` folder, minus
-implementation files in `lib/src`, adding elements explicitly exported with an
-`export` directive.
-
-For example, given `lib/foo.dart`:
-```dart
-export 'src/bar.dart' show Bar;
-export 'src/baz.dart';
-
-class Foo { }
-
-class _Foo { }
-```
-its API includes:
-
-* `Foo` (but not `_Foo`)
-* `Bar` (exported) and
-* all *public* elements in `src/baz.dart`
-
-All public API members should be documented with `///` doc-style comments.
-
-**BAD:**
-```dart
-class Bar {
-  void bar();
-}
-```
-
-**GOOD:**
-```dart
-/// A Foo.
-abstract class Foo {
-  /// Start foo-ing.
-  void start() => _start();
-
-  _start();
-}
-```
-
-Advice for writing good doc comments can be found in the
-[Doc Writing Guidelines](https://dart.dev/effective-dart/documentation).
-
-''';
-
 class PackageApiDocs extends LintRule {
   PackageApiDocs()
       : super(
           name: 'package_api_docs',
           description: _desc,
-          details: _details,
         );
 
   @override

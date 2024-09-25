@@ -13,49 +13,11 @@ import '../util/scope.dart';
 
 const _desc = r"Don't access members with `this` unless avoiding shadowing.";
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/usage#dont-use-this-when-not-needed-to-avoid-shadowing):
-
-**DON'T** use `this` when not needed to avoid shadowing.
-
-**BAD:**
-```dart
-class Box {
-  int value;
-  void update(int newValue) {
-    this.value = newValue;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Box {
-  int value;
-  void update(int newValue) {
-    value = newValue;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Box {
-  int value;
-  void update(int value) {
-    this.value = value;
-  }
-}
-```
-
-''';
-
 class UnnecessaryThis extends LintRule {
   UnnecessaryThis()
       : super(
           name: 'unnecessary_this',
           description: _desc,
-          details: _details,
         );
 
   @override

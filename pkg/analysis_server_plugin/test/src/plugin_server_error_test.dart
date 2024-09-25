@@ -191,11 +191,7 @@ class _ThrowsAsyncErrorRule extends LintRule {
   static const LintCode code = LintCode('no_bools', 'No bools message');
 
   _ThrowsAsyncErrorRule()
-      : super(
-          name: 'no_bools',
-          description: 'No bools desc',
-          details: 'No bools details',
-        );
+      : super(name: 'no_bools', description: 'No bools desc');
 
   @override
   LintCode get lintCode => code;
@@ -243,11 +239,7 @@ class _ThrowsSyncErrorRule extends LintRule {
   static const LintCode code = LintCode('no_bools', 'No bools message');
 
   _ThrowsSyncErrorRule()
-      : super(
-          name: 'no_bools',
-          description: 'No bools desc',
-          details: 'No bools details',
-        );
+      : super(name: 'no_bools', description: 'No bools desc');
 
   @override
   LintCode get lintCode => code;

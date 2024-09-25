@@ -116,7 +116,6 @@ class TestRule extends LintRule {
       : super(
           name: 'test_rule',
           description: '',
-          details: '... tl;dr ...',
         );
 
   @override

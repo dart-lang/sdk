@@ -36,6 +36,24 @@ extension type MessagesData(YamlMap _map) {
     return result;
   }
 
+  Map<String, String> get deprecatedDetails {
+    var result = <String, String>{};
+
+    for (var code in lintCodes.keys) {
+      var name = code as String;
+      var data = lintCodes[name] as YamlMap;
+      if (data['deprecatedDetails'] case String deprecatedDetails) {
+        if (data.containsKey('sharedName')) {
+          name = data['sharedName'] as String;
+        }
+
+        result.putIfAbsent(name, () => deprecatedDetails);
+      }
+    }
+
+    return result;
+  }
+
   YamlMap get lintCodes {
     var lintRuleSection = _map['LintCode'] as YamlMap?;
     if (lintRuleSection == null) {

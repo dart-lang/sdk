@@ -10,44 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r"Don't specify the `late` modifier when it is not needed.";
 
-const _details = r'''
-**DO** not specify the `late` modifier for top-level and static variables
-when the declaration contains an initializer. 
-
-Top-level and static variables with initializers are already evaluated lazily
-as if they are marked `late`.
-
-**BAD:**
-```dart
-late String badTopLevel = '';
-```
-
-**GOOD:**
-```dart
-String goodTopLevel = '';
-```
-
-**BAD:**
-```dart
-class BadExample {
-  static late String badStatic = '';
-}
-```
-
-**GOOD:**
-```dart
-class GoodExample {
-  late String goodStatic;
-}
-```
-''';
-
 class UnnecessaryLate extends LintRule {
   UnnecessaryLate()
       : super(
           name: 'unnecessary_late',
           description: _desc,
-          details: _details,
         );
 
   @override

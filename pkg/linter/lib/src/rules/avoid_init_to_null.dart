@@ -13,58 +13,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r"Don't explicitly initialize variables to `null`.";
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/usage#dont-explicitly-initialize-variables-to-null):
-
-**DON'T** explicitly initialize variables to `null`.
-
-If a variable has a non-nullable type or is `final`,
-Dart reports a compile error if you try to use it
-before it has been definitely initialized.
-If the variable is nullable and not `const` or `final`,
-then it is implicitly initialized to `null` for you.
-There's no concept of "uninitialized memory" in Dart
-and no need to explicitly initialize a variable to `null` to be "safe".
-Adding `= null` is redundant and unneeded.
-
-**BAD:**
-```dart
-Item? bestDeal(List<Item> cart) {
-  Item? bestItem = null;
-
-  for (final item in cart) {
-    if (bestItem == null || item.price < bestItem.price) {
-      bestItem = item;
-    }
-  }
-
-  return bestItem;
-}
-```
-
-**GOOD:**
-```dart
-Item? bestDeal(List<Item> cart) {
-  Item? bestItem;
-
-  for (final item in cart) {
-    if (bestItem == null || item.price < bestItem.price) {
-      bestItem = item;
-    }
-  }
-
-  return bestItem;
-}
-```
-
-''';
-
 class AvoidInitToNull extends LintRule {
   AvoidInitToNull()
       : super(
           name: 'avoid_init_to_null',
           description: _desc,
-          details: _details,
         );
 
   @override

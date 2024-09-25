@@ -19,58 +19,6 @@ import '../util/flutter_utils.dart';
 
 const _desc = r'Do not use `BuildContext` across asynchronous gaps.';
 
-const _details = r'''
-**DON'T** use `BuildContext` across asynchronous gaps.
-
-Storing `BuildContext` for later usage can easily lead to difficult to diagnose
-crashes. Asynchronous gaps are implicitly storing `BuildContext` and are some of
-the easiest to overlook when writing code.
-
-When a `BuildContext` is used, a `mounted` property must be checked after an
-asynchronous gap, depending on how the `BuildContext` is accessed:
-
-* When using a `State`'s `context` property, the `State`'s `mounted` property
-  must be checked.
-* For other `BuildContext` instances (like a local variable or function
-  argument), the `BuildContext`'s `mounted` property must be checked.
-
-**BAD:**
-```dart
-void onButtonTapped(BuildContext context) async {
-  await Future.delayed(const Duration(seconds: 1));
-  Navigator.of(context).pop();
-}
-```
-
-**GOOD:**
-```dart
-void onButtonTapped(BuildContext context) {
-  Navigator.of(context).pop();
-}
-```
-
-**GOOD:**
-```dart
-void onButtonTapped(BuildContext context) async {
-  await Future.delayed(const Duration(seconds: 1));
-
-  if (!context.mounted) return;
-  Navigator.of(context).pop();
-}
-```
-
-**GOOD:**
-```dart
-abstract class MyState extends State<MyWidget> {
-  void foo() async {
-    await Future.delayed(const Duration(seconds: 1));
-    if (!mounted) return; // Checks `this.mounted`, not `context.mounted`.
-    Navigator.of(context).pop();
-  }
-}
-```
-''';
-
 /// An enum whose values describe the state of asynchrony that a certain node
 /// has in the syntax tree, with respect to another node.
 ///
@@ -958,7 +906,6 @@ class UseBuildContextSynchronously extends LintRule {
       : super(
           name: 'use_build_context_synchronously',
           description: _desc,
-          details: _details,
           state: State.stable(since: Version(3, 2, 0)),
         );
 

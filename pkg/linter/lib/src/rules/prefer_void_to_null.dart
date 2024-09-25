@@ -13,46 +13,11 @@ import '../linter_lint_codes.dart';
 const _desc =
     r"Don't use the Null type, unless you are positive that you don't want void.";
 
-const _details = r'''
-**DON'T** use the type Null where void would work.
-
-**BAD:**
-```dart
-Null f() {}
-Future<Null> f() {}
-Stream<Null> f() {}
-f(Null x) {}
-```
-
-**GOOD:**
-```dart
-void f() {}
-Future<void> f() {}
-Stream<void> f() {}
-f(void x) {}
-```
-
-Some exceptions include formulating special function types:
-
-```dart
-Null Function(Null, Null);
-```
-
-and for making empty literals which are safe to pass into read-only locations
-for any type of map or list:
-
-```dart
-<Null>[];
-<int, Null>{};
-```
-''';
-
 class PreferVoidToNull extends LintRule {
   PreferVoidToNull()
       : super(
           name: 'prefer_void_to_null',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -63,9 +63,9 @@ static void* ThreadStart(void* data_ptr) {
   return nullptr;
 }
 
-int Thread::Start(const char* name,
-                  ThreadStartFunction function,
-                  uword parameter) {
+int Thread::TryStart(const char* name,
+                     ThreadStartFunction function,
+                     uword parameter) {
   pthread_attr_t attr;
   int result = pthread_attr_init(&attr);
   RETURN_ON_PTHREAD_FAILURE(result);

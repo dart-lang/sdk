@@ -11,41 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Unnecessary `.new` constructor name.';
 
-const _details = r'''
-**PREFER** using the default unnamed Constructor over `.new`.
-
-Given a class `C`, the named unnamed constructor `C.new` refers to the same
-constructor as the unnamed `C`. As such it adds nothing but visual noise to
-invocations and should be avoided (unless being used to identify a constructor
-tear-off).
-
-**BAD:**
-```dart
-class A {
-  A.new(); // LINT
-}
-
-var a = A.new(); // LINT
-```
-
-**GOOD:**
-```dart
-class A {
-  A.ok();
-}
-
-var a = A();
-var aa = A.ok();
-var makeA = A.new;
-```
-''';
-
 class UnnecessaryConstructorName extends LintRule {
   UnnecessaryConstructorName()
       : super(
           name: 'unnecessary_constructor_name',
           description: _desc,
-          details: _details,
         );
 
   @override

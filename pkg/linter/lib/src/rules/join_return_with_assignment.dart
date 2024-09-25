@@ -11,30 +11,6 @@ import '../util/dart_type_utilities.dart' as type_utils;
 
 const _desc = r'Join return statement with assignment when possible.';
 
-const _details = r'''
-**DO** join return statement with assignment when possible.
-
-**BAD:**
-```dart
-class A {
-  B _lazyInstance;
-  static B get instance {
-    _lazyInstance ??= B(); // LINT
-    return _lazyInstance;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class A {
-  B _lazyInstance;
-  static B get instance => _lazyInstance ??= B();
-}
-```
-
-''';
-
 Expression? _getExpressionFromAssignmentStatement(Statement node) {
   if (node is ExpressionStatement) {
     var expression = node.expression.unParenthesized;
@@ -57,7 +33,6 @@ class JoinReturnWithAssignment extends LintRule {
       : super(
           name: 'join_return_with_assignment',
           description: _desc,
-          details: _details,
         );
 
   @override

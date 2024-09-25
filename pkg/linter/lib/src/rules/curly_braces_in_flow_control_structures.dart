@@ -10,53 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'DO use curly braces for all flow control structures.';
 
-const _details = r'''
-**DO** use curly braces for all flow control structures.
-
-Doing so avoids the [dangling else](https://en.wikipedia.org/wiki/Dangling_else)
-problem.
-
-**BAD:**
-```dart
-if (overflowChars != other.overflowChars)
-  return overflowChars < other.overflowChars;
-```
-
-**GOOD:**
-```dart
-if (isWeekDay) {
-  print('Bike to work!');
-} else {
-  print('Go dancing or read a book!');
-}
-```
-
-There is one exception to this: an `if` statement with no `else` clause where
-the entire `if` statement (including the condition and the body) fits in one
-line. In that case, you may leave off the braces if you prefer:
-
-**GOOD:**
-```dart
-if (arg == null) return defaultValue;
-```
-
-If the body wraps to the next line, though, use braces:
-
-**GOOD:**
-```dart
-if (overflowChars != other.overflowChars) {
-  return overflowChars < other.overflowChars;
-}
-```
-
-''';
-
 class CurlyBracesInFlowControlStructures extends LintRule {
   CurlyBracesInFlowControlStructures()
       : super(
           name: 'curly_braces_in_flow_control_structures',
           description: _desc,
-          details: _details,
         );
 
   @override

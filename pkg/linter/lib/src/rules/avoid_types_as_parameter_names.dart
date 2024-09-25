@@ -15,27 +15,11 @@ import '../util/scope.dart';
 
 const _desc = r'Avoid types as parameter names.';
 
-const _details = r'''
-**AVOID** using a parameter name that is the same as an existing type.
-
-**BAD:**
-```dart
-m(f(int));
-```
-
-**GOOD:**
-```dart
-m(f(int v));
-```
-
-''';
-
 class AvoidTypesAsParameterNames extends LintRule {
   AvoidTypesAsParameterNames()
       : super(
           name: 'avoid_types_as_parameter_names',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -10,34 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Provide a deprecation message, via `@Deprecated("message")`.';
 
-const _details = r'''
-**DO** specify a deprecation message (with migration instructions and/or a
-removal schedule) in the `Deprecated` constructor.
-
-**BAD:**
-```dart
-@deprecated
-void oldFunction(arg1, arg2) {}
-```
-
-**GOOD:**
-```dart
-@Deprecated("""
-[oldFunction] is being deprecated in favor of [newFunction] (with slightly
-different parameters; see [newFunction] for more information). [oldFunction]
-will be removed on or after the 4.0.0 release.
-""")
-void oldFunction(arg1, arg2) {}
-```
-
-''';
-
 class ProvideDeprecationMessage extends LintRule {
   ProvideDeprecationMessage()
       : super(
           name: 'provide_deprecation_message',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -11,28 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer `null`-aware method calls.';
 
-const _details = r'''
-Instead of checking nullability of a function/method `f` before calling it,
-you can use `f?.call()`.
-
-**BAD:**
-```dart
-if (f != null) f!();
-```
-
-**GOOD:**
-```dart
-f?.call();
-```
-
-''';
-
 class PreferNullAwareMethodCalls extends LintRule {
   PreferNullAwareMethodCalls()
       : super(
           name: 'prefer_null_aware_method_calls',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -11,31 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer is! operator.';
 
-const _details = r'''
-When checking if an object is not of a specified type, it is preferable to use the 'is!' operator.
-
-**BAD:**
-```dart
-if (!(foo is Foo)) {
-  ...
-}
-```
-
-**GOOD:**
-```dart
-if (foo is! Foo) {
-  ...
-}
-```
-
-''';
-
 class PreferIsNotOperator extends LintRule {
   PreferIsNotOperator()
       : super(
           name: 'prefer_is_not_operator',
           description: _desc,
-          details: _details,
         );
 
   @override

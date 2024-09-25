@@ -232,6 +232,8 @@ abstract class LintRule {
     required this.name,
     this.categories = const <String>{},
     required this.description,
+    @Deprecated("Specify 'details' for a short description and consider "
+        'placing long-form documentation on an external website.')
     this.details = '',
     State? state,
   }) : state = state ?? State.stable();

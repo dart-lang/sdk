@@ -11,24 +11,6 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid using braces in interpolation when not needed.';
 
-const _details = r'''
-**AVOID** using braces in interpolation when not needed.
-
-If you're just interpolating a simple identifier, and it's not immediately
-followed by more alphanumeric text, the `{}` can and should be omitted.
-
-**BAD:**
-```dart
-print("Hi, ${name}!");
-```
-
-**GOOD:**
-```dart
-print("Hi, $name!");
-```
-
-''';
-
 final RegExp identifierPart = RegExp('[a-zA-Z0-9_]');
 
 bool isIdentifierPart(Token? token) =>
@@ -39,7 +21,6 @@ class UnnecessaryBraceInStringInterps extends LintRule {
       : super(
           name: 'unnecessary_brace_in_string_interps',
           description: _desc,
-          details: _details,
         );
 
   @override

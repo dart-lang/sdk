@@ -13,30 +13,11 @@ const _desc =
     r'Prefer an 8-digit hexadecimal integer (for example, 0xFFFFFFFF) to '
     'instantiate a Color.';
 
-const _details = r'''
-**PREFER** an 8-digit hexadecimal integer (for example, 0xFFFFFFFF) to
-instantiate a Color. Colors have four 8-bit channels, which adds up to 32 bits,
-so Colors are described using a 32-bit integer.
-
-**BAD:**
-```dart
-Color(1);
-Color(0x000001);
-```
-
-**GOOD:**
-```dart
-Color(0x00000001);
-```
-
-''';
-
 class UseFullHexValuesForFlutterColors extends LintRule {
   UseFullHexValuesForFlutterColors()
       : super(
           name: 'use_full_hex_values_for_flutter_colors',
           description: _desc,
-          details: _details,
         );
 
   @override

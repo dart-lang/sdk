@@ -265,7 +265,6 @@ class InternalRule extends LintRule {
           name: 'internal_lint',
           state: State.internal(),
           description: '',
-          details: '',
         );
 
   @override

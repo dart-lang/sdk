@@ -14,38 +14,6 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Use late for private members with a non-nullable type.';
 
-const _details = r'''
-Use `late` for private members with non-nullable types that are always expected
-to be non-null. Thus it's clear that the field is not expected to be `null`
-and it avoids null checks.
-
-**BAD:**
-```dart
-int? _i;
-m() {
-  _i!.abs();
-}
-```
-
-**GOOD:**
-```dart
-late int _i;
-m() {
-  _i.abs();
-}
-```
-
-**OK:**
-```dart
-int? _i;
-m() {
-  _i?.abs();
-  _i = null;
-}
-```
-
-''';
-
 bool _isPrivateExtension(AstNode parent) {
   if (parent is! ExtensionDeclaration) {
     return false;
@@ -59,7 +27,6 @@ class UseLateForPrivateFieldsAndVariables extends LintRule {
       : super(
           name: 'use_late_for_private_fields_and_variables',
           description: _desc,
-          details: _details,
           state: State.experimental(),
         );
 

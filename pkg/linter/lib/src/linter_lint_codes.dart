@@ -211,6 +211,7 @@ class LinterLintCode extends LintCode {
     'avoid_futureor_void',
     "Don't use the type 'FutureOr<void>'.",
     correctionMessage: "Try using 'Future<void>?' or 'void'.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode avoid_implementing_value_types = LinterLintCode(
@@ -1135,6 +1136,7 @@ class LinterLintCode extends LintCode {
     "Unnecessary use of single quotes.",
     correctionMessage:
         "Try using double quotes unless the string contains double quotes.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode prefer_expression_function_bodies = LinterLintCode(
@@ -1349,6 +1351,7 @@ class LinterLintCode extends LintCode {
     "Unnecessary use of double quotes.",
     correctionMessage:
         "Try using single quotes unless the string contains single quotes.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode prefer_spread_collections = LinterLintCode(
@@ -1430,6 +1433,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try using 'SizedBox.{0}' and removing the 'height' and 'width' "
         "arguments.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode slash_for_doc_comments = LinterLintCode(
@@ -1452,6 +1456,7 @@ class LinterLintCode extends LintCode {
     "Constructor declarations should be before non-constructor declarations.",
     correctionMessage:
         "Try moving the constructor declaration before all other members.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode sort_pub_dependencies = LinterLintCode(
@@ -1466,6 +1471,7 @@ class LinterLintCode extends LintCode {
     "Invalid location for the unnamed constructor.",
     correctionMessage:
         "Try moving the unnamed constructor before all other constructors.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode specify_nonobvious_local_variable_types =
@@ -1521,6 +1527,7 @@ class LinterLintCode extends LintCode {
     "Missing an 'await' for the 'Future' computed by this expression.",
     correctionMessage:
         "Try adding an 'await' or wrapping the expression with 'unawaited'.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode unintended_html_in_doc_comment = LinterLintCode(
@@ -1568,6 +1575,7 @@ class LinterLintCode extends LintCode {
     'unnecessary_final',
     "Local variables should not be marked as 'final'.",
     correctionMessage: "Remove the 'final'.",
+    hasPublishedDocs: true,
     uniqueName: 'unnecessary_final_with_type',
   );
 
@@ -1590,6 +1598,7 @@ class LinterLintCode extends LintCode {
     'unnecessary_lambdas',
     "Closure should be a tearoff.",
     correctionMessage: "Try using a tearoff rather than a closure.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode unnecessary_late = LinterLintCode(
@@ -1667,12 +1676,14 @@ class LinterLintCode extends LintCode {
     'unnecessary_parenthesis',
     "Unnecessary use of parentheses.",
     correctionMessage: "Try removing the parentheses.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode unnecessary_raw_strings = LinterLintCode(
     'unnecessary_raw_strings',
     "Unnecessary use of a raw string.",
     correctionMessage: "Try using a normal string.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode unnecessary_statements = LinterLintCode(
@@ -1785,12 +1796,14 @@ class LinterLintCode extends LintCode {
     'use_colored_box',
     "Use a 'ColoredBox' rather than a 'Container' with only a 'Color'.",
     correctionMessage: "Try replacing the 'Container' with a 'ColoredBox'.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode use_decorated_box = LinterLintCode(
     'use_decorated_box',
     "Use 'DecoratedBox' rather than a 'Container' with only a 'Decoration'.",
     correctionMessage: "Try replacing the 'Container' with a 'DecoratedBox'.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode use_enums = LinterLintCode(
@@ -1818,6 +1831,7 @@ class LinterLintCode extends LintCode {
     'use_if_null_to_convert_nulls_to_bools',
     "Use an if-null operator to convert a 'null' to a 'bool'.",
     correctionMessage: "Try using an if-null operator.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode use_is_even_rather_than_modulo = LinterLintCode(
@@ -1838,6 +1852,7 @@ class LinterLintCode extends LintCode {
     'use_late_for_private_fields_and_variables',
     "Use 'late' for private members with a non-nullable type.",
     correctionMessage: "Try making adding the modifier 'late'.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode use_named_constants = LinterLintCode(
@@ -1845,6 +1860,7 @@ class LinterLintCode extends LintCode {
     "Use the constant '{0}' rather than a constructor returning the same "
         "object.",
     correctionMessage: "Try using '{0}'.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode use_raw_strings = LinterLintCode(
@@ -1852,6 +1868,7 @@ class LinterLintCode extends LintCode {
     "Use a raw string to avoid using escapes.",
     correctionMessage:
         "Try making the string a raw string and removing the escapes.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode use_rethrow_when_possible = LinterLintCode(
@@ -1865,12 +1882,14 @@ class LinterLintCode extends LintCode {
     'use_setters_to_change_properties',
     "The method is used to change a property.",
     correctionMessage: "Try converting the method to a setter.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode use_string_buffers = LinterLintCode(
     'use_string_buffers',
     "Use a string buffer rather than '+' to compose strings.",
     correctionMessage: "Try writing the parts of a string to a string buffer.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode use_string_in_part_of_directives = LinterLintCode(

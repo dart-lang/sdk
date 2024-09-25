@@ -11,42 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'A code block is missing a specified language.';
 
-const _details = r'''
-**DO** specify the language used in the code block of a doc comment.
-
-To enable proper syntax highlighting of Markdown code blocks,
-[`dart doc`](https://dart.dev/tools/dart-doc) strongly recommends code blocks to
-specify the language used after the initial code fence.
-
-See [highlight.js](https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md)
-for the list of languages supported by `dart doc`.
-To disable syntax highlighting or if no language is suitable,
-you can specify `none` as the language.
-
-**BAD:**
-```dart
-/// ```
-/// void main() {}
-/// ```
-class A {}
-```
-
-**GOOD:**
-```dart
-/// ```dart
-/// void main() {}
-/// ```
-class A {}
-```
-
-''';
-
 class MissingCodeBlockLanguageInDocComment extends LintRule {
   MissingCodeBlockLanguageInDocComment()
       : super(
           name: 'missing_code_block_language_in_doc_comment',
           description: _desc,
-          details: _details,
         );
 
   @override

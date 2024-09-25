@@ -15,63 +15,11 @@ import '../util/flutter_utils.dart';
 
 const _desc = r'DO reference all public properties in debug methods.';
 
-const _details = r'''
-**DO** reference all public properties in `debug` method implementations.
-
-Implementers of `Diagnosticable` should reference all public properties in
-a `debugFillProperties(...)` or `debugDescribeChildren(...)` method
-implementation to improve debuggability at runtime.
-
-Public properties are defined as fields and getters that are
-
-* not package-private (e.g., prefixed with `_`)
-* not `static` or overriding
-* not themselves `Widget`s or collections of `Widget`s
-
-In addition, the "debug" prefix is treated specially for properties in Flutter.
-For the purposes of diagnostics, a property `foo` and a prefixed property
-`debugFoo` are treated as effectively describing the same property and it is
-sufficient to refer to one or the other.
-
-**BAD:**
-```dart
-class Absorber extends Widget {
-  bool get absorbing => _absorbing;
-  bool _absorbing;
-  bool get ignoringSemantics => _ignoringSemantics;
-  bool _ignoringSemantics;
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<bool>('absorbing', absorbing));
-    // Missing reference to ignoringSemantics
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Absorber extends Widget {
-  bool get absorbing => _absorbing;
-  bool _absorbing;
-  bool get ignoringSemantics => _ignoringSemantics;
-  bool _ignoringSemantics;
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<bool>('absorbing', absorbing));
-    properties.add(DiagnosticsProperty<bool>('ignoringSemantics', ignoringSemantics));
-  }
-}
-```
-''';
-
 class DiagnosticDescribeAllProperties extends LintRule {
   DiagnosticDescribeAllProperties()
       : super(
           name: 'diagnostic_describe_all_properties',
           description: _desc,
-          details: _details,
         );
 
   @override

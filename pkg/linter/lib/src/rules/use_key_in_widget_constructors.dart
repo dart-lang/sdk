@@ -14,32 +14,11 @@ import '../util/flutter_utils.dart';
 
 const _desc = r'Use key in widget constructors.';
 
-const _details = r'''
-**DO** use key in widget constructors.
-
-It's a good practice to expose the ability to provide a key when creating public
-widgets.
-
-**BAD:**
-```dart
-class MyPublicWidget extends StatelessWidget {
-}
-```
-
-**GOOD:**
-```dart
-class MyPublicWidget extends StatelessWidget {
-  MyPublicWidget({super.key});
-}
-```
-''';
-
 class UseKeyInWidgetConstructors extends LintRule {
   UseKeyInWidgetConstructors()
       : super(
           name: 'use_key_in_widget_constructors',
           description: _desc,
-          details: _details,
         );
 
   @override

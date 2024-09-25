@@ -11,29 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Remove unnecessary backslashes in strings.';
 
-const _details = r'''
-Remove unnecessary backslashes in strings.
-
-**BAD:**
-```dart
-'this string contains 2 \"double quotes\" ';
-"this string contains 2 \'single quotes\' ";
-```
-
-**GOOD:**
-```dart
-'this string contains 2 "double quotes" ';
-"this string contains 2 'single quotes' ";
-```
-
-''';
-
 class UnnecessaryStringEscapes extends LintRule {
   UnnecessaryStringEscapes()
       : super(
           name: 'unnecessary_string_escapes',
           description: _desc,
-          details: _details,
         );
 
   @override

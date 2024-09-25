@@ -13,35 +13,11 @@ import '../utils.dart';
 
 const _desc = r'Name types using UpperCamelCase.';
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/style#do-name-types-using-uppercamelcase):
-
-**DO** name types using UpperCamelCase.
-
-Classes and typedefs should capitalize the first letter of each word (including
-the first word), and use no separators.
-
-**GOOD:**
-```dart
-class SliderMenu {
-  // ...
-}
-
-class HttpRequest {
-  // ...
-}
-
-typedef num Adder(num x, num y);
-```
-
-''';
-
 class CamelCaseTypes extends LintRule {
   CamelCaseTypes()
       : super(
           name: 'camel_case_types',
           description: _desc,
-          details: _details,
         );
 
   @override

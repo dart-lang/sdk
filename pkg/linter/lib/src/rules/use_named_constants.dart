@@ -14,27 +14,12 @@ import '../linter_lint_codes.dart';
 const lintName = 'use_named_constants';
 
 const _desc = r'Use predefined named constants.';
-const _details = r'''
-Where possible, use already defined const values.
-
-**BAD:**
-```dart
-const Duration(seconds: 0);
-```
-
-**GOOD:**
-```dart
-Duration.zero;
-```
-
-''';
 
 class UseNamedConstants extends LintRule {
   UseNamedConstants()
       : super(
           name: lintName,
           description: _desc,
-          details: _details,
         );
 
   @override

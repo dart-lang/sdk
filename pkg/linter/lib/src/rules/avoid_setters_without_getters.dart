@@ -11,45 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid setters without getters.';
 
-const _details = r'''
-**DON'T** define a setter without a corresponding getter.
-
-Defining a setter without defining a corresponding getter can lead to logical
-inconsistencies.  Doing this could allow you to set a property to some value,
-but then upon observing the property's value, it could easily be different.
-
-**BAD:**
-```dart
-class Bad {
-  int l, r;
-
-  set length(int newLength) {
-    r = l + newLength;
-  }
-}
-```
-
-**GOOD:**
-```dart
-class Good {
-  int l, r;
-
-  int get length => r - l;
-
-  set length(int newLength) {
-    r = l + newLength;
-  }
-}
-```
-
-''';
-
 class AvoidSettersWithoutGetters extends LintRule {
   AvoidSettersWithoutGetters()
       : super(
           name: 'avoid_setters_without_getters',
           description: _desc,
-          details: _details,
         );
 
   @override

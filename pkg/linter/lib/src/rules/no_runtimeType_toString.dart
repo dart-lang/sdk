@@ -13,41 +13,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid calling `toString()` on `runtimeType`.';
 
-const _details = r'''
-Calling `toString` on a runtime type is a non-trivial operation that can
-negatively impact performance. It's better to avoid it.
-
-**BAD:**
-```dart
-class A {
-  String toString() => '$runtimeType()';
-}
-```
-
-**GOOD:**
-```dart
-class A {
-  String toString() => 'A()';
-}
-```
-
-This lint has some exceptions where performance is not a problem or where real
-type information is more important than performance:
-
-* in an assertion
-* in a throw expression
-* in a catch clause
-* in a mixin declaration
-* in an abstract class declaration
-
-''';
-
 class NoRuntimeTypeToString extends LintRule {
   NoRuntimeTypeToString()
       : super(
           name: 'no_runtimeType_toString',
           description: _desc,
-          details: _details,
         );
 
   @override

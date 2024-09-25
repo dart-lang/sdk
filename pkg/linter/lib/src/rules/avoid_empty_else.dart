@@ -10,55 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid empty statements in else clauses.';
 
-const _details = r'''
-**AVOID** empty statements in the `else` clause of `if` statements.
-
-**BAD:**
-```dart
-if (x > y)
-  print('1');
-else ;
-  print('2');
-```
-
-If you want a statement that follows the empty clause to _conditionally_ run,
-remove the dangling semicolon to include it in the `else` clause.
-Optionally, also enclose the else's statement in a block.
-
-**GOOD:**
-```dart
-if (x > y)
-  print('1');
-else
-  print('2');
-```
-
-**GOOD:**
-```dart
-if (x > y) {
-  print('1');
-} else {
-  print('2');
-}
-```
-
-If you want a statement that follows the empty clause to _unconditionally_ run,
-remove the `else` clause.
-
-**GOOD:**
-```dart
-if (x > y) print('1');
-
-print('2');
-```
-''';
-
 class AvoidEmptyElse extends LintRule {
   AvoidEmptyElse()
       : super(
           name: 'avoid_empty_else',
           description: _desc,
-          details: _details,
         );
 
   @override

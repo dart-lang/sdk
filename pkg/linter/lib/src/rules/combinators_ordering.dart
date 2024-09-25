@@ -11,29 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Sort combinator names alphabetically.';
 
-const _details = r'''
-**DO** sort combinator names alphabetically.
-
-**BAD:**
-```dart
-import 'a.dart' show B, A hide D, C;
-export 'a.dart' show B, A hide D, C;
-```
-
-**GOOD:**
-```dart
-import 'a.dart' show A, B hide C, D;
-export 'a.dart' show A, B hide C, D;
-```
-
-''';
-
 class CombinatorsOrdering extends LintRule {
   CombinatorsOrdering()
       : super(
           name: 'combinators_ordering',
           description: _desc,
-          details: _details,
         );
 
   @override

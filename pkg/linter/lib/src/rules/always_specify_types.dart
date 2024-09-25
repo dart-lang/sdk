@@ -15,58 +15,11 @@ import '../util/ascii_utils.dart';
 
 const _desc = r'Specify type annotations.';
 
-const _details = r'''
-From the [style guide for the flutter repo](https://flutter.dev/style-guide/):
-
-**DO** specify type annotations.
-
-Avoid `var` when specifying that a type is unknown and short-hands that elide
-type annotations.  Use `dynamic` if you are being explicit that the type is
-unknown.  Use `Object` if you are being explicit that you want an object that
-implements `==` and `hashCode`.
-
-**BAD:**
-```dart
-var foo = 10;
-final bar = Bar();
-const quux = 20;
-```
-
-**GOOD:**
-```dart
-int foo = 10;
-final Bar bar = Bar();
-String baz = 'hello';
-const int quux = 20;
-```
-
-NOTE: Using the the `@optionalTypeArgs` annotation in the `meta` package, API
-authors can special-case type variables whose type needs to be dynamic but whose
-declaration should be treated as optional.  For example, suppose you have a
-`Key` object whose type parameter you'd like to treat as optional.  Using the
-`@optionalTypeArgs` would look like this:
-
-```dart
-import 'package:meta/meta.dart';
-
-@optionalTypeArgs
-class Key<T> {
- ...
-}
-
-main() {
-  Key s = Key(); // OK!
-}
-```
-
-''';
-
 class AlwaysSpecifyTypes extends LintRule {
   AlwaysSpecifyTypes()
       : super(
           name: 'always_specify_types',
           description: _desc,
-          details: _details,
         );
 
   @override

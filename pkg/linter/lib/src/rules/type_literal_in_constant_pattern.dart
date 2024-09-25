@@ -10,56 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r"Don't use constant patterns with type literals.";
 
-const _details = r'''
-If you meant to test if the object has type `Foo`, instead write `Foo _`.
-
-**BAD:**
-```dart
-void f(Object? x) {
-  if (x case num) {
-    print('int or double');
-  }
-}
-```
-
-**GOOD:**
-```dart
-void f(Object? x) {
-  if (x case num _) {
-    print('int or double');
-  }
-}
-```
-
-If you do mean to test that the matched value (which you expect to have the
-type `Type`) is equal to the type literal `Foo`, then this lint can be
-silenced using `const (Foo)`.
-
-**BAD:**
-```dart
-void f(Object? x) {
-  if (x case int) {
-    print('int');
-  }
-}
-```
-
-**GOOD:**
-```dart
-void f(Object? x) {
-  if (x case const (int)) {
-    print('int');
-  }
-}
-```
-''';
-
 class TypeLiteralInConstantPattern extends LintRule {
   TypeLiteralInConstantPattern()
       : super(
           name: 'type_literal_in_constant_pattern',
           description: _desc,
-          details: _details,
         );
 
   @override

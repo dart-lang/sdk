@@ -13,46 +13,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Annotate overridden members.';
 
-const _details = r'''
-**DO** annotate overridden methods and fields.
-
-This practice improves code readability and helps protect against
-unintentionally overriding superclass members.
-
-**BAD:**
-```dart
-class Cat {
-  int get lives => 9;
-}
-
-class Lucky extends Cat {
-  final int lives = 14;
-}
-```
-
-**GOOD:**
-```dart
-abstract class Dog {
-  String get breed;
-  void bark() {}
-}
-
-class Husky extends Dog {
-  @override
-  final String breed = 'Husky';
-  @override
-  void bark() {}
-}
-```
-
-''';
-
 class AnnotateOverrides extends LintRule {
   AnnotateOverrides()
       : super(
           name: 'annotate_overrides',
           description: _desc,
-          details: _details,
         );
 
   @override

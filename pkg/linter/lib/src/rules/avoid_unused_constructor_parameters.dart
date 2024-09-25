@@ -13,32 +13,11 @@ import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid defining unused parameters in constructors.';
 
-const _details = r'''
-**AVOID** defining unused parameters in constructors.
-
-**BAD:**
-```dart
-class BadOne {
-  BadOne(int unusedParameter, [String unusedPositional]);
-}
-
-class BadTwo {
-  int c;
-
-  BadTwo(int a, int b, int x) {
-    c = a + b;
-  }
-}
-```
-
-''';
-
 class AvoidUnusedConstructorParameters extends LintRule {
   AvoidUnusedConstructorParameters()
       : super(
           name: 'avoid_unused_constructor_parameters',
           description: _desc,
-          details: _details,
         );
 
   @override

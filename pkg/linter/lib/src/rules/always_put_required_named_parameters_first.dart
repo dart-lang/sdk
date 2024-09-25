@@ -10,37 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Put required named parameters first.';
 
-const _details = r'''
-**DO** specify `required` on named parameter before other named parameters.
-
-**BAD:**
-```dart
-m({b, c, required a}) ;
-```
-
-**GOOD:**
-```dart
-m({required a, b, c}) ;
-```
-
-**BAD:**
-```dart
-m({b, c, @required a}) ;
-```
-
-**GOOD:**
-```dart
-m({@required a, b, c}) ;
-```
-
-''';
-
 class AlwaysPutRequiredNamedParametersFirst extends LintRule {
   AlwaysPutRequiredNamedParametersFirst()
       : super(
           name: 'always_put_required_named_parameters_first',
           description: _desc,
-          details: _details,
         );
 
   @override

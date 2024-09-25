@@ -14,32 +14,11 @@ import '../utils.dart';
 
 const _desc = r'Name non-constant identifiers using lowerCamelCase.';
 
-const _details = r'''
-**DO** name non-constant identifiers using lowerCamelCase.
-
-Class members, top-level definitions, variables, parameters, named parameters
-and named constructors should capitalize the first letter of each word
-except the first word, and use no separators.
-
-**GOOD:**
-```dart
-var item;
-
-HttpRequest httpRequest;
-
-align(clearItems) {
-  // ...
-}
-```
-
-''';
-
 class NonConstantIdentifierNames extends LintRule {
   NonConstantIdentifierNames()
       : super(
           name: 'non_constant_identifier_names',
           description: _desc,
-          details: _details,
         );
 
   @override

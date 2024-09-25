@@ -13,34 +13,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Use `isNotEmpty` for `Iterable`s and `Map`s.';
 
-const _details = r'''
-**PREFER** `x.isNotEmpty` to `!x.isEmpty` for `Iterable` and `Map` instances.
-
-When testing whether an iterable or map is empty, prefer `isNotEmpty` over
-`!isEmpty` to improve code readability.
-
-**BAD:**
-```dart
-if (!sources.isEmpty) {
-  process(sources);
-}
-```
-
-**GOOD:**
-```dart
-if (todo.isNotEmpty) {
-  sendResults(request, todo.isEmpty);
-}
-```
-
-''';
-
 class PreferIsNotEmpty extends LintRule {
   PreferIsNotEmpty()
       : super(
           name: 'prefer_is_not_empty',
           description: _desc,
-          details: _details,
         );
 
   @override

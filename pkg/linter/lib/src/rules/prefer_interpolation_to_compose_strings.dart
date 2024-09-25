@@ -12,30 +12,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Use interpolation to compose strings and values.';
 
-const _details = r'''
-**PREFER** using interpolation to compose strings and values.
-
-Using interpolation when composing strings and values is usually easier to write
-and read than concatenation.
-
-**BAD:**
-```dart
-'Hello, ' + person.name + ' from ' + person.city + '.';
-```
-
-**GOOD:**
-```dart
-'Hello, ${person.name} from ${person.city}.'
-```
-
-''';
-
 class PreferInterpolationToComposeStrings extends LintRule {
   PreferInterpolationToComposeStrings()
       : super(
           name: 'prefer_interpolation_to_compose_strings',
           description: _desc,
-          details: _details,
         );
 
   @override

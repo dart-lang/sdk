@@ -11,60 +11,11 @@ import '../util/flutter_utils.dart';
 
 const _desc = r"Don't put any logic in createState.";
 
-const _details = r'''
-**DON'T** put any logic in `createState()`.
-
-Implementations of  `createState()` should return a new instance
-of a State object and do nothing more.  Since state access is preferred 
-via the `widget` field,  passing data to `State` objects using custom
-constructor parameters should also be avoided and so further, the State
-constructor is required to be passed no arguments.
-
-**BAD:**
-```dart
-MyState global;
-
-class MyStateful extends StatefulWidget {
-  @override
-  MyState createState() {
-    global = MyState();
-    return global;
-  } 
-}
-```
-
-```dart
-class MyStateful extends StatefulWidget {
-  @override
-  MyState createState() => MyState()..field = 42;
-}
-```
-
-```dart
-class MyStateful extends StatefulWidget {
-  @override
-  MyState createState() => MyState(42);
-}
-```
-
-
-**GOOD:**
-```dart
-class MyStateful extends StatefulWidget {
-  @override
-  MyState createState() {
-    return MyState();
-  }
-}
-```
-''';
-
 class NoLogicInCreateState extends LintRule {
   NoLogicInCreateState()
       : super(
           name: 'no_logic_in_create_state',
           description: _desc,
-          details: _details,
         );
 
   @override

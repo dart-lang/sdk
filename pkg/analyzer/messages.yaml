@@ -20667,6 +20667,7 @@ FfiCode:
   VARIABLE_LENGTH_ARRAY_NOT_LAST:
     problemMessage: "Variable length 'Array's must only occur as the last field of Structs."
     correctionMessage: "Try adjusting the arguments in the 'Array' annotation."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -27205,7 +27206,7 @@ WarningCode:
   UNREACHABLE_SWITCH_DEFAULT:
     problemMessage: "This default clause is covered by the previous cases."
     correctionMessage: Try removing the default clause, or restructuring the preceding patterns.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -27670,11 +27671,10 @@ WarningCode:
 
       var x = min(0, 1);
       ```
-
   URI_DOES_NOT_EXIST_IN_DOC_IMPORT:
     problemMessage: "Target of URI doesn't exist: '{0}'."
     correctionMessage: Try creating the file referenced by the URI, or try using a URI for a file that does exist.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the URI pointing to a nonexistent file

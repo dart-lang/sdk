@@ -15,62 +15,11 @@ import '../linter_lint_codes.dart';
 const _desc =
     r'Avoid overloading operator == and hashCode on classes not marked `@immutable`.';
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/design#avoid-defining-custom-equality-for-mutable-classes):
-
-**AVOID** overloading operator == and hashCode on classes not marked `@immutable`.
-
-If a class is not immutable, overloading `operator ==` and `hashCode` can
-lead to unpredictable and undesirable behavior when used in collections.
-
-**BAD:**
-```dart
-class B {
-  String key;
-  const B(this.key);
-  @override
-  operator ==(other) => other is B && other.key == key;
-  @override
-  int get hashCode => key.hashCode;
-}
-```
-
-**GOOD:**
-```dart
-@immutable
-class A {
-  final String key;
-  const A(this.key);
-  @override
-  operator ==(other) => other is A && other.key == key;
-  @override
-  int get hashCode => key.hashCode;
-}
-```
-
-NOTE: The lint checks the use of the `@immutable` annotation, and will trigger
-even if the class is otherwise not mutable. Thus:
-
-**BAD:**
-```dart
-class C {
-  final String key;
-  const C(this.key);
-  @override
-  operator ==(other) => other is C && other.key == key;
-  @override
-  int get hashCode => key.hashCode;
-}
-```
-
-''';
-
 class AvoidEqualsAndHashCodeOnMutableClasses extends LintRule {
   AvoidEqualsAndHashCodeOnMutableClasses()
       : super(
           name: 'avoid_equals_and_hash_code_on_mutable_classes',
           description: _desc,
-          details: _details,
         );
 
   @override

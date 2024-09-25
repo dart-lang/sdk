@@ -40,6 +40,7 @@ builtin_impl_sources = [
   "isolate_data.cc",
   "isolate_data.h",
   "lockers.h",
+  "thread.cc",
   "thread.h",
   "thread_absl.cc",
   "thread_fuchsia.cc",

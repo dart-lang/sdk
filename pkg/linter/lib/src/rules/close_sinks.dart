@@ -11,64 +11,11 @@ import '../util/leak_detector_visitor.dart';
 
 const _desc = r'Close instances of `dart:core` `Sink`.';
 
-const _details = r'''
-**DO** invoke `close` on instances of `dart:core` `Sink`.
-
-Closing instances of Sink prevents memory leaks and unexpected behavior.
-
-**BAD:**
-```dart
-class A {
-  IOSink _sinkA;
-  void init(filename) {
-    _sinkA = File(filename).openWrite(); // LINT
-  }
-}
-```
-
-**BAD:**
-```dart
-void someFunction() {
-  IOSink _sinkF; // LINT
-}
-```
-
-**GOOD:**
-```dart
-class B {
-  IOSink _sinkB;
-  void init(filename) {
-    _sinkB = File(filename).openWrite(); // OK
-  }
-
-  void dispose(filename) {
-    _sinkB.close();
-  }
-}
-```
-
-**GOOD:**
-```dart
-void someFunctionOK() {
-  IOSink _sinkFOK; // OK
-  _sinkFOK.close();
-}
-```
-
-**Known limitations**
-
-This rule does not track all patterns of Sink instantiations and
-closures. See [linter#1381](https://github.com/dart-lang/linter/issues/1381)
-for more information.
-
-''';
-
 class CloseSinks extends LintRule {
   CloseSinks()
       : super(
           name: 'close_sinks',
           description: _desc,
-          details: _details,
         );
 
   @override

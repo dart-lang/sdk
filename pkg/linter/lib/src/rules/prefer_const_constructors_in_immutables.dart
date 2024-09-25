@@ -14,38 +14,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer declaring `const` constructors on `@immutable` classes.';
 
-const _details = r'''
-**PREFER** declaring `const` constructors on `@immutable` classes.
-
-If a class is immutable, it is usually a good idea to make its constructor a
-`const` constructor.
-
-**BAD:**
-```dart
-@immutable
-class A {
-  final a;
-  A(this.a);
-}
-```
-
-**GOOD:**
-```dart
-@immutable
-class A {
-  final a;
-  const A(this.a);
-}
-```
-
-''';
-
 class PreferConstConstructorsInImmutables extends LintRule {
   PreferConstConstructorsInImmutables()
       : super(
           name: 'prefer_const_constructors_in_immutables',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -10,33 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid `bool` literals in conditional expressions.';
 
-const _details = r'''
-**AVOID** `bool` literals in conditional expressions.
-
-**BAD:**
-```dart
-condition ? true : boolExpression
-condition ? false : boolExpression
-condition ? boolExpression : true
-condition ? boolExpression : false
-```
-
-**GOOD:**
-```dart
-condition || boolExpression
-!condition && boolExpression
-!condition || boolExpression
-condition && boolExpression
-```
-
-''';
-
 class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
   AvoidBoolLiteralsInConditionalExpressions()
       : super(
           name: 'avoid_bool_literals_in_conditional_expressions',
           description: _desc,
-          details: _details,
         );
 
   @override

@@ -11,29 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Unnecessary string interpolation.';
 
-const _details = r'''
-**DON'T** use string interpolation if there's only a string expression in it.
-
-**BAD:**
-```dart
-String message;
-String o = '$message';
-```
-
-**GOOD:**
-```dart
-String message;
-String o = message;
-```
-
-''';
-
 class UnnecessaryStringInterpolations extends LintRule {
   UnnecessaryStringInterpolations()
       : super(
           name: 'unnecessary_string_interpolations',
           description: _desc,
-          details: _details,
         );
 
   @override

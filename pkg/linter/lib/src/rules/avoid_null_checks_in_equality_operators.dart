@@ -14,36 +14,6 @@ import '../linter_lint_codes.dart';
 
 const _desc = r"Don't check for `null` in custom `==` operators.";
 
-const _details = r'''
-**DON'T** check for `null` in custom `==` operators.
-
-As `null` is a special value, no instance of any class (other than `Null`) can
-be equivalent to it.  Thus, it is redundant to check whether the other instance
-is `null`.
-
-**BAD:**
-```dart
-class Person {
-  final String? name;
-
-  @override
-  operator ==(Object? other) =>
-      other != null && other is Person && name == other.name;
-}
-```
-
-**GOOD:**
-```dart
-class Person {
-  final String? name;
-
-  @override
-  operator ==(Object? other) => other is Person && name == other.name;
-}
-```
-
-''';
-
 bool _isComparingEquality(TokenType tokenType) =>
     tokenType == TokenType.BANG_EQ || tokenType == TokenType.EQ_EQ;
 
@@ -67,7 +37,6 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
       : super(
           name: 'avoid_null_checks_in_equality_operators',
           description: _desc,
-          details: _details,
         );
 
   @override
