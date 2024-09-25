@@ -3356,8 +3356,7 @@ class Parser {
   }
 
   bool notEofOrValue(String value, Token token) {
-    return !identical(token.kind, EOF_TOKEN) &&
-        !identical(value, token.stringValue);
+    return token.kind != EOF_TOKEN && value != token.stringValue;
   }
 
   Token parseTypeVariablesOpt(Token token) {
@@ -4279,7 +4278,7 @@ class Parser {
   /// Call `parseLiteralString` and return the result.
   Token ensureLiteralString(Token token) {
     Token next = token.next!;
-    if (!identical(next.kind, STRING_TOKEN)) {
+    if (next.kind != STRING_TOKEN) {
       codes.Message message = codes.templateExpectedString.withArguments(next);
       Token newToken = new SyntheticStringToken(
           TokenType.STRING, '""', next.charOffset, /* _length = */ 0);
@@ -4832,8 +4831,8 @@ class Parser {
     if (getOrSet == null && optional('operator', name)) {
       Token operator = name.next!;
       if (operator.isOperator ||
-          identical(operator.kind, EQ_EQ_EQ_TOKEN) ||
-          identical(operator.kind, BANG_EQ_EQ_TOKEN) ||
+          operator.kind == EQ_EQ_EQ_TOKEN ||
+          operator.kind == BANG_EQ_EQ_TOKEN ||
           isUnaryMinus(operator)) {
         isOperator = true;
         if (optional(">>", operator) &&
@@ -5588,7 +5587,7 @@ class Parser {
   }
 
   Token parseStatementX(Token token) {
-    if (identical(token.next!.kind, IDENTIFIER_TOKEN)) {
+    if (token.next!.kind == IDENTIFIER_TOKEN) {
       if (optional(':', token.next!.next!)) {
         return parseLabeledStatement(token);
       }
@@ -5974,10 +5973,10 @@ class Parser {
     for (int level = tokenLevel; level >= precedence; --level) {
       int lastBinaryExpressionLevel = -1;
       Token? lastCascade;
-      while (identical(tokenLevel, level)) {
+      while (tokenLevel == level) {
         enteredLoop = true;
         Token operator = next;
-        if (identical(tokenLevel, CASCADE_PRECEDENCE)) {
+        if (tokenLevel == CASCADE_PRECEDENCE) {
           if (!allowCascades) {
             return token;
           } else if (lastCascade != null && optional('?..', next)) {
@@ -5986,7 +5985,7 @@ class Parser {
           }
           lastCascade = next;
           token = parseCascadeExpression(token);
-        } else if (identical(tokenLevel, ASSIGNMENT_PRECEDENCE)) {
+        } else if (tokenLevel == ASSIGNMENT_PRECEDENCE) {
           // Right associative, so we recurse at the same precedence
           // level.
           Token next = token.next!;
@@ -6005,7 +6004,7 @@ class Parser {
               : parsePrecedenceExpression(
                   next, level, allowCascades, ConstantPatternContext.none);
           listener.handleAssignmentExpression(operator, token);
-        } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
+        } else if (tokenLevel == POSTFIX_PRECEDENCE) {
           if ((identical(type, TokenType.PLUS_PLUS)) ||
               (identical(type, TokenType.MINUS_MINUS))) {
             listener.handleUnaryPostfixAssignmentExpression(token.next!);
@@ -6014,7 +6013,7 @@ class Parser {
             listener.handleNonNullAssertExpression(next);
             token = next;
           }
-        } else if (identical(tokenLevel, SELECTOR_PRECEDENCE)) {
+        } else if (tokenLevel == SELECTOR_PRECEDENCE) {
           if (identical(type, TokenType.PERIOD) ||
               identical(type, TokenType.QUESTION_PERIOD)) {
             // Left associative, so we recurse at the next higher precedence
@@ -6350,7 +6349,7 @@ class Parser {
       next = token.next!;
     } while (!identical(mark, token));
 
-    if (identical(next.type.precedence, ASSIGNMENT_PRECEDENCE)) {
+    if (next.type.precedence == ASSIGNMENT_PRECEDENCE) {
       Token assignment = next;
       token = parseExpressionWithoutCascade(next);
       listener.handleAssignmentExpression(assignment, token);
@@ -6693,12 +6692,10 @@ class Parser {
     if (mayParseFunctionExpressions) {
       Token nextToken = next.endGroup!.next!;
       int kind = nextToken.kind;
-      if ((identical(kind, FUNCTION_TOKEN) ||
-          identical(kind, OPEN_CURLY_BRACKET_TOKEN))) {
+      if (kind == FUNCTION_TOKEN || kind == OPEN_CURLY_BRACKET_TOKEN) {
         listener.handleNoTypeVariables(next);
         return parseFunctionExpression(token);
-      } else if (identical(kind, KEYWORD_TOKEN) ||
-          identical(kind, IDENTIFIER_TOKEN)) {
+      } else if (kind == KEYWORD_TOKEN || kind == IDENTIFIER_TOKEN) {
         if (optional('async', nextToken) || optional('sync', nextToken)) {
           listener.handleNoTypeVariables(next);
           return parseFunctionExpression(token);
@@ -6708,8 +6705,7 @@ class Parser {
         // because the user is typing (e.g. `() asy {}`) then continue parsing
         // and allow parseFunctionExpression to report an unexpected token.
         kind = nextToken.next!.kind;
-        if ((identical(kind, FUNCTION_TOKEN) ||
-            identical(kind, OPEN_CURLY_BRACKET_TOKEN))) {
+        if (kind == FUNCTION_TOKEN || kind == OPEN_CURLY_BRACKET_TOKEN) {
           listener.handleNoTypeVariables(next);
           return parseFunctionExpression(token);
         }
@@ -7110,9 +7106,9 @@ class Parser {
     // Scanner ensures `(` has matching `)`.
     Token next = token.next!.endGroup!.next!;
     int kind = next.kind;
-    if (!identical(kind, FUNCTION_TOKEN) &&
-        !identical(kind, OPEN_CURLY_BRACKET_TOKEN) &&
-        (!identical(kind, KEYWORD_TOKEN) ||
+    if (kind != FUNCTION_TOKEN &&
+        kind != OPEN_CURLY_BRACKET_TOKEN &&
+        (kind != KEYWORD_TOKEN ||
             !optional('async', next) && !optional('sync', next))) {
       reportRecoverableErrorWithToken(next, codes.templateUnexpectedToken);
     }
@@ -7508,7 +7504,7 @@ class Parser {
     mayParseFunctionExpressions = true;
     token = parseSingleLiteralString(token);
     int count = 1;
-    while (identical(token.next!.kind, STRING_TOKEN)) {
+    while (token.next!.kind == STRING_TOKEN) {
       token = parseSingleLiteralString(token);
       count++;
     }
@@ -7559,7 +7555,7 @@ class Parser {
     Token next = token.next!;
     int kind = next.kind;
     while (kind != EOF_TOKEN) {
-      if (identical(kind, STRING_INTERPOLATION_TOKEN)) {
+      if (kind == STRING_INTERPOLATION_TOKEN) {
         // Parsing ${expression}.
         token = parseExpression(next).next!;
         if (!optional('}', token)) {
@@ -7568,7 +7564,7 @@ class Parser {
           token = next.endGroup!;
         }
         listener.handleInterpolationExpression(next, token);
-      } else if (identical(kind, STRING_INTERPOLATION_IDENTIFIER_TOKEN)) {
+      } else if (kind == STRING_INTERPOLATION_IDENTIFIER_TOKEN) {
         // Parsing $identifier.
         token = parseIdentifierExpression(next);
         listener.handleInterpolationExpression(next, /* rightBracket = */ null);
@@ -9080,7 +9076,7 @@ class Parser {
     listener.beginSwitchCase(labelCount, expressionCount, begin);
     // Finally zero or more statements.
     int statementCount = 0;
-    while (!identical(token.next!.kind, EOF_TOKEN)) {
+    while (token.next!.kind != EOF_TOKEN) {
       String? value = peek.stringValue;
       if ((identical(value, 'case')) ||
           (identical(value, 'default')) ||

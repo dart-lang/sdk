@@ -24,8 +24,11 @@ import 'package:front_end/src/kernel/expression_generator_helper.dart'
     show UnresolvedKind;
 import 'package:front_end/src/kernel/kernel_target.dart' show BuildResult;
 import 'package:front_end/src/util/import_export_etc_helper.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:kernel/type_environment.dart';
 import 'package:package_config/package_config.dart';
 
 import 'compiler_test_helper.dart' show BodyBuilderTest, compile;
@@ -281,6 +284,9 @@ mixin BodyBuilderTestMixin on BodyBuilder {
 class ProblemFinder extends RecursiveVisitor {
   final Set<Uri> wantedUris;
   Reference? stackTraceCurrent;
+  Reference? identicalReference;
+  Reference? intReference;
+  StatefulStaticTypeContext? staticTypeContext;
   Map<Uri, Source>? uriToSource;
   bool inField = false;
   int foundErrors = 0;
@@ -311,21 +317,33 @@ class ProblemFinder extends RecursiveVisitor {
     stackTraceCurrent = platformIndex
         .getProcedure("dart:core", "StackTrace", "get:current")
         .reference;
+    identicalReference =
+        platformIndex.getTopLevelMember("dart:core", "identical").reference;
+    intReference = platformIndex.getClass("dart:core", "int").reference;
+
+    CoreTypes coreTypes = new CoreTypes(node);
+    TypeEnvironment types =
+        TypeEnvironment(coreTypes, new ClassHierarchy(node, coreTypes));
+    staticTypeContext = StatefulStaticTypeContext.stacked(types);
     super.visitComponent(node);
   }
 
   @override
   void visitField(Field node) {
+    staticTypeContext?.enterMember(node);
     inField = true;
     super.visitField(node);
     inField = false;
+    staticTypeContext?.leaveMember(node);
   }
 
   @override
   void visitLibrary(Library node) {
     if (wantedUris.contains(node.importUri) ||
         wantedUris.contains(node.fileUri)) {
+      staticTypeContext?.enterLibrary(node);
       super.visitLibrary(node);
+      staticTypeContext?.leaveLibrary(node);
     }
   }
 
@@ -335,7 +353,10 @@ class ProblemFinder extends RecursiveVisitor {
       // Assume this is only called via asserts.
       return;
     }
+
+    staticTypeContext?.enterMember(node);
     super.visitProcedure(node);
+    staticTypeContext?.leaveMember(node);
   }
 
   @override
@@ -347,6 +368,32 @@ class ProblemFinder extends RecursiveVisitor {
 
     if (node.targetReference == stackTraceCurrent) {
       reportError(node, "current".length, "Usage of StackTrace.current");
+    }
+  }
+
+  @override
+  void visitStaticInvocation(StaticInvocation node) {
+    super.visitStaticInvocation(node);
+
+    if (node.targetReference == identicalReference &&
+        staticTypeContext != null &&
+        node.arguments.positional.any(_hasStaticTypeInt)) {
+      reportError(node, "identical".length, "Usage of identical on int");
+    }
+  }
+
+  bool _hasStaticTypeInt(Expression expression) {
+    try {
+      DartType type = expression.getStaticType(staticTypeContext!);
+      if (type is InterfaceType && type.classReference == intReference) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      // Let's assume this means no.
+      // E.g. this might happen if finding the static type of `this` when not
+      // having done all the enter/leave things adequately.
+      return false;
     }
   }
 }
