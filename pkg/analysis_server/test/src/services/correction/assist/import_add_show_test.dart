@@ -19,26 +19,6 @@ class ImportAddShowTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.IMPORT_ADD_SHOW;
 
-  Future<void> test_extensionBinaryOperator() async {
-    newFile('$testPackageLibPath/lib.dart', '''
-class C {}
-
-extension E on C {
-  C operator +(C c) => this;
-}
-''');
-    await resolveTestCode('''
-import 'lib.dart';
-
-void f(C c) => c + c;
-''');
-    await assertHasAssistAt('import ', '''
-import 'lib.dart' show C, E;
-
-void f(C c) => c + c;
-''');
-  }
-
   Future<void> test_alias() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class C {}
@@ -56,6 +36,26 @@ void f(l.C c) => c + c;
 import 'lib.dart' as l show C, E;
 
 void f(l.C c) => c + c;
+''');
+  }
+
+  Future<void> test_extensionBinaryOperator() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  C operator +(C c) => this;
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f(C c) => c + c;
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+void f(C c) => c + c;
 ''');
   }
 
