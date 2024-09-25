@@ -21060,12 +21060,39 @@ void Instance::SetFieldWithoutFieldGuard(const Field& field,
   }
 }
 
-AbstractTypePtr Instance::GetType(Heap::Space space) const {
+AbstractTypePtr Instance::GetType(Heap::Space space,
+                                  TypeVisibility visibility) const {
   if (IsNull()) {
     return Type::NullType();
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  if (visibility == TypeVisibility::kUserVisibleType) {
+    // VM hides certain internal implementation classes
+    // and substitutes them with public user-visible types
+    // (String, int, double, Type, List).
+    if (IsString()) {
+      return Type::StringType();
+    } else if (IsInteger()) {
+      return Type::IntType();
+    } else if (IsDouble()) {
+      return Type::Double();
+    } else if (IsAbstractType()) {
+      return Type::DartTypeType();
+    } else if (IsArrayClassId(GetClassId())) {
+      const auto& cls = Class::Handle(
+          zone, thread->isolate_group()->object_store()->list_class());
+      auto& type_arguments = TypeArguments::Handle(zone, GetTypeArguments());
+      type_arguments = type_arguments.FromInstanceTypeArguments(thread, cls);
+      // Assume internal VM types are properly encapsulated in the core
+      // libraries and cannot not appear in type arguments.
+      const auto& type =
+          Type::Handle(zone, Type::New(cls, type_arguments,
+                                       Nullability::kNonNullable, Heap::kNew));
+      type.SetIsFinalized();
+      return type.Canonicalize(thread);
+    }
+  }
   const Class& cls = Class::Handle(zone, clazz());
   if (!cls.is_finalized()) {
     // Various predefined classes can be instantiated by the VM or
@@ -21085,7 +21112,7 @@ AbstractTypePtr Instance::GetType(Heap::Space space) const {
   if (IsRecord()) {
     ASSERT(cls.IsRecordClass());
     auto& record_type =
-        RecordType::Handle(zone, Record::Cast(*this).GetRecordType());
+        RecordType::Handle(zone, Record::Cast(*this).GetRecordType(visibility));
     ASSERT(record_type.IsFinalized());
     ASSERT(record_type.IsCanonical());
     return record_type.ptr();
@@ -21566,7 +21593,8 @@ const char* Instance::ToCString() const {
     }
     // Background compiler disassembly of instructions referring to pool objects
     // calls this function and requires allocation of Type in old space.
-    const AbstractType& type = AbstractType::Handle(GetType(Heap::kOld));
+    const AbstractType& type = AbstractType::Handle(
+        GetType(Heap::kOld, TypeVisibility::kUserVisibleType));
     const String& type_name = String::Handle(type.UserVisibleName());
     return OS::SCreate(Thread::Current()->zone(), "Instance of '%s'",
                        type_name.ToCString());
@@ -28275,7 +28303,7 @@ void Record::CanonicalizeFieldsLocked(Thread* thread) const {
   }
 }
 
-RecordTypePtr Record::GetRecordType() const {
+RecordTypePtr Record::GetRecordType(TypeVisibility visibility) const {
   Zone* const zone = Thread::Current()->zone();
   const intptr_t num_fields = this->num_fields();
   const Array& field_types =
@@ -28284,7 +28312,7 @@ RecordTypePtr Record::GetRecordType() const {
   AbstractType& type = AbstractType::Handle(zone);
   for (intptr_t i = 0; i < num_fields; ++i) {
     obj ^= FieldAt(i);
-    type = obj.GetType(Heap::kNew);
+    type = obj.GetType(Heap::kNew, visibility);
     field_types.SetAt(i, type);
   }
   type = RecordType::New(shape(), field_types, Nullability::kNonNullable);
