@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class AmbiguousExportTest extends PubPackageResolutionTest {
-  test_class() async {
+  test_library_class() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 class N {}
 ''');
@@ -30,7 +30,7 @@ export 'lib2.dart';
     ]);
   }
 
-  test_extensions_bothExported() async {
+  test_library_extensions_bothExported() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 extension E on String {}
 ''');
@@ -45,7 +45,7 @@ export 'lib2.dart';
     ]);
   }
 
-  test_extensions_localAndExported() async {
+  test_library_extensions_localAndExported() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 extension E on String {}
 ''');
@@ -54,5 +54,64 @@ export 'lib1.dart';
 
 extension E on String {}
 ''');
+  }
+
+  test_part_library() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class N {}
+''');
+
+    newFile('$testPackageLibPath/lib2.dart', r'''
+class N {}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+export 'lib1.dart';
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export 'lib2.dart';
+''');
+
+    await assertErrorsInFile2(a, []);
+
+    await assertErrorsInFile2(b, [
+      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 25, 11),
+    ]);
+  }
+
+  test_part_part() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class N {}
+''');
+
+    newFile('$testPackageLibPath/lib2.dart', r'''
+class N {}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+part 'c.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export 'lib1.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+part of 'a.dart';
+export 'lib2.dart';
+''');
+
+    await assertErrorsInFile2(a, []);
+
+    await assertErrorsInFile2(b, []);
+
+    await assertErrorsInFile2(c, [
+      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 25, 11),
+    ]);
   }
 }
