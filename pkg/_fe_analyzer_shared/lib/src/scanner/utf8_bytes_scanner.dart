@@ -9,6 +9,8 @@ import 'dart:typed_data' show Uint8List;
 
 import 'dart:convert' show unicodeBomCharacterRune, utf8;
 
+import 'characters.dart' show $EOF;
+
 import 'token.dart' show LanguageVersionToken, SyntheticStringToken, TokenType;
 
 import 'token.dart' as analyzer;
@@ -127,7 +129,7 @@ class Utf8BytesScanner extends AbstractScanner {
   int advance() {
     // Always increment so byteOffset goes past the end.
     ++byteOffset;
-    if (byteOffset > _bytesLengthMinusOne) return 0;
+    if (byteOffset > _bytesLengthMinusOne) return $EOF;
     return _bytes[byteOffset];
   }
 
@@ -135,7 +137,7 @@ class Utf8BytesScanner extends AbstractScanner {
   @pragma('vm:unsafe:no-bounds-checks')
   int peek() {
     int next = byteOffset + 1;
-    if (next > _bytesLengthMinusOne) return 0;
+    if (next > _bytesLengthMinusOne) return $EOF;
     return _bytes[next];
   }
 

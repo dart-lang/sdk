@@ -4,6 +4,8 @@
 
 library dart2js.scanner.string_scanner;
 
+import 'characters.dart' show $EOF;
+
 import 'token.dart'
     show
         CommentToken,
@@ -72,7 +74,7 @@ class StringScanner extends AbstractScanner {
   int advance() {
     // Always increment so scanOffset goes past the end.
     ++scanOffset;
-    if (scanOffset > _stringLengthMinusOne) return 0;
+    if (scanOffset > _stringLengthMinusOne) return $EOF;
     return _string.codeUnitAt(scanOffset);
   }
 
@@ -80,7 +82,7 @@ class StringScanner extends AbstractScanner {
   @pragma('vm:unsafe:no-bounds-checks')
   int peek() {
     int next = scanOffset + 1;
-    if (next > _stringLengthMinusOne) return 0;
+    if (next > _stringLengthMinusOne) return $EOF;
     return _string.codeUnitAt(next);
   }
 

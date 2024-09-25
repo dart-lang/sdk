@@ -1622,7 +1622,7 @@ abstract class AbstractScanner implements Scanner {
         if (!asciiOnlyLines) handleUnicode(unicodeStart);
         prependErrorToken(new UnterminatedToken(
             messageUnterminatedComment, tokenStart, stringOffset));
-        advanceAfterError(/* shouldAdvance = */ true);
+        advanceAfterError();
         break;
       } else if ($STAR == next) {
         next = advance();
@@ -2032,7 +2032,7 @@ abstract class AbstractScanner implements Scanner {
       }
       codeUnits.add(errorToken.character);
       prependErrorToken(errorToken);
-      int next = advanceAfterError(/* shouldAdvance = */ true);
+      int next = advanceAfterError();
       while (_isIdentifierChar(next, /* allowDollar = */ true)) {
         codeUnits.add(next);
         next = advance();
@@ -2043,7 +2043,7 @@ abstract class AbstractScanner implements Scanner {
       return next;
     } else {
       prependErrorToken(errorToken);
-      return advanceAfterError(/* shouldAdvance = */ true);
+      return advanceAfterError();
     }
   }
 
@@ -2066,13 +2066,9 @@ abstract class AbstractScanner implements Scanner {
     prependErrorToken(new UnterminatedString(prefix, errorStart, stringOffset));
   }
 
-  int advanceAfterError(bool shouldAdvance) {
+  int advanceAfterError() {
     if (atEndOfFile()) return $EOF;
-    if (shouldAdvance) {
-      return advance(); // Ensure progress.
-    } else {
-      return -1;
-    }
+    return advance(); // Ensure progress.
   }
 }
 
