@@ -1,3 +1,6 @@
+## 2.0.0
+- Provides version 4.16 of the Dart VM service protocol.
+
 ## 1.1.0
 - Provides version 4.15 of the Dart VM service protocol.
 

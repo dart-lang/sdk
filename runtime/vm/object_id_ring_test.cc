@@ -279,7 +279,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
 // Test that the ring table correctly reports an entry as expired when it is
 // overridden by new entries.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingExpiredEntryTest) {
-  ObjectIdRing ring(RingServiceIdZone::kDefaultCapacity);
+  ObjectIdRing ring(RingServiceIdZone::kFallbackCapacityForCreateIdZone);
 
   // Insert an object and check we can look it up.
   String& obj = String::Handle(String::New("I will expire"));
@@ -291,7 +291,8 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingExpiredEntryTest) {
 
   // Insert as many new objects as the ring size to bump out our first entry.
   Object& new_obj = Object::Handle();
-  for (intptr_t i = 0; i < RingServiceIdZone::kDefaultCapacity; i++) {
+  for (intptr_t i = 0; i < RingServiceIdZone::kFallbackCapacityForCreateIdZone;
+       i++) {
     new_obj = String::New("Bump");
     intptr_t new_obj_id = ring.GetIdForObject(new_obj.ptr());
     ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;

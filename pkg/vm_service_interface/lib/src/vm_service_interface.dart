@@ -149,6 +149,53 @@ abstract interface class VmServiceInterface {
   /// See [Success].
   Future<Success> clearVMTimeline();
 
+  /// The `createIdZone` RPC is used to create a new ID zone where temporary IDs
+  /// for instances in the specified isolate may be allocated. See [IDs and
+  /// Names] for more information about ID zones.
+  ///
+  /// backingBufferKind | meaning
+  /// ---- | -------
+  /// ring | Use a ring buffer to back the zone.
+  ///
+  /// idAssignmentPolicy | meaning
+  /// ---- | -------
+  /// alwaysAllocate | When this ID zone is specified in an RPC invocation,
+  /// `InstancesRef` and `Instances` within the response to that RPC will always
+  /// have their `id` fields populated with newly allocated temporary IDs, even
+  /// when there already exists an ID that refers to the same instance.
+  /// reuseExisting | When this ID zone is specified in an RPC invocation,
+  /// `InstancesRef` and `Instances` within the response to that RPC will have
+  /// their `id` fields populated with existing IDs when possible. This
+  /// introduces an extra linear search of the zone – to check for existing IDs
+  /// – for each `InstanceRef` or `Instance` returned in a response.
+  ///
+  /// The `capacity` parameter may be used to specify the maximum number of IDs
+  /// that the created zone will be able to hold at a time. If no argument for
+  /// `capacity` is provided, the created zone will have the default capacity of
+  /// 512 IDs.
+  ///
+  /// When a VM Service client disconnects, all of the Service ID zones created
+  /// by that client will be deleted. Because of this, Service ID zone IDs
+  /// should not be shared between different clients.
+  Future<IdZone> createIdZone(
+    String isolateId,
+    /*IdZoneBackingBufferKind*/ String backingBufferKind,
+    /*IdAssignmentPolicy*/ String idAssignmentPolicy, {
+    int? capacity,
+  });
+
+  /// The `deleteIdZone` RPC frees the buffer that backs the specified ID zone,
+  /// and makes that zone unusable for the remainder of the program's execution.
+  /// For performance reasons, clients should aim to call [invalidateIdZone] and
+  /// reuse existing zones as much as possible instead of deleting zones and
+  /// then creating new ones.
+  Future<Success> deleteIdZone(String isolateId, String idZoneId);
+
+  /// The `invalidateIdZone` RPC is used to invalidate all the IDs that have
+  /// been allocated in a certain ID zone. Invaliding the IDs makes them expire.
+  /// See [IDs and Names] for more information.
+  Future<Success> invalidateIdZone(String isolateId, String idZoneId);
+
   /// The `invoke` RPC is used to perform regular method invocation on some
   /// receiver, as if by dart:mirror's ObjectMirror.invoke. Note this does not
   /// provide a way to perform getter, setter or constructor invocation.
@@ -161,6 +208,12 @@ abstract interface class VmServiceInterface {
   /// as a result of this invocation are ignored, including pauses resulting
   /// from a call to `debugger()` from `dart:developer`. Defaults to false if
   /// not provided.
+  ///
+  /// If `idZoneId` is provided, temporary IDs for `InstancesRef` and
+  /// `Instances` in the RPC response will be allocated in the specified ID
+  /// zone. If `idZoneId` is omitted, ID allocations will be performed in the
+  /// default ID zone for the isolate. See [IDs and Names] for more information
+  /// about ID zones.
   ///
   /// If `targetId` or any element of `argumentIds` is a temporary id which has
   /// expired, then the `Expired` [Sentinel] is returned.
@@ -191,6 +244,7 @@ abstract interface class VmServiceInterface {
     String selector,
     List<String> argumentIds, {
     bool? disableBreakpoints,
+    String? idZoneId,
   });
 
   /// The `evaluate` RPC is used to evaluate an expression in the context of
@@ -218,6 +272,12 @@ abstract interface class VmServiceInterface {
   /// as a result of this evaluation are ignored. Defaults to false if not
   /// provided.
   ///
+  /// If `idZoneId` is provided, temporary IDs for `InstancesRef` and
+  /// `Instances` in the RPC response will be allocated in the specified ID
+  /// zone. If `idZoneId` is omitted, ID allocations will be performed in the
+  /// default ID zone for the isolate. See [IDs and Names] for more information
+  /// about ID zones.
+  ///
   /// If the expression fails to parse and compile, then [RPCError] 113
   /// "Expression compilation error" is returned.
   ///
@@ -237,6 +297,7 @@ abstract interface class VmServiceInterface {
     String expression, {
     Map<String, String>? scope,
     bool? disableBreakpoints,
+    String? idZoneId,
   });
 
   /// The `evaluateInFrame` RPC is used to evaluate an expression in the context
@@ -252,6 +313,12 @@ abstract interface class VmServiceInterface {
   /// If `disableBreakpoints` is provided and set to true, any breakpoints hit
   /// as a result of this evaluation are ignored. Defaults to false if not
   /// provided.
+  ///
+  /// If `idZoneId` is provided, temporary IDs for `InstancesRef` and
+  /// `Instances` in the RPC response will be allocated in the specified ID
+  /// zone. If `idZoneId` is omitted, ID allocations will be performed in the
+  /// default ID zone for the isolate. See [IDs and Names] for more information
+  /// about ID zones.
   ///
   /// If the expression fails to parse and compile, then [RPCError] 113
   /// "Expression compilation error" is returned.
@@ -275,6 +342,7 @@ abstract interface class VmServiceInterface {
     String expression, {
     Map<String, String>? scope,
     bool? disableBreakpoints,
+    String? idZoneId,
   });
 
   /// The `getAllocationProfile` RPC is used to retrieve allocation information
@@ -364,6 +432,12 @@ abstract interface class VmServiceInterface {
   /// Returns a set of inbound references to the object specified by `targetId`.
   /// Up to `limit` references will be returned.
   ///
+  /// If `idZoneId` is provided, temporary IDs for `InstancesRef` and
+  /// `Instances` in the RPC response will be allocated in the specified ID
+  /// zone. If `idZoneId` is omitted, ID allocations will be performed in the
+  /// default ID zone for the isolate. See [IDs and Names] for more information
+  /// about ID zones.
+  ///
   /// The order of the references is undefined (i.e., not related to allocation
   /// order) and unstable (i.e., multiple invocations of this method against the
   /// same object can give different answers even if no Dart code has executed
@@ -389,7 +463,11 @@ abstract interface class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<InboundReferences> getInboundReferences(
-      String isolateId, String targetId, int limit);
+    String isolateId,
+    String targetId,
+    int limit, {
+    String? idZoneId,
+  });
 
   /// The `getInstances` RPC is used to retrieve a set of instances which are of
   /// a specific class.
@@ -414,6 +492,12 @@ abstract interface class VmServiceInterface {
   /// specified class will be included in the set. Note that subclasses of a
   /// class are also considered implementers of that class.
   ///
+  /// If `idZoneId` is provided, temporary IDs for `InstancesRef` and
+  /// `Instances` in the RPC response will be allocated in the specified ID
+  /// zone. If `idZoneId` is omitted, ID allocations will be performed in the
+  /// default ID zone for the isolate. See [IDs and Names] for more information
+  /// about ID zones.
+  ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
@@ -427,6 +511,7 @@ abstract interface class VmServiceInterface {
     int limit, {
     bool? includeSubclasses,
     bool? includeImplementers,
+    String? idZoneId,
   });
 
   /// The `getInstancesAsList` RPC is used to retrieve a set of instances which
@@ -454,6 +539,12 @@ abstract interface class VmServiceInterface {
   /// specified class will be included in the set. Note that subclasses of a
   /// class are also considered implementers of that class.
   ///
+  /// If `idZoneId` is provided, temporary IDs for `InstancesRef` and
+  /// `Instances` in the RPC response will be allocated in the specified ID
+  /// zone. If `idZoneId` is omitted, ID allocations will be performed in the
+  /// default ID zone for the isolate. See [IDs and Names] for more information
+  /// about ID zones.
+  ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
@@ -464,6 +555,7 @@ abstract interface class VmServiceInterface {
     String objectId, {
     bool? includeSubclasses,
     bool? includeImplementers,
+    String? idZoneId,
   });
 
   /// The `getIsolate` RPC is used to lookup an `Isolate` object by its `id`.
@@ -565,6 +657,12 @@ abstract interface class VmServiceInterface {
   /// Int32List, Int64List, Float32List, Float64List, Inst32x3List,
   /// Float32x4List, and Float64x2List. These parameters are otherwise ignored.
   ///
+  /// If `idZoneId` is provided, temporary IDs for `InstancesRef` and
+  /// `Instances` in the RPC response will be allocated in the specified ID
+  /// zone. If `idZoneId` is omitted, ID allocations will be performed in the
+  /// default ID zone for the isolate. See [IDs and Names] for more information
+  /// about ID zones.
+  ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<Obj> getObject(
@@ -572,6 +670,7 @@ abstract interface class VmServiceInterface {
     String objectId, {
     int? offset,
     int? count,
+    String? idZoneId,
   });
 
   /// The `getPerfettoCpuSamples` RPC is used to retrieve samples collected by
@@ -661,12 +760,22 @@ abstract interface class VmServiceInterface {
   /// part of the retaining path. If a path is longer than `limit`, it will be
   /// truncated at the root end of the path.
   ///
+  /// If `idZoneId` is provided, temporary IDs for `InstancesRef` and
+  /// `Instances` in the RPC response will be allocated in the specified ID
+  /// zone. If `idZoneId` is omitted, ID allocations will be performed in the
+  /// default ID zone for the isolate. See [IDs and Names] for more information
+  /// about ID zones.
+  ///
   /// See [RetainingPath].
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<RetainingPath> getRetainingPath(
-      String isolateId, String targetId, int limit);
+    String isolateId,
+    String targetId,
+    int limit, {
+    String? idZoneId,
+  });
 
   /// Returns a description of major uses of memory known to the VM.
   ///
@@ -683,6 +792,12 @@ abstract interface class VmServiceInterface {
   /// stack is returned. Note: this limit also applies to the
   /// `asyncCausalFrames` stack representation in the `Stack` response.
   ///
+  /// If `idZoneId` is provided, temporary IDs for `InstancesRef` and
+  /// `Instances` in the RPC response will be allocated in the specified ID
+  /// zone. If `idZoneId` is omitted, ID allocations will be performed in the
+  /// default ID zone for the isolate. See [IDs and Names] for more information
+  /// about ID zones.
+  ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
@@ -690,7 +805,7 @@ abstract interface class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Stack> getStack(String isolateId, {int? limit});
+  Future<Stack> getStack(String isolateId, {int? limit, String? idZoneId});
 
   /// The `getSupportedProtocols` RPC is used to determine which protocols are
   /// supported by the current server.
@@ -1315,6 +1430,26 @@ class VmServerConnection {
         case 'clearVMTimeline':
           response = await _serviceImplementation.clearVMTimeline();
           break;
+        case 'createIdZone':
+          response = await _serviceImplementation.createIdZone(
+            params!['isolateId'],
+            params['backingBufferKind'],
+            params['idAssignmentPolicy'],
+            capacity: params['capacity'],
+          );
+          break;
+        case 'deleteIdZone':
+          response = await _serviceImplementation.deleteIdZone(
+            params!['isolateId'],
+            params['idZoneId'],
+          );
+          break;
+        case 'invalidateIdZone':
+          response = await _serviceImplementation.invalidateIdZone(
+            params!['isolateId'],
+            params['idZoneId'],
+          );
+          break;
         case 'invoke':
           response = await _serviceImplementation.invoke(
             params!['isolateId'],
@@ -1322,6 +1457,7 @@ class VmServerConnection {
             params['selector'],
             List<String>.from(params['argumentIds'] ?? []),
             disableBreakpoints: params['disableBreakpoints'],
+            idZoneId: params['idZoneId'],
           );
           break;
         case 'evaluate':
@@ -1331,6 +1467,7 @@ class VmServerConnection {
             params['expression'],
             scope: params['scope']?.cast<String, String>(),
             disableBreakpoints: params['disableBreakpoints'],
+            idZoneId: params['idZoneId'],
           );
           break;
         case 'evaluateInFrame':
@@ -1340,6 +1477,7 @@ class VmServerConnection {
             params['expression'],
             scope: params['scope']?.cast<String, String>(),
             disableBreakpoints: params['disableBreakpoints'],
+            idZoneId: params['idZoneId'],
           );
           break;
         case 'getAllocationProfile':
@@ -1377,6 +1515,7 @@ class VmServerConnection {
             params!['isolateId'],
             params['targetId'],
             params['limit'],
+            idZoneId: params['idZoneId'],
           );
           break;
         case 'getInstances':
@@ -1386,6 +1525,7 @@ class VmServerConnection {
             params['limit'],
             includeSubclasses: params['includeSubclasses'],
             includeImplementers: params['includeImplementers'],
+            idZoneId: params['idZoneId'],
           );
           break;
         case 'getInstancesAsList':
@@ -1394,6 +1534,7 @@ class VmServerConnection {
             params['objectId'],
             includeSubclasses: params['includeSubclasses'],
             includeImplementers: params['includeImplementers'],
+            idZoneId: params['idZoneId'],
           );
           break;
         case 'getIsolate':
@@ -1432,6 +1573,7 @@ class VmServerConnection {
             params['objectId'],
             offset: params['offset'],
             count: params['count'],
+            idZoneId: params['idZoneId'],
           );
           break;
         case 'getPerfettoCpuSamples':
@@ -1457,6 +1599,7 @@ class VmServerConnection {
             params!['isolateId'],
             params['targetId'],
             params['limit'],
+            idZoneId: params['idZoneId'],
           );
           break;
         case 'getProcessMemoryUsage':
@@ -1466,6 +1609,7 @@ class VmServerConnection {
           response = await _serviceImplementation.getStack(
             params!['isolateId'],
             limit: params['limit'],
+            idZoneId: params['idZoneId'],
           );
           break;
         case 'getSupportedProtocols':

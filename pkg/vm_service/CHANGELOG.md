@@ -1,10 +1,14 @@
-## 14.3.0-wip
+## 14.3.0
 - Update to version `4.16` of the spec.
 - Add `reloadFailureReason` property to `Event`.
-- Added a new constant (`RPCErrorKind.kConnectionDisposed = -32010`) for requests
+- Add a new constant (`RPCErrorKind.kConnectionDisposed = -32010`) for requests
   failing because the service connection was closed. This value is not currently
   used but is provided for clients to handle in preperation for a future release
   that will use it to avoid clients having to read error messages.
+- Add `createIdZone`, `deleteIdZone`, and `invalidateIdZone` RPCs.
+- Add optional `idZoneId` parameter to `evaluate`, `evaluateInFrame`,
+  `getInboundReferences`, `getInstances`, `getInstancesAsList`, `getObject`,
+  `getRetainingPath`, `getStack`, and `invoke` RPCs.
 
 ## 14.2.5
 - Include a stack trace in the RPCError that is thrown when an attempt is made

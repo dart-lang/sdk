@@ -36,6 +36,8 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [addBreakpointAtEntry](#addbreakpointatentry)
   - [clearCpuSamples](#clearcpusamples)
   - [clearVMTimeline](#clearvmtimeline)
+  - [createIdZone](#createidzone)
+  - [deleteIdZone](#deleteidzone)
   - [evaluate](#evaluate)
   - [evaluateInFrame](#evaluateinframe)
   - [getAllocationProfile](#getallocationprofile)
@@ -65,6 +67,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getVMTimeline](#getvmtimeline)
   - [getVMTimelineFlags](#getvmtimelineflags)
   - [getVMTimelineMicros](#getvmtimelinemicros)
+  - [invalidateIdZone](#invalidateidzone)
   - [invoke](#invoke)
   - [lookupResolvedPackageUris](#lookupresolvedpackageuris)
   - [lookupPackageUris](#lookuppackageuris)
@@ -109,6 +112,9 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [FlagList](#flaglist)
   - [Frame](#frame)
   - [Function](#function)
+  - [IdAssignmentPolicy](#idassignmentpolicy)
+  - [IdZone](#idzone)
+  - [IdZoneBackingBufferKind](#idzonebackingbufferkind)
   - [InboundReferences](#inboundreferences)
   - [InboundReference](#inboundreference)
   - [Instance](#instance)
@@ -365,22 +371,41 @@ it is not meant to be parsed.
 
 An id can be either _temporary_ or _fixed_:
 
-* A _temporary_ id can expire over time. The VM allocates certain ids
-  in a ring which evicts old ids over time.
+Temporary IDs are allocated in ID zones. An ID zone is a structure associated
+with a specific isolate, where temporary IDs for instances in that isolate may
+be allocated. There will automatically be a default ID zone with ID 0 associated
+with each isolate. Those default zones will all be backed by ring buffers, will
+all use the _alwaysAllocate_ ID assignment policy, and will all have capacities
+of 8192 IDs. See [createIdZone](#createidzone) for more information about
+backing buffer kinds, ID assignment policies, and capacities.
 
-* A _fixed_ id will never expire, but the object it refers to may
-  be collected. The VM uses fixed ids for objects like scripts,
-  libraries, and classes.
+The temporary IDs included in Service stream events will always be ones
+allocated in the default ID zone. A client may specify the ID zone in which the
+temporary IDs included in Service RPC responses get allocated by providing
+arguments to Service methods’ _idZoneId_ parameters. ID zones can be created by
+invoking [createIdZone](#createidzone).
 
-If an id is fixed, the _fixedId_ property will be true. If an id is temporary
+Old IDs in ID zones backed by ring buffers will get evicted over time. Those
+evicted IDs are then considered to be expired. IDs can also become expired as a
+result of an invocation of [invalidateIdZone](#invalidateidzone). Some RPCs will
+indicate that an expired temporary ID has been used as an argument by returning
+an _Expired_ [Sentinel](#sentinel).
+
+If a non-expired temporary ID exists for an instance, it will prevent that
+instance from being collected by the VM's garbage collector. For this reason,
+clients should aim to invoke [invalidateIdZone](#invalidateidzone) as soon as
+they no longer have a need for the IDs in a certain zone. When a new ID zone is
+created, a new buffer needs to be allocated to back the zone. Clients should be
+wary of this, and should generally aim to limit the number of zones they create
+to a minimum by invalidating and reusing existing zones as much as possible.
+
+A _fixed_ ID will never expire, but the object it refers to may be collected by
+the VM's garbage collector. Some RPCs may return a _Collected_
+[Sentinel](#sentinel) to indicate that a requested object has been collected.
+The VM uses fixed IDs for objects like scripts, libraries, and classes.
+
+If an ID is fixed, the _fixedId_ property will be true. If an ID is temporary,
 the _fixedId_ property will be omitted.
-
-Sometimes a temporary id may expire. In this case, some RPCs may return
-an _Expired_ [Sentinel](#sentinel) to indicate this.
-
-The object referred to by an id may be collected by the VM's garbage
-collector. In this case, some RPCs may return a _Collected_ [Sentinel](#sentinel)
-to indicate this.
 
 Many objects also have a _name_ property. This is provided so that
 objects can be displayed in a way that a Dart language programmer
@@ -601,6 +626,58 @@ Clears all VM timeline events.
 
 See [Success](#success).
 
+### createIdZone
+
+```
+IdZone createIdZone(string isolateId,
+                    IdZoneBackingBufferKind backingBufferKind,
+                    IdAssignmentPolicy idAssignmentPolicy,
+                    int capacity [optional])
+```
+
+The _createIdZone_ RPC is used to create a new ID zone where temporary IDs for
+instances in the specified isolate may be allocated. See
+[IDs and Names](#ids-and-names) for more information about ID zones.
+
+backingBufferKind | meaning
+---- | -------
+ring | Use a ring buffer to back the zone.
+
+idAssignmentPolicy | meaning
+---- | -------
+alwaysAllocate | When this ID zone is specified in an RPC invocation, _@Instances_ and _Instances_ within the response to that RPC will always have their _id_ fields populated with newly allocated temporary IDs, even when there already exists an ID that refers to the same instance.
+reuseExisting | When this ID zone is specified in an RPC invocation, _@Instances_ and _Instances_ within the response to that RPC will have their _id_ fields populated with existing IDs when possible. This introduces an extra linear search of the zone – to check for existing IDs – for each _@Instance_ or _Instance_ returned in a response.
+
+The _capacity_ parameter may be used to specify the maximum number of IDs that
+the created zone will be able to hold at a time. If no argument for _capacity_
+is provided, the created zone will have the default capacity of 512 IDs.
+
+When a VM Service client disconnects, all of the Service ID zones created by
+that client will be deleted. Because of this, Service ID zone IDs should not be
+shared between different clients.
+
+### deleteIdZone
+
+```
+Success deleteIdZone(string isolateId, string idZoneId)
+```
+
+The _deleteIdZone_ RPC frees the buffer that backs the specified ID zone, and
+makes that zone unusable for the remainder of the program's execution. For
+performance reasons, clients should aim to call
+[invalidateIdZone](#invalidateidzone) and reuse existing zones as much as
+possible instead of deleting zones and then creating new ones.
+
+### invalidateIdZone
+
+```
+Success invalidateIdZone(string isolateId, string idZoneId)
+```
+
+The _invalidateIdZone_ RPC is used to invalidate all the IDs that have been
+allocated in a certain ID zone. Invaliding the IDs makes them expire. See 
+[IDs and Names](#ids-and-names) for more information.
+
 ### invoke
 
 ```
@@ -608,7 +685,8 @@ See [Success](#success).
                                  string targetId,
                                  string selector,
                                  string[] argumentIds,
-                                 bool disableBreakpoints [optional])
+                                 bool disableBreakpoints [optional],
+                                 string idZoneId [optional])
 ```
 
 The _invoke_ RPC is used to perform regular method invocation on some receiver,
@@ -623,6 +701,12 @@ Each elements of _argumentId_ may refer to an [Instance](#instance).
 If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
 result of this invocation are ignored, including pauses resulting from a call
 to `debugger()` from `dart:developer`. Defaults to false if not provided.
+
+If _idZoneId_ is provided, temporary IDs for _@Instances_ and _Instances_ in the
+RPC response will be allocated in the specified ID zone. If _idZoneId_ is
+omitted, ID allocations will be performed in the default ID zone for the
+isolate. See [IDs and Names](#ids-and-names) for more information about ID
+zones.
 
 If _targetId_ or any element of _argumentIds_ is a temporary id which has
 expired, then the _Expired_ [Sentinel](#sentinel) is returned.
@@ -650,7 +734,8 @@ reference will be returned.
                                    string targetId,
                                    string expression,
                                    map<string,string> scope [optional],
-                                   bool disableBreakpoints [optional])
+                                   bool disableBreakpoints [optional],
+                                   string idZoneId [optional])
 ```
 
 The _evaluate_ RPC is used to evaluate an expression in the context of
@@ -678,6 +763,12 @@ instance members, class members and top-level members.
 If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
 result of this evaluation are ignored. Defaults to false if not provided.
 
+If _idZoneId_ is provided, temporary IDs for _@Instances_ and _Instances_ in the
+RPC response will be allocated in the specified ID zone. If _idZoneId_ is
+omitted, ID allocations will be performed in the default ID zone for the
+isolate. See [IDs and Names](#ids-and-names) for more information about ID
+zones.
+
 If the expression fails to parse and compile, then [RPC error](#rpc-error) 113
 "Expression compilation error" is returned.
 
@@ -694,7 +785,8 @@ reference will be returned.
                                           int frameIndex,
                                           string expression,
                                           map<string,string> scope [optional],
-                                          bool disableBreakpoints [optional])
+                                          bool disableBreakpoints [optional],
+                                          string idZoneId [optional])
 ```
 
 The _evaluateInFrame_ RPC is used to evaluate an expression in the
@@ -710,6 +802,12 @@ members, parameters and locals.
 
 If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
 result of this evaluation are ignored. Defaults to false if not provided.
+
+If _idZoneId_ is provided, temporary IDs for _@Instances_ and _Instances_ in the
+RPC response will be allocated in the specified ID zone. If _idZoneId_ is
+omitted, ID allocations will be performed in the default ID zone for the
+isolate. See [IDs and Names](#ids-and-names) for more information about ID
+zones.
 
 If the expression fails to parse and compile, then [RPC error](#rpc-error) 113
 "Expression compilation error" is returned.
@@ -825,11 +923,18 @@ See [FlagList](#flaglist).
 ```
 InboundReferences|Sentinel getInboundReferences(string isolateId,
                                                 string targetId,
-                                                int limit)
+                                                int limit,
+                                                string idZoneId [optional])
 ```
 
 Returns a set of inbound references to the object specified by _targetId_. Up to
 _limit_ references will be returned.
+
+If _idZoneId_ is provided, temporary IDs for _@Instances_ and _Instances_ in the
+RPC response will be allocated in the specified ID zone. If _idZoneId_ is
+omitted, ID allocations will be performed in the default ID zone for the
+isolate. See [IDs and Names](#ids-and-names) for more information about ID
+zones.
 
 The order of the references is undefined (i.e., not related to allocation order)
 and unstable (i.e., multiple invocations of this method against the same object
@@ -858,7 +963,8 @@ InstanceSet|Sentinel getInstances(string isolateId,
                                   string objectId,
                                   int limit,
                                   bool includeSubclasses [optional],
-                                  bool includeImplementers [optional])
+                                  bool includeImplementers [optional],
+                                  string idZoneId [optional])
 ```
 
 The _getInstances_ RPC is used to retrieve a set of instances which are of a
@@ -884,6 +990,12 @@ If _includeImplementers_ is true, instances of implementers of the specified
 class will be included in the set. Note that subclasses of a class are also
 considered implementers of that class.
 
+If _idZoneId_ is provided, temporary IDs for _@Instances_ and _Instances_ in the
+RPC response will be allocated in the specified ID zone. If _idZoneId_ is
+omitted, ID allocations will be performed in the default ID zone for the
+isolate. See [IDs and Names](#ids-and-names) for more information about ID
+zones.
+
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
@@ -895,7 +1007,8 @@ See [InstanceSet](#instanceset).
 @Instance|Sentinel getInstancesAsList(string isolateId,
                                       string objectId,
                                       bool includeSubclasses [optional],
-                                      bool includeImplementers [optional])
+                                      bool includeImplementers [optional],
+                                      string idZoneId [optional])
 ```
 
 The _getInstancesAsList_ RPC is used to retrieve a set of instances which are of
@@ -921,6 +1034,12 @@ will be included in the set.
 If _includeImplementers_ is true, instances of implementers of the specified
 class will be included in the set. Note that subclasses of a class are also
 considered implementers of that class.
+
+If _idZoneId_ is provided, temporary IDs for _@Instances_ and _Instances_ in the
+RPC response will be allocated in the specified ID zone. If _idZoneId_ is
+omitted, ID allocations will be performed in the default ID zone for the
+isolate. See [IDs and Names](#ids-and-names) for more information about ID
+zones.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -1015,7 +1134,8 @@ See [ScriptList](#scriptlist).
 Object|Sentinel getObject(string isolateId,
                           string objectId,
                           int offset [optional],
-                          int count [optional])
+                          int count [optional],
+                          string idZoneId [optional])
 ```
 
 The _getObject_ RPC is used to lookup an _object_ from some isolate by
@@ -1043,6 +1163,12 @@ Uint8List, Uint16List, Uint32List, Uint64List, Int8List, Int16List,
 Int32List, Int64List, Float32List, Float64List, Inst32x3List,
 Float32x4List, and Float64x2List.  These parameters are otherwise
 ignored.
+
+If _idZoneId_ is provided, temporary IDs for _@Instances_ and _Instances_ in the
+RPC response will be allocated in the specified ID zone. If _idZoneId_ is
+omitted, ID allocations will be performed in the default ID zone for the
+isolate. See [IDs and Names](#ids-and-names) for more information about ID
+zones.
 
 ### getPerfettoCpuSamples
 
@@ -1132,7 +1258,8 @@ See [PortList](#portlist).
 ```
 RetainingPath|Sentinel getRetainingPath(string isolateId,
                                         string targetId,
-                                        int limit)
+                                        int limit,
+                                        string idZoneId [optional])
 ```
 
 The _getRetainingPath_ RPC is used to lookup a path from an object specified by
@@ -1155,6 +1282,12 @@ The _limit_ parameter specifies the maximum path length to be reported as part
 of the retaining path. If a path is longer than _limit_, it will be truncated at
 the root end of the path.
 
+If _idZoneId_ is provided, temporary IDs for _@Instances_ and _Instances_ in the
+RPC response will be allocated in the specified ID zone. If _idZoneId_ is
+omitted, ID allocations will be performed in the default ID zone for the
+isolate. See [IDs and Names](#ids-and-names) for more information about ID
+zones.
+
 See [RetainingPath](#retainingpath).
 
 
@@ -1173,7 +1306,9 @@ removal or addition of any bucket.
 ### getStack
 
 ```
-Stack|Sentinel getStack(string isolateId, int limit [optional])
+Stack|Sentinel getStack(string isolateId,
+                        int limit [optional],
+                        string idZoneId [optional])
 ```
 
 The _getStack_ RPC is used to retrieve the current execution stack and
@@ -1183,6 +1318,12 @@ If _limit_ is provided, up to _limit_ frames from the top of the stack will be
 returned. If the stack depth is smaller than _limit_ the entire stack is
 returned. Note: this limit also applies to the `asyncCausalFrames` stack
 representation in the _Stack_ response.
+
+If _idZoneId_ is provided, temporary IDs for _@Instances_ and _Instances_ in the
+RPC response will be allocated in the specified ID zone. If _idZoneId_ is
+omitted, ID allocations will be performed in the default ID zone for the
+isolate. See [IDs and Names](#ids-and-names) for more information about ID
+zones.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -2854,6 +2995,39 @@ class Function extends Object {
 ```
 
 A _Function_ represents a Dart language function.
+
+### IdAssignmentPolicy
+
+```
+enum IdAssignmentPolicy {
+  AlwaysAllocate,
+  ReuseExisting,
+}
+```
+
+See [createIdZone](#createidzone).
+
+### IdZoneBackingBufferKind
+
+```
+enum IdZoneBackingBufferKind {
+  Ring,
+}
+```
+
+See [createIdZone](#createidzone).
+
+### IdZone
+
+```
+class IdZone extends Response {
+  string id;
+  IdZoneBackingBufferKind backingBufferKind;
+  IdAssignmentPolicy idAssignmentPolicy;
+}
+```
+
+See [createIdZone](#createidzone).
 
 ### Instance
 
@@ -4806,6 +4980,6 @@ version | comments
 4.13 | Added `librariesAlreadyCompiled` to `getSourceReport`.
 4.14 | Added `Finalizer`, `NativeFinalizer`, and `FinalizerEntry`.
 4.15 | Added `closureReceiver` property to `@Instance` and `Instance`.
-4.16 | Added `reloadFailureReason` property to `Event`.
+4.16 | Added `reloadFailureReason` property to `Event`. Added `createIdZone`, `deleteIdZone`, and `invalidateIdZone` RPCs. Added optional `idZoneId` parameter to `evaluate`, `evaluateInFrame`, `getInboundReferences`, `getInstances`, `getInstancesAsList`, `getObject`, `getRetainingPath`, `getStack`, and `invoke` RPCs.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
