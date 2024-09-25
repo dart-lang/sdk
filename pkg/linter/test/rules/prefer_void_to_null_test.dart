@@ -23,7 +23,7 @@ part 'test.dart';
 
 class A {
   Future<Null>? f;
-}  
+}
 ''');
 
     await assertNoDiagnostics(r'''
@@ -55,7 +55,7 @@ part 'test.dart';
 
 class A {
   Future<Null>? get v => null;
-}  
+}
 ''');
 
     await assertNoDiagnostics(r'''

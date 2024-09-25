@@ -30,7 +30,7 @@ class A {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment class A { 
+augment class A {
   A.aa() : a = 1;
 }
 ''');
@@ -105,7 +105,7 @@ augment class A {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
 
-class A { 
+class A {
   A.aa();
 }
 ''');
@@ -124,7 +124,7 @@ augment class A {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
 
-class A { 
+class A {
   const A();
 }
 ''');

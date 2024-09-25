@@ -82,7 +82,7 @@ extension type E(A a) implements A {
 
   test_method_annotated() async {
     await assertNoDiagnostics(r'''
-import 'package:meta/meta.dart';   
+import 'package:meta/meta.dart';
 class A {
   void m() {}
 }

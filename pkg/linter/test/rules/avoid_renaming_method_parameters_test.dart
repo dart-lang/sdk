@@ -57,7 +57,7 @@ part of 'a.dart';
 
 augment class A {
   augment void m(int q) {}
-  augment void m(int q) {} 
+  augment void m(int q) {}
 }
 ''', [
       lint(58, 1), // Only the first augmentation gets linted.
