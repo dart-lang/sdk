@@ -5653,6 +5653,7 @@ main() {
         });
 
         test('even when the declared type is a type variable', () {
+          h.addTypeVariable('T');
           h.enableLegacy();
           h.addPromotionException('T', 'int', 'T&int');
           var x = Var('x');

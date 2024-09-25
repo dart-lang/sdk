@@ -672,21 +672,19 @@ class TypeSystem {
 
     // Type Variable Reflexivity 1: if T0 is a type variable X0 or a promoted
     // type variables X0 & S0 and T1 is X0 then:
-    if (_isTypeVar(t0) &&
-        t1 is PrimaryType &&
+    if (t1 is PrimaryType &&
+        matchTypeParameterType(t0) == t1.name &&
         t1.nullabilitySuffix == NullabilitySuffix.none &&
-        t1.args.isEmpty &&
-        _typeVarName(t0) == t1.name) {
+        t1.args.isEmpty) {
       // - T0 <: T1
       return true;
     }
 
     // Type Variable Reflexivity 2: if T0 is a type variable X0 or a promoted
     // type variables X0 & S0 and T1 is X0 & S1 then:
-    if (_isTypeVar(t0) &&
-        t1 is PromotedTypeVariableType &&
-        t1.nullabilitySuffix == NullabilitySuffix.none &&
-        _typeVarName(t0) == _typeVarName(t1)) {
+    if (t1 is PromotedTypeVariableType &&
+        matchTypeParameterType(t0) == matchTypeParameterType(t1) &&
+        t1.nullabilitySuffix == NullabilitySuffix.none) {
       // - T0 <: T1 iff T0 <: S1.
       return isSubtype(t0, t1.promotion);
     }
@@ -900,6 +898,22 @@ class TypeSystem {
     return false;
   }
 
+  String? matchTypeParameterType(Type t) {
+    if (t is PromotedTypeVariableType &&
+        t.nullabilitySuffix == NullabilitySuffix.none) {
+      var typeVar = matchTypeParameterType(t.innerType);
+      assert(typeVar != null);
+      return typeVar;
+    } else if (t is PrimaryType &&
+        t.nullabilitySuffix == NullabilitySuffix.none &&
+        t.args.isEmpty &&
+        _typeVarBounds.containsKey(t.name)) {
+      return t.name;
+    } else {
+      return null;
+    }
+  }
+
   bool _isTop(Type t) {
     if (t is PrimaryType) {
       return t is DynamicType || t is InvalidType || t is VoidType;
@@ -909,31 +923,9 @@ class TypeSystem {
     return false;
   }
 
-  bool _isTypeVar(Type t) {
-    if (t is PromotedTypeVariableType &&
-        t.nullabilitySuffix == NullabilitySuffix.none) {
-      assert(_isTypeVar(t.innerType));
-      return true;
-    } else if (t is PrimaryType &&
-        t.nullabilitySuffix == NullabilitySuffix.none &&
-        t.args.isEmpty) {
-      return _typeVarBounds.containsKey(t.name);
-    } else {
-      return false;
-    }
-  }
+  bool _isTypeVar(Type t) => matchTypeParameterType(t) != null;
 
-  Type _typeVarBound(Type t) => _typeVarBounds[_typeVarName(t)]!;
-
-  String _typeVarName(Type t) {
-    assert(_isTypeVar(t));
-    if (t is PromotedTypeVariableType &&
-        t.nullabilitySuffix == NullabilitySuffix.none) {
-      return _typeVarName(t.innerType);
-    } else {
-      return (t as PrimaryType).name;
-    }
-  }
+  Type _typeVarBound(Type t) => _typeVarBounds[matchTypeParameterType(t)!]!;
 }
 
 /// Representation of the unknown type suitable for unit testing of code in the

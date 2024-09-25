@@ -3211,6 +3211,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             errorReporter: errorReporter,
             errorNode: node.iterable,
             genericMetadataIsEnabled: true,
+            inferenceUsingBoundsIsEnabled:
+                _featureSet?.isEnabled(Feature.inference_using_bounds) ?? true,
             strictInference: options.strictInference,
             strictCasts: options.strictCasts,
             typeSystemOperations: typeSystemOperations,

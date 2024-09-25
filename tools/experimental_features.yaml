@@ -143,6 +143,9 @@ features:
   augmentations:
     help: "Augmentations - enhancing declarations from outside"
 
+  inference-using-bounds:
+    help: "Use type parameter bounds more extensively in type inference."
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

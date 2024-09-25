@@ -75,6 +75,10 @@ class TypedLiteralResolver {
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
 
+  bool get _inferenceUsingBoundsIsEnabled =>
+      _resolver.definingLibrary.featureSet
+          .isEnabled(Feature.inference_using_bounds);
+
   void resolveListLiteral(ListLiteralImpl node,
       {required DartType contextType}) {
     DartType? elementType;
@@ -426,6 +430,7 @@ class TypedLiteralResolver {
       errorReporter: _errorReporter,
       errorEntity: node,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
+      inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
       typeSystemOperations: _resolver.flowAnalysis.typeOperations,
@@ -485,6 +490,7 @@ class TypedLiteralResolver {
       contextReturnType: contextType,
       isConst: node.isConst,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
+      inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
       typeSystemOperations: _resolver.flowAnalysis.typeOperations,
@@ -589,6 +595,7 @@ class TypedLiteralResolver {
       contextReturnType: contextType,
       isConst: node.isConst,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
+      inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
       typeSystemOperations: _resolver.flowAnalysis.typeOperations,

@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A1<X extends self::A1<self::A1::X, self::A1::Y> = self::A1<dynamic, dynamic>, Y extends self::A2<self::A1::X, self::A1::Y> = self::A2<dynamic, dynamic>> extends core::Object {
+  synthetic constructor •() → self::A1<self::A1::X, self::A1::Y>
+    : super core::Object::•()
+    ;
+}
+class A2<X extends self::A1<self::A2::X, self::A2::Y> = self::A1<dynamic, dynamic>, Y extends self::A2<self::A2::X, self::A2::Y> = self::A2<dynamic, dynamic>> extends core::Object {
+  synthetic constructor •() → self::A2<self::A2::X, self::A2::Y>
+    : super core::Object::•()
+    ;
+}
+class B extends self::A1<self::B, self::B> implements self::A2<self::B, self::B> {
+  synthetic constructor •() → self::B
+    : super self::A1::•()
+    ;
+}
+class C1 extends self::B {
+  synthetic constructor •() → self::C1
+    : super self::B::•()
+    ;
+}
+class C2 extends self::B {
+  synthetic constructor •() → self::C2
+    : super self::B::•()
+    ;
+}
+static method f<X extends self::A1<self::f::X, self::f::Y> = self::A1<dynamic, dynamic>, Y extends self::A2<self::f::X, self::f::Y> = self::A2<dynamic, dynamic>>(self::f::X x, self::f::Y y) → void {}
+static method main() → void {
+  self::f<self::B, self::B>(new self::C1::•(), new self::C2::•());
+  self::f<self::B, self::B>(new self::C1::•(), new self::C2::•());
+}

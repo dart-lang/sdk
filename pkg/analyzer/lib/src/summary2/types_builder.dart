@@ -595,6 +595,8 @@ class _MixinInference {
       supertypeConstraints,
       matchingInterfaceTypes,
       genericMetadataIsEnabled: featureSet.isEnabled(Feature.generic_metadata),
+      inferenceUsingBoundsIsEnabled:
+          featureSet.isEnabled(Feature.inference_using_bounds),
       strictInference: false,
       strictCasts: false,
       typeSystemOperations: typeSystemOperations,

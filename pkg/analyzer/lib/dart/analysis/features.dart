@@ -43,6 +43,10 @@ abstract class Feature {
   /// Feature information for generic metadata.
   static final generic_metadata = ExperimentalFeatures.generic_metadata;
 
+  /// Feature information for inference using bounds.
+  static final inference_using_bounds =
+      ExperimentalFeatures.inference_using_bounds;
+
   /// Feature information for inference-update-1.
   static final inference_update_1 = ExperimentalFeatures.inference_update_1;
 

@@ -2885,7 +2885,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               ?.typeInferenceResult,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, typeParametersToInfer, null);
+          gatherer, typeParametersToInfer, /* previouslyInferredTypes= */ null,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: node);
       inferredTypeArgument = inferredTypes[0];
     } else {
       inferredTypeArgument = node.typeArgument;
@@ -2903,7 +2907,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer!.constrainArguments(formalTypes, actualTypes,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, typeParametersToInfer, inferredTypes!);
+          gatherer, typeParametersToInfer, inferredTypes!,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: node);
       if (dataForTesting != null) {
         // Coverage-ignore-block(suite): Not run.
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
@@ -5313,7 +5321,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               ?.typeInferenceResult,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, typeParametersToInfer, null);
+          gatherer, typeParametersToInfer, /* previouslyInferredTypes= */ null,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: node);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
     } else {
@@ -5390,12 +5402,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                     // Coverage-ignore(suite): Not run.
                     ?.typeInferenceResult,
                 treeNodeForTesting: node);
-        List<DartType> inferredTypesForSet = typeSchemaEnvironment
-            .choosePreliminaryTypes(gatherer, typeParametersToInfer, null);
+        List<DartType> inferredTypesForSet =
+            typeSchemaEnvironment.choosePreliminaryTypes(gatherer,
+                typeParametersToInfer, /* previouslyInferredTypes= */ null,
+                inferenceUsingBoundsIsEnabled:
+                    libraryFeatures.inferenceUsingBounds.isEnabled,
+                dataForTesting: dataForTesting,
+                treeNodeForTesting: node);
         gatherer.constrainArguments(formalTypesForSet, actualTypesForSet,
             treeNodeForTesting: node);
         inferredTypesForSet = typeSchemaEnvironment.chooseFinalTypes(
-            gatherer, typeParametersToInfer, inferredTypesForSet);
+            gatherer, typeParametersToInfer, inferredTypesForSet,
+            inferenceUsingBoundsIsEnabled:
+                libraryFeatures.inferenceUsingBounds.isEnabled,
+            dataForTesting: dataForTesting,
+            treeNodeForTesting: node);
         DartType inferredTypeArgument = inferredTypesForSet[0];
         instrumentation?.record(
             uriForInstrumentation,
@@ -5433,7 +5454,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer!.constrainArguments(formalTypes, actualTypes,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, typeParametersToInfer, inferredTypes!);
+          gatherer, typeParametersToInfer, inferredTypes!,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: node);
       if (dataForTesting != null) {
         // Coverage-ignore-block(suite): Not run.
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
@@ -8672,7 +8697,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               ?.typeInferenceResult,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, typeParametersToInfer, null);
+          gatherer, typeParametersToInfer, /* previouslyInferredTypes= */ null,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: node);
       inferredTypeArgument = inferredTypes[0];
     } else {
       inferredTypeArgument = node.typeArgument;
@@ -8691,7 +8720,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer!.constrainArguments(formalTypes, actualTypes,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, typeParametersToInfer, inferredTypes!);
+          gatherer, typeParametersToInfer, inferredTypes!,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: node);
       if (dataForTesting != null) {
         // Coverage-ignore-block(suite): Not run.
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
@@ -11790,7 +11823,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 ?.typeInferenceResult,
             treeNodeForTesting: treeNodeForTesting);
     return typeSchemaEnvironment.chooseFinalTypes(
-        gatherer, typeParametersToInfer, null);
+        gatherer, typeParametersToInfer, null,
+        inferenceUsingBoundsIsEnabled:
+            libraryFeatures.inferenceUsingBounds.isEnabled,
+        dataForTesting: dataForTesting,
+        treeNodeForTesting: treeNodeForTesting);
   }
 
   @override

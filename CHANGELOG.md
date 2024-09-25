@@ -85,6 +85,17 @@ number, like `.`, `x`, or the `e` in scientific notation.
 
 [#55266]: https://github.com/dart-lang/sdk/issues/55266
 
+#### Pub
+
+- Support for workspaces. This allows you to develop and resolve multiple
+  packages from the same repo together. See https://dart.dev/go/pub-workspaces
+  for more info.
+- New command `dart pub bump`. Increments the version number of the current
+  package.
+
+  For example: `dart pub bump minor` will change the version from `1.2.3` to `1.3.0`.
+- New validation: `dart pub publish` will warn if your `git status` is not clean.
+
 ## 3.5.3 - 2024-09-11
 
 - Fixes an issue with the DevTools Memory tool causing OOMs. and an
