@@ -2060,10 +2060,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           extensionThis.isLowered = true;
         }
       }
-
-      debugLibrary.compilationUnit.createLibrary();
-      debugLibrary.state = SourceLibraryBuilderState.resolvedParts;
-      debugLibrary.buildNameSpace();
+      lastGoodKernelTarget
+          .buildSyntheticLibrariesUntilBuildScopes([debugLibrary]);
+      lastGoodKernelTarget
+          .buildSyntheticLibrariesUntilComputeDefaultTypes([debugLibrary]);
+      lastGoodKernelTarget.loader.finishTypeVariables(
+          [debugLibrary],
+          lastGoodKernelTarget.objectClassBuilder,
+          lastGoodKernelTarget.dynamicType);
       debugLibrary.buildOutlineNodes(lastGoodKernelTarget.loader.coreLibrary);
       Expression compiledExpression = await lastGoodKernelTarget.loader
           .buildExpression(

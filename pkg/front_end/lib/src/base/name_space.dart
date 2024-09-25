@@ -455,36 +455,3 @@ class DillExportNameSpace extends LazyNameSpace {
     }
   }
 }
-
-class PrefixNameSpace extends NameSpaceImpl {
-  void merge(
-      PrefixNameSpace nameSpace,
-      Builder computeAmbiguousDeclaration(
-          String name, Builder existing, Builder member)) {
-    Map<String, Builder> map = const {};
-
-    void mergeMember(String name, Builder member) {
-      Builder? existing = map[name];
-      if (existing != null) {
-        if (existing != member) {
-          member = computeAmbiguousDeclaration(name, existing, member);
-        }
-      }
-      map[name] = member;
-    }
-
-    if (nameSpace._getables != null) {
-      map = _getables ??= // Coverage-ignore(suite): Not run.
-          {};
-      nameSpace._getables?.forEach(mergeMember);
-    }
-    if (nameSpace._setables != null) {
-      // Coverage-ignore-block(suite): Not run.
-      map = _setables ??= {};
-      nameSpace._setables?.forEach(mergeMember);
-    }
-    if (nameSpace._extensions != null) {
-      (_extensions ??= {}).addAll(nameSpace._extensions!);
-    }
-  }
-}

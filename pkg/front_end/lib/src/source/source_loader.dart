@@ -1916,10 +1916,6 @@ severity: $severity
       }
     }
 
-    for (SourceLibraryBuilder libraryBuilder in libraryBuilders) {
-      libraryBuilder.state = SourceLibraryBuilderState.typeVariablesFinished;
-    }
-
     ticker.logMs("Resolved ${sortedTypeVariables.length} type-variable bounds");
   }
 
@@ -1933,7 +1929,7 @@ severity: $severity
   }
 
   void computeDefaultTypes(
-      List<SourceLibraryBuilder> libraryBuilders,
+      Iterable<SourceLibraryBuilder> libraryBuilders,
       TypeBuilder dynamicType,
       TypeBuilder nullType,
       TypeBuilder bottomType,

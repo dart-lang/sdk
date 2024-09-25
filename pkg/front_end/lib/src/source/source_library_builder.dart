@@ -124,9 +124,12 @@ enum SourceLibraryBuilderState {
   /// Default types of type parameters have been computed.
   defaultTypesComputed,
 
-  /// Type parameters have been checked for cyclic dependencies and their
-  /// nullability have been computed.
-  typeVariablesFinished,
+  /// Type parameters have been collected to be checked for cyclic dependencies
+  /// and their nullability to be computed.
+  unboundTypeVariablesCollected,
+
+  /// The AST nodes for the outline have been built.
+  outlineNodesBuilt,
   ;
 
   bool operator <(SourceLibraryBuilderState other) => index < other.index;
@@ -670,6 +673,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// Builds the core AST structure of this library as needed for the outline.
   Library buildOutlineNodes(LibraryBuilder coreLibrary) {
+    assert(checkState(
+        required: [SourceLibraryBuilderState.unboundTypeVariablesCollected]));
+
     // TODO(johnniwinther): Avoid the need to process augmentation libraries
     // before the origin. Currently, settings performed by the augmentation are
     // overridden by the origin. For instance, the `Map` class is abstract in
@@ -698,6 +704,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (iterator.moveNext()) {
       _buildOutlineNodes(iterator.current, coreLibrary);
     }
+    state = SourceLibraryBuilderState.outlineNodesBuilt;
 
     library.isSynthetic = isSynthetic;
     library.isUnsupported = isUnsupported;
@@ -768,10 +775,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     compilationUnit.addImportsToScope();
-    // TODO(johnniwinther): Support imports into parts.
-    /*for (SourceCompilationUnit part in parts) {
+    for (SourceCompilationUnit part in parts) {
       part.addImportsToScope();
-    }*/
+    }
 
     NameIterator<Builder> iterator = exportNameSpace.filteredNameIterator(
         includeDuplicates: false, includeAugmentations: false);
@@ -1442,6 +1448,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addDependencies(Library library, Set<SourceCompilationUnit> seen) {
+    assert(checkState(required: [SourceLibraryBuilderState.outlineNodesBuilt]));
     compilationUnit.addDependencies(library, seen);
     for (SourceCompilationUnit part in parts) {
       part.addDependencies(library, seen);
@@ -1574,6 +1581,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       nominalVariables[builder] = this;
     }
     _unboundNominalVariables.clear();
+
+    state = SourceLibraryBuilderState.unboundTypeVariablesCollected;
   }
 
   /// Computes variances of type parameters on typedefs.
@@ -1604,7 +1613,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       TypeBuilder bottomType, ClassBuilder objectClass) {
     assert(checkState(
         required: [SourceLibraryBuilderState.resolvedTypes],
-        pending: [SourceLibraryBuilderState.typeVariablesFinished]));
+        pending: [SourceLibraryBuilderState.unboundTypeVariablesCollected]));
     int count = 0;
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =

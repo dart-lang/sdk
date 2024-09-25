@@ -71,13 +71,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   // TODO(johnniwinther): Remove this once parts support augmentations.
   final SourceLibraryBuilder _augmentationRoot;
 
-  /// [SourceLibraryBuilder] used for passing a parent [Builder] to created
-  /// [Builder]s. These uses are only needed because we creating [Builder]s
-  /// instead of fragments.
-  // TODO(johnniwinther): Remove this when we no longer create [Builder]s in
-  // the outline builder.
-  final SourceLibraryBuilder _parent;
-
   final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
   /// Index of the library we use references for.
@@ -146,7 +139,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   BuilderFactoryImpl(
       {required SourceCompilationUnit compilationUnit,
       required SourceLibraryBuilder augmentationRoot,
-      required SourceLibraryBuilder parent,
       required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       required ProblemReporting problemReporting,
       required LookupScope scope,
@@ -157,7 +149,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _augmentationRoot = augmentationRoot,
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _problemReporting = problemReporting,
-        _parent = parent,
         _compilationUnitScope = scope,
         libraryName = libraryName,
         indexedLibrary = indexedLibrary,
@@ -784,8 +775,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool deferred,
       required int charOffset,
       required int prefixCharOffset,
-      required int uriOffset,
-      required int importIndex}) {
+      required int uriOffset}) {
     if (configurations != null) {
       for (Configuration config in configurations) {
         if (loader.getLibrarySupportValue(config.dottedName) ==
@@ -824,16 +814,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
 
     Import import = new Import(
-        _parent,
+        _compilationUnit,
         compilationUnit,
         isAugmentationImport,
         deferred,
         prefix,
         combinators,
         configurations,
+        _compilationUnit.fileUri,
         charOffset,
         prefixCharOffset,
-        importIndex,
         nativeImportPath: nativePath);
     imports.add(import);
     offsetMap?.registerImport(importKeyword!, import);

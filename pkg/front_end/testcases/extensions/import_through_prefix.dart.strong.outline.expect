@@ -1,0 +1,28 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///import_through_prefix_lib1.dart" as a;
+import "org-dartlang-testcase:///import_through_prefix_lib2.dart" as a;
+
+static method method() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+extension Ext on core::int {
+  get first = self2::Ext|get#first;
+}
+static extension-member method Ext|get#first(lowered final core::int #this) → core::int
+  ;
+
+library;
+import self as self3;
+import "dart:core" as core;
+
+extension Ext on core::int {
+  get second = self3::Ext|get#second;
+}
+static extension-member method Ext|get#second(lowered final core::int #this) → core::int
+  ;

@@ -213,7 +213,10 @@ abstract class SourceCompilationUnit implements CompilationUnit {
       required List<CombinatorBuilder>? combinators,
       required bool deferred});
 
-  void addToScope(String name, Builder member, int charOffset, bool isImport);
+  void addImportedBuilderToScope(
+      {required String name,
+      required Builder builder,
+      required int charOffset});
 
   void addImportsToScope();
 
@@ -245,13 +248,13 @@ abstract class SourceCompilationUnit implements CompilationUnit {
       Map<NominalVariableBuilder, SourceLibraryBuilder> nominalVariables,
       Map<StructuralVariableBuilder, SourceLibraryBuilder> structuralVariables);
 
-  /// Adds [prefixBuilder] to library name space.
+  /// Adds [prefixFragment] to library name space.
   ///
   /// Returns `true` if the prefix name was new to the name space. Otherwise the
   /// prefix was merged with an existing prefix of the same name.
   // TODO(johnniwinther): Remove this.
-  bool addPrefixBuilder(
-      String name, PrefixBuilder prefixBuilder, int charOffset);
+  bool addPrefixFragment(
+      String name, PrefixFragment prefixFragment, int charOffset);
 
   int resolveTypes(ProblemReporting problemReporting);
 }

@@ -108,8 +108,9 @@ Future<void> main() async {
     Message message = templateUnspecified.withArguments("My Message.");
     Name binaryOperator = new Name("+");
     Name name = new Name("bar");
-    PrefixBuilder prefixBuilder =
-        new PrefixBuilder("myPrefix", false, libraryBuilder, null, -1, -1);
+    PrefixBuilder prefixBuilder = new PrefixBuilder(
+        "myPrefix", false, libraryBuilder, null,
+        fileUri: uri, prefixOffset: -1, importOffset: -1);
     String assignmentOperator = "+=";
     TypeDeclarationBuilder declaration = new NominalVariableBuilder.fromKernel(
         new TypeParameter("T", const DynamicType(), const DynamicType()),

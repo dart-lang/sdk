@@ -6,19 +6,22 @@ library fasta.prefix_builder;
 
 import 'package:kernel/ast.dart' show LibraryDependency;
 
+import '../base/combinator.dart';
 import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
 import '../kernel/load_library_builder.dart' show LoadLibraryBuilder;
+import '../kernel/utils.dart';
 import '../source/source_library_builder.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
+import 'library_builder.dart';
 
 class PrefixBuilder extends BuilderImpl {
   final String name;
 
-  final PrefixNameSpace _exportNameSpace = new PrefixNameSpace();
+  final NameSpace _exportNameSpace = new NameSpaceImpl();
 
   late final LookupScope _exportScope =
       new NameSpaceLookupScope(_exportNameSpace, ScopeKind.library, "top");
@@ -29,21 +32,28 @@ class PrefixBuilder extends BuilderImpl {
   final bool deferred;
 
   @override
-  final int charOffset;
+  final Uri fileUri;
 
-  final int importIndex;
+  @override
+  final int charOffset;
 
   final LoadLibraryBuilder? loadLibraryBuilder;
 
   final bool isWildcard;
 
   PrefixBuilder(this.name, this.deferred, this.parent, this.loadLibraryBuilder,
-      this.charOffset, this.importIndex)
-      : isWildcard = name == '_' {
+      {required this.fileUri,
+      required int prefixOffset,
+      required int importOffset})
+      : charOffset = prefixOffset,
+        isWildcard = name == '_' {
     assert(deferred == (loadLibraryBuilder != null),
         "LoadLibraryBuilder must be provided iff prefix is deferred.");
     if (loadLibraryBuilder != null) {
-      addToExportScope('loadLibrary', loadLibraryBuilder!, charOffset);
+      addToExportScope('loadLibrary', loadLibraryBuilder!,
+          importOffset: importOffset,
+          prefixOffset: prefixOffset,
+          fromImport: false);
     }
   }
 
@@ -55,51 +65,95 @@ class PrefixBuilder extends BuilderImpl {
 
   LibraryDependency? get dependency => loadLibraryBuilder?.importDependency;
 
-  @override
-  Uri get fileUri => parent.fileUri;
-
   /// Lookup a member with [name] in the export scope.
   Builder? lookup(String name, int charOffset, Uri fileUri) {
     return _exportScope.lookupGetable(name, charOffset, fileUri);
   }
 
-  void addToExportScope(String name, Builder member, int charOffset) {
+  void addToExportScope(String name, Builder member,
+      {required int importOffset,
+      required int prefixOffset,
+      required bool fromImport}) {
     if (deferred && member is ExtensionBuilder) {
       parent.addProblem(templateDeferredExtensionImport.withArguments(name),
-          charOffset, noLength, fileUri);
+          importOffset, noLength, fileUri);
     }
 
     Builder? existing =
         _exportNameSpace.lookupLocalMember(name, setter: member.isSetter);
     Builder result;
     if (existing != null) {
-      // Coverage-ignore-block(suite): Not run.
       result = computeAmbiguousDeclarationForScope(
           parent, parent.nameSpace, name, existing, member,
-          uriOffset: new UriOffset(fileUri, charOffset), isExport: true);
+          uriOffset: new UriOffset(fileUri, prefixOffset),
+          isExport: !fromImport,
+          isImport: fromImport);
     } else {
       result = member;
     }
     _exportNameSpace.addLocalMember(name, result, setter: member.isSetter);
-    if (result is ExtensionBuilder) {
-      _exportNameSpace.addExtension(result);
+    if (member is ExtensionBuilder) {
+      _exportNameSpace.addExtension(member);
     }
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   String get fullNameForErrors => name;
+}
 
-  void mergeScopes(PrefixBuilder other, ProblemReporting problemReporting,
-      NameSpace nameSpace,
-      {required UriOffset uriOffset,
-      bool isImport = false,
-      bool isExport = false}) {
-    return _exportNameSpace.merge(other._exportNameSpace,
-        (String name, Builder existing, Builder member) {
-      return computeAmbiguousDeclarationForScope(
-          problemReporting, nameSpace, name, existing, member,
-          uriOffset: uriOffset, isExport: isExport, isImport: isImport);
-    });
+class PrefixFragment {
+  final String name;
+  final SourceCompilationUnit importer;
+  final CompilationUnit? imported;
+  final List<CombinatorBuilder>? combinators;
+  final bool deferred;
+  final Uri fileUri;
+  final int importOffset;
+  final int prefixOffset;
+
+  PrefixBuilder? _builder;
+
+  PrefixFragment({
+    required this.name,
+    required this.importer,
+    required this.imported,
+    required this.combinators,
+    required this.deferred,
+    required this.fileUri,
+    required this.importOffset,
+    required this.prefixOffset,
+  });
+
+  PrefixBuilder createPrefixBuilder() {
+    LoadLibraryBuilder? loadLibraryBuilder;
+    if (deferred) {
+      loadLibraryBuilder = new LoadLibraryBuilder(
+          importer.libraryBuilder,
+          prefixOffset,
+          imported!,
+          name,
+          importOffset,
+          toKernelCombinators(combinators));
+    }
+
+    return builder = new PrefixBuilder(
+        name, deferred, importer.libraryBuilder, loadLibraryBuilder,
+        fileUri: fileUri,
+        prefixOffset: prefixOffset,
+        importOffset: importOffset);
   }
+
+  PrefixBuilder get builder {
+    assert(_builder != null, "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(PrefixBuilder value) {
+    assert(_builder == null, "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$importOffset)';
 }

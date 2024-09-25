@@ -224,8 +224,7 @@ abstract class BuilderFactory {
       required bool deferred,
       required int charOffset,
       required int prefixCharOffset,
-      required int uriOffset,
-      required int importIndex});
+      required int uriOffset});
 
   void addExport(
       OffsetMap offsetMap,

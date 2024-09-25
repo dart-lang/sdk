@@ -382,26 +382,47 @@ class KernelTarget {
   }
 
   // Coverage-ignore(suite): Not run.
+  /// Builds [libraries] to the state expected after
+  /// [SourceLoader.buildScopes].
+  void buildSyntheticLibrariesUntilBuildScopes(
+      Iterable<SourceLibraryBuilder> libraries) {
+    for (SourceLibraryBuilder augmentationLibrary in libraries) {
+      augmentationLibrary.compilationUnit.createLibrary();
+      augmentationLibrary.state = SourceLibraryBuilderState.resolvedParts;
+    }
+    loader.buildNameSpaces(libraries);
+    loader.buildScopes(libraries);
+  }
+
+  // Coverage-ignore(suite): Not run.
+  /// Builds [libraries] to the state expected after default types have been
+  /// computed.
+  ///
+  /// This assumes that [libraries] are in the state after
+  /// [SourceLoader.buildScopes].
+  void buildSyntheticLibrariesUntilComputeDefaultTypes(
+      Iterable<SourceLibraryBuilder> libraries) {
+    loader.computeLibraryScopes(libraries);
+    loader.resolveTypes(libraries);
+    loader.computeDefaultTypes(
+        libraries, dynamicType, nullType, bottomType, objectClassBuilder);
+  }
+
+  // Coverage-ignore(suite): Not run.
   /// Builds [augmentationLibraries] to the state expected after applying phase
   /// 1 macros.
   Future<void> _buildForPhase1(MacroApplications macroApplications,
       Iterable<SourceLibraryBuilder> augmentationLibraries) async {
     await loader.buildOutlines();
     if (augmentationLibraries.isNotEmpty) {
+      buildSyntheticLibrariesUntilBuildScopes(augmentationLibraries);
       // Normally augmentation libraries are applied in
       // [SourceLoader.resolveParts]. For macro-generated augmentation libraries
       // we instead apply them directly here.
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.compilationUnit.createLibrary();
-        augmentationLibrary.state = SourceLibraryBuilderState.resolvedParts;
-      }
-      loader.buildNameSpaces(augmentationLibraries);
-      loader.buildScopes(augmentationLibraries);
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         augmentationLibrary.applyAugmentations();
       }
-      loader.computeLibraryScopes(augmentationLibraries);
-      loader.resolveTypes(augmentationLibraries);
+      buildSyntheticLibrariesUntilComputeDefaultTypes(augmentationLibraries);
 
       await loader.computeAdditionalMacroApplications(
           macroApplications, augmentationLibraries);
@@ -414,9 +435,6 @@ class KernelTarget {
   void _buildForPhase2(List<SourceLibraryBuilder> augmentationLibraries) {
     benchmarker?.enterPhase(BenchmarkPhases.outline_computeVariances);
     loader.computeVariances(augmentationLibraries);
-
-    loader.computeDefaultTypes(augmentationLibraries, dynamicType, nullType,
-        bottomType, objectClassBuilder);
 
     loader.finishTypeVariables(
         augmentationLibraries, objectClassBuilder, dynamicType);

@@ -4,8 +4,30 @@
 
 part of 'source_library_builder.dart';
 
+/// Enum that define what state a source compilation unit is in, in terms of how
+/// far in the compilation it has progressed. This is used to document and
+/// assert the requirements of individual methods within the
+/// [SourceCompilationUnitImpl].
+enum SourceCompilationUnitState {
+  initial,
+  importsAddedToScope,
+  ;
+
+  bool operator <(SourceCompilationUnitState other) => index < other.index;
+
+  // Coverage-ignore(suite): Not run.
+  bool operator <=(SourceCompilationUnitState other) => index <= other.index;
+
+  // Coverage-ignore(suite): Not run.
+  bool operator >(SourceCompilationUnitState other) => index > other.index;
+
+  bool operator >=(SourceCompilationUnitState other) => index >= other.index;
+}
+
 class SourceCompilationUnitImpl
     implements SourceCompilationUnit, ProblemReporting {
+  SourceCompilationUnitState _state = SourceCompilationUnitState.initial;
+
   @override
   final Uri fileUri;
 
@@ -110,13 +132,50 @@ class SourceCompilationUnitImpl
     _builderFactoryResult = _builderFactory = new BuilderFactoryImpl(
         compilationUnit: this,
         augmentationRoot: _sourceLibraryBuilder,
-        parent: _sourceLibraryBuilder,
         libraryNameSpaceBuilder: libraryNameSpaceBuilder,
         problemReporting: this,
         scope: _scope,
         libraryName: _libraryName,
         indexedLibrary: indexedLibrary,
         omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders);
+  }
+
+  SourceCompilationUnitState get state => _state;
+
+  void set state(SourceCompilationUnitState value) {
+    assert(_state < value,
+        "State $value has already been reached at $_state in $this.");
+    assert(
+        _state.index + 1 == value.index,
+        _state.index + 1 < SourceCompilationUnitState.values.length
+            ? "Expected state "
+                "${SourceCompilationUnitState.values[_state.index + 1]} "
+                "to follow from $_state, trying to set next state to $value "
+                "in $this."
+            : "No more states expected to follow from $_state, trying to set "
+                "next state to $value in $this.");
+    _state = value;
+  }
+
+  bool checkState(
+      {List<SourceCompilationUnitState>? required,
+      List<SourceCompilationUnitState>? pending}) {
+    if (required != null) {
+      for (SourceCompilationUnitState requiredState in required) {
+        assert(state >= requiredState,
+            "State $requiredState required, but found $state in $this.");
+      }
+    }
+    if (pending != null) {
+      // Coverage-ignore-block(suite): Not run.
+      for (SourceCompilationUnitState pendingState in pending) {
+        assert(
+            state < pendingState,
+            "State $pendingState must not have been reached, "
+            "but found $state in $this.");
+      }
+    }
+    return true;
   }
 
   @override
@@ -356,6 +415,9 @@ class SourceCompilationUnitImpl
 
   @override
   void addDependencies(Library library, Set<SourceCompilationUnit> seen) {
+    assert(
+        checkState(required: [SourceCompilationUnitState.importsAddedToScope]));
+
     if (!seen.add(this)) {
       return;
     }
@@ -368,15 +430,16 @@ class SourceCompilationUnitImpl
       }
 
       LibraryDependency libraryDependency;
-      if (import.deferred && import.prefixBuilder?.dependency != null) {
-        libraryDependency = import.prefixBuilder!.dependency!;
+      if (import.deferred &&
+          import.prefixFragment?.builder.dependency != null) {
+        libraryDependency = import.prefixFragment!.builder.dependency!;
       } else {
         LibraryBuilder imported = import.importedLibraryBuilder!.origin;
         Library targetLibrary = imported.library;
         libraryDependency = new LibraryDependency.import(targetLibrary,
             name: import.prefix,
             combinators: toKernelCombinators(import.combinators))
-          ..fileOffset = import.charOffset;
+          ..fileOffset = import.importOffset;
       }
       library.addDependency(libraryDependency);
       import.libraryDependency = libraryDependency;
@@ -399,8 +462,6 @@ class SourceCompilationUnitImpl
 
   @override
   LookupScope get scope => _scope;
-
-  NameSpace get _nameSpace => _sourceLibraryBuilder.nameSpace;
 
   @override
   void takeMixinApplications(
@@ -660,6 +721,8 @@ class SourceCompilationUnitImpl
       required String? prefix,
       required List<CombinatorBuilder>? combinators,
       required bool deferred}) {
+    assert(
+        checkState(pending: [SourceCompilationUnitState.importsAddedToScope]));
     _builderFactory.addImport(
         metadata: null,
         isAugmentationImport: false,
@@ -670,12 +733,13 @@ class SourceCompilationUnitImpl
         deferred: deferred,
         charOffset: -1,
         prefixCharOffset: -1,
-        uriOffset: -1,
-        importIndex: -1);
+        uriOffset: -1);
   }
 
   @override
   void addImportsToScope() {
+    assert(checkState(required: [SourceCompilationUnitState.initial]));
+
     bool hasCoreImport = originImportUri == dartCore &&
         // Coverage-ignore(suite): Not run.
         !forPatchLibrary;
@@ -685,7 +749,7 @@ class SourceCompilationUnitImpl
         addProblem(
             templatePartOfInLibrary
                 .withArguments(import.importedCompilationUnit!.fileUri),
-            import.charOffset,
+            import.importOffset,
             noLength,
             fileUri);
       }
@@ -699,30 +763,35 @@ class SourceCompilationUnitImpl
           .filteredNameIterator(
               includeDuplicates: false, includeAugmentations: false);
       while (iterator.moveNext()) {
-        addToScope(iterator.name, iterator.current, -1, true);
+        addImportedBuilderToScope(
+            name: iterator.name, builder: iterator.current, charOffset: -1);
       }
     }
+
+    state = SourceCompilationUnitState.importsAddedToScope;
   }
 
   @override
-  void addToScope(String name, Builder member, int charOffset, bool isImport) {
+  void addImportedBuilderToScope(
+      {required String name,
+      required Builder builder,
+      required int charOffset}) {
     Builder? existing =
-        _importNameSpace.lookupLocalMember(name, setter: member.isSetter);
+        _importNameSpace.lookupLocalMember(name, setter: builder.isSetter);
     if (existing != null) {
-      if (existing != member) {
+      if (existing != builder) {
         _importNameSpace.addLocalMember(
             name,
             computeAmbiguousDeclarationForScope(
-                this, _nameSpace, name, existing, member,
-                uriOffset: new UriOffset(fileUri, charOffset),
-                isImport: isImport),
-            setter: member.isSetter);
+                this, libraryBuilder.nameSpace, name, existing, builder,
+                uriOffset: new UriOffset(fileUri, charOffset), isImport: true),
+            setter: builder.isSetter);
       }
     } else {
-      _importNameSpace.addLocalMember(name, member, setter: member.isSetter);
+      _importNameSpace.addLocalMember(name, builder, setter: builder.isSetter);
     }
-    if (member.isExtension) {
-      _importNameSpace.addExtension(member as ExtensionBuilder);
+    if (builder.isExtension) {
+      _importNameSpace.addExtension(builder as ExtensionBuilder);
     }
   }
 
@@ -746,10 +815,17 @@ class SourceCompilationUnitImpl
 
   @override
   int finishDeferredLoadTearOffs(Library library) {
+    assert(
+        checkState(required: [SourceCompilationUnitState.importsAddedToScope]));
+
     int total = 0;
     for (Import import in _builderFactoryResult.imports) {
       if (import.deferred) {
-        Procedure? tearoff = import.prefixBuilder!.loadLibraryBuilder!.tearoff;
+        Procedure? tearoff =
+            import.prefixFragment!.builder.loadLibraryBuilder?.tearoff;
+        // In case of conflict between deferred and non-deferred prefixes of
+        // the same name, the [PrefixBuilder] might not have a load library
+        // function.
         if (tearoff != null) {
           library.addProcedure(tearoff);
         }
@@ -1105,52 +1181,55 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  bool addPrefixBuilder(
-      String name, PrefixBuilder prefixBuilder, int charOffset) {
-    Builder? existing = _nameSpace.lookupLocalMember(name, setter: false);
+  bool addPrefixFragment(
+      String name, PrefixFragment prefixFragment, int charOffset) {
+    Builder? existing =
+        libraryBuilder.nameSpace.lookupLocalMember(name, setter: false);
     ProblemReporting _problemReporting = this;
     if (existing is PrefixBuilder) {
       assert(existing.next is! PrefixBuilder);
-      Builder? deferred;
-      Builder? other;
-      if (prefixBuilder.deferred) {
-        deferred = prefixBuilder;
-        other = existing;
+      int? deferredFileOffset;
+      int? otherFileOffset;
+      if (prefixFragment.deferred) {
+        deferredFileOffset = prefixFragment.prefixOffset;
+        otherFileOffset = existing.charOffset;
       } else if (existing.deferred) {
-        deferred = existing;
-        other = prefixBuilder;
+        deferredFileOffset = existing.charOffset;
+        otherFileOffset = prefixFragment.prefixOffset;
       }
-      if (deferred != null) {
-        // Coverage-ignore-block(suite): Not run.
+      if (deferredFileOffset != null) {
         _problemReporting.addProblem(
             templateDeferredPrefixDuplicated.withArguments(name),
-            deferred.charOffset,
+            deferredFileOffset,
             noLength,
             fileUri,
             context: [
               templateDeferredPrefixDuplicatedCause
                   .withArguments(name)
-                  .withLocation(fileUri, other!.charOffset, noLength)
+                  .withLocation(fileUri, otherFileOffset!, noLength)
             ]);
       }
-      existing.mergeScopes(prefixBuilder, _problemReporting, _nameSpace,
-          uriOffset: new UriOffset(fileUri, charOffset));
+      prefixFragment.builder = existing;
       return false;
-    } else if (isDuplicatedDeclaration(existing, prefixBuilder)) {
+    } else if (existing != null) {
       String fullName = name;
       _problemReporting.addProblem(
           templateDuplicatedDeclaration.withArguments(fullName),
           charOffset,
           fullName.length,
-          prefixBuilder.fileUri,
+          prefixFragment.fileUri,
           context: <LocatedMessage>[
             templateDuplicatedDeclarationCause
                 .withArguments(fullName)
                 .withLocation(
-                    existing!.fileUri!, existing.charOffset, fullName.length)
+                    existing.fileUri!, existing.charOffset, fullName.length)
           ]);
     }
-    _nameSpace.addLocalMember(name, prefixBuilder, setter: false);
+    // TODO(johnniwinther): For enhanced parts, this should be the prefix name
+    //  space for the compilation unit.
+    libraryBuilder.nameSpace.addLocalMember(
+        name, prefixFragment.createPrefixBuilder(),
+        setter: false);
     return true;
   }
 }
