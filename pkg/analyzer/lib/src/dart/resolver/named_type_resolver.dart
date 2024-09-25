@@ -71,6 +71,9 @@ class NamedTypeResolver with ScopeHelpers {
   bool get _genericMetadataIsEnabled =>
       enclosingClass!.library.featureSet.isEnabled(Feature.generic_metadata);
 
+  bool get _inferenceUsingBoundsIsEnabled => enclosingClass!.library.featureSet
+      .isEnabled(Feature.inference_using_bounds);
+
   /// Resolve the given [NamedType] - set its element and static type. Only the
   /// given [node] is resolved, all its children must be already resolved.
   ///
@@ -178,6 +181,7 @@ class NamedTypeResolver with ScopeHelpers {
           declaredReturnType: element.thisType,
           contextReturnType: enclosingClass!.thisType,
           genericMetadataIsEnabled: _genericMetadataIsEnabled,
+          inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
           strictInference: strictInference,
           strictCasts: strictCasts,
           typeSystemOperations: typeSystemOperations,

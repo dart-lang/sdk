@@ -280,6 +280,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   final bool genericMetadataIsEnabled;
 
+  final bool inferenceUsingBoundsIsEnabled;
+
   /// Stack for obtaining rewritten expressions.  Prior to visiting an
   /// expression, a caller may push the expression on this stack; if
   /// [replaceExpression] is later called, it will update the top of the stack
@@ -348,6 +350,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         _featureSet = featureSet,
         genericMetadataIsEnabled =
             definingLibrary.featureSet.isEnabled(Feature.generic_metadata),
+        inferenceUsingBoundsIsEnabled = definingLibrary.featureSet
+            .isEnabled(Feature.inference_using_bounds),
         options = TypeAnalyzerOptions(
             nullSafetyEnabled: true,
             patternsEnabled:
@@ -1194,6 +1198,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       // If the constructor-tearoffs feature is enabled, then so is
       // generic-metadata.
       genericMetadataIsEnabled: true,
+      inferenceUsingBoundsIsEnabled:
+          _featureSet.isEnabled(Feature.inference_using_bounds),
       strictInference: analysisOptions.strictInference,
       strictCasts: analysisOptions.strictCasts,
       typeSystemOperations: flowAnalysis.typeOperations,
@@ -4045,6 +4051,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       typeParameters,
       errorEntity: errorNode,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
+      inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
       strictInference: analysisOptions.strictInference,
       typeSystemOperations: flowAnalysis.typeOperations,
       dataForTesting: inferenceHelper.dataForTesting,
@@ -4093,6 +4100,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // If the constructor-tearoffs feature is enabled, then so is
         // generic-metadata.
         genericMetadataIsEnabled: true,
+        inferenceUsingBoundsIsEnabled:
+            _featureSet.isEnabled(Feature.inference_using_bounds),
         strictInference: analysisOptions.strictInference,
         strictCasts: analysisOptions.strictCasts,
         typeSystemOperations: flowAnalysis.typeOperations,

@@ -210,6 +210,8 @@ class LiteralElementVerifier {
             errorReporter: errorReporter,
             errorNode: expression,
             genericMetadataIsEnabled: true,
+            inferenceUsingBoundsIsEnabled:
+                featureSet.isEnabled(Feature.inference_using_bounds),
             strictInference: _errorVerifier.options.strictInference,
             strictCasts: _errorVerifier.options.strictCasts,
             typeSystemOperations: _errorVerifier.typeSystemOperations,

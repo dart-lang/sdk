@@ -116,6 +116,7 @@
         "/testcases/inference_update_2/",
         "/testcases/inference_update_3/",
         "/testcases/inference/",
+        "/testcases/inference_using_bounds/",
         "/testcases/instantiate_to_bound/",
         "/testcases/late_lowering/",
         "/testcases/late_lowering_sentinel/",

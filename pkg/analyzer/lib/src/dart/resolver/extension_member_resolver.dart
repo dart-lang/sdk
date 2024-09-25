@@ -36,6 +36,10 @@ class ExtensionMemberResolver {
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
 
+  bool get _inferenceUsingBoundsIsEnabled =>
+      _resolver.definingLibrary.featureSet
+          .isEnabled(Feature.inference_using_bounds);
+
   TypeProvider get _typeProvider => _resolver.typeProvider;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
@@ -349,6 +353,7 @@ class ExtensionMemberResolver {
         errorReporter: _errorReporter,
         errorEntity: node.name,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
+        inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
         strictInference: _resolver.analysisOptions.strictInference,
         typeSystemOperations: _resolver.flowAnalysis.typeOperations,
         dataForTesting: dataForTesting,
