@@ -1500,7 +1500,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
     }
 
-    var formattedResult = DartFormatter().formatSource(
+    var languageVersion = resolvedUnit.libraryElement.languageVersion.effective;
+    var formattedResult =
+        DartFormatter(languageVersion: languageVersion).formatSource(
       SourceCode(
         newContent,
         isCompilationUnit: true,
