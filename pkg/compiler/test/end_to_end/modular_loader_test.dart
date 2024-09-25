@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:compiler/src/elements/names.dart';
 
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -77,7 +79,7 @@ main() {
 }
 
 /// Generate a component for a modular compilation unit.
-Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
+Future<Uint8List> compileUnit(List<String> inputs, Map<String, dynamic> sources,
     {List<String> deps = const []}) async {
   var fs = MemoryFileSystem(_defaultDir);
   sources.forEach((name, data) {

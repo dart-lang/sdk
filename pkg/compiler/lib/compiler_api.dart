@@ -5,6 +5,7 @@
 library compiler;
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
@@ -107,11 +108,11 @@ abstract class CompilerInput {
   /// zero-terminated list of encoded bytes. If the input kind is
   /// `InputKind.binary` the resulting list is the raw bytes from the input
   /// source.
-  Future<Input<List<int>>> readFromUri(Uri uri,
+  Future<Input<Uint8List>> readFromUri(Uri uri,
       {InputKind inputKind = InputKind.UTF8});
 
   /// Register that [uri] should be an `InputKind.UTF8` input with the
-  /// given [source] as its zero-terminated list of contents.
+  /// given [source] of contents.
   ///
   /// If [uri] was read prior to this call, this registration has no effect,
   /// otherwise it is expected that a future [readFromUri] will return the
@@ -122,7 +123,7 @@ abstract class CompilerInput {
   /// of source files that may not be available on disk. By using these
   /// registered contents, dart2js will be able to provide accurate line/column
   /// information on an error.
-  void registerUtf8ContentsForDiagnostics(Uri uri, List<int> source);
+  void registerUtf8ContentsForDiagnostics(Uri uri, Uint8List source);
 }
 
 /// Output types used in `CompilerOutput.createOutputSink`.

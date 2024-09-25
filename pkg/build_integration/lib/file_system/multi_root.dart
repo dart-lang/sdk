@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/build_integration.dart';
@@ -81,7 +82,7 @@ class MultiRootFileSystemEntity implements FileSystemEntity {
       (await delegate).existsAsyncIfPossible();
 
   @override
-  Future<List<int>> readAsBytes() async => (await delegate).readAsBytes();
+  Future<Uint8List> readAsBytes() async => (await delegate).readAsBytes();
 
   @override
   Future<List<int>> readAsBytesAsyncIfPossible() async =>
@@ -104,7 +105,7 @@ class MissingFileSystemEntity implements FileSystemEntity {
   Future<bool> existsAsyncIfPossible() => exists();
 
   @override
-  Future<List<int>> readAsBytes() =>
+  Future<Uint8List> readAsBytes() =>
       Future.error(FileSystemException(uri, 'File not found'));
 
   @override

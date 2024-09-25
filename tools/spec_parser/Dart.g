@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.48 Add support for enhanced parts.
+//
 // v0.47 Make `augment` a built-in identifier (this happened in the feature
 // specification v1.10, but wasn't done here at the time).
 //
@@ -1450,11 +1452,11 @@ libraryExport
     ;
 
 partDirective
-    :    metadata PART uri ';'
+    :    metadata PART configurableUri ';'
     ;
 
 partHeader
-    :    metadata PART OF (dottedIdentifierList | uri)';'
+    :    metadata PART OF uri ';'
     ;
 
 partDeclaration

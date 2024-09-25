@@ -1,0 +1,30 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/part_with_prefix_part.dart:7:1: Error: The part-of directive must be the only directive in a part.
+// Try removing the other directives, or moving them to the library for which this is a part.
+// import 'part_with_prefix_lib1.dart' as foo;
+// ^^^^^^
+//
+// pkg/front_end/testcases/general/part_with_prefix_part.dart:8:1: Error: The part-of directive must be the only directive in a part.
+// Try removing the other directives, or moving them to the library for which this is a part.
+// import 'part_with_prefix_lib2.dart' deferred as bar;
+// ^^^^^^
+//
+import self as self;
+
+import "org-dartlang-testcase:///part_with_prefix_lib1.dart" as foo;
+import "org-dartlang-testcase:///part_with_prefix_lib2.dart" deferred as bar;
+
+part part_with_prefix_part.dart;
+
+library;
+import self as self2;
+
+static method method1() → dynamic {}
+
+library;
+import self as self3;
+
+static method method2() → dynamic {}

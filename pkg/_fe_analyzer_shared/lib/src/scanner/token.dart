@@ -721,7 +721,7 @@ class StringToken extends SimpleToken {
       : _value = StringUtilities.intern(value);
 
   @override
-  bool get isIdentifier => identical(kind, IDENTIFIER_TOKEN);
+  bool get isIdentifier => kind == IDENTIFIER_TOKEN;
 
   @override
   String get lexeme => _value;

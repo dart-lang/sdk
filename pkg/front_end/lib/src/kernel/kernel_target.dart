@@ -4,6 +4,8 @@
 
 library fasta.kernel_target;
 
+import 'dart:typed_data';
+
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -263,7 +265,7 @@ class KernelTarget {
   bool _hasAddedSources = false;
 
   void addSourceInformation(
-      Uri importUri, Uri fileUri, List<int> lineStarts, List<int> sourceCode) {
+      Uri importUri, Uri fileUri, List<int> lineStarts, Uint8List sourceCode) {
     Source source = new Source(lineStarts, sourceCode, importUri, fileUri);
     uriToSource[fileUri] = source;
     if (_hasAddedSources) {
@@ -271,8 +273,8 @@ class KernelTarget {
       // The sources have already been added to the component in [link] so we
       // have to add source directly here to create a consistent component.
       component?.uriToSource[fileUri] = excludeSource
-          ? new Source(source.lineStarts, const <int>[], source.importUri,
-              source.fileUri)
+          ? new Source.emptySource(
+              source.lineStarts, source.importUri, source.fileUri)
           : source;
     }
   }
@@ -382,26 +384,47 @@ class KernelTarget {
   }
 
   // Coverage-ignore(suite): Not run.
+  /// Builds [libraryBuilders] to the state expected after
+  /// [SourceLoader.buildScopes].
+  void buildSyntheticLibrariesUntilBuildScopes(
+      Iterable<SourceLibraryBuilder> libraryBuilders) {
+    for (SourceLibraryBuilder libraryBuilder in libraryBuilders) {
+      libraryBuilder.compilationUnit.createLibrary();
+      libraryBuilder.state = SourceLibraryBuilderState.resolvedParts;
+    }
+    loader.buildNameSpaces(libraryBuilders);
+    loader.buildScopes(libraryBuilders);
+  }
+
+  // Coverage-ignore(suite): Not run.
+  /// Builds [libraryBuilders] to the state expected after default types have
+  /// been computed.
+  ///
+  /// This assumes that [libraryBuilders] are in the state after
+  /// [SourceLoader.buildScopes].
+  void buildSyntheticLibrariesUntilComputeDefaultTypes(
+      Iterable<SourceLibraryBuilder> libraryBuilders) {
+    loader.computeLibraryScopes(libraryBuilders);
+    loader.resolveTypes(libraryBuilders);
+    loader.computeDefaultTypes(
+        libraryBuilders, dynamicType, nullType, bottomType, objectClassBuilder);
+  }
+
+  // Coverage-ignore(suite): Not run.
   /// Builds [augmentationLibraries] to the state expected after applying phase
   /// 1 macros.
   Future<void> _buildForPhase1(MacroApplications macroApplications,
       Iterable<SourceLibraryBuilder> augmentationLibraries) async {
     await loader.buildOutlines();
     if (augmentationLibraries.isNotEmpty) {
+      buildSyntheticLibrariesUntilBuildScopes(augmentationLibraries);
       // Normally augmentation libraries are applied in
       // [SourceLoader.resolveParts]. For macro-generated augmentation libraries
       // we instead apply them directly here.
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.compilationUnit.createLibrary();
-        augmentationLibrary.state = SourceLibraryBuilderState.resolvedParts;
-      }
-      loader.buildNameSpaces(augmentationLibraries);
-      loader.buildScopes(augmentationLibraries);
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         augmentationLibrary.applyAugmentations();
       }
-      loader.computeLibraryScopes(augmentationLibraries);
-      loader.resolveTypes(augmentationLibraries);
+      buildSyntheticLibrariesUntilComputeDefaultTypes(augmentationLibraries);
 
       await loader.computeAdditionalMacroApplications(
           macroApplications, augmentationLibraries);
@@ -414,9 +437,6 @@ class KernelTarget {
   void _buildForPhase2(List<SourceLibraryBuilder> augmentationLibraries) {
     benchmarker?.enterPhase(BenchmarkPhases.outline_computeVariances);
     loader.computeVariances(augmentationLibraries);
-
-    loader.computeDefaultTypes(augmentationLibraries, dynamicType, nullType,
-        bottomType, objectClassBuilder);
 
     loader.finishTypeVariables(
         augmentationLibraries, objectClassBuilder, dynamicType);
@@ -851,8 +871,8 @@ class KernelTarget {
       uriToSource[uri] = excludeSource
           ?
           // Coverage-ignore(suite): Not run.
-          new Source(source.lineStarts, const <int>[], source.importUri,
-              source.fileUri)
+          new Source.emptySource(
+              source.lineStarts, source.importUri, source.fileUri)
           : source;
     }
 

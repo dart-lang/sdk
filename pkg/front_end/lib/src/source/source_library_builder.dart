@@ -4,7 +4,8 @@
 
 library fasta.source_library_builder;
 
-import 'dart:convert' show jsonEncode;
+import 'dart:convert' show jsonEncode, utf8;
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
@@ -124,9 +125,12 @@ enum SourceLibraryBuilderState {
   /// Default types of type parameters have been computed.
   defaultTypesComputed,
 
-  /// Type parameters have been checked for cyclic dependencies and their
-  /// nullability have been computed.
-  typeVariablesFinished,
+  /// Type parameters have been collected to be checked for cyclic dependencies
+  /// and their nullability to be computed.
+  unboundTypeVariablesCollected,
+
+  /// The AST nodes for the outline have been built.
+  outlineNodesBuilt,
   ;
 
   bool operator <(SourceLibraryBuilderState other) => index < other.index;
@@ -425,48 +429,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// Return the primary message.
   Message reportFeatureNotEnabled(
       LibraryFeature feature, Uri fileUri, int charOffset, int length) {
-    assert(!feature.isEnabled);
-    Message message;
-    if (feature.isSupported) {
-      // TODO(johnniwinther): Ideally the error should actually be special-cased
-      // to mention that it is an experimental feature.
-      String enabledVersionText = feature.flag.isEnabledByDefault
-          ? feature.enabledVersion.toText()
-          : "the current release";
-      if (_languageVersion.isExplicit) {
-        message = templateExperimentOptOutExplicit.withArguments(
-            feature.flag.name, enabledVersionText);
-        addProblem(message, charOffset, length, fileUri,
-            context: <LocatedMessage>[
-              templateExperimentOptOutComment
-                  .withArguments(feature.flag.name)
-                  .withLocation(_languageVersion.fileUri!,
-                      _languageVersion.charOffset, _languageVersion.charCount)
-            ]);
-      } else {
-        message = templateExperimentOptOutImplicit.withArguments(
-            feature.flag.name, enabledVersionText);
-        addProblem(message, charOffset, length, fileUri);
-      }
-    } else {
-      if (feature.flag.isEnabledByDefault) {
-        // Coverage-ignore-block(suite): Not run.
-        if (_languageVersion.version < feature.enabledVersion) {
-          message =
-              templateExperimentDisabledInvalidLanguageVersion.withArguments(
-                  feature.flag.name, feature.enabledVersion.toText());
-          addProblem(message, charOffset, length, fileUri);
-        } else {
-          message = templateExperimentDisabled.withArguments(feature.flag.name);
-          addProblem(message, charOffset, length, fileUri);
-        }
-      } else {
-        message = templateExperimentNotEnabledOffByDefault
-            .withArguments(feature.flag.name);
-        addProblem(message, charOffset, length, fileUri);
-      }
-    }
-    return message;
+    return compilationUnit.reportFeatureNotEnabled(
+        feature, fileUri, charOffset, length);
   }
 
   @override
@@ -560,8 +524,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         indexedLibrary: indexedLibrary,
         omittedTypes: omittedTypeDeclarationBuilders);
     addAugmentationLibrary(augmentationLibrary);
+    Uint8List sourceUtf8 = utf8.encode(source);
     loader.registerUnparsedLibrarySource(
-        augmentationLibrary.compilationUnit, source);
+        augmentationLibrary.compilationUnit, sourceUtf8);
     return augmentationLibrary;
   }
 
@@ -670,6 +635,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// Builds the core AST structure of this library as needed for the outline.
   Library buildOutlineNodes(LibraryBuilder coreLibrary) {
+    assert(checkState(
+        required: [SourceLibraryBuilderState.unboundTypeVariablesCollected]));
+
     // TODO(johnniwinther): Avoid the need to process augmentation libraries
     // before the origin. Currently, settings performed by the augmentation are
     // overridden by the origin. For instance, the `Map` class is abstract in
@@ -698,6 +666,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (iterator.moveNext()) {
       _buildOutlineNodes(iterator.current, coreLibrary);
     }
+    state = SourceLibraryBuilderState.outlineNodesBuilt;
 
     library.isSynthetic = isSynthetic;
     library.isUnsupported = isUnsupported;
@@ -768,10 +737,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     compilationUnit.addImportsToScope();
-    // TODO(johnniwinther): Support imports into parts.
-    /*for (SourceCompilationUnit part in parts) {
+    for (SourceCompilationUnit part in parts) {
       part.addImportsToScope();
-    }*/
+    }
 
     NameIterator<Builder> iterator = exportNameSpace.filteredNameIterator(
         includeDuplicates: false, includeAugmentations: false);
@@ -1442,6 +1410,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addDependencies(Library library, Set<SourceCompilationUnit> seen) {
+    assert(checkState(required: [SourceLibraryBuilderState.outlineNodesBuilt]));
     compilationUnit.addDependencies(library, seen);
     for (SourceCompilationUnit part in parts) {
       part.addDependencies(library, seen);
@@ -1574,6 +1543,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       nominalVariables[builder] = this;
     }
     _unboundNominalVariables.clear();
+
+    state = SourceLibraryBuilderState.unboundTypeVariablesCollected;
   }
 
   /// Computes variances of type parameters on typedefs.
@@ -1604,7 +1575,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       TypeBuilder bottomType, ClassBuilder objectClass) {
     assert(checkState(
         required: [SourceLibraryBuilderState.resolvedTypes],
-        pending: [SourceLibraryBuilderState.typeVariablesFinished]));
+        pending: [SourceLibraryBuilderState.unboundTypeVariablesCollected]));
     int count = 0;
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =

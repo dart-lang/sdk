@@ -189,7 +189,7 @@ class _FileSystemEntity implements fe.FileSystemEntity {
   Future<bool> existsAsyncIfPossible() => exists();
 
   @override
-  Future<List<int>> readAsBytes() async {
+  Future<Uint8List> readAsBytes() async {
     final Uint8List? storedBytes = _fileSystem._dills[uri];
     if (storedBytes != null) {
       return storedBytes;

@@ -4,6 +4,8 @@
 
 library dart2js.scanner.string_scanner;
 
+import 'characters.dart' show $EOF;
+
 import 'token.dart'
     show
         CommentToken,
@@ -35,35 +37,30 @@ import 'error_token.dart' show ErrorToken;
  */
 class StringScanner extends AbstractScanner {
   /** The file content. */
-  final String string;
+  final String _string;
+  final int _stringLengthMinusOne;
 
-  /** The current offset in [string]. */
+  /** The current offset in [_string]. */
   @override
   int scanOffset = -1;
 
-  StringScanner(String string,
+  StringScanner(this._string,
       {ScannerConfiguration? configuration,
       bool includeComments = false,
       LanguageVersionChanged? languageVersionChanged})
-      : string = ensureZeroTermination(string),
+      : _stringLengthMinusOne = _string.length - 1,
         super(configuration, includeComments, languageVersionChanged,
-            numberOfBytesHint: string.length);
+            numberOfBytesHint: _string.length);
 
   StringScanner.recoveryOptionScanner(StringScanner super.copyFrom)
-      : string = copyFrom.string,
+      : _string = copyFrom._string,
+        _stringLengthMinusOne = copyFrom._stringLengthMinusOne,
         scanOffset = copyFrom.scanOffset,
         super.recoveryOptionScanner();
 
   @override
   StringScanner createRecoveryOptionScanner() {
     return new StringScanner.recoveryOptionScanner(this);
-  }
-
-  static String ensureZeroTermination(String string) {
-    return (string.isEmpty || string.codeUnitAt(string.length - 1) != 0)
-        // TODO(lry): abort instead of copying the array, or warn?
-        ? string + '\x00'
-        : string;
   }
 
   static bool isLegalIdentifier(String identifier) {
@@ -73,9 +70,21 @@ class StringScanner extends AbstractScanner {
   }
 
   @override
-  int advance() => string.codeUnitAt(++scanOffset);
+  @pragma('vm:unsafe:no-bounds-checks')
+  int advance() {
+    // Always increment so scanOffset goes past the end.
+    ++scanOffset;
+    if (scanOffset > _stringLengthMinusOne) return $EOF;
+    return _string.codeUnitAt(scanOffset);
+  }
+
   @override
-  int peek() => string.codeUnitAt(scanOffset + 1);
+  @pragma('vm:unsafe:no-bounds-checks')
+  int peek() {
+    int next = scanOffset + 1;
+    if (next > _stringLengthMinusOne) return $EOF;
+    return _string.codeUnitAt(next);
+  }
 
   @override
   int get stringOffset => scanOffset;
@@ -90,7 +99,7 @@ class StringScanner extends AbstractScanner {
   analyzer.StringToken createSubstringToken(TokenType type, int start,
       bool asciiOnly, int extraOffset, bool allowLazy) {
     return new StringTokenImpl.fromSubstring(
-        type, string, start, scanOffset + extraOffset, tokenStart,
+        type, _string, start, scanOffset + extraOffset, tokenStart,
         canonicalize: true,
         precedingComments: comments,
         allowLazyFoo: allowLazy);
@@ -100,9 +109,9 @@ class StringScanner extends AbstractScanner {
   analyzer.StringToken createSyntheticSubstringToken(
       TokenType type, int start, bool asciiOnly, String syntheticChars) {
     String value = syntheticChars.length == 0
-        ? canonicalizeSubString(string, start, scanOffset)
+        ? canonicalizeSubString(_string, start, scanOffset)
         : canonicalizeString(
-            string.substring(start, scanOffset) + syntheticChars);
+            _string.substring(start, scanOffset) + syntheticChars);
     return new SyntheticStringToken(
         type, value, tokenStart, value.length - syntheticChars.length);
   }
@@ -111,7 +120,7 @@ class StringScanner extends AbstractScanner {
   CommentToken createCommentToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new CommentTokenImpl.fromSubstring(
-        type, string, start, scanOffset + extraOffset, tokenStart,
+        type, _string, start, scanOffset + extraOffset, tokenStart,
         canonicalize: true);
   }
 
@@ -119,7 +128,7 @@ class StringScanner extends AbstractScanner {
   DartDocToken createDartDocToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new DartDocToken.fromSubstring(
-        type, string, start, scanOffset + extraOffset, tokenStart,
+        type, _string, start, scanOffset + extraOffset, tokenStart,
         canonicalize: true);
   }
 
@@ -127,10 +136,15 @@ class StringScanner extends AbstractScanner {
   LanguageVersionToken createLanguageVersionToken(
       int start, int major, int minor) {
     return new LanguageVersionTokenImpl.fromSubstring(
-        string, start, scanOffset, tokenStart, major, minor,
+        _string, start, scanOffset, tokenStart, major, minor,
         canonicalize: true);
   }
 
   @override
-  bool atEndOfFile() => scanOffset >= string.length - 1;
+  // This class used to enforce zero-terminated input, so we only return true
+  // once advance has been out of bounds.
+  // TODO(jensj): This should probably change.
+  // It's at least used in tests (where the eof token has its offset reduced
+  // by one to 'fix' this.)
+  bool atEndOfFile() => scanOffset > _stringLengthMinusOne;
 }

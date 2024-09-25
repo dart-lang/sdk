@@ -37,7 +37,6 @@ import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
@@ -1408,16 +1407,10 @@ class StaticAccessGenerator extends Generator {
   final int? typeOffset;
   final bool isNullAware;
 
-  /// The builder for the parent of [readTarget] and [writeTarget]. This is
-  /// either the builder for the enclosing library,  class, or extension.
-  final Builder? parentBuilder;
-
   StaticAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.targetName, this.parentBuilder, this.readTarget, this.writeTarget,
+      this.targetName, this.readTarget, this.writeTarget,
       {this.typeOffset, this.isNullAware = false})
       : assert(readTarget != null || writeTarget != null),
-        assert(parentBuilder is DeclarationBuilder ||
-            parentBuilder is LibraryBuilder),
         super(helper, token);
 
   factory StaticAccessGenerator.fromBuilder(
@@ -1433,18 +1426,10 @@ class StaticAccessGenerator extends Generator {
     // class/extension.
     assert(getterBuilder == null ||
         setterBuilder == null ||
-        (getterBuilder.parent is LibraryBuilder &&
-            setterBuilder.parent is LibraryBuilder) ||
-        getterBuilder.parent == setterBuilder.parent);
-    return new StaticAccessGenerator(
-        helper,
-        token,
-        targetName,
-        getterBuilder?.parent ?? setterBuilder?.parent,
-        getterBuilder?.readTarget,
-        setterBuilder?.writeTarget,
-        typeOffset: typeOffset,
-        isNullAware: isNullAware);
+        getterBuilder.declarationBuilder == setterBuilder.declarationBuilder);
+    return new StaticAccessGenerator(helper, token, targetName,
+        getterBuilder?.readTarget, setterBuilder?.writeTarget,
+        typeOffset: typeOffset, isNullAware: isNullAware);
   }
 
   @override

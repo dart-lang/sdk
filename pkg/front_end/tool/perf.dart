@@ -212,11 +212,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 /// Loads the file contents of all [files] as bytes.
 Set<Uint8List> loadFileContentsAsBytes(Set<Source> files) {
   return files.map((Source source) {
-    final bytes = utf8.encode(source.contents.data);
-    // CFE needs files to e 0-terminated.
-    return Uint8List(bytes.length + 1)
-      ..setRange(0, bytes.length, bytes)
-      ..[bytes.length] = 0;
+    return utf8.encode(source.contents.data);
   }).toSet();
 }
 

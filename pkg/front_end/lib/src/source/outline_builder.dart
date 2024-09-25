@@ -501,7 +501,6 @@ class OutlineBuilder extends StackListenerImpl {
   bool inAbstractOrSealedClass = false;
   bool inConstructor = false;
   bool inConstructorName = false;
-  int importIndex = 0;
 
   String? nativeMethodName;
 
@@ -756,8 +755,7 @@ class OutlineBuilder extends StackListenerImpl {
         deferred: isDeferred,
         charOffset: importKeyword.charOffset,
         prefixCharOffset: prefix?.nameOffset ?? TreeNode.noOffset,
-        uriOffset: uriOffset,
-        importIndex: importIndex++);
+        uriOffset: uriOffset);
   }
 
   @override

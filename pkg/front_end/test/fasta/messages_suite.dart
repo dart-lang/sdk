@@ -162,7 +162,7 @@ class MessageTestSuite extends ChainContext {
       List<String> formatSpellingMistakes(spell.SpellingResult spellResult,
           int offset, String message, String messageForDenyListed) {
         if (source == null) {
-          List<int> bytes = file.readAsBytesSync();
+          Uint8List bytes = file.readAsBytesSync();
           List<int> lineStarts = <int>[];
           int indexOf = 0;
           while (indexOf >= 0) {

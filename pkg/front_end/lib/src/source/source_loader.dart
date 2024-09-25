@@ -1002,9 +1002,6 @@ severity: $severity
         bytes = synthesizeSourceForMissingFile(compilationUnit.importUri, null);
       }
       if (bytes != null) {
-        Uint8List zeroTerminatedBytes = new Uint8List(bytes.length + 1);
-        zeroTerminatedBytes.setRange(0, bytes.length, bytes);
-        bytes = zeroTerminatedBytes;
         sourceBytes[fileUri] = bytes;
       }
     }
@@ -1012,7 +1009,7 @@ severity: $severity
     if (bytes == null) {
       // If it isn't found in the cache, read the file read from the file
       // system.
-      List<int> rawBytes;
+      Uint8List rawBytes;
       try {
         rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
       } on FileSystemException catch (e) {
@@ -1022,9 +1019,7 @@ severity: $severity
         rawBytes =
             synthesizeSourceForMissingFile(compilationUnit.importUri, message);
       }
-      Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
-      zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
-      bytes = zeroTerminatedBytes;
+      bytes = rawBytes;
       sourceBytes[fileUri] = bytes;
       byteCount += rawBytes.length;
     }
@@ -1063,8 +1058,6 @@ severity: $severity
     }, allowLazyStrings: allowLazyStrings);
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
-      List<int> source = getSource(bytes);
-
       /// We use the [importUri] of the created [Library] and not the
       /// [importUri] of the [LibraryBuilder] since it might be an augmentation
       /// library which is not directly part of the output.
@@ -1087,7 +1080,7 @@ severity: $severity
         }
       }
       target.addSourceInformation(
-          importUri, compilationUnit.fileUri, result.lineStarts, source);
+          importUri, compilationUnit.fileUri, result.lineStarts, bytes);
     }
     compilationUnit.issuePostponedProblems();
     compilationUnit.markLanguageVersionFinal();
@@ -1142,11 +1135,8 @@ severity: $severity
   ///
   /// This is used for creating synthesized augmentation libraries.
   void registerUnparsedLibrarySource(
-      SourceCompilationUnit compilationUnit, String source) {
-    List<int> codeUnits = source.codeUnits;
-    Uint8List bytes = new Uint8List(codeUnits.length + 1);
-    bytes.setRange(0, codeUnits.length, codeUnits);
-    sourceBytes[compilationUnit.fileUri] = bytes;
+      SourceCompilationUnit compilationUnit, Uint8List source) {
+    sourceBytes[compilationUnit.fileUri] = source;
     _unparsedLibraries.addLast(compilationUnit);
   }
 
@@ -1237,16 +1227,6 @@ severity: $severity
       }
       _unavailableDartLibraries.clear();
     }
-  }
-
-  List<int> getSource(List<int> bytes) {
-    // bytes is 0-terminated. We don't want that included.
-    if (bytes is Uint8List) {
-      return new Uint8List.view(
-          bytes.buffer, bytes.offsetInBytes, bytes.length - 1);
-    }
-    // Coverage-ignore(suite): Not run.
-    return bytes.sublist(0, bytes.length - 1);
   }
 
   Future<Null> buildOutline(SourceCompilationUnit compilationUnit) async {
@@ -1916,10 +1896,6 @@ severity: $severity
       }
     }
 
-    for (SourceLibraryBuilder libraryBuilder in libraryBuilders) {
-      libraryBuilder.state = SourceLibraryBuilderState.typeVariablesFinished;
-    }
-
     ticker.logMs("Resolved ${sortedTypeVariables.length} type-variable bounds");
   }
 
@@ -1933,7 +1909,7 @@ severity: $severity
   }
 
   void computeDefaultTypes(
-      List<SourceLibraryBuilder> libraryBuilders,
+      Iterable<SourceLibraryBuilder> libraryBuilders,
       TypeBuilder dynamicType,
       TypeBuilder nullType,
       TypeBuilder bottomType,
@@ -2991,7 +2967,7 @@ severity: $severity
         return;
       }
       if (mainBuilder.isField || mainBuilder.isGetter || mainBuilder.isSetter) {
-        if (mainBuilder.parent != libraryBuilder) {
+        if (mainBuilder.libraryBuilder != libraryBuilder) {
           libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
               libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
               context: [
@@ -3008,7 +2984,7 @@ severity: $severity
       } else {
         Procedure procedure = mainBuilder.member as Procedure;
         if (procedure.function.requiredParameterCount > 2) {
-          if (mainBuilder.parent != libraryBuilder) {
+          if (mainBuilder.libraryBuilder != libraryBuilder) {
             libraryBuilder.addProblem(
                 messageMainTooManyRequiredParametersExported,
                 libraryBuilder.charOffset,
@@ -3027,7 +3003,7 @@ severity: $severity
           }
         } else if (procedure.function.namedParameters
             .any((parameter) => parameter.isRequired)) {
-          if (mainBuilder.parent != libraryBuilder) {
+          if (mainBuilder.libraryBuilder != libraryBuilder) {
             libraryBuilder.addProblem(
                 messageMainRequiredNamedParametersExported,
                 libraryBuilder.charOffset,
@@ -3050,7 +3026,7 @@ severity: $severity
 
           if (!typeEnvironment.isSubtypeOf(listOfString, parameterType,
               SubtypeCheckMode.withNullabilities)) {
-            if (mainBuilder.parent != libraryBuilder) {
+            if (mainBuilder.libraryBuilder != libraryBuilder) {
               libraryBuilder.addProblem(
                   templateMainWrongParameterTypeExported.withArguments(
                       parameterType, listOfString),

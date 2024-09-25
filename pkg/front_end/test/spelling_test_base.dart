@@ -73,13 +73,10 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
   Future<Result<TestDescription>> run(
       TestDescription description, SpellContext context) async {
     File f = new File.fromUri(description.uri);
-    List<int> rawBytes = f.readAsBytesSync();
-
-    Uint8List bytes = new Uint8List(rawBytes.length + 1);
-    bytes.setRange(0, rawBytes.length, rawBytes);
+    Uint8List rawBytes = f.readAsBytesSync();
 
     Utf8BytesScanner scanner =
-        new Utf8BytesScanner(bytes, includeComments: true);
+        new Utf8BytesScanner(rawBytes, includeComments: true);
     Token firstToken = scanner.tokenize();
     Token? token = firstToken;
 

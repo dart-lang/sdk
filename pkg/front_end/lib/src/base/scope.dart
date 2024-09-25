@@ -477,6 +477,11 @@ Builder computeAmbiguousDeclarationForScope(ProblemReporting problemReporting,
     {required UriOffset uriOffset,
     bool isExport = false,
     bool isImport = false}) {
+  // Prefix fragments are merged to singular prefix builders when computing the
+  // import scope.
+  assert(!(declaration is PrefixBuilder && other is PrefixBuilder),
+      "Unexpected prefix builders $declaration and $other.");
+
   // TODO(ahe): Can I move this to Scope or Prefix?
   if (declaration == other) return declaration;
   if (declaration is InvalidTypeDeclarationBuilder) return declaration;
@@ -512,19 +517,7 @@ Builder computeAmbiguousDeclarationForScope(ProblemReporting problemReporting,
   if (preferred != null) {
     return preferred;
   }
-  if (declaration.next == null && other.next == null) {
-    if (isImport &&
-        declaration is PrefixBuilder &&
-        // Coverage-ignore(suite): Not run.
-        other is PrefixBuilder) {
-      // Coverage-ignore-block(suite): Not run.
-      // Handles the case where the same prefix is used for different
-      // imports.
-      declaration.mergeScopes(other, problemReporting, nameSpace,
-          uriOffset: uriOffset, isImport: isImport, isExport: isExport);
-      return declaration;
-    }
-  }
+
   Uri firstUri = uri!;
   Uri secondUri = otherUri!;
   if (firstUri.toString().compareTo(secondUri.toString()) > 0) {
@@ -707,11 +700,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
   void set isConflictingAugmentationMember(bool value) {
     throw new UnsupportedError('$runtimeType.isConflictingAugmentationMember=');
-  }
-
-  @override
-  void set parent(Builder? value) {
-    throw new UnsupportedError('$runtimeType.parent=');
   }
 
   @override

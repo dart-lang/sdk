@@ -8,7 +8,6 @@ import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
-import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/function_builder.dart';
@@ -526,20 +525,18 @@ class LibraryNameSpaceBuilder {
         String name, Builder declaration, Uri fileUri, int charOffset) {
       if (declaration is SourceExtensionBuilder &&
           declaration.isUnnamedExtension) {
-        declaration.parent = enclosingLibraryBuilder;
         extensions.add(declaration);
         return;
       }
 
-      if (declaration is MemberBuilder) {
-        declaration.parent = enclosingLibraryBuilder;
-      } else if (declaration is TypeDeclarationBuilder) {
-        declaration.parent = enclosingLibraryBuilder;
-      }
-      // Coverage-ignore(suite): Not run.
-      else if (declaration is PrefixBuilder) {
-        assert(declaration.parent == enclosingLibraryBuilder);
+      if (declaration is MemberBuilder ||
+          declaration is TypeDeclarationBuilder) {
+        // Expected.
       } else {
+        // Coverage-ignore-block(suite): Not run.
+        // Prefix builders are added when computing the import scope.
+        assert(declaration is! PrefixBuilder,
+            "Unexpected prefix builder $declaration.");
         unhandled(
             "${declaration.runtimeType}", "addBuilder", charOffset, fileUri);
       }
@@ -565,36 +562,7 @@ class LibraryNameSpaceBuilder {
             declaration.fileUri);
       }
       declaration.next = existing;
-      if (declaration is PrefixBuilder &&
-          // Coverage-ignore(suite): Not run.
-          existing is PrefixBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        assert(existing.next is! PrefixBuilder);
-        Builder? deferred;
-        Builder? other;
-        if (declaration.deferred) {
-          deferred = declaration;
-          other = existing;
-        } else if (existing.deferred) {
-          deferred = existing;
-          other = declaration;
-        }
-        if (deferred != null) {
-          problemReporting.addProblem(
-              templateDeferredPrefixDuplicated.withArguments(name),
-              deferred.charOffset,
-              noLength,
-              fileUri,
-              context: [
-                templateDeferredPrefixDuplicatedCause
-                    .withArguments(name)
-                    .withLocation(fileUri, other!.charOffset, noLength)
-              ]);
-        }
-        existing.mergeScopes(declaration, problemReporting, nameSpace,
-            uriOffset: new UriOffset(fileUri, charOffset));
-        return;
-      } else if (isDuplicatedDeclaration(existing, declaration)) {
+      if (isDuplicatedDeclaration(existing, declaration)) {
         String fullName = name;
         problemReporting.addProblem(
             templateDuplicatedDeclaration.withArguments(fullName),
@@ -887,22 +855,14 @@ class DeclarationNameSpaceBuilder {
       }
     }
 
-    void setParent(MemberBuilder? member) {
-      while (member != null) {
-        member.parent = declarationBuilder;
-        member = member.next as MemberBuilder?;
-      }
-    }
-
-    void setParentAndCheckConflicts(String name, Builder member) {
+    void checkConflicts(String name, Builder member) {
       checkTypeVariableConflict(
           problemReporting, name, member, member.fileUri!);
-      setParent(member as MemberBuilder);
     }
 
-    getables.forEach(setParentAndCheckConflicts);
-    setables.forEach(setParentAndCheckConflicts);
-    constructors.forEach(setParentAndCheckConflicts);
+    getables.forEach(checkConflicts);
+    setables.forEach(checkConflicts);
+    constructors.forEach(checkConflicts);
 
     return new DeclarationNameSpaceImpl(
         getables: getables,

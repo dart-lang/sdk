@@ -1,0 +1,32 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/deferred_vs_non_deferred.dart:5:57: Error: Can't use the name 'foo' for a deferred library, as the name is used elsewhere.
+// import 'deferred_vs_non_deferred_lib1.dart' deferred as foo;
+//                                                         ^
+// pkg/front_end/testcases/general/deferred_vs_non_deferred.dart:6:48: Context: 'foo' is used here.
+// import 'deferred_vs_non_deferred_lib2.dart' as foo;
+//                                                ^
+//
+// pkg/front_end/testcases/general/deferred_vs_non_deferred.dart:9:57: Error: Can't use the name 'bar' for a deferred library, as the name is used elsewhere.
+// import 'deferred_vs_non_deferred_lib2.dart' deferred as bar;
+//                                                         ^
+// pkg/front_end/testcases/general/deferred_vs_non_deferred.dart:8:48: Context: 'bar' is used here.
+// import 'deferred_vs_non_deferred_lib1.dart' as bar;
+//                                                ^
+//
+import self as self;
+
+import "org-dartlang-testcase:///deferred_vs_non_deferred_lib1.dart" deferred as foo;
+import "org-dartlang-testcase:///deferred_vs_non_deferred_lib2.dart" as foo;
+import "org-dartlang-testcase:///deferred_vs_non_deferred_lib1.dart" as bar;
+import "org-dartlang-testcase:///deferred_vs_non_deferred_lib2.dart" as bar;
+
+
+library;
+import self as self2;
+
+
+library;
+import self as self3;

@@ -3315,8 +3315,8 @@ class BodyBuilder extends StackListenerImpl
     } else if (declaration.isRegularMethod) {
       assert(declaration.isStatic || declaration.isTopLevel);
       MemberBuilder memberBuilder = declaration as MemberBuilder;
-      return new StaticAccessGenerator(this, nameToken, name,
-          memberBuilder.parent, memberBuilder.member, null);
+      return new StaticAccessGenerator(
+          this, nameToken, name, memberBuilder.member, null);
     } else if (declaration is PrefixBuilder) {
       assert(prefix == null);
       // Wildcard import prefixes are non-binding and cannot be used.
