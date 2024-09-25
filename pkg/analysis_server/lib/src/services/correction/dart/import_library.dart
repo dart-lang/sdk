@@ -377,10 +377,10 @@ class ImportLibrary extends MultiCorrectionProducer {
       return await _importLibraryForElement(typeName, const [
         ElementKind.CLASS,
         ElementKind.ENUM,
+        ElementKind.EXTENSION_TYPE,
         ElementKind.FUNCTION_TYPE_ALIAS,
         ElementKind.MIXIN,
         ElementKind.TYPE_ALIAS,
-        ElementKind.EXTENSION_TYPE,
       ]);
     }
     if (targetNode.mightBeImplicitConstructor) {
