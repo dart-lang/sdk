@@ -703,11 +703,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  void set parent(Builder? value) {
-    throw new UnsupportedError('$runtimeType.parent=');
-  }
-
-  @override
   DeclarationBuilder get declarationBuilder {
     throw new UnsupportedError('$runtimeType.declarationBuilder');
   }

@@ -2967,7 +2967,7 @@ severity: $severity
         return;
       }
       if (mainBuilder.isField || mainBuilder.isGetter || mainBuilder.isSetter) {
-        if (mainBuilder.parent != libraryBuilder) {
+        if (mainBuilder.libraryBuilder != libraryBuilder) {
           libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
               libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
               context: [
@@ -2984,7 +2984,7 @@ severity: $severity
       } else {
         Procedure procedure = mainBuilder.member as Procedure;
         if (procedure.function.requiredParameterCount > 2) {
-          if (mainBuilder.parent != libraryBuilder) {
+          if (mainBuilder.libraryBuilder != libraryBuilder) {
             libraryBuilder.addProblem(
                 messageMainTooManyRequiredParametersExported,
                 libraryBuilder.charOffset,
@@ -3003,7 +3003,7 @@ severity: $severity
           }
         } else if (procedure.function.namedParameters
             .any((parameter) => parameter.isRequired)) {
-          if (mainBuilder.parent != libraryBuilder) {
+          if (mainBuilder.libraryBuilder != libraryBuilder) {
             libraryBuilder.addProblem(
                 messageMainRequiredNamedParametersExported,
                 libraryBuilder.charOffset,
@@ -3026,7 +3026,7 @@ severity: $severity
 
           if (!typeEnvironment.isSubtypeOf(listOfString, parameterType,
               SubtypeCheckMode.withNullabilities)) {
-            if (mainBuilder.parent != libraryBuilder) {
+            if (mainBuilder.libraryBuilder != libraryBuilder) {
               libraryBuilder.addProblem(
                   templateMainWrongParameterTypeExported.withArguments(
                       parameterType, listOfString),

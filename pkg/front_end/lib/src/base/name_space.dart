@@ -428,7 +428,7 @@ class DillExportNameSpace extends LazyNameSpace {
       // Coverage-ignore-block(suite): Not run.
       bool needsPatching = false;
       for (ExtensionBuilder extensionBuilder in _extensions!) {
-        if (replacementMap.containsKey(extensionBuilder.parent)) {
+        if (replacementMap.containsKey(extensionBuilder.libraryBuilder)) {
           needsPatching = true;
           break;
         }
@@ -437,13 +437,12 @@ class DillExportNameSpace extends LazyNameSpace {
         Set<ExtensionBuilder> extensionsReplacement =
             new Set<ExtensionBuilder>();
         for (ExtensionBuilder extensionBuilder in _extensions!) {
-          if (replacementMap.containsKey(extensionBuilder.parent)) {
-            assert(replacementMap[extensionBuilder.parent]![
+          if (replacementMap.containsKey(extensionBuilder.libraryBuilder)) {
+            assert(replacementMap[extensionBuilder.libraryBuilder]![
                     extensionBuilder.name] !=
                 null);
-            extensionsReplacement.add(
-                replacementMap[extensionBuilder.parent]![extensionBuilder.name]
-                    as ExtensionBuilder);
+            extensionsReplacement.add(replacementMap[extensionBuilder
+                .libraryBuilder]![extensionBuilder.name] as ExtensionBuilder);
             break;
           } else {
             extensionsReplacement.add(extensionBuilder);

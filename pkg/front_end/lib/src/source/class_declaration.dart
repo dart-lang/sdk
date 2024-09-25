@@ -102,9 +102,9 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
           parent: this, includeDuplicates: true, includeAugmentations: true);
       while (iterator.moveNext()) {
         MemberBuilder declaration = iterator.current;
-        if (declaration.parent?.origin != origin) {
-          unexpected("$fileUri", "${declaration.parent!.fileUri}", charOffset,
-              fileUri);
+        if (declaration.declarationBuilder?.origin != origin) {
+          unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
+              charOffset, fileUri);
         }
         if (declaration is RedirectingFactoryBuilder) {
           // Compute the immediate redirection target, not the effective.

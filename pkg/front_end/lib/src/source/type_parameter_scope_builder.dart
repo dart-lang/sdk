@@ -525,15 +525,13 @@ class LibraryNameSpaceBuilder {
         String name, Builder declaration, Uri fileUri, int charOffset) {
       if (declaration is SourceExtensionBuilder &&
           declaration.isUnnamedExtension) {
-        declaration.parent = enclosingLibraryBuilder;
         extensions.add(declaration);
         return;
       }
 
-      if (declaration is MemberBuilder) {
-        declaration.parent = enclosingLibraryBuilder;
-      } else if (declaration is TypeDeclarationBuilder) {
-        declaration.parent = enclosingLibraryBuilder;
+      if (declaration is MemberBuilder ||
+          declaration is TypeDeclarationBuilder) {
+        // Expected.
       } else {
         // Coverage-ignore-block(suite): Not run.
         // Prefix builders are added when computing the import scope.
@@ -857,22 +855,14 @@ class DeclarationNameSpaceBuilder {
       }
     }
 
-    void setParent(MemberBuilder? member) {
-      while (member != null) {
-        member.parent = declarationBuilder;
-        member = member.next as MemberBuilder?;
-      }
-    }
-
-    void setParentAndCheckConflicts(String name, Builder member) {
+    void checkConflicts(String name, Builder member) {
       checkTypeVariableConflict(
           problemReporting, name, member, member.fileUri!);
-      setParent(member as MemberBuilder);
     }
 
-    getables.forEach(setParentAndCheckConflicts);
-    setables.forEach(setParentAndCheckConflicts);
-    constructors.forEach(setParentAndCheckConflicts);
+    getables.forEach(checkConflicts);
+    setables.forEach(checkConflicts);
+    constructors.forEach(checkConflicts);
 
     return new DeclarationNameSpaceImpl(
         getables: getables,

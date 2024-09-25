@@ -10,8 +10,6 @@ abstract class ITypeDeclarationBuilder implements Builder {
 
   bool get isNamedMixinApplication;
 
-  void set parent(Builder? value);
-
   List<MetadataBuilder>? get metadata;
 
   int get typeVariablesCount => 0;
@@ -65,6 +63,12 @@ abstract class ITypeDeclarationBuilder implements Builder {
 abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
     implements ITypeDeclarationBuilder {
   @override
+  final Builder? parent;
+
+  @override
+  final int charOffset;
+
+  @override
   final List<MetadataBuilder>? metadata;
 
   @override
@@ -74,8 +78,7 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
   final String name;
 
   TypeDeclarationBuilderImpl(
-      this.metadata, this.modifiers, this.name, Builder? parent, int charOffset)
-      : super(parent, charOffset);
+      this.metadata, this.modifiers, this.name, this.parent, this.charOffset);
 
   @override
   TypeDeclarationBuilder get origin => this as TypeDeclarationBuilder;

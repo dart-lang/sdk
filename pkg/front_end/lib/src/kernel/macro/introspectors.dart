@@ -410,7 +410,7 @@ class MacroIntrospection {
       List<macro.FormalParameterDeclarationImpl> namedParameters
     ) = _createParameters(builder.libraryBuilder, formals);
     macro.ParameterizedTypeDeclaration definingTypeDeclaration;
-    Builder? parent = builder.parent;
+    DeclarationBuilder? parent = builder.declarationBuilder;
     if (parent is ClassBuilder) {
       definingTypeDeclaration = getClassDeclaration(parent);
     } else if (parent is ExtensionTypeDeclarationBuilder) {

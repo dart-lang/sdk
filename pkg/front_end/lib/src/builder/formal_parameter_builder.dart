@@ -21,6 +21,7 @@ import '../source/builder_factory.dart';
 import '../source/constructor_declaration.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
+import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import 'builder.dart';
 import 'constructor_builder.dart';
@@ -53,6 +54,11 @@ abstract class ParameterBuilder {
 class FormalParameterBuilder extends ModifierBuilderImpl
     implements VariableBuilder, ParameterBuilder, InferredTypeListener {
   static const String noNameSentinel = 'no name sentinel';
+
+  SourceFunctionBuilder? _parent;
+
+  @override
+  final int charOffset;
 
   @override
   final int modifiers;
@@ -94,15 +100,24 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   final bool isWildcard;
 
   FormalParameterBuilder(
-      this.kind, this.modifiers, this.type, this.name, int charOffset,
-      {required Uri fileUri,
+      this.kind, this.modifiers, this.type, this.name, this.charOffset,
+      {required this.fileUri,
       this.isExtensionThis = false,
       required this.hasImmediatelyDeclaredInitializer,
       this.isWildcard = false})
-      : this.fileUri = fileUri,
-        this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
-        super(null, charOffset) {
+      : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer {
     type.registerInferredTypeListener(this);
+  }
+
+  @override
+  SourceFunctionBuilder get parent {
+    assert(_parent != null, "Parent has not been set for $this.");
+    return _parent!;
+  }
+
+  void set parent(SourceFunctionBuilder value) {
+    assert(_parent == null, "Parent has already been set for $this.");
+    _parent = value;
   }
 
   @override
@@ -185,7 +200,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
-      ..parent = parent
+      .._parent = _parent
       ..variable = variable;
   }
 
@@ -246,9 +261,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     if (parent is ConstructorBuilder) {
       return true;
     } else if (parent is SourceFactoryBuilder) {
-      return parent!.isFactory;
+      return parent.isFactory;
     } else {
-      return parent!.isClassInstanceMember;
+      return parent.isClassInstanceMember;
     }
   }
 
@@ -258,7 +273,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     if (needsDefaultValuesBuiltAsOutlineExpressions) {
       if (initializerToken != null) {
         final DeclarationBuilder declarationBuilder =
-            parent!.parent as DeclarationBuilder;
+            parent.declarationBuilder!;
         LookupScope scope = declarationBuilder.scope;
         BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
             this,

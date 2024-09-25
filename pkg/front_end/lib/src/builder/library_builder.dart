@@ -396,7 +396,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   @override
   bool mayImplementRestrictedTypes = false;
 
-  LibraryBuilderImpl(this.fileUri) : super(null, -1);
+  LibraryBuilderImpl(this.fileUri);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -405,6 +405,9 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   Builder? get parent => null;
+
+  @override
+  int get charOffset => -1;
 
   @override
   bool get isPart => false;

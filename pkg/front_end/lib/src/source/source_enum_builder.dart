@@ -418,7 +418,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
     nameSpace.addLocalMember("_enumToString", toStringBuilder, setter: false);
     nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
         toStringBuilder.name, toStringBuilder, toStringBuilder.fileUri!);
-    toStringBuilder.parent = this;
 
     String className = name;
 
