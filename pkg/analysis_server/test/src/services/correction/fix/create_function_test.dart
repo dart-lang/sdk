@@ -114,6 +114,18 @@ test() {
 ''');
   }
 
+  Future<void> test_expressionFunctionBody() async {
+    await resolveTestCode('''
+int f1() => f2();
+''');
+    await assertHasFix('''
+int f1() => f2();
+
+int f2() {
+}
+''');
+  }
+
   Future<void> test_fromFunction() async {
     await resolveTestCode('''
 void f() {
@@ -258,6 +270,26 @@ int test(double a, String b) {
 ''');
   }
 
+  Future<void> test_functionType_FunctionCall() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2(f3);
+}
+
+void f2(int Function() f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2(f3);
+}
+
+void f2(int Function() f) {}
+
+int f3() {
+}
+''');
+  }
+
   Future<void> test_functionType_importType() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
@@ -284,6 +316,120 @@ void f() {
 
 int test(A a) {
 }
+''');
+  }
+
+  Future<void> test_functionType_inside_conditional_operator() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2(i == 0 ? f3 : (v) => v);
+}
+
+void f2(int Function(int) f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2(i == 0 ? f3 : (v) => v);
+}
+
+void f2(int Function(int) f) {}
+
+int f3(int p1) {
+}
+''');
+  }
+
+  Future<void> test_functionType_inside_conditional_operator_condition() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2(f3 ? (v) => v : (v) => v);
+}
+
+void f2(int Function(int) f) {}
+''');
+    await assertNoFix();
+  }
+
+  Future<void>
+      test_functionType_inside_conditional_operator_condition_FunctionCall() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2(f3() ? (v) => v : (v) => v);
+}
+
+void f2(int Function(int) f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2(f3() ? (v) => v : (v) => v);
+}
+
+bool f3() {
+}
+
+void f2(int Function(int) f) {}
+''');
+  }
+
+  Future<void> test_functionType_inside_conditional_operator_else() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2(i == 0 ? (v) => v : f3);
+}
+
+void f2(int Function(int) f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2(i == 0 ? (v) => v : f3);
+}
+
+void f2(int Function(int) f) {}
+
+int f3(int p1) {
+}
+''');
+  }
+
+  Future<void>
+      test_functionType_inside_conditional_operator_else_FunctionCall() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2(i == 0 ? i : f3());
+}
+
+void f2(int p) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2(i == 0 ? i : f3());
+}
+
+int f3() {
+}
+
+void f2(int p) {}
+''');
+  }
+
+  Future<void>
+      test_functionType_inside_conditional_operator_then_FunctionCall() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2(i == 0 ? f3() : i);
+}
+
+void f2(int p) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2(i == 0 ? f3() : i);
+}
+
+int f3() {
+}
+
+void f2(int p) {}
 ''');
   }
 

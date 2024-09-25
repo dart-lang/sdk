@@ -40,24 +40,29 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       // prepare argument expression (to get parameter)
       InterfaceElement? targetElement;
       Expression argument;
-      {
-        var target = getQualifiedPropertyTarget(node);
-        if (target != null) {
-          var targetType = target.staticType;
-          if (targetType is InterfaceType) {
-            targetElement = targetType.element;
-            argument = target.parent as Expression;
-          } else {
-            return;
-          }
+      var target = getQualifiedPropertyTarget(node);
+      if (target != null) {
+        var targetType = target.staticType;
+        if (targetType is InterfaceType) {
+          targetElement = targetType.element;
+          argument = target.parent as Expression;
         } else {
-          targetElement = node.enclosingInterfaceElement;
-          argument = nameNode;
+          return;
         }
+      } else {
+        targetElement = node.enclosingInterfaceElement;
+        argument = nameNode;
       }
       argument = stepUpNamedExpression(argument);
       // should be argument of some invocation
+      // or child of an expression that is one
       var parameterElement = argument.staticParameterElement;
+      if (argument.parent case ConditionalExpression parent) {
+        if (argument == parent.condition) {
+          return;
+        }
+        parameterElement = parent.staticParameterElement;
+      }
       if (parameterElement == null) {
         return;
       }

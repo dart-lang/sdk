@@ -8,12 +8,16 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
+import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -25,9 +29,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
-import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
 
 /// How broadly a [CorrectionProducer] can be applied.
@@ -467,6 +468,28 @@ abstract class ResolvedCorrectionProducer
       if (parent is ExpressionStatement) {
         return VoidTypeImpl.instance;
       }
+    }
+    if (parent case ConditionalExpression conditionalExpression) {
+      // `v = myFunction() ? 1 : 2;`.
+      if (conditionalExpression.condition == expression) {
+        return _coreTypeBool;
+      } else {
+        var type = conditionalExpression.staticParameterElement?.type;
+        if (type is InterfaceType && type.isDartCoreFunction) {
+          return FunctionTypeImpl(
+            typeFormals: const [],
+            parameters: const [],
+            returnType: typeProvider.dynamicType,
+            nullabilitySuffix: NullabilitySuffix.none,
+          );
+        }
+        return type;
+      }
+    }
+    // `=> myFunction();`.
+    if (parent is ExpressionFunctionBody) {
+      var executable = expression.enclosingExecutableElement;
+      return executable?.returnType;
     }
     // `return myFunction();`.
     if (parent is ReturnStatement) {
