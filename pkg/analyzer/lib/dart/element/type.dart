@@ -256,6 +256,10 @@ abstract class FunctionType implements DartType {
   @override
   Null get element2;
 
+  /// The formal parameters.
+  @experimental
+  List<FormalParameterElement> get formalParameters;
+
   /// A map from the names of named parameters to the types of the named
   /// parameters of this type of function.
   ///
@@ -293,13 +297,6 @@ abstract class FunctionType implements DartType {
   /// in the declaration of the function.
   List<ParameterElement> get parameters;
 
-  /// A list containing the parameters elements of this type of function.
-  ///
-  /// The parameter types are not necessarily in the same order as they appear
-  /// in the declaration of the function.
-  @experimental
-  List<FormalParameterElement> get parameters2;
-
   /// The type of object returned by this type of function.
   DartType get returnType;
 
@@ -312,15 +309,9 @@ abstract class FunctionType implements DartType {
   // from the perspective of this function type.
   List<TypeParameterElement> get typeFormals;
 
-  /// The formal type parameters of this generic function; for example,
-  /// `<T> T -> T`.
-  //
-  // TODO(scheglov): Remove the mention for "typeParameters".
-  // These are distinct from the `typeParameters` list, which contains type
-  // parameters from surrounding contexts, and thus are free type variables
-  // from the perspective of this function type.
+  /// The type parameters.
   @experimental
-  List<TypeParameterElement2> get typeFormals2;
+  List<TypeParameterElement2> get typeParameters;
 
   /// Produces a new function type by substituting type parameters of this
   /// function type with the given [argumentTypes].

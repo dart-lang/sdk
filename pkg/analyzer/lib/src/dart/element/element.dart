@@ -3309,6 +3309,10 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
+  List<FormalParameterFragment> get formalParameters =>
+      parameters.cast<FormalParameterFragment>();
+
+  @override
   bool get hasImplicitReturnType {
     return hasModifier(Modifier.IMPLICIT_TYPE);
   }
@@ -3414,10 +3418,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     }
     _parameters = parameters;
   }
-
-  @override
-  List<FormalParameterFragment> get parameters2 =>
-      parameters.cast<FormalParameterFragment>();
 
   List<ParameterElement> get parameters_unresolved {
     return _parameters;
@@ -3943,6 +3943,12 @@ class FormalParameterElementImpl extends PromotableElementImpl2
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
+  List<FormalParameterElement> get formalParameters => firstFragment.parameters
+      .map((fragment) => (fragment as ParameterElementImpl).element)
+      .toList();
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
   bool get hasDefaultValue => firstFragment.hasDefaultValue;
 
   @override
@@ -4010,12 +4016,6 @@ class FormalParameterElementImpl extends PromotableElementImpl2
 
   @override
   String get name => firstFragment.name;
-
-  @override
-  // TODO(augmentations): Implement the merge of formal parameters.
-  List<FormalParameterElement> get parameters2 => firstFragment.parameters
-      .map((fragment) => (fragment as ParameterElementImpl).element)
-      .toList();
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
@@ -4419,6 +4419,12 @@ mixin FragmentedElementMixin<E extends Fragment> implements _Fragmented<E> {
 
 mixin FragmentedExecutableElementMixin<E extends ExecutableFragment>
     implements FragmentedElementMixin<E> {
+  List<FormalParameterElement> get formalParameters {
+    return firstFragment!.formalParameters
+        .map((fragment) => fragment.element)
+        .toList();
+  }
+
   bool get hasImplicitReturnType {
     for (var fragment in _fragments) {
       if (!(fragment as ExecutableElementImpl).hasImplicitReturnType) {
@@ -4450,9 +4456,6 @@ mixin FragmentedExecutableElementMixin<E extends ExecutableFragment>
   }
 
   bool get isStatic => (firstFragment as ExecutableElementImpl).isStatic;
-
-  List<FormalParameterElement> get parameters2 =>
-      firstFragment!.parameters2.map((fragment) => fragment.element).toList();
 }
 
 mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
@@ -6356,6 +6359,12 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
   }
 
   @override
+  List<FormalParameterElement> get formalParameters =>
+      _wrappedElement.formalParameters
+          .map((fragment) => fragment.element)
+          .toList();
+
+  @override
   bool get hasAlwaysThrows => _wrappedElement.hasAlwaysThrows;
 
   @override
@@ -6457,10 +6466,6 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
 
   @override
   List<ElementAnnotation> get metadata => _wrappedElement.metadata;
-
-  @override
-  List<FormalParameterElement> get parameters2 =>
-      _wrappedElement.parameters2.map((fragment) => fragment.element).toList();
 
   @override
   DartType get returnType => _wrappedElement.returnType;

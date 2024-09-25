@@ -1595,7 +1595,7 @@ library
         f @42
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             a @46
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   typeAliases
@@ -1605,7 +1605,7 @@ library
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional a
           type: void Function({int p})
             alias: <testLibraryFragment>::@typeAlias::A
@@ -2832,7 +2832,7 @@ library
             set f= @-1
               reference: <testLibraryFragment>::@class::A::@setter::f
               element: <testLibraryFragment>::@class::A::@setter::f#element
-              parameters
+              formalParameters
                 _f @-1
                   element: <testLibraryFragment>::@class::A::@setter::f::@parameter::_f#element
       typeAliases
@@ -2863,7 +2863,7 @@ library
       setters
         synthetic set f=
           firstFragment: <testLibraryFragment>::@class::A::@setter::f
-          parameters
+          formalParameters
             requiredPositional _f
               type: int Function<T>(T)
                 alias: <testLibraryFragment>::@typeAlias::Foo
@@ -4263,13 +4263,13 @@ library
         f1 @65
           reference: <testLibraryFragment>::@function::f1
           element: <testLibraryFragment>::@function::f1#element
-          parameters
+          formalParameters
             a @71
               element: <testLibraryFragment>::@function::f1::@parameter::a#element
         f2 @82
           reference: <testLibraryFragment>::@function::f2
           element: <testLibraryFragment>::@function::f2#element
-          parameters
+          formalParameters
             a @93
               element: <testLibraryFragment>::@function::f2::@parameter::a#element
   typeAliases
@@ -4284,14 +4284,14 @@ library
   functions
     f1
       firstFragment: <testLibraryFragment>::@function::f1
-      parameters
+      formalParameters
         requiredPositional a
           type: void Function()
             alias: <testLibraryFragment>::@typeAlias::A1
       returnType: void
     f2
       firstFragment: <testLibraryFragment>::@function::f2
-      parameters
+      formalParameters
         requiredPositional a
           type: int Function()
             alias: <testLibraryFragment>::@typeAlias::A2
@@ -4370,13 +4370,13 @@ library
         f1 @59
           reference: <testLibraryFragment>::@function::f1
           element: <testLibraryFragment>::@function::f1#element
-          parameters
+          formalParameters
             a @65
               element: <testLibraryFragment>::@function::f1::@parameter::a#element
         f2 @76
           reference: <testLibraryFragment>::@function::f2
           element: <testLibraryFragment>::@function::f2#element
-          parameters
+          formalParameters
             a @95
               element: <testLibraryFragment>::@function::f2::@parameter::a#element
   typeAliases
@@ -4392,14 +4392,14 @@ library
   functions
     f1
       firstFragment: <testLibraryFragment>::@function::f1
-      parameters
+      formalParameters
         requiredPositional a
           type: List<int>
             alias: <testLibraryFragment>::@typeAlias::A1
       returnType: void
     f2
       firstFragment: <testLibraryFragment>::@function::f2
-      parameters
+      formalParameters
         requiredPositional a
           type: Map<int, String>
             alias: <testLibraryFragment>::@typeAlias::A2
@@ -4483,7 +4483,7 @@ library
         f @31
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             a @48
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   typeAliases
@@ -4496,7 +4496,7 @@ library
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional a
           type: (int, String)
             alias: <testLibraryFragment>::@typeAlias::A
@@ -4561,7 +4561,7 @@ library
           typeParameters
             U @25
               element: <not-implemented>
-          parameters
+          formalParameters
             a @33
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   typeAliases
@@ -4575,7 +4575,7 @@ library
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         U
-      parameters
+      formalParameters
         requiredPositional a
           type: U
             alias: <testLibraryFragment>::@typeAlias::A
@@ -6255,7 +6255,7 @@ library
         f @26
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             a @30
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   typeAliases
@@ -6265,7 +6265,7 @@ library
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional a
           type: dynamic
       returnType: void
@@ -6316,7 +6316,7 @@ library
         f @38
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             a @42
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   typeAliases
@@ -6326,7 +6326,7 @@ library
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional a
           type: dynamic Function()
             alias: <testLibraryFragment>::@typeAlias::A
@@ -6373,7 +6373,7 @@ library
         f @22
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             a @26
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   typeAliases
@@ -6383,7 +6383,7 @@ library
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional a
           type: int
             alias: <testLibraryFragment>::@typeAlias::A
@@ -6430,7 +6430,7 @@ library
         f @23
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             a @27
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   typeAliases
@@ -6440,7 +6440,7 @@ library
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional a
           type: int?
             alias: <testLibraryFragment>::@typeAlias::A
@@ -6495,7 +6495,7 @@ library
         f @33
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             a @45
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   typeAliases
@@ -6507,7 +6507,7 @@ library
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional a
           type: Map<int, String>
             alias: <testLibraryFragment>::@typeAlias::A
@@ -6555,7 +6555,7 @@ library
         f @24
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             a @28
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   typeAliases
@@ -6565,7 +6565,7 @@ library
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional a
           type: Never
       returnType: void
@@ -6610,7 +6610,7 @@ library
         f @25
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             a @29
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   typeAliases
@@ -6620,7 +6620,7 @@ library
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional a
           type: Never?
       returnType: void
@@ -6682,13 +6682,13 @@ library
         f1 @23
           reference: <testLibraryFragment>::@function::f1
           element: <testLibraryFragment>::@function::f1#element
-          parameters
+          formalParameters
             a @28
               element: <testLibraryFragment>::@function::f1::@parameter::a#element
         f2 @39
           reference: <testLibraryFragment>::@function::f2
           element: <testLibraryFragment>::@function::f2#element
-          parameters
+          formalParameters
             a @49
               element: <testLibraryFragment>::@function::f2::@parameter::a#element
   typeAliases
@@ -6700,13 +6700,13 @@ library
   functions
     f1
       firstFragment: <testLibraryFragment>::@function::f1
-      parameters
+      formalParameters
         requiredPositional a
           type: dynamic
       returnType: void
     f2
       firstFragment: <testLibraryFragment>::@function::f2
-      parameters
+      formalParameters
         requiredPositional a
           type: int
             alias: <testLibraryFragment>::@typeAlias::A
@@ -6771,13 +6771,13 @@ library
         f1 @24
           reference: <testLibraryFragment>::@function::f1
           element: <testLibraryFragment>::@function::f1#element
-          parameters
+          formalParameters
             a @29
               element: <testLibraryFragment>::@function::f1::@parameter::a#element
         f2 @40
           reference: <testLibraryFragment>::@function::f2
           element: <testLibraryFragment>::@function::f2#element
-          parameters
+          formalParameters
             a @50
               element: <testLibraryFragment>::@function::f2::@parameter::a#element
   typeAliases
@@ -6789,13 +6789,13 @@ library
   functions
     f1
       firstFragment: <testLibraryFragment>::@function::f1
-      parameters
+      formalParameters
         requiredPositional a
           type: dynamic
       returnType: void
     f2
       firstFragment: <testLibraryFragment>::@function::f2
-      parameters
+      formalParameters
         requiredPositional a
           type: int?
             alias: <testLibraryFragment>::@typeAlias::A
@@ -6843,7 +6843,7 @@ library
         f @23
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             a @27
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   typeAliases
@@ -6853,7 +6853,7 @@ library
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional a
           type: void
       returnType: void
@@ -7279,7 +7279,7 @@ library
         set A= @19
           reference: <testLibraryFragment>::@setter::A
           element: <testLibraryFragment>::@setter::A#element
-          parameters
+          formalParameters
             _ @25
               element: <testLibraryFragment>::@setter::A::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -7301,7 +7301,7 @@ library
   setters
     static set A=
       firstFragment: <testLibraryFragment>::@setter::A
-      parameters
+      formalParameters
         requiredPositional _
           type: int
 ''');

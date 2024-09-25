@@ -177,7 +177,7 @@ library
               reference: dart:foo::<fragment>::@class::A::@setter::foo
               element: dart:foo::<fragment>::@class::A::@setter::foo#element
               sinceSdkVersion: 2.15.0
-              parameters
+              formalParameters
                 _foo @-1
                   element: dart:foo::<fragment>::@class::A::@setter::foo::@parameter::_foo#element
   classes
@@ -196,7 +196,7 @@ library
       setters
         synthetic set foo=
           firstFragment: dart:foo::<fragment>::@class::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _foo
               type: int
 ''');
@@ -487,7 +487,7 @@ library
               reference: dart:foo::<fragment>::@class::A::@setter::foo
               element: dart:foo::<fragment>::@class::A::@setter::foo#element
               sinceSdkVersion: 2.15.0
-              parameters
+              formalParameters
                 _ @65
                   element: dart:foo::<fragment>::@class::A::@setter::foo::@parameter::_#element
   classes
@@ -502,7 +502,7 @@ library
       setters
         set foo=
           firstFragment: dart:foo::<fragment>::@class::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _
               type: int
 ''');
@@ -1089,7 +1089,7 @@ library
         f @31
           reference: dart:foo::<fragment>::@function::f
           element: dart:foo::<fragment>::@function::f#element
-          parameters
+          formalParameters
             p1 @37
               element: dart:foo::<fragment>::@function::f::@parameter::p1#element
             default p2 @67
@@ -1099,7 +1099,7 @@ library
   functions
     f
       firstFragment: dart:foo::<fragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional p1
           type: int
         optionalNamed p2
@@ -1147,7 +1147,7 @@ library
         f @31
           reference: dart:foo::<fragment>::@function::f
           element: dart:foo::<fragment>::@function::f#element
-          parameters
+          formalParameters
             p1 @37
               element: dart:foo::<fragment>::@function::f::@parameter::p1#element
             default p2 @67
@@ -1156,7 +1156,7 @@ library
   functions
     f
       firstFragment: dart:foo::<fragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional p1
           type: int
         optionalPositional p2
