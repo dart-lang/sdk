@@ -61,7 +61,7 @@ String? getColorHexString(engine.Element? element) {
   if (element is engine.VariableElement) {
     var dartValue = element.computeConstantValue();
     if (dartValue != null) {
-      var color = ColorComputer.getColorForValue(dartValue);
+      var color = ColorComputer.getColorForObject(dartValue);
       if (color != null) {
         return '#'
                 '${color.red.toRadixString(16).padLeft(2, '0')}'
