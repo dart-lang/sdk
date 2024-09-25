@@ -294,6 +294,11 @@ class LibraryDeclarations with _GettersAndSetters {
     extensions = extensions.toFixedList();
   }
 
+  /// Returns a getter or setter with the [name].
+  Element? withName(String name) {
+    return _getters[name] ?? _setters[name];
+  }
+
   void _addExtension(ExtensionElement element) {
     if (element.isAugmentation) {
       return;

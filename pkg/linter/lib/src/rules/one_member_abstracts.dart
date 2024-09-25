@@ -69,14 +69,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.macroKeyword != null) return;
     if (node.isAugmentation) return;
 
-    var element = node.declaredElement;
+    var element = node.declaredFragment?.element;
     if (element == null) return;
 
-    if (element.allInterfaces.isNotEmpty) return;
-    if (element.allMixins.isNotEmpty) return;
-    if (element.allFields.isNotEmpty) return;
+    if (element.interfaces.isNotEmpty) return;
+    if (element.mixins.isNotEmpty) return;
+    if (element.fields2.isNotEmpty) return;
 
-    var methods = element.allMethods;
+    var methods = element.methods2;
     if (methods.length != 1) return;
 
     var method = methods.first;

@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -43,10 +43,10 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
 
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
-      var enumElement = expressionType.element;
-      if (enumElement is EnumElement) {
+      var enumElement = expressionType.element3;
+      if (enumElement is EnumElement2) {
         enumName = enumElement.name;
-        for (var field in enumElement.fields) {
+        for (var field in enumElement.fields2) {
           if (field.isEnumConstant) {
             unhandledEnumCases.add(field.name);
           }
@@ -65,8 +65,8 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
       if (member is SwitchCase) {
         var expression = member.expression;
         if (expression is Identifier) {
-          var element = expression.staticElement;
-          if (element is PropertyAccessorElement) {
+          var element = expression.element;
+          if (element is GetterElement) {
             unhandledEnumCases.remove(element.name);
           }
         } else if (expression is NullLiteral) {
@@ -84,8 +84,6 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
     var prefixString = prefix.isNotEmpty ? '$prefix.' : '';
     var enumName_final = '$prefixString$enumName';
     await builder.addDartFileEdit(file, (builder) {
-      // TODO(brianwilkerson): Consider inserting the names in order into the
-      //  switch statement.
       builder.insertCaseClauseAtEnd(
           switchKeyword: statement.switchKeyword,
           rightParenthesis: statement.rightParenthesis,
@@ -107,6 +105,8 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
           builder.writeln('break;');
         }
 
+        // TODO(brianwilkerson): Consider inserting the names in order into the
+        //  switch statement.
         for (var constantName in unhandledEnumCases) {
           addMissingCase('$enumName_final.$constantName');
         }
@@ -119,13 +119,13 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
 
   /// Return the shortest prefix for the [element], or an empty String if not
   /// found.
-  String _importPrefix(Element element) {
+  String _importPrefix(Element2 element) {
     var shortestPrefix = '';
     for (var directive in unit.directives) {
       if (directive is ImportDirective) {
         var namespace = directive.element?.namespace;
         if (namespace != null) {
-          if (namespace.definedNames.containsValue(element)) {
+          if (namespace.definedNames2.containsValue(element)) {
             var prefix = directive.prefix?.name;
             if (prefix == null) {
               return '';

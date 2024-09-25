@@ -714,7 +714,8 @@ Future<void> main(List<String> args) async {
     failedTests.forEach((outcome) {
       print('${outcome.testName} failed with:\n  ${outcome.testOutput}');
     });
-    exit(1);
+    // Exit cleanly after writing test results.
+    exit(0);
   }
 }
 

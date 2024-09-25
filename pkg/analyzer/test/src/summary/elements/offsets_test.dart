@@ -213,47 +213,35 @@ library
   classes
     class Raw
       firstFragment: <testLibraryFragment>::@class::Raw
-      codeOffset: 0
-      codeLength: 12
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::Raw::@constructor::new
     class HasDocComment
       firstFragment: <testLibraryFragment>::@class::HasDocComment
       documentationComment: /// Comment 1.\n/// Comment 2.
-      codeOffset: 14
-      codeLength: 52
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::HasDocComment::@constructor::new
     class HasAnnotation
       firstFragment: <testLibraryFragment>::@class::HasAnnotation
-      codeOffset: 68
-      codeLength: 32
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
     class AnnotationThenComment
       firstFragment: <testLibraryFragment>::@class::AnnotationThenComment
       documentationComment: /// Comment 1.\n/// Comment 2.
-      codeOffset: 102
-      codeLength: 70
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
     class CommentThenAnnotation
       firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation
       documentationComment: /// Comment 1.\n/// Comment 2.
-      codeOffset: 174
-      codeLength: 70
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
     class CommentAroundAnnotation
       firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation
       documentationComment: /// Comment 2.
-      codeOffset: 261
-      codeLength: 57
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
@@ -613,22 +601,16 @@ library
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
-      codeOffset: 0
-      codeLength: 10
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       firstFragment: <testLibraryFragment>::@class::B
-      codeOffset: 12
-      codeLength: 10
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class alias Raw
       firstFragment: <testLibraryFragment>::@class::Raw
-      codeOffset: 24
-      codeLength: 29
       supertype: Object
       constructors
         synthetic const new
@@ -636,16 +618,12 @@ library
     class alias HasDocComment
       firstFragment: <testLibraryFragment>::@class::HasDocComment
       documentationComment: /// Comment 1.\n/// Comment 2.
-      codeOffset: 55
-      codeLength: 69
       supertype: Object
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::HasDocComment::@constructor::new
     class alias HasAnnotation
       firstFragment: <testLibraryFragment>::@class::HasAnnotation
-      codeOffset: 126
-      codeLength: 49
       supertype: Object
       constructors
         synthetic const new
@@ -653,8 +631,6 @@ library
     class alias AnnotationThenComment
       firstFragment: <testLibraryFragment>::@class::AnnotationThenComment
       documentationComment: /// Comment 1.\n/// Comment 2.
-      codeOffset: 177
-      codeLength: 87
       supertype: Object
       constructors
         synthetic const new
@@ -662,8 +638,6 @@ library
     class alias CommentThenAnnotation
       firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation
       documentationComment: /// Comment 1.\n/// Comment 2.
-      codeOffset: 266
-      codeLength: 87
       supertype: Object
       constructors
         synthetic const new
@@ -671,8 +645,6 @@ library
     class alias CommentAroundAnnotation
       firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation
       documentationComment: /// Comment 2.
-      codeOffset: 370
-      codeLength: 74
       supertype: Object
       constructors
         synthetic const new
@@ -945,8 +917,6 @@ library
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
-      codeOffset: 0
-      codeLength: 362
       constructors
         new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -1286,8 +1256,6 @@ library
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
-      codeOffset: 0
-      codeLength: 483
       constructors
         factory new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -1537,40 +1505,26 @@ library
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
-      codeOffset: 0
-      codeLength: 10
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   extensions
     extension Raw
       firstFragment: <testLibraryFragment>::@extension::Raw
-      codeOffset: 12
-      codeLength: 21
     extension HasDocComment
       firstFragment: <testLibraryFragment>::@extension::HasDocComment
       documentationComment: /// Comment 1.\n/// Comment 2.
-      codeOffset: 35
-      codeLength: 61
     extension HasAnnotation
       firstFragment: <testLibraryFragment>::@extension::HasAnnotation
-      codeOffset: 98
-      codeLength: 41
     extension AnnotationThenComment
       firstFragment: <testLibraryFragment>::@extension::AnnotationThenComment
       documentationComment: /// Comment 1.\n/// Comment 2.
-      codeOffset: 141
-      codeLength: 79
     extension CommentThenAnnotation
       firstFragment: <testLibraryFragment>::@extension::CommentThenAnnotation
       documentationComment: /// Comment 1.\n/// Comment 2.
-      codeOffset: 222
-      codeLength: 79
     extension CommentAroundAnnotation
       firstFragment: <testLibraryFragment>::@extension::CommentAroundAnnotation
       documentationComment: /// Comment 2.
-      codeOffset: 318
-      codeLength: 66
 ''');
   }
 
@@ -1782,8 +1736,6 @@ library
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
-      codeOffset: 0
-      codeLength: 115
       fields
         withInit
           firstFragment: <testLibraryFragment>::@class::C::@field::withInit
@@ -2341,8 +2293,6 @@ library
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
-      codeOffset: 0
-      codeLength: 436
       fields
         hasDocComment
           firstFragment: <testLibraryFragment>::@class::C::@field::hasDocComment
@@ -3001,8 +2951,6 @@ library
   classes
     class C
       firstFragment: <testLibraryFragment>::@class::C
-      codeOffset: 0
-      codeLength: 372
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -4321,12 +4269,8 @@ library
   classes
     class A
       firstFragment: <testLibraryFragment>::@class::A
-      codeOffset: 0
-      codeLength: 13
       typeParameters
         T
-          codeOffset: 8
-          codeLength: 1
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
@@ -4335,8 +4279,6 @@ library
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         U
-          codeOffset: 21
-          codeLength: 13
           bound: num
       returnType: void
 ''');
