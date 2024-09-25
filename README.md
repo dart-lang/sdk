@@ -2,6 +2,90 @@
 
 ## An approachable, portable, and productive language for high-quality apps on any platform
 
+## Quick Start
+Install Dart by following the [installation guide](https://dart.dev/get-dart).
+
+Then, run your first Dart program:
+```bash
+dart create hello_world
+cd hello_world
+dart run
+```
+
+## Example Projects
+- [Flutter](https://flutter.dev): Build beautiful mobile and web apps with a single codebase.
+- [Aqueduct](https://github.com/stablekernel/aqueduct): A server-side framework for building HTTP APIs in Dart.
+- [Stagehand](https://github.com/dart-lang/stagehand): A Dart project scaffolding generator.
+
+### Contributing to Dart
+
+We welcome contributions from the community to help improve Dart. Here’s how you can get started:
+
+#### 1. Filing Issues
+If you encounter a bug or have a feature request, the easiest way to contribute is by [filing an issue](https://github.com/dart-lang/sdk/issues/new). Be sure to provide as much detail as possible, including steps to reproduce the issue and any relevant logs or screenshots.
+
+#### 2. Contributing Code
+To contribute patches to Dart, follow these steps:
+
+##### Step 1: Fork the Repository
+Fork the Dart SDK repository by clicking the "Fork" button on the [Dart GitHub page](https://github.com/dart-lang/sdk). This will create a copy of the repository under your GitHub account.
+
+##### Step 2: Clone the Repository
+Clone your forked repository to your local machine:
+```bash
+git clone https://github.com/your-username/sdk.git
+cd sdk
+```
+
+##### Step 3: Set Up the Development Environment
+Follow these steps to prepare your machine for building Dart:
+
+Install necessary dependencies based on your operating system. For example:
+
+MacOS: `brew install ninja`
+Linux: `sudo apt-get install ninja-build`
+Windows: Follow the [Windows Build Instructions](https://github.com/dart-lang/sdk/blob/main/docs/windows.md)
+Install the Dart dependencies:
+
+```bash
+./tools/build.py --help
+./tools/build.py
+```
+Make sure your environment is configured to use Dart:
+
+```bash
+dart --version
+```
+More details on setting up the environment can be found in our Building Dart documentation.
+
+##### Step 4: Create a New Branch
+Before you start coding, create a new branch:
+
+```bash
+git checkout -b your-feature-branch
+```
+##### Step 5: Make Your Changes
+Implement your feature or fix. Ensure your code adheres to Dart's coding style guidelines.
+
+##### Step 6: Write Tests
+All code contributions must include appropriate unit tests to ensure the feature or bug fix works as expected. Refer to our Testing Guide for details on how to write tests for Dart.
+
+##### Step 7: Commit and Push Your Changes
+Once you're satisfied with your changes, commit your work:
+
+```bash
+git add .
+git commit -m "Add feature: [short description]"
+git push origin your-feature-branch
+```
+##### Step 8: Create a Pull Request
+Go to the Dart GitHub repository and submit a pull request (PR) from your feature branch. Make sure to:
+
+Reference any issues your PR addresses (e.g., Fixes #123).
+Provide a detailed description of the changes you made.
+Follow our pull request guidelines.
+Your code will be reviewed, and feedback will be provided. Once all requested changes are made and tests pass, your PR will be merged!
+
 Dart is:
 
   * **Approachable**:
