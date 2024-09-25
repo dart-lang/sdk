@@ -7,7 +7,8 @@ library dart._debugger;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper' show InternalMap, jsObjectGetPrototypeOf;
-import 'dart:_foreign_helper' show JS_GET_FLAG, JS_GET_NAME;
+import 'dart:_foreign_helper'
+    show DART_RUNTIME_LIBRARY, JS_GET_FLAG, JS_GET_NAME;
 import 'dart:_js_shared_embedded_names' show JsGetName;
 import 'dart:_runtime' as dart;
 import 'dart:core';

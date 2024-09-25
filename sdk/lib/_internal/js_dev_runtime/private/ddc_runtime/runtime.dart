@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:_debugger' show stackTraceMapper, trackCall;
 import 'dart:_foreign_helper'
     show
+        DART_RUNTIME_LIBRARY,
         JS,
         JS_CLASS_REF,
         JS_EMBEDDED_GLOBAL,
@@ -182,7 +183,7 @@ final Object global_ = JS('', '''
 ''');
 
 void trackProfile(bool flag) {
-  JS('', 'dart.__trackProfile = #', flag);
+  JS('', '#.__trackProfile = #', DART_RUNTIME_LIBRARY(), flag);
 }
 
 final JsSymbol = JS('', 'Symbol');
@@ -208,7 +209,7 @@ final hOP = JS('!', '#.Object.prototype.hasOwnProperty', global_);
 ///
 ///     const my_library = Object.create(dart.library);
 ///
-Object libraryPrototype = JS('', 'dart.library');
+Object libraryPrototype = JS('', '#.library', DART_RUNTIME_LIBRARY());
 
 // TODO(vsm): Remove once this flag we've removed the ability to
 // whitelist / fallback on the old behavior.
