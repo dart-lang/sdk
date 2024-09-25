@@ -66,6 +66,7 @@ library kernel.ast;
 
 import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
@@ -14826,10 +14827,11 @@ class _ChildReplacer extends Transformer {
 }
 
 class Source {
+  static final Uint8List _emptySource = new Uint8List(0);
   final List<int>? lineStarts;
 
   /// A UTF8 encoding of the original source file.
-  final List<int> source;
+  final Uint8List source;
 
   final Uri? importUri;
 
@@ -14840,6 +14842,9 @@ class Source {
   String? cachedText;
 
   Source(this.lineStarts, this.source, this.importUri, this.fileUri);
+
+  Source.emptySource(this.lineStarts, this.importUri, this.fileUri)
+      : source = _emptySource;
 
   /// Return the text corresponding to [line] which is a 1-based line
   /// number. The returned line contains no line separators.

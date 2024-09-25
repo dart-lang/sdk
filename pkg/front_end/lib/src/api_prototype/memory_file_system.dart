@@ -93,7 +93,7 @@ class MemoryFileSystemEntity implements FileSystemEntity {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Future<List<int>> readAsBytes() {
+  Future<Uint8List> readAsBytes() {
     Uint8List? contents = _fileSystem._files[uri];
     if (contents == null) {
       return new Future.error(

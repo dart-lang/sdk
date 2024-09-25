@@ -4,7 +4,8 @@
 
 library fasta.source_library_builder;
 
-import 'dart:convert' show jsonEncode;
+import 'dart:convert' show jsonEncode, utf8;
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
@@ -563,8 +564,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         indexedLibrary: indexedLibrary,
         omittedTypes: omittedTypeDeclarationBuilders);
     addAugmentationLibrary(augmentationLibrary);
+    Uint8List sourceUtf8 = utf8.encode(source);
     loader.registerUnparsedLibrarySource(
-        augmentationLibrary.compilationUnit, source);
+        augmentationLibrary.compilationUnit, sourceUtf8);
     return augmentationLibrary;
   }
 

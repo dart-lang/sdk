@@ -4,6 +4,8 @@
 
 library fasta.kernel_target;
 
+import 'dart:typed_data';
+
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -263,7 +265,7 @@ class KernelTarget {
   bool _hasAddedSources = false;
 
   void addSourceInformation(
-      Uri importUri, Uri fileUri, List<int> lineStarts, List<int> sourceCode) {
+      Uri importUri, Uri fileUri, List<int> lineStarts, Uint8List sourceCode) {
     Source source = new Source(lineStarts, sourceCode, importUri, fileUri);
     uriToSource[fileUri] = source;
     if (_hasAddedSources) {
@@ -271,8 +273,8 @@ class KernelTarget {
       // The sources have already been added to the component in [link] so we
       // have to add source directly here to create a consistent component.
       component?.uriToSource[fileUri] = excludeSource
-          ? new Source(source.lineStarts, const <int>[], source.importUri,
-              source.fileUri)
+          ? new Source.emptySource(
+              source.lineStarts, source.importUri, source.fileUri)
           : source;
     }
   }
@@ -869,8 +871,8 @@ class KernelTarget {
       uriToSource[uri] = excludeSource
           ?
           // Coverage-ignore(suite): Not run.
-          new Source(source.lineStarts, const <int>[], source.importUri,
-              source.fileUri)
+          new Source.emptySource(
+              source.lineStarts, source.importUri, source.fileUri)
           : source;
     }
 

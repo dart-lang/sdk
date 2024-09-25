@@ -20,8 +20,6 @@ void main(List<String> args) {
       scanType = ScanType.string;
     } else if (arg == "--bytes") {
       scanType = ScanType.bytes;
-    } else if (arg == "--bytes0") {
-      scanType = ScanType.bytesWith0Byte;
     } else if (arg == "--stringtobytes") {
       scanType = ScanType.stringAsBytes;
     } else if (arg == "--count") {
@@ -41,8 +39,6 @@ void main(List<String> args) {
   String content = f.readAsStringSync();
   String contentZeroTerminated = content + '\x00';
   Uint8List contentBytes = f.readAsBytesSync();
-  Uint8List zeroTerminatedBytes = new Uint8List(contentBytes.length + 1);
-  zeroTerminatedBytes.setRange(0, contentBytes.length, contentBytes);
 
   int numErrors = 0;
   Stopwatch stopwatch = new Stopwatch()..start();
@@ -68,22 +64,7 @@ void main(List<String> args) {
       lengthProcessed = contentBytes.length;
       for (int i = 0; i < iterations; i++) {
         hasErrors = scan(
-          zeroTerminatedBytes,
-          configuration: new ScannerConfiguration(
-            enableExtensionMethods: true,
-            enableNonNullable: true,
-            enableTripleShift: true,
-          ),
-          includeComments: true,
-        ).hasErrors;
-      }
-    case ScanType.bytesWith0Byte:
-      lengthProcessed = contentBytes.length;
-      for (int i = 0; i < iterations; i++) {
-        Uint8List tmp = new Uint8List(contentBytes.length + 1);
-        tmp.setRange(0, contentBytes.length, contentBytes);
-        hasErrors = scan(
-          tmp,
+          contentBytes,
           configuration: new ScannerConfiguration(
             enableExtensionMethods: true,
             enableNonNullable: true,
@@ -134,7 +115,6 @@ void main(List<String> args) {
 enum ScanType {
   string("string characters"),
   bytes("bytes"),
-  bytesWith0Byte("bytes"),
   stringAsBytes("string characters as bytes"),
   countLfs("bytes");
 

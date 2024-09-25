@@ -6,6 +6,7 @@ library fasta.incremental_compiler;
 
 import 'dart:async' show Completer;
 import 'dart:convert' show JsonEncoder;
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
@@ -1219,7 +1220,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       for (Uri uri in builderUris) {
-        List<int>? previousSource = context.uriToSource[uri]?.source;
+        Uint8List? previousSource = context.uriToSource[uri]?.source;
         if (previousSource == null || previousSource.isEmpty) {
           recorderForTesting?.recordAdvancedInvalidationResult(
               AdvancedInvalidationResult.noPreviousSource);

@@ -421,7 +421,7 @@ class BoxedInt {
 //              "show A, B, C hide A show A" would be empty.
 
 String? textualOutline(
-  List<int> rawBytes,
+  Uint8List rawBytes,
   ScannerConfiguration configuration, {
   bool throwOnUnexpected = false,
   bool performModelling = false,
@@ -429,14 +429,11 @@ String? textualOutline(
   required bool enablePatterns,
   TextualOutlineInfoForTesting? infoForTesting,
 }) {
-  Uint8List bytes = new Uint8List(rawBytes.length + 1);
-  bytes.setRange(0, rawBytes.length, rawBytes);
-
   List<_Chunk> parsedChunks = <_Chunk>[];
 
   BoxedInt originalPosition = new BoxedInt(0);
 
-  Utf8BytesScanner scanner = new Utf8BytesScanner(bytes,
+  Utf8BytesScanner scanner = new Utf8BytesScanner(rawBytes,
       includeComments: false,
       configuration: configuration, languageVersionChanged:
           (Scanner scanner, LanguageVersionToken languageVersionToken) {

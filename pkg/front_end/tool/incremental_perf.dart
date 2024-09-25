@@ -44,6 +44,7 @@ library front_end.tool.incremental_perf;
 
 import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
+import 'dart:typed_data';
 
 import 'package:args/args.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
@@ -255,7 +256,7 @@ class OverlayFileSystemEntity implements FileSystemEntity {
       (await delegate).existsAsyncIfPossible();
 
   @override
-  Future<List<int>> readAsBytes() async => (await delegate).readAsBytes();
+  Future<Uint8List> readAsBytes() async => (await delegate).readAsBytes();
 
   @override
   Future<List<int>> readAsBytesAsyncIfPossible() async =>

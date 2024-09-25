@@ -33,11 +33,7 @@ import 'token_impl.dart'
  * that points to substrings.
  */
 class Utf8BytesScanner extends AbstractScanner {
-  /**
-   * The file content.
-   *
-   * The content is zero-terminated.
-   */
+  /// The raw file content.
   final Uint8List _bytes;
   final int _bytesLengthMinusOne;
 
@@ -86,15 +82,6 @@ class Utf8BytesScanner extends AbstractScanner {
    */
   int utf8Slack = 0;
 
-  /**
-   * Creates a new Utf8BytesScanner. The source file is expected to be a
-   * [Utf8BytesSourceFile] that holds a list of UTF-8 bytes. Otherwise the
-   * string text of the source file is decoded.
-   *
-   * The list of UTF-8 bytes [file.slowUtf8Bytes()] is expected to return an
-   * array whose last element is '0' to signal the end of the file. If this
-   * is not the case, the entire array is copied before scanning.
-   */
   Utf8BytesScanner(this._bytes,
       {ScannerConfiguration? configuration,
       bool includeComments = false,
@@ -104,7 +91,6 @@ class Utf8BytesScanner extends AbstractScanner {
         super(configuration, includeComments, languageVersionChanged,
             numberOfBytesHint: _bytes.length,
             allowLazyStrings: allowLazyStrings) {
-    assert(_bytes.last == 0);
     // Skip a leading BOM.
     if (containsBomAt(/* offset = */ 0)) {
       byteOffset += 3;
@@ -168,10 +154,11 @@ class Utf8BytesScanner extends AbstractScanner {
     } else {
       expectedHighBytes = 1; // Bad code unit.
     }
-    // TODO(jensj): Don't we need a bounds check here? Can't I crash this?
     int numBytes = 0;
     for (int i = 0; i < expectedHighBytes; i++) {
-      if (_bytes[byteOffset + i] < 0x80) {
+      int next = byteOffset + i;
+      if (next > _bytesLengthMinusOne) break;
+      if (_bytes[next] < 0x80) {
         break;
       }
       numBytes++;
@@ -300,5 +287,10 @@ class Utf8BytesScanner extends AbstractScanner {
   }
 
   @override
-  bool atEndOfFile() => byteOffset >= _bytesLengthMinusOne;
+  // This class used to require zero-terminated input, so we only return true
+  // once advance has been out of bounds.
+  // TODO(jensj): This should probably change.
+  // It's at least used in tests (where the eof token has its offset reduced
+  // by one to 'fix' this.)
+  bool atEndOfFile() => byteOffset > _bytesLengthMinusOne;
 }

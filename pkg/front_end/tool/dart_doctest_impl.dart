@@ -530,16 +530,13 @@ List<Test> extractTests(Uint8List rawBytes, Uri uriForReporting) {
 }
 
 Token scanRawBytes(Uint8List rawBytes, {List<int>? lineStarts}) {
-  Uint8List bytes = new Uint8List(rawBytes.length + 1);
-  bytes.setRange(0, rawBytes.length, rawBytes);
-
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
       enableExtensionMethods: true,
       enableNonNullable: true,
       enableTripleShift: true);
 
   Utf8BytesScanner scanner = new Utf8BytesScanner(
-    bytes,
+    rawBytes,
     includeComments: true,
     configuration: scannerConfiguration,
     languageVersionChanged: (scanner, languageVersion) {

@@ -17,7 +17,7 @@ import 'io/source_file.dart';
 import 'util/output_util.dart';
 
 abstract class SourceFileByteReader {
-  List<int> getBytes(String filename, {bool zeroTerminated = true});
+  Uint8List getBytes(String filename);
 }
 
 abstract class SourceFileProvider implements api.CompilerInput {
@@ -29,11 +29,11 @@ abstract class SourceFileProvider implements api.CompilerInput {
   final Set<Uri> _registeredUris = {};
   final Map<Uri, Uri> _mappedUris = {};
   final bool disableByteCache;
-  final Map<Uri, List<int>> _byteCache = {};
+  final Map<Uri, Uint8List> _byteCache = {};
 
   SourceFileProvider(this.byteReader, {this.disableByteCache = true});
 
-  Future<api.Input<List<int>>> readBytesFromUri(
+  Future<api.Input<Uint8List>> readBytesFromUri(
       Uri resourceUri, api.InputKind inputKind) {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
@@ -46,8 +46,8 @@ abstract class SourceFileProvider implements api.CompilerInput {
   }
 
   /// Adds [source] to the cache under the [resourceUri] key.
-  api.Input<List<int>> _sourceToFile(
-      Uri resourceUri, List<int> source, api.InputKind inputKind) {
+  api.Input<Uint8List> _sourceToFile(
+      Uri resourceUri, Uint8List source, api.InputKind inputKind) {
     switch (inputKind) {
       case api.InputKind.UTF8:
         return Utf8BytesSourceFile(resourceUri, source);
@@ -57,7 +57,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
   }
 
   @override
-  void registerUtf8ContentsForDiagnostics(Uri resourceUri, List<int> source) {
+  void registerUtf8ContentsForDiagnostics(Uri resourceUri, Uint8List source) {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
@@ -77,13 +77,12 @@ abstract class SourceFileProvider implements api.CompilerInput {
     return _registeredUris.add(uri);
   }
 
-  api.Input<List<int>> _readFromFileSync(Uri uri, api.InputKind inputKind) {
+  api.Input<Uint8List> _readFromFileSync(Uri uri, api.InputKind inputKind) {
     final resourceUri = _mappedUris[uri] ?? uri;
     assert(resourceUri.isScheme('file'));
-    List<int> source;
+    Uint8List source;
     try {
-      source = byteReader.getBytes(resourceUri.toFilePath(),
-          zeroTerminated: inputKind == api.InputKind.UTF8);
+      source = byteReader.getBytes(resourceUri.toFilePath());
     } on FileSystemException catch (ex) {
       String? message = ex.osError?.message;
       String detail = message != null ? ' ($message)' : '';
@@ -98,7 +97,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
     return _sourceToFile(Uri.parse(relativizeUri(uri)), source, inputKind);
   }
 
-  api.Input<List<int>>? _readFromFileSyncOrNull(
+  api.Input<Uint8List>? _readFromFileSyncOrNull(
       Uri uri, api.InputKind inputKind) {
     try {
       return _readFromFileSync(uri, inputKind);
@@ -109,7 +108,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
 
   /// Read [resourceUri] directly as a UTF-8 file. If reading fails, `null` is
   /// returned.
-  api.Input<List<int>>? readUtf8FromFileSyncForTesting(Uri resourceUri) {
+  api.Input<Uint8List>? readUtf8FromFileSyncForTesting(Uri resourceUri) {
     try {
       return _readFromFileSync(resourceUri, api.InputKind.UTF8);
     } catch (e) {
@@ -119,9 +118,9 @@ abstract class SourceFileProvider implements api.CompilerInput {
     }
   }
 
-  Future<api.Input<List<int>>> _readFromFile(
+  Future<api.Input<Uint8List>> _readFromFile(
       Uri resourceUri, api.InputKind inputKind) {
-    api.Input<List<int>> input;
+    api.Input<Uint8List> input;
     try {
       input = _readFromFileSync(resourceUri, inputKind);
     } catch (e) {
@@ -131,7 +130,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
   }
 
   /// Get the bytes for a previously accessed UTF-8 [Uri].
-  api.Input<List<int>>? getUtf8SourceFile(Uri resourceUri) {
+  api.Input<Uint8List>? getUtf8SourceFile(Uri resourceUri) {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
@@ -156,23 +155,13 @@ abstract class SourceFileProvider implements api.CompilerInput {
 class MemoryCopySourceFileByteReader implements SourceFileByteReader {
   const MemoryCopySourceFileByteReader();
   @override
-  List<int> getBytes(String filename, {bool zeroTerminated = true}) {
-    return readAll(filename, zeroTerminated: zeroTerminated);
+  Uint8List getBytes(String filename) {
+    return readAll(filename);
   }
 }
 
-Uint8List readAll(String filename, {bool zeroTerminated = true}) {
-  RandomAccessFile file = File(filename).openSync();
-  int length = file.lengthSync();
-  int bufferLength = length;
-  if (zeroTerminated) {
-    // +1 to have a 0 terminated list, see [Scanner].
-    bufferLength++;
-  }
-  var buffer = Uint8List(bufferLength);
-  file.readIntoSync(buffer, 0, length);
-  file.closeSync();
-  return buffer;
+Uint8List readAll(String filename) {
+  return File(filename).readAsBytesSync();
 }
 
 class CompilerSourceFileProvider extends SourceFileProvider {
@@ -182,7 +171,7 @@ class CompilerSourceFileProvider extends SourceFileProvider {
       : super(byteReader);
 
   @override
-  Future<api.Input<List<int>>> readFromUri(Uri uri,
+  Future<api.Input<Uint8List>> readFromUri(Uri uri,
           {api.InputKind inputKind = api.InputKind.UTF8}) =>
       readBytesFromUri(uri, inputKind);
 }
@@ -284,7 +273,7 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     if (uri == null) {
       print('${color(message)}');
     } else {
-      api.Input<List<int>>? file = provider.getUtf8SourceFile(uri);
+      api.Input<Uint8List>? file = provider.getUtf8SourceFile(uri);
       if (file is SourceFile && begin != null && end != null) {
         print(file.getLocationMessage(color(message), begin, end,
             colorize: color));
@@ -503,7 +492,7 @@ class BazelInputProvider extends SourceFileProvider {
   static Uri _resolve(String path) => Uri.base.resolve(path);
 
   @override
-  Future<api.Input<List<int>>> readFromUri(Uri uri,
+  Future<api.Input<Uint8List>> readFromUri(Uri uri,
       {api.InputKind inputKind = api.InputKind.UTF8}) async {
     var resolvedUri = uri;
     var path = uri.path;
@@ -517,7 +506,7 @@ class BazelInputProvider extends SourceFileProvider {
         }
       }
     }
-    api.Input<List<int>> result =
+    api.Input<Uint8List> result =
         await readBytesFromUri(resolvedUri, inputKind);
     if (uri != resolvedUri) {
       if (!resolvedUri.isAbsolute) {
@@ -548,7 +537,7 @@ class MultiRootInputProvider extends SourceFileProvider {
       {super.disableByteCache});
 
   @override
-  Future<api.Input<List<int>>> readFromUri(Uri uri,
+  Future<api.Input<Uint8List>> readFromUri(Uri uri,
       {api.InputKind inputKind = api.InputKind.UTF8}) async {
     var resolvedUri = uri;
     if (resolvedUri.isScheme(markerScheme)) {
@@ -562,7 +551,7 @@ class MultiRootInputProvider extends SourceFileProvider {
         }
       }
     }
-    api.Input<List<int>> result =
+    api.Input<Uint8List> result =
         await readBytesFromUri(resolvedUri, inputKind);
     _mappedUris[uri] = resolvedUri;
     return result;

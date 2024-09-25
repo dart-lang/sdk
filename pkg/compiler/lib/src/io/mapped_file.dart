@@ -11,34 +11,24 @@ import 'dart:typed_data';
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:mmap/mmap.dart';
 
-Uint8List viewOfFile(String filename, bool zeroTerminated) {
+Uint8List viewOfFile(String filename) {
   final mappedFile = mmapFile(filename);
-  if (!zeroTerminated) {
-    return mappedFile.fileBytes;
-  }
-  if (mappedFile.hasZeroPadding) {
-    return mappedFile.fileBytesZeroTerminated;
-  }
-  // In the rare case we need a zero-terminated list and the file size
-  // is exactly page-aligned we need to allocate a new list with extra
-  // room for the terminating 0.
-  return Uint8List(mappedFile.fileLength + 1)
-    ..setRange(0, mappedFile.fileLength, mappedFile.fileBytes);
+  return mappedFile.fileBytes;
 }
 
 class MemoryMapSourceFileByteReader implements SourceFileByteReader {
   const MemoryMapSourceFileByteReader();
 
   @override
-  Uint8List getBytes(String filename, {bool zeroTerminated = true}) {
+  Uint8List getBytes(String filename) {
     if (supportsMMap) {
       try {
-        return viewOfFile(filename, zeroTerminated);
+        return viewOfFile(filename);
       } catch (e) {
-        return readAll(filename, zeroTerminated: zeroTerminated);
+        return readAll(filename);
       }
     } else {
-      return readAll(filename, zeroTerminated: zeroTerminated);
+      return readAll(filename);
     }
   }
 }

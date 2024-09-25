@@ -139,8 +139,10 @@ class StringScanner extends AbstractScanner {
   }
 
   @override
-  // To preserve old behavior we only return true once advance has been out of
-  // bounds. This should probably change. It's at least used in tests
-  // (where the eof token has its offset reduced by one to 'fix' this.)
+  // This class used to enforce zero-terminated input, so we only return true
+  // once advance has been out of bounds.
+  // TODO(jensj): This should probably change.
+  // It's at least used in tests (where the eof token has its offset reduced
+  // by one to 'fix' this.)
   bool atEndOfFile() => scanOffset > _stringLengthMinusOne;
 }

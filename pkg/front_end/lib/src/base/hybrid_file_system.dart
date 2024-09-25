@@ -6,6 +6,8 @@
 /// sdk sources from disk.
 library front_end.src.hybrid_file_system;
 
+import 'dart:typed_data';
+
 import '../api_prototype/file_system.dart';
 import '../api_prototype/memory_file_system.dart';
 import '../api_prototype/standard_file_system.dart';
@@ -64,7 +66,7 @@ class HybridFileSystemEntity implements FileSystemEntity {
       (await delegate).existsAsyncIfPossible();
 
   @override
-  Future<List<int>> readAsBytes() async => (await delegate).readAsBytes();
+  Future<Uint8List> readAsBytes() async => (await delegate).readAsBytes();
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -2273,7 +2273,7 @@ class _FakeFileSystemEntity extends FileSystemEntity {
   Future<bool> existsAsyncIfPossible() => exists();
 
   @override
-  Future<List<int>> readAsBytes() {
+  Future<Uint8List> readAsBytes() {
     _ensureCachedIfOk();
     Uint8List? data = fs.data[uri];
     if (data == null) throw new FileSystemException(uri, "File doesn't exist.");
