@@ -323,6 +323,22 @@ void f(String s) {
 ''');
   }
 
+  Future<void> test_extensionType_name_notImported() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension type ET(String it) {}
+''');
+    await resolveTestCode('''
+void f(ET s) {
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(ET s) {
+}
+''');
+  }
+
   Future<void> test_invalidUri_interpolation() async {
     newFile('$testPackageLibPath/lib.dart', r'''
 class Test {

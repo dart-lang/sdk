@@ -380,6 +380,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         ElementKind.FUNCTION_TYPE_ALIAS,
         ElementKind.MIXIN,
         ElementKind.TYPE_ALIAS,
+        ElementKind.EXTENSION_TYPE,
       ]);
     }
     if (targetNode.mightBeImplicitConstructor) {
