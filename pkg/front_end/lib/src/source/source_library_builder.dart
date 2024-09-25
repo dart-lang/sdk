@@ -429,48 +429,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// Return the primary message.
   Message reportFeatureNotEnabled(
       LibraryFeature feature, Uri fileUri, int charOffset, int length) {
-    assert(!feature.isEnabled);
-    Message message;
-    if (feature.isSupported) {
-      // TODO(johnniwinther): Ideally the error should actually be special-cased
-      // to mention that it is an experimental feature.
-      String enabledVersionText = feature.flag.isEnabledByDefault
-          ? feature.enabledVersion.toText()
-          : "the current release";
-      if (_languageVersion.isExplicit) {
-        message = templateExperimentOptOutExplicit.withArguments(
-            feature.flag.name, enabledVersionText);
-        addProblem(message, charOffset, length, fileUri,
-            context: <LocatedMessage>[
-              templateExperimentOptOutComment
-                  .withArguments(feature.flag.name)
-                  .withLocation(_languageVersion.fileUri!,
-                      _languageVersion.charOffset, _languageVersion.charCount)
-            ]);
-      } else {
-        message = templateExperimentOptOutImplicit.withArguments(
-            feature.flag.name, enabledVersionText);
-        addProblem(message, charOffset, length, fileUri);
-      }
-    } else {
-      if (feature.flag.isEnabledByDefault) {
-        // Coverage-ignore-block(suite): Not run.
-        if (_languageVersion.version < feature.enabledVersion) {
-          message =
-              templateExperimentDisabledInvalidLanguageVersion.withArguments(
-                  feature.flag.name, feature.enabledVersion.toText());
-          addProblem(message, charOffset, length, fileUri);
-        } else {
-          message = templateExperimentDisabled.withArguments(feature.flag.name);
-          addProblem(message, charOffset, length, fileUri);
-        }
-      } else {
-        message = templateExperimentNotEnabledOffByDefault
-            .withArguments(feature.flag.name);
-        addProblem(message, charOffset, length, fileUri);
-      }
-    }
-    return message;
+    return compilationUnit.reportFeatureNotEnabled(
+        feature, fileUri, charOffset, length);
   }
 
   @override

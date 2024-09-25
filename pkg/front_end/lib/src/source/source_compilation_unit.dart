@@ -24,8 +24,7 @@ enum SourceCompilationUnitState {
   bool operator >=(SourceCompilationUnitState other) => index >= other.index;
 }
 
-class SourceCompilationUnitImpl
-    implements SourceCompilationUnit, ProblemReporting {
+class SourceCompilationUnitImpl implements SourceCompilationUnit {
   SourceCompilationUnitState _state = SourceCompilationUnitState.initial;
 
   @override
@@ -53,6 +52,8 @@ class SourceCompilationUnitImpl
   OffsetMap? _offsetMap;
 
   LibraryBuilder? _partOfLibrary;
+
+  final LibraryProblemReporting _problemReporting;
 
   @override
   final List<Export> exporters = <Export>[];
@@ -124,7 +125,8 @@ class SourceCompilationUnitImpl
         _languageVersion = packageLanguageVersion,
         _packageUri = packageUri,
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
-        _importNameSpace = importNameSpace {
+        _importNameSpace = importNameSpace,
+        _problemReporting = new LibraryProblemReporting(loader, fileUri) {
     _scope = new SourceLibraryBuilderScope(
         this, ScopeKind.typeParameters, 'library');
 
@@ -133,7 +135,7 @@ class SourceCompilationUnitImpl
         compilationUnit: this,
         augmentationRoot: _sourceLibraryBuilder,
         libraryNameSpaceBuilder: libraryNameSpaceBuilder,
-        problemReporting: this,
+        problemReporting: _problemReporting,
         scope: _scope,
         libraryName: _libraryName,
         indexedLibrary: indexedLibrary,
@@ -217,7 +219,7 @@ class SourceCompilationUnitImpl
       List<LocatedMessage>? context,
       Severity? severity,
       bool problemOnLibrary = false}) {
-    _sourceLibraryBuilder.addProblem(message, charOffset, length, fileUri,
+    _problemReporting.addProblem(message, charOffset, length, fileUri,
         wasHandled: wasHandled,
         context: context,
         severity: severity,
@@ -383,6 +385,7 @@ class SourceCompilationUnitImpl
     assert(_libraryBuilder == null,
         "Source library builder as already been created for $this.");
     _libraryBuilder = _sourceLibraryBuilder;
+    _problemReporting.registerLibrary(_sourceLibraryBuilder.library);
     if (isPart) {
       // Coverage-ignore-block(suite): Not run.
       // This is a part with no enclosing library.
@@ -645,11 +648,8 @@ class SourceCompilationUnitImpl
     // Check that the targets are different. This is not normally a problem
     // but is for augmentation libraries.
 
+    _problemReporting.registerLibrary(libraryBuilder.library);
     Library library = _sourceLibraryBuilder.library;
-    if (libraryBuilder.library != library && library.problemsAsJson != null) {
-      (libraryBuilder.library.problemsAsJson ??= <String>[])
-          .addAll(library.problemsAsJson!);
-    }
     if (libraryBuilder.library != library) {
       // Mark the part library as synthetic as it's not an actual library
       // (anymore).
@@ -782,8 +782,8 @@ class SourceCompilationUnitImpl
       if (existing != builder) {
         _importNameSpace.addLocalMember(
             name,
-            computeAmbiguousDeclarationForScope(
-                this, libraryBuilder.nameSpace, name, existing, builder,
+            computeAmbiguousDeclarationForScope(_problemReporting,
+                libraryBuilder.nameSpace, name, existing, builder,
                 uriOffset: new UriOffset(fileUri, charOffset), isImport: true),
             setter: builder.isSetter);
       }
@@ -1176,8 +1176,48 @@ class SourceCompilationUnitImpl
   @override
   Message reportFeatureNotEnabled(
       LibraryFeature feature, Uri fileUri, int charOffset, int length) {
-    return _sourceLibraryBuilder.reportFeatureNotEnabled(
-        feature, fileUri, charOffset, length);
+    assert(!feature.isEnabled);
+    Message message;
+    if (feature.isSupported) {
+      // TODO(johnniwinther): Ideally the error should actually be special-cased
+      // to mention that it is an experimental feature.
+      String enabledVersionText = feature.flag.isEnabledByDefault
+          ? feature.enabledVersion.toText()
+          : "the current release";
+      if (_languageVersion.isExplicit) {
+        message = templateExperimentOptOutExplicit.withArguments(
+            feature.flag.name, enabledVersionText);
+        addProblem(message, charOffset, length, fileUri,
+            context: <LocatedMessage>[
+              templateExperimentOptOutComment
+                  .withArguments(feature.flag.name)
+                  .withLocation(_languageVersion.fileUri!,
+                      _languageVersion.charOffset, _languageVersion.charCount)
+            ]);
+      } else {
+        message = templateExperimentOptOutImplicit.withArguments(
+            feature.flag.name, enabledVersionText);
+        addProblem(message, charOffset, length, fileUri);
+      }
+    } else {
+      if (feature.flag.isEnabledByDefault) {
+        // Coverage-ignore-block(suite): Not run.
+        if (_languageVersion.version < feature.enabledVersion) {
+          message =
+              templateExperimentDisabledInvalidLanguageVersion.withArguments(
+                  feature.flag.name, feature.enabledVersion.toText());
+          addProblem(message, charOffset, length, fileUri);
+        } else {
+          message = templateExperimentDisabled.withArguments(feature.flag.name);
+          addProblem(message, charOffset, length, fileUri);
+        }
+      } else {
+        message = templateExperimentNotEnabledOffByDefault
+            .withArguments(feature.flag.name);
+        addProblem(message, charOffset, length, fileUri);
+      }
+    }
+    return message;
   }
 
   @override
@@ -1185,7 +1225,6 @@ class SourceCompilationUnitImpl
       String name, PrefixFragment prefixFragment, int charOffset) {
     Builder? existing =
         libraryBuilder.nameSpace.lookupLocalMember(name, setter: false);
-    ProblemReporting _problemReporting = this;
     if (existing is PrefixBuilder) {
       assert(existing.next is! PrefixBuilder);
       int? deferredFileOffset;

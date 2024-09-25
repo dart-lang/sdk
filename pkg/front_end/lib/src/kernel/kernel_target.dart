@@ -384,30 +384,30 @@ class KernelTarget {
   }
 
   // Coverage-ignore(suite): Not run.
-  /// Builds [libraries] to the state expected after
+  /// Builds [libraryBuilders] to the state expected after
   /// [SourceLoader.buildScopes].
   void buildSyntheticLibrariesUntilBuildScopes(
-      Iterable<SourceLibraryBuilder> libraries) {
-    for (SourceLibraryBuilder augmentationLibrary in libraries) {
-      augmentationLibrary.compilationUnit.createLibrary();
-      augmentationLibrary.state = SourceLibraryBuilderState.resolvedParts;
+      Iterable<SourceLibraryBuilder> libraryBuilders) {
+    for (SourceLibraryBuilder libraryBuilder in libraryBuilders) {
+      libraryBuilder.compilationUnit.createLibrary();
+      libraryBuilder.state = SourceLibraryBuilderState.resolvedParts;
     }
-    loader.buildNameSpaces(libraries);
-    loader.buildScopes(libraries);
+    loader.buildNameSpaces(libraryBuilders);
+    loader.buildScopes(libraryBuilders);
   }
 
   // Coverage-ignore(suite): Not run.
-  /// Builds [libraries] to the state expected after default types have been
-  /// computed.
+  /// Builds [libraryBuilders] to the state expected after default types have
+  /// been computed.
   ///
-  /// This assumes that [libraries] are in the state after
+  /// This assumes that [libraryBuilders] are in the state after
   /// [SourceLoader.buildScopes].
   void buildSyntheticLibrariesUntilComputeDefaultTypes(
-      Iterable<SourceLibraryBuilder> libraries) {
-    loader.computeLibraryScopes(libraries);
-    loader.resolveTypes(libraries);
+      Iterable<SourceLibraryBuilder> libraryBuilders) {
+    loader.computeLibraryScopes(libraryBuilders);
+    loader.resolveTypes(libraryBuilders);
     loader.computeDefaultTypes(
-        libraries, dynamicType, nullType, bottomType, objectClassBuilder);
+        libraryBuilders, dynamicType, nullType, bottomType, objectClassBuilder);
   }
 
   // Coverage-ignore(suite): Not run.

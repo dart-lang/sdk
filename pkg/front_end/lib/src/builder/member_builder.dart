@@ -121,12 +121,13 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
       parent is ClassBuilder ? parent as ClassBuilder : null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   LibraryBuilder get libraryBuilder {
     if (parent is LibraryBuilder) {
       LibraryBuilder library = parent as LibraryBuilder;
       return library.partOfLibrary ?? library;
-    } else if (parent is ExtensionBuilder) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (parent is ExtensionBuilder) {
       ExtensionBuilder extension = parent as ExtensionBuilder;
       return extension.libraryBuilder;
     } else if (parent is ExtensionTypeDeclarationBuilder) {
