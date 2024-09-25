@@ -1110,13 +1110,14 @@ TEST_CASE(IsolateReload_LibraryLookup) {
   result = Dart_LookupLibrary(NewString("test:lib1"));
   EXPECT(Dart_IsLibrary(result));
 
-  // Reload and remove 'test:lib1' from isolate.
+  // Reload, making 'test:lib1' unreachable along the import graph from the root
+  // library.
   lib = TestCase::ReloadTestScript(kScript);
   EXPECT_VALID(lib);
 
-  // Fail to find 'test:lib1' in the isolate.
+  // Continue to find 'test:lib1' in the isolate.
   result = Dart_LookupLibrary(NewString("test:lib1"));
-  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_IsLibrary(result));
 }
 
 TEST_CASE(IsolateReload_LibraryHide) {

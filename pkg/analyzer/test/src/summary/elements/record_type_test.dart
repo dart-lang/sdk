@@ -206,7 +206,7 @@ library
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
-              parameters
+              formalParameters
                 a @35
                   element: <testLibraryFragment>::@class::A::@method::foo::@parameter::a#element
   classes
@@ -218,7 +218,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
-          parameters
+          formalParameters
             requiredPositional a
               type: (int, String)
 ''');
@@ -393,13 +393,13 @@ library
         f @5
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             b @38
               element: <testLibraryFragment>::@function::f::@parameter::b#element
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional b
           type: void Function((int, String))
       returnType: void
@@ -435,13 +435,13 @@ library
         f @5
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             a @32
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional a
           type: (int, String) Function()
       returnType: void
@@ -477,13 +477,13 @@ library
         f @5
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             a @21
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional a
           type: (int, String)
       returnType: void

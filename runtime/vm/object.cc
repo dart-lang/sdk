@@ -21085,7 +21085,7 @@ AbstractTypePtr Instance::GetType(Heap::Space space,
       auto& type_arguments = TypeArguments::Handle(zone, GetTypeArguments());
       type_arguments = type_arguments.FromInstanceTypeArguments(thread, cls);
       // Assume internal VM types are properly encapsulated in the core
-      // libraries and cannot not appear in type arguments.
+      // libraries and cannot appear in type arguments.
       const auto& type =
           Type::Handle(zone, Type::New(cls, type_arguments,
                                        Nullability::kNonNullable, Heap::kNew));

@@ -309,7 +309,11 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeDisplayName(e);
 
       _writeElementList(
-          'parameters', e, e.parameters2, _writeFormalParameterElement);
+        'formalParameters',
+        e,
+        e.formalParameters,
+        _writeFormalParameterElement,
+      );
 
       // _writeList(
       //   'constantInitializers',
@@ -377,7 +381,11 @@ class _Element2Writer extends _AbstractElementWriter {
       }
 
       _writeFragmentList(
-          'parameters', f, f.parameters2, _writeFormalParameterFragment);
+        'formalParameters',
+        f,
+        f.formalParameters,
+        _writeFormalParameterFragment,
+      );
 
       _writeList(
         'constantInitializers',
@@ -658,9 +666,17 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeSinceSdkVersion(e.sinceSdkVersion);
       // _writeCodeRange(e);
       _writeElementList(
-          'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
+        'typeParameters',
+        e,
+        e.typeParameters2,
+        _writeTypeParameterElement,
+      );
       _writeElementList(
-          'parameters', e, e.parameters2, _writeFormalParameterElement);
+        'formalParameters',
+        e,
+        e.formalParameters,
+        _writeFormalParameterElement,
+      );
       // _writeConstantInitializer(e);
       // _writeNonSyntheticElement(e);
       // _writeFieldFormalParameterField(e);
@@ -868,7 +884,11 @@ class _Element2Writer extends _AbstractElementWriter {
 
       expect(e.typeParameters2, isEmpty);
       _writeElementList(
-          'parameters', e, e.parameters2, _writeFormalParameterElement);
+        'formalParameters',
+        e,
+        e.formalParameters,
+        _writeFormalParameterElement,
+      );
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       // writeLinking();
@@ -931,7 +951,11 @@ class _Element2Writer extends _AbstractElementWriter {
 
       // expect(f.typeParameters2, isEmpty);
       _writeFragmentList(
-          'parameters', f, f.parameters2, _writeFormalParameterFragment);
+        'formalParameters',
+        f,
+        f.formalParameters,
+        _writeFormalParameterFragment,
+      );
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // writeLinking();
@@ -1493,9 +1517,17 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeTypeInferenceError(e);
 
       _writeElementList(
-          'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
+        'typeParameters',
+        e,
+        e.typeParameters2,
+        _writeTypeParameterElement,
+      );
       _writeElementList(
-          'parameters', e, e.parameters2, _writeFormalParameterElement);
+        'formalParameters',
+        e,
+        e.formalParameters,
+        _writeFormalParameterElement,
+      );
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       _writeMacroDiagnostics(e);
@@ -1533,9 +1565,17 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeTypeInferenceError(f);
 
       _writeFragmentList(
-          'typeParameters', f, f.typeParameters2, _writeTypeParameterFragment);
+        'typeParameters',
+        f,
+        f.typeParameters2,
+        _writeTypeParameterFragment,
+      );
       _writeFragmentList(
-          'parameters', f, f.parameters2, _writeFormalParameterFragment);
+        'formalParameters',
+        f,
+        f.formalParameters,
+        _writeFormalParameterFragment,
+      );
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // _writeMacroDiagnostics(f);
@@ -1601,7 +1641,11 @@ class _Element2Writer extends _AbstractElementWriter {
 
       expect(e.typeParameters2, isEmpty);
       _writeElementList(
-          'parameters', e, e.parameters2, _writeFormalParameterElement);
+        'formalParameters',
+        e,
+        e.formalParameters,
+        _writeFormalParameterElement,
+      );
       // _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       // writeLinking();
@@ -1663,7 +1707,11 @@ class _Element2Writer extends _AbstractElementWriter {
 
       expect(f.typeParameters2, isEmpty);
       _writeFragmentList(
-          'parameters', f, f.parameters2, _writeFormalParameterFragment);
+        'formalParameters',
+        f,
+        f.formalParameters,
+        _writeFormalParameterFragment,
+      );
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
       // writeLinking();
@@ -1696,9 +1744,17 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeSinceSdkVersion(e.sinceSdkVersion);
       // _writeCodeRange(e);
       _writeElementList(
-          'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
+        'typeParameters',
+        e,
+        e.typeParameters2,
+        _writeTypeParameterElement,
+      );
       _writeElementList(
-          'parameters', e, e.parameters2, _writeFormalParameterElement);
+        'formalParameters',
+        e,
+        e.formalParameters,
+        _writeFormalParameterElement,
+      );
       _writeType('returnType', e.returnType);
       _writeMacroDiagnostics(e);
       // _writeAugmentationTarget(e);
@@ -1726,9 +1782,17 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeSinceSdkVersion(f.sinceSdkVersion);
       // _writeCodeRange(e);
       _writeFragmentList(
-          'typeParameters', f, f.typeParameters2, _writeTypeParameterFragment);
+        'typeParameters',
+        f,
+        f.typeParameters2,
+        _writeTypeParameterFragment,
+      );
       _writeFragmentList(
-          'parameters', f, f.parameters2, _writeFormalParameterFragment);
+        'formalParameters',
+        f,
+        f.formalParameters,
+        _writeFormalParameterFragment,
+      );
       // _writeType('returnType', e.returnType);
       // _writeMacroDiagnostics(e);
       // _writeAugmentationTarget(e);

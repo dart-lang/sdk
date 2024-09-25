@@ -3143,7 +3143,7 @@ library
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named#element
               periodOffset: 56
               nameEnd: 62
-              parameters
+              formalParameters
                 this.f @68
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named::@parameter::f#element
   classes
@@ -3157,7 +3157,7 @@ library
       constructors
         named
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-          parameters
+          formalParameters
             requiredPositional final f
               type: int
       getters
@@ -3255,7 +3255,7 @@ library
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named#element
               periodOffset: 56
               nameEnd: 62
-              parameters
+              formalParameters
                 a @67
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named::@parameter::a#element
   classes
@@ -3264,7 +3264,7 @@ library
       constructors
         named
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-          parameters
+          formalParameters
             requiredPositional a
               type: int
 ''');
@@ -3355,7 +3355,7 @@ library
             new @55
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new#element
-              parameters
+              formalParameters
                 a @61
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new::@parameter::a#element
   classes
@@ -3364,7 +3364,7 @@ library
       constructors
         new
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
-          parameters
+          formalParameters
             requiredPositional a
               type: int
 ''');
@@ -3481,7 +3481,7 @@ library
             set foo= @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
-              parameters
+              formalParameters
                 _foo @-1
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::_foo#element
   classes
@@ -3499,7 +3499,7 @@ library
       setters
         synthetic set foo=
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _foo
               type: int
 ''');
@@ -3704,7 +3704,7 @@ library
             foo @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo#element
-              parameters
+              formalParameters
                 a @70
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo::@parameter::a#element
   classes
@@ -3713,7 +3713,7 @@ library
       methods
         foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
-          parameters
+          formalParameters
             requiredPositional a
               type: double
 ''');
@@ -3819,7 +3819,7 @@ library
             set foo= @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
-              parameters
+              formalParameters
                 a @67
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::a#element
   classes
@@ -3833,7 +3833,7 @@ library
       setters
         set foo=
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional a
               type: int
 ''');
@@ -3874,7 +3874,7 @@ library
       constructors
         new
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@constructor::new
-          parameters
+          formalParameters
             optionalPositional x
               type: dynamic
 ''');
@@ -3913,7 +3913,7 @@ library
       methods
         foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
-          parameters
+          formalParameters
             optionalPositional x
               type: dynamic
 ''');
@@ -3952,7 +3952,7 @@ library
       methods
         foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
-          parameters
+          formalParameters
             optionalPositional x
               type: dynamic
               metadata
@@ -4011,7 +4011,7 @@ library
       methods
         foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
-          parameters
+          formalParameters
             requiredPositional x
               type: dynamic
               metadata
@@ -4075,7 +4075,7 @@ library
       setters
         set foo=
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@setter::foo
-          parameters
+          formalParameters
             requiredPositional x
               type: dynamic
               metadata
@@ -4841,7 +4841,7 @@ library
                 rightParenthesis: ) @108
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
               element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
-          parameters
+          formalParameters
             requiredPositional _
               type: int
 ''');
@@ -4944,7 +4944,7 @@ library
   functions
     foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
-      parameters
+      formalParameters
         optionalPositional x
           type: dynamic
       returnType: void
@@ -5084,7 +5084,7 @@ library
             rightParenthesis: ) @88
           element: package:test/a.dart::<fragment>::@class::A::@constructor::new
           element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
-      parameters
+      formalParameters
         requiredPositional _
           type: int
 ''');
@@ -5128,7 +5128,7 @@ library
   setters
     static set foo=
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
-      parameters
+      formalParameters
         requiredPositional x
           type: dynamic
           metadata
@@ -5413,7 +5413,7 @@ library
   functions
     foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
-      parameters
+      formalParameters
         requiredPositional x1
           type: X
         requiredPositional x2
@@ -5459,7 +5459,7 @@ library
   functions
     foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
-      parameters
+      formalParameters
         requiredPositional x
           type: X
       returnType: void
@@ -6071,7 +6071,7 @@ library
             set foo= @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
-              parameters
+              formalParameters
                 _foo @-1
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::_foo#element
   classes
@@ -6089,7 +6089,7 @@ library
       setters
         synthetic set foo=
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _foo
               type: int
 ''');
@@ -6535,14 +6535,14 @@ library
             set foo= @173
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
-              parameters
+              formalParameters
                 value @189
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::value#element
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
             augment set foo= @216
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
-              parameters
+              formalParameters
                 value @232
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::value#element
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
@@ -6557,7 +6557,7 @@ library
       setters
         external set foo=
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional value
               type: int
 ''');
@@ -8292,7 +8292,7 @@ library
         foo @93
           reference: <testLibraryFragment>::@function::foo
           element: <testLibraryFragment>::@function::foo#element
-          parameters
+          formalParameters
             a @101
               element: <testLibraryFragment>::@function::foo::@parameter::a#element
             default b @113
@@ -8304,7 +8304,7 @@ library
   functions
     foo
       firstFragment: <testLibraryFragment>::@function::foo
-      parameters
+      formalParameters
         requiredPositional a
           type: int
         optionalNamed b
@@ -8381,7 +8381,7 @@ library
         foo @98
           reference: <testLibraryFragment>::@function::foo
           element: <testLibraryFragment>::@function::foo#element
-          parameters
+          formalParameters
             a @106
               element: <testLibraryFragment>::@function::foo::@parameter::a#element
             b @116
@@ -8389,7 +8389,7 @@ library
   functions
     foo
       firstFragment: <testLibraryFragment>::@function::foo
-      parameters
+      formalParameters
         requiredPositional a
           type: int
         requiredPositional b
@@ -8880,13 +8880,13 @@ library
         foo @98
           reference: <testLibraryFragment>::@function::foo
           element: <testLibraryFragment>::@function::foo#element
-          parameters
+          formalParameters
             a @102
               element: <testLibraryFragment>::@function::foo::@parameter::a#element
   functions
     foo
       firstFragment: <testLibraryFragment>::@function::foo
-      parameters
+      formalParameters
         requiredPositional a
           type: dynamic
       returnType: void
@@ -9330,7 +9330,7 @@ library
             foo @116
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
-              parameters
+              formalParameters
                 a @124
                   element: <testLibraryFragment>::@class::A::@method::foo::@parameter::a#element
                 b @134
@@ -9341,7 +9341,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
-          parameters
+          formalParameters
             requiredPositional a
               type: int
             requiredPositional b
@@ -10263,7 +10263,7 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
               element: <testLibraryFragment>::@class::A::@setter::foo#element
-              parameters
+              formalParameters
                 _foo @-1
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
   classes
@@ -10281,7 +10281,7 @@ library
       setters
         synthetic set foo=
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _foo
               type: int
 ''');
@@ -12793,7 +12793,7 @@ library
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson#element
               periodOffset: 176
               nameEnd: 185
-              parameters
+              formalParameters
                 json @231
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson::@parameter::json#element
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
@@ -12802,7 +12802,7 @@ library
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson#element
               periodOffset: 335
               nameEnd: 344
-              parameters
+              formalParameters
                 json @390
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson::@parameter::json#element
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
@@ -12830,7 +12830,7 @@ library
       constructors
         external fromJson
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
-          parameters
+          formalParameters
             requiredPositional json
               type: Map<String, Object?>
       getters
@@ -18494,7 +18494,7 @@ library
             foo @100
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo#element
-              parameters
+              formalParameters
                 _ @114
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo::@parameter::_#element
   classes
@@ -18505,7 +18505,7 @@ library
       methods
         foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo
-          parameters
+          formalParameters
             requiredPositional _
               type: A
 ''');

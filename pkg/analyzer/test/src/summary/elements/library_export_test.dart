@@ -1896,7 +1896,7 @@ library
         set a= @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::a
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::a#element
-          parameters
+          formalParameters
             _a @-1
               element: <testLibrary>::@fragment::package:test/a.dart::@setter::a::@parameter::_a#element
   topLevelVariables
@@ -1911,7 +1911,7 @@ library
   setters
     synthetic static set a=
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::a
-      parameters
+      formalParameters
         requiredPositional _a
           type: int
   exportedReferences

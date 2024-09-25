@@ -57,6 +57,8 @@ void f(Color color) {
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)', withConst: true),
         _color('Color.fromRGBO(255, 0, 0, 1)', withConst: true),
+        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
+            withConst: true),
         _color('Color(0xFFFF0000)', withConst: true),
       ],
     );
@@ -75,6 +77,7 @@ const white = [!x!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)'),
         _color('Color.fromRGBO(255, 0, 0, 1)'),
+        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)'),
         _color('Color(0xFFFF0000)'),
       ],
     );
@@ -93,6 +96,8 @@ var white = [!x!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)', withConst: true),
         _color('Color.fromRGBO(255, 0, 0, 1)', withConst: true),
+        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
+            withConst: true),
         _color('Color(0xFFFF0000)', withConst: true),
       ],
     );
@@ -119,6 +124,8 @@ void f(Color color) {
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)', withConst: true),
         _color('Color.fromRGBO(255, 0, 0, 1)', withConst: true),
+        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
+            withConst: true),
         _color('Color(0xFFFF0000)', withConst: true),
       ],
     );
@@ -136,6 +143,7 @@ const white = [!Colors.white!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)'),
         _color('Color.fromRGBO(255, 0, 0, 1)'),
+        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)'),
         _color('Color(0xFFFF0000)'),
       ],
     );
@@ -153,6 +161,8 @@ var white = [!Colors.white!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)', withConst: true),
         _color('Color.fromRGBO(255, 0, 0, 1)', withConst: true),
+        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
+            withConst: true),
         _color('Color(0xFFFF0000)', withConst: true),
       ],
     );
@@ -171,6 +181,7 @@ const white = [!Color(0xFFFFFFFF)!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)'),
         _color('Color.fromRGBO(255, 0, 0, 1)'),
+        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)'),
         _color('Color(0xFFFF0000)'),
       ],
     );
@@ -189,6 +200,7 @@ const white = [!Color(0xFF_FF_FF_FF)!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)'),
         _color('Color.fromRGBO(255, 0, 0, 1)'),
+        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)'),
         _color('Color(0xFFFF0000)'),
       ],
     );
@@ -208,6 +220,8 @@ var white = [!const Color(0xFFFFFFFF)!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)', withConst: true),
         _color('Color.fromRGBO(255, 0, 0, 1)', withConst: true),
+        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
+            withConst: true),
         _color('Color(0xFFFF0000)', withConst: true),
       ],
     );
@@ -225,6 +239,7 @@ var white = [!Color(0xFFFFFFFF)!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)'),
         _color('Color.fromRGBO(255, 0, 0, 1)'),
+        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)'),
         _color('Color(0xFFFF0000)'),
       ],
     );
@@ -242,7 +257,34 @@ var white = [!Color(0xFF_FF_FF_FF)!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)'),
         _color('Color.fromRGBO(255, 0, 0, 1)'),
+        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)'),
         _color('Color(0xFFFF0000)'),
+      ],
+    );
+  }
+
+  // Converting from ints to doubles should be rounded to 3 decimals to avoid
+  // very large numbers (2 is not enough to represent 0-255 as it only allows
+  // 100 numbers).
+  Future<void> test_doubleRounding() async {
+    content = '''
+import 'package:flutter/material.dart';
+
+var white = [!Color.fromRGBO(191, 128, 64, 1)!];
+''';
+
+    await _checkPresentations(
+      select: Color(
+        alpha: 1,
+        red: 0.7490196078431373,
+        green: 0.5019607843137255,
+        blue: 0.25098039215686274,
+      ),
+      expectPresentations: [
+        _color('Color.fromARGB(255, 191, 128, 64)'),
+        _color('Color.fromRGBO(191, 128, 64, 1)'),
+        _color('Color.from(alpha: 1, red: 0.749, green: 0.502, blue: 0.251)'),
+        _color('Color(0xFFBF8040)'),
       ],
     );
   }
@@ -275,6 +317,8 @@ const white = [!Colors.white!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 255, 255)', additionalEdits: edits),
         _color('Color.fromRGBO(255, 255, 255, 1)', additionalEdits: edits),
+        _color('Color.from(alpha: 1, red: 1, green: 1, blue: 1)',
+            additionalEdits: edits),
         _color('Color(0xFFFFFFFF)', additionalEdits: edits),
       ],
     );

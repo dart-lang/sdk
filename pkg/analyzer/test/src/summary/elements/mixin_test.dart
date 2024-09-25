@@ -198,20 +198,20 @@ library
             set f= @-1
               reference: <testLibraryFragment>::@mixin::M::@setter::f
               element: <testLibraryFragment>::@mixin::M::@setter::f#element
-              parameters
+              formalParameters
                 _f @-1
                   element: <testLibraryFragment>::@mixin::M::@setter::f::@parameter::_f#element
             set s= @126
               reference: <testLibraryFragment>::@mixin::M::@setter::s
               element: <testLibraryFragment>::@mixin::M::@setter::s#element
-              parameters
+              formalParameters
                 v @132
                   element: <testLibraryFragment>::@mixin::M::@setter::s::@parameter::v#element
           methods
             m @144
               reference: <testLibraryFragment>::@mixin::M::@method::m
               element: <testLibraryFragment>::@mixin::M::@method::m#element
-              parameters
+              formalParameters
                 v @153
                   element: <testLibraryFragment>::@mixin::M::@method::m::@parameter::v#element
   classes
@@ -267,18 +267,18 @@ library
       setters
         synthetic set f=
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::f
-          parameters
+          formalParameters
             requiredPositional _f
               type: T
         set s=
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::s
-          parameters
+          formalParameters
             requiredPositional v
               type: int
       methods
         m
           firstFragment: <testLibraryFragment>::@mixin::M::@method::m
-          parameters
+          formalParameters
             requiredPositional v
               type: double
 ''');
@@ -2016,7 +2016,7 @@ library
             set foo= @21
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
               element: <testLibraryFragment>::@mixin::M::@setter::foo#element
-              parameters
+              formalParameters
                 _ @29
                   element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_#element
   mixins
@@ -2032,7 +2032,7 @@ library
       setters
         set foo=
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _
               type: int
 ''');
@@ -2091,7 +2091,7 @@ library
             set foo= @21
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
               element: <testLibraryFragment>::@mixin::M::@setter::foo#element
-              parameters
+              formalParameters
                 _ @29
                   element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_#element
   mixins
@@ -2107,7 +2107,7 @@ library
       setters
         set foo=
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _
               type: int
 ''');
@@ -3032,7 +3032,7 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
-              parameters
+              formalParameters
                 _foo @-1
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -3065,7 +3065,7 @@ library
       setters
         synthetic set foo=
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _foo
               type: int
 ''');
@@ -3214,7 +3214,7 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
-              parameters
+              formalParameters
                 _foo @-1
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -3263,7 +3263,7 @@ library
       setters
         synthetic set foo=
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _foo
               type: int
 ''');
@@ -3413,7 +3413,7 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
-              parameters
+              formalParameters
                 _foo @-1
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -3461,7 +3461,7 @@ library
       setters
         synthetic set foo=
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _foo
               type: int
 ''');
@@ -3613,7 +3613,7 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
-              parameters
+              formalParameters
                 _foo @-1
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
@@ -3631,7 +3631,7 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
-              parameters
+              formalParameters
                 _ @61
                   element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo::@parameter::_#element
               previousFragment: <testLibraryFragment>::@mixin::A::@setter::foo
@@ -3665,7 +3665,7 @@ library
       setters
         synthetic set foo=
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _foo
               type: int
 ''');
@@ -3784,7 +3784,7 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
-              parameters
+              formalParameters
                 _foo @-1
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -3817,7 +3817,7 @@ library
       setters
         synthetic set foo=
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _foo
               type: int
 ''');
@@ -4081,7 +4081,7 @@ library
             set foo1= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
-              parameters
+              formalParameters
                 _foo1 @-1
                   element: <testLibraryFragment>::@mixin::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -4106,7 +4106,7 @@ library
             set foo2= @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2#element
-              parameters
+              formalParameters
                 _foo2 @-1
                   element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2::@parameter::_foo2#element
   mixins
@@ -4133,12 +4133,12 @@ library
       setters
         synthetic set foo1=
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo1
-          parameters
+          formalParameters
             requiredPositional _foo1
               type: int
         synthetic set foo2=
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
-          parameters
+          formalParameters
             requiredPositional _foo2
               type: int
 ''');
@@ -4288,7 +4288,7 @@ library
             set foo1= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
-              parameters
+              formalParameters
                 _foo1 @-1
                   element: <testLibraryFragment>::@mixin::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -4316,7 +4316,7 @@ library
             set foo2= @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2#element
-              parameters
+              formalParameters
                 _foo2 @-1
                   element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2::@parameter::_foo2#element
   mixins
@@ -4345,12 +4345,12 @@ library
       setters
         synthetic set foo1=
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo1
-          parameters
+          formalParameters
             requiredPositional _foo1
               type: T1
         synthetic set foo2=
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
-          parameters
+          formalParameters
             requiredPositional _foo2
               type: T2
 ''');
@@ -4769,7 +4769,7 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
-              parameters
+              formalParameters
                 _foo @-1
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -4802,7 +4802,7 @@ library
       setters
         synthetic set foo=
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _foo
               type: int
 ''');
@@ -4951,7 +4951,7 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
-              parameters
+              formalParameters
                 _foo @-1
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -5000,7 +5000,7 @@ library
       setters
         synthetic set foo=
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _foo
               type: int
 ''');
@@ -6446,7 +6446,7 @@ library
             set foo1= @31
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
-              parameters
+              formalParameters
                 _ @40
                   element: <testLibraryFragment>::@mixin::A::@setter::foo1::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -6466,7 +6466,7 @@ library
             set foo2= @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2#element
-              parameters
+              formalParameters
                 _ @54
                   element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2::@parameter::_#element
   mixins
@@ -6486,12 +6486,12 @@ library
       setters
         set foo1=
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo1
-          parameters
+          formalParameters
             requiredPositional _
               type: int
         set foo2=
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
-          parameters
+          formalParameters
             requiredPositional _
               type: int
 ''');
@@ -6612,7 +6612,7 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
-              parameters
+              formalParameters
                 _foo @-1
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
@@ -6628,7 +6628,7 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
-              parameters
+              formalParameters
                 _ @61
                   element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo::@parameter::_#element
               previousFragment: <testLibraryFragment>::@mixin::A::@setter::foo
@@ -6649,7 +6649,7 @@ library
       setters
         synthetic set foo=
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _foo
               type: int
 ''');
@@ -6778,14 +6778,14 @@ library
             set foo1= @31
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
-              parameters
+              formalParameters
                 _ @40
                   element: <testLibraryFragment>::@mixin::A::@setter::foo1::@parameter::_#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
             set foo2= @52
               reference: <testLibraryFragment>::@mixin::A::@setter::foo2
               element: <testLibraryFragment>::@mixin::A::@setter::foo2#element
-              parameters
+              formalParameters
                 _ @61
                   element: <testLibraryFragment>::@mixin::A::@setter::foo2::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -6800,7 +6800,7 @@ library
             augment set foo1= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
-              parameters
+              formalParameters
                 _ @62
                   element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1::@parameter::_#element
               previousFragment: <testLibraryFragment>::@mixin::A::@setter::foo1
@@ -6821,12 +6821,12 @@ library
       setters
         set foo2=
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo2
-          parameters
+          formalParameters
             requiredPositional _
               type: int
         set foo1=
           firstFragment: <testLibraryFragment>::@mixin::A::@setter::foo1
-          parameters
+          formalParameters
             requiredPositional _
               type: int
 ''');
@@ -7665,7 +7665,7 @@ library
             foo @41
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@method::foo
               element: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@method::foo#element
-              parameters
+              formalParameters
                 a @45
                   element: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@method::foo::@parameter::a#element
   mixins
@@ -7676,7 +7676,7 @@ library
       methods
         foo
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@method::foo
-          parameters
+          formalParameters
             requiredPositional a
               type: String
 ''');
@@ -7767,7 +7767,7 @@ library
             foo @28
               reference: <testLibraryFragment>::@mixin::B::@method::foo
               element: <testLibraryFragment>::@mixin::B::@method::foo#element
-              parameters
+              formalParameters
                 a @32
                   element: <testLibraryFragment>::@mixin::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
@@ -7788,7 +7788,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@mixin::B::@method::foo
-          parameters
+          formalParameters
             requiredPositional a
               type: String
 ''');
@@ -7875,7 +7875,7 @@ library
             foo @28
               reference: <testLibraryFragment>::@mixin::B::@method::foo
               element: <testLibraryFragment>::@mixin::B::@method::foo#element
-              parameters
+              formalParameters
                 a @32
                   element: <testLibraryFragment>::@mixin::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
@@ -7896,7 +7896,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@mixin::B::@method::foo
-          parameters
+          formalParameters
             requiredPositional a
               type: String
 ''');
@@ -8001,7 +8001,7 @@ library
               reference: <testLibraryFragment>::@mixin::B::@method::foo
               element: <testLibraryFragment>::@mixin::B::@method::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
-              parameters
+              formalParameters
                 a @54
                   element: <testLibraryFragment>::@mixin::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
@@ -8017,7 +8017,7 @@ library
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
               element: <testLibraryFragment>::@mixin::B::@method::foo#element
               previousFragment: <testLibraryFragment>::@mixin::B::@method::foo
-              parameters
+              formalParameters
                 a @53
                   element: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo::@parameter::a#element
   mixins
@@ -8028,7 +8028,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@mixin::B::@method::foo
-          parameters
+          formalParameters
             requiredPositional a
               type: String
 ''');

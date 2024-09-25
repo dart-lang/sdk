@@ -584,6 +584,12 @@ abstract class FormalParameterElement
   /// Returns `null` if no default value.
   String? get defaultValueCode;
 
+  /// The formal parameters defined by this formal parameter.
+  ///
+  /// A parameter will only define other parameters if it is a function typed
+  /// formal parameter.
+  List<FormalParameterElement> get formalParameters;
+
   /// Whether the parameter has a default value.
   bool get hasDefaultValue;
 
@@ -645,12 +651,6 @@ abstract class FormalParameterElement
 
   /// Whether the parameter is a super formal parameter.
   bool get isSuperFormal;
-
-  /// The parameters defined by this parameter.
-  ///
-  /// A parameter will only define other parameters if it is a function typed
-  /// parameter.
-  List<FormalParameterElement> get parameters2;
 
   /// The type parameters defined by this parameter.
   ///
@@ -737,8 +737,8 @@ abstract class Fragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypedElement2 implements TypeParameterizedElement2 {
-  /// The parameters defined by this element.
-  List<FormalParameterElement> get parameters2;
+  /// The formal parameters defined by this element.
+  List<FormalParameterElement> get formalParameters;
 
   /// The return type defined by this element.
   DartType get returnType;
@@ -754,8 +754,8 @@ abstract class FunctionTypedFragment implements TypeParameterizedFragment {
   @override
   FunctionTypedElement2 get element;
 
-  /// The parameters defined by this fragment.
-  List<FormalParameterFragment> get parameters2;
+  /// The formal parameters defined by this fragment.
+  List<FormalParameterFragment> get formalParameters;
 }
 
 /// The pseudo-declaration that defines a generic function type.

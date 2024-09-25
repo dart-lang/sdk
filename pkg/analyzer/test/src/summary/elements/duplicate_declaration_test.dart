@@ -457,13 +457,13 @@ library
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo::@def::0
               element: <testLibraryFragment>::@class::A::@setter::foo::@def::0#element
-              parameters
+              formalParameters
                 _foo @-1
                   element: <testLibraryFragment>::@class::A::@setter::foo::@def::0::@parameter::_foo#element
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo::@def::1
               element: <testLibraryFragment>::@class::A::@setter::foo::@def::1#element
-              parameters
+              formalParameters
                 _foo @-1
                   element: <testLibraryFragment>::@class::A::@setter::foo::@def::1::@parameter::_foo#element
   classes
@@ -491,12 +491,12 @@ library
       setters
         synthetic set foo=
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo::@def::0
-          parameters
+          formalParameters
             requiredPositional _foo
               type: int
         synthetic set foo=
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo::@def::1
-          parameters
+          formalParameters
             requiredPositional _foo
               type: double
 ''');
@@ -1164,7 +1164,7 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@extension::E::@def::1::@setter::x
               element: <testLibraryFragment>::@extension::E::@def::1::@setter::x#element
-              parameters
+              formalParameters
                 _x @-1
                   element: <testLibraryFragment>::@extension::E::@def::1::@setter::x::@parameter::_x#element
         extension E @71
@@ -1184,7 +1184,7 @@ library
             set y= @-1
               reference: <testLibraryFragment>::@extension::E::@def::2::@setter::y
               element: <testLibraryFragment>::@extension::E::@def::2::@setter::y#element
-              parameters
+              formalParameters
                 _y @-1
                   element: <testLibraryFragment>::@extension::E::@def::2::@setter::y::@parameter::_y#element
   extensions
@@ -1204,7 +1204,7 @@ library
       setters
         synthetic static set x=
           firstFragment: <testLibraryFragment>::@extension::E::@def::1::@setter::x
-          parameters
+          formalParameters
             requiredPositional _x
               type: dynamic
     extension E
@@ -1221,7 +1221,7 @@ library
       setters
         synthetic static set y=
           firstFragment: <testLibraryFragment>::@extension::E::@def::2::@setter::y
-          parameters
+          formalParameters
             requiredPositional _y
               type: int
 ''');
@@ -1308,7 +1308,7 @@ library
             new @15
               reference: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new
               element: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new#element
-              parameters
+              formalParameters
                 this.it @21
                   element: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new::@parameter::it#element
           getters
@@ -1327,7 +1327,7 @@ library
             new @43
               reference: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new
               element: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new#element
-              parameters
+              formalParameters
                 this.it @52
                   element: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new::@parameter::it#element
           getters
@@ -1346,7 +1346,7 @@ library
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new
-          parameters
+          formalParameters
             requiredPositional final it
               type: int
       getters
@@ -1363,7 +1363,7 @@ library
       constructors
         new
           firstFragment: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new
-          parameters
+          formalParameters
             requiredPositional final it
               type: double
       getters
@@ -1420,13 +1420,13 @@ library
         f @17
           reference: <testLibraryFragment>::@function::f::@def::1
           element: <testLibraryFragment>::@function::f::@def::1#element
-          parameters
+          formalParameters
             a @23
               element: <testLibraryFragment>::@function::f::@def::1::@parameter::a#element
         f @34
           reference: <testLibraryFragment>::@function::f::@def::2
           element: <testLibraryFragment>::@function::f::@def::2#element
-          parameters
+          formalParameters
             default b @41
               element: <testLibraryFragment>::@function::f::@def::2::@parameter::b#element
             default c @51
@@ -1437,13 +1437,13 @@ library
       returnType: void
     f
       firstFragment: <testLibraryFragment>::@function::f::@def::1
-      parameters
+      formalParameters
         requiredPositional a
           type: int
       returnType: void
     f
       firstFragment: <testLibraryFragment>::@function::f::@def::2
-      parameters
+      formalParameters
         optionalPositional b
           type: int
         optionalPositional c
@@ -1486,7 +1486,7 @@ library
         f @5
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             default a @12
               reference: <testLibraryFragment>::@function::f::@parameter::a::@def::0
               element: <testLibraryFragment>::@function::f::@parameter::a::@def::0#element
@@ -1496,7 +1496,7 @@ library
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         optionalNamed a
           firstFragment: <testLibraryFragment>::@function::f::@parameter::a::@def::0
           type: int
@@ -1670,7 +1670,7 @@ library
             set x= @-1
               reference: <testLibraryFragment>::@mixin::A::@def::1::@setter::x
               element: <testLibraryFragment>::@mixin::A::@def::1::@setter::x#element
-              parameters
+              formalParameters
                 _x @-1
                   element: <testLibraryFragment>::@mixin::A::@def::1::@setter::x::@parameter::_x#element
         mixin A @38
@@ -1690,7 +1690,7 @@ library
             set y= @-1
               reference: <testLibraryFragment>::@mixin::A::@def::2::@setter::y
               element: <testLibraryFragment>::@mixin::A::@def::2::@setter::y#element
-              parameters
+              formalParameters
                 _y @-1
                   element: <testLibraryFragment>::@mixin::A::@def::2::@setter::y::@parameter::_y#element
   mixins
@@ -1714,7 +1714,7 @@ library
       setters
         synthetic set x=
           firstFragment: <testLibraryFragment>::@mixin::A::@def::1::@setter::x
-          parameters
+          formalParameters
             requiredPositional _x
               type: dynamic
     mixin A
@@ -1733,7 +1733,7 @@ library
       setters
         synthetic set y=
           firstFragment: <testLibraryFragment>::@mixin::A::@def::2::@setter::y
-          parameters
+          formalParameters
             requiredPositional _y
               type: int
 ''');
@@ -1879,19 +1879,19 @@ library
         set x= @-1
           reference: <testLibraryFragment>::@setter::x::@def::0
           element: <testLibraryFragment>::@setter::x::@def::0#element
-          parameters
+          formalParameters
             _x @-1
               element: <testLibraryFragment>::@setter::x::@def::0::@parameter::_x#element
         set x= @-1
           reference: <testLibraryFragment>::@setter::x::@def::1
           element: <testLibraryFragment>::@setter::x::@def::1#element
-          parameters
+          formalParameters
             _x @-1
               element: <testLibraryFragment>::@setter::x::@def::1::@parameter::_x#element
         set x= @-1
           reference: <testLibraryFragment>::@setter::x::@def::2
           element: <testLibraryFragment>::@setter::x::@def::2#element
-          parameters
+          formalParameters
             _x @-1
               element: <testLibraryFragment>::@setter::x::@def::2::@parameter::_x#element
   topLevelVariables
@@ -1926,17 +1926,17 @@ library
   setters
     synthetic static set x=
       firstFragment: <testLibraryFragment>::@setter::x::@def::0
-      parameters
+      formalParameters
         requiredPositional _x
           type: bool
     synthetic static set x=
       firstFragment: <testLibraryFragment>::@setter::x::@def::1
-      parameters
+      formalParameters
         requiredPositional _x
           type: dynamic
     synthetic static set x=
       firstFragment: <testLibraryFragment>::@setter::x::@def::2
-      parameters
+      formalParameters
         requiredPositional _x
           type: double
 ''');
@@ -2060,13 +2060,13 @@ library
         set foo= @4
           reference: <testLibraryFragment>::@setter::foo::@def::0
           element: <testLibraryFragment>::@setter::foo::@def::0#element
-          parameters
+          formalParameters
             _ @12
               element: <testLibraryFragment>::@setter::foo::@def::0::@parameter::_#element
         set foo= @22
           reference: <testLibraryFragment>::@setter::foo::@def::1
           element: <testLibraryFragment>::@setter::foo::@def::1#element
-          parameters
+          formalParameters
             _ @33
               element: <testLibraryFragment>::@setter::foo::@def::1::@parameter::_#element
   topLevelVariables
@@ -2077,12 +2077,12 @@ library
   setters
     static set foo=
       firstFragment: <testLibraryFragment>::@setter::foo::@def::0
-      parameters
+      formalParameters
         requiredPositional _
           type: int
     static set foo=
       firstFragment: <testLibraryFragment>::@setter::foo::@def::1
-      parameters
+      formalParameters
         requiredPositional _
           type: double
 ''');

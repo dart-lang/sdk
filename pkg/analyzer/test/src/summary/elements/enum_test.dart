@@ -373,7 +373,7 @@ library
             const new @43
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
-              parameters
+              formalParameters
                 a @47
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
           getters
@@ -408,7 +408,7 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-          parameters
+          formalParameters
             requiredPositional a
               type: T
       getters
@@ -656,7 +656,7 @@ library
             const new @37
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
-              parameters
+              formalParameters
                 a @41
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
           getters
@@ -684,7 +684,7 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-          parameters
+          formalParameters
             requiredPositional a
               type: T
       getters
@@ -1179,7 +1179,7 @@ library
             const new @33
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
-              parameters
+              formalParameters
                 this.x @44
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
@@ -1212,10 +1212,10 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-          parameters
+          formalParameters
             requiredPositional final x
               type: int Function(double)
-              parameters
+              formalParameters
                 requiredPositional a
                   type: double
       getters
@@ -1349,7 +1349,7 @@ library
             const new @55
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
-              parameters
+              formalParameters
                 this.x @62
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
@@ -1389,7 +1389,7 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-          parameters
+          formalParameters
             requiredPositional final x
               type: int
       getters
@@ -1498,7 +1498,7 @@ library
             const new @22
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
-              parameters
+              formalParameters
                 this.x @29
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
@@ -1524,7 +1524,7 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-          parameters
+          formalParameters
             requiredPositional final x
               type: dynamic
       getters
@@ -1656,7 +1656,7 @@ library
             const new @37
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
-              parameters
+              formalParameters
                 default this.x @45
                   reference: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
@@ -1690,7 +1690,7 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-          parameters
+          formalParameters
             optionalNamed final x
               firstFragment: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x
               type: int
@@ -1811,7 +1811,7 @@ library
             const new @37
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
-              parameters
+              formalParameters
                 this.x @48
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
@@ -1844,7 +1844,7 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-          parameters
+          formalParameters
             requiredPositional final x
               type: int
       getters
@@ -1964,7 +1964,7 @@ library
             new @27
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
-              parameters
+              formalParameters
                 this.x @38
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
@@ -1997,7 +1997,7 @@ library
       constructors
         new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-          parameters
+          formalParameters
             requiredPositional final x
               type: int
       getters
@@ -2117,7 +2117,7 @@ library
             new @27
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
-              parameters
+              formalParameters
                 this.x @34
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
@@ -2150,7 +2150,7 @@ library
       constructors
         new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-          parameters
+          formalParameters
             requiredPositional final x
               type: dynamic
       getters
@@ -2270,7 +2270,7 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::named#element
               periodOffset: 33
               nameEnd: 39
-              parameters
+              formalParameters
                 a @44
                   element: <testLibraryFragment>::@enum::E::@constructor::named::@parameter::a#element
           getters
@@ -2296,7 +2296,7 @@ library
       constructors
         const named
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::named
-          parameters
+          formalParameters
             requiredPositional a
               type: int
       getters
@@ -2404,7 +2404,7 @@ library
             const new @26
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
-              parameters
+              formalParameters
                 a @32
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
           getters
@@ -2430,7 +2430,7 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-          parameters
+          formalParameters
             requiredPositional a
               type: int
       getters
@@ -2583,7 +2583,7 @@ library
             const new @40
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
-              parameters
+              formalParameters
                 a @45
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
               constantInitializers
@@ -2646,7 +2646,7 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-          parameters
+          formalParameters
             requiredPositional a
               type: T?
       getters
@@ -2993,7 +2993,7 @@ library
       constructors
         new
           firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-          parameters
+          formalParameters
             requiredPositional final _foo
               type: int?
       getters
@@ -3899,7 +3899,7 @@ library
               typeParameters
                 U @27
                   element: <not-implemented>
-              parameters
+              formalParameters
                 t @32
                   element: <testLibraryFragment>::@enum::E::@method::foo::@parameter::t#element
                 u @37
@@ -3932,7 +3932,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@method::foo
           typeParameters
             U
-          parameters
+          formalParameters
             requiredPositional t
               type: T
             requiredPositional u
@@ -4647,7 +4647,7 @@ library
             set foo= @19
               reference: <testLibraryFragment>::@enum::E::@setter::foo
               element: <testLibraryFragment>::@enum::E::@setter::foo#element
-              parameters
+              formalParameters
                 _ @27
                   element: <testLibraryFragment>::@enum::E::@setter::foo::@parameter::_#element
   enums
@@ -4678,7 +4678,7 @@ library
       setters
         set foo=
           firstFragment: <testLibraryFragment>::@enum::E::@setter::foo
-          parameters
+          formalParameters
             requiredPositional _
               type: int
 ''');
@@ -7068,7 +7068,7 @@ library
             const new @41
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
-              parameters
+              formalParameters
                 this.value @48
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::value#element
           getters
@@ -7124,7 +7124,7 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          parameters
+          formalParameters
             requiredPositional final value
               type: dynamic
       getters
@@ -10461,7 +10461,7 @@ library
             const new @48
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
-              parameters
+              formalParameters
                 value @54
                   element: <testLibraryFragment>::@enum::A::@constructor::new::@parameter::value#element
           getters
@@ -10507,7 +10507,7 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
-          parameters
+          formalParameters
             requiredPositional value
               type: int
       getters
@@ -10982,7 +10982,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named#element
               periodOffset: 52
               nameEnd: 58
-              parameters
+              formalParameters
                 a @62
                   element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named::@parameter::a#element
   enums
@@ -11003,7 +11003,7 @@ library
       constructors
         const named
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
-          parameters
+          formalParameters
             requiredPositional a
               type: T2
       getters
@@ -11612,7 +11612,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named#element
               periodOffset: 48
               nameEnd: 54
-              parameters
+              formalParameters
                 this.f @60
                   element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named::@parameter::f#element
   enums
@@ -11635,7 +11635,7 @@ library
       constructors
         const named
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
-          parameters
+          formalParameters
             requiredPositional final f
               type: int
       getters
@@ -12715,7 +12715,7 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo#element
-              parameters
+              formalParameters
                 _ @61
                   element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo::@parameter::_#element
     <testLibrary>::@fragment::package:test/b.dart
@@ -12761,7 +12761,7 @@ library
       setters
         set foo=
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
-          parameters
+          formalParameters
             requiredPositional _
               type: int
 ''');
@@ -13937,7 +13937,7 @@ library
             const new @40
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
-              parameters
+              formalParameters
                 this.foo @47
                   element: <testLibraryFragment>::@enum::A::@constructor::new::@parameter::foo#element
           getters
@@ -13984,7 +13984,7 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
-          parameters
+          formalParameters
             requiredPositional final foo
               type: int
       getters
@@ -17077,7 +17077,7 @@ library
             foo @46
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo#element
-              parameters
+              formalParameters
                 default x @55
                   element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo::@parameter::x#element
   enums
@@ -17104,7 +17104,7 @@ library
       methods
         foo
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
-          parameters
+          formalParameters
             optionalPositional x
               type: int
 ''');
@@ -18857,7 +18857,7 @@ library
             set foo1= @35
               reference: <testLibraryFragment>::@enum::A::@setter::foo1
               element: <testLibraryFragment>::@enum::A::@setter::foo1#element
-              parameters
+              formalParameters
                 _ @44
                   element: <testLibraryFragment>::@enum::A::@setter::foo1::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -18877,7 +18877,7 @@ library
             set foo2= @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2#element
-              parameters
+              formalParameters
                 _ @54
                   element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2::@parameter::_#element
   enums
@@ -18912,12 +18912,12 @@ library
       setters
         set foo1=
           firstFragment: <testLibraryFragment>::@enum::A::@setter::foo1
-          parameters
+          formalParameters
             requiredPositional _
               type: int
         set foo2=
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2
-          parameters
+          formalParameters
             requiredPositional _
               type: int
 ''');
@@ -19089,7 +19089,7 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo#element
-              parameters
+              formalParameters
                 _ @61
                   element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo::@parameter::_#element
   enums
@@ -19122,7 +19122,7 @@ library
       setters
         set foo=
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
-          parameters
+          formalParameters
             requiredPositional _
               type: int
 ''');
@@ -19270,7 +19270,7 @@ library
             augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo#element
-              parameters
+              formalParameters
                 _ @61
                   element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo::@parameter::_#element
   enums
@@ -19297,7 +19297,7 @@ library
       setters
         set foo=
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
-          parameters
+          formalParameters
             requiredPositional _
               type: int
 ''');
@@ -19482,14 +19482,14 @@ library
             set foo1= @35
               reference: <testLibraryFragment>::@enum::A::@setter::foo1
               element: <testLibraryFragment>::@enum::A::@setter::foo1#element
-              parameters
+              formalParameters
                 _ @44
                   element: <testLibraryFragment>::@enum::A::@setter::foo1::@parameter::_#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
             set foo2= @56
               reference: <testLibraryFragment>::@enum::A::@setter::foo2
               element: <testLibraryFragment>::@enum::A::@setter::foo2#element
-              parameters
+              formalParameters
                 _ @65
                   element: <testLibraryFragment>::@enum::A::@setter::foo2::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -19504,7 +19504,7 @@ library
             augment set foo1= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
               element: <testLibraryFragment>::@enum::A::@setter::foo1#element
-              parameters
+              formalParameters
                 _ @62
                   element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1::@parameter::_#element
               previousFragment: <testLibraryFragment>::@enum::A::@setter::foo1
@@ -19540,12 +19540,12 @@ library
       setters
         set foo2=
           firstFragment: <testLibraryFragment>::@enum::A::@setter::foo2
-          parameters
+          formalParameters
             requiredPositional _
               type: int
         set foo1=
           firstFragment: <testLibraryFragment>::@enum::A::@setter::foo1
-          parameters
+          formalParameters
             requiredPositional _
               type: int
 ''');
@@ -20587,7 +20587,7 @@ library
             foo @41
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
               element: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo#element
-              parameters
+              formalParameters
                 a @45
                   element: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo::@parameter::a#element
   enums
@@ -20614,7 +20614,7 @@ library
       methods
         foo
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
-          parameters
+          formalParameters
             requiredPositional a
               type: String
 ''');
@@ -20757,7 +20757,7 @@ library
             foo @32
               reference: <testLibraryFragment>::@enum::B::@method::foo
               element: <testLibraryFragment>::@enum::B::@method::foo#element
-              parameters
+              formalParameters
                 a @36
                   element: <testLibraryFragment>::@enum::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
@@ -20794,7 +20794,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@enum::B::@method::foo
-          parameters
+          formalParameters
             requiredPositional a
               type: String
 ''');
@@ -20937,7 +20937,7 @@ library
             foo @32
               reference: <testLibraryFragment>::@enum::B::@method::foo
               element: <testLibraryFragment>::@enum::B::@method::foo#element
-              parameters
+              formalParameters
                 a @36
                   element: <testLibraryFragment>::@enum::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
@@ -20974,7 +20974,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@enum::B::@method::foo
-          parameters
+          formalParameters
             requiredPositional a
               type: String
 ''');

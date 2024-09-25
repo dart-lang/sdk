@@ -64,7 +64,7 @@ library
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
-          parameters
+          formalParameters
             _f @-1
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
@@ -79,7 +79,7 @@ library
   setters
     synthetic static set f=
       firstFragment: <testLibraryFragment>::@setter::f
-      parameters
+      formalParameters
         requiredPositional _f
           type: void Function()
 ''');
@@ -133,7 +133,7 @@ library
         set f= @-1
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
-          parameters
+          formalParameters
             _f @-1
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
@@ -148,7 +148,7 @@ library
   setters
     synthetic static set f=
       firstFragment: <testLibraryFragment>::@setter::f
-      parameters
+      formalParameters
         requiredPositional _f
           type: void Function()?
 ''');
@@ -219,16 +219,16 @@ library
         f @5
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             p @37
               element: <testLibraryFragment>::@function::f::@parameter::p#element
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional p
           type: int Function(int, String) Function(num)
-          parameters
+          formalParameters
             requiredPositional c
               type: num
       returnType: void
@@ -357,13 +357,13 @@ library
         f @5
           reference: <testLibraryFragment>::@function::f
           element: <testLibraryFragment>::@function::f#element
-          parameters
+          formalParameters
             p @37
               element: <testLibraryFragment>::@function::f::@parameter::p#element
   functions
     f
       firstFragment: <testLibraryFragment>::@function::f
-      parameters
+      formalParameters
         requiredPositional p
           type: int Function(int, String)
       returnType: void
@@ -418,7 +418,7 @@ library
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
-          parameters
+          formalParameters
             _v @-1
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
@@ -433,7 +433,7 @@ library
   setters
     synthetic static set v=
       firstFragment: <testLibraryFragment>::@setter::v
-      parameters
+      formalParameters
         requiredPositional _v
           type: int Function(int, String)
 ''');
@@ -727,7 +727,7 @@ library
         set v= @-1
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
-          parameters
+          formalParameters
             _v @-1
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   classes
@@ -750,7 +750,7 @@ library
   setters
     synthetic static set v=
       firstFragment: <testLibraryFragment>::@setter::v
-      parameters
+      formalParameters
         requiredPositional _v
           type: int
 ''');

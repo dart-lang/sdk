@@ -125,6 +125,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   Null get element3 => null;
 
   @override
+  List<FormalParameterElement> get formalParameters => parameters
+      .map((fragment) => (fragment as FormalParameterFragment).element)
+      .toList();
+
+  @override
   int get hashCode {
     // Reference the arrays of parameters
     var normalParameterTypes = this.normalParameterTypes;
@@ -194,12 +199,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  List<FormalParameterElement> get parameters2 => parameters
-      .map((fragment) => (fragment as FormalParameterFragment).element)
-      .toList();
-
-  @override
-  List<TypeParameterElement2> get typeFormals2 => typeFormals
+  List<TypeParameterElement2> get typeParameters => typeFormals
       .map((fragment) => (fragment as TypeParameterFragment).element)
       .toList();
 

@@ -3037,7 +3037,7 @@ RingServiceIdZone& Isolate::EnsureDefaultServiceIdZone() {
   if (service_id_zones_->is_empty()) {
     service_id_zones_->Add(
         new RingServiceIdZone(0, ObjectIdRing::IdPolicy::kAllocateId,
-                              RingServiceIdZone::kDefaultCapacity));
+                              RingServiceIdZone::kCapacityOfDefaultIdZone));
   }
   return *service_id_zones_->At(0);
 }

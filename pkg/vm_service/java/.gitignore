@@ -27,6 +27,7 @@ src/org/dartlang/vm/service/consumer/GetRetainingPathConsumer.java
 src/org/dartlang/vm/service/consumer/GetScriptsConsumer.java
 src/org/dartlang/vm/service/consumer/GetSourceReportConsumer.java
 src/org/dartlang/vm/service/consumer/GetStackConsumer.java
+src/org/dartlang/vm/service/consumer/IdZoneConsumer.java
 src/org/dartlang/vm/service/consumer/InvokeConsumer.java
 src/org/dartlang/vm/service/consumer/KillConsumer.java
 src/org/dartlang/vm/service/consumer/PauseConsumer.java
@@ -83,6 +84,9 @@ src/org/dartlang/vm/service/element/Frame.java
 src/org/dartlang/vm/service/element/FrameKind.java
 src/org/dartlang/vm/service/element/Func.java
 src/org/dartlang/vm/service/element/FuncRef.java
+src/org/dartlang/vm/service/element/IdAssignmentPolicy.java
+src/org/dartlang/vm/service/element/IdZone.java
+src/org/dartlang/vm/service/element/IdZoneBackingBufferKind.java
 src/org/dartlang/vm/service/element/InboundReference.java
 src/org/dartlang/vm/service/element/InboundReferences.java
 src/org/dartlang/vm/service/element/Instance.java
