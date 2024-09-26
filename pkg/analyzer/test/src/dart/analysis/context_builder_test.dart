@@ -75,9 +75,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     var projectPath = convertPath('/home/test');
     var optionsFile = newAnalysisOptionsYamlFile(
       projectPath,
-      AnalysisOptionsFileConfig(
-        strictRawTypes: true,
-      ).toContent(),
+      analysisOptionsContent(strictRawTypes: true),
     );
 
     var analysisContext = _createSingleAnalysisContext(projectPath);

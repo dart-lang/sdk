@@ -47,7 +47,7 @@ class LspOverLegacyNotificationTest extends AbstractLspOverLegacyTest {
     //  MemoryResourceProvider.
     writeFile(
       pathContext.join(testPackageRootPath, file_paths.analysisOptionsYaml),
-      AnalysisOptionsFileConfig(experiments: ['macros']).toContent(),
+      analysisOptionsContent(experiments: ['macros']),
     );
     writeFile(
       pathContext.join(testPackageRootPath, file_paths.pubspecYaml),

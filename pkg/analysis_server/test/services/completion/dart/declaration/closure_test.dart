@@ -122,7 +122,7 @@ ${' ' * 4}
   Future<void> test_lint_alwaysSpecifyTypes() async {
     registerLintRules();
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(lints: [LintNames.always_specify_types]),
+      analysisOptionsContent(rules: [LintNames.always_specify_types]),
     );
 
     await computeSuggestions('''

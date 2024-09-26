@@ -19832,9 +19832,7 @@ elementFactory
 
     newAnalysisOptionsYamlFile(
       otherRootPath,
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-      ).toContent(),
+      analysisOptionsContent(experiments: experiments),
     );
 
     var file = newFile('$otherRootPath/lib/other.dart', r'''

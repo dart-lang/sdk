@@ -1285,9 +1285,7 @@ typedef A<T> = List<T>;
 
     newAnalysisOptionsYamlFile(
       myMacroRootPath,
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-      ).toContent(),
+      analysisOptionsContent(experiments: experiments),
     );
 
     newFile(
@@ -1312,8 +1310,8 @@ void f(B b) {}
   }
 
   test_withLints() async {
-    writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig(
-      lints: ['unnecessary_this'],
+    writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
+      rules: ['unnecessary_this'],
       experiments: ['enhanced-parts', 'macros'],
     ));
 

@@ -28,59 +28,42 @@ import 'mocks.dart';
 import 'support/configuration_files.dart';
 import 'test_macros.dart';
 
-// TODO(scheglov): this is duplicate
-class AnalysisOptionsFileConfig {
-  final String? include;
-  final List<String> experiments;
-  final List<String> plugins;
-  final List<String> lints;
-  final bool strictCasts;
-  final bool strictInference;
-  final bool strictRawTypes;
+// TODO(scheglov): This is duplicate with pkg/linter/test/rule_test_support.dart.
+// Keep them as consistent with each other as they are today. Ultimately combine
+// them in a shared analyzer test utilities package (e.g. the analyzer_utilities
+// package).
+String analysisOptionsContent({
+  String? include,
+  List<String> experiments = const [],
+  List<String> plugins = const [],
+  List<String> rules = const [],
+}) {
+  var buffer = StringBuffer();
 
-  AnalysisOptionsFileConfig({
-    this.include,
-    this.experiments = const [],
-    this.plugins = const [],
-    this.lints = const [],
-    this.strictCasts = false,
-    this.strictInference = false,
-    this.strictRawTypes = false,
-  });
-
-  String toContent() {
-    var buffer = StringBuffer();
-
-    var include = this.include;
-    if (include != null) {
-      buffer.writeln('include: $include');
-    }
-    buffer.writeln('analyzer:');
-    if (experiments.isNotEmpty) {
-      buffer.writeln('  enable-experiment:');
-      for (var experiment in experiments) {
-        buffer.writeln('    - $experiment');
-      }
-    }
-    buffer.writeln('  language:');
-    buffer.writeln('    strict-casts: $strictCasts');
-    buffer.writeln('    strict-inference: $strictInference');
-    buffer.writeln('    strict-raw-types: $strictRawTypes');
-    if (plugins.isNotEmpty) {
-      buffer.writeln('  plugins:');
-      for (var plugin in plugins) {
-        buffer.writeln('    - $plugin');
-      }
-    }
-
-    buffer.writeln('linter:');
-    buffer.writeln('  rules:');
-    for (var lint in lints) {
-      buffer.writeln('    - $lint');
-    }
-
-    return buffer.toString();
+  if (include != null) {
+    buffer.writeln('include: $include');
   }
+  buffer.writeln('analyzer:');
+  if (experiments.isNotEmpty) {
+    buffer.writeln('  enable-experiment:');
+    for (var experiment in experiments) {
+      buffer.writeln('    - $experiment');
+    }
+  }
+  if (plugins.isNotEmpty) {
+    buffer.writeln('  plugins:');
+    for (var plugin in plugins) {
+      buffer.writeln('    - $plugin');
+    }
+  }
+
+  buffer.writeln('linter:');
+  buffer.writeln('  rules:');
+  for (var rule in rules) {
+    buffer.writeln('    - $rule');
+  }
+
+  return buffer.toString();
 }
 
 class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
@@ -291,9 +274,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     writeTestPackagePubspecYamlFile('name: test');
 
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-      ),
+      analysisOptionsContent(experiments: experiments),
     );
   }
 
@@ -331,11 +312,8 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     _byteStore = MemoryByteStore();
   }
 
-  void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      config.toContent(),
-    );
+  void writeTestPackageAnalysisOptionsFile(String content) {
+    newAnalysisOptionsYamlFile(testPackageRootPath, content);
   }
 
   void writeTestPackagePubspecYamlFile(String content) {

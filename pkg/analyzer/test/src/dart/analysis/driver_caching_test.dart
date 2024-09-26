@@ -49,9 +49,7 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
     useEmptyByteStore();
 
     // Configure `strict-casts: false`.
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(),
-    );
+    writeTestPackageAnalysisOptionsFile(analysisOptionsContent());
 
     addTestFile(r'''
 dynamic a = 0;
@@ -64,9 +62,7 @@ int b = a;
     // Configure `strict-casts: true`.
     await disposeAnalysisContextCollection();
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        strictCasts: true,
-      ),
+      analysisOptionsContent(strictCasts: true),
     );
 
     // `strict-cast: true`, so has errors.
@@ -269,16 +265,13 @@ import 'a.dart';
 
     // Configure with the lint.
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(lints: ['depend_on_referenced_packages']),
+      analysisOptionsContent(rules: ['depend_on_referenced_packages']),
     );
 
     // Configure without dependencies, but with a (required) name.
     // So, the lint rule will be activated.
     writeTestPackagePubspecYamlFile(
-      PubspecYamlFileConfig(
-        name: 'my_test',
-        dependencies: [],
-      ),
+      pubspecYamlContent(name: 'my_test'),
     );
 
     addTestFile(r'''
@@ -301,7 +294,7 @@ import 'package:aaa/a.dart';
 
     // Add dependency on `package:aaa`.
     writeTestPackagePubspecYamlFile(
-      PubspecYamlFileConfig(
+      pubspecYamlContent(
         name: 'my_test',
         dependencies: [
           PubspecYamlFileDependency(name: 'aaa'),
@@ -320,9 +313,7 @@ import 'package:aaa/a.dart';
     useEmptyByteStore();
 
     // Configure without any lint, but without experiments as well.
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(lints: []),
-    );
+    writeTestPackageAnalysisOptionsFile(analysisOptionsContent());
 
     addTestFile(r'''
 void f() {
@@ -342,11 +333,9 @@ void f() {
     await disposeAnalysisContextCollection();
 
     // Configure to run a lint.
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        lints: ['prefer_is_not_empty'],
-      ),
-    );
+    writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
+      rules: ['prefer_is_not_empty'],
+    ));
 
     // Check that the lint was run, and reported.
     await resolveTestFile();
