@@ -41,9 +41,19 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   final SourceLoader loader;
 
-  final SourceLibraryBuilder _sourceLibraryBuilder;
-
   SourceLibraryBuilder? _libraryBuilder;
+
+  /// The object used as the root for creating augmentation libraries.
+  // TODO(johnniwinther): Remove this once parts support augmentations.
+  final SourceCompilationUnit? _augmentationRoot;
+
+  // TODO(johnniwinther): Can we avoid this?
+  final bool? _referenceIsPartOwner;
+
+  // TODO(johnniwinther): Pass only the [Reference] instead.
+  final LibraryBuilder? _nameOrigin;
+
+  final LookupScope? _parentScope;
 
   /// Map used to find objects created in the [OutlineBuilder] from within
   /// the [DietListener].
@@ -105,8 +115,56 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   late final LookupScope _scope;
 
-  SourceCompilationUnitImpl(this._sourceLibraryBuilder,
-      LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+  @override
+  final bool mayImplementRestrictedTypes;
+
+  final Map<String, Builder>? _omittedTypeDeclarationBuilders;
+
+  factory SourceCompilationUnitImpl(
+      {required Uri importUri,
+      required Uri fileUri,
+      required Uri? packageUri,
+      required LanguageVersion packageLanguageVersion,
+      required Uri originImportUri,
+      required IndexedLibrary? indexedLibrary,
+      Map<String, Builder>? omittedTypeDeclarationBuilders,
+      LookupScope? parentScope,
+      required bool forAugmentationLibrary,
+      required SourceCompilationUnit? augmentationRoot,
+      required LibraryBuilder? nameOrigin,
+      required bool? referenceIsPartOwner,
+      required bool forPatchLibrary,
+      required bool isAugmenting,
+      required bool isUnsupported,
+      required SourceLoader loader,
+      required bool mayImplementRestrictedTypes}) {
+    LibraryName libraryName = new LibraryName(dummyLibrary.reference);
+    LibraryNameSpaceBuilder libraryNameSpaceBuilder =
+        new LibraryNameSpaceBuilder();
+    NameSpace importNameSpace = new NameSpaceImpl();
+    return new SourceCompilationUnitImpl._(libraryNameSpaceBuilder,
+        importUri: importUri,
+        fileUri: fileUri,
+        packageUri: packageUri,
+        packageLanguageVersion: packageLanguageVersion,
+        originImportUri: originImportUri,
+        indexedLibrary: indexedLibrary,
+        libraryName: libraryName,
+        omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders,
+        parentScope: parentScope,
+        importNameSpace: importNameSpace,
+        forAugmentationLibrary: forAugmentationLibrary,
+        augmentationRoot: augmentationRoot,
+        nameOrigin: nameOrigin,
+        referenceIsPartOwner: referenceIsPartOwner,
+        forPatchLibrary: forPatchLibrary,
+        isAugmenting: isAugmenting,
+        isUnsupported: isUnsupported,
+        loader: loader,
+        mayImplementRestrictedTypes: mayImplementRestrictedTypes);
+  }
+
+  SourceCompilationUnitImpl._(LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       {required this.importUri,
       required this.fileUri,
       required Uri? packageUri,
@@ -115,17 +173,27 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required this.indexedLibrary,
       required LibraryName libraryName,
       Map<String, Builder>? omittedTypeDeclarationBuilders,
+      LookupScope? parentScope,
       required NameSpace importNameSpace,
       required this.forAugmentationLibrary,
+      required SourceCompilationUnit? augmentationRoot,
+      required LibraryBuilder? nameOrigin,
+      required bool? referenceIsPartOwner,
       required this.forPatchLibrary,
       required this.isAugmenting,
       required this.isUnsupported,
-      required this.loader})
+      required this.loader,
+      required this.mayImplementRestrictedTypes})
       : _libraryName = libraryName,
         _languageVersion = packageLanguageVersion,
         _packageUri = packageUri,
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _importNameSpace = importNameSpace,
+        _augmentationRoot = augmentationRoot,
+        _nameOrigin = nameOrigin,
+        _parentScope = parentScope,
+        _referenceIsPartOwner = referenceIsPartOwner,
+        _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders,
         _problemReporting = new LibraryProblemReporting(loader, fileUri) {
     _scope = new SourceLibraryBuilderScope(
         this, ScopeKind.typeParameters, 'library');
@@ -133,7 +201,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     // TODO(johnniwinther): Create these in [createOutlineBuilder].
     _builderFactoryResult = _builderFactory = new BuilderFactoryImpl(
         compilationUnit: this,
-        augmentationRoot: _sourceLibraryBuilder,
+        augmentationRoot: augmentationRoot ?? this,
         libraryNameSpaceBuilder: libraryNameSpaceBuilder,
         problemReporting: _problemReporting,
         scope: _scope,
@@ -381,18 +449,39 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  SourceLibraryBuilder createLibrary() {
+  SourceLibraryBuilder createLibrary([Library? library]) {
     assert(_libraryBuilder == null,
         "Source library builder as already been created for $this.");
-    _libraryBuilder = _sourceLibraryBuilder;
-    _problemReporting.registerLibrary(_sourceLibraryBuilder.library);
+    SourceLibraryBuilder libraryBuilder = _libraryBuilder =
+        new SourceLibraryBuilder(
+            compilationUnit: this,
+            importUri: importUri,
+            fileUri: fileUri,
+            packageUri: _packageUri,
+            originImportUri: originImportUri,
+            packageLanguageVersion: packageLanguageVersion,
+            loader: loader,
+            nameOrigin: _nameOrigin,
+            origin: _augmentationRoot?.libraryBuilder,
+            target: library,
+            indexedLibrary: indexedLibrary,
+            referenceIsPartOwner: _referenceIsPartOwner,
+            isUnsupported: isUnsupported,
+            isAugmentation: forAugmentationLibrary,
+            isPatch: forPatchLibrary,
+            parentScope: _parentScope,
+            libraryName: _libraryName,
+            importNameSpace: _importNameSpace,
+            libraryNameSpaceBuilder: _libraryNameSpaceBuilder,
+            omittedTypes: _omittedTypeDeclarationBuilders);
+    _problemReporting.registerLibrary(libraryBuilder.library);
     if (isPart) {
       // Coverage-ignore-block(suite): Not run.
       // This is a part with no enclosing library.
       addProblem(messagePartOrphan, 0, 1, fileUri);
       _clearPartsAndReportExporters();
     }
-    return _sourceLibraryBuilder;
+    return libraryBuilder;
   }
 
   @override
@@ -632,11 +721,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     libraryNameSpaceBuilder.includeBuilders(_libraryNameSpaceBuilder);
     _libraryName.reference = libraryBuilder.libraryName.reference;
 
-    // TODO(johnniwinther): Avoid these. The compilation unit should not have
-    // a name space and its import scope should be nested within its parent's
-    // import scope.
-    _sourceLibraryBuilder._importScope = libraryBuilder.importScope;
-
     // TODO(ahe): Include metadata from part?
 
     // Recovery: Take on all exporters (i.e. if a library has erroneously
@@ -649,12 +733,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     // but is for augmentation libraries.
 
     _problemReporting.registerLibrary(libraryBuilder.library);
-    Library library = _sourceLibraryBuilder.library;
-    if (libraryBuilder.library != library) {
-      // Mark the part library as synthetic as it's not an actual library
-      // (anymore).
-      library.isSynthetic = true;
-    }
   }
 
   @override
@@ -1050,7 +1128,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       }
     }
 
-    Iterator<Builder> iterator = _sourceLibraryBuilder.localMembersIterator;
+    Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
     while (iterator.moveNext()) {
       computeDefaultValuesForDeclaration(iterator.current);
     }
@@ -1152,7 +1230,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   int computeVariances() {
     int count = 0;
 
-    Iterator<Builder> iterator = _sourceLibraryBuilder.localMembersIterator;
+    Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
     while (iterator.moveNext()) {
       Builder? declaration = iterator.current;
       while (declaration != null) {

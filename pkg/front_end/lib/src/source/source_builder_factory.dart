@@ -69,7 +69,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   /// The object used as the root for creating augmentation libraries.
   // TODO(johnniwinther): Remove this once parts support augmentations.
-  final SourceLibraryBuilder _augmentationRoot;
+  final SourceCompilationUnit _augmentationRoot;
 
   final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
@@ -138,7 +138,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   BuilderFactoryImpl(
       {required SourceCompilationUnit compilationUnit,
-      required SourceLibraryBuilder augmentationRoot,
+      required SourceCompilationUnit augmentationRoot,
       required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       required ProblemReporting problemReporting,
       required LookupScope scope,
@@ -714,10 +714,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // through the file uri of this library. See issue #52964.
     Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
         _resolve(_compilationUnit.fileUri, uri, charOffset);
-    // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
-    // [LibraryBuilder] to represent both libraries and parts.
     CompilationUnit compilationUnit = loader.read(resolvedUri, charOffset,
-        origin: _compilationUnit.isAugmenting ? _augmentationRoot.origin : null,
+        origin: _compilationUnit.isAugmenting ? _augmentationRoot : null,
         originImportUri: _compilationUnit.originImportUri,
         fileUri: newFileUri,
         accessor: _compilationUnit,

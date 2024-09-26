@@ -65,8 +65,7 @@ import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_field_builder.dart';
-import '../source/source_library_builder.dart'
-    show SourceLibraryBuilder, SourceLibraryBuilderState;
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart'
     show CompilationPhaseForProblemReporting, SourceLoader;
 import '../type_inference/type_schema.dart';
@@ -388,10 +387,6 @@ class KernelTarget {
   /// [SourceLoader.buildScopes].
   void buildSyntheticLibrariesUntilBuildScopes(
       Iterable<SourceLibraryBuilder> libraryBuilders) {
-    for (SourceLibraryBuilder libraryBuilder in libraryBuilders) {
-      libraryBuilder.compilationUnit.createLibrary();
-      libraryBuilder.state = SourceLibraryBuilderState.resolvedParts;
-    }
     loader.buildNameSpaces(libraryBuilders);
     loader.buildScopes(libraryBuilders);
   }
@@ -1825,8 +1820,8 @@ class KernelTarget {
     return loader.libraries.contains(library);
   }
 
-  void readPatchFiles(SourceLibraryBuilder libraryBuilder,
-      CompilationUnit compilationUnit, Uri originImportUri) {
+  void readPatchFiles(
+      SourceCompilationUnit compilationUnit, Uri originImportUri) {
     assert(originImportUri.isScheme("dart"),
         "Unexpected origin import uri: $originImportUri");
     List<Uri>? patches = uriTranslator.getDartPatches(originImportUri.path);
@@ -1835,7 +1830,7 @@ class KernelTarget {
         loader.read(patch, -1,
             fileUri: patch,
             originImportUri: originImportUri,
-            origin: libraryBuilder,
+            origin: compilationUnit,
             accessor: compilationUnit,
             isPatch: true);
       }

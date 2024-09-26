@@ -129,6 +129,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   bool isBuilt = false;
   bool isBuiltAndMarked = false;
 
+  @override
+  bool mayImplementRestrictedTypes = false;
+
   DillLibraryBuilder(this.library, this.loader) : super(library.fileUri) {
     _nameSpace = new DillLibraryNameSpace(this);
     _scope = new NameSpaceLookupScope(_nameSpace, ScopeKind.library, 'top');

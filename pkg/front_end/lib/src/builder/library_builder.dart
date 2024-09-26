@@ -102,7 +102,7 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   /// Creates a [SourceLibraryBuilder] for with this [SourceCompilationUnit] as
   /// the main compilation unit.
-  SourceLibraryBuilder createLibrary();
+  SourceLibraryBuilder createLibrary([Library? library]);
 
   @override
   SourceLoader get loader;
@@ -163,6 +163,8 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   List<MetadataBuilder>? get metadata;
 
   LookupScope get scope;
+
+  bool get mayImplementRestrictedTypes;
 
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications);
@@ -275,7 +277,7 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
 
   LibraryBuilder get nameOriginBuilder;
 
-  abstract bool mayImplementRestrictedTypes;
+  bool get mayImplementRestrictedTypes;
 
   bool get isPart;
 
@@ -392,9 +394,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     implements LibraryBuilder {
   @override
   final Uri fileUri;
-
-  @override
-  bool mayImplementRestrictedTypes = false;
 
   LibraryBuilderImpl(this.fileUri);
 
