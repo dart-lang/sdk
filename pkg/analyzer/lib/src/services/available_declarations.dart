@@ -1850,18 +1850,18 @@ class _File {
     for (CompilationUnitMember declaration in unit.declarations) {
       var comment = declaration.documentationComment;
       info.extractTemplate(getCommentNodeRawText(comment));
-      if (declaration is ClassDeclaration) {
-        for (ClassMember member in declaration.members) {
-          var comment = member.documentationComment;
-          info.extractTemplate(getCommentNodeRawText(comment));
-        }
-      } else if (declaration is EnumDeclaration) {
-        for (EnumConstantDeclaration constant in declaration.constants) {
-          var comment = constant.documentationComment;
-          info.extractTemplate(getCommentNodeRawText(comment));
-        }
-      } else if (declaration is MixinDeclaration) {
-        for (ClassMember member in declaration.members) {
+
+      var members = switch (declaration) {
+        ClassDeclaration() => declaration.members,
+        EnumDeclaration() => [...declaration.members, ...declaration.constants],
+        MixinDeclaration() => declaration.members,
+        ExtensionDeclaration() => declaration.members,
+        ExtensionTypeDeclaration() => declaration.members,
+        _ => null,
+      };
+
+      if (members != null) {
+        for (var member in members) {
           var comment = member.documentationComment;
           info.extractTemplate(getCommentNodeRawText(comment));
         }
