@@ -224,6 +224,15 @@ Future<Response> _serveStaticFile(
   if (baseHref != null) {
     assert(baseHref.startsWith('/'));
     assert(baseHref.endsWith('/'));
+
+    // Always use a relative base href to support going through proxies that
+    // rewrite paths. For example if the server thinks we are hosting at
+    // `http://localhost/devtools/` but a frontend proxy means the client app
+    // is at `http://localhost/proxy/1234/devtools/` then we need the base href
+    // to effectively be `/proxy/1234/devtools/`, however we have no knowledge
+    // of `/proxy/1234` because it was stripped by the proxy on its way to us.
+    baseHref = computeRelativeBaseHref(baseHref, request.requestedUri);
+
     // Replace the base href to match where the app is being served from.
     final baseHrefPattern = RegExp(r'<base href="\/"\s?\/?>');
     contents = contents.replaceFirst(
@@ -232,4 +241,17 @@ Future<Response> _serveStaticFile(
     );
   }
   return Response.ok(contents, headers: headers);
+}
+
+/// Computes a relative "base href" that can be used in place of
+/// [absoluteBaseHref] for a request served at [requestUri].
+String computeRelativeBaseHref(String absoluteBaseHref, Uri requestUri) {
+  // path.relative will always treat `from` as if it's a directory, but for
+  // URIs that's not correct. If the request is /foo/bar then `.` is `/foo` and
+  // not `/foo/bar`. To handle this, trim the last segment if the request does
+  // not end with a slash.
+  final requestFolderPath = requestUri.path.endsWith('/')
+      ? requestUri.path
+      : path.posix.dirname(requestUri.path);
+  return path.posix.relative(absoluteBaseHref, from: requestFolderPath);
 }
