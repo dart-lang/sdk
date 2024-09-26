@@ -7,7 +7,8 @@ library dart._js_helper;
 import 'dart:async' show Zone;
 import 'dart:collection';
 
-import 'dart:_foreign_helper' show JS, JS_CLASS_REF, JS_GET_FLAG, JSExportName;
+import 'dart:_foreign_helper'
+    show DART_RUNTIME_LIBRAY, JS, JS_CLASS_REF, JS_GET_FLAG, JSExportName;
 
 import 'dart:_interceptors';
 import 'dart:_internal'

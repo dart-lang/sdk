@@ -30,7 +30,7 @@ class A {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment class A { 
+augment class A {
   int a = 1;
 }
 ''');
@@ -52,7 +52,7 @@ class A {}
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment class A { 
+augment class A {
   static int f = 1;
 }
 ''');
@@ -76,7 +76,7 @@ class A {}
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment class A { 
+augment class A {
   static void m() {}
 }
 ''');

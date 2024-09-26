@@ -284,7 +284,8 @@ class TestConfiguration {
   }();
 
   late final Map<String, String> nativeCompilerEnvironmentVariables = () {
-    String unparseKey(String key) => key.replaceAll('.', '__').toUpperCase();
+    String unparseKey(String key) =>
+        'DART_HOOK_TESTING_${key.replaceAll('.', '__').toUpperCase()}';
     final arKey = unparseKey(CCompilerConfigImpl.arConfigKeyFull);
     final ccKey = unparseKey(CCompilerConfigImpl.ccConfigKeyFull);
     final ldKey = unparseKey(CCompilerConfigImpl.ldConfigKeyFull);

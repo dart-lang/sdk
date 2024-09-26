@@ -13,7 +13,8 @@ void main() async {
   test('test environment', () async {
     printOnFailure(Platform.environment.toString());
 
-    String unparseKey(String key) => key.replaceAll('.', '__').toUpperCase();
+    String unparseKey(String key) =>
+        'DART_HOOK_TESTING_${key.replaceAll('.', '__').toUpperCase()}';
 
     final arKey = unparseKey(CCompilerConfigImpl.arConfigKeyFull);
     final ccKey = unparseKey(CCompilerConfigImpl.ccConfigKeyFull);

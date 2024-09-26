@@ -231,9 +231,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   EnclosingExecutableContext _enclosingExecutable =
       EnclosingExecutableContext.empty();
 
-  /// A table mapping names to the exported elements.
-  final Map<String, Element> _exportedElements = HashMap<String, Element>();
-
   /// A set of the names of the variable initializers we are visiting now.
   final HashSet<String> _namesForReferenceToDeclaredVariableInInitializer =
       HashSet<String>();
@@ -2095,7 +2092,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     Map<String, Element> definedNames = namespace.definedNames;
     for (String name in definedNames.keys) {
       var element = definedNames[name]!;
-      var prevElement = _exportedElements[name];
+      var prevElement = libraryContext._exportedElements[name];
       if (prevElement != null && prevElement != element) {
         errorReporter.atNode(
           directive.uri,
@@ -2108,7 +2105,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
         return;
       } else {
-        _exportedElements[name] = element;
+        libraryContext._exportedElements[name] = element;
       }
     }
   }
@@ -6566,6 +6563,9 @@ class LibraryVerificationContext {
   final LibraryFileKind libraryKind;
   final ConstructorFieldsVerifier constructorFieldsVerifier;
   final Map<FileState, FileAnalysis> files;
+
+  /// A table mapping names to the exported elements.
+  final Map<String, Element> _exportedElements = {};
 
   /// Elements referenced in `implements` clauses.
   /// Key: the declaration element.

@@ -335,3 +335,8 @@ external String JS_STRING_CONCAT(String a, String b);
 /// JavaScript.
 @notNull
 external Object JS_CLASS_REF(Type type);
+
+/// Identifier used to access the dart:_runtime library object in the calling
+/// context.
+@notNull
+external Object DART_RUNTIME_LIBRARY();

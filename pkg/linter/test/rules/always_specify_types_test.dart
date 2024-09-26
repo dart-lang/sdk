@@ -270,7 +270,7 @@ class C {
     await assertNoDiagnostics(r'''
 class S {
   S({int? p1, required int p2});
-}  
+}
 class C extends S {
   C({super.p1, required super.p2});
 }

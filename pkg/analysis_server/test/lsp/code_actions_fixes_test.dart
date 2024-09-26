@@ -792,7 +792,7 @@ class A {
   void a() => c((cell) => cell.south);
   void b() => c((cell) => cell.west);
 
-  ${1:c}(${2:Function(dynamic cell)} ${3:param0}) {}
+  ${1:void} ${2:c}(${3:Function(dynamic cell)} ${4:param0}) {}
 }
 ''';
 

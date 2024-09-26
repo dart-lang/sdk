@@ -331,7 +331,7 @@ class _IndexAssembler {
     unit.accept(_IndexContributor(this));
 
     // Sort strings and set IDs.
-    List<_StringInfo> stringInfoList = stringMap.values.toList();
+    List<_StringInfo> stringInfoList = stringMap.values.toList(growable: false);
     stringInfoList.sort((a, b) {
       return a.value.compareTo(b.value);
     });
@@ -340,7 +340,8 @@ class _IndexAssembler {
     }
 
     // Sort elements and set IDs.
-    List<_ElementInfo> elementInfoList = elementMap.values.toList();
+    List<_ElementInfo> elementInfoList =
+        elementMap.values.toList(growable: false);
     elementInfoList.sort((a, b) {
       int delta;
       delta = a.nameIdUnitMember.id - b.nameIdUnitMember.id;
@@ -371,39 +372,54 @@ class _IndexAssembler {
     });
 
     return AnalysisDriverUnitIndexBuilder(
-        strings: stringInfoList.map((s) => s.value).toList(),
+        strings: stringInfoList.map((s) => s.value).toList(growable: false),
         nullStringId: nullString.id,
-        unitLibraryUris: unitLibraryUris.map((s) => s.id).toList(),
-        unitUnitUris: unitUnitUris.map((s) => s.id).toList(),
+        unitLibraryUris:
+            unitLibraryUris.map((s) => s.id).toList(growable: false),
+        unitUnitUris: unitUnitUris.map((s) => s.id).toList(growable: false),
         elementImportPrefixes: elementInfoList
-            .map((e) => e.importPrefixes.toList().join(','))
-            .toList(),
-        elementKinds: elementInfoList.map((e) => e.kind).toList(),
-        elementUnits: elementInfoList.map((e) => e.unitId).toList(),
-        elementNameUnitMemberIds:
-            elementInfoList.map((e) => e.nameIdUnitMember.id).toList(),
-        elementNameClassMemberIds:
-            elementInfoList.map((e) => e.nameIdClassMember.id).toList(),
-        elementNameParameterIds:
-            elementInfoList.map((e) => e.nameIdParameter.id).toList(),
-        usedElements: elementRelations.map((r) => r.elementInfo.id).toList(),
-        usedElementKinds: elementRelations.map((r) => r.kind).toList(),
-        usedElementOffsets: elementRelations.map((r) => r.offset).toList(),
-        usedElementLengths: elementRelations.map((r) => r.length).toList(),
+            .map((e) => e.importPrefixes.toList(growable: false).join(','))
+            .toList(growable: false),
+        elementKinds:
+            elementInfoList.map((e) => e.kind).toList(growable: false),
+        elementUnits:
+            elementInfoList.map((e) => e.unitId).toList(growable: false),
+        elementNameUnitMemberIds: elementInfoList
+            .map((e) => e.nameIdUnitMember.id)
+            .toList(growable: false),
+        elementNameClassMemberIds: elementInfoList
+            .map((e) => e.nameIdClassMember.id)
+            .toList(growable: false),
+        elementNameParameterIds: elementInfoList
+            .map((e) => e.nameIdParameter.id)
+            .toList(growable: false),
+        usedElements: elementRelations
+            .map((r) => r.elementInfo.id)
+            .toList(growable: false),
+        usedElementKinds:
+            elementRelations.map((r) => r.kind).toList(growable: false),
+        usedElementOffsets:
+            elementRelations.map((r) => r.offset).toList(growable: false),
+        usedElementLengths:
+            elementRelations.map((r) => r.length).toList(growable: false),
         usedElementIsQualifiedFlags:
-            elementRelations.map((r) => r.isQualified).toList(),
-        usedNames: nameRelations.map((r) => r.nameInfo.id).toList(),
-        usedNameKinds: nameRelations.map((r) => r.kind).toList(),
-        usedNameOffsets: nameRelations.map((r) => r.offset).toList(),
+            elementRelations.map((r) => r.isQualified).toList(growable: false),
+        usedNames:
+            nameRelations.map((r) => r.nameInfo.id).toList(growable: false),
+        usedNameKinds: nameRelations.map((r) => r.kind).toList(growable: false),
+        usedNameOffsets:
+            nameRelations.map((r) => r.offset).toList(growable: false),
         usedNameIsQualifiedFlags:
-            nameRelations.map((r) => r.isQualified).toList(),
-        supertypes: subtypes.map((subtype) => subtype.supertype.id).toList(),
+            nameRelations.map((r) => r.isQualified).toList(growable: false),
+        supertypes: subtypes.map((subtype) => subtype.supertype.id).toList(growable: false),
         subtypes: subtypes.map((subtype) {
           return AnalysisDriverSubtypeBuilder(
             name: subtype.name.id,
-            members: subtype.members.map((member) => member.id).toList(),
+            members: subtype.members
+                .map((member) => member.id)
+                .toList(growable: false),
           );
-        }).toList());
+        }).toList(growable: false));
   }
 
   /// Return the unique [_ElementInfo] corresponding the [element].  The field
