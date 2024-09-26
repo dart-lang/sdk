@@ -101,9 +101,13 @@ class ElementPrinter {
         _sink.write('#element');
       case LabelElementImpl():
         _sink.write('${element.name}@${element.nameOffset}');
+      case LabelElementImpl2():
+        _sink.write('${element.name}@${element.nameOffset}');
       case LibraryElementImpl e:
         writeReference(e.reference!);
       case LocalVariableElementImpl():
+        _sink.write('${element.name}@${element.nameOffset}');
+      case LocalVariableElementImpl2():
         _sink.write('${element.name}@${element.nameOffset}');
       case MaybeAugmentedInstanceElementMixin element:
         var firstFragment = element.firstFragment as ElementImpl;

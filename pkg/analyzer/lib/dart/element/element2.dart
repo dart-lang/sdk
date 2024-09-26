@@ -1015,6 +1015,9 @@ abstract class LabelElement2 implements Element2 {
 
   @override
   String get name;
+
+  /// The offset of the name in this element.
+  int get nameOffset;
 }
 
 /// A library.
@@ -1304,6 +1307,9 @@ abstract class LocalVariableElement2 implements PromotableElement2 {
 
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
+
+  /// The offset of the name in this element.
+  int get nameOffset;
 }
 
 /// A method.
