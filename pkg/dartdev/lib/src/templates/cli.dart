@@ -44,10 +44,10 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  args: ^2.4.2
+  args: ^2.5.0
 
 dev_dependencies:
-  lints: ^4.0.0
+  lints: ^5.0.0
   test: ^1.24.0
 ''';
 
@@ -93,15 +93,15 @@ void main(List<String> arguments) {
     bool verbose = false;
 
     // Process the parsed arguments.
-    if (results.wasParsed('help')) {
+    if (results.flag('help')) {
       printUsage(argParser);
       return;
     }
-    if (results.wasParsed('version')) {
+    if (results.flag('version')) {
       print('__projectName__ version: $version');
       return;
     }
-    if (results.wasParsed('verbose')) {
+    if (results.flag('verbose')) {
       verbose = true;
     }
 
