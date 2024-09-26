@@ -109,7 +109,8 @@ String computeLocation() {
     stackLine = callStack[2];
     assert(
         stackLine.contains('type_inference_test.dart') ||
-            stackLine.contains('flow_analysis_test.dart'),
+            stackLine.contains('flow_analysis_test.dart') ||
+            stackLine.contains('type_constraint_gatherer_test.dart'),
         'Unexpected file: $stackLine');
   }
 
@@ -2775,6 +2776,8 @@ class MiniAstOperations
 
   final TypeSystem _typeSystem = TypeSystem();
 
+  final _variance = <String, List<Variance>>{};
+
   @override
   final SharedTypeView<Type> boolType = SharedTypeView(Type('bool'));
 
@@ -2835,6 +2838,10 @@ class MiniAstOperations
     _typeSystem.addTypeVariable(name, bound: bound);
   }
 
+  void addVariance(String typeName, List<Variance> varianceByArgument) {
+    _variance[typeName] = varianceByArgument;
+  }
+
   @override
   TypeClassification classifyType(SharedTypeView<Type> type) {
     if (isSubtypeOfInternal(type.unwrapTypeView(), Type('Object'))) {
@@ -2887,8 +2894,7 @@ class MiniAstOperations
   @override
   Variance getTypeParameterVariance(
       String typeDeclaration, int parameterIndex) {
-    // TODO(cstefantsova): Support variance of type parameters in Mini AST.
-    return Variance.covariant;
+    return _variance[typeDeclaration]?[parameterIndex] ?? Variance.covariant;
   }
 
   @override
@@ -3258,6 +3264,8 @@ class Node {
   final String location;
 
   String? _errorId;
+
+  factory Node.placeholder() => Node._(location: computeLocation());
 
   Node._({required this.location}) : id = _nextId++;
 

@@ -1131,12 +1131,16 @@ abstract class TypeConstraintGenerator<
       TypeStructure p, TypeStructure q,
       {required bool leftSchema, required AstNode? astNodeForTesting});
 
-  /// Matches type [p] against type schema [q] as a subtype against supertype
-  /// and returns true if [p] and [q] are both FutureOr, with or without
-  /// nullability suffixes as defined by
-  /// [enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr], and [p] is
-  /// a subtype of [q] under some constraints imposed on type parameters
-  /// occurring in [p], and false otherwise.
+  /// Matches [p] against [q] as a subtype against supertype and returns true if
+  /// [p] and [q] are both FutureOr, with or without nullability suffixes as
+  /// defined by [enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr],
+  /// and [p] is a subtype of [q] under some constraints imposed on type
+  /// parameters occurring in [q], and false otherwise.
+  ///
+  /// An invariant of the type inference is that only [p] or [q] may be a
+  /// schema (in other words, may contain the unknown type `_`); the other must
+  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
+  /// `false`, [q] may contain `_`.
   ///
   /// As the generator computes the constraints making the relation possible,
   /// it changes its internal state. The current state of the generator can be
@@ -1144,36 +1148,7 @@ abstract class TypeConstraintGenerator<
   /// via [restoreState]. All of the shared constraint generation methods are
   /// supposed to restore the generator to the prior state in case of a
   /// mismatch, taking that responsibility away from the caller.
-  bool performSubtypeConstraintGenerationForFutureOrRightSchema(
-      SharedTypeView<TypeStructure> p, SharedTypeSchemaView<TypeStructure> q,
-      {required AstNode? astNodeForTesting}) {
-    return _performSubtypeConstraintGenerationForFutureOrInternal(
-        p.unwrapTypeView(), q.unwrapTypeSchemaView(),
-        leftSchema: false, astNodeForTesting: astNodeForTesting);
-  }
-
-  /// Matches type schema [p] against type [q] as a subtype against supertype
-  /// and returns true if [p] and [q] are both FutureOr, with or without
-  /// nullability suffixes as defined by
-  /// [enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr], and [p] is
-  /// a subtype of [q] under some constraints imposed on type parameters
-  /// occurring in [q], and false otherwise.
-  ///
-  /// As the generator computes the constraints making the relation possible,
-  /// it changes its internal state. The current state of the generator can be
-  /// obtained by [currentState], and the generator can be restored to a state
-  /// via [restoreState]. All of the shared constraint generation methods are
-  /// supposed to restore the generator to the prior state in case of a
-  /// mismatch, taking that responsibility away from the caller.
-  bool performSubtypeConstraintGenerationForFutureOrLeftSchema(
-      SharedTypeSchemaView<TypeStructure> p, SharedTypeView<TypeStructure> q,
-      {required AstNode? astNodeForTesting}) {
-    return _performSubtypeConstraintGenerationForFutureOrInternal(
-        p.unwrapTypeSchemaView(), q.unwrapTypeView(),
-        leftSchema: true, astNodeForTesting: astNodeForTesting);
-  }
-
-  bool _performSubtypeConstraintGenerationForFutureOrInternal(
+  bool performSubtypeConstraintGenerationForFutureOr(
       TypeStructure p, TypeStructure q,
       {required bool leftSchema, required AstNode? astNodeForTesting}) {
     // If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
