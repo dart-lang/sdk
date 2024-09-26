@@ -22,10 +22,7 @@ class InferenceFailureOnFunctionReturnTypeTest
   void setUp() {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-        strictInference: true,
-      ),
+      analysisOptionsContent(experiments: experiments, strictInference: true),
     );
   }
 

@@ -24,12 +24,10 @@ class ErrorSuppressionTest extends PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-        lints: ['avoid_types_as_parameter_names'],
-      ),
-    );
+    writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
+      experiments: experiments,
+      rules: ['avoid_types_as_parameter_names'],
+    ));
   }
 
   test_error_code_mismatch() async {

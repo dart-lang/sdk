@@ -2628,10 +2628,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   @experimental
   @override
   LocalVariableElement2? get declaredElement2 {
-    if (declaredElement case LocalVariableElementImpl element) {
-      return LocalVariableElementImpl2(element);
-    }
-    return null;
+    return declaredElement.asElement2 as LocalVariableElementImpl2?;
   }
 
   @override
@@ -4964,10 +4961,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   @experimental
   @override
   LocalVariableElement2? get declaredElement2 {
-    if (declaredElement case LocalVariableElementImpl element) {
-      return LocalVariableElementImpl2(element);
-    }
-    return null;
+    return declaredElement.asElement2 as LocalVariableElementImpl2?;
   }
 
   @override

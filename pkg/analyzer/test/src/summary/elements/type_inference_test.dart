@@ -2127,9 +2127,7 @@ library
 
   test_inferred_type_inference_failure_on_function_invocation() async {
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        strictInference: true,
-      ),
+      analysisOptionsContent(strictInference: true),
     );
     var library = await buildLibrary(r'''
 int m<T>() => 1;
@@ -2224,9 +2222,7 @@ library
 
   test_inferred_type_inference_failure_on_generic_invocation() async {
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        strictInference: true,
-      ),
+      analysisOptionsContent(strictInference: true),
     );
     var library = await buildLibrary(r'''
 int Function<T>()? m = <T>() => 1;
@@ -2385,9 +2381,7 @@ library
 
   test_inferred_type_inference_failure_on_instance_creation() async {
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        strictInference: true,
-      ),
+      analysisOptionsContent(strictInference: true),
     );
     var library = await buildLibrary(r'''
 import 'dart:collection';

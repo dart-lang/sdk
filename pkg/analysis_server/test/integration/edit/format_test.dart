@@ -10,6 +10,7 @@ import '../support/integration_tests.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FormatTest);
+    defineReflectiveTests(LanguageVersionSpecificFormatTest);
   });
 }
 
@@ -74,5 +75,48 @@ class Class1 {
     } on ServerErrorMessage catch (message) {
       expect(message.error['code'], 'FORMAT_WITH_ERRORS');
     }
+  }
+}
+
+@reflectiveTest
+class LanguageVersionSpecificFormatTest
+    extends AbstractAnalysisServerIntegrationTest {
+  Future<String> createTestFile(String text) async {
+    var pathname = sourcePath('test.dart');
+    writeFile(pathname, text);
+    await standardAnalysisSetup();
+    return pathname;
+  }
+
+  Future<void> test_format_short() async {
+    var path = await createTestFile('''
+// @dart = 3.5
+
+void f({String? argument1, String? argument2}) {}
+
+void g() {
+  f(argument1: 'An argument', argument2: 'Another argument');
+}
+''');
+
+    var result = await sendEditFormat(path, 0, 0);
+
+    // No change in short style.
+    expect(result.edits, isEmpty);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/56685')
+  Future<void> test_format_tall() async {
+    var path = await createTestFile('''
+void f({String? argument1, String? argument2}) {}
+
+void g() {
+  f(argument1: 'An argument', argument2: 'Another argument');
+}
+''');
+
+    var result = await sendEditFormat(path, 0, 0);
+    expect(result.edits, isNotEmpty);
+    // TODO(pq): update expectations when formatter is complete
   }
 }

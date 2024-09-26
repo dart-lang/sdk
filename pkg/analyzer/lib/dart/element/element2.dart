@@ -62,6 +62,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -844,6 +845,9 @@ abstract class InstanceElement2
   /// The getters declared in this element.
   List<GetterElement> get getters2;
 
+  @override
+  LibraryElement2 get library2;
+
   /// The methods declared in this element.
   List<MethodElement2> get methods2;
 
@@ -1015,6 +1019,9 @@ abstract class LabelElement2 implements Element2 {
 
   @override
   String get name;
+
+  /// The offset of the name in this element.
+  int get nameOffset;
 }
 
 /// A library.
@@ -1232,6 +1239,9 @@ abstract class LibraryFragment implements Fragment, _Annotatable {
   /// The fragments of the top-level setters declared in this fragment.
   List<SetterFragment> get setters;
 
+  /// The source associated with this fragment.
+  Source get source;
+
   /// The fragments of the top-level variables declared in this fragment.
   List<TopLevelVariableFragment> get topLevelVariables2;
 
@@ -1304,6 +1314,9 @@ abstract class LocalVariableElement2 implements PromotableElement2 {
 
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
+
+  /// The offset of the name in this element.
+  int get nameOffset;
 }
 
 /// A method.

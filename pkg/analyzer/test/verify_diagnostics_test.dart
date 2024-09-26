@@ -499,9 +499,7 @@ class _SnippetTest extends PubPackageResolutionTest {
   /// Initialize a newly created test to test the given [snippet].
   _SnippetTest(this.snippet) {
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: snippet.experiments,
-      ),
+      analysisOptionsContent(experiments: snippet.experiments),
     );
   }
 
@@ -525,7 +523,7 @@ class _SnippetTest extends PubPackageResolutionTest {
     var lintCode = snippet.lintCode;
     if (lintCode != null) {
       writeTestPackageAnalysisOptionsFile(
-          AnalysisOptionsFileConfig(lints: [lintCode]));
+          analysisOptionsContent(rules: [lintCode]));
     }
   }
 

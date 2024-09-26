@@ -4482,7 +4482,14 @@ mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
   // TODO(augmentations): This is wrong. The function type needs to be a merge
   //  of the function types of all of the fragments, but I don't know how to
   //  perform that merge.
-  FunctionType get type => (firstFragment as FunctionTypedElementImpl).type;
+  FunctionType get type {
+    if (firstFragment is ExecutableElementImpl) {
+      return (firstFragment as ExecutableElementImpl).type;
+    } else if (firstFragment is FunctionTypedElementImpl) {
+      return (firstFragment as FunctionTypedElementImpl).type;
+    }
+    throw UnimplementedError();
+  }
 }
 
 mixin FragmentedTypeParameterizedElementMixin<
@@ -5462,6 +5469,8 @@ class JoinPatternVariableElementImpl2 extends PatternVariableElementImpl2
 
 /// A concrete implementation of a [LabelElement].
 class LabelElementImpl extends ElementImpl implements LabelElement {
+  late final LabelElementImpl2 element2 = LabelElementImpl2(this);
+
   /// A flag indicating whether this label is associated with a `switch` member
   /// (`case` or `default`).
   // TODO(brianwilkerson): Make this a modifier.
@@ -5525,6 +5534,9 @@ class LabelElementImpl2 extends ElementImpl2
 
   @override
   LibraryElement2 get library2 => super.library2!;
+
+  @override
+  int get nameOffset => _wrappedElement.nameOffset;
 }
 
 /// A concrete implementation of a [LibraryElement] or [LibraryElement2].
@@ -6486,6 +6498,9 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
 /// A concrete implementation of a [LocalVariableElement].
 class LocalVariableElementImpl extends NonParameterVariableElementImpl
     implements LocalVariableElement {
+  late final LocalVariableElementImpl2? element2 =
+      LocalVariableElementImpl2(this);
+
   @override
   late bool hasInitializer;
 
@@ -6549,6 +6564,9 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
 
   @override
   bool get isStatic => _wrappedElement.isStatic;
+
+  @override
+  int get nameOffset => _wrappedElement.nameOffset;
 
   @override
   DartType get type => _wrappedElement.type;
@@ -9010,6 +9028,9 @@ class SetterElementImpl extends ExecutableElementImpl2
   @override
   GetterElement? get correspondingGetter2 =>
       firstFragment.correspondingGetter2?.element as GetterElement?;
+
+  @override
+  String get displayName => name.substring(0, name.length - 1);
 
   @override
   Element2? get enclosingElement2 => firstFragment.enclosingFragment?.element;

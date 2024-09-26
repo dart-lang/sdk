@@ -24,6 +24,7 @@ dependencies:
   memory_usage: any
   meta: any
   path: any
+  pub_semver: any
   stream_channel: any
   telemetry: any
   test: any

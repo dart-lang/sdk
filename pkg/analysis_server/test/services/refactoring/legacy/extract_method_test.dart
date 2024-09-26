@@ -29,12 +29,9 @@ void main() {
 class AddLibraryImportsTest extends AbstractSingleUnitTest {
   Future<void> test_dart_doubleQuotes() async {
     registerLintRules();
-    var config = AnalysisOptionsFileConfig(
-      lints: ['prefer_double_quotes'],
-    );
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
-      config.toContent(),
+      analysisOptionsContent(rules: ['prefer_double_quotes']),
     );
 
     await resolveTestCode('''

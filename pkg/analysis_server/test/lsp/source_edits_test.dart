@@ -356,6 +356,56 @@ Delete 1:18-2:1
     );
   }
 
+  Future<void> test_minimalEdits_formatting_shortStyle() async {
+    const startContent = '''
+// @dart = 3.5
+
+void f({String argument1, String argument2}) {}
+
+void g() {
+  f(argument1: 'An argument', argument2: 'Another argument');
+}
+''';
+    const endContent = '''
+// @dart = 3.5
+
+void f({String argument1, String argument2}) {}
+
+void g() {
+  f(argument1: 'An argument', argument2: 'Another argument');
+}
+''';
+    const expectedEdits = '';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/56685')
+  Future<void> test_minimalEdits_formatting_tallStyle() async {
+    const startContent = '''
+void f({String? argument1, String? argument2}) {}
+
+void g() {
+  f(argument1: 'An argument', argument2: 'Another argument');
+}
+''';
+    const endContent = '''
+void f({String? argument1, String? argument2}) {}
+
+void g() {
+  f(argument1: 'An argument',
+    argument2: 'Another argument',
+  );
+}
+''';
+    const expectedEdits = r'''
+Insert "\n    " at 4:31
+Insert ",\n" at 4:60
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
   Future<void> test_minimalEdits_gt_2_combined() async {
     const startContent = '''
 List<

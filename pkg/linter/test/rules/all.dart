@@ -5,6 +5,8 @@
 // ignore_for_file: library_prefixes
 
 import 'always_declare_return_types_test.dart' as always_declare_return_types;
+import 'always_put_control_body_on_new_line_test.dart'
+    as always_put_control_body_on_new_line;
 import 'always_put_required_named_parameters_first_test.dart'
     as always_put_required_named_parameters_first;
 import 'always_specify_types_test.dart' as always_specify_types;
@@ -313,6 +315,7 @@ import 'void_checks_test.dart' as void_checks;
 
 void main() {
   always_declare_return_types.main();
+  always_put_control_body_on_new_line.main();
   always_put_required_named_parameters_first.main();
   always_specify_types.main();
   always_use_package_imports.main();

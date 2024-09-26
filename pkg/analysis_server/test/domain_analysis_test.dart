@@ -2151,7 +2151,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // nestedFolder1 has no plugins enabled.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      AnalysisOptionsFileConfig(experiments: experiments).toContent(),
+      analysisOptionsContent(experiments: experiments),
     );
 
     // Write the single package config at the root that can resolve both
@@ -2196,10 +2196,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // nestedFolder1 has plugin2 enabled.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-        plugins: [plugin2.name],
-      ).toContent(),
+      analysisOptionsContent(experiments: experiments, plugins: [plugin2.name]),
     );
 
     // Write the single package config at the root that can resolve both
@@ -2245,10 +2242,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // nestedFolder1 also has plugin1 enabled.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-        plugins: [plugin1.name],
-      ).toContent(),
+      analysisOptionsContent(experiments: experiments, plugins: [plugin1.name]),
     );
 
     // Write the single package config at the root that can resolve both
@@ -2294,9 +2288,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // `analysis_options.yaml`.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      AnalysisOptionsFileConfig(
-        include: '../analysis_options.yaml',
-      ).toContent(),
+      analysisOptionsContent(include: '../analysis_options.yaml'),
     );
 
     // Write the single package config at the root that can resolve both
@@ -2493,10 +2485,10 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
 
     newAnalysisOptionsYamlFile(
       packagePath,
-      AnalysisOptionsFileConfig(
+      analysisOptionsContent(
         experiments: experiments,
         plugins: plugins.map((plugin) => plugin.name).toList(),
-      ).toContent(),
+      ),
     );
 
     if (withPackageConfig) {
