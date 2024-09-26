@@ -8306,6 +8306,12 @@ abstract final class FunctionDeclaration
   @override
   ExecutableElement? get declaredElement;
 
+  /// The element defined by this local function declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if this node
+  /// is not a local function.
+  LocalFunctionElement? get declaredElement2;
+
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this node
@@ -8353,6 +8359,9 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   ExecutableElementImpl? declaredElement;
+
+  @override
+  LocalFunctionElementImpl? declaredElement2;
 
   /// Initializes a newly created function declaration.
   ///

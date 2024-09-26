@@ -4520,6 +4520,8 @@ class FunctionElementImpl extends ExecutableElementImpl
         FunctionElement,
         FunctionTypedElementImpl,
         TopLevelFunctionFragment {
+  late final LocalFunctionElementImpl element2 = LocalFunctionElementImpl(this);
+
   /// The element corresponding to this fragment.
   TopLevelFunctionElement? _element;
 
