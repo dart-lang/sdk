@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -48,9 +48,10 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
     var superclassConstraints = <InterfaceType>[];
     var interfaces = <InterfaceType>[];
 
-    var classElement = classDeclaration.declaredElement!;
+    var classFragment = classDeclaration.declaredFragment!;
+    var classElement = classFragment.element;
     for (var type in classElement.mixins) {
-      if (referencedClasses.contains(type.element)) {
+      if (referencedClasses.contains(type.element3)) {
         superclassConstraints.add(type);
       } else {
         interfaces.add(type);
@@ -74,7 +75,7 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
               classDeclaration.leftBracket), (builder) {
         builder.write('mixin ');
         builder.write(classDeclaration.name.lexeme);
-        builder.writeTypeParameters(classElement.typeParameters);
+        builder.writeTypeParameters2(classElement.typeParameters2);
         builder.writeTypes(superclassConstraints, prefix: ' on ');
         builder.writeTypes(interfaces, prefix: ' implements ');
         builder.write(' ');
@@ -86,7 +87,7 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
 /// A visitor used to find all of the classes that define members referenced via
 /// `super`.
 class _SuperclassReferenceFinder extends RecursiveAstVisitor<void> {
-  final List<ClassElement> referencedClasses = <ClassElement>[];
+  final List<ClassElement2> referencedClasses = [];
 
   _SuperclassReferenceFinder();
 
@@ -94,9 +95,9 @@ class _SuperclassReferenceFinder extends RecursiveAstVisitor<void> {
   void visitSuperExpression(SuperExpression node) {
     var parent = node.parent;
     if (parent is BinaryExpression) {
-      _addElement(parent.staticElement);
+      _addElement(parent.element);
     } else if (parent is IndexExpression) {
-      _addElement(parent.staticElement);
+      _addElement(parent.element);
     } else if (parent is MethodInvocation) {
       _addIdentifier(parent.methodName);
     } else if (parent is PrefixedIdentifier) {
@@ -107,16 +108,16 @@ class _SuperclassReferenceFinder extends RecursiveAstVisitor<void> {
     return super.visitSuperExpression(node);
   }
 
-  void _addElement(Element? element) {
-    if (element is ExecutableElement) {
-      var enclosingElement = element.enclosingElement3;
-      if (enclosingElement is ClassElement) {
+  void _addElement(Element2? element) {
+    if (element is ExecutableElement2) {
+      var enclosingElement = element.enclosingElement2;
+      if (enclosingElement is ClassElement2) {
         referencedClasses.add(enclosingElement);
       }
     }
   }
 
   void _addIdentifier(SimpleIdentifier identifier) {
-    _addElement(identifier.staticElement);
+    _addElement(identifier.element);
   }
 }
