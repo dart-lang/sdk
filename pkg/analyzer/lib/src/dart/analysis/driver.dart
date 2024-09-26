@@ -245,6 +245,9 @@ class AnalysisDriver {
   /// Whether resolved units should be indexed.
   final bool enableIndex;
 
+  /// Whether analysis sessions should report inconsistent analysis.
+  final bool shouldReportInconsistentAnalysisException;
+
   /// The context in which libraries should be analyzed.
   LibraryContext? _libraryContext;
 
@@ -286,6 +289,7 @@ class AnalysisDriver {
     UnlinkedUnitStore? unlinkedUnitStore,
     InfoDeclarationStore? infoDeclarationStore,
     this.enableIndex = false,
+    this.shouldReportInconsistentAnalysisException = true,
     SummaryDataStore? externalSummaries,
     DeclaredVariables? declaredVariables,
     bool retainDataForTesting = false,
