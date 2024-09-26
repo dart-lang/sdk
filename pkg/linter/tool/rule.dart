@@ -14,7 +14,6 @@ import 'package:path/path.dart' as path;
 import '../test/test_constants.dart';
 import 'changelog.dart';
 import 'messages_data.dart';
-import 'since.dart';
 
 /// Generates rule and rule test stub files (into `src/rules` and `test/rules`
 /// respectively), as well as the rule index (`rules.dart`).
@@ -94,8 +93,6 @@ void generateRule(String ruleName, {String? outDir}) {
   generateFile(ruleName, 'example', _generateAllYaml,
       outDir: outDir, overwrite: true);
 
-  printToConsole('Updating ${SdkVersionFile.filePath}');
-  SdkVersionFile().addRule(ruleName);
   printToConsole('Updating ${Changelog.fileName}');
   Changelog().addEntry(RuleStateChange.added, ruleName);
 

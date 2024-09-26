@@ -2112,10 +2112,46 @@
           "fileset": "js_platform"
         },
         {
-          "name": "ddc co19 tests",
+          "name": "ddc co19 Language tests",
           "arguments": [
             "-nddc-${system}-firefox",
-            "co19"
+            "co19/Language"
+          ],
+          "shards": 6,
+          "fileset": "js_platform"
+        },
+        {
+          "name": "ddc co19 LanguageFeatures tests",
+          "arguments": [
+            "-nddc-${system}-firefox",
+            "co19/LanguageFeatures"
+          ],
+          "shards": 6,
+          "fileset": "js_platform"
+        },
+        {
+          "name": "ddc co19 LibTest tests",
+          "arguments": [
+            "-nddc-${system}-firefox",
+            "co19/LibTest"
+          ],
+          "shards": 6,
+          "fileset": "js_platform"
+        },
+        {
+          "name": "ddc co19 TypeSystem tests",
+          "arguments": [
+            "-nddc-${system}-firefox",
+            "co19/TypeSystem"
+          ],
+          "shards": 6,
+          "fileset": "js_platform"
+        },
+        {
+          "name": "ddc co19 Utils tests",
+          "arguments": [
+            "-nddc-${system}-firefox",
+            "co19/Utils"
           ],
           "shards": 6,
           "fileset": "js_platform"
