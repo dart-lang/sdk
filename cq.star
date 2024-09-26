@@ -32,7 +32,7 @@ def sdk_cq_groups():
                 refs = ["refs/heads/%s" % branch],
             ),
             allow_submit_with_open_deps = True,
-            tree_status_host = "dart-status.appspot.com",
+            tree_status_name = "dart",
             retry_config = cq.RETRY_NONE,
             verifiers = None,
         )
@@ -43,7 +43,7 @@ luci.cq_group(
     name = "sdk-infra-config",
     watch = cq.refset(DART_GERRIT + "sdk", refs = ["refs/heads/infra/config"]),
     allow_submit_with_open_deps = True,
-    tree_status_host = "dart-status.appspot.com",
+    tree_status_name = "dart",
     retry_config = cq.RETRY_NONE,
     verifiers = default_verifiers(),
 )
@@ -53,7 +53,7 @@ def basic_cq(repository, extra_verifies = []):
         name = repository,
         watch = cq.refset(DART_GERRIT + repository, refs = ["refs/heads/main"]),
         allow_submit_with_open_deps = True,
-        tree_status_host = "dart-status.appspot.com",
+        tree_status_name = "dart",
         retry_config = cq.RETRY_NONE,
         verifiers = default_verifiers() + extra_verifies,
     )
@@ -78,7 +78,7 @@ def empty_cq(repository):
         name = repository,
         watch = cq.refset(DART_GERRIT + repository, refs = ["refs/heads/main"]),
         allow_submit_with_open_deps = True,
-        tree_status_host = "dart-status.appspot.com",
+        tree_status_name = "dart",
         retry_config = cq.RETRY_NONE,
         verifiers = None,
     )

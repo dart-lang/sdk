@@ -22,7 +22,7 @@ load(
     "no_caches",
 )
 
-lucicfg.check_version("1.33.7")
+lucicfg.check_version("1.43.13")
 
 # Use LUCI Scheduler BBv2 names and add Scheduler realms configs.
 lucicfg.enable_experiment("crbug.com/1182002")
