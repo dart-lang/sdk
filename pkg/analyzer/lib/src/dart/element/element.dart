@@ -9623,7 +9623,7 @@ class TypeParameterElementImpl extends ElementImpl
   shared.Variance? _variance;
 
   /// The element corresponding to this fragment.
-  TypeParameterElement2? _element;
+  TypeParameterElementImpl2? _element;
 
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
@@ -9642,6 +9642,11 @@ class TypeParameterElementImpl extends ElementImpl
 
   set bound(DartType? bound) {
     _bound = bound;
+    if (_element case var element?) {
+      if (!identical(element.bound, bound)) {
+        element.bound = bound;
+      }
+    }
   }
 
   @override
@@ -9654,7 +9659,7 @@ class TypeParameterElementImpl extends ElementImpl
   String get displayName => name;
 
   @override
-  TypeParameterElement2 get element {
+  TypeParameterElementImpl2 get element {
     if (_element != null) {
       return _element!;
     }
@@ -9666,10 +9671,16 @@ class TypeParameterElementImpl extends ElementImpl
     }
     // As a side-effect of creating the element, all of the fragments in the
     // chain will have their `_element` set to the newly created element.
-    return TypeParameterElementImpl2(firstFragment as TypeParameterElementImpl);
+    return TypeParameterElementImpl2(
+      firstFragment: firstFragment as TypeParameterElementImpl,
+      name: firstFragment.name,
+      bound: firstFragment.bound,
+    );
   }
 
-  set element(TypeParameterElement2 element) => _element = element;
+  set element(TypeParameterElementImpl2 element) {
+    _element = element;
+  }
 
   @override
   Fragment? get enclosingFragment => enclosingElement3 as Fragment?;
@@ -9792,10 +9803,23 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
         FragmentedElementMixin<TypeParameterFragment>
     implements TypeParameterElement2 {
   @override
-  final TypeParameterElementImpl firstFragment;
+  final TypeParameterElementImpl? firstFragment;
 
-  TypeParameterElementImpl2(this.firstFragment) {
-    TypeParameterElementImpl? fragment = firstFragment;
+  @override
+  final String name;
+
+  DartType? _bound;
+
+  /// When [firstFragment] is `null`, we still want to have some for the
+  /// old element model.
+  TypeParameterElementImpl? _syntheticFirstFragment;
+
+  TypeParameterElementImpl2({
+    required this.firstFragment,
+    required this.name,
+    required DartType? bound,
+  }) : _bound = bound {
+    var fragment = firstFragment;
     while (fragment != null) {
       fragment.element = this;
       fragment = fragment.nextFragment as TypeParameterElementImpl?;
@@ -9806,11 +9830,27 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   TypeParameterElement2 get baseElement => this;
 
   @override
-  DartType? get bound => firstFragment.bound;
+  DartType? get bound => _bound;
+
+  set bound(DartType? value) {
+    _bound = value;
+    _syntheticFirstFragment?.bound = _bound;
+  }
 
   @override
-  Element2? get enclosingElement2 =>
-      (firstFragment._enclosingElement3 as Fragment).element;
+  Element2? get enclosingElement2 {
+    if (firstFragment case var firstFragment?) {
+      return (firstFragment._enclosingElement3 as Fragment).element;
+    }
+    return null;
+  }
+
+  TypeParameterElementImpl get firstFragmentOrSynthetic {
+    return firstFragment ??
+        (_syntheticFirstFragment ??= TypeParameterElementImpl(name, -1)
+          ..isSynthetic = true
+          ..bound = bound);
+  }
 
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
@@ -9819,12 +9859,13 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   LibraryElement2 get library2 => super.library2!;
 
   @override
-  String get name => firstFragment.name;
-
-  @override
-  TypeParameterType instantiate(
-          {required NullabilitySuffix nullabilitySuffix}) =>
-      firstFragment.instantiate(nullabilitySuffix: nullabilitySuffix);
+  TypeParameterType instantiate({
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return firstFragmentOrSynthetic.instantiate(
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
 }
 
 abstract class TypeParameterizedElementImpl2 extends ElementImpl2
