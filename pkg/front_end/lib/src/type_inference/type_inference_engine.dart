@@ -950,8 +950,8 @@ class OperationsCfe
   }
 
   @override
-  TypeDeclarationMatchResult? matchTypeDeclarationType(
-      SharedTypeView<DartType> type) {
+  TypeDeclarationMatchResult<TypeDeclarationType, TypeDeclaration, DartType>?
+      matchTypeDeclarationType(SharedTypeView<DartType> type) {
     DartType unwrappedType = type.unwrapTypeView();
     if (unwrappedType is TypeDeclarationType) {
       switch (unwrappedType) {

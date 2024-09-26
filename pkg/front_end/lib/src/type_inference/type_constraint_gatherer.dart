@@ -474,13 +474,9 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       return true;
     }
 
-    if (constrainSupertype
-        ? performSubtypeConstraintGenerationForFutureOrLeftSchema(
-            new SharedTypeSchemaView(p), new SharedTypeView(q),
-            astNodeForTesting: treeNodeForTesting)
-        : performSubtypeConstraintGenerationForFutureOrRightSchema(
-            new SharedTypeView(p), new SharedTypeSchemaView(q),
-            astNodeForTesting: treeNodeForTesting)) {
+    if (performSubtypeConstraintGenerationForFutureOr(p, q,
+        leftSchema: constrainSupertype,
+        astNodeForTesting: treeNodeForTesting)) {
       return true;
     }
 

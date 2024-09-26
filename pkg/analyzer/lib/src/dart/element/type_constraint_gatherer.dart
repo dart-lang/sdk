@@ -164,13 +164,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // in case [performSubtypeConstraintGenerationForFutureOr] returns false, as
     // [performSubtypeConstraintGenerationForFutureOr] handles the rewinding of
     // the state itself.
-    if (leftSchema
-        ? performSubtypeConstraintGenerationForFutureOrLeftSchema(
-            SharedTypeSchemaView(P), SharedTypeView(Q),
-            astNodeForTesting: nodeForTesting)
-        : performSubtypeConstraintGenerationForFutureOrRightSchema(
-            SharedTypeView(P), SharedTypeSchemaView(Q),
-            astNodeForTesting: nodeForTesting)) {
+    if (performSubtypeConstraintGenerationForFutureOr(P, Q,
+        leftSchema: leftSchema, astNodeForTesting: nodeForTesting)) {
       return true;
     }
 
