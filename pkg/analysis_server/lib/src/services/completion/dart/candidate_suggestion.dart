@@ -76,14 +76,7 @@ final class ClosureSuggestion extends CandidateSuggestion {
   /// The identation to be used for a multi-line completion.
   final String indent;
 
-  // Indicates whether _completion, _displayText, and _selectionOffset have been initialized.
-  bool _initialized = false;
-
-  late String _displayText;
-
-  late int _selectionOffset;
-
-  late String _completion;
+  _SuggestionData? _data;
 
   /// Initialize a newly created candidate suggestion to suggest a closure that
   /// conforms to the given [functionType].
@@ -102,24 +95,24 @@ final class ClosureSuggestion extends CandidateSuggestion {
   @override
   String get completion {
     _init();
-    return _completion;
+    return _data!.completion;
   }
 
   /// Text to be displayed in a completion pop-up.
   String get displayText {
     _init();
-    return _displayText;
+    return _data!.displayText;
   }
 
   /// The offset, from the beginning of the inserted text, where the cursor
   /// should be positioned.
   int get selectionOffset {
     _init();
-    return _selectionOffset;
+    return _data!.selectionOffset;
   }
 
   void _init() {
-    if (_initialized) {
+    if (_data != null) {
       return;
     }
     var parametersString = buildClosureParameters(functionType,
@@ -131,23 +124,26 @@ final class ClosureSuggestion extends CandidateSuggestion {
         includeKeywords: false, includeTypes: false);
 
     var stringBuffer = StringBuffer(parametersString);
+    String displayText;
+    int selectionOffset;
     if (useBlockStatement) {
-      _displayText = '$parametersDisplayString {}';
+      displayText = '$parametersDisplayString {}';
       stringBuffer.writeln(' {');
       stringBuffer.write('$indent  ');
-      _selectionOffset = stringBuffer.length;
+      selectionOffset = stringBuffer.length;
       stringBuffer.writeln();
       stringBuffer.write('$indent}');
     } else {
-      _displayText = '$parametersDisplayString =>';
+      displayText = '$parametersDisplayString =>';
       stringBuffer.write(' => ');
-      _selectionOffset = stringBuffer.length;
+      selectionOffset = stringBuffer.length;
     }
     if (includeTrailingComma) {
       stringBuffer.write(',');
     }
-    _completion = stringBuffer.toString();
-    _initialized = true;
+    var completion = stringBuffer.toString();
+    _data =
+        _SuggestionData(completion, selectionOffset, displayText: displayText);
   }
 }
 
@@ -672,12 +668,7 @@ final class NamedArgumentSuggestion extends CandidateSuggestion {
 
   String preferredQuoteForStrings;
 
-  late String _completion;
-
-  // Indicates whether _completion and _selectionOffset have been initialized.
-  bool _initialized = false;
-
-  late int _selectionOffset;
+  _SuggestionData? _data;
 
   NamedArgumentSuggestion({
     required this.parameter,
@@ -692,18 +683,18 @@ final class NamedArgumentSuggestion extends CandidateSuggestion {
   @override
   String get completion {
     _init();
-    return _completion;
+    return _data!.completion;
   }
 
   /// The offset, from the beginning of the inserted text, where the cursor
   /// should be positioned.
   int get selectionOffset {
     _init();
-    return _selectionOffset;
+    return _data!.selectionOffset;
   }
 
   void _init() {
-    if (_initialized) {
+    if (_data != null) {
       return;
     }
     var completion = parameter.name;
@@ -731,9 +722,7 @@ final class NamedArgumentSuggestion extends CandidateSuggestion {
     if (appendComma) {
       completion += ',';
     }
-    _completion = completion;
-    _selectionOffset = selectionOffset;
-    _initialized = true;
+    _data = _SuggestionData(completion, selectionOffset);
   }
 }
 
@@ -863,11 +852,7 @@ final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion {
   final bool appendColon;
   final bool appendComma;
 
-  late String _completion;
-  late int _selectionOffset;
-
-  // Whether _completion, _displayText, and _selectionOffset have been initialized.
-  bool _initialized = false;
+  _SuggestionData? _data;
 
   RecordLiteralNamedFieldSuggestion.newField({
     required this.field,
@@ -884,18 +869,18 @@ final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion {
   @override
   String get completion {
     _init();
-    return _completion;
+    return _data!.completion;
   }
 
   /// The offset, from the beginning of the inserted text, where the cursor
   /// should be positioned.
   int get selectionOffset {
     _init();
-    return _selectionOffset;
+    return _data!.selectionOffset;
   }
 
   void _init() {
-    if (_initialized) {
+    if (_data != null) {
       return;
     }
     var name = field.name;
@@ -904,13 +889,12 @@ final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion {
     if (appendColon) {
       completion += ': ';
     }
-    _selectionOffset = completion.length;
+    var selectionOffset = completion.length;
 
     if (appendComma) {
       completion += ',';
     }
-    _completion = completion;
-    _initialized = true;
+    _data = _SuggestionData(completion, selectionOffset);
   }
 }
 
@@ -920,8 +904,6 @@ final class SetStateMethodSuggestion extends ExecutableSuggestion
   @override
   final MethodElement element;
 
-  late String _completion;
-
   /// The element defined by the declaration in which the suggestion is to be
   /// applied, or `null` if the completion is in a static context.
   @override
@@ -930,12 +912,7 @@ final class SetStateMethodSuggestion extends ExecutableSuggestion
   /// The identation to be used for a multi-line completion.
   final String indent;
 
-  // Indicates whether _completion, _displayText, and _selectionOffset have been initialized.
-  bool _initialized = false;
-
-  late int _selectionOffset;
-
-  late String _displayText;
+  _SuggestionData? _data;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   SetStateMethodSuggestion(
@@ -949,37 +926,36 @@ final class SetStateMethodSuggestion extends ExecutableSuggestion
   @override
   String get completion {
     _init();
-    return _completion;
+    return _data!.completion;
   }
 
   /// Text to be displayed in a completion pop-up.
   String get displayText {
     _init();
-    return _displayText;
+    return _data!.displayText;
   }
 
   /// The offset, from the beginning of the inserted text, where the cursor
   /// should be positioned.
   int get selectionOffset {
     _init();
-    return _selectionOffset;
+    return _data!.selectionOffset;
   }
 
   void _init() {
-    if (_initialized) {
+    if (_data != null) {
       return;
     }
     // Build the completion and the selection offset.
     var buffer = StringBuffer();
     buffer.writeln('setState(() {');
     buffer.write('$indent  ');
-    _selectionOffset = buffer.length;
+    var selectionOffset = buffer.length;
     buffer.writeln();
     buffer.write('$indent});');
-    _completion = buffer.toString();
-    _displayText = 'setState(() {});';
-
-    _initialized = true;
+    var completion = buffer.toString();
+    _data = _SuggestionData(completion, selectionOffset,
+        displayText: 'setState(() {});');
   }
 }
 
@@ -1117,6 +1093,18 @@ final class UriSuggestion extends CandidateSuggestion {
 
   @override
   String get completion => uriStr;
+}
+
+/// Information computed for some the code completion suggestions.
+class _SuggestionData {
+  String displayText;
+
+  int selectionOffset;
+
+  String completion;
+
+  _SuggestionData(this.completion, this.selectionOffset,
+      {this.displayText = ''});
 }
 
 extension on String {
