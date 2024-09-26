@@ -74,7 +74,8 @@ import '../builder/builder.dart' show Builder;
 import '../builder/declaration_builders.dart'
     show ClassBuilder, ExtensionBuilder, ExtensionTypeDeclarationBuilder;
 import '../builder/field_builder.dart' show FieldBuilder;
-import '../builder/library_builder.dart' show CompilationUnit, LibraryBuilder;
+import '../builder/library_builder.dart'
+    show CompilationUnit, LibraryBuilder, SourceCompilationUnit;
 import '../builder/member_builder.dart' show MemberBuilder;
 import '../builder/name_iterator.dart' show NameIterator;
 import '../codes/cfe_codes.dart';
@@ -92,8 +93,8 @@ import '../source/source_extension_builder.dart';
 import '../source/source_library_builder.dart'
     show
         ImplicitLanguageVersion,
-        SourceLibraryBuilder,
-        SourceLibraryBuilderState;
+        SourceCompilationUnitImpl,
+        SourceLibraryBuilder;
 import '../source/source_loader.dart';
 import '../util/error_reporter_file_copier.dart' show saveAsGzip;
 import '../util/experiment_environment_getter.dart'
@@ -1963,20 +1964,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // the "self" library first, then imports while not having dill builders
       // directly in the scope of a source builder (which can crash things in
       // some circumstances).
-      SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
-        importUri: libraryUri,
-        fileUri: debugExprUri,
-        originImportUri: libraryUri,
-        packageLanguageVersion:
-            new ImplicitLanguageVersion(libraryBuilder.languageVersion),
-        loader: lastGoodKernelTarget.loader,
-        nameOrigin: libraryBuilder,
-        isUnsupported: libraryBuilder.isUnsupported,
-        isAugmentation: false,
-        isPatch: false,
-      );
-      debugLibrary.compilationUnit.createLibrary();
-      debugLibrary.state = SourceLibraryBuilderState.resolvedParts;
+      SourceCompilationUnit debugCompilationUnit =
+          new SourceCompilationUnitImpl(
+              importUri: libraryUri,
+              fileUri: debugExprUri,
+              originImportUri: libraryUri,
+              packageLanguageVersion:
+                  new ImplicitLanguageVersion(libraryBuilder.languageVersion),
+              loader: lastGoodKernelTarget.loader,
+              nameOrigin: libraryBuilder,
+              isUnsupported: libraryBuilder.isUnsupported,
+              forAugmentationLibrary: false,
+              forPatchLibrary: false,
+              referenceIsPartOwner: null,
+              packageUri: null,
+              augmentationRoot: null,
+              isAugmenting: false,
+              indexedLibrary: null,
+              mayImplementRestrictedTypes: false);
+      SourceLibraryBuilder debugLibrary = debugCompilationUnit.createLibrary();
       debugLibrary.buildNameSpace();
       libraryBuilder.nameSpace.forEachLocalMember((name, member) {
         debugLibrary.nameSpace.addLocalMember(name, member, setter: false);
@@ -2018,19 +2024,26 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         debugLibrary.addImportsToScope();
         _ticker.logMs("Added imports");
       }
-      debugLibrary = new SourceLibraryBuilder(
-        importUri: libraryUri,
-        fileUri: debugExprUri,
-        originImportUri: libraryUri,
-        packageLanguageVersion:
-            new ImplicitLanguageVersion(libraryBuilder.languageVersion),
-        loader: lastGoodKernelTarget.loader,
-        parentScope: debugLibrary.scope,
-        nameOrigin: libraryBuilder,
-        isUnsupported: libraryBuilder.isUnsupported,
-        isAugmentation: false,
-        isPatch: false,
-      );
+      debugCompilationUnit = new SourceCompilationUnitImpl(
+          importUri: libraryUri,
+          fileUri: debugExprUri,
+          originImportUri: libraryUri,
+          packageLanguageVersion:
+              new ImplicitLanguageVersion(libraryBuilder.languageVersion),
+          loader: lastGoodKernelTarget.loader,
+          nameOrigin: libraryBuilder,
+          parentScope: debugLibrary.scope,
+          isUnsupported: libraryBuilder.isUnsupported,
+          forAugmentationLibrary: false,
+          forPatchLibrary: false,
+          referenceIsPartOwner: null,
+          packageUri: null,
+          augmentationRoot: null,
+          isAugmenting: false,
+          indexedLibrary: null,
+          mayImplementRestrictedTypes: false);
+
+      debugLibrary = debugCompilationUnit.createLibrary();
 
       HybridFileSystem hfs =
           lastGoodKernelTarget.fileSystem as HybridFileSystem;

@@ -99,13 +99,8 @@ part 'source_compilation_unit.dart';
 enum SourceLibraryBuilderState {
   /// The builder is in its initial state.
   ///
-  /// In this state a builder is not known a library yet.
+  /// The builder is known to be a library and not a part in this state.
   initial,
-
-  /// The builder has resolved to be a library.
-  ///
-  /// Parts never reach this state.
-  resolvedParts,
 
   /// The name space has been built for the library.
   nameSpaceBuilt,
@@ -147,7 +142,7 @@ enum SourceLibraryBuilderState {
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   SourceLibraryBuilderState _state = SourceLibraryBuilderState.initial;
 
-  late final SourceCompilationUnit compilationUnit;
+  final SourceCompilationUnit compilationUnit;
 
   LookupScope _importScope;
 
@@ -252,7 +247,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   Set<ExtensionBuilder>? _extensionsInScope;
 
   factory SourceLibraryBuilder(
-      {required Uri importUri,
+      {required SourceCompilationUnit compilationUnit,
+      required Uri importUri,
       required Uri fileUri,
       Uri? packageUri,
       required Uri originImportUri,
@@ -267,7 +263,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required bool isUnsupported,
       required bool isAugmentation,
       required bool isPatch,
-      Map<String, Builder>? omittedTypes}) {
+      Map<String, Builder>? omittedTypes,
+      required LibraryName libraryName,
+      required NameSpace importNameSpace,
+      required LibraryNameSpaceBuilder libraryNameSpaceBuilder}) {
     Library library = target ??
         (origin?.library ??
             new Library(importUri,
@@ -276,10 +275,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     ? null
                     : indexedLibrary?.library.reference)
           ..setLanguageVersion(packageLanguageVersion.version));
-    LibraryName libraryName = new LibraryName(library.reference);
-    LibraryNameSpaceBuilder libraryNameSpaceBuilder =
-        new LibraryNameSpaceBuilder();
-    NameSpace? importNameSpace = new NameSpaceImpl();
+    libraryName.reference = library.reference;
     LookupScope importScope = new NameSpaceLookupScope(
         importNameSpace, ScopeKind.library, 'top',
         parent: parentScope);
@@ -288,6 +284,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         getables: omittedTypes, parent: importScope);
     NameSpace exportNameSpace = origin?.exportNameSpace ?? new NameSpaceImpl();
     return new SourceLibraryBuilder._(
+        compilationUnit: compilationUnit,
         loader: loader,
         importUri: importUri,
         fileUri: fileUri,
@@ -313,6 +310,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   SourceLibraryBuilder._(
       {required this.loader,
+      required this.compilationUnit,
       required this.importUri,
       required this.fileUri,
       required Uri? packageUri,
@@ -351,22 +349,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         !importUri.isScheme('dart') || _packageUri == null,
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
-    compilationUnit = new SourceCompilationUnitImpl(
-        this, libraryNameSpaceBuilder,
-        importUri: importUri,
-        fileUri: fileUri,
-        packageUri: _packageUri,
-        originImportUri: originImportUri,
-        packageLanguageVersion: packageLanguageVersion,
-        indexedLibrary: indexedLibrary,
-        libraryName: libraryName,
-        omittedTypeDeclarationBuilders: omittedTypes,
-        importNameSpace: importNameSpace,
-        forAugmentationLibrary: isAugmentation,
-        forPatchLibrary: isPatch,
-        isAugmenting: origin != null,
-        isUnsupported: isUnsupported,
-        loader: loader);
   }
 
   SourceLibraryBuilderState get state => _state;
@@ -405,6 +387,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     return true;
   }
+
+  @override
+  bool get mayImplementRestrictedTypes =>
+      compilationUnit.mayImplementRestrictedTypes;
 
   /// `true` if this is an augmentation library.
   bool get isAugmentationLibrary => compilationUnit.forAugmentationLibrary;
@@ -510,23 +496,33 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             new OmittedTypeDeclarationBuilder(entry.key, entry.value, this);
       }
     }
-    SourceLibraryBuilder augmentationLibrary = new SourceLibraryBuilder(
-        fileUri: uri,
-        importUri: uri,
-        originImportUri: importUri,
-        packageLanguageVersion: compilationUnit.packageLanguageVersion,
-        loader: loader,
-        isUnsupported: false,
-        target: library,
-        origin: this,
-        isAugmentation: true,
-        isPatch: false,
-        indexedLibrary: indexedLibrary,
-        omittedTypes: omittedTypeDeclarationBuilders);
+    SourceCompilationUnit augmentationCompilationUnit =
+        new SourceCompilationUnitImpl(
+      fileUri: uri,
+      importUri: uri,
+      originImportUri: importUri,
+      packageLanguageVersion: compilationUnit.packageLanguageVersion,
+      loader: loader,
+      isUnsupported: false,
+      augmentationRoot: compilationUnit,
+      forAugmentationLibrary: true,
+      isAugmenting: true,
+      forPatchLibrary: false,
+      indexedLibrary: indexedLibrary,
+      omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders,
+      referenceIsPartOwner: null,
+      // TODO(johnniwinther): Shouldn't these be the copied from this
+      // library?
+      packageUri: null,
+      nameOrigin: null,
+      mayImplementRestrictedTypes: false,
+    );
+    SourceLibraryBuilder augmentationLibrary =
+        augmentationCompilationUnit.createLibrary(library);
     addAugmentationLibrary(augmentationLibrary);
     Uint8List sourceUtf8 = utf8.encode(source);
     loader.registerUnparsedLibrarySource(
-        augmentationLibrary.compilationUnit, sourceUtf8);
+        augmentationCompilationUnit, sourceUtf8);
     return augmentationLibrary;
   }
 
@@ -805,7 +801,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void buildNameSpace() {
-    assert(checkState(required: [SourceLibraryBuilderState.resolvedParts]));
+    assert(checkState(required: [SourceLibraryBuilderState.initial]));
 
     assert(
         _nameSpace == null, "Name space has already being computed for $this.");
@@ -1057,15 +1053,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool get isAugmenting => compilationUnit.isAugmenting;
 
   @override
-  SourceLibraryBuilder get origin {
-    SourceLibraryBuilder? origin = _immediateOrigin;
-    // TODO(johnniwinther): This returns the wrong origin for early queries on
-    // augmentations imported into parts.
-    if (origin != null && origin.partOfLibrary is SourceLibraryBuilder) {
-      origin = origin.partOfLibrary as SourceLibraryBuilder;
-    }
-    return origin?.origin ?? this;
-  }
+  SourceLibraryBuilder get origin => _immediateOrigin ?? this;
 
   @override
   final Uri importUri;
