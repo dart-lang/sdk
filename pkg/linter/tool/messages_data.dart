@@ -16,6 +16,34 @@ final MessagesData messagesYaml = () {
 final String _messagesYamlPath = pathRelativeToPackageRoot(['messages.yaml']);
 
 extension type MessagesData(YamlMap _map) {
+  Map<String, String> get addedIn {
+    var result = <String, String>{};
+
+    for (var MapEntry(key: String name, value: YamlMap data)
+        in lintCodes.entries) {
+      if (data['addedIn'] case String addedInString) {
+        if (data.containsKey('sharedName')) {
+          name = data['sharedName'] as String;
+        }
+
+        if (addedInString.split('.').length < 2) {
+          throw StateError("Lint $name's 'addedIn' version must be "
+              'at least a major.minor version.');
+        }
+
+        var oldResult = result[name];
+        if (oldResult != null && oldResult == addedInString) {
+          throw StateError("Lint $name has a different 'addedIn' value "
+              'between its shared codes!');
+        }
+
+        result[name] = addedInString;
+      }
+    }
+
+    return result;
+  }
+
   Map<String, Set<String>> get categoryMappings {
     var result = <String, Set<String>>{};
 
