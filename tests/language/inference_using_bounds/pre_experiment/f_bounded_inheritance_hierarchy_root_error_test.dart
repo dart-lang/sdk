@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=inference-using-bounds
-
-import '../static_type_helper.dart';
+// @dart=3.5
 
 class A<X extends A<X>> {}
 
@@ -15,7 +13,10 @@ class C extends B {}
 X f<X extends A<X>>(X x) => x;
 
 void main() {
-  f(B());
-  f(C())..expectStaticType<Exactly<B>>();
-  f<B>(C());
+  f(B()); // Ok.
+  f(C()); // Error.
+//^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
+// [cfe] Inferred type argument 'C' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'f'.
+  f<B>(C()); // Ok.
 }
