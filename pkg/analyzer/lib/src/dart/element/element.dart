@@ -4482,7 +4482,14 @@ mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
   // TODO(augmentations): This is wrong. The function type needs to be a merge
   //  of the function types of all of the fragments, but I don't know how to
   //  perform that merge.
-  FunctionType get type => (firstFragment as FunctionTypedElementImpl).type;
+  FunctionType get type {
+    if (firstFragment is ExecutableElementImpl) {
+      return (firstFragment as ExecutableElementImpl).type;
+    } else if (firstFragment is FunctionTypedElementImpl) {
+      return (firstFragment as FunctionTypedElementImpl).type;
+    }
+    throw UnimplementedError();
+  }
 }
 
 mixin FragmentedTypeParameterizedElementMixin<
@@ -9023,9 +9030,7 @@ class SetterElementImpl extends ExecutableElementImpl2
       firstFragment.correspondingGetter2?.element as GetterElement?;
 
   @override
-  String get displayName {
-    return name.substring(0, name.length - 1);
-  }
+  String get displayName => name.substring(0, name.length - 1);
 
   @override
   Element2? get enclosingElement2 => firstFragment.enclosingFragment?.element;

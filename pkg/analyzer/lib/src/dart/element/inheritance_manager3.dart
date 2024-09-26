@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:meta/meta.dart';
 
 /// Failure because of there is no most specific signature in [candidates].
 class CandidatesConflict extends Conflict {
@@ -145,6 +147,40 @@ class InheritanceManager3 {
     return getInheritedMap2(element)[name];
   }
 
+  /// Returns the result of [getInherited2] with [type] substitution.
+  // This is a replacement for `getInherited`.
+  @experimental
+  ExecutableElement2? getInherited3(InterfaceType type, Name name) {
+    var element = getInherited(type, name);
+    return (element as ExecutableFragment?)?.element;
+  }
+
+  /// Returns the most specific signature of the member with the given [name]
+  /// that [element] inherits from the mixins, superclasses, or interfaces.
+  ///
+  /// Returns `null` if no member is inherited because the member is not
+  /// declared at all, or because there is no the most specific signature.
+  ///
+  /// This is equivalent to `getInheritedMap(type)[name]`.
+  // This is a replacement for `getInherited2`.
+  @experimental
+  ExecutableElement2? getInherited4(InterfaceElement2 element, Name name) {
+    var oldElement = getInheritedMap2(
+        (element as AugmentedInterfaceElement).declaration)[name];
+    return (oldElement as ExecutableFragment?)?.element;
+  }
+
+  /// Returns signatures of all concrete members that the given [element]
+  /// inherits from the superclasses and mixins.
+  @experimental
+  Map<Name, ExecutableElement2> getInheritedConcreteMap(
+      InterfaceElement2 element) {
+    var map = getInheritedConcreteMap2(
+        (element as AugmentedInterfaceElement).declaration);
+    return map.map((name, element) =>
+        MapEntry(name, (element as ExecutableFragment).element));
+  }
+
   /// Return signatures of all concrete members that the given [element] inherits
   /// from the superclasses and mixins.
   Map<Name, ExecutableElement> getInheritedConcreteMap2(
@@ -155,6 +191,20 @@ class InheritanceManager3 {
 
     var interface = getInterface(element);
     return interface.superImplemented.last;
+  }
+
+  /// Returns the mapping from names to most specific signatures of members
+  /// inherited from the super-interfaces (superclasses, mixins, and
+  /// interfaces).
+  ///
+  /// If there is no most specific signature for a name, the corresponding name
+  /// will not be included.
+  @experimental
+  Map<Name, ExecutableElement2> getInheritedMap(InterfaceElement2 element) {
+    var map =
+        getInheritedMap2((element as AugmentedInterfaceElement).declaration);
+    return map.map((name, element) =>
+        MapEntry(name, (element as ExecutableFragment).element));
   }
 
   /// Return the mapping from names to most specific signatures of members
@@ -209,6 +259,15 @@ class InheritanceManager3 {
 
     _interfaces[element] = result;
     return result;
+  }
+
+  /// Returns the interface of the given [element].
+  ///
+  /// The interface might include private members, not necessary accessible in
+  /// all libraries.
+  @experimental
+  Interface getInterface2(InterfaceElement2 element) {
+    return getInterface((element as AugmentedInterfaceElement).declaration);
   }
 
   /// Return the result of [getMember2] with [type] substitution.
@@ -272,6 +331,75 @@ class InheritanceManager3 {
       return interface.implemented[name];
     }
     return interface.map[name];
+  }
+
+  /// Returns the result of [getMember4] with [type] substitution.
+  // This is a replacement for `getMember`.
+  @experimental
+  ExecutableElement2? getMember3(
+    InterfaceType type,
+    Name name, {
+    bool concrete = false,
+    int forMixinIndex = -1,
+    bool forSuper = false,
+  }) {
+    var element = getMember(
+      type,
+      name,
+      concrete: concrete,
+      forMixinIndex: forMixinIndex,
+      forSuper: forSuper,
+    );
+    return (element as ExecutableFragment?)?.element;
+  }
+
+  /// Returns the member with the given [name].
+  ///
+  /// If [concrete] is `true`, the concrete implementation is returned, whether
+  /// from the given [element] or its superclass.
+  ///
+  /// If [forSuper] is `true`, then [concrete] is implied, and only concrete
+  /// members from the superclass are considered.
+  ///
+  /// If [forMixinIndex] is specified, only the nominal superclass, and the
+  /// given number of mixins after it are considered. For example for `1` in
+  /// `class C extends S with M1, M2, M3`, only `S` and `M1` are considered.
+  // This is a replacement for `getMember2`.
+  @experimental
+  ExecutableElement2? getMember4(
+    InterfaceElement2 element,
+    Name name, {
+    bool concrete = false,
+    int forMixinIndex = -1,
+    bool forSuper = false,
+  }) {
+    var oldElement = getMember2(
+      (element as AugmentedInterfaceElement).declaration,
+      name,
+      concrete: concrete,
+      forMixinIndex: forMixinIndex,
+      forSuper: forSuper,
+    );
+    return (oldElement as ExecutableFragment?)?.element;
+  }
+
+  /// Returns all members of mixins, superclasses, and interfaces that a member
+  /// with the given [name], defined in the [element], would override.
+  ///
+  /// Returns `null` if no members would be overridden.
+  @experimental
+  List<ExecutableElement2>? getOverridden(
+      InterfaceElement2 element, Name name) {
+    var elements = getOverridden2(
+      (element as AugmentedInterfaceElement).declaration,
+      name,
+    );
+    if (elements == null) {
+      return null;
+    }
+    return elements
+        .map((fragment) => (fragment as ExecutableFragment).element)
+        .toList();
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member
@@ -1113,6 +1241,20 @@ class Interface {
     required this.superImplemented,
     required this.conflicts,
   });
+
+  /// The map of declared names to their signatures.
+  @experimental
+  Map<Name, ExecutableElement2> get declared2 {
+    return declared.map((name, element) =>
+        MapEntry(name, (element as ExecutableFragment).element));
+  }
+
+  /// The map of names to their signature in the interface.
+  @experimental
+  Map<Name, ExecutableElement2> get map2 {
+    return map.map((name, element) =>
+        MapEntry(name, (element as ExecutableFragment).element));
+  }
 
   /// Return `true` if the [name] is implemented in the supertype.
   bool isSuperImplemented(Name name) {
