@@ -549,10 +549,17 @@ class Server {
 
       // Guard against lines like:
       //   {"event":"server.connected","params":{...}}The Dart VM service is listening on ...
-      var dartVMServiceMessage = 'The Dart VM service is listening on ';
+      const dartVMServiceMessage = 'The Dart VM service is listening on ';
       if (trimmedLine.contains(dartVMServiceMessage)) {
         trimmedLine = trimmedLine
             .substring(0, trimmedLine.indexOf(dartVMServiceMessage))
+            .trim();
+      }
+      const devtoolsMessage =
+          'The Dart DevTools debugger and profiler is available at:';
+      if (trimmedLine.contains(devtoolsMessage)) {
+        trimmedLine = trimmedLine
+            .substring(0, trimmedLine.indexOf(devtoolsMessage))
             .trim();
       }
       if (trimmedLine.isEmpty) {

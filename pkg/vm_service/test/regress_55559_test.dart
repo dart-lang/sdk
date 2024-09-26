@@ -54,7 +54,10 @@ void main() {
         ],
       );
       final service = await vmServiceConnectUri(wsUri.toString());
-      final vm = await service.getVM();
+      VM vm;
+      do {
+        vm = await service.getVM();
+      } while (vm.isolates!.isEmpty);
       final isolate = vm.isolates!.first;
       final errorCompleter = Completer<RPCError>();
       final stackTraceCompleter = Completer<StackTrace>();
