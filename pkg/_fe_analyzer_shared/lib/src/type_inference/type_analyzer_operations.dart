@@ -529,8 +529,9 @@ abstract interface class TypeAnalyzerOperations<
   ///
   /// If [type] isn't introduced by a class, mixin, enum, or extension type,
   /// returns null.
-  TypeDeclarationMatchResult? matchTypeDeclarationType(
-      SharedTypeView<TypeStructure> type);
+  TypeDeclarationMatchResult<TypeDeclarationType, TypeDeclaration,
+          TypeStructure>?
+      matchTypeDeclarationType(SharedTypeView<TypeStructure> type);
 
   /// Computes `NORM` of [type].
   /// https://github.com/dart-lang/language

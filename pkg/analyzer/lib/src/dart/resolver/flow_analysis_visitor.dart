@@ -680,8 +680,8 @@ class TypeSystemOperations
   }
 
   @override
-  TypeDeclarationMatchResult? matchTypeDeclarationType(
-      SharedTypeView<DartType> type) {
+  TypeDeclarationMatchResult<InterfaceType, InterfaceElement, DartType>?
+      matchTypeDeclarationType(SharedTypeView<DartType> type) {
     DartType unwrappedType = type.unwrapTypeView();
     if (isInterfaceType(type)) {
       InterfaceType interfaceType = unwrappedType as InterfaceType;

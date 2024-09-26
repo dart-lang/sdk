@@ -3150,25 +3150,23 @@ class MiniAstOperations
   }
 
   @override
-  TypeDeclarationMatchResult? matchTypeDeclarationType(
+  TypeDeclarationMatchResult<Type, String, Type>? matchTypeDeclarationType(
       SharedTypeView<Type> type) {
     Type unwrappedType = type.unwrapTypeView();
     if (unwrappedType is! PrimaryType) return null;
+    TypeDeclarationKind typeDeclarationKind;
     if (unwrappedType.isInterfaceType) {
-      return new TypeDeclarationMatchResult(
-          typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
-          typeDeclaration: unwrappedType.type,
-          typeDeclarationType: unwrappedType,
-          typeArguments: unwrappedType.args);
+      typeDeclarationKind = TypeDeclarationKind.interfaceDeclaration;
     } else if (isExtensionType(type)) {
-      return new TypeDeclarationMatchResult(
-          typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
-          typeDeclaration: unwrappedType.type,
-          typeDeclarationType: unwrappedType,
-          typeArguments: unwrappedType.args);
+      typeDeclarationKind = TypeDeclarationKind.extensionTypeDeclaration;
     } else {
       return null;
     }
+    return new TypeDeclarationMatchResult(
+        typeDeclarationKind: typeDeclarationKind,
+        typeDeclaration: unwrappedType.name,
+        typeDeclarationType: unwrappedType,
+        typeArguments: unwrappedType.args);
   }
 
   @override
