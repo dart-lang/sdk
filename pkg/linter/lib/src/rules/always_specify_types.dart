@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
@@ -67,8 +67,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     var keyword = node.keyword;
     if (node.type == null && keyword != null) {
-      var element = node.declaredElement;
-      if (element is VariableElement) {
+      var element = node.declaredElement2;
+      if (element is VariableElement2) {
         if (keyword.keyword == Keyword.VAR) {
           rule.reportLintForToken(keyword,
               arguments: [keyword.lexeme, element!.type],
@@ -109,9 +109,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitNamedType(NamedType namedType) {
     var type = namedType.type;
     if (type is InterfaceType) {
-      var element = namedType.element;
-      if (element is TypeParameterizedElement &&
-          element.typeParameters.isNotEmpty &&
+      var element = namedType.element2;
+      if (element is TypeParameterizedElement2 &&
+          element.typeParameters2.isNotEmpty &&
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
           !element.hasOptionalTypeArgs) {
@@ -131,9 +131,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     var name = param.name;
     if (name != null && param.type == null && !name.lexeme.isJustUnderscores) {
       var keyword = param.keyword;
+      var type = param.declaredElement?.type;
       if (keyword != null) {
-        var type = param.declaredElement?.type;
-
         if (keyword.type == Keyword.VAR &&
             type != null &&
             type is! DynamicType) {
@@ -144,9 +143,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           rule.reportLintForToken(keyword,
               errorCode: LinterLintCode.always_specify_types_add_type);
         }
-      } else if (param.declaredElement != null) {
-        var type = param.declaredElement!.type;
-
+      } else if (type != null) {
         if (type is DynamicType) {
           rule.reportLint(param,
               errorCode: LinterLintCode.always_specify_types_add_type);
@@ -213,9 +210,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (initializer != null) {
         DartType? type;
         if (initializer is Identifier) {
-          var staticElement = initializer.staticElement;
-          if (staticElement is VariableElement) {
-            type = staticElement.type;
+          var element = initializer.element;
+          if (element is LocalVariableElement2) {
+            type = element.type;
           }
         }
 
