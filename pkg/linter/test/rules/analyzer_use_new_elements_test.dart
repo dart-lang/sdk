@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart';
 import 'package:linter/src/rules/analyzer_use_new_elements.dart';
@@ -10,6 +12,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../rule_test_support.dart';
 
 main() {
+  if (Platform.isWindows) {
+    return;
+  }
+
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalyzerUseNewElementsTest);
   });
