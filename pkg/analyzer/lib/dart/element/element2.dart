@@ -522,6 +522,9 @@ abstract class FieldElement2 implements PropertyInducingElement2 {
   @override
   FieldElement2 get baseElement;
 
+  @override
+  FieldFragment? get firstFragment;
+
   /// Whether the field is abstract.
   ///
   /// Executable fields are abstract if they are declared with the `abstract`
