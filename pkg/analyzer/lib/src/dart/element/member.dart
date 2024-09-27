@@ -1023,6 +1023,10 @@ class ParameterMember extends VariableMember
   @override
   String? get defaultValueCode => declaration.defaultValueCode;
 
+  @override
+  // TODO(scheglov): we lose types
+  FormalParameterElement get element => declaration.element;
+
   @Deprecated('Use enclosingElement3 instead')
   @override
   Element? get enclosingElement => declaration.enclosingElement;

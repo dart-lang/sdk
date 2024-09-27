@@ -39,6 +39,7 @@ library;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -2202,6 +2203,9 @@ abstract class ParameterElement
 
   /// The code of the default value, or `null` if no default value.
   String? get defaultValueCode;
+
+  @experimental
+  FormalParameterElement get element;
 
   /// Whether the parameter has a default value.
   bool get hasDefaultValue;
