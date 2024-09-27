@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.50 Add support for digit separators in numeric literals.
+//
 // v0.49 Add support for static and top-level members with no implementation.
 //
 // v0.48 Add support for enhanced parts.
@@ -1734,7 +1736,12 @@ DIGIT
 
 fragment
 EXPONENT
-    :    ('e' | 'E') ('+' | '-')? DIGIT+
+    :    ('e' | 'E') ('+' | '-')? DIGITS
+    ;
+
+fragment
+DIGITS
+    :    DIGIT ('_'* DIGIT)*
     ;
 
 fragment
@@ -1742,6 +1749,11 @@ HEX_DIGIT
     :    ('a' | 'b' | 'c' | 'd' | 'e' | 'f')
     |    ('A' | 'B' | 'C' | 'D' | 'E' | 'F')
     |    DIGIT
+    ;
+
+fragment
+HEX_DIGITS
+    :    HEX_DIGIT ('_'* HEX_DIGIT)*
     ;
 
 // Reserved words (if updated, update `reservedWord` as well).
@@ -2031,14 +2043,13 @@ WHEN
 // Lexical tokens that are not words.
 
 NUMBER
-    :    DIGIT+ '.' DIGIT+ EXPONENT?
-    |    DIGIT+ EXPONENT?
-    |    '.' DIGIT+ EXPONENT?
+    :    DIGITS ('.' DIGITS)? EXPONENT?
+    |    '.' DIGITS EXPONENT?
     ;
 
 HEX_NUMBER
-    :    '0x' HEX_DIGIT+
-    |    '0X' HEX_DIGIT+
+    :    '0x' HEX_DIGITS
+    |    '0X' HEX_DIGITS
     ;
 
 RAW_SINGLE_LINE_STRING
