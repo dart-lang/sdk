@@ -66,6 +66,8 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+export 'package:analyzer/dart/element/element.dart' show DirectiveUriWithSource;
+
 abstract class BindPatternVariableElement2 implements PatternVariableElement2 {}
 
 /// A class.
