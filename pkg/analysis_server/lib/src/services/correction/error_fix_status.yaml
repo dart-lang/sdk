@@ -1850,6 +1850,8 @@ LintCode.always_specify_types_split_to_types:
   status: hasFix
 LintCode.always_use_package_imports:
   status: hasFix
+LintCode.analyzer_use_new_elements:
+  status: noFix
 LintCode.annotate_overrides:
   status: hasFix
 LintCode.annotate_redeclares:
