@@ -731,7 +731,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (_constLazyAccessors.isNotEmpty) {
       var constTableBody = _runtimeStatement(
-          'defineLazy(#, { # }, false)', [_constTable, _constLazyAccessors]);
+          'defineLazy(#, { # })', [_constTable, _constLazyAccessors]);
       _moduleItems.insert(_constTableInsertionIndex, constTableBody);
       _constLazyAccessors.clear();
     }
@@ -2892,8 +2892,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     _currentUri = savedUri;
 
-    return _runtimeStatement(
-        'defineLazy(#, { # }, #)', [objExpr, accessors, js.boolean(false)]);
+    return _runtimeStatement('defineLazy(#, { # })', [objExpr, accessors]);
   }
 
   js_ast.Fun _emitStaticFieldInitializer(Field field) {
@@ -3690,7 +3689,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           .add(js.statement('const # = Object.create(null);', [_constTable]));
 
       constTable.add(_runtimeStatement(
-          'defineLazy(#, { # }, false)', [_constTable, _constLazyAccessors]));
+          'defineLazy(#, { # })', [_constTable, _constLazyAccessors]));
 
       constTable.addAll(_constTableCache.emit());
     }
