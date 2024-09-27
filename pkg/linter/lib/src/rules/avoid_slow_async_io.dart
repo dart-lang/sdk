@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -86,8 +86,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkFileSystemEntityMethods(MethodInvocation node) {
     var target = node.target;
     if (target is Identifier) {
-      var elem = target.staticElement;
-      if (elem is ClassElement && elem.name == 'FileSystemEntity') {
+      var element = target.element;
+      if (element is ClassElement2 && element.name == 'FileSystemEntity') {
         if (_fileSystemEntityMethodNames.contains(node.methodName.name)) {
           rule.reportLint(node);
         }
