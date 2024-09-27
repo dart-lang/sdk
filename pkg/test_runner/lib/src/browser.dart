@@ -375,7 +375,7 @@ String dart2wasmHtml(String title, String wasmPath, String mjsPath) {
     const mjs = await import(mjsPath);
     const compiledApp = await mjs.compileStreaming(fetch(wasmPath));
     window.loadData = async (relativeToWasmFileUri) => {
-      const path = '$wasmPath'.slice(0, wasmFilename.lastIndexOf('/'));
+      const path = '$wasmPath'.slice(0, wasmPath.lastIndexOf('/'));
       const response = await fetch(`\${path}/\${relativeToWasmFileUri}`);
       return response.arrayBuffer();
     };

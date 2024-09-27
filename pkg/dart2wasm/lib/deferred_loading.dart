@@ -391,7 +391,15 @@ void transformComponentForTestMode(Component component,
   invokeMain.function.emittedValueType = const VoidType();
 
   final oldBody = invokeMain.function.body!;
-  invokeMain.function.body = Block([...loadStatements, oldBody]);
+
+  // Add print of 'unittest-suite-wait-for-done' to indicate to test harnesses
+  // that the test contains async work. Any test using test most must therefore
+  // also include a concluding 'unittest-suite-done' message. Usually via calls
+  // to `asyncStart` and `asyncEnd` helpers.
+  final asyncStart = ExpressionStatement(StaticInvocation(
+      coreTypes.printProcedure,
+      Arguments([StringLiteral('unittest-suite-wait-for-done')])));
+  invokeMain.function.body = Block([asyncStart, ...loadStatements, oldBody]);
 
   // The await transformer runs modularly before this transform so we need to
   // rerun it on the transformed `_invokeMain` method.
