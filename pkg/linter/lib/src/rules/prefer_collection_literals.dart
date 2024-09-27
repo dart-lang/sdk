@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 
@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var constructorName = node.constructorName.name?.name;
 
-    if (node.constructorName.type.element is TypeAliasElement) {
+    if (node.constructorName.type.element2 is TypeAliasElement2) {
       // Allow the use of typedef constructors.
       return;
     }
