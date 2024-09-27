@@ -297,10 +297,10 @@ topLevelDefinition
     |    extensionDeclaration
     |    enumType
     |    typeAlias
-    |    EXTERNAL functionSignature ';'
-    |    EXTERNAL getterSignature ';'
-    |    EXTERNAL setterSignature ';'
-    |    EXTERNAL finalVarOrType identifierList ';'
+    |    AUGMENT? EXTERNAL functionSignature ';'
+    |    AUGMENT? EXTERNAL getterSignature ';'
+    |    AUGMENT? EXTERNAL setterSignature ';'
+    |    AUGMENT? EXTERNAL finalVarOrType identifierList ';'
     |    AUGMENT? getterSignature (functionBody | ';')
     |    AUGMENT? setterSignature (functionBody | ';')
     |    AUGMENT? functionSignature (functionBody | ';')
@@ -455,7 +455,7 @@ interfaces
 
 classMemberDeclaration
     :    AUGMENT? methodSignature functionBody
-    |    declaration ';'
+    |    AUGMENT? declaration ';'
     ;
 
 mixinApplicationClass
@@ -525,15 +525,15 @@ declaration
     |    EXTERNAL (STATIC? finalVarOrType | COVARIANT varOrType) identifierList
     |    EXTERNAL? operatorSignature
     |    ABSTRACT (finalVarOrType | COVARIANT varOrType) identifierList
-    |    AUGMENT? STATIC (FINAL | CONST) type? initializedIdentifierList
-    |    AUGMENT? STATIC LATE FINAL type? initializedIdentifierList
-    |    AUGMENT? STATIC LATE? varOrType initializedIdentifierList
-    |    AUGMENT? COVARIANT LATE FINAL type? identifierList
-    |    AUGMENT? COVARIANT LATE? varOrType initializedIdentifierList
-    |    AUGMENT? LATE? (FINAL type? | varOrType) initializedIdentifierList
-    |    AUGMENT? redirectingFactoryConstructorSignature
-    |    AUGMENT? constantConstructorSignature (redirection | initializers)?
-    |    AUGMENT? constructorSignature (redirection | initializers)?
+    |    STATIC (FINAL | CONST) type? initializedIdentifierList
+    |    STATIC LATE FINAL type? initializedIdentifierList
+    |    STATIC LATE? varOrType initializedIdentifierList
+    |    COVARIANT LATE FINAL type? identifierList
+    |    COVARIANT LATE? varOrType initializedIdentifierList
+    |    LATE? (FINAL type? | varOrType) initializedIdentifierList
+    |    redirectingFactoryConstructorSignature
+    |    constantConstructorSignature (redirection | initializers)?
+    |    constructorSignature (redirection | initializers)?
     ;
 
 operatorSignature
