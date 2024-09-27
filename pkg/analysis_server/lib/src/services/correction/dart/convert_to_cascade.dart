@@ -37,9 +37,10 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
       previousOperator = _getTargetAndOperator(previous.expression)?.operator;
     } else if (previous is VariableDeclarationStatement) {
       // Single variable declaration.
-      if (previous.variables.variables.length == 1) {
-        semicolon = previous.endToken;
+      if (previous.variables.variables.length != 1) {
+        return;
       }
+      semicolon = previous.endToken;
     } else {
       return;
     }
