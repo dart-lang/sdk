@@ -398,6 +398,9 @@ abstract class Element2 {
 abstract class EnumElement2 implements InterfaceElement2 {
   /// The constants defined by the enum.
   List<FieldElement2> get constants2;
+
+  @override
+  EnumFragment get firstFragment;
 }
 
 /// The portion of an [EnumElement2] contributed by a single declaration.

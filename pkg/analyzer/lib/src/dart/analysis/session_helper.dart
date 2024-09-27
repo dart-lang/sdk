@@ -56,6 +56,17 @@ class AnalysisSessionHelper {
     return resolvedLibrary?.getElementDeclaration(element);
   }
 
+  /// Returns the declaration of the [fragment].
+  ///
+  /// Returns `null` if the [fragment] is synthetic, or is declared in a file
+  /// that is not a part of a library.
+  Future<ElementDeclarationResult?> getElementDeclaration2(
+      Fragment fragment) async {
+    var libraryPath = fragment.libraryFragment.source.fullName;
+    var resolvedLibrary = await _getResolvedLibrary(libraryPath);
+    return resolvedLibrary?.getElementDeclaration2(fragment);
+  }
+
   /// Return the [EnumElement] with the given [className] that is exported
   /// from the library with the given [libraryUri], or `null` if the library
   /// does not export a class with such name.

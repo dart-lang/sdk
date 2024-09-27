@@ -6681,6 +6681,9 @@ mixin MaybeAugmentedEnumElementMixin on MaybeAugmentedInterfaceElementMixin
 
   @override
   EnumElementImpl get declaration;
+
+  @override
+  EnumFragment get firstFragment => declaration;
 }
 
 mixin MaybeAugmentedExtensionElementMixin on MaybeAugmentedInstanceElementMixin
