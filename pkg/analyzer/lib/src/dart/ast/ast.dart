@@ -29,6 +29,7 @@ import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
@@ -18482,7 +18483,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @experimental
   @override
   LocalVariableElement2? get declaredElement2 {
-    return declaredElement.asElement2 as LocalVariableElement2;
+    return declaredElement.asElement2.ifTypeOrNull<LocalVariableElement2>();
   }
 
   @experimental

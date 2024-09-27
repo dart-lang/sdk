@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 const Map<String, Set<String>> _nonSubtypableClassMap = {
   'dart:async': _nonSubtypableDartAsyncClassNames,
@@ -285,6 +287,11 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get iterableElement {
     return _iterableElement ??= _getClassElement(_coreLibrary, 'Iterable');
+  }
+
+  @override
+  ClassElement2 get iterableElement2 {
+    return iterableElement.asElement2 as ClassElement2;
   }
 
   @override

@@ -620,6 +620,23 @@ class B {}
 ''');
   }
 
+  Future<void> test_declaration_topLevelVariable() async {
+    await resolveTestCode('''
+A a = A();
+B b = a;
+
+class A {}
+class B {}
+''');
+    await assertHasFix('''
+A a = A();
+B b = a as B;
+
+class A {}
+class B {}
+''');
+  }
+
   Future<void> test_notExpression_incomplete() async {
     await resolveTestCode(r'''
 void foo(int a) {

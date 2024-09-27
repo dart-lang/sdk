@@ -363,7 +363,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     return propertyErrors;
   }
 
-  /// Computes the information for the proerty at the given [node].
+  /// Computes the information for the property at the given [node].
   _PropertyInfo _getPropertyInfo(AstNode node) {
     String? name;
     if (node is MethodDeclaration) {
@@ -444,7 +444,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   }
 
   bool _isIterable(DartType type) {
-    return type.asInstanceOf(typeProvider.iterableElement) != null;
+    return type.asInstanceOf2(typeProvider.iterableElement2) != null;
   }
 }
 

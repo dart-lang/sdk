@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:meta/meta.dart';
 
 /// The interface `TypeProvider` defines the behavior of objects that provide
 /// access to types defined by the language.
@@ -68,6 +70,10 @@ abstract class TypeProvider {
 
   /// Return the element representing the built-in class `Iterable`.
   ClassElement get iterableElement;
+
+  /// Return the element representing the built-in class `Iterable`.
+  @experimental
+  ClassElement2 get iterableElement2;
 
   /// Return the type representing the type `Iterable<Object>`.
   InterfaceType get iterableObjectType;
