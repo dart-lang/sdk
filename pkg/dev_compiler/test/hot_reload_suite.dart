@@ -29,6 +29,7 @@ final testTimeoutSeconds = 10;
 final testDiffSeparator = '/** DIFF **/';
 
 final argParser = ArgParser()
+  ..addFlag('help', abbr: 'h', help: 'Display this message.', negatable: false)
   ..addOption('runtime',
       abbr: 'r',
       defaultsTo: 'd8',
@@ -71,6 +72,10 @@ late final bool debug;
 
 Future<void> main(List<String> args) async {
   final argResults = argParser.parse(args);
+  if (argResults['help'] as bool) {
+    print(argParser.usage);
+    return;
+  }
   final runtimePlatform =
       RuntimePlatforms.values.byName(argResults['runtime'] as String);
   final testNameFilter = RegExp(argResults['filter'] as String);

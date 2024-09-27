@@ -2805,10 +2805,10 @@ ExpressionStatement
     identifier: SimpleIdentifier
       token: loadLibrary
       staticElement: loadLibrary@-1
-<exception>
+      element: loadLibrary@-1
       staticType: Future<dynamic> Function()
     staticElement: loadLibrary@-1
-<exception>
+    element: loadLibrary@-1
     staticType: Future<dynamic> Function()
   semicolon: ;
 ''');
@@ -2829,7 +2829,7 @@ FunctionReference
   function: SimpleIdentifier
     token: foo
     staticElement: foo@20
-<exception>
+    element: foo@20
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
