@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -116,8 +116,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         // Parentheses are required to stop null-aware shorting, which then
         // allows an extension getter, which extends a nullable type, to be
         // called on a `null` value.
-        var target = parent.propertyName.staticElement?.enclosingElement3;
-        if (target is ExtensionElement &&
+        var target = parent.propertyName.element?.enclosingElement2;
+        if (target is ExtensionElement2 &&
             typeSystem.isNullable(target.extendedType)) {
           return;
         }
@@ -131,8 +131,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         // Parentheses are required to stop null-aware shorting, which then
         // allows an extension method, which extends a nullable type, to be
         // called on a `null` value.
-        var target = parent.methodName.staticElement?.enclosingElement3;
-        if (target is ExtensionElement &&
+        var target = parent.methodName.element?.enclosingElement2;
+        if (target is ExtensionElement2 &&
             typeSystem.isNullable(target.extendedType)) {
           return;
         }

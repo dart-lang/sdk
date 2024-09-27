@@ -1432,14 +1432,20 @@ if (!self.deferred_loader) {
           throw 'Library not defined: ' + libraryName + '. Failed to initialize.';
         }
         currentLibrary = initializer(currentLibrary);
+        // We make the library available in the map before linking to break out
+        // of cycles in library dependencies.
+        // Invariant: during linking a library dependency can be read in a state
+        // where it is initialized but may not be linked.
+        this.libraries[libraryName] = currentLibrary;
         // Link the library. This action will trigger the initialization and
         // linking of dependency libraries as needed.
         currentLibrary.link();
-        this.libraries[libraryName] = currentLibrary;
       }
       if (installFn != null) {
         installFn(currentLibrary);
       }
+      // Invariant: at this point the library and all of its recursive
+      // dependencies are fully initialized and linked.
       return currentLibrary;
     }
 
@@ -1528,29 +1534,38 @@ if (!self.deferred_loader) {
 
     /**
      * Completes a hot reload operation.
+     *
+     * This method runs synchronously to guarantee that all libraries
+     * are in a consistent state before yielding control back to the
+     * application.
      */
     hotReloadEnd() {
-      let oldLibraries = Object.create(null);
-      // Remove all the current library values to ensure all reloaded libraries
-      // get fresh copies of each other when imported.
+      // On a hot reload, we reuse the existing library objects to ensure all
+      // references remain valid and continue to be unique. We track in
+      // `previouslyLoaded` which libraries already exist in the system, so we
+      // can properly initialize and link them with the new version of the code.
+      let previouslyLoaded = Object.create(null);
       for (let name of this.pendingHotReloadLibraryNames) {
-        oldLibraries[name] = this.libraries[name];
-        this.libraries[name] = null;
+        previouslyLoaded[name] = (this.libraries[name] != null);
       }
-      // Initialize all reloaded libraries.
+
+      // All initializers are updated, but only libraries that were previously
+      // loaded need to be reinitialized.
       for (let name of this.pendingHotReloadLibraryNames) {
-        let currentLibrary = oldLibraries[name];
-        if (currentLibrary == null) {
-          currentLibrary = this.createEmptyLibrary();
-        }
         let initializer = this.pendingHotReloadLibraryInitializers[name];
         this.libraryInitializers[name] = initializer;
-        this.libraries[name] = initializer(currentLibrary);
+        if (previouslyLoaded[name]) {
+          initializer(this.libraries[name]);
+        }
       }
-      // Link all reloaded libraries.
+
+      // Then we link the existing libraries. Note this may trigger initializing
+      // and linking new library dependencies that were not present before and
+      // requires for all library intitializers to be up to date.
       for (let name in this.pendingHotReloadLibraryInitializers) {
-        let currentLibrary = this.libraries[name];
-        currentLibrary.link();
+        if (previouslyLoaded[name]) {
+          this.libraries[name].link();
+        }
       }
       // Cleanup.
       this.pendingHotReloadLibraryInitializers = Object.create(null);

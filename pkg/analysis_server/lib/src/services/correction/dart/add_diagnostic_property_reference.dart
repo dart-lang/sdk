@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -48,13 +48,19 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     }
 
     var classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
-    if (classDeclaration == null ||
-        // TODO(dantup): Remove this and update this fix to handle
-        //  augmenting the method once augmented() expressions are
-        //  fully implemented.
-        //  https://github.com/dart-lang/sdk/issues/55326
-        classDeclaration.declaredElement!.isAugmentation ||
-        !classDeclaration.declaredElement!.thisType.isDiagnosticable) {
+    if (classDeclaration == null) {
+      return;
+    }
+
+    var classFragment = classDeclaration.declaredFragment!;
+    var classElement = classFragment.element;
+
+    // TODO(dantup): Remove this and update this fix to handle
+    //  augmenting the method once augmented() expressions are
+    //  fully implemented.
+    //  https://github.com/dart-lang/sdk/issues/55326
+    if (classFragment.isAugmentation ||
+        !classElement.thisType.isDiagnosticable) {
       return;
     }
 
@@ -418,24 +424,23 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
 
   /// Return the return type of the given [node].
   DartType? _getReturnType(AstNode node) {
-    if (node is MethodDeclaration) {
-      // Getter.
-      var element = node.declaredElement;
-      if (element is PropertyAccessorElement) {
-        return element.returnType;
-      }
-    } else if (node is VariableDeclaration) {
-      // Field.
-      var element = node.declaredElement;
-      if (element is FieldElement) {
-        return element.type;
-      }
+    switch (node) {
+      case MethodDeclaration():
+        var element = node.declaredFragment?.element;
+        if (element is GetterElement) {
+          return element.returnType;
+        }
+      case VariableDeclaration():
+        var element = node.declaredFragment?.element;
+        if (element is FieldElement2) {
+          return element.type;
+        }
     }
     return null;
   }
 
   bool _isEnum(DartType type) {
-    return type is InterfaceType && type.element is EnumElement;
+    return type is InterfaceType && type.element3 is EnumElement2;
   }
 
   bool _isIterable(DartType type) {

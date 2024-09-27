@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -38,8 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    if (node.readElement is PropertyAccessorElement) return;
-    if (node.writeElement is PropertyAccessorElement) return;
+    if (node.writeElement2 is SetterElement) return;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ &&
         node.rightHandSide.isNullLiteral) {

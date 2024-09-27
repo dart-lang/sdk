@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.52 Support a `switchExpression` with no cases.
+//
 // v0.51 Add support for digit separators in numeric literals.
 //
 // v0.50 Add support for static and top-level members with no implementation.
@@ -793,7 +795,7 @@ constructorTearoff
 
 switchExpression
     :    SWITCH '(' expression ')'
-         LBRACE switchExpressionCase (',' switchExpressionCase)* ','? RBRACE
+         LBRACE (switchExpressionCase (',' switchExpressionCase)* ','?)? RBRACE
     ;
 
 switchExpressionCase

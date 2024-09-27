@@ -18409,6 +18409,13 @@ abstract final class VariableDeclaration
   @override
   VariableElement? get declaredElement;
 
+  /// The element declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if this node
+  /// represents the declaration of a top-level variable or a field.
+  @experimental
+  LocalVariableElement2? get declaredElement2;
+
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this node
@@ -18470,6 +18477,12 @@ final class VariableDeclarationImpl extends DeclarationImpl
   })  : _initializer = initializer,
         super(comment: null, metadata: null) {
     _becomeParentOf(_initializer);
+  }
+
+  @experimental
+  @override
+  LocalVariableElement2? get declaredElement2 {
+    return declaredElement.asElement2 as LocalVariableElement2;
   }
 
   @experimental

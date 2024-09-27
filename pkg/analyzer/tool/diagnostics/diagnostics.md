@@ -2614,20 +2614,20 @@ class C extends A<String> implements B {}
 
 ### conflicting_type_variable_and_container
 
-_'{0}' can't be used to name both a type variable and the class in which the
-type variable is defined._
+_'{0}' can't be used to name both a type parameter and the class in which the
+type parameter is defined._
 
-_'{0}' can't be used to name both a type variable and the enum in which the type
-variable is defined._
+_'{0}' can't be used to name both a type parameter and the enum in which the
+type parameter is defined._
 
-_'{0}' can't be used to name both a type variable and the extension in which the
-type variable is defined._
+_'{0}' can't be used to name both a type parameter and the extension in which
+the type parameter is defined._
 
-_'{0}' can't be used to name both a type variable and the extension type in
-which the type variable is defined._
+_'{0}' can't be used to name both a type parameter and the extension type in
+which the type parameter is defined._
 
-_'{0}' can't be used to name both a type variable and the mixin in which the
-type variable is defined._
+_'{0}' can't be used to name both a type parameter and the mixin in which the
+type parameter is defined._
 
 #### Description
 
@@ -2654,17 +2654,17 @@ class C<T> {}
 
 ### conflicting_type_variable_and_member
 
-_'{0}' can't be used to name both a type variable and a member in this class._
+_'{0}' can't be used to name both a type parameter and a member in this class._
 
-_'{0}' can't be used to name both a type variable and a member in this enum._
+_'{0}' can't be used to name both a type parameter and a member in this enum._
 
-_'{0}' can't be used to name both a type variable and a member in this extension
-type._
+_'{0}' can't be used to name both a type parameter and a member in this
+extension type._
 
-_'{0}' can't be used to name both a type variable and a member in this
+_'{0}' can't be used to name both a type parameter and a member in this
 extension._
 
-_'{0}' can't be used to name both a type variable and a member in this mixin._
+_'{0}' can't be used to name both a type parameter and a member in this mixin._
 
 #### Description
 
@@ -10281,7 +10281,8 @@ The analyzer produces this diagnostic when all of the following are true:
   method.
 
 The concrete implementation can be invalid because of incompatibilities in
-either the return type, the types of parameters, or the type variables.
+either the return type, the types of the method's parameters, or the type
+parameters.
 
 #### Example
 

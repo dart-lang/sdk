@@ -1887,7 +1887,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var target = node.realTarget;
       var type = target?.staticType;
       if (type != null) {
-        _forMemberAccess(node, node.parent, type);
+        _forMemberAccess(node, type);
       }
       if ((type == null || type is InvalidType || type.isDartCoreType) &&
           target is Identifier &&
@@ -2192,7 +2192,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var target = node.prefix;
       var type = target.staticType;
       if (type != null) {
-        _forMemberAccess(node, node.parent, type);
+        _forMemberAccess(node, type, onlySuper: target is SuperExpression);
       } else {
         var element = target.staticElement;
         if (element != null) {
@@ -2244,8 +2244,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       var type = target.staticType;
       if (type != null) {
-        _forMemberAccess(node, parent, type,
-            onlySuper: target is SuperExpression);
+        _forMemberAccess(node, type, onlySuper: target is SuperExpression);
       }
       if ((type == null || type is InvalidType || type.isDartCoreType) &&
           target is Identifier &&
@@ -3165,6 +3164,19 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return null;
   }
 
+  bool _computeMustBeAssignable(Expression node) {
+    var request = state.request;
+    var lineInfo = request.fileState.lineInfo;
+    if (node.parent case AssignmentExpression assignment) {
+      if (assignment.leftHandSide == node) {
+        var requestLoc = lineInfo.getLocation(request.offset);
+        var opLoc = lineInfo.getLocation(assignment.operator.offset);
+        return requestLoc.lineNumber == opLoc.lineNumber;
+      }
+    }
+    return false;
+  }
+
   /// Adds the suggestions that are appropriate at the beginning of an
   /// annotation.
   void _forAnnotation(AstNode node) {
@@ -3407,19 +3419,24 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return false;
   }
 
-  /// Adds the suggestions that are appropriate when the [expression] is
-  /// referencing a member of the given [type]. The [parent] is the parent of
-  /// the [node].
-  void _forMemberAccess(Expression node, AstNode? parent, DartType type,
-      {bool onlySuper = false}) {
+  /// Adds the suggestions that are appropriate when the [node] is
+  /// referencing a member of the given [type].
+  void _forMemberAccess(
+    Expression node,
+    DartType type, {
+    bool onlySuper = false,
+  }) {
+    var parent = node.parent;
     // TODO(brianwilkerson): Handle the case of static member accesses.
-    var mustBeAssignable =
-        parent is AssignmentExpression && node == parent.leftHandSide;
+    var mustBeAssignable = _computeMustBeAssignable(node);
     declarationHelper(
-            mustBeAssignable: mustBeAssignable,
-            mustBeConstant: node.inConstantContext,
-            mustBeNonVoid: parent is ArgumentList)
-        .addInstanceMembersOfType(type, onlySuper: onlySuper);
+      mustBeAssignable: mustBeAssignable,
+      mustBeConstant: node.inConstantContext,
+      mustBeNonVoid: parent is ArgumentList,
+    ).addInstanceMembersOfType(
+      type,
+      onlySuper: onlySuper,
+    );
   }
 
   /// Adds the suggestions that are appropriate when the selection is at the

@@ -1049,16 +1049,9 @@ void setDynamicModuleLoader(Object loaderFunction, Object entrypointHelper) {
 }
 
 /// Defines lazy statics.
-///
-/// TODO: Remove useOldSemantics when non-null-safe late static field behavior is
-/// deprecated.
-void defineLazy(to, from, bool useOldSemantics) {
+void defineLazy(to, from) {
   for (var name in getOwnNamesAndSymbols(from)) {
-    if (useOldSemantics) {
-      defineLazyFieldOld(to, name, getOwnPropertyDescriptor(from, name));
-    } else {
-      defineLazyField(to, name, getOwnPropertyDescriptor(from, name));
-    }
+    defineLazyField(to, name, getOwnPropertyDescriptor(from, name));
   }
 }
 
@@ -1113,63 +1106,6 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
           value = null;
           savedLocals = false;
           initialized = false;
-        });
-        savedLocals = true;
-      }
-      init = null;
-      value = x;
-      setter(x);
-    };
-  }
-  return ${defineProperty(to, name, desc)};
-})()''');
-
-/// Defines a lazy static field with pre-null-safety semantics.
-defineLazyFieldOld(to, name, desc) => JS('', '''(() => {
-  const initializer = $desc.get;
-  let init = initializer;
-  let value = null;
-  // Tracks if these local variables have been saved so they can be restored
-  // after a hot restart.
-  let savedLocals = false;
-  $desc.get = function() {
-    if (init == null) return value;
-    let f = init;
-    init = $throwCyclicInitializationError;
-    if (f === init) f($name); // throw cycle error
-
-    // On the first (non-cyclic) execution, record the field so we can reset it
-    // later if needed (hot restart).
-    if (!savedLocals) {
-      $resetFields.push(() => {
-        init = initializer;
-        value = null;
-        savedLocals = false;
-      });
-      savedLocals = true;
-    }
-
-    // Try to evaluate the field, using try+catch to ensure we implement the
-    // correct Dart error semantics.
-    try {
-      value = f();
-      init = null;
-      return value;
-    } catch (e) {
-      init = null;
-      value = null;
-      throw e;
-    }
-  };
-  $desc.configurable = true;
-  let setter = $desc.set;
-  if (setter != null) {
-    $desc.set = function(x) {
-      if (!savedLocals) {
-        $resetFields.push(() => {
-          init = initializer;
-          value = null;
-          savedLocals = false;
         });
         savedLocals = true;
       }
