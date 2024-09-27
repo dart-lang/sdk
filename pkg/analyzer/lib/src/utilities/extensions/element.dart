@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:meta/meta.dart';
 
 extension Element2OrNullExtension on Element2? {
@@ -126,6 +127,9 @@ extension ElementOrNullExtension on Element? {
       return self;
     } else if (self is NeverElementImpl) {
       return self;
+    } else if (self is ParameterMember) {
+      // TODO(scheglov): we lose types here
+      return self.declaration.asElement2;
     } else if (self is PrefixElementImpl) {
       return self;
     } else {

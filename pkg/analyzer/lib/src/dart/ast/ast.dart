@@ -9400,13 +9400,7 @@ sealed class IdentifierImpl extends CommentReferableExpressionImpl
   @experimental
   @override
   Element2? get element {
-    var element = staticElement;
-    if (element case Fragment fragment) {
-      return fragment.element;
-    } else if (element case Element2 element) {
-      return element;
-    }
-    return null;
+    return staticElement.asElement2;
   }
 
   @override

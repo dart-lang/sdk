@@ -105,6 +105,8 @@ class ElementPrinter {
         _sink.write('${element.name}@${element.nameOffset}');
       case LibraryElementImpl e:
         writeReference(e.reference!);
+      case LocalFunctionElementImpl():
+        _sink.write('${element.name}@${element.nameOffset}');
       case LocalVariableElementImpl():
         _sink.write('${element.name}@${element.nameOffset}');
       case LocalVariableElementImpl2():

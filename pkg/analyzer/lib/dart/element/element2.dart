@@ -1300,6 +1300,11 @@ abstract class LibraryImport {
 abstract class LocalFunctionElement implements ExecutableElement2 {
   /// The function in which the variable is defined.
   ExecutableFragment get enclosingFunction;
+
+  /// The offset of the name of this element in the file that contains the
+  /// declaration of this element, or `-1` if this element is synthetic, does
+  /// not have a name, or otherwise does not have an offset.
+  int get nameOffset;
 }
 
 /// A local variable.

@@ -2286,7 +2286,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: loadLibrary
     staticElement: loadLibrary@-1
-<exception>
+    element: loadLibrary@-1
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3554,7 +3554,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: loadLibrary
     staticElement: loadLibrary@-1
-<exception>
+    element: loadLibrary@-1
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3588,7 +3588,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: loadLibrary
     staticElement: loadLibrary@-1
-<exception>
+    element: loadLibrary@-1
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6604,7 +6604,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: g@20
-<exception>
+    element: g@20
     staticType: double Function(int, String)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6635,7 +6635,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: g@15
-<exception>
+    element: g@15
     staticType: T Function<T, U>(T, U)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6671,7 +6671,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: g@15
-<exception>
+    element: g@15
     staticType: T Function<T>([T?])
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6704,7 +6704,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: g@15
-<exception>
+    element: g@15
     staticType: T Function<T>({required T a})
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6716,7 +6716,7 @@ MethodInvocation
             staticElement: ParameterMember
               base: g@15::@parameter::a
               substitution: {T: int}
-            element: <null>
+            element: g@15::@parameter::a#element
             staticType: null
           colon: :
         expression: IntegerLiteral
@@ -7129,7 +7129,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: foo@16
-<exception>
+    element: foo@16
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (

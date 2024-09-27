@@ -84,7 +84,7 @@ MethodInvocation
             staticElement: ParameterMember
               base: <testLibraryFragment>::@function::foo::@parameter::x
               substitution: {T: int}
-            element: <null>
+            element: <testLibraryFragment>::@function::foo::@parameter::x#element
             staticType: null
           colon: :
         expression: IntegerLiteral

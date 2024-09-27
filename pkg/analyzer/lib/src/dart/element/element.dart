@@ -6482,6 +6482,9 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
   List<ElementAnnotation> get metadata => _wrappedElement.metadata;
 
   @override
+  int get nameOffset => _wrappedElement.nameOffset;
+
+  @override
   DartType get returnType => _wrappedElement.returnType;
 
   @override
