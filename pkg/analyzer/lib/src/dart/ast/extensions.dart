@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -52,6 +53,29 @@ Element? _writeElement(AstNode node) {
   }
   if (parent is PropertyAccess && parent.propertyName == node) {
     return _writeElement(parent);
+  }
+  return null;
+}
+
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+Element2? _writeElement2(AstNode node) {
+  var parent = node.parent;
+
+  if (parent is AssignmentExpression && parent.leftHandSide == node) {
+    return parent.writeElement2;
+  }
+  if (parent is PostfixExpression && parent.operand == node) {
+    return parent.writeElement2;
+  }
+  if (parent is PrefixExpression && parent.operand == node) {
+    return parent.writeElement2;
+  }
+
+  if (parent is PrefixedIdentifier && parent.identifier == node) {
+    return _writeElement2(parent);
+  }
+  if (parent is PropertyAccess && parent.propertyName == node) {
+    return _writeElement2(parent);
   }
   return null;
 }
@@ -209,6 +233,10 @@ extension IdentifierExtension on Identifier {
 
   Element? get writeOrReadElement {
     return _writeElement(this) ?? staticElement;
+  }
+
+  Element2? get writeOrReadElement2 {
+    return _writeElement2(this) ?? element;
   }
 
   DartType? get writeOrReadType {
