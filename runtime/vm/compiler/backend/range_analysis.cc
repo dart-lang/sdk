@@ -140,26 +140,28 @@ void RangeAnalysis::CollectValues() {
 // a symbolic range constraint for the left operand of the comparison assuming
 // that it evaluated to true.
 // For example for the comparison a < b symbol a is constrained with range
-// [Smi::kMinValue, b - 1].
-Range* RangeAnalysis::ConstraintSmiRange(Token::Kind op, Definition* boundary) {
+// [min, b - 1].
+Range* RangeAnalysis::ConstraintRange(Token::Kind op,
+                                      Definition* boundary,
+                                      RangeBoundary::RangeSize size) {
   switch (op) {
     case Token::kEQ:
       return new (Z) Range(RangeBoundary::FromDefinition(boundary),
                            RangeBoundary::FromDefinition(boundary));
     case Token::kNE:
-      return new (Z) Range(Range::Full(RangeBoundary::kRangeBoundarySmi));
+      return new (Z) Range(Range::Full(size));
     case Token::kLT:
-      return new (Z) Range(RangeBoundary::MinSmi(),
+      return new (Z) Range(RangeBoundary::MinConstant(size),
                            RangeBoundary::FromDefinition(boundary, -1));
     case Token::kGT:
       return new (Z) Range(RangeBoundary::FromDefinition(boundary, 1),
-                           RangeBoundary::MaxSmi());
+                           RangeBoundary::MaxConstant(size));
     case Token::kLTE:
-      return new (Z) Range(RangeBoundary::MinSmi(),
+      return new (Z) Range(RangeBoundary::MinConstant(size),
                            RangeBoundary::FromDefinition(boundary));
     case Token::kGTE:
       return new (Z) Range(RangeBoundary::FromDefinition(boundary),
-                           RangeBoundary::MaxSmi());
+                           RangeBoundary::MaxConstant(size));
     default:
       UNREACHABLE();
       return nullptr;
@@ -184,7 +186,8 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Value* use,
     constraint = constraint->next()->AsConstraint();
   }
 
-  constraint = new (Z) ConstraintInstr(use->CopyWithType(), constraint_range);
+  constraint = new (Z) ConstraintInstr(use->CopyWithType(), constraint_range,
+                                       defn->representation());
 
   flow_graph_->InsertAfter(after, constraint, nullptr, FlowGraph::kValue);
   FlowGraph::RenameDominatedUses(defn, constraint, constraint);
@@ -195,8 +198,9 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Value* use,
 bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
   BranchInstr* branch = use->instruction()->AsBranch();
   RelationalOpInstr* rel_op = branch->comparison()->AsRelationalOp();
-  if ((rel_op != nullptr) && (rel_op->operation_cid() == kSmiCid)) {
-    // Found comparison of two smis. Constrain defn at true and false
+  if ((rel_op != nullptr) && ((rel_op->operation_cid() == kSmiCid) ||
+                              (rel_op->operation_cid() == kMintCid))) {
+    // Found comparison of two integers. Constrain defn at true and false
     // successors using the other operand as a boundary.
     Definition* boundary;
     Token::Kind op_kind;
@@ -210,10 +214,21 @@ bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
       // comparison if it is right operand flip the comparison.
       op_kind = Token::FlipComparison(rel_op->kind());
     }
+    RangeBoundary::RangeSize size;
+    if (rel_op->operation_cid() == kSmiCid) {
+      size = RangeBoundary::kRangeBoundarySmi;
+    } else {
+      ASSERT(rel_op->operation_cid() == kMintCid);
+      // Can only create symbolic boundaries based on Smi values.
+      if (!Definition::IsLengthLoad(boundary)) {
+        return false;
+      }
+      size = RangeBoundary::kRangeBoundaryInt64;
+    }
 
     // Constrain definition at the true successor.
     ConstraintInstr* true_constraint =
-        InsertConstraintFor(use, defn, ConstraintSmiRange(op_kind, boundary),
+        InsertConstraintFor(use, defn, ConstraintRange(op_kind, boundary, size),
                             branch->true_successor());
     if (true_constraint != nullptr) {
       true_constraint->set_target(branch->true_successor());
@@ -222,7 +237,7 @@ bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
     // Constrain definition with a negated condition at the false successor.
     ConstraintInstr* false_constraint = InsertConstraintFor(
         use, defn,
-        ConstraintSmiRange(Token::NegateComparison(op_kind), boundary),
+        ConstraintRange(Token::NegateComparison(op_kind), boundary, size),
         branch->false_successor());
     if (false_constraint != nullptr) {
       false_constraint->set_target(branch->false_successor());
@@ -799,8 +814,8 @@ class BoundsCheckGeneralizer {
                   RangeBoundary::MaxConstant(RangeBoundary::kRangeBoundarySmi));
     for (intptr_t i = 0; i < non_positive_symbols.length(); i++) {
       Definition* symbol = non_positive_symbols[i];
-      positive_constraints.Add(
-          new ConstraintInstr(new Value(symbol), positive_range));
+      positive_constraints.Add(new ConstraintInstr(
+          new Value(symbol), positive_range, symbol->representation()));
     }
 
     Definition* lower_bound =
@@ -1856,6 +1871,9 @@ static RangeBoundary CanonicalizeBoundary(const RangeBoundary& a,
     if (symbol->IsConstraint()) {
       symbol = symbol->AsConstraint()->value()->definition();
       changed = true;
+    } else if (auto* unbox = symbol->AsUnboxInt64()) {
+      symbol = unbox->value()->definition();
+      changed = true;
     } else if (symbol->IsBinarySmiOp()) {
       BinarySmiOpInstr* op = symbol->AsBinarySmiOp();
       Definition* left = op->left()->definition();
@@ -2802,7 +2820,8 @@ void ConstantInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 void ConstraintInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  const Range* value_range = analysis->GetSmiRange(value());
+  const Range* value_range = GetInputRange(
+      analysis, RepresentationToRangeSize(representation_), value());
   if (Range::IsUnknown(value_range)) {
     return;
   }
@@ -3073,6 +3092,12 @@ void BoxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 void UnboxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  if (IsUnboxInt64() && Definition::IsLengthLoad(value()->definition())) {
+    // Provide symbolic range to improve bounds check elimination.
+    RangeBoundary v = RangeBoundary::FromDefinition(value()->definition(), 0);
+    *range = Range(v, v);
+    return;
+  }
   auto* const value_range = value()->Type()->ToCid() == kSmiCid
                                 ? analysis->GetSmiRange(value())
                                 : value()->definition()->range();
@@ -3145,6 +3170,23 @@ void AssertAssignableInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   } else {
     *range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
   }
+}
+
+void CheckBoundBaseInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  const Range* length_range = length()->definition()->range();
+  const auto checked_range =
+      Range(RangeBoundary::FromConstant(0), Range::ConstantMax(length_range));
+  const Range* index_range = index()->definition()->range();
+  Range result;
+  if (Range::IsUnknown(index_range)) {
+    result = checked_range;
+  } else {
+    result = index_range->Intersect(&checked_range);
+  }
+  if (result.IsUnsatisfiable()) {
+    return;
+  }
+  *range = result;
 }
 
 static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {

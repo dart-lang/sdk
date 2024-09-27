@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.50 Add support for digit separators in numeric literals.
+//
 // v0.49 Add support for static and top-level members with no implementation.
 //
 // v0.48 Add support for enhanced parts.
@@ -289,10 +291,10 @@ topLevelDefinition
     |    extensionDeclaration
     |    enumType
     |    typeAlias
-    |    EXTERNAL functionSignature ';'
-    |    EXTERNAL getterSignature ';'
-    |    EXTERNAL setterSignature ';'
-    |    EXTERNAL finalVarOrType identifierList ';'
+    |    AUGMENT? EXTERNAL functionSignature ';'
+    |    AUGMENT? EXTERNAL getterSignature ';'
+    |    AUGMENT? EXTERNAL setterSignature ';'
+    |    AUGMENT? EXTERNAL finalVarOrType identifierList ';'
     |    AUGMENT? getterSignature (functionBody | ';')
     |    AUGMENT? setterSignature (functionBody | ';')
     |    AUGMENT? functionSignature (functionBody | ';')
@@ -447,7 +449,7 @@ interfaces
 
 classMemberDeclaration
     :    AUGMENT? methodSignature functionBody
-    |    declaration ';'
+    |    AUGMENT? declaration ';'
     ;
 
 mixinApplicationClass
@@ -517,15 +519,15 @@ declaration
     |    EXTERNAL (STATIC? finalVarOrType | COVARIANT varOrType) identifierList
     |    EXTERNAL? operatorSignature
     |    ABSTRACT (finalVarOrType | COVARIANT varOrType) identifierList
-    |    AUGMENT? STATIC (FINAL | CONST) type? initializedIdentifierList
-    |    AUGMENT? STATIC LATE FINAL type? initializedIdentifierList
-    |    AUGMENT? STATIC LATE? varOrType initializedIdentifierList
-    |    AUGMENT? COVARIANT LATE FINAL type? identifierList
-    |    AUGMENT? COVARIANT LATE? varOrType initializedIdentifierList
-    |    AUGMENT? LATE? (FINAL type? | varOrType) initializedIdentifierList
-    |    AUGMENT? redirectingFactoryConstructorSignature
-    |    AUGMENT? constantConstructorSignature (redirection | initializers)?
-    |    AUGMENT? constructorSignature (redirection | initializers)?
+    |    STATIC (FINAL | CONST) type? initializedIdentifierList
+    |    STATIC LATE FINAL type? initializedIdentifierList
+    |    STATIC LATE? varOrType initializedIdentifierList
+    |    COVARIANT LATE FINAL type? identifierList
+    |    COVARIANT LATE? varOrType initializedIdentifierList
+    |    LATE? (FINAL type? | varOrType) initializedIdentifierList
+    |    redirectingFactoryConstructorSignature
+    |    constantConstructorSignature (redirection | initializers)?
+    |    constructorSignature (redirection | initializers)?
     ;
 
 operatorSignature
@@ -1734,7 +1736,12 @@ DIGIT
 
 fragment
 EXPONENT
-    :    ('e' | 'E') ('+' | '-')? DIGIT+
+    :    ('e' | 'E') ('+' | '-')? DIGITS
+    ;
+
+fragment
+DIGITS
+    :    DIGIT ('_'* DIGIT)*
     ;
 
 fragment
@@ -1742,6 +1749,11 @@ HEX_DIGIT
     :    ('a' | 'b' | 'c' | 'd' | 'e' | 'f')
     |    ('A' | 'B' | 'C' | 'D' | 'E' | 'F')
     |    DIGIT
+    ;
+
+fragment
+HEX_DIGITS
+    :    HEX_DIGIT ('_'* HEX_DIGIT)*
     ;
 
 // Reserved words (if updated, update `reservedWord` as well).
@@ -2031,14 +2043,13 @@ WHEN
 // Lexical tokens that are not words.
 
 NUMBER
-    :    DIGIT+ '.' DIGIT+ EXPONENT?
-    |    DIGIT+ EXPONENT?
-    |    '.' DIGIT+ EXPONENT?
+    :    DIGITS ('.' DIGITS)? EXPONENT?
+    |    '.' DIGITS EXPONENT?
     ;
 
 HEX_NUMBER
-    :    '0x' HEX_DIGIT+
-    |    '0X' HEX_DIGIT+
+    :    '0x' HEX_DIGITS
+    |    '0X' HEX_DIGITS
     ;
 
 RAW_SINGLE_LINE_STRING
