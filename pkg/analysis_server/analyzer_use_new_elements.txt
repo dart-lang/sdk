@@ -10,7 +10,4 @@ lib/src/services/correction/dart/add_enum_constant.dart
 lib/src/services/correction/dart/add_eol_at_end_of_file.dart
 lib/src/services/correction/dart/add_explicit_call.dart
 lib/src/services/correction/dart/add_explicit_cast.dart
-lib/src/services/correction/dart/add_field_formal_parameters.dart
-lib/src/services/correction/dart/add_key_to_constructors.dart
-lib/src/services/correction/dart/add_late.dart
-lib/src/services/correction/dart/add_leading_newline_to_string.dart
+lib/src/services/correction/dart/add_missing_enum_like_case_clauses.dart
