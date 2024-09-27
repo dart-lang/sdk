@@ -50,6 +50,27 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_declaration_method() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+}
+void f() {
+  final a = A();
+  a.m();
+}
+''');
+    await assertHasFix('''
+class A {
+  void m() {}
+}
+void f() {
+  final a = A()
+  ..m();
+}
+''');
+  }
+
   Future<void> test_method_method() async {
     await resolveTestCode('''
 class A {
@@ -94,6 +115,32 @@ void f(A a) {
   ..x = 1;
 }
 ''');
+  }
+
+  Future<void> test_multipleDeclaration_first_method() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+}
+void f() {
+  final a = A(), a2 = A();
+  a.m();
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_multipleDeclaration_last_method() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+}
+void f() {
+  final a = A(), a2 = A();
+  a2.m();
+}
+''');
+    await assertNoFix();
   }
 
   Future<void> test_property_cascade() async {
