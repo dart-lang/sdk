@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -32,7 +32,7 @@ class AvoidCatchesWithoutOnClauses extends LintRule {
 }
 
 class _CaughtExceptionUseVisitor extends RecursiveAstVisitor<void> {
-  final Element caughtException;
+  final Element2 caughtException;
 
   var exceptionWasUsed = false;
 
@@ -40,14 +40,14 @@ class _CaughtExceptionUseVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement == caughtException) {
+    if (node.element == caughtException) {
       exceptionWasUsed = true;
     }
   }
 }
 
 class _ValidUseVisitor extends RecursiveAstVisitor<void> {
-  final Element caughtException;
+  final Element2 caughtException;
 
   bool hasValidUse = false;
 
@@ -86,8 +86,8 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
       _checkUseInArgument(node.argumentList);
     } else if (node.methodName.name == 'reportError') {
       var target = node.realTarget;
-      var targetElement = target is Identifier ? target.staticElement : null;
-      if (targetElement is ClassElement &&
+      var targetElement = target is Identifier ? target.element : null;
+      if (targetElement is ClassElement2 &&
           targetElement.name == 'FlutterError') {
         _checkUseInArgument(node.argumentList);
       }
@@ -136,7 +136,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitCatchClause(CatchClause node) {
     if (node.onKeyword != null) return;
-    var caughtException = node.exceptionParameter?.declaredElement;
+    var caughtException = node.exceptionParameter?.declaredElement2;
     if (caughtException == null) return;
 
     var validUseVisitor = _ValidUseVisitor(caughtException);
