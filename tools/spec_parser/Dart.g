@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.49 Add support for static and top-level members with no implementation.
+//
 // v0.48 Add support for enhanced parts.
 //
 // v0.47 Make `augment` a built-in identifier (this happened in the feature
@@ -291,10 +293,10 @@ topLevelDefinition
     |    EXTERNAL getterSignature ';'
     |    EXTERNAL setterSignature ';'
     |    EXTERNAL finalVarOrType identifierList ';'
-    |    AUGMENT? getterSignature functionBody
-    |    AUGMENT? setterSignature functionBody
-    |    AUGMENT? functionSignature functionBody
-    |    AUGMENT? (FINAL | CONST) type? staticFinalDeclarationList ';'
+    |    AUGMENT? getterSignature (functionBody | ';')
+    |    AUGMENT? setterSignature (functionBody | ';')
+    |    AUGMENT? functionSignature (functionBody | ';')
+    |    AUGMENT? (FINAL | CONST) type? initializedIdentifierList ';'
     |    AUGMENT? LATE FINAL type? initializedIdentifierList ';'
     |    AUGMENT? LATE? varOrType initializedIdentifierList ';'
     ;
@@ -506,16 +508,16 @@ methodSignature
     ;
 
 declaration
-    :    EXTERNAL factoryConstructorSignature
+    :    EXTERNAL? factoryConstructorSignature
     |    EXTERNAL constantConstructorSignature
     |    EXTERNAL constructorSignature
-    |    (EXTERNAL STATIC?)? getterSignature
-    |    (EXTERNAL STATIC?)? setterSignature
-    |    (EXTERNAL STATIC?)? functionSignature
+    |    EXTERNAL? STATIC? getterSignature
+    |    EXTERNAL? STATIC? setterSignature
+    |    EXTERNAL? STATIC? functionSignature
     |    EXTERNAL (STATIC? finalVarOrType | COVARIANT varOrType) identifierList
     |    EXTERNAL? operatorSignature
     |    ABSTRACT (finalVarOrType | COVARIANT varOrType) identifierList
-    |    AUGMENT? STATIC (FINAL | CONST) type? staticFinalDeclarationList
+    |    AUGMENT? STATIC (FINAL | CONST) type? initializedIdentifierList
     |    AUGMENT? STATIC LATE FINAL type? initializedIdentifierList
     |    AUGMENT? STATIC LATE? varOrType initializedIdentifierList
     |    AUGMENT? COVARIANT LATE FINAL type? identifierList
@@ -524,14 +526,6 @@ declaration
     |    AUGMENT? redirectingFactoryConstructorSignature
     |    AUGMENT? constantConstructorSignature (redirection | initializers)?
     |    AUGMENT? constructorSignature (redirection | initializers)?
-    ;
-
-staticFinalDeclarationList
-    :    staticFinalDeclaration (',' staticFinalDeclaration)*
-    ;
-
-staticFinalDeclaration
-    :    identifier '=' expression
     ;
 
 operatorSignature
