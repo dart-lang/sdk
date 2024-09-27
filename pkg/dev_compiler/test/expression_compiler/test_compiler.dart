@@ -117,8 +117,7 @@ class TestExpressionCompiler {
     setup.diagnosticMessages.clear();
     setup.errors.clear();
 
-    var sourceMap = source_maps.SingleMapping.fromJson(
-        code.sourceMap!.cast<String, dynamic>());
+    var sourceMap = source_maps.SingleMapping.fromJson(code.sourceMap!);
     return TestExpressionCompiler._(
         setup, component, compiler, code.metadata, sourceMap);
   }

@@ -99,6 +99,21 @@ f() async => await foo();
 ''');
   }
 
+  Future<void> test_localFunction() async {
+    await resolveTestCode('''
+void f() async {
+  Future<void> g() {}
+  await g();
+}
+''');
+    await assertHasFix('''
+void f() async {
+  Future<void> g() async {}
+  await g();
+}
+''');
+  }
+
   Future<void> test_missingReturn_hasReturn() async {
     await resolveTestCode('''
 Future<int> f(bool b) {

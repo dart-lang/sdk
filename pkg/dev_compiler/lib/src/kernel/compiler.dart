@@ -1541,7 +1541,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// if possible, otherwise define them as lazy properties.
   void _emitStaticFieldsAndAccessors(Class c, List<js_ast.Statement> body) {
     var fields = c.fields.where((f) => f.isStatic && !f.isExternal).toList();
-    var fieldNames = Set.from(fields.map((f) => f.name));
+    var fieldNames = Set.of(fields.map((f) => f.name));
     var staticSetters = c.procedures.where(
         (p) => p.isStatic && p.isAccessor && fieldNames.contains(p.name));
     var members = [...fields, ...staticSetters];

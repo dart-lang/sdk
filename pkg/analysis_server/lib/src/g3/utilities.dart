@@ -22,7 +22,8 @@ import 'package:pub_semver/pub_semver.dart';
 /// unable to format. Takes a string as input and an optional [languageVersion].
 String format(String content, {Version? languageVersion}) {
   var code = SourceCode(content);
-  var formatter = DartFormatter(languageVersion: languageVersion);
+  var formatter = DartFormatter(
+      languageVersion: languageVersion ?? DartFormatter.latestLanguageVersion);
   SourceCode formattedResult;
   formattedResult = formatter.formatSource(code);
   return formattedResult.text;

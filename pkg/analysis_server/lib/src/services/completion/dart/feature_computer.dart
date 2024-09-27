@@ -538,9 +538,9 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       if (node.operator.type == TokenType.EQ) {
         return node.writeType;
       }
-      var method = node.staticElement;
+      var method = node.element;
       if (method != null) {
-        var parameters = method.parameters;
+        var parameters = method.formalParameters;
         if (parameters.isNotEmpty) {
           return parameters[0].type;
         }
@@ -748,10 +748,8 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   @override
   DartType? visitIndexExpression(IndexExpression node) {
     if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
-      var parameters = node.staticElement?.parameters;
-      if (parameters != null && parameters.isNotEmpty) {
-        return parameters[0].type;
-      }
+      var formalParameters = node.element?.formalParameters;
+      return formalParameters?.firstOrNull?.type;
     }
     return null;
   }

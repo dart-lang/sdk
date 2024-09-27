@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -44,10 +45,21 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// This field is lazily initialized in [_initializeEnclosingElements].
   ClassElement? _enclosingClass;
 
+  /// The enclosing class element, or `null` if the region that will be modified
+  /// by the edit isn't inside a class declaration.
+  ///
+  /// This field is lazily initialized in [_initializeEnclosingElements].
+  ClassElement2? _enclosingClass2;
+
   /// The enclosing executable element, possibly `null`.
   ///
   /// This field is lazily initialized in [_initializeEnclosingElements].
   ExecutableElement? _enclosingExecutable;
+
+  /// The enclosing executable element, possibly `null`.
+  ///
+  /// This field is lazily initialized in [_initializeEnclosingElements].
+  ExecutableElement2? _enclosingExecutable2;
 
   /// If not `null`, [write] will copy everything into this buffer.
   StringBuffer? _carbonCopyBuffer;
@@ -221,6 +233,122 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       initializerWriter();
     }
     write(';');
+  }
+
+  @override
+  void writeFormalParameter(String name,
+      {bool isCovariant = false,
+      bool isRequiredNamed = false,
+      ExecutableElement2? methodBeingCopied,
+      String? nameGroupName,
+      DartType? type,
+      String? typeGroupName,
+      bool isRequiredType = false}) {
+    bool writeType() {
+      if (typeGroupName != null) {
+        late bool hasType;
+        addLinkedEdit(typeGroupName, (DartLinkedEditBuilder builder) {
+          hasType = _writeType2(type,
+              methodBeingCopied: methodBeingCopied, required: isRequiredType);
+          builder.addSuperTypesAsSuggestions(type);
+        });
+        return hasType;
+      }
+      return _writeType2(type, methodBeingCopied: methodBeingCopied);
+    }
+
+    void writeName() {
+      if (nameGroupName != null) {
+        addLinkedEdit(nameGroupName, (DartLinkedEditBuilder builder) {
+          write(name);
+        });
+      } else {
+        write(name);
+      }
+    }
+
+    if (isCovariant) {
+      write('covariant ');
+    }
+    if (isRequiredNamed) {
+      write('required ');
+    }
+    if (type != null) {
+      var hasType = writeType();
+      if (name.isNotEmpty) {
+        if (hasType) {
+          write(' ');
+        }
+        writeName();
+      }
+    } else {
+      writeName();
+    }
+  }
+
+  @override
+  void writeFormalParameters(Iterable<FormalParameterElement> parameters,
+      {ExecutableElement2? methodBeingCopied,
+      bool includeDefaultValues = true,
+      bool requiredTypes = false}) {
+    var parameterNames = {
+      for (var parameter in parameters.where((p) => p.name.isNotEmpty))
+        parameter.name,
+    };
+
+    write('(');
+    var sawNamed = false;
+    var sawPositional = false;
+    for (var i = 0; i < parameters.length; i++) {
+      var parameter = parameters.elementAt(i);
+      if (i > 0) {
+        write(', ');
+      }
+      // Might be optional.
+      if (parameter.isNamed) {
+        if (!sawNamed) {
+          write('{');
+          sawNamed = true;
+        }
+      } else if (parameter.isOptionalPositional) {
+        if (!sawPositional) {
+          write('[');
+          sawPositional = true;
+        }
+      }
+      // Parameter.
+      var name = parameter.name;
+      if (name.isEmpty) {
+        name = _generateUniqueName(parameterNames, 'p');
+        parameterNames.add(name);
+      }
+      var groupPrefix =
+          methodBeingCopied != null ? '${methodBeingCopied.name}:' : '';
+      writeFormalParameter(name,
+          isCovariant: parameter.isCovariant,
+          isRequiredNamed: parameter.isRequiredNamed,
+          methodBeingCopied: methodBeingCopied,
+          nameGroupName: parameter.isNamed ? null : '${groupPrefix}PARAM$i',
+          type: parameter.type,
+          typeGroupName: '${groupPrefix}TYPE$i',
+          isRequiredType: requiredTypes);
+      // default value
+      if (includeDefaultValues) {
+        var defaultCode = parameter.defaultValueCode;
+        if (defaultCode != null) {
+          write(' = ');
+          write(defaultCode);
+        }
+      }
+    }
+    // close parameters
+    if (sawNamed) {
+      write('}');
+    }
+    if (sawPositional) {
+      write(']');
+    }
+    write(')');
   }
 
   @override
@@ -762,6 +890,16 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
+  void writeTypeParameter2(TypeParameterElement2 typeParameter,
+      {ExecutableElement2? methodBeingCopied}) {
+    write(typeParameter.name);
+    if (typeParameter.bound != null) {
+      write(' extends ');
+      _writeType2(typeParameter.bound, methodBeingCopied: methodBeingCopied);
+    }
+  }
+
+  @override
   void writeTypeParameters(List<TypeParameterElement> typeParameters,
       {ExecutableElement? methodBeingCopied}) {
     if (typeParameters.isNotEmpty) {
@@ -771,6 +909,22 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       for (var typeParameter in typeParameters.skip(1)) {
         write(', ');
         writeTypeParameter(typeParameter, methodBeingCopied: methodBeingCopied);
+      }
+      write('>');
+    }
+  }
+
+  @override
+  void writeTypeParameters2(List<TypeParameterElement2> typeParameters,
+      {ExecutableElement2? methodBeingCopied}) {
+    if (typeParameters.isNotEmpty) {
+      write('<');
+      writeTypeParameter2(typeParameters.first,
+          methodBeingCopied: methodBeingCopied);
+      for (var typeParameter in typeParameters.skip(1)) {
+        write(', ');
+        writeTypeParameter2(typeParameter,
+            methodBeingCopied: methodBeingCopied);
       }
       write('>');
     }
@@ -1108,13 +1262,47 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     return type;
   }
 
+  /// If the given [type] is visible in either the [_enclosingExecutable] or
+  /// [_enclosingClass], or if there is a local equivalent to the type (such as
+  /// in the case of a type parameter from a superclass), then returns the type
+  /// that is locally visible. Otherwise, return `null`.
+  DartType? _getVisibleType2(DartType? type,
+      {ExecutableElement2? methodBeingCopied}) {
+    if (type is InterfaceType) {
+      var element = type.element;
+      if (element.isPrivate &&
+          !dartFileEditBuilder._isDefinedLocally(element)) {
+        return null;
+      }
+      return type;
+    }
+    if (type is TypeParameterType) {
+      _initializeEnclosingElements();
+      var element = type.element3;
+      var enclosing = element.enclosingElement2;
+      while (enclosing is GenericFunctionTypeElement2 ||
+          enclosing is FormalParameterElement) {
+        enclosing = enclosing!.enclosingElement2;
+      }
+      if (enclosing == _enclosingExecutable2 ||
+          enclosing == _enclosingClass2 ||
+          enclosing == methodBeingCopied) {
+        return type;
+      }
+      return null;
+    }
+    return type;
+  }
+
   /// Initializes the [_enclosingClass] and [_enclosingExecutable].
   void _initializeEnclosingElements() {
     if (!_hasEnclosingElementsInitialized) {
       var finder = _EnclosingElementFinder();
       finder.find(dartFileEditBuilder.resolvedUnit.unit, offset);
       _enclosingClass = finder.enclosingClass;
+      _enclosingClass2 = finder.enclosingClass2;
       _enclosingExecutable = finder.enclosingExecutable;
+      _enclosingExecutable2 = finder.enclosingExecutable2;
       _hasEnclosingElementsInitialized = true;
     }
   }
@@ -1308,6 +1496,140 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     throw UnimplementedError('(${type.runtimeType}) $type');
   }
 
+  /// Writes the code to reference [type] in this compilation unit.
+  ///
+  /// If a [methodBeingCopied] is provided, then the type parameters of that
+  /// method will be duplicated in the copy and will therefore be visible.
+  ///
+  /// If [required] it `true`, then the type will be written even if it would
+  /// normally be omitted, such as with `dynamic`.
+  ///
+  /// Causes any libraries whose elements are used by the generated code, to be
+  /// imported.
+  bool _writeType2(DartType? type,
+      {ExecutableElement2? methodBeingCopied, bool required = false}) {
+    type = _getVisibleType2(type, methodBeingCopied: methodBeingCopied);
+
+    // If not a useful type, don't write it.
+    if (type == null) {
+      return false;
+    }
+    if (type is DynamicType || type is InvalidType) {
+      if (required) {
+        write('dynamic');
+        return true;
+      }
+      return false;
+    }
+    if (type.isBottom) {
+      write('Never');
+      return true;
+    }
+
+    var alias = type.alias;
+    if (alias != null) {
+      _writeTypeElementArguments2(
+        element: alias.element,
+        typeArguments: alias.typeArguments,
+        methodBeingCopied: methodBeingCopied,
+      );
+      _writeTypeNullability(type);
+      return true;
+    }
+
+    if (type is FunctionType) {
+      if (_writeType2(type.returnType, methodBeingCopied: methodBeingCopied)) {
+        write(' ');
+      }
+      write('Function');
+      writeTypeParameters2(type.typeParameters,
+          methodBeingCopied: methodBeingCopied);
+      writeFormalParameters(
+        type.formalParameters,
+        methodBeingCopied: methodBeingCopied,
+        includeDefaultValues: false,
+        requiredTypes: true,
+      );
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
+        write('?');
+      }
+      return true;
+    }
+
+    if (type is InterfaceType) {
+      _writeTypeElementArguments2(
+        element: type.element,
+        typeArguments: type.typeArguments,
+        methodBeingCopied: methodBeingCopied,
+      );
+      _writeTypeNullability(type);
+      return true;
+    }
+
+    if (type is NeverType) {
+      write('Never');
+      _writeTypeNullability(type);
+      return true;
+    }
+
+    if (type is TypeParameterType) {
+      write(type.element.name);
+      _writeTypeNullability(type);
+      return true;
+    }
+
+    if (type is VoidType) {
+      write('void');
+      return true;
+    }
+
+    if (type is RecordType) {
+      // TODO(brianwilkerson): This should return `false` if the `records`
+      //  feature is not enabled. More importantly, we can't currently return
+      //  `false` if some portion of a type has already been written, so we
+      //  need to figure out what to do when a record type is nested in another
+      //  type in a context where it isn't allowed. For example, we might
+      //  enhance `_canWriteType` to be recursive, then guard all invocations of
+      //  this method with a call to `_canWriteType` (and remove the return type
+      //  from this method).
+      write('(');
+      var isFirst = true;
+      for (var field in type.positionalFields) {
+        if (isFirst) {
+          isFirst = false;
+        } else {
+          write(', ');
+        }
+        _writeType(field.type);
+      }
+      var namedFields = type.namedFields;
+      if (namedFields.isNotEmpty) {
+        if (isFirst) {
+          write('{');
+        } else {
+          write(', {');
+        }
+        isFirst = true;
+        for (var field in namedFields) {
+          if (isFirst) {
+            isFirst = false;
+          } else {
+            write(', ');
+          }
+          _writeType(field.type);
+          write(' ');
+          write(field.name);
+        }
+        write('}');
+      }
+      write(')');
+      _writeTypeNullability(type);
+      return true;
+    }
+
+    throw UnimplementedError('(${type.runtimeType}) $type');
+  }
+
   void _writeTypeElementArguments({
     required Element element,
     required List<DartType> typeArguments,
@@ -1340,6 +1662,45 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
             write(', ');
           }
           _writeType(argument,
+              required: true, methodBeingCopied: methodBeingCopied);
+        }
+        write('>');
+      }
+    }
+  }
+
+  void _writeTypeElementArguments2({
+    required Element element,
+    required List<DartType> typeArguments,
+    required ExecutableElement2? methodBeingCopied,
+  }) {
+    // Ensure that the element is imported.
+    _writeLibraryReference(element);
+
+    // Write the simple name.
+    var name = element.displayName;
+    write(name);
+
+    // Write type arguments.
+    if (typeArguments.isNotEmpty) {
+      // Check if has arguments.
+      var hasArguments = false;
+      var allArgumentsVisible = true;
+      for (var argument in typeArguments) {
+        hasArguments = hasArguments || argument is! DynamicType;
+        allArgumentsVisible = allArgumentsVisible &&
+            _getVisibleType2(argument, methodBeingCopied: methodBeingCopied) !=
+                null;
+      }
+      // Write type arguments only if they are useful.
+      if (hasArguments && allArgumentsVisible) {
+        write('<');
+        for (var i = 0; i < typeArguments.length; i++) {
+          var argument = typeArguments[i];
+          if (i != 0) {
+            write(', ');
+          }
+          _writeType2(argument,
               required: true, methodBeingCopied: methodBeingCopied);
         }
         write('>');
@@ -2406,7 +2767,9 @@ class ImportLibraryElementResultImpl implements ImportLibraryElementResult {
 
 class _EnclosingElementFinder {
   ClassElement? enclosingClass;
+  ClassElement2? enclosingClass2;
   ExecutableElement? enclosingExecutable;
+  ExecutableElement2? enclosingExecutable2;
 
   _EnclosingElementFinder();
 
@@ -2415,12 +2778,16 @@ class _EnclosingElementFinder {
     while (node != null) {
       if (node is ClassDeclaration) {
         enclosingClass = node.declaredElement;
+        enclosingClass2 = node.declaredFragment?.element;
       } else if (node is ConstructorDeclaration) {
         enclosingExecutable = node.declaredElement;
+        enclosingExecutable2 = node.declaredFragment?.element;
       } else if (node is MethodDeclaration) {
         enclosingExecutable = node.declaredElement;
+        enclosingExecutable2 = node.declaredFragment?.element;
       } else if (node is FunctionDeclaration) {
         enclosingExecutable = node.declaredElement;
+        enclosingExecutable2 = node.declaredFragment?.element;
       }
       node = node.parent;
     }

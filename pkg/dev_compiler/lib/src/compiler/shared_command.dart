@@ -429,9 +429,10 @@ Uri sourcePathToRelativeUri(String source, {bool? windows}) {
 // TODO(#40251): Remove this logic from dev_compiler itself, push it to the
 // invokers of dev_compiler which have more knowledge about how they want
 // source paths to look.
-Map placeSourceMap(Map sourceMap, String sourceMapPath, String? multiRootScheme,
+Map<String, Object?> placeSourceMap(Map<String, Object?> sourceMap,
+    String sourceMapPath, String? multiRootScheme,
     {String? multiRootOutputPath, String? sourceMapBase}) {
-  var map = Map.from(sourceMap);
+  var map = Map.of(sourceMap);
   // Convert to a local file path if it's not.
   sourceMapPath = sourcePathToUri(p.absolute(p.fromUri(sourceMapPath))).path;
   var sourceMapDir = p.url.dirname(sourceMapPath);

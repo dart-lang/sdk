@@ -234,21 +234,13 @@ final class TimelineTask {
       _stack.add(null);
       return;
     }
-    var block = new _AsyncBlock._(name, _taskId);
+    final block = _AsyncBlock._(name, _taskId);
     _stack.add(block);
-    // TODO(39115): Spurious error about collection literal ambiguity.
-    // TODO(39117): Spurious error about typing of `...?arguments`.
-    // TODO(39120): Spurious error even about `...arguments`.
-    // When these TODOs are done, we can use spread and if elements.
-    var map = <Object?, Object?>{};
-    if (arguments != null) {
-      for (var key in arguments.keys) {
-        map[key] = arguments[key];
-      }
-    }
-    if (_parent != null) map['parentId'] = _parent._taskId.toRadixString(16);
-    if (_filterKey != null) map[_kFilterKey] = _filterKey;
-    block._start(map);
+    block._start({
+      ...?arguments,
+      if (_parent != null) 'parentId': _parent._taskId.toRadixString(16),
+      if (_filterKey != null) _kFilterKey: _filterKey,
+    });
   }
 
   /// Emit an instant event for this task.
@@ -261,14 +253,10 @@ final class TimelineTask {
       // Stream is disabled.
       return;
     }
-    Map? instantArguments;
-    if (arguments != null) {
-      instantArguments = new Map.from(arguments);
-    }
-    if (_filterKey != null) {
-      instantArguments ??= {};
-      instantArguments[_kFilterKey] = _filterKey;
-    }
+    final instantArguments = {
+      ...?arguments,
+      if (_filterKey != null) _kFilterKey: _filterKey,
+    };
     _reportTaskEvent(_taskId, /*flowId=*/ _noFlowId, _asyncInstant, name,
         _argumentsAsJson(instantArguments));
   }

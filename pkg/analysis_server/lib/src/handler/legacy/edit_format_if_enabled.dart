@@ -32,7 +32,9 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
     var originalContent = file.readAsStringSync();
     var code = SourceCode(originalContent);
 
-    var formatter = DartFormatter(languageVersion: languageVersion);
+    var formatter = DartFormatter(
+        languageVersion:
+            languageVersion ?? DartFormatter.latestLanguageVersion);
 
     var formatResult = formatter.formatSource(code);
     var formattedContent = formatResult.text;

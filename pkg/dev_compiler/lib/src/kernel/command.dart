@@ -674,7 +674,7 @@ class JSCode {
   ///
   /// The source paths will initially be absolute paths. They can be adjusted
   /// using [placeSourceMap].
-  final Map? sourceMap;
+  final Map<String, Object?>? sourceMap;
 
   /// Module and library information
   ///
@@ -726,7 +726,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   tree.accept(js_ast.Printer(opts, printer,
       localNamer: js_ast.TemporaryNamer(tree, nameListener)));
 
-  Map? builtMap;
+  Map<String, Object?>? builtMap;
   if (buildSourceMap && sourceMap != null) {
     builtMap = placeSourceMap(sourceMap.build(jsUrl!), mapUrl!, customScheme,
         multiRootOutputPath: multiRootOutputPath, sourceMapBase: sourceMapBase);

@@ -1468,6 +1468,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var nameToken = node.name;
     var element = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
     node.declaredElement = element;
+    node.declaredElement2 = element.element2;
 
     if (!_isWildCardVariable(nameToken.lexeme)) {
       _define(element);

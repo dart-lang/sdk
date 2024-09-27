@@ -4463,7 +4463,7 @@ mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
   // TODO(augmentations): This might be wrong. The parameters need to be a
   //  merge of the parameters of all of the fragments, but this probably doesn't
   //  account for missing data (such as the parameter types).
-  List<FormalParameterElement> get parameters2 {
+  List<FormalParameterElement> get formalParameters {
     var fragment = firstFragment;
     return switch (fragment) {
       FunctionTypedElementImpl(:var parameters) => parameters
@@ -4473,7 +4473,7 @@ mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
           .map((fragment) => (fragment as FormalParameterFragment).element)
           .toList(),
       _ => throw UnsupportedError(
-          'Cannot get parameters for ${fragment.runtimeType}'),
+          'Cannot get formal parameters for ${fragment.runtimeType}'),
     };
   }
 
@@ -4520,6 +4520,8 @@ class FunctionElementImpl extends ExecutableElementImpl
         FunctionElement,
         FunctionTypedElementImpl,
         TopLevelFunctionFragment {
+  late final LocalFunctionElementImpl element2 = LocalFunctionElementImpl(this);
+
   /// The element corresponding to this fragment.
   TopLevelFunctionElement? _element;
 
