@@ -11375,18 +11375,18 @@ class D extends A {
 
 ### invalid_type_argument_in_const_literal
 
-_Constant list literals can't include a type parameter as a type argument, such
-as '{0}'._
+_Constant list literals can't use a type parameter in a type argument, such as
+'{0}'._
 
-_Constant map literals can't include a type parameter as a type argument, such
-as '{0}'._
+_Constant map literals can't use a type parameter in a type argument, such as
+'{0}'._
 
-_Constant set literals can't include a type parameter as a type argument, such
-as '{0}'._
+_Constant set literals can't use a type parameter in a type argument, such as
+'{0}'._
 
 #### Description
 
-The analyzer produces this diagnostic when a type parameter is used as a
+The analyzer produces this diagnostic when a type parameter is used in a
 type argument in a list, map, or set literal that is prefixed by `const`.
 This isn't allowed because the value of the type parameter (the actual type
 that will be used at runtime) can't be known at compile time.

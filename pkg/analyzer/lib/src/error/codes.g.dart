@@ -2979,7 +2979,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_LIST =
       CompileTimeErrorCode(
     'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-    "Constant list literals can't include a type parameter as a type argument, "
+    "Constant list literals can't use a type parameter in a type argument, "
         "such as '{0}'.",
     correctionMessage:
         "Try replacing the type parameter with a different type.",
@@ -2992,8 +2992,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_MAP =
       CompileTimeErrorCode(
     'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-    "Constant map literals can't include a type parameter as a type argument, "
-        "such as '{0}'.",
+    "Constant map literals can't use a type parameter in a type argument, such "
+        "as '{0}'.",
     correctionMessage:
         "Try replacing the type parameter with a different type.",
     hasPublishedDocs: true,
@@ -3005,8 +3005,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_SET =
       CompileTimeErrorCode(
     'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-    "Constant set literals can't include a type parameter as a type argument, "
-        "such as '{0}'.",
+    "Constant set literals can't use a type parameter in a type argument, such "
+        "as '{0}'.",
     correctionMessage:
         "Try replacing the type parameter with a different type.",
     hasPublishedDocs: true,

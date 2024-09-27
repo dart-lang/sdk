@@ -9136,7 +9136,7 @@ CompileTimeErrorCode:
       ```
   INVALID_TYPE_ARGUMENT_IN_CONST_LIST:
     sharedName: INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
-    problemMessage: "Constant list literals can't include a type parameter as a type argument, such as '{0}'."
+    problemMessage: "Constant list literals can't use a type parameter in a type argument, such as '{0}'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
     comment: |-
@@ -9145,7 +9145,7 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a type parameter is used as a
+      The analyzer produces this diagnostic when a type parameter is used in a
       type argument in a list, map, or set literal that is prefixed by `const`.
       This isn't allowed because the value of the type parameter (the actual type
       that will be used at runtime) can't be known at compile time.
@@ -9190,7 +9190,7 @@ CompileTimeErrorCode:
       ```
   INVALID_TYPE_ARGUMENT_IN_CONST_MAP:
     sharedName: INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
-    problemMessage: "Constant map literals can't include a type parameter as a type argument, such as '{0}'."
+    problemMessage: "Constant map literals can't use a type parameter in a type argument, such as '{0}'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
     comment: |-
@@ -9198,7 +9198,7 @@ CompileTimeErrorCode:
       0: the name of the type parameter
   INVALID_TYPE_ARGUMENT_IN_CONST_SET:
     sharedName: INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
-    problemMessage: "Constant set literals can't include a type parameter as a type argument, such as '{0}'."
+    problemMessage: "Constant set literals can't use a type parameter in a type argument, such as '{0}'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
     comment: |-
