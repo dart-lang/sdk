@@ -3771,14 +3771,7 @@ base mixin CompoundAssignmentExpressionImpl
 
   @experimental
   @override
-  Element2? get writeElement2 {
-    if (writeElement case Fragment fragment) {
-      return fragment.element;
-    } else if (writeElement case Element2 element) {
-      return element;
-    }
-    return null;
-  }
+  Element2? get writeElement2 => writeElement.asElement2;
 }
 
 /// A conditional expression.
