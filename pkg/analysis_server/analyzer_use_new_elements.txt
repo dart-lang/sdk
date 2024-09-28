@@ -1,0 +1,13 @@
+lib/src/services/correction/dart/add_async.dart
+lib/src/services/correction/dart/add_await.dart
+lib/src/services/correction/dart/add_call_super.dart
+lib/src/services/correction/dart/add_class_modifier.dart
+lib/src/services/correction/dart/add_const.dart
+lib/src/services/correction/dart/add_diagnostic_property_reference.dart
+lib/src/services/correction/dart/add_digit_separators.dart
+lib/src/services/correction/dart/add_empty_argument_list.dart
+lib/src/services/correction/dart/add_enum_constant.dart
+lib/src/services/correction/dart/add_eol_at_end_of_file.dart
+lib/src/services/correction/dart/add_explicit_call.dart
+lib/src/services/correction/dart/add_explicit_cast.dart
+lib/src/services/correction/dart/add_missing_enum_like_case_clauses.dart

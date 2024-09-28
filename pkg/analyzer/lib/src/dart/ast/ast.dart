@@ -29,6 +29,7 @@ import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
@@ -3770,14 +3771,7 @@ base mixin CompoundAssignmentExpressionImpl
 
   @experimental
   @override
-  Element2? get writeElement2 {
-    if (writeElement case Fragment fragment) {
-      return fragment.element;
-    } else if (writeElement case Element2 element) {
-      return element;
-    }
-    return null;
-  }
+  Element2? get writeElement2 => writeElement.asElement2;
 }
 
 /// A conditional expression.
@@ -18482,7 +18476,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @experimental
   @override
   LocalVariableElement2? get declaredElement2 {
-    return declaredElement.asElement2 as LocalVariableElement2;
+    return declaredElement.asElement2.ifTypeOrNull<LocalVariableElement2>();
   }
 
   @experimental

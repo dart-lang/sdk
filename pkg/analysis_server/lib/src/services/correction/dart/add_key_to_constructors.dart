@@ -7,7 +7,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -44,7 +44,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
 
   /// Return `true` if the [classDeclaration] can be instantiated as a `const`.
   bool _canBeConst(ClassDeclaration classDeclaration,
-      List<ConstructorElement> constructors) {
+      List<ConstructorElement2> constructors) {
     for (var constructor in constructors) {
       if (constructor.isDefaultConstructor && !constructor.isConst) {
         return false;
@@ -76,7 +76,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
       return;
     }
     var className = node.name.lexeme;
-    var constructors = node.declaredElement?.supertype?.constructors;
+    var constructors = node.declaredFragment!.element.supertype?.constructors2;
     if (constructors == null) {
       return;
     }
@@ -91,7 +91,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
         }
         builder.write(className);
         builder.write('({');
-        if (libraryElement.featureSet.isEnabled(Feature.super_parameters)) {
+        if (libraryElement2.featureSet.isEnabled(Feature.super_parameters)) {
           builder.write('super.key});');
         } else {
           builder.writeType(keyType);
@@ -110,7 +110,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
       return;
     }
     var superParameters =
-        libraryElement.featureSet.isEnabled(Feature.super_parameters);
+        libraryElement2.featureSet.isEnabled(Feature.super_parameters);
 
     void writeKey(DartEditBuilder builder) {
       if (superParameters) {
@@ -160,7 +160,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
 
   /// Return the type for the class `Key`.
   Future<DartType?> _getKeyType() async {
-    var keyClass = await sessionHelper.getFlutterClass('Key');
+    var keyClass = await sessionHelper.getFlutterClass2('Key');
     if (keyClass == null) {
       return null;
     }

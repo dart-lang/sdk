@@ -66,6 +66,8 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+export 'package:analyzer/dart/element/element.dart' show DirectiveUriWithSource;
+
 abstract class BindPatternVariableElement2 implements PatternVariableElement2 {}
 
 /// A class.
@@ -396,6 +398,9 @@ abstract class Element2 {
 abstract class EnumElement2 implements InterfaceElement2 {
   /// The constants defined by the enum.
   List<FieldElement2> get constants2;
+
+  @override
+  EnumFragment get firstFragment;
 }
 
 /// The portion of an [EnumElement2] contributed by a single declaration.
@@ -519,6 +524,9 @@ abstract class ExtensionTypeFragment implements InterfaceFragment {
 abstract class FieldElement2 implements PropertyInducingElement2 {
   @override
   FieldElement2 get baseElement;
+
+  @override
+  FieldFragment? get firstFragment;
 
   /// Whether the field is abstract.
   ///

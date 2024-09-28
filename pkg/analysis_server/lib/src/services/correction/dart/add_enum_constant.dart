@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -35,12 +36,13 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
     _constantName = node.name;
     var target = parent.prefix;
 
-    var targetElement = target.staticElement;
-    if (targetElement == null) return;
-    if (targetElement.library?.isInSdk == true) return;
+    var targetElement = target.element;
+    if (targetElement is! EnumElement2) return;
+    if (targetElement.library2.isInSdk) return;
 
+    var targetFragment = targetElement.firstFragment;
     var targetDeclarationResult =
-        await sessionHelper.getElementDeclaration(targetElement);
+        await sessionHelper.getElementDeclaration2(targetFragment);
     if (targetDeclarationResult == null) return;
     var targetNode = targetDeclarationResult.node;
     if (targetNode is! EnumDeclaration) return;
@@ -48,9 +50,8 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
     var targetUnit = targetDeclarationResult.resolvedUnit;
     if (targetUnit == null) return;
 
-    var targetSource = targetElement.source;
-    var targetFile = targetSource?.fullName;
-    if (targetFile == null) return;
+    var targetSource = targetFragment.libraryFragment.source;
+    var targetFile = targetSource.fullName;
 
     var constructors = targetNode.members
         .whereType<ConstructorDeclaration>()

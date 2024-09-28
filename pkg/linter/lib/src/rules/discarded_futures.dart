@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -54,7 +54,7 @@ class _InvocationVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.staticElement.isDartAsyncUnawaited) return;
+    if (node.methodName.element.isDartAsyncUnawaited) return;
     if (node.staticInvokeType.isFuture) {
       rule.reportLint(node.methodName);
     }
@@ -127,11 +127,11 @@ extension on DartType? {
   }
 }
 
-extension ElementExtension on Element? {
+extension ElementExtension on Element2? {
   bool get isDartAsyncUnawaited {
     var self = this;
-    return self is FunctionElement &&
+    return self is TopLevelFunctionElement &&
         self.name == 'unawaited' &&
-        self.library.isDartAsync;
+        (self.library2?.isDartAsync ?? false);
   }
 }

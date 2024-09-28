@@ -498,7 +498,13 @@ abstract class _ContextResolutionTest
     with MockPackagesMixin, ResourceProviderMixin {
   static bool _lintRulesAreRegistered = false;
 
-  final ByteStore _byteStore = MemoryByteStore();
+  /// The byte store that is reused between tests. This allows reusing all
+  /// unlinked and linked summaries for SDK, so that tests run much faster.
+  /// However nothing is preserved between Dart VM runs, so changes to the
+  /// implementation are still fully verified.
+  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
+
+  final MemoryByteStore _byteStore = _sharedByteStore;
 
   AnalysisContextCollectionImpl? _analysisContextCollection;
 

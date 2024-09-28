@@ -11,6 +11,7 @@ import 'always_put_required_named_parameters_first_test.dart'
     as always_put_required_named_parameters_first;
 import 'always_specify_types_test.dart' as always_specify_types;
 import 'always_use_package_imports_test.dart' as always_use_package_imports;
+import 'analyzer_use_new_elements_test.dart' as analyzer_use_new_elements;
 import 'annotate_overrides_test.dart' as annotate_overrides;
 import 'annotate_redeclares_test.dart' as annotate_redeclares;
 import 'avoid_annotating_with_dynamic_test.dart'
@@ -122,7 +123,7 @@ import 'implicit_call_tearoffs_test.dart' as implicit_call_tearoffs;
 import 'implicit_reopen_test.dart' as implicit_reopen;
 import 'invalid_case_patterns_test.dart' as invalid_case_patterns;
 import 'invalid_runtime_check_with_js_interop_types_test.dart'
-    as invalid_runtime_check_with_js_interop_types_test;
+    as invalid_runtime_check_with_js_interop_types;
 import 'join_return_with_assignment_test.dart' as join_return_with_assignment;
 import 'leading_newlines_in_multiline_strings_test.dart'
     as leading_newlines_in_multiline_strings;
@@ -319,6 +320,7 @@ void main() {
   always_put_required_named_parameters_first.main();
   always_specify_types.main();
   always_use_package_imports.main();
+  analyzer_use_new_elements.main();
   annotate_overrides.main();
   annotate_redeclares.main();
   avoid_annotating_with_dynamic.main();
@@ -397,7 +399,7 @@ void main() {
   implicit_call_tearoffs.main();
   implicit_reopen.main();
   invalid_case_patterns.main();
-  invalid_runtime_check_with_js_interop_types_test.main();
+  invalid_runtime_check_with_js_interop_types.main();
   join_return_with_assignment.main();
   leading_newlines_in_multiline_strings.main();
   library_annotations.main();

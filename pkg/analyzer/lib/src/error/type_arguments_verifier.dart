@@ -160,10 +160,12 @@ class TypeArgumentsVerifier {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
       if (node.isConst) {
-        _checkTypeArgumentConst(
-          typeArguments.arguments,
-          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
-        );
+        for (var argument in typeArguments.arguments) {
+          _checkTypeArgumentConst(
+            argument,
+            CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
+          );
+        }
       }
       _checkTypeArgumentCount(typeArguments, 1,
           CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS);
@@ -174,10 +176,12 @@ class TypeArgumentsVerifier {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
       if (node.isConst) {
-        _checkTypeArgumentConst(
-          typeArguments.arguments,
-          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP,
-        );
+        for (var argument in typeArguments.arguments) {
+          _checkTypeArgumentConst(
+            argument,
+            CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP,
+          );
+        }
       }
       _checkTypeArgumentCount(typeArguments, 2,
           CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
@@ -205,10 +209,12 @@ class TypeArgumentsVerifier {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
       if (node.isConst) {
-        _checkTypeArgumentConst(
-          typeArguments.arguments,
-          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET,
-        );
+        for (var argument in typeArguments.arguments) {
+          _checkTypeArgumentConst(
+            argument,
+            CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET,
+          );
+        }
       }
       _checkTypeArgumentCount(typeArguments, 1,
           CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
@@ -486,20 +492,54 @@ class TypeArgumentsVerifier {
     }
   }
 
-  /// Checks to ensure that the given list of type [arguments] does not have a
-  /// type parameter as a type argument. The [errorCode] is either
-  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST] or
-  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP].
+  /// Checks whether the given [typeAnnotation] contains a type parameter.
+  ///
+  /// The [errorCode] is either
+  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST],
+  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP], or
+  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET].
   void _checkTypeArgumentConst(
-      NodeList<TypeAnnotation> arguments, ErrorCode errorCode) {
-    for (TypeAnnotation type in arguments) {
-      if (type is NamedType && type.type is TypeParameterType) {
-        _errorReporter.atNode(
-          type,
-          errorCode,
-          arguments: [type.name2.lexeme],
-        );
-      }
+      TypeAnnotation typeAnnotation, ErrorCode errorCode) {
+    switch (typeAnnotation) {
+      case NamedType(:var type, :var typeArguments):
+        if (type is TypeParameterType) {
+          _errorReporter.atNode(typeAnnotation, errorCode,
+              arguments: [typeAnnotation.name2.lexeme]);
+        } else if (typeArguments != null) {
+          for (var argument in typeArguments.arguments) {
+            _checkTypeArgumentConst(argument, errorCode);
+          }
+        }
+      case GenericFunctionType(:var returnType, :var parameters):
+        for (var parameter in parameters.parameters) {
+          if (parameter case SimpleFormalParameter(type: var typeAnnotation?)) {
+            if (typeAnnotation case TypeAnnotation(:TypeParameterType type)) {
+              _errorReporter
+                  .atNode(typeAnnotation, errorCode, arguments: [type]);
+            } else {
+              _checkTypeArgumentConst(typeAnnotation, errorCode);
+            }
+          }
+          // `parameter` cannot legally be a DefaultFormalParameter,
+          // FieldFormalParameter, FunctionTypedFormalParameter, or
+          // SuperFormalParameter.
+        }
+        if (returnType case TypeAnnotation(:var type)) {
+          if (type is TypeParameterType) {
+            _errorReporter.atNode(returnType, errorCode, arguments: [type]);
+          } else {
+            _checkTypeArgumentConst(returnType, errorCode);
+          }
+        }
+      case RecordTypeAnnotation(:var fields):
+        for (var field in fields) {
+          var typeAnnotation = field.type;
+          if (typeAnnotation case TypeAnnotation(:TypeParameterType type)) {
+            _errorReporter.atNode(typeAnnotation, errorCode, arguments: [type]);
+          } else {
+            _checkTypeArgumentConst(typeAnnotation, errorCode);
+          }
+        }
     }
   }
 

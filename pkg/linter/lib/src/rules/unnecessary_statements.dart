@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -127,8 +127,8 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     // Allow getters; getters with side effects were the main cause of false
     // positives.
-    var element = node.identifier.staticElement;
-    if (element is PropertyAccessorElement && !element.isSynthetic) {
+    var element = node.identifier.element;
+    if (element is GetterElement && !element.isSynthetic) {
       return;
     }
 
@@ -148,8 +148,8 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   void visitPropertyAccess(PropertyAccess node) {
     // Allow getters; previously getters with side effects were the main cause
     // of false positives.
-    var element = node.propertyName.staticElement;
-    if (element is PropertyAccessorElement && !element.isSynthetic) {
+    var element = node.propertyName.element;
+    if (element is GetterElement && !element.isSynthetic) {
       return;
     }
 
@@ -165,8 +165,8 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // Allow getter (in this case with an implicit `this.`); previously, getters
     // with side effects were the main cause of false positives.
-    var element = node.staticElement;
-    if (element is PropertyAccessorElement && !element.isSynthetic) {
+    var element = node.element;
+    if (element is GetterElement && !element.isSynthetic) {
       return;
     }
 

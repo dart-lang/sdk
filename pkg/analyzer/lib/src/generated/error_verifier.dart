@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -6499,6 +6500,42 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (ConstructorInitializer initializer in constructor.initializers) {
       if (initializer is ConstructorFieldInitializer) {
         fields.remove(initializer.fieldName.staticElement);
+      }
+    }
+
+    return fields.toList();
+  }
+
+  /// Return [FieldElement]s that are declared in the [ClassDeclaration] with
+  /// the given [constructor], but are not initialized.
+  static List<FieldElement2> computeNotInitializedFields2(
+      ConstructorDeclaration constructor) {
+    var fields = <FieldElement2>{};
+    var classDeclaration = constructor.parent as ClassDeclaration;
+    for (ClassMember fieldDeclaration in classDeclaration.members) {
+      if (fieldDeclaration is FieldDeclaration) {
+        for (VariableDeclaration field in fieldDeclaration.fields.variables) {
+          if (field.initializer == null) {
+            fields.add((field.declaredFragment as FieldFragment).element);
+          }
+        }
+      }
+    }
+
+    List<FormalParameter> parameters = constructor.parameters.parameters;
+    for (FormalParameter parameter in parameters) {
+      parameter = parameter.notDefault;
+      if (parameter is FieldFormalParameter) {
+        var element =
+            (parameter.declaredFragment as FieldFormalParameterFragment)
+                .element;
+        fields.remove(element.field2);
+      }
+    }
+
+    for (ConstructorInitializer initializer in constructor.initializers) {
+      if (initializer is ConstructorFieldInitializer) {
+        fields.remove(initializer.fieldName.element);
       }
     }
 

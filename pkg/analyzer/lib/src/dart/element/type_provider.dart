@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 const Map<String, Set<String>> _nonSubtypableClassMap = {
   'dart:async': _nonSubtypableDartAsyncClassNames,
@@ -161,6 +163,11 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
+  ClassElement2 get boolElement2 {
+    return boolElement.asElement2 as ClassElement2;
+  }
+
+  @override
   InterfaceType get boolType {
     return _boolType ??= _getType(_coreLibrary, "bool");
   }
@@ -178,6 +185,11 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get doubleElement {
     return _doubleElement ??= _getClassElement(_coreLibrary, "double");
+  }
+
+  @override
+  ClassElement2 get doubleElement2 {
+    return doubleElement.asElement2 as ClassElement2;
   }
 
   @override
@@ -199,6 +211,11 @@ class TypeProviderImpl extends TypeProviderBase {
       _enumElement = _coreLibrary.getClass('Enum');
     }
     return _enumElement;
+  }
+
+  @override
+  ClassElement2? get enumElement2 {
+    return enumElement?.asElement2 as ClassElement2?;
   }
 
   @override
@@ -237,6 +254,11 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
+  ClassElement2 get futureElement2 {
+    return futureElement.asElement2 as ClassElement2;
+  }
+
+  @override
   InterfaceType get futureNullType {
     return _futureNullType ??= InterfaceTypeImpl(
       element: futureElement,
@@ -251,6 +273,11 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
+  ClassElement2 get futureOrElement2 {
+    return futureOrElement.asElement2 as ClassElement2;
+  }
+
+  @override
   InterfaceType get futureOrNullType {
     return _futureOrNullType ??= InterfaceTypeImpl(
       element: futureOrElement,
@@ -262,6 +289,11 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get intElement {
     return _intElement ??= _getClassElement(_coreLibrary, "int");
+  }
+
+  @override
+  ClassElement2 get intElement2 {
+    return intElement.asElement2 as ClassElement2;
   }
 
   @override
@@ -288,6 +320,11 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
+  ClassElement2 get iterableElement2 {
+    return iterableElement.asElement2 as ClassElement2;
+  }
+
+  @override
   InterfaceType get iterableObjectType {
     return _iterableObjectType ??= InterfaceTypeImpl(
       element: iterableElement,
@@ -302,8 +339,18 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
+  ClassElement2 get listElement2 {
+    return listElement.asElement2 as ClassElement2;
+  }
+
+  @override
   ClassElement get mapElement {
     return _mapElement ??= _getClassElement(_coreLibrary, 'Map');
+  }
+
+  @override
+  ClassElement2 get mapElement2 {
+    return mapElement.asElement2 as ClassElement2;
   }
 
   @override
@@ -324,6 +371,11 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
+  ClassElement2 get nullElement2 {
+    return nullElement.asElement2 as ClassElement2;
+  }
+
+  @override
   InterfaceType get nullType {
     return _nullType ??= _getType(_coreLibrary, "Null");
   }
@@ -331,6 +383,11 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get numElement {
     return _numElement ??= _getClassElement(_coreLibrary, 'num');
+  }
+
+  @override
+  ClassElement2 get numElement2 {
+    return numElement.asElement2 as ClassElement2;
   }
 
   @override
@@ -345,6 +402,11 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get objectElement {
     return _objectElement ??= _getClassElement(_coreLibrary, 'Object');
+  }
+
+  @override
+  ClassElement2 get objectElement2 {
+    return objectElement.asElement2 as ClassElement2;
   }
 
   @override
@@ -369,6 +431,11 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
+  ClassElement2 get recordElement2 {
+    return recordElement.asElement2 as ClassElement2;
+  }
+
+  @override
   InterfaceType get recordType {
     return _recordType ??= recordElement.instantiate(
       typeArguments: const [],
@@ -379,6 +446,11 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get setElement {
     return _setElement ??= _getClassElement(_coreLibrary, 'Set');
+  }
+
+  @override
+  ClassElement2 get setElement2 {
+    return setElement.asElement2 as ClassElement2;
   }
 
   @override
@@ -401,8 +473,18 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
+  ClassElement2 get streamElement2 {
+    return streamElement.asElement2 as ClassElement2;
+  }
+
+  @override
   ClassElement get stringElement {
     return _stringElement ??= _getClassElement(_coreLibrary, 'String');
+  }
+
+  @override
+  ClassElement2 get stringElement2 {
+    return stringElement.asElement2 as ClassElement2;
   }
 
   @override
@@ -413,6 +495,11 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get symbolElement {
     return _symbolElement ??= _getClassElement(_coreLibrary, 'Symbol');
+  }
+
+  @override
+  ClassElement2 get symbolElement2 {
+    return symbolElement.asElement2 as ClassElement2;
   }
 
   @override
