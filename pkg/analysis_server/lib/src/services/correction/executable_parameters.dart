@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 
 /// [ExecutableElement], its parameters, and operations on them.
@@ -15,14 +16,21 @@ class ExecutableParameters {
   final List<ParameterElement> optionalPositional = [];
   final List<ParameterElement> named = [];
 
+  final List<FormalParameterElement> required2 = [];
+  final List<FormalParameterElement> optionalPositional2 = [];
+  final List<FormalParameterElement> named2 = [];
+
   ExecutableParameters._(this.sessionHelper, this.executable) {
     for (var parameter in executable.parameters) {
       if (parameter.isRequiredPositional) {
         required.add(parameter);
+        required2.add(parameter.element);
       } else if (parameter.isOptionalPositional) {
         optionalPositional.add(parameter);
+        optionalPositional2.add(parameter.element);
       } else if (parameter.isNamed) {
         named.add(parameter);
+        named2.add(parameter.element);
       }
     }
   }
@@ -55,6 +63,20 @@ class ExecutableParameters {
   /// or `null` if it can't be found.
   Future<FormalParameter?> getParameterNode(ParameterElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
+    var declaration = result?.node;
+    for (var node = declaration; node != null; node = node.parent) {
+      if (node is FormalParameter && node.parent is FormalParameterList) {
+        return node;
+      }
+    }
+    return null;
+  }
+
+  /// Return the [FormalParameter] of the [fragment] in [FormalParameterList],
+  /// or `null` if it can't be found.
+  Future<FormalParameter?> getParameterNode2(
+      FormalParameterFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration2(fragment);
     var declaration = result?.node;
     for (var node = declaration; node != null; node = node.parent) {
       if (node is FormalParameter && node.parent is FormalParameterList) {

@@ -593,6 +593,9 @@ abstract class FormalParameterElement
   /// Returns `null` if no default value.
   String? get defaultValueCode;
 
+  @override
+  FormalParameterFragment? get firstFragment;
+
   /// The formal parameters defined by this formal parameter.
   ///
   /// A parameter will only define other parameters if it is a function typed

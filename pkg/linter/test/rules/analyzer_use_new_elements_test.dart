@@ -101,6 +101,40 @@ ClassElement f() {
     ]);
   }
 
+  test_methodInvocation_hasFormalParameter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:analyzer/dart/element/element.dart';
+
+void foo([List<ClassElement>? elements]) {}
+''');
+
+    await assertNoDiagnostics(r'''
+import 'a.dart';
+
+void f() {
+  foo();
+}
+''');
+  }
+
+  test_methodInvocation_hasType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:analyzer/dart/element/element.dart';
+
+List<ClassElement> getAllClasses() => [];
+''');
+
+    await assertDiagnostics(r'''
+import 'a.dart';
+
+void f() {
+  getAllClasses();
+}
+''', [
+      lint(31, 13),
+    ]);
+  }
+
   test_namedType() async {
     await assertDiagnostics(r'''
 import 'package:analyzer/dart/element/element.dart';
@@ -113,7 +147,7 @@ ClassElement f() {
     ]);
   }
 
-  test_simpleIdentifier_propertyAccess() async {
+  test_propertyAccess() async {
     await assertDiagnostics(r'''
 import 'package:analyzer/dart/ast/ast.dart';
 
@@ -122,6 +156,24 @@ void f(ClassDeclaration a) {
 }
 ''', [
       lint(79, 15),
+    ]);
+  }
+
+  test_propertyAccess_nestedType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:analyzer/dart/element/element.dart';
+
+List<ClassElement> get allClasses => [];
+''');
+
+    await assertDiagnostics(r'''
+import 'a.dart';
+
+void f() {
+  allClasses;
+}
+''', [
+      lint(31, 10),
     ]);
   }
 

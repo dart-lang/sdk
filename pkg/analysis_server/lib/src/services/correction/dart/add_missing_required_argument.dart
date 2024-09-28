@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart';
@@ -33,7 +33,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     InstanceCreationExpression? creation;
-    Element? targetElement;
+    Element2? targetElement;
     ArgumentList? argumentList;
 
     if (node is SimpleIdentifier ||
@@ -41,12 +41,12 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
         node is NamedType) {
       var invocation = node.parent;
       if (invocation is MethodInvocation) {
-        targetElement = invocation.methodName.staticElement;
+        targetElement = invocation.methodName.element;
         argumentList = invocation.argumentList;
       } else {
         creation = invocation?.thisOrAncestorOfType();
         if (creation != null) {
-          targetElement = creation.constructorName.staticElement;
+          targetElement = creation.constructorName.element;
           argumentList = creation.argumentList;
         }
       }
@@ -57,7 +57,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
       return;
     }
 
-    if (targetElement is ExecutableElement && argumentList != null) {
+    if (targetElement is ExecutableElement2 && argumentList != null) {
       // Format: "Missing required argument 'foo'."
       var messageParts =
           diagnostic.problemMessage.messageText(includeUrl: false).split("'");
@@ -66,7 +66,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
       }
       _missingParameterName = messageParts[1];
 
-      var missingParameter = targetElement.parameters.firstWhereOrNull(
+      var missingParameter = targetElement.formalParameters.firstWhereOrNull(
         (p) => p.name == _missingParameterName,
       );
       if (missingParameter == null) {
@@ -94,7 +94,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
       }
 
       var codeStyleOptions = getCodeStyleOptions(unitResult.file);
-      var defaultValue = getDefaultStringParameterValue(
+      var defaultValue = getDefaultStringParameterValue2(
           missingParameter, codeStyleOptions.preferredQuoteForStrings);
 
       await builder.addDartFileEdit(file, (builder) {

@@ -6,12 +6,32 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/dart/element/type_visitor.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
 const _desc = r'Use new element model in opted-in files.';
+
+bool _isOldModelElement(Element2? element) {
+  var firstFragment = element?.firstFragment;
+  if (firstFragment != null) {
+    var libraryFragment = firstFragment.libraryFragment;
+    var uriStr = libraryFragment.source.uri.toString();
+    return const {
+      'package:analyzer/dart/element/element.dart',
+    }.contains(uriStr);
+  }
+  return false;
+}
+
+bool _isOldModelType(DartType? type) {
+  var visitor = _TypeVisitor();
+  type?.accept(visitor);
+  return visitor.result;
+}
 
 /// The lint must be enabled for a Pub package.
 ///
@@ -51,8 +71,9 @@ class AnalyzerUseNewElements extends LintRule {
     }
 
     var visitor = _Visitor(this);
-    registry.addSimpleIdentifier(this, visitor);
+    registry.addMethodInvocation(this, visitor);
     registry.addNamedType(this, visitor);
+    registry.addSimpleIdentifier(this, visitor);
   }
 
   bool _isEnabledForFile(LinterContext context) {
@@ -123,36 +144,46 @@ class _FilesRegistry {
   }
 }
 
+class _TypeVisitor extends RecursiveTypeVisitor {
+  bool result = false;
+
+  @override
+  bool visitInterfaceType(InterfaceType type) {
+    result |= _isOldModelElement(type.element3);
+    return super.visitInterfaceType(type);
+  }
+}
+
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
 
   _Visitor(this.rule);
 
   @override
+  visitMethodInvocation(MethodInvocation node) {
+    if (_isOldModelType(node.staticType)) {
+      rule.reportLint(node.methodName);
+    }
+  }
+
+  @override
   visitNamedType(NamedType node) {
-    if (_isOldElementModel(node.element2)) {
+    if (_isOldModelElement(node.element2)) {
       rule.reportLintForToken(node.name2);
     }
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticType?.element3;
-    if (_isOldElementModel(element)) {
+    if (node.parent case MethodInvocation invocation) {
+      if (invocation.methodName == node) {
+        return;
+      }
+    }
+
+    if (_isOldModelType(node.staticType)) {
       rule.reportLint(node);
     }
-  }
-
-  static bool _isOldElementModel(Element2? element) {
-    var firstFragment = element?.firstFragment;
-    if (firstFragment != null) {
-      var libraryFragment = firstFragment.libraryFragment;
-      var uriStr = libraryFragment.source.uri.toString();
-      return const {
-        'package:analyzer/dart/element/element.dart',
-      }.contains(uriStr);
-    }
-    return false;
   }
 }
 
