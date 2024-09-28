@@ -215,6 +215,7 @@ lib/src/services/correction/dart/add_missing_enum_like_case_clauses.dart
 lib/src/services/correction/dart/add_missing_parameter_named.dart
 lib/src/services/correction/dart/add_missing_required_argument.dart
 lib/src/services/correction/dart/add_ne_null.dart
+lib/src/services/correction/dart/add_null_check.dart
 lib/src/services/correction/dart/add_override.dart
 lib/src/services/correction/dart/add_redeclare.dart
 lib/src/services/correction/dart/add_reopen.dart

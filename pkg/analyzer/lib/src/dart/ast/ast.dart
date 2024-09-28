@@ -8501,6 +8501,24 @@ abstract final class FunctionExpression implements Expression {
   /// hasn't been resolved.
   ExecutableElement? get declaredElement;
 
+  /// The element defined by this function expression.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  ///
+  /// Returns `null` if this expression is not a closure, and the parent is
+  /// not a local function.
+  @experimental
+  LocalFunctionElement? get declaredElement2;
+
+  /// The fragment declared by this function expression.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  ///
+  /// Returns `null` is thie expression is a closure, or the parent is a
+  /// local function.
+  @experimental
+  ExecutableFragment? get declaredFragment;
+
   /// The parameters associated with the function, or `null` if the function is
   /// part of a top-level getter.
   FormalParameterList? get parameters;
@@ -8526,6 +8544,9 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   ExecutableElementImpl? declaredElement;
+
+  @override
+  LocalFunctionElementImpl? declaredElement2;
 
   /// Initializes a newly created function declaration.
   FunctionExpressionImpl({
@@ -8558,6 +8579,14 @@ final class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @override
+  ExecutableFragment? get declaredFragment {
+    if (declaredElement?.enclosingElement3 is CompilationUnitElement) {
+      return declaredElement;
+    }
+    return null;
+  }
+
+  @override
   Token get endToken {
     return _body.endToken;
   }
@@ -8571,6 +8600,15 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   Precedence get precedence => Precedence.primary;
+
+  DartType get returnType {
+    // If a closure, or a local function.
+    if (declaredElement2 case var declaredElement?) {
+      return declaredElement.returnType;
+    }
+    // SAFETY: must be a top-level function.
+    return declaredFragment!.element.returnType;
+  }
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
@@ -18537,6 +18575,15 @@ final class VariableDeclarationImpl extends DeclarationImpl
   bool get isLate {
     var parent = this.parent;
     return parent is VariableDeclarationList && parent.isLate;
+  }
+
+  DartType get type {
+    if (declaredElement2 case var declaredElement?) {
+      return declaredElement.type;
+    }
+    // SAFETY: The variable declaration is either a local variable,
+    // of a fragment of: top-level, field, formal parameter.
+    return declaredFragment!.element.type;
   }
 
   @override
