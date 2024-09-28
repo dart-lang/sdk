@@ -201,6 +201,9 @@ abstract class ConstructorElement2 implements ExecutableElement2, _Fragmented {
   /// Whether the constructor represents a generative constructor.
   bool get isGenerative;
 
+  @override
+  String get name;
+
   /// The constructor to which this constructor is redirecting.
   ///
   /// Returns `null` if this constructor does not redirect to another

@@ -54,6 +54,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
@@ -1476,7 +1477,7 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
   @override
-  String? get name => firstFragment.name;
+  String get name => firstFragment.name;
 
   @override
   ConstructorElement2? get redirectedConstructor2 =>
@@ -7147,7 +7148,7 @@ mixin MaybeAugmentedInterfaceElementMixin on MaybeAugmentedInstanceElementMixin
 
   @override
   ConstructorElement2? get unnamedConstructor2 =>
-      unnamedConstructor as ConstructorElement2;
+      unnamedConstructor.asElement2 as ConstructorElement2;
 
   @override
   ConstructorElement? getNamedConstructor(String name) {
