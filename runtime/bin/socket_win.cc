@@ -16,6 +16,11 @@
 #include "bin/utils_win.h"
 #include "platform/syslog.h"
 
+#pragma comment(lib, "ws2_32.lib")
+#define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
+
+
+
 namespace dart {
 namespace bin {
 
@@ -172,6 +177,12 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
   if (s == INVALID_SOCKET) {
     return -1;
   }
+
+  //skip SocketException when remote is not reachable, and keep the listen alive
+  BOOL bNewBehavior = FALSE;
+  DWORD dwBytesReturned = 0;
+  WSAIoctl(s, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
+
 
   int status;
   if (reuseAddress) {
