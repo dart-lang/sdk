@@ -226,6 +226,7 @@ lib/src/services/correction/dart/add_static.dart
 lib/src/services/correction/dart/add_super_parameter.dart
 lib/src/services/correction/dart/add_switch_case_break.dart
 lib/src/services/correction/dart/add_trailing_comma.dart
+lib/src/services/correction/dart/add_type_annotation.dart
 lib/src/services/correction/dart/assign_to_local_variable.dart
 lib/src/services/correction/dart/change_argument_name.dart
 lib/src/services/correction/dart/change_to_nearest_precise_value.dart
