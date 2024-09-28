@@ -20,9 +20,13 @@ bool _isOldModelElement(Element2? element) {
   if (firstFragment != null) {
     var libraryFragment = firstFragment.libraryFragment;
     var uriStr = libraryFragment.source.uri.toString();
-    return const {
-      'package:analyzer/dart/element/element.dart',
-    }.contains(uriStr);
+    if (uriStr == 'package:analyzer/dart/element/element.dart') {
+      // Skip classes that don't required migration.
+      if (const {'ElementAnnotation'}.contains(firstFragment.name)) {
+        return false;
+      }
+      return true;
+    }
   }
   return false;
 }
