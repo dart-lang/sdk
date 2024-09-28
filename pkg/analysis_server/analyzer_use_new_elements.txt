@@ -219,6 +219,7 @@ lib/src/services/correction/dart/add_null_check.dart
 lib/src/services/correction/dart/add_override.dart
 lib/src/services/correction/dart/add_redeclare.dart
 lib/src/services/correction/dart/add_reopen.dart
+lib/src/services/correction/dart/add_required_keyword.dart
 lib/src/services/correction/dart/add_return_null.dart
 lib/src/services/correction/dart/add_static.dart
 lib/src/services/correction/dart/add_switch_case_break.dart

@@ -10,12 +10,12 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddRequiredTest);
+    defineReflectiveTests(AddRequiredKeywordTest);
   });
 }
 
 @reflectiveTest
-class AddRequiredTest extends FixProcessorTest {
+class AddRequiredKeywordTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_REQUIRED;
 
