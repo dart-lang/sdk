@@ -270,6 +270,7 @@ lib/src/services/correction/dart/convert_to_raw_string.dart
 lib/src/services/correction/dart/convert_to_set_literal.dart
 lib/src/services/correction/dart/convert_to_where_type.dart
 lib/src/services/correction/dart/convert_to_wildcard_pattern.dart
+lib/src/services/correction/dart/convert_to_wildcard_variable.dart
 lib/src/services/correction/dart/create_function.dart
 lib/src/services/correction/dart/create_local_variable.dart
 lib/src/services/correction/dart/create_no_such_method.dart
