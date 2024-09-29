@@ -32,7 +32,7 @@ class ConvertToNormalParameter extends ResolvedCorrectionProducer {
     var constructor = parameterList.parent;
     if (constructor is! ConstructorDeclaration) return;
 
-    var parameterElement = parameter.declaredElement!;
+    var parameterElement = parameter.declaredFragment!.element;
     var name = parameter.name.lexeme;
     var type = parameterElement.type;
 

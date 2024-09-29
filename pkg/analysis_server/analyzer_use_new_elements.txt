@@ -263,6 +263,7 @@ lib/src/services/correction/dart/convert_to_if_null.dart
 lib/src/services/correction/dart/convert_to_int_literal.dart
 lib/src/services/correction/dart/convert_to_multiline_string.dart
 lib/src/services/correction/dart/convert_to_named_arguments.dart
+lib/src/services/correction/dart/convert_to_normal_parameter.dart
 lib/src/services/correction/dart/convert_to_null_aware.dart
 lib/src/services/correction/dart/convert_to_null_aware_spread.dart
 lib/src/services/correction/dart/convert_to_on_type.dart
