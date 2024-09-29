@@ -273,6 +273,7 @@ lib/src/services/correction/dart/convert_to_super_parameters.dart
 lib/src/services/correction/dart/convert_to_where_type.dart
 lib/src/services/correction/dart/convert_to_wildcard_pattern.dart
 lib/src/services/correction/dart/convert_to_wildcard_variable.dart
+lib/src/services/correction/dart/create_constructor_for_final_fields.dart
 lib/src/services/correction/dart/create_function.dart
 lib/src/services/correction/dart/create_local_variable.dart
 lib/src/services/correction/dart/create_no_such_method.dart
