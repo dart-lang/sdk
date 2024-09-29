@@ -77,6 +77,9 @@ abstract class BindPatternVariableElement2 implements PatternVariableElement2 {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassElement2 implements InterfaceElement2 {
+  @override
+  ClassFragment get firstFragment;
+
   /// Whether the class or its superclass declares a non-final instance field.
   bool get hasNonFinalField;
 
@@ -1388,6 +1391,9 @@ abstract class MethodFragment implements ExecutableFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinElement2 implements InterfaceElement2 {
+  @override
+  MixinFragment get firstFragment;
+
   /// Whether the mixin is a base mixin.
   ///
   /// A mixin is a base mixin if it has an explicit `base` modifier.

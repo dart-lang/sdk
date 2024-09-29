@@ -6627,6 +6627,9 @@ mixin MaybeAugmentedClassElementMixin on MaybeAugmentedInterfaceElementMixin
   ClassElementImpl get declaration;
 
   @override
+  ClassElementImpl get firstFragment => declaration;
+
+  @override
   bool get hasNonFinalField => declaration.hasNonFinalField;
 
   @override
@@ -7177,6 +7180,9 @@ mixin MaybeAugmentedMixinElementMixin on MaybeAugmentedInterfaceElementMixin
     implements AugmentedMixinElement, MixinElement2 {
   @override
   MixinElementImpl get declaration;
+
+  @override
+  MixinElementImpl get firstFragment => declaration;
 
   @override
   bool get isBase => declaration.isBase;
