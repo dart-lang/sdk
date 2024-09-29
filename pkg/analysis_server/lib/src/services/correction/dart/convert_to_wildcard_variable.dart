@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -23,7 +23,7 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_WILDCARD_VARIABLE;
 
   bool get wildcardVariablesEnabled =>
-      libraryElement.featureSet.isEnabled(Feature.wildcard_variables);
+      libraryElement2.featureSet.isEnabled(Feature.wildcard_variables);
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -33,14 +33,15 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
     if (node is! VariableDeclaration) return;
 
     var nameToken = node.name;
-    var element = node.declaredElement;
+    var element = node.declaredElement2;
+    if (element is! LocalVariableElement2) {
+      return;
+    }
 
     List<AstNode>? references;
-    if (element is LocalVariableElement) {
-      var root = node.thisOrAncestorOfType<Block>();
-      if (root != null) {
-        references = findLocalElementReferences2(root, element);
-      }
+    var root = node.thisOrAncestorOfType<Block>();
+    if (root != null) {
+      references = findLocalElementReferences3(root, element);
     }
     if (references == null) return;
 

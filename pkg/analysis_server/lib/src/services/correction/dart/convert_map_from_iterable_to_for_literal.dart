@@ -8,7 +8,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -39,10 +39,10 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
     if (creation == null) {
       return;
     }
-    var element = creation.constructorName.staticElement;
+    var element = creation.constructorName.element;
     if (element == null ||
         element.name != 'fromIterable' ||
-        element.enclosingElement3 != typeProvider.mapElement) {
+        element.enclosingElement2 != typeProvider.mapElement2) {
       return;
     }
     //
@@ -78,11 +78,12 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
     if (keyParameterName == valueParameterName) {
       loopVariableName = keyParameterName;
     } else {
-      var keyFinder = _ParameterReferenceFinder(keyParameter.declaredElement!);
+      var keyElement = keyParameter.declaredFragment!.element;
+      var keyFinder = _ParameterReferenceFinder(keyElement);
       keyClosure.body.accept(keyFinder);
 
-      var valueFinder =
-          _ParameterReferenceFinder(valueParameter.declaredElement!);
+      var valueElement = valueParameter.declaredFragment!.element;
+      var valueFinder = _ParameterReferenceFinder(valueElement);
       valueClosure.body.accept(valueFinder);
 
       String computeUnusedVariableName() {
@@ -201,7 +202,7 @@ class _Closure {
 class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
   /// The parameter for which references are being sought, or `null` if we are
   /// just accumulating a list of referenced names.
-  final ParameterElement parameter;
+  final FormalParameterElement parameter;
 
   /// A list of the simple identifiers that reference the [parameter].
   final List<SimpleIdentifier> references = <SimpleIdentifier>[];
@@ -236,7 +237,7 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement == parameter) {
+    if (node.element == parameter) {
       references.add(node);
     } else if (!node.isQualified) {
       // Only non-prefixed identifiers can be hidden.
