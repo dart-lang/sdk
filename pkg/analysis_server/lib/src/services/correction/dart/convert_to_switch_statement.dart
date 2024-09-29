@@ -28,7 +28,7 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (!libraryElement.featureSet.isEnabled(Feature.patterns)) {
+    if (!libraryElement2.featureSet.isEnabled(Feature.patterns)) {
       return;
     }
 
