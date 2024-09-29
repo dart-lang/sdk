@@ -267,6 +267,7 @@ lib/src/services/correction/dart/convert_to_null_aware.dart
 lib/src/services/correction/dart/convert_to_null_aware_spread.dart
 lib/src/services/correction/dart/convert_to_on_type.dart
 lib/src/services/correction/dart/convert_to_raw_string.dart
+lib/src/services/correction/dart/convert_to_set_literal.dart
 lib/src/services/correction/dart/convert_to_where_type.dart
 lib/src/services/correction/dart/convert_to_wildcard_pattern.dart
 lib/src/services/correction/dart/create_function.dart
