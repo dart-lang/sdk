@@ -1095,6 +1095,12 @@ abstract class LibraryElement2 implements Element2, _Annotatable, _Fragmented {
   @override
   LibraryFragment get firstFragment;
 
+  /// The fragments this library consists of.
+  ///
+  /// This includes the defining fragment, and fragments included using the
+  /// `part` directive.
+  List<LibraryFragment> get fragments;
+
   /// The functions defined in this library.
   ///
   /// There is no guarantee of the order in which the functions will be
