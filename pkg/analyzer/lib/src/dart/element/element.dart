@@ -5749,6 +5749,14 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
       definingCompilationUnit as LibraryFragment;
 
   @override
+  List<CompilationUnitElementImpl> get fragments {
+    return [
+      _definingCompilationUnit,
+      ..._partUnits,
+    ];
+  }
+
+  @override
   List<TopLevelFunctionElement> get functions {
     var declarations = <TopLevelFunctionElement>{};
     for (var unit in units) {
