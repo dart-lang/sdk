@@ -242,6 +242,7 @@ lib/src/services/correction/dart/convert_flutter_children.dart
 lib/src/services/correction/dart/convert_for_each_to_for_loop.dart
 lib/src/services/correction/dart/convert_into_async_body.dart
 lib/src/services/correction/dart/convert_into_block_body.dart
+lib/src/services/correction/dart/convert_into_final_field.dart
 lib/src/services/correction/dart/convert_into_getter.dart
 lib/src/services/correction/dart/convert_into_is_not.dart
 lib/src/services/correction/dart/convert_quotes.dart
