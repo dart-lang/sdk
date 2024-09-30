@@ -36,6 +36,10 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   bool get specifyTypes => _isLintEnabled('always_specify_types');
 
   @override
+  bool get usePackageUris =>
+      options.isLintEnabled('always_use_package_imports');
+
+  @override
   bool get useRelativeUris => _isLintEnabled('prefer_relative_imports');
 
   @override

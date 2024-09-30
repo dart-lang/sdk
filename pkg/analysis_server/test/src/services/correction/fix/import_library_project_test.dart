@@ -471,6 +471,28 @@ void f() { new Foo(); }
         ]);
   }
 
+  Future<void> test_relativeDirective_alwaysUsePackageImports() async {
+    createAnalysisOptionsFile(lints: [
+      LintNames.always_use_package_imports,
+    ]);
+    newFile('$testPackageLibPath/a.dart', '''
+class Foo {}
+''');
+    await resolveTestCode('''
+void f() { new Foo(); }
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f() { new Foo(); }
+''',
+        expectedNumberOfFixesForKind: 1,
+        matchFixMessage: "Import library 'package:test/a.dart'");
+    await assertHasFixesWithoutApplying(
+        expectedNumberOfFixesForKind: 1,
+        matchFixMessages: ["Import library 'package:test/a.dart'"]);
+  }
+
   Future<void> test_relativeDirective_downOneDirectory() async {
     newFile('$testPackageLibPath/dir/a.dart', '''
 class Foo {}
@@ -487,8 +509,32 @@ void f() { new Foo(); }
         matchFixMessage: "Import library 'dir/a.dart'");
   }
 
+  Future<void> test_relativeDirective_noLint() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class Foo {}
+''');
+    await resolveTestCode('''
+void f() { new Foo(); }
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f() { new Foo(); }
+''',
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessage: "Import library 'package:test/a.dart'");
+    await assertHasFixesWithoutApplying(
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessages: [
+          "Import library 'package:test/a.dart'",
+          "Import library 'a.dart'",
+        ]);
+  }
+
   Future<void> test_relativeDirective_preferRelativeImports() async {
-    createAnalysisOptionsFile(lints: [LintNames.prefer_relative_imports]);
+    createAnalysisOptionsFile(lints: [
+      LintNames.prefer_relative_imports,
+    ]);
     newFile('$testPackageLibPath/a.dart', '''
 class Foo {}
 ''');
@@ -500,14 +546,11 @@ import 'a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 2,
+        expectedNumberOfFixesForKind: 1,
         matchFixMessage: "Import library 'a.dart'");
     await assertHasFixesWithoutApplying(
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessages: [
-          "Import library 'a.dart'",
-          "Import library 'package:test/a.dart'",
-        ]);
+        expectedNumberOfFixesForKind: 1,
+        matchFixMessages: ["Import library 'a.dart'"]);
   }
 
   Future<void> test_relativeDirective_upOneDirectory() async {

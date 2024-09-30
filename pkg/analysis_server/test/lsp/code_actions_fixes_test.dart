@@ -150,10 +150,7 @@ MyCla^ss? a;
 
     expect(
       codeActionTitles,
-      containsAllInOrder([
-        "Import library 'package:test/class.dart'",
-        "Import library 'class.dart'",
-      ]),
+      containsAllInOrder(["Import library 'package:test/class.dart'"]),
     );
   }
 
@@ -179,10 +176,7 @@ MyCla^ss? a;
 
     expect(
       codeActionTitles,
-      containsAllInOrder([
-        "Import library 'class.dart'",
-        "Import library 'package:test/class.dart'",
-      ]),
+      containsAllInOrder(["Import library 'class.dart'"]),
     );
   }
 
