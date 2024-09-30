@@ -42,7 +42,7 @@ class MoveAnnotationToLibraryDirective extends ResolvedCorrectionProducer {
       return;
     }
 
-    if (!libraryElement.featureSet.isEnabled(Feature.unnamedLibraries)) {
+    if (!libraryElement2.featureSet.isEnabled(Feature.unnamedLibraries)) {
       // If the library doesn't support unnamed libraries, then we cannot add
       // a new library directive; we don't know what to name it.
       return;
