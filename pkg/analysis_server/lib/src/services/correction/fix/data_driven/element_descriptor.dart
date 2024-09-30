@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element2.dart' hide ElementKind;
 import 'package:analyzer/dart/element/type.dart';
 
 /// A description of an element.

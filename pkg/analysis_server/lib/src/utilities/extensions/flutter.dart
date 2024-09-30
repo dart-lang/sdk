@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 
@@ -173,6 +174,18 @@ extension ClassElementExtension on ClassElement {
   bool get isState => _hasSupertype(_uriFramework, _nameState);
 
   /// Whether this is a [ClassElement] that extends the Flutter class
+  /// `StatefulWidget`.
+  bool get isStatefulWidgetDeclaration => supertype.isExactlyStatefulWidgetType;
+}
+
+extension ClassElementExtension2 on ClassElement2 {
+  /// Whether this is the Flutter class `State`.
+  bool get isExactState => _isExactly(_nameState, _uriFramework);
+
+  /// Whether this has the Flutter class `State` as a superclass.
+  bool get isState => _hasSupertype(_uriFramework, _nameState);
+
+  /// Whether this is a [ClassElement2] that extends the Flutter class
   /// `StatefulWidget`.
   bool get isStatefulWidgetDeclaration => supertype.isExactlyStatefulWidgetType;
 }
@@ -457,5 +470,61 @@ extension InterfaceElementExtension on InterfaceElement? {
   bool _isExactly(String type, Uri uri) {
     var self = this;
     return self is ClassElement && self.name == type && self.source.uri == uri;
+  }
+}
+
+extension InterfaceElementExtension2 on InterfaceElement2? {
+  /// Whether this is the Flutter class `Alignment`.
+  bool get isExactAlignment {
+    return _isExactly('Alignment', _uriAlignment);
+  }
+
+  /// Whether this is the Flutter class `AlignmentDirectional`.
+  bool get isExactAlignmentDirectional {
+    return _isExactly('AlignmentDirectional', _uriAlignment);
+  }
+
+  /// Whether this is the Flutter class `AlignmentGeometry`.
+  bool get isExactAlignmentGeometry {
+    return _isExactly('AlignmentGeometry', _uriAlignment);
+  }
+
+  /// Whether this is the Flutter class `Widget`, or a subtype.
+  bool get isWidget {
+    var self = this;
+    if (self is! ClassElement2) {
+      return false;
+    }
+    if (_isExactly(_nameWidget, _uriFramework)) {
+      return true;
+    }
+    return self.allSupertypes
+        .any((type) => type.element._isExactly(_nameWidget, _uriFramework));
+  }
+
+  /// Whether this has a supertype with the [requiredName] defined in the file
+  /// with the [requiredUri].
+  bool _hasSupertype(Uri requiredUri, String requiredName) {
+    var self = this;
+    if (self == null) {
+      return false;
+    }
+    for (var type in self.allSupertypes) {
+      if (type.element.name == requiredName) {
+        var uri = type.element.source.uri;
+        if (uri == requiredUri) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Whether this is the exact [type] defined in the file with the given [uri].
+  bool _isExactly(String type, Uri uri) {
+    var self = this;
+    return self is ClassElement2 &&
+        self.name == type &&
+        self.firstFragment.libraryFragment.source.uri == uri;
   }
 }
