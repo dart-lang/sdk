@@ -5602,6 +5602,15 @@ class _MiniAstTypeAnalyzer
     var methodType = _handlePropertyTargetAndMemberLookup(
         null, target, methodName,
         location: node.location);
+    if (methodType is FunctionType) {
+      if (methodType.namedParameters.isNotEmpty) {
+        throw UnimplementedError('Named parameters are not supported yet');
+      } else if (methodType.requiredPositionalParameterCount !=
+          methodType.positionalParameters.length) {
+        throw UnimplementedError(
+            'Optional positional parameters are not supported yet');
+      }
+    }
     // Recursively analyze each argument.
     var inputKinds = [Kind.expression];
     for (var i = 0; i < arguments.length; i++) {

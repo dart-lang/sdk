@@ -10,11 +10,54 @@ import 'mini_types.dart';
 main() {
   group('toString:', () {
     group('FunctionType:', () {
-      test('basic', () {
+      group('positional parameters:', () {
+        test('all required', () {
+          expect(
+              FunctionType(
+                      PrimaryType('T'), [PrimaryType('U'), PrimaryType('V')])
+                  .toString(),
+              'T Function(U, V)');
+        });
+
+        test('all optional', () {
+          expect(
+              FunctionType(
+                      PrimaryType('T'), [PrimaryType('U'), PrimaryType('V')],
+                      requiredPositionalParameterCount: 0)
+                  .toString(),
+              'T Function([U, V])');
+        });
+
+        test('mixed required and optional', () {
+          expect(
+              FunctionType(
+                      PrimaryType('T'), [PrimaryType('U'), PrimaryType('V')],
+                      requiredPositionalParameterCount: 1)
+                  .toString(),
+              'T Function(U, [V])');
+        });
+      });
+
+      test('named parameters', () {
         expect(
-            FunctionType(PrimaryType('T'), [PrimaryType('U'), PrimaryType('V')])
-                .toString(),
-            'T Function(U, V)');
+            FunctionType(PrimaryType('T'), [], namedParameters: [
+              NamedFunctionParameter(
+                  isRequired: false, type: PrimaryType('U'), name: 'x'),
+              NamedFunctionParameter(
+                  isRequired: true, type: PrimaryType('V'), name: 'y')
+            ]).toString(),
+            'T Function({U x, required V y})');
+      });
+
+      test('positional and named parameters', () {
+        expect(
+            FunctionType(PrimaryType('T'), [
+              PrimaryType('U')
+            ], namedParameters: [
+              NamedFunctionParameter(
+                  isRequired: false, type: PrimaryType('V'), name: 'y')
+            ]).toString(),
+            'T Function(U, {V y})');
       });
 
       test('needs parentheses', () {
@@ -270,21 +313,98 @@ main() {
         var t = Type('int Function()') as FunctionType;
         expect(t.returnType.type, 'int');
         expect(t.positionalParameters, isEmpty);
+        expect(t.requiredPositionalParameterCount, 0);
+        expect(t.namedParameters, isEmpty);
       });
 
-      test('positional parameter', () {
+      test('required positional parameter', () {
         var t = Type('int Function(String)') as FunctionType;
         expect(t.returnType.type, 'int');
         expect(t.positionalParameters, hasLength(1));
         expect(t.positionalParameters[0].type, 'String');
+        expect(t.requiredPositionalParameterCount, 1);
+        expect(t.namedParameters, isEmpty);
       });
 
-      test('positional parameters', () {
+      test('required positional parameters', () {
         var t = Type('int Function(String, double)') as FunctionType;
         expect(t.returnType.type, 'int');
         expect(t.positionalParameters, hasLength(2));
         expect(t.positionalParameters[0].type, 'String');
         expect(t.positionalParameters[1].type, 'double');
+        expect(t.requiredPositionalParameterCount, 2);
+        expect(t.namedParameters, isEmpty);
+      });
+
+      test('optional positional parameter', () {
+        var t = Type('int Function([String])') as FunctionType;
+        expect(t.returnType.type, 'int');
+        expect(t.positionalParameters, hasLength(1));
+        expect(t.positionalParameters[0].type, 'String');
+        expect(t.requiredPositionalParameterCount, 0);
+        expect(t.namedParameters, isEmpty);
+      });
+
+      test('optional positional parameters', () {
+        var t = Type('int Function([String, double])') as FunctionType;
+        expect(t.returnType.type, 'int');
+        expect(t.positionalParameters, hasLength(2));
+        expect(t.positionalParameters[0].type, 'String');
+        expect(t.positionalParameters[1].type, 'double');
+        expect(t.requiredPositionalParameterCount, 0);
+        expect(t.namedParameters, isEmpty);
+      });
+
+      group('named parameter:', () {
+        test('not required', () {
+          var t = Type('int Function({String x})') as FunctionType;
+          expect(t.returnType.type, 'int');
+          expect(t.positionalParameters, isEmpty);
+          expect(t.requiredPositionalParameterCount, 0);
+          expect(t.namedParameters, hasLength(1));
+          expect(t.namedParameters[0].isRequired, false);
+          expect(t.namedParameters[0].type.type, 'String');
+          expect(t.namedParameters[0].name, 'x');
+        });
+
+        test('required', () {
+          var t = Type('int Function({required String x})') as FunctionType;
+          expect(t.returnType.type, 'int');
+          expect(t.positionalParameters, isEmpty);
+          expect(t.requiredPositionalParameterCount, 0);
+          expect(t.namedParameters, hasLength(1));
+          expect(t.namedParameters[0].isRequired, true);
+          expect(t.namedParameters[0].type.type, 'String');
+          expect(t.namedParameters[0].name, 'x');
+        });
+      });
+
+      test('named parameters', () {
+        var t = Type('int Function({String x, double y})') as FunctionType;
+        expect(t.returnType.type, 'int');
+        expect(t.positionalParameters, isEmpty);
+        expect(t.requiredPositionalParameterCount, 0);
+        expect(t.namedParameters, hasLength(2));
+        expect(t.namedParameters[0].isRequired, false);
+        expect(t.namedParameters[0].type.type, 'String');
+        expect(t.namedParameters[0].name, 'x');
+        expect(t.namedParameters[1].isRequired, false);
+        expect(t.namedParameters[1].type.type, 'double');
+        expect(t.namedParameters[1].name, 'y');
+      });
+
+      test('named parameter sorting', () {
+        var t = Type('int Function({double y, String x})') as FunctionType;
+        expect(t.returnType.type, 'int');
+        expect(t.positionalParameters, isEmpty);
+        expect(t.requiredPositionalParameterCount, 0);
+        expect(t.namedParameters, hasLength(2));
+        expect(t.namedParameters[0].isRequired, false);
+        expect(t.namedParameters[0].type.type, 'String');
+        expect(t.namedParameters[0].name, 'x');
+        expect(t.namedParameters[1].isRequired, false);
+        expect(t.namedParameters[1].type.type, 'double');
+        expect(t.namedParameters[1].name, 'y');
       });
 
       test('invalid parameter separator', () {
@@ -452,6 +572,35 @@ main() {
                   .recursivelyDemote(covariant: false)!
                   .type,
               'void Function(T, String)');
+        });
+      });
+
+      group('named parameters:', () {
+        test('unchanged', () {
+          expect(
+              Type('void Function({int x, String y})')
+                  .recursivelyDemote(covariant: true),
+              isNull);
+          expect(
+              Type('void Function({int x, String y})')
+                  .recursivelyDemote(covariant: false),
+              isNull);
+        });
+
+        test('covariant', () {
+          expect(
+              Type('void Function({T&int x, String y})')
+                  .recursivelyDemote(covariant: true)!
+                  .type,
+              'void Function({Never x, String y})');
+        });
+
+        test('contravariant', () {
+          expect(
+              Type('void Function({T&int x, String y})')
+                  .recursivelyDemote(covariant: false)!
+                  .type,
+              'void Function({T x, String y})');
         });
       });
     });
@@ -639,6 +788,35 @@ main() {
                   .closureWithRespectToUnknown(covariant: false)!
                   .type,
               'void Function(Object?, String)');
+        });
+      });
+
+      group('named parameters:', () {
+        test('unchanged', () {
+          expect(
+              Type('void Function({int x, String y})')
+                  .closureWithRespectToUnknown(covariant: true),
+              isNull);
+          expect(
+              Type('void Function({int x, String y})')
+                  .closureWithRespectToUnknown(covariant: false),
+              isNull);
+        });
+
+        test('covariant', () {
+          expect(
+              Type('void Function({_ x, String y})')
+                  .closureWithRespectToUnknown(covariant: true)!
+                  .type,
+              'void Function({Never x, String y})');
+        });
+
+        test('contravariant', () {
+          expect(
+              Type('void Function({_ x, String y})')
+                  .closureWithRespectToUnknown(covariant: false)!
+                  .type,
+              'void Function({Object? x, String y})');
         });
       });
     });
