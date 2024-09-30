@@ -387,6 +387,7 @@ lib/src/services/correction/dart/replace_boolean_with_bool.dart
 lib/src/services/correction/dart/replace_cascade_with_dot.dart
 lib/src/services/correction/dart/replace_colon_with_equals.dart
 lib/src/services/correction/dart/replace_colon_with_in.dart
+lib/src/services/correction/dart/replace_conditional_with_if_else.dart
 lib/src/services/correction/dart/replace_container_with_colored_box.dart
 lib/src/services/correction/dart/replace_container_with_sized_box.dart
 lib/src/services/correction/dart/replace_empty_map_pattern.dart
