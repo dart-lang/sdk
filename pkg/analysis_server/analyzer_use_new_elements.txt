@@ -305,6 +305,7 @@ lib/src/services/correction/dart/insert_semicolon.dart
 lib/src/services/correction/dart/invert_if_statement.dart
 lib/src/services/correction/dart/join_if_with_inner.dart
 lib/src/services/correction/dart/join_if_with_outer.dart
+lib/src/services/correction/dart/join_variable_declaration.dart
 lib/src/services/correction/dart/make_class_abstract.dart
 lib/src/services/correction/dart/make_conditional_on_debug_mode.dart
 lib/src/services/correction/dart/make_field_public.dart
