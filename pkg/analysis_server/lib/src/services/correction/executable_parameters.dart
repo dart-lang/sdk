@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 class ExecutableParameters {
   final AnalysisSessionHelper sessionHelper;
   final ExecutableElement executable;
+  final ExecutableElement2 executable2;
 
   final List<ParameterElement> required = [];
   final List<ParameterElement> optionalPositional = [];
@@ -20,7 +21,11 @@ class ExecutableParameters {
   final List<FormalParameterElement> optionalPositional2 = [];
   final List<FormalParameterElement> named2 = [];
 
-  ExecutableParameters._(this.sessionHelper, this.executable) {
+  ExecutableParameters._(
+    this.sessionHelper,
+    this.executable,
+    this.executable2,
+  ) {
     for (var parameter in executable.parameters) {
       if (parameter.isRequiredPositional) {
         required.add(parameter);
@@ -89,18 +94,26 @@ class ExecutableParameters {
   static ExecutableParameters? forInvocation(
       AnalysisSessionHelper sessionHelper, AstNode? invocation) {
     Element? element;
+    Element2? element2;
     // This doesn't handle FunctionExpressionInvocation.
     if (invocation is Annotation) {
       element = invocation.element;
+      element2 = invocation.element2;
     } else if (invocation is InstanceCreationExpression) {
       element = invocation.constructorName.staticElement;
+      element2 = invocation.constructorName.element;
     } else if (invocation is MethodInvocation) {
       element = invocation.methodName.staticElement;
+      element2 = invocation.methodName.element;
     } else if (invocation is ConstructorReferenceNode) {
       element = invocation.staticElement;
+      element2 = invocation.element;
     }
-    if (element is ExecutableElement && !element.isSynthetic) {
-      return ExecutableParameters._(sessionHelper, element);
+    if (element is ExecutableElement &&
+        !element.isSynthetic &&
+        element2 is ExecutableElement2 &&
+        !element2.isSynthetic) {
+      return ExecutableParameters._(sessionHelper, element, element2);
     } else {
       return null;
     }

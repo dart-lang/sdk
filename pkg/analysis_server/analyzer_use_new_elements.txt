@@ -213,6 +213,7 @@ lib/src/services/correction/dart/add_key_to_constructors.dart
 lib/src/services/correction/dart/add_late.dart
 lib/src/services/correction/dart/add_leading_newline_to_string.dart
 lib/src/services/correction/dart/add_missing_enum_like_case_clauses.dart
+lib/src/services/correction/dart/add_missing_parameter.dart
 lib/src/services/correction/dart/add_missing_parameter_named.dart
 lib/src/services/correction/dart/add_missing_required_argument.dart
 lib/src/services/correction/dart/add_ne_null.dart
