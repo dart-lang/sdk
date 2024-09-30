@@ -73,7 +73,8 @@ import 'flutter_wrap_sized_box_test.dart' as flutter_wrap_sized_box;
 import 'flutter_wrap_stream_builder_test.dart' as flutter_wrap_stream_builder;
 import 'import_add_show_test.dart' as import_add_show;
 import 'inline_invocation_test.dart' as inline_invocation;
-import 'invert_conditional_expression_test.dart' as invert_conditional_expression;
+import 'invert_conditional_expression_test.dart'
+    as invert_conditional_expression;
 import 'invert_if_statement_test.dart' as invert_if_statement;
 import 'join_if_with_inner_test.dart' as join_if_with_inner;
 import 'join_if_with_outer_test.dart' as join_if_with_outer;
