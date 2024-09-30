@@ -308,6 +308,7 @@ lib/src/services/correction/dart/join_if_with_outer.dart
 lib/src/services/correction/dart/join_variable_declaration.dart
 lib/src/services/correction/dart/make_class_abstract.dart
 lib/src/services/correction/dart/make_conditional_on_debug_mode.dart
+lib/src/services/correction/dart/make_field_not_final.dart
 lib/src/services/correction/dart/make_field_public.dart
 lib/src/services/correction/dart/make_final.dart
 lib/src/services/correction/dart/make_required_named_parameters_first.dart
