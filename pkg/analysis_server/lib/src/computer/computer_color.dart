@@ -7,7 +7,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/value.dart' show GenericState;
 import 'package:analyzer/src/lint/linter.dart';
@@ -73,8 +73,8 @@ class ColorComputer {
     if (!expression.staticType.isColor) return false;
 
     var constructor = expression.constructorName;
-    var staticElement = constructor.staticElement;
-    var classElement = staticElement?.enclosingElement3;
+    var staticElement = constructor.element;
+    var classElement = staticElement?.enclosingElement2;
     var className = classElement?.name;
     var constructorName = constructor.name?.name;
     var constructorArgs = expression.argumentList.arguments.toList();
@@ -219,16 +219,16 @@ class ColorComputer {
   }
 
   /// Checks whether this elements library is dart:ui.
-  bool _isDartUi(Element? element) => element?.library?.name == 'dart.ui';
+  bool _isDartUi(Element2? element) => element?.library2?.name == 'dart.ui';
 
   /// Checks whether this elements library is Flutter Material colors.
-  bool _isFlutterMaterial(Element? element) =>
-      element?.library?.identifier ==
+  bool _isFlutterMaterial(Element2? element) =>
+      element?.library2?.identifier ==
       'package:flutter/src/material/colors.dart';
 
   /// Checks whether this elements library is Flutter Painting colors.
-  bool _isFlutterPainting(Element? element) =>
-      element?.library?.identifier ==
+  bool _isFlutterPainting(Element2? element) =>
+      element?.library2?.identifier ==
       'package:flutter/src/painting/colors.dart';
 
   /// Tries to record a color from [colorConst] for [expression].
@@ -386,8 +386,8 @@ class _ColorBuilder extends RecursiveAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    // Handle things like CupterinoColors.activeBlue.darkColor where we can't
-    // evaluate the whole expression, but can evaluate CupterinoColors.activeBlue
+    // Handle things like CupertinoColors.activeBlue.darkColor where we can't
+    // evaluate the whole expression, but can evaluate CupertinoColors.activeBlue
     // and read the darkColor.
     if (computer.tryAddColor(
       node,
