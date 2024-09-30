@@ -7,6 +7,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -82,8 +83,10 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     }
 
     // prepare target ClassDeclaration
-    var targetElement = targetType.element;
-    var targetResult = await sessionHelper.getElementDeclaration(targetElement);
+    var targetElement = targetType.element3;
+    var targetFragment = targetElement.firstFragment;
+    var targetResult =
+        await sessionHelper.getElementDeclaration2(targetFragment);
     if (targetResult == null) {
       return;
     }
@@ -107,13 +110,14 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     if (grandParent is! EnumDeclaration) {
       return;
     }
-    var targetElement = grandParent.declaredElement;
+    var targetElement = grandParent.declaredFragment;
     if (targetElement == null) {
       return;
     }
 
     // prepare target interface type
-    var targetResult = await sessionHelper.getElementDeclaration(targetElement);
+    var targetResult =
+        await sessionHelper.getElementDeclaration2(targetElement);
     if (targetResult == null) {
       return;
     }
@@ -148,7 +152,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     var constructorName = instanceCreation.constructorName;
     _constructorName = constructorName.toSource();
     // should be synthetic default constructor
-    var constructorElement = constructorName.staticElement;
+    var constructorElement = constructorName.element;
     if (constructorElement == null ||
         !constructorElement.isDefaultConstructor ||
         !constructorElement.isSynthetic) {
@@ -156,8 +160,10 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     }
 
     // prepare target ClassDeclaration
-    var targetElement = constructorElement.enclosingElement3;
-    var targetResult = await sessionHelper.getElementDeclaration(targetElement);
+    var targetElement = constructorElement.enclosingElement2;
+    var targetFragment = (targetElement as ClassElement2).firstFragment;
+    var targetResult =
+        await sessionHelper.getElementDeclaration2(targetFragment);
     if (targetResult == null) {
       return;
     }
@@ -171,7 +177,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
       return;
     }
 
-    var targetSource = targetElement.source;
+    var targetSource = targetFragment.libraryFragment.source;
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
       builder.insertConstructor(targetNode, (builder) {

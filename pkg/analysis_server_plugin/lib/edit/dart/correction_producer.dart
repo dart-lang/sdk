@@ -411,6 +411,17 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
+  /// Returns the class declaration for the given [fragment], or `null` if there
+  /// is no such class.
+  Future<ClassDeclaration?> getClassDeclaration2(ClassFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration2(fragment);
+    var node = result?.node;
+    if (node is ClassDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
   /// Returns the extension declaration for the given [element], or `null` if
   /// there is no such extension.
   Future<ExtensionDeclaration?> getExtensionDeclaration(
@@ -439,6 +450,17 @@ abstract class ResolvedCorrectionProducer
   /// is no such mixin.
   Future<MixinDeclaration?> getMixinDeclaration(MixinElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
+    var node = result?.node;
+    if (node is MixinDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
+  /// Returns the mixin declaration for the given [fragment], or `null` if there
+  /// is no such mixin.
+  Future<MixinDeclaration?> getMixinDeclaration2(MixinFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration2(fragment);
     var node = result?.node;
     if (node is MixinDeclaration) {
       return node;

@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
@@ -38,11 +38,11 @@ class TransformSetManager {
   }
 
   /// Return the transform sets associated with the [library].
-  List<TransformSet> forLibrary(LibraryElement library) {
+  List<TransformSet> forLibrary(LibraryElement2 library) {
     var transformSets = <TransformSet>[];
-    var analysisContext = library.session.analysisContext;
+    var analysisContext = library.session!.analysisContext;
     var workspace = analysisContext.contextRoot.workspace;
-    var libraryPath = library.source.fullName;
+    var libraryPath = library.firstFragment.source.fullName;
     var package = workspace.findPackageFor(libraryPath);
     if (package == null) {
       return transformSets;

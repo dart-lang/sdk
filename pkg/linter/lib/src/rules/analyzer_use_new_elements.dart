@@ -23,6 +23,8 @@ bool _isOldModelElement(Element2? element) {
     if (uriStr == 'package:analyzer/dart/element/element.dart') {
       // Skip classes that don't required migration.
       if (const {
+        'DirectiveUri',
+        'DirectiveUriWithRelativeUri',
         'ElementAnnotation',
         'ElementKind',
       }.contains(firstFragment.name)) {
