@@ -422,6 +422,7 @@ lib/src/services/correction/dart/replace_with_tear_off.dart
 lib/src/services/correction/dart/replace_with_unicode_escape.dart
 lib/src/services/correction/dart/replace_with_var.dart
 lib/src/services/correction/dart/replace_with_wildcard.dart
+lib/src/services/correction/dart/shadow_field.dart
 lib/src/services/correction/dart/sort_child_property_last.dart
 lib/src/services/correction/dart/sort_combinators.dart
 lib/src/services/correction/dart/sort_constructor_first.dart
