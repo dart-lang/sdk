@@ -322,6 +322,7 @@ lib/src/services/correction/dart/make_variable_not_final.dart
 lib/src/services/correction/dart/make_variable_nullable.dart
 lib/src/services/correction/dart/move_annotation_to_library_directive.dart
 lib/src/services/correction/dart/move_doc_comment_to_library_directive.dart
+lib/src/services/correction/dart/move_type_arguments_to_class.dart
 lib/src/services/correction/dart/organize_imports.dart
 lib/src/services/correction/dart/qualify_reference.dart
 lib/src/services/correction/dart/remove_abstract.dart
