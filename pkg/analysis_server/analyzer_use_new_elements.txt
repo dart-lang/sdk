@@ -525,3 +525,4 @@ lib/src/utilities/tee_string_sink.dart
 lib/src/utilities/usage_tracking/usage_tracking.dart
 lib/src/utilities/yaml_node_locator.dart
 lib/starter.dart
+lib/src/services/correction/fix/data_driven/element_descriptor.dart
