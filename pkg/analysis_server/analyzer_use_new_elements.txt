@@ -291,6 +291,7 @@ lib/src/services/correction/dart/encapsulate_field.dart
 lib/src/services/correction/dart/exchange_operands.dart
 lib/src/services/correction/dart/extend_class_for_mixin.dart
 lib/src/services/correction/dart/extract_local_variable.dart
+lib/src/services/correction/dart/flutter_convert_to_children.dart
 lib/src/services/correction/dart/flutter_move_down.dart
 lib/src/services/correction/dart/flutter_move_up.dart
 lib/src/services/correction/dart/flutter_remove_widget.dart
@@ -449,6 +450,7 @@ lib/src/services/correction/fix/data_driven/change.dart
 lib/src/services/correction/fix/data_driven/changes_selector.dart
 lib/src/services/correction/fix/data_driven/code_fragment_parser.dart
 lib/src/services/correction/fix/data_driven/code_template.dart
+lib/src/services/correction/fix/data_driven/element_descriptor.dart
 lib/src/services/correction/fix/data_driven/element_kind.dart
 lib/src/services/correction/fix/data_driven/expression.dart
 lib/src/services/correction/fix/data_driven/modify_parameters.dart
@@ -526,4 +528,3 @@ lib/src/utilities/tee_string_sink.dart
 lib/src/utilities/usage_tracking/usage_tracking.dart
 lib/src/utilities/yaml_node_locator.dart
 lib/starter.dart
-lib/src/services/correction/fix/data_driven/element_descriptor.dart
