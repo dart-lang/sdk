@@ -3128,14 +3128,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       {CollectionLiteralContext? context}) {
     inferenceLogWriter?.enterElement(node);
     checkUnreachableNode(node);
-    analyzeExpression(node.key,
+    var keyType = analyzeExpression(node.key,
         SharedTypeSchemaView(context?.keyType ?? UnknownInferredType.instance));
     popRewrite();
+    flowAnalysis.flow?.nullAwareMapEntry_valueBegin(node.key, keyType,
+        isKeyNullAware: node.keyQuestion != null);
     analyzeExpression(
         node.value,
         SharedTypeSchemaView(
             context?.valueType ?? UnknownInferredType.instance));
     popRewrite();
+    flowAnalysis.flow
+        ?.nullAwareMapEntry_end(isKeyNullAware: node.keyQuestion != null);
     inferenceLogWriter?.exitElement(node);
   }
 

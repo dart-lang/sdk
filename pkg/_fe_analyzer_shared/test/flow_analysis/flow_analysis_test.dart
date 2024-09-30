@@ -8606,6 +8606,82 @@ main() {
       });
     });
 
+    group('Null-aware map entry:', () {
+      test('Promotes key within value', () {
+        var a = Var('a');
+
+        h.run([
+          declare(a, type: 'String?', initializer: expr('String?')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, checkPromoted(a, 'String'), isKeyNullAware: true),
+          ]),
+          checkNotPromoted(a),
+        ]);
+      });
+
+      test('Non-null-aware key', () {
+        var a = Var('a');
+
+        h.run([
+          declare(a, type: 'String?', initializer: expr('String?')),
+          mapLiteral(keyType: 'String?', valueType: 'dynamic', [
+            mapEntry(a, checkNotPromoted(a), isKeyNullAware: false),
+          ]),
+          checkNotPromoted(a),
+        ]);
+      });
+
+      test('Promotes', () {
+        var a = Var('a');
+        var x = Var('x');
+
+        h.run([
+          declare(a, type: 'String', initializer: expr('String')),
+          declare(x, type: 'num', initializer: expr('num')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, x.as_('int'), isKeyNullAware: true),
+          ]),
+          checkPromoted(x, 'int'),
+        ]);
+      });
+
+      test('Affects promotion', () {
+        var a = Var('a');
+        var x = Var('x');
+
+        h.run([
+          declare(a, type: 'String?', initializer: expr('String?')),
+          declare(x, type: 'num', initializer: expr('num')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, x.as_('int'), isKeyNullAware: true),
+          ]),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('Unreachable', () {
+        var a = Var('a');
+        h.run([
+          declare(a, type: 'String', initializer: expr('String')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, throw_(expr('Object')), isKeyNullAware: true),
+          ]),
+          checkReachable(false),
+        ]);
+      });
+
+      test('Reachable', () {
+        var a = Var('a');
+        h.run([
+          declare(a, type: 'String?', initializer: expr('String?')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, throw_(expr('Object')), isKeyNullAware: true),
+          ]),
+          checkReachable(true),
+        ]);
+      });
+    });
+
     group('Map pattern:', () {
       test('Promotes', () {
         var x = Var('x');

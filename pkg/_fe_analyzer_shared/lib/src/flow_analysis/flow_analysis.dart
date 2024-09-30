@@ -703,6 +703,13 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// not be called until after processing the method call to `z(x)`.
   void nullAwareAccess_rightBegin(Expression? target, Type targetType);
 
+  /// Call this method after visiting the value of a null-aware map entry.
+  void nullAwareMapEntry_end({required bool isKeyNullAware});
+
+  /// Call this method after visiting the key of a null-aware map entry.
+  void nullAwareMapEntry_valueBegin(Expression key, Type keyType,
+      {required bool isKeyNullAware});
+
   /// Call this method before visiting the subpattern of a null-check or a
   /// null-assert pattern. [isAssert] indicates whether the pattern is a
   /// null-check or a null-assert pattern.
@@ -1653,6 +1660,22 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   void nullAwareAccess_rightBegin(Expression? target, Type targetType) {
     _wrap('nullAwareAccess_rightBegin($target, $targetType)',
         () => _wrapped.nullAwareAccess_rightBegin(target, targetType));
+  }
+
+  @override
+  void nullAwareMapEntry_end({required bool isKeyNullAware}) {
+    return _wrap('nullAwareMapEntry_end(isKeyNullAware: $isKeyNullAware)',
+        () => _wrapped.nullAwareMapEntry_end(isKeyNullAware: isKeyNullAware));
+  }
+
+  @override
+  void nullAwareMapEntry_valueBegin(Expression key, Type keyType,
+      {required bool isKeyNullAware}) {
+    _wrap(
+        'nullAwareMapEntry_valueBegin($key, $keyType, '
+        'isKeyNullAware: $isKeyNullAware)',
+        () => _wrapped.nullAwareMapEntry_valueBegin(key, keyType,
+            isKeyNullAware: isKeyNullAware));
   }
 
   @override
@@ -5033,6 +5056,35 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  void nullAwareMapEntry_end({required bool isKeyNullAware}) {
+    if (!isKeyNullAware) return;
+    _NullAwareMapEntryContext<Type> context =
+        _stack.removeLast() as _NullAwareMapEntryContext<Type>;
+    _current = _join(_current, context._shortcutState).unsplit();
+  }
+
+  @override
+  void nullAwareMapEntry_valueBegin(Expression key, Type keyType,
+      {required bool isKeyNullAware}) {
+    if (!isKeyNullAware) return;
+    _Reference<Type>? keyReference = _getExpressionReference(key);
+    FlowModel<Type> shortcutState;
+    _current = _current.split();
+    if (keyReference != null) {
+      ExpressionInfo<Type> expressionInfo =
+          _current.tryMarkNonNullable(this, keyReference);
+      _current = expressionInfo.ifTrue;
+      shortcutState = expressionInfo.ifFalse;
+    } else {
+      shortcutState = _current;
+    }
+    if (operations.classifyType(keyType) == TypeClassification.nonNullable) {
+      shortcutState = shortcutState.setUnreachable();
+    }
+    _stack.add(new _NullAwareMapEntryContext<Type>(shortcutState));
+  }
+
+  @override
   bool nullCheckOrAssertPattern_begin(
       {required bool isAssert, required Type matchedValueType}) {
     if (!isAssert) {
@@ -6641,6 +6693,13 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void nullAwareAccess_rightBegin(Expression? target, Type targetType) {}
 
   @override
+  void nullAwareMapEntry_end({required bool isKeyNullAware}) {}
+
+  @override
+  void nullAwareMapEntry_valueBegin(Expression key, Type keyType,
+      {required bool isKeyNullAware}) {}
+
+  @override
   bool nullCheckOrAssertPattern_begin(
           {required bool isAssert, required Type matchedValueType}) =>
       false;
@@ -6920,6 +6979,25 @@ class _NullAwareAccessContext<Type extends Object>
 
   @override
   String get _debugType => '_NullAwareAccessContext';
+}
+
+/// [_FlowContext] representing a null-aware map entry (`{?a: ?b}`).
+///
+/// This context should only be created for a null-aware map entry that has a
+/// null-aware key.
+class _NullAwareMapEntryContext<Type extends Object> extends _FlowContext {
+  /// The state if the operation short-cuts (i.e. if the key expression was
+  /// `null`.
+  final FlowModel<Type> _shortcutState;
+
+  _NullAwareMapEntryContext(this._shortcutState);
+
+  @override
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['shortcutState'] = _shortcutState;
+
+  @override
+  String get _debugType => '_NullAwareMapEntryContext';
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a
