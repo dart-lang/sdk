@@ -399,6 +399,7 @@ lib/src/services/correction/dart/replace_new_with_const.dart
 lib/src/services/correction/dart/replace_null_check_with_cast.dart
 lib/src/services/correction/dart/replace_null_with_closure.dart
 lib/src/services/correction/dart/replace_null_with_void.dart
+lib/src/services/correction/dart/replace_return_type.dart
 lib/src/services/correction/dart/replace_return_type_future.dart
 lib/src/services/correction/dart/replace_return_type_iterable.dart
 lib/src/services/correction/dart/replace_return_type_stream.dart
