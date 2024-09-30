@@ -285,6 +285,7 @@ lib/src/services/correction/dart/create_method_or_function.dart
 lib/src/services/correction/dart/create_no_such_method.dart
 lib/src/services/correction/dart/create_parameter.dart
 lib/src/services/correction/dart/data_driven.dart
+lib/src/services/correction/dart/encapsulate_field.dart
 lib/src/services/correction/dart/exchange_operands.dart
 lib/src/services/correction/dart/extend_class_for_mixin.dart
 lib/src/services/correction/dart/flutter_move_down.dart
