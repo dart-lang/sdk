@@ -475,7 +475,7 @@ class DartObjectImpl implements DartObject, Constant {
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
   }
 
-  /// Return the result of invoking the '==' operator on this object with the
+  /// Returns the result of invoking the '==' operator on this object with the
   /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
@@ -756,7 +756,7 @@ class DartObjectImpl implements DartObject, Constant {
     throw StateError("negated returned a ${result.runtimeType}");
   }
 
-  /// Return the result of invoking the '!=' operator on this object with the
+  /// Returns the result of invoking the '!=' operator on this object with the
   /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
