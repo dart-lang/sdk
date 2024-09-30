@@ -36,7 +36,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var content = node.declaredElement?.source.contents.data;
+    var content = node.declaredFragment?.source.contents.data;
     if (content != null &&
         content.isNotEmpty &&
         // TODO(srawlins): Re-implement this check without iterating over
