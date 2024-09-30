@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../linter_lint_codes.dart';
 
 const _desc = r'Use super-initializer parameters where possible.';
@@ -39,10 +40,7 @@ class UseSuperParameters extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (!context.libraryElement!.featureSet
-        .isEnabled(Feature.super_parameters)) {
-      return;
-    }
+    if (!context.isEnabled(Feature.super_parameters)) return;
 
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
