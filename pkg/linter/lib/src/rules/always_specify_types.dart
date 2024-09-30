@@ -131,7 +131,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var name = param.name;
     if (name != null && param.type == null && !name.lexeme.isJustUnderscores) {
       var keyword = param.keyword;
-      var type = param.declaredElement?.type;
+      var type = param.declaredFragment?.element.type;
       if (keyword != null) {
         if (keyword.type == Keyword.VAR &&
             type != null &&

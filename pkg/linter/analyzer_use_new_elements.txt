@@ -1,0 +1,12 @@
+lib/src/rules/always_specify_types.dart
+lib/src/rules/avoid_catches_without_on_clauses.dart
+lib/src/rules/avoid_double_and_int_checks.dart
+lib/src/rules/avoid_shadowing_type_parameters.dart
+lib/src/rules/avoid_slow_async_io.dart
+lib/src/rules/discarded_futures.dart
+lib/src/rules/library_prefixes.dart
+lib/src/rules/no_leading_underscores_for_library_prefixes.dart
+lib/src/rules/prefer_collection_literals.dart
+lib/src/rules/tighten_type_of_initializing_formals.dart
+lib/src/rules/unnecessary_null_aware_assignments.dart
+lib/src/rules/unnecessary_statements.dart
