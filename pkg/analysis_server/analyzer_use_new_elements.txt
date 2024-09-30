@@ -375,6 +375,7 @@ lib/src/services/correction/dart/remove_unused_catch_clause.dart
 lib/src/services/correction/dart/remove_unused_catch_stack.dart
 lib/src/services/correction/dart/remove_unused_import.dart
 lib/src/services/correction/dart/remove_unused_label.dart
+lib/src/services/correction/dart/remove_unused_local_variable.dart
 lib/src/services/correction/dart/remove_unused_parameter.dart
 lib/src/services/correction/dart/remove_var.dart
 lib/src/services/correction/dart/remove_var_keyword.dart
