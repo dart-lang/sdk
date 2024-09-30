@@ -288,6 +288,7 @@ lib/src/services/correction/dart/data_driven.dart
 lib/src/services/correction/dart/encapsulate_field.dart
 lib/src/services/correction/dart/exchange_operands.dart
 lib/src/services/correction/dart/extend_class_for_mixin.dart
+lib/src/services/correction/dart/extract_local_variable.dart
 lib/src/services/correction/dart/flutter_move_down.dart
 lib/src/services/correction/dart/flutter_move_up.dart
 lib/src/services/correction/dart/flutter_swap_with_child.dart
