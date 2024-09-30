@@ -11,10 +11,10 @@ import 'type_analyzer_operations.dart';
 /// `constraint <: typeParameter` otherwise.
 class GeneratedTypeConstraint<
     TypeStructure extends SharedTypeStructure<TypeStructure>,
-    TypeParameter extends Object,
+    TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
     Variable extends Object> {
   /// The type parameter that is constrained by [constraint].
-  final TypeParameter typeParameter;
+  final TypeParameterStructure typeParameter;
 
   /// The type schema constraining the type parameter.
   final SharedTypeSchemaView<TypeStructure> constraint;
@@ -40,7 +40,7 @@ class GeneratedTypeConstraint<
 /// A constraint on a type parameter that we're inferring.
 class MergedTypeConstraint<
     TypeStructure extends SharedTypeStructure<TypeStructure>,
-    TypeParameter extends Object,
+    TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
     Variable extends Object,
     TypeDeclarationType extends Object,
     TypeDeclaration extends Object> {
@@ -90,7 +90,7 @@ class MergedTypeConstraint<
   SharedTypeSchemaView<TypeStructure> upper;
 
   /// Where this constraint comes from, used for error messages.
-  TypeConstraintOrigin<TypeStructure, Variable, TypeParameter,
+  TypeConstraintOrigin<TypeStructure, Variable, TypeParameterStructure,
       TypeDeclarationType, TypeDeclaration> origin;
 
   MergedTypeConstraint(
@@ -100,8 +100,8 @@ class MergedTypeConstraint<
       {required String typeParameterName,
       required SharedTypeView<TypeStructure> boundType,
       required SharedTypeView<TypeStructure> extendsType,
-      required TypeAnalyzerOperations<TypeStructure, Variable, TypeParameter,
-              TypeDeclarationType, TypeDeclaration>
+      required TypeAnalyzerOperations<TypeStructure, Variable,
+              TypeParameterStructure, TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations})
       : this(
             origin: new TypeConstraintFromExtendsClause(
@@ -112,13 +112,13 @@ class MergedTypeConstraint<
             upper: typeAnalyzerOperations.typeToSchema(extendsType),
             lower: typeAnalyzerOperations.unknownType);
 
-  MergedTypeConstraint<TypeStructure, TypeParameter, Variable,
+  MergedTypeConstraint<TypeStructure, TypeParameterStructure, Variable,
       TypeDeclarationType, TypeDeclaration> clone() {
     return new MergedTypeConstraint(lower: lower, upper: upper, origin: origin);
   }
 
   bool isEmpty(
-      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameter,
+      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
               TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return lower is SharedUnknownTypeStructure &&
@@ -127,7 +127,7 @@ class MergedTypeConstraint<
 
   bool isSatisfiedBy(
       SharedTypeView<TypeStructure> type,
-      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameter,
+      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
               TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return typeAnalyzerOperations.typeIsSubtypeOfTypeSchema(type, upper) &&
@@ -135,9 +135,9 @@ class MergedTypeConstraint<
   }
 
   void mergeIn(
-      GeneratedTypeConstraint<TypeStructure, TypeParameter, Variable>
+      GeneratedTypeConstraint<TypeStructure, TypeParameterStructure, Variable>
           generatedTypeConstraint,
-      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameter,
+      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
               TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     if (generatedTypeConstraint.isUpper) {
@@ -151,7 +151,7 @@ class MergedTypeConstraint<
 
   void mergeInTypeSchemaLower(
       SharedTypeSchemaView<TypeStructure> constraint,
-      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameter,
+      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
               TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     lower = typeAnalyzerOperations.typeSchemaLub(lower, constraint);
@@ -159,7 +159,7 @@ class MergedTypeConstraint<
 
   void mergeInTypeSchemaUpper(
       SharedTypeSchemaView<TypeStructure> constraint,
-      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameter,
+      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
               TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     upper = typeAnalyzerOperations.typeSchemaGlb(upper, constraint);
@@ -174,11 +174,13 @@ class MergedTypeConstraint<
 class TypeConstraintFromArgument<
         TypeStructure extends SharedTypeStructure<TypeStructure>,
         Variable extends Object,
-        InferableParameter extends Object,
+        // Work around https://github.com/dart-lang/dart_style/issues/1568
+        // ignore: lines_longer_than_80_chars
+        TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object>
-    extends TypeConstraintOrigin<TypeStructure, Variable, InferableParameter,
-        TypeDeclarationType, TypeDeclaration> {
+    extends TypeConstraintOrigin<TypeStructure, Variable,
+        TypeParameterStructure, TypeDeclarationType, TypeDeclaration> {
   final SharedTypeView<TypeStructure> argumentType;
   final SharedTypeView<TypeStructure> parameterType;
   final String parameterName;
@@ -194,7 +196,7 @@ class TypeConstraintFromArgument<
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
+      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
               TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     // TODO(cstefantsova): we should highlight the span. That would be more
@@ -223,11 +225,13 @@ class TypeConstraintFromArgument<
 class TypeConstraintFromExtendsClause<
         TypeStructure extends SharedTypeStructure<TypeStructure>,
         Variable extends Object,
-        InferableParameter extends Object,
+        // Work around https://github.com/dart-lang/dart_style/issues/1568
+        // ignore: lines_longer_than_80_chars
+        TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object>
-    extends TypeConstraintOrigin<TypeStructure, Variable, InferableParameter,
-        TypeDeclarationType, TypeDeclaration> {
+    extends TypeConstraintOrigin<TypeStructure, Variable,
+        TypeParameterStructure, TypeDeclarationType, TypeDeclaration> {
   /// Name of the type parameter with the extends clause.
   final String typeParameterName;
 
@@ -250,7 +254,7 @@ class TypeConstraintFromExtendsClause<
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
+      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
               TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     String boundStr = boundType.getDisplayString();
@@ -267,11 +271,13 @@ class TypeConstraintFromFunctionContext<
         Type extends SharedTypeStructure<Type>,
         TypeSchema extends SharedTypeStructure<TypeSchema>,
         Variable extends Object,
-        InferableParameter extends Object,
+        // Work around https://github.com/dart-lang/dart_style/issues/1568
+        // ignore: lines_longer_than_80_chars
+        TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object>
-    extends TypeConstraintOrigin<TypeStructure, Variable, InferableParameter,
-        TypeDeclarationType, TypeDeclaration> {
+    extends TypeConstraintOrigin<TypeStructure, Variable,
+        TypeParameterStructure, TypeDeclarationType, TypeDeclaration> {
   final Type contextType;
   final Type functionType;
 
@@ -280,7 +286,7 @@ class TypeConstraintFromFunctionContext<
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
+      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
               TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return [
@@ -296,11 +302,13 @@ class TypeConstraintFromReturnType<
         Type extends SharedTypeStructure<Type>,
         TypeSchema extends SharedTypeStructure<TypeSchema>,
         Variable extends Object,
-        InferableParameter extends Object,
+        // Work around https://github.com/dart-lang/dart_style/issues/1568
+        // ignore: lines_longer_than_80_chars
+        TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object>
-    extends TypeConstraintOrigin<TypeStructure, Variable, InferableParameter,
-        TypeDeclarationType, TypeDeclaration> {
+    extends TypeConstraintOrigin<TypeStructure, Variable,
+        TypeParameterStructure, TypeDeclarationType, TypeDeclaration> {
   final Type contextType;
   final Type declaredType;
 
@@ -309,7 +317,7 @@ class TypeConstraintFromReturnType<
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
+      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
               TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return [
@@ -326,13 +334,13 @@ class TypeConstraintFromReturnType<
 abstract class TypeConstraintOrigin<
     TypeStructure extends SharedTypeStructure<TypeStructure>,
     Variable extends Object,
-    TypeParameter extends Object,
+    TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
     TypeDeclarationType extends Object,
     TypeDeclaration extends Object> {
   const TypeConstraintOrigin();
 
   List<String> formatError(
-      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameter,
+      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
               TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations);
 }
@@ -340,16 +348,18 @@ abstract class TypeConstraintOrigin<
 class UnknownTypeConstraintOrigin<
         TypeStructure extends SharedTypeStructure<TypeStructure>,
         Variable extends Object,
-        InferableParameter extends Object,
+        // Work around https://github.com/dart-lang/dart_style/issues/1568
+        // ignore: lines_longer_than_80_chars
+        TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object>
-    extends TypeConstraintOrigin<TypeStructure, Variable, InferableParameter,
-        TypeDeclarationType, TypeDeclaration> {
+    extends TypeConstraintOrigin<TypeStructure, Variable,
+        TypeParameterStructure, TypeDeclarationType, TypeDeclaration> {
   const UnknownTypeConstraintOrigin();
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
+      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
               TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return <String>[];

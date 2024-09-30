@@ -36,6 +36,7 @@
 /// represented by an element.
 library;
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -2590,7 +2591,8 @@ abstract class TypeDefiningElement implements Element {}
 /// A type parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterElement implements TypeDefiningElement {
+abstract class TypeParameterElement
+    implements TypeDefiningElement, SharedTypeParameterStructure<DartType> {
   /// The type representing the bound associated with this parameter, or `null`
   /// if this parameter does not have an explicit bound. Being able to
   /// distinguish between an implicit and explicit bound is needed by the

@@ -2675,8 +2675,8 @@ class MapPatternEntry extends Node implements MapPatternElement {
 }
 
 class MiniAstOperations
-    with TypeAnalyzerOperationsMixin<Type, Var, String, Type, String>
-    implements TypeAnalyzerOperations<Type, Var, String, Type, String> {
+    with TypeAnalyzerOperationsMixin<Type, Var, TypeParameter, Type, String>
+    implements TypeAnalyzerOperations<Type, Var, TypeParameter, Type, String> {
   static const Map<String, bool> _coreExhaustiveness = const {
     '()': true,
     '(int, int?)': false,
@@ -2840,8 +2840,8 @@ class MiniAstOperations
     _typeSystem.addSuperInterfaces(className, template);
   }
 
-  void addTypeVariable(String name, {String? bound}) {
-    _typeSystem.addTypeVariable(name, bound: bound);
+  TypeParameter addTypeVariable(String name, {String? bound}) {
+    return _typeSystem.addTypeVariable(name, bound: bound);
   }
 
   void addVariance(String typeName, List<Variance> varianceByArgument) {
@@ -3104,7 +3104,7 @@ class MiniAstOperations
   }
 
   @override
-  String? matchInferableParameter(SharedTypeView<Type> type) {
+  TypeParameter? matchInferableParameter(SharedTypeView<Type> type) {
     return _typeSystem.matchTypeParameterType(type.unwrapTypeView());
   }
 
@@ -5417,7 +5417,7 @@ class _MiniAstErrors
 class _MiniAstTypeAnalyzer
     with
         TypeAnalyzer<Type, Node, Statement, Expression, Var, Pattern, void,
-            String, Type, String> {
+            TypeParameter, Type, String> {
   final Harness _harness;
 
   @override

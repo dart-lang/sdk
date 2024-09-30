@@ -22,7 +22,9 @@ import 'nullability_suffix.dart';
 abstract interface class TypeAnalyzerOperations<
         TypeStructure extends SharedTypeStructure<TypeStructure>,
         Variable extends Object,
-        InferableParameter extends Object,
+        // Work around https://github.com/dart-lang/dart_style/issues/1568
+        // ignore: lines_longer_than_80_chars
+        TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object>
     implements FlowAnalysisOperations<Variable, SharedTypeView<TypeStructure>> {
@@ -440,7 +442,7 @@ abstract interface class TypeAnalyzerOperations<
   /// `foo`.
   ///
   ///   X foo<X>(bool c, X x1, X x2) => c ? x1 : x2;
-  InferableParameter? matchInferableParameter(
+  TypeParameterStructure? matchInferableParameter(
       SharedTypeView<TypeStructure> type);
 
   /// If [type] is a subtype of the type `Iterable<T>?` for some `T`, returns
@@ -671,11 +673,13 @@ abstract interface class TypeAnalyzerOperations<
 mixin TypeAnalyzerOperationsMixin<
         TypeStructure extends SharedTypeStructure<TypeStructure>,
         Variable extends Object,
-        InferableParameter extends Object,
+        // Work around https://github.com/dart-lang/dart_style/issues/1568
+        // ignore: lines_longer_than_80_chars
+        TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object>
     implements
-        TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
+        TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
             TypeDeclarationType, TypeDeclaration> {
   @override
   SharedTypeView<TypeStructure> futureType(
@@ -865,7 +869,7 @@ mixin TypeAnalyzerOperationsMixin<
 abstract class TypeConstraintGenerator<
     TypeStructure extends SharedTypeStructure<TypeStructure>,
     Variable extends Object,
-    InferableParameter extends Object,
+    TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
     TypeDeclarationType extends Object,
     TypeDeclaration extends Object,
     AstNode extends Object> {
@@ -886,7 +890,7 @@ abstract class TypeConstraintGenerator<
   bool get enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr;
 
   /// Abstract type operations to be used in the matching methods.
-  TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
+  TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
       TypeDeclarationType, TypeDeclaration> get typeAnalyzerOperations;
 
   /// Returns the type arguments of the supertype of [type] that is an
@@ -1160,11 +1164,13 @@ abstract class TypeConstraintGenerator<
 mixin TypeConstraintGeneratorMixin<
         TypeStructure extends SharedTypeStructure<TypeStructure>,
         Variable extends Object,
-        InferableParameter extends Object,
+        // Work around https://github.com/dart-lang/dart_style/issues/1568
+        // ignore: lines_longer_than_80_chars
+        TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object,
         AstNode extends Object>
-    on TypeConstraintGenerator<TypeStructure, Variable, InferableParameter,
+    on TypeConstraintGenerator<TypeStructure, Variable, TypeParameterStructure,
         TypeDeclarationType, TypeDeclaration, AstNode> {
   @override
   bool performSubtypeConstraintGenerationLeftSchema(
