@@ -39,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var content = node.declaredElement?.source.contents.data;
+    var content = node.declaredFragment?.source.contents.data;
     for (var comment in node.ignoreComments) {
       var ignoredElements = comment.ignoredElements;
       if (ignoredElements.isEmpty) {
