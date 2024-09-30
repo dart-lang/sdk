@@ -47,11 +47,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Return if the '/' operator is not defined in core, or if we don't know
     // its static type.
-    var methodElement = node.staticElement;
+    var methodElement = node.element;
     if (methodElement == null) return;
 
-    var libraryElement = methodElement.library;
-    if (!libraryElement.isDartCore) return;
+    var libraryElement = methodElement.library2;
+    if (libraryElement != null && !libraryElement.isDartCore) return;
 
     var parent = node.parent;
     if (parent is! ParenthesizedExpression) return;
