@@ -39,7 +39,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
   ///
   /// Blocks until a full line is available.
   ///
-  /// Lines my be terminated by either `<CR><LF>` or `<LF>`. On Windows,
+  /// Lines may be terminated by either `<CR><LF>` or `<LF>`. On Windows,
   /// in cases where the [stdioType] of stdin is [StdioType.terminal],
   /// the terminator may also be a single `<CR>`.
   ///
