@@ -328,6 +328,7 @@ lib/src/services/correction/dart/remove_constructor_name.dart
 lib/src/services/correction/dart/remove_dead_code.dart
 lib/src/services/correction/dart/remove_dead_if_null.dart
 lib/src/services/correction/dart/remove_default_value.dart
+lib/src/services/correction/dart/remove_deprecated_new_in_comment_reference.dart
 lib/src/services/correction/dart/remove_digit_separators.dart
 lib/src/services/correction/dart/remove_duplicate_case.dart
 lib/src/services/correction/dart/remove_empty_catch.dart
