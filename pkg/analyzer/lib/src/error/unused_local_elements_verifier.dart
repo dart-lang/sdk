@@ -1145,6 +1145,8 @@ class UsedLocalElements {
   void addElement(Element? element) {
     if (element is JoinPatternVariableElementImpl) {
       elements.addAll(element.transitiveVariables);
+    } else if (element is ExecutableMember) {
+      elements.add(element.declaration);
     } else if (element != null) {
       elements.add(element);
     }
