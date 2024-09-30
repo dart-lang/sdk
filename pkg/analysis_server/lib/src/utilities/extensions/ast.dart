@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -85,6 +86,16 @@ extension AstNodeExtension on AstNode {
     return null;
   }
 
+  /// Returns [ExtensionElement2] declared by an enclosing node.
+  ExtensionElement2? get enclosingExtensionElement2 {
+    for (var node in withParents) {
+      if (node is ExtensionDeclaration) {
+        return node.declaredFragment?.element;
+      }
+    }
+    return null;
+  }
+
   /// Return the [IfStatement] associated with `this`.
   IfStatement? get enclosingIfStatement {
     for (var node in withParents) {
@@ -104,6 +115,18 @@ extension AstNodeExtension on AstNode {
         return node.declaredElement;
       } else if (node is MixinDeclaration) {
         return node.declaredElement;
+      }
+    }
+    return null;
+  }
+
+  /// Returns [InterfaceElement2] declared by an enclosing node.
+  InterfaceElement2? get enclosingInterfaceElement2 {
+    for (var node in withParents) {
+      if (node is ClassDeclaration) {
+        return node.declaredFragment?.element;
+      } else if (node is MixinDeclaration) {
+        return node.declaredFragment?.element;
       }
     }
     return null;

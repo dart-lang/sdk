@@ -22,7 +22,10 @@ bool _isOldModelElement(Element2? element) {
     var uriStr = libraryFragment.source.uri.toString();
     if (uriStr == 'package:analyzer/dart/element/element.dart') {
       // Skip classes that don't required migration.
-      if (const {'ElementAnnotation'}.contains(firstFragment.name)) {
+      if (const {
+        'ElementAnnotation',
+        'ElementKind',
+      }.contains(firstFragment.name)) {
         return false;
       }
       return true;

@@ -35,7 +35,7 @@ import 'package:meta/meta.dart';
 /// How broadly a [CorrectionProducer] can be applied.
 ///
 /// Each value of this enum is cumulative, as the index increases, except for
-/// [CorrectionApplicability.automaticallyButOncePerFile]. When a correctiopn
+/// [CorrectionApplicability.automaticallyButOncePerFile]. When a correction
 /// producer has a given applicability, it also can be applied with each
 /// lower-indexed value. For example, a correction producer with an
 /// applicability of [CorrectionApplicability.acrossFiles] can also be used to
@@ -455,6 +455,21 @@ abstract class ResolvedCorrectionProducer
     } else if (target is Identifier) {
       var element = target.staticElement;
       if (element is InterfaceElement) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  /// Returns the class element associated with the [target], or `null` if there
+  /// is no such element.
+  InterfaceElement2? getTargetInterfaceElement2(Expression target) {
+    var type = target.staticType;
+    if (type is InterfaceType) {
+      return type.element3;
+    } else if (target is Identifier) {
+      var element = target.element;
+      if (element is InterfaceElement2) {
         return element;
       }
     }

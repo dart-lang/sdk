@@ -270,10 +270,14 @@ lib/src/services/correction/dart/convert_to_on_type.dart
 lib/src/services/correction/dart/convert_to_raw_string.dart
 lib/src/services/correction/dart/convert_to_set_literal.dart
 lib/src/services/correction/dart/convert_to_super_parameters.dart
+lib/src/services/correction/dart/convert_to_switch_expression.dart
 lib/src/services/correction/dart/convert_to_where_type.dart
 lib/src/services/correction/dart/convert_to_wildcard_pattern.dart
 lib/src/services/correction/dart/convert_to_wildcard_variable.dart
+lib/src/services/correction/dart/create_constructor_for_final_fields.dart
+lib/src/services/correction/dart/create_field.dart
 lib/src/services/correction/dart/create_function.dart
+lib/src/services/correction/dart/create_getter.dart
 lib/src/services/correction/dart/create_local_variable.dart
 lib/src/services/correction/dart/create_no_such_method.dart
 lib/src/services/correction/dart/create_parameter.dart
