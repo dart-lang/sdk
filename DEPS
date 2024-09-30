@@ -174,7 +174,7 @@ vars = {
   "source_maps_rev": "5f82c613664ade03c7a6d0e6c59687c69dec894b",
   "source_span_rev": "f81cd4a2df630a97264fb4015fb93944b5b98b11",
   "sse_rev": "af2c5c572a8da6d2f7551b80d75121f2a38a4c79",
-  "stack_trace_rev": "5b829650d47c66a3b6786256fd955403cd56a169",
+  "stack_trace_rev": "9476c0a0e2a33d68f9554565ef23f2324a3e3d96",
   "stream_channel_rev": "c0c5a978b225d2e02be858e98e24455b7f79b1a0",
   "string_scanner_rev": "a40bbbd83f1176bcc0021b336f5841310f91d8cb",
   "sync_http_rev": "91c0dd5ef9a008f0277aadcfd83036f82e572d09",
