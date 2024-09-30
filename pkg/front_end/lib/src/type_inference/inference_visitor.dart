@@ -4595,9 +4595,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Map<TreeNode, DartType> inferredSpreadTypes,
       Map<Expression, DartType> inferredConditionTypes,
       _MapLiteralEntryOffsets offsets) {
-    // TODO(cstefantsova): Make sure flow analysis is invoked here when it's
-    // implemented.
-
     DartType adjustedInferredKeyType = entry.isKeyNullAware
         ? inferredKeyType.withDeclaredNullability(Nullability.nullable)
         : inferredKeyType;
@@ -4609,6 +4606,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             isVoidAllowed: inferredKeyType is VoidType)
         .expression;
     entry.key = key..parent = entry;
+
+    flowAnalysis.nullAwareMapEntry_valueBegin(
+        key, new SharedTypeView(keyInferenceResult.inferredType),
+        isKeyNullAware: entry.isKeyNullAware);
 
     DartType adjustedInferredValueType = entry.isValueNullAware
         ? inferredValueType.withDeclaredNullability(Nullability.nullable)
@@ -4626,6 +4627,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     actualTypesForSet.add(const DynamicType());
 
     offsets.mapEntryOffset = entry.fileOffset;
+
+    flowAnalysis.nullAwareMapEntry_end(isKeyNullAware: entry.isKeyNullAware);
 
     return entry;
   }

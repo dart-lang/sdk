@@ -299,11 +299,12 @@ Expression localFunction(List<ProtoStatement> body) {
 }
 
 /// Creates a map entry containing the given [key] and [value] subexpressions.
-CollectionElement mapEntry(ProtoExpression key, ProtoExpression value) {
+CollectionElement mapEntry(ProtoExpression key, ProtoExpression value,
+    {bool isKeyNullAware = false}) {
   var location = computeLocation();
   return MapEntry._(key.asExpression(location: location),
       value.asExpression(location: location),
-      location: location);
+      isKeyNullAware: isKeyNullAware, location: location);
 }
 
 /// Creates a map literal containing the given [elements].
@@ -2527,8 +2528,10 @@ abstract class LValue extends Expression {
 class MapEntry extends CollectionElement {
   final Expression key;
   final Expression value;
+  final bool isKeyNullAware;
 
-  MapEntry._(this.key, this.value, {required super.location});
+  MapEntry._(this.key, this.value,
+      {required this.isKeyNullAware, required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -2537,7 +2540,7 @@ class MapEntry extends CollectionElement {
   }
 
   @override
-  String toString() => '$key: $value';
+  String toString() => '${isKeyNullAware ? '?' : ''}$key: $value';
 
   @override
   void visit(Harness h, CollectionElementContext context) {
@@ -2550,8 +2553,11 @@ class MapEntry extends CollectionElement {
       default:
         keySchema = valueSchema = h.operations.unknownType;
     }
-    h.typeAnalyzer.analyzeExpression(key, keySchema);
+    var keyType = h.typeAnalyzer.analyzeExpression(key, keySchema);
+    h.flow.nullAwareMapEntry_valueBegin(key, keyType,
+        isKeyNullAware: isKeyNullAware);
     h.typeAnalyzer.analyzeExpression(value, valueSchema);
+    h.flow.nullAwareMapEntry_end(isKeyNullAware: isKeyNullAware);
     h.irBuilder.apply(
         'mapEntry', [Kind.expression, Kind.expression], Kind.collectionElement,
         location: location);
