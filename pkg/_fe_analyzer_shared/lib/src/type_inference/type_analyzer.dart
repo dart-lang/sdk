@@ -269,7 +269,7 @@ mixin TypeAnalyzer<
     Variable extends Object,
     Pattern extends Node,
     Error,
-    InferableParameter extends Object,
+    TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
     TypeDeclarationType extends Object,
     TypeDeclaration extends Object> {
   TypeAnalyzerErrors<Node, Statement, Expression, Variable,
@@ -281,7 +281,7 @@ mixin TypeAnalyzer<
 
   /// The [TypeAnalyzerOperations], used to access types, check subtyping, and
   /// query variable types.
-  TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
+  TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
       TypeDeclarationType, TypeDeclaration> get operations;
 
   /// Options affecting the behavior of [TypeAnalyzer].

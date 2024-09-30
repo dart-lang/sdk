@@ -32,7 +32,7 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is Expression) {
-      var typeSystem = libraryElement.typeSystem;
+      var typeSystem = libraryElement2.typeSystem;
 
       var newType = node.staticType;
 
@@ -91,16 +91,16 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
     if (newType != null) {
       var clazz = method.thisOrAncestorOfType<ClassDeclaration>();
       if (clazz != null) {
-        var classElement = clazz.declaredElement!;
-        var overriddenList = InheritanceManager3().getOverridden2(
+        var classElement = clazz.declaredFragment!.element;
+        var overriddenList = InheritanceManager3().getOverridden4(
             classElement,
-            Name(
-              classElement.library.source.uri,
-              method.declaredElement!.name,
+            Name.forLibrary(
+              classElement.library2,
+              method.declaredFragment!.name!,
             ));
 
         if (overriddenList != null) {
-          var notSubtype = overriddenList.any((element) => !libraryElement
+          var notSubtype = overriddenList.any((element) => !libraryElement2
               .typeSystem
               .isSubtypeOf(newType, element.returnType));
           if (notSubtype) {

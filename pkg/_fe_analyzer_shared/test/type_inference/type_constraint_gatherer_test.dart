@@ -308,10 +308,12 @@ main() {
   });
 }
 
-class _TypeConstraintGatherer
-    extends TypeConstraintGenerator<Type, Var, String, Type, String, Node>
-    with TypeConstraintGeneratorMixin<Type, Var, String, Type, String, Node> {
-  final Set<String> _typeVariablesBeingConstrained;
+class _TypeConstraintGatherer extends TypeConstraintGenerator<Type, Var,
+        TypeParameter, Type, String, Node>
+    with
+        TypeConstraintGeneratorMixin<Type, Var, TypeParameter, Type, String,
+            Node> {
+  final _typeVariablesBeingConstrained = <TypeParameter>{};
 
   @override
   final bool enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr;
@@ -321,11 +323,12 @@ class _TypeConstraintGatherer
 
   final _constraints = <String>[];
 
-  _TypeConstraintGatherer(this._typeVariablesBeingConstrained,
+  _TypeConstraintGatherer(Set<String> typeVariablesBeingConstrained,
       {this.enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr =
           false}) {
-    for (var typeVariable in _typeVariablesBeingConstrained) {
-      typeAnalyzerOperations.addTypeVariable(typeVariable);
+    for (var typeVariableName in typeVariablesBeingConstrained) {
+      _typeVariablesBeingConstrained
+          .add(typeAnalyzerOperations.addTypeVariable(typeVariableName));
     }
   }
 

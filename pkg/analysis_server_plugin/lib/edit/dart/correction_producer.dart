@@ -434,11 +434,35 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
+  /// Returns the extension declaration for the given [fragment], or `null` if
+  /// there is no such extension.
+  Future<ExtensionDeclaration?> getExtensionDeclaration2(
+      ExtensionFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration2(fragment);
+    var node = result?.node;
+    if (node is ExtensionDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
   /// Returns the extension type for the given [element], or `null` if there
   /// is no such extension type.
   Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration(
       ExtensionTypeElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
+    var node = result?.node;
+    if (node is ExtensionTypeDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
+  /// Returns the extension type for the given [fragment], or `null` if there
+  /// is no such extension type.
+  Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration2(
+      ExtensionTypeFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration2(fragment);
     var node = result?.node;
     if (node is ExtensionTypeDeclaration) {
       return node;

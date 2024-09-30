@@ -66,7 +66,16 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-export 'package:analyzer/dart/element/element.dart' show DirectiveUriWithSource;
+export 'package:analyzer/dart/element/element.dart'
+    show
+        DirectiveUri,
+        DirectiveUriWithLibrary,
+        DirectiveUriWithRelativeUri,
+        DirectiveUriWithRelativeUriString,
+        DirectiveUriWithSource,
+        DirectiveUriWithUnit,
+        ElementAnnotation,
+        ElementKind;
 
 abstract class BindPatternVariableElement2 implements PatternVariableElement2 {}
 
@@ -483,6 +492,9 @@ abstract class ExecutableFragment implements FunctionTypedFragment {
 abstract class ExtensionElement2 implements InstanceElement2 {
   /// The type that is extended by this extension.
   DartType get extendedType;
+
+  @override
+  ExtensionFragment get firstFragment;
 }
 
 /// The portion of an [ExtensionElement2] contributed by a single
@@ -498,6 +510,9 @@ abstract class ExtensionFragment implements InstanceFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExtensionTypeElement2 implements InterfaceElement2 {
+  @override
+  ExtensionTypeFragment get firstFragment;
+
   /// The primary constructor of this extension.
   ConstructorElement2 get primaryConstructor2;
 

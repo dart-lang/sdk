@@ -38,6 +38,14 @@ abstract interface class SharedRecordTypeStructure<
 }
 
 /// Common interface for data structures used by the implementations to
+/// represent a generic type parameter.
+abstract interface class SharedTypeParameterStructure<
+    TypeStructure extends SharedTypeStructure<TypeStructure>> {
+  /// The name of the type parameter, for display to the user.
+  String get displayName;
+}
+
+/// Common interface for data structures used by the implementations to
 /// represent a type.
 abstract interface class SharedTypeStructure<
     TypeStructure extends SharedTypeStructure<TypeStructure>> {

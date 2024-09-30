@@ -991,6 +991,18 @@ main() {
     ]);
   }
 
+  test_method_isUsed_call_inExtension() async {
+    await assertNoErrorsInCode(r'''
+extension<T> on T {
+  void call() {}
+}
+
+void f() {
+  (<T>(T t) => t())(7);
+}
+''');
+  }
+
   test_method_isUsed_hasPragma_vmEntryPoint() async {
     pragma;
     await assertNoErrorsInCode(r'''
@@ -1364,6 +1376,16 @@ void main() {
   "hello" - 3;
 }
 ''');
+  }
+
+  test_method_notUsed_call_inExtension() async {
+    await assertErrorsInCode(r'''
+extension<T> on T {
+  void call() {}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 27, 4),
+    ]);
   }
 
   test_method_notUsed_hasSameNameAsUsed() async {

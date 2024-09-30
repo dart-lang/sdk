@@ -13,6 +13,7 @@ analyzer:
 linter:
   rules:
     - always_put_required_named_parameters_first
+    - analyzer_use_new_elements
     - avoid_annotating_with_dynamic
     - avoid_catches_without_on_clauses
     - avoid_catching_errors

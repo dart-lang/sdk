@@ -642,6 +642,137 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
+  void writeOverride2(
+    ExecutableElement2 element, {
+    StringBuffer? displayTextBuffer,
+    String? returnTypeGroupName,
+    bool invokeSuper = false,
+    bool setSelection = true,
+  }) {
+    void withCarbonCopyBuffer(void Function() f) {
+      _carbonCopyBuffer = displayTextBuffer;
+      try {
+        f();
+      } finally {
+        _carbonCopyBuffer = null;
+      }
+    }
+
+    void selectAllIfSetSelection(void Function() writer) =>
+        setSelection ? selectAll(writer) : writer();
+
+    var prefix = getIndent(1);
+    var prefix2 = getIndent(2);
+    var elementKind = element.kind;
+
+    var isGetter = elementKind == ElementKind.GETTER;
+    var isSetter = elementKind == ElementKind.SETTER;
+    var isMethod = elementKind == ElementKind.METHOD;
+    var isOperator = isMethod && (element as MethodElement2).isOperator;
+    var memberName = element.displayName;
+
+    // `@override` annotation.
+    writeln('@override');
+    write(prefix);
+
+    if (isGetter) {
+      writeln('// TODO: implement $memberName');
+      write(prefix);
+    }
+
+    // Return type.
+    var returnType = element.returnType;
+    if (!isSetter) {
+      var typeWritten = writeType2(returnType,
+          groupName: returnTypeGroupName, methodBeingCopied: element);
+      if (typeWritten) {
+        write(' ');
+      }
+    }
+    if (isGetter) {
+      write(Keyword.GET.lexeme);
+      write(' ');
+    } else if (isSetter) {
+      write(Keyword.SET.lexeme);
+      write(' ');
+    } else if (isOperator) {
+      write(Keyword.OPERATOR.lexeme);
+      write(' ');
+    }
+
+    // Name.
+    withCarbonCopyBuffer(() {
+      write(memberName);
+    });
+
+    // Parameters and body.
+    if (isGetter) {
+      if (invokeSuper) {
+        write(' => ');
+        selectAllIfSetSelection(() => write('super.$memberName'));
+        writeln(';');
+      } else {
+        write(' => ');
+        selectAllIfSetSelection(() => write('throw UnimplementedError()'));
+        write(';');
+      }
+      displayTextBuffer?.write(' => …');
+      return;
+    }
+
+    // Method.
+    var parameters = element.formalParameters;
+    withCarbonCopyBuffer(() {
+      writeTypeParameters2(element.type.typeParameters,
+          methodBeingCopied: element);
+      writeFormalParameters(parameters, methodBeingCopied: element);
+    });
+    writeln(' {');
+
+    // TO-DO comment.
+    write(prefix2);
+    write('// TODO: implement $memberName');
+
+    if (isSetter) {
+      if (invokeSuper) {
+        writeln();
+        write(prefix2);
+        selectAllIfSetSelection(
+            () => write('super.$memberName = ${parameters[0].name};'));
+      } else {
+        if (setSelection) selectHere();
+      }
+    } else if (returnType is VoidType) {
+      if (invokeSuper) {
+        writeln();
+        write(prefix2);
+        selectAllIfSetSelection(() {
+          write('super');
+          _writeSuperMemberInvocation2(element, memberName, parameters);
+        });
+      } else {
+        if (setSelection) selectHere();
+      }
+    } else {
+      writeln();
+      write(prefix2);
+      if (invokeSuper) {
+        selectAllIfSetSelection(() {
+          write('return super');
+          _writeSuperMemberInvocation2(element, memberName, parameters);
+        });
+      } else {
+        selectAllIfSetSelection(() => write('throw UnimplementedError();'));
+      }
+    }
+    writeln();
+    // Close method.
+    write(prefix);
+    write('}');
+    displayTextBuffer?.write(' { … }');
+  }
+
+  @override
   void writeParameter(String name,
       {bool isCovariant = false,
       bool isRequiredNamed = false,
@@ -870,6 +1001,34 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         });
       } else {
         wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
+      }
+    }
+    if (!wroteType && required) {
+      write(Keyword.VAR.lexeme);
+      return true;
+    }
+    return wroteType;
+  }
+
+  @override
+  bool writeType2(
+    DartType? type, {
+    bool addSupertypeProposals = false,
+    String? groupName,
+    ExecutableElement2? methodBeingCopied,
+    bool required = false,
+  }) {
+    var wroteType = false;
+    if (type != null && type is! DynamicType) {
+      if (groupName != null) {
+        addLinkedEdit(groupName, (LinkedEditBuilder builder) {
+          wroteType = _writeType2(type, methodBeingCopied: methodBeingCopied);
+          if (wroteType && addSupertypeProposals) {
+            _addSuperTypeProposals(builder, type, {});
+          }
+        });
+      } else {
+        wroteType = _writeType2(type, methodBeingCopied: methodBeingCopied);
       }
     }
     if (!wroteType && required) {
@@ -1346,6 +1505,25 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void _writeSuperMemberInvocation(ExecutableElement element, String memberName,
       List<ParameterElement> parameters) {
     var isOperator = element.isOperator;
+    write(isOperator ? ' ' : '.');
+    write(memberName);
+    write(isOperator ? ' ' : '(');
+    for (var i = 0; i < parameters.length; i++) {
+      if (i > 0) {
+        write(', ');
+      }
+      if (parameters[i].isNamed) {
+        write(parameters[i].name);
+        write(': ');
+      }
+      write(parameters[i].name);
+    }
+    write(isOperator ? ';' : ');');
+  }
+
+  void _writeSuperMemberInvocation2(ExecutableElement2 element,
+      String memberName, List<FormalParameterElement> parameters) {
+    var isOperator = element is MethodElement2 && element.isOperator;
     write(isOperator ? ' ' : '.');
     write(memberName);
     write(isOperator ? ' ' : '(');

@@ -9,7 +9,7 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -33,7 +33,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is! VariableDeclaration) return;
-    var element = node.declaredElement;
+    var element = node.declaredElement2;
     if (element == null) return;
     var type = element.type;
     switch (type) {
@@ -48,8 +48,8 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
       VariableDeclaration node, ChangeBuilder builder) async {
     // TODO(pq): share reference checking w/ record computation
 
-    var variableElement = node.declaredElement;
-    if (variableElement is! LocalVariableElement) return;
+    var variableElement = node.declaredElement2;
+    if (variableElement == null) return;
 
     var function = node.thisOrAncestorOfType<FunctionBody>();
     if (function == null) return;
@@ -84,7 +84,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.entity(node.name), (builder) {
-        builder.write('${type.element.name}(');
+        builder.write('${type.element3.name}(');
         if (varMap.isEmpty) {
           builder.selectHere();
         } else {
@@ -235,10 +235,10 @@ abstract class RecordField {
 }
 
 class _ReferenceFinder extends RecursiveAstVisitor<void> {
+  final LocalVariableElement2? element;
   final objectReferences = <AstNode>[];
   final propertyReferences = <String, List<AstNode>>{};
 
-  final VariableElement? element;
   _ReferenceFinder(this.element);
 
   ({
@@ -254,7 +254,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement == element) {
+    if (node.element == element) {
       var parent = node.parent;
       switch (parent) {
         case PrefixedIdentifier(:var identifier):
@@ -269,7 +269,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   }
 }
 
-extension on VariableElement {
+extension on LocalVariableElement2 {
   ({
     List<AstNode> objectReferences,
     Map<String, List<AstNode>> propertyReferences

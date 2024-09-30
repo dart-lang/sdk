@@ -118,7 +118,7 @@ extension ElementOrNullExtension on Element? {
     } else if (self is FunctionElementImpl &&
         self.enclosingElement3 is! CompilationUnitElement) {
       // TODO(scheglov): update `FunctionElementImpl.element` return type?
-      return LocalFunctionElementImpl(self);
+      return self.element2;
     } else if (self is LabelElementImpl) {
       return self.element2;
     } else if (self is LocalVariableElementImpl) {

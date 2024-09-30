@@ -7,7 +7,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -30,12 +30,12 @@ class ShadowField extends ResolvedCorrectionProducer {
       return;
     }
 
-    var accessor = node.writeOrReadElement;
-    if (accessor is! PropertyAccessorElement) {
+    var accessor = node.writeOrReadElement2;
+    if (accessor is! GetterElement) {
       return;
     }
 
-    if (!accessor.isGetter || accessor.enclosingElement3 is! InterfaceElement) {
+    if (accessor.enclosingElement2 is! InterfaceElement2) {
       // TODO(brianwilkerson): Should we also require that the getter be synthetic?
       return;
     }
@@ -53,7 +53,7 @@ class ShadowField extends ResolvedCorrectionProducer {
       return;
     }
 
-    var correspondingSetter = accessor.correspondingSetter;
+    var correspondingSetter = accessor.correspondingSetter2;
     if (correspondingSetter == null) {
       return;
     }
@@ -124,7 +124,7 @@ class ShadowField extends ResolvedCorrectionProducer {
 /// A utility that will find any references to a setter within an AST structure.
 class _ReferenceFinder extends RecursiveAstVisitor<void> {
   /// The setter being searched for.
-  final PropertyAccessorElement setter;
+  final SetterElement setter;
 
   /// A flag indicating whether a reference to the [setter] has been found.
   bool hasSetterReference = false;
@@ -135,7 +135,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.writeOrReadElement == setter) {
+    if (node.writeOrReadElement2 == setter) {
       hasSetterReference = true;
     }
   }

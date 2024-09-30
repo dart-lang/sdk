@@ -5037,10 +5037,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   @experimental
   @override
   BindPatternVariableElement2? get declaredElement2 {
-    if (declaredElement case BindPatternVariableElementImpl declaredElement) {
-      return BindPatternVariableElementImpl2(declaredElement);
-    }
-    return null;
+    return declaredElement?.element2;
   }
 
   @override

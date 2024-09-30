@@ -514,6 +514,20 @@ abstract class Type implements SharedTypeStructure<Type> {
   String _toStringWithoutSuffix({required bool parenthesizeIfComplex});
 }
 
+class TypeParameter implements SharedTypeParameterStructure<Type> {
+  final String name;
+
+  final Type bound;
+
+  TypeParameter({required this.name, required this.bound});
+
+  @override
+  String get displayName => name;
+
+  @override
+  String toString() => name;
+}
+
 class TypeSystem {
   static final Map<String, List<Type> Function(List<Type>)>
       _coreSuperInterfaceTemplates = {
@@ -533,7 +547,7 @@ class TypeSystem {
 
   static final _objectType = Type('Object');
 
-  final Map<String, Type> _typeVarBounds = {};
+  final Map<String, TypeParameter> _typeVariables = {};
 
   final Map<String, List<Type> Function(List<Type>)> _superInterfaceTemplates =
       Map.of(_coreSuperInterfaceTemplates);
@@ -543,8 +557,9 @@ class TypeSystem {
     _superInterfaceTemplates[className] = template;
   }
 
-  void addTypeVariable(String name, {String? bound}) {
-    _typeVarBounds[name] = Type(bound ?? 'Object?');
+  TypeParameter addTypeVariable(String name, {String? bound}) {
+    return _typeVariables[name] =
+        TypeParameter(name: name, bound: Type(bound ?? 'Object?'));
   }
 
   Type factor(Type t, Type s) {
@@ -725,8 +740,10 @@ class TypeSystem {
 
     // Type Variable Reflexivity 1: if T0 is a type variable X0 or a promoted
     // type variables X0 & S0 and T1 is X0 then:
-    if (t1 is PrimaryType &&
-        matchTypeParameterType(t0) == t1.name &&
+    if (_isTypeVar(t0) &&
+        _isTypeVar(t1) &&
+        t1 is PrimaryType &&
+        matchTypeParameterType(t0) == matchTypeParameterType(t1) &&
         t1.nullabilitySuffix == NullabilitySuffix.none &&
         t1.args.isEmpty) {
       // - T0 <: T1
@@ -1004,7 +1021,7 @@ class TypeSystem {
     return false;
   }
 
-  String? matchTypeParameterType(Type t) {
+  TypeParameter? matchTypeParameterType(Type t) {
     if (t is PromotedTypeVariableType &&
         t.nullabilitySuffix == NullabilitySuffix.none) {
       var typeVar = matchTypeParameterType(t.innerType);
@@ -1012,9 +1029,8 @@ class TypeSystem {
       return typeVar;
     } else if (t is PrimaryType &&
         t.nullabilitySuffix == NullabilitySuffix.none &&
-        t.args.isEmpty &&
-        _typeVarBounds.containsKey(t.name)) {
-      return t.name;
+        t.args.isEmpty) {
+      return _typeVariables[t.name];
     } else {
       return null;
     }
@@ -1031,7 +1047,7 @@ class TypeSystem {
 
   bool _isTypeVar(Type t) => matchTypeParameterType(t) != null;
 
-  Type _typeVarBound(Type t) => _typeVarBounds[matchTypeParameterType(t)!]!;
+  Type _typeVarBound(Type t) => matchTypeParameterType(t)!.bound;
 }
 
 /// Representation of the unknown type suitable for unit testing of code in the

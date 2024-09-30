@@ -52,8 +52,7 @@ List<AstNode> findLocalElementReferences2(AstNode root, LocalElement element) {
 
 /// Return references to the [element] inside the [root] node.
 /// (Unlike [findLocalElementReferences], visits list and record pattern assignments).
-List<AstNode> findLocalElementReferences3(
-    AstNode root, LocalVariableElement2 element) {
+List<AstNode> findLocalElementReferences3(AstNode root, Element2 element) {
   var collector = _ElementReferenceCollector3(element);
   root.accept(collector);
   return collector.references;
@@ -63,6 +62,14 @@ List<AstNode> findLocalElementReferences3(
 List<SimpleIdentifier> findPrefixElementReferences(
     AstNode root, PrefixElement element) {
   var collector = _ElementReferenceCollector(element);
+  root.accept(collector);
+  return collector.references;
+}
+
+/// Return references to the [element] inside the [root] node.
+List<AstNode> findPrefixElementReferences2(
+    AstNode root, PrefixElement2 element) {
+  var collector = _ElementReferenceCollector3(element);
   root.accept(collector);
   return collector.references;
 }
@@ -183,6 +190,11 @@ Precedence getExpressionPrecedence(AstNode node) {
 /// Returns the namespace of the given [LibraryImportElement].
 Map<String, Element> getImportNamespace(LibraryImportElement imp) {
   return imp.namespace.definedNames;
+}
+
+/// Returns the namespace of the given [LibraryImportElement].
+Map<String, Element2> getImportNamespace2(LibraryImport imp) {
+  return imp.namespace.definedNames2;
 }
 
 /// Computes the best URI to import [what] into [from].

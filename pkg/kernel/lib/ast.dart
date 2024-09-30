@@ -77,6 +77,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
         SharedInvalidTypeStructure,
         SharedNamedTypeStructure,
         SharedRecordTypeStructure,
+        SharedTypeParameterStructure,
         SharedTypeStructure,
         SharedVoidTypeStructure;
 
@@ -13207,7 +13208,8 @@ class TypeParameter extends TreeNode implements Annotatable {
 ///
 /// [StructuralParameter] objects should not be shared between different
 /// [FunctionType] objects.
-class StructuralParameter extends Node {
+class StructuralParameter extends Node
+    implements SharedTypeParameterStructure<DartType> {
   int flags = 0;
 
   String? name; // Cosmetic name.
@@ -13252,6 +13254,9 @@ class StructuralParameter extends Node {
 
   /// Variance of type parameter w.r.t. declaration on which it is defined.
   Variance? _variance;
+
+  @override
+  String get displayName => name ?? '<unknown>';
 
   Variance get variance => _variance ?? Variance.covariant;
 
