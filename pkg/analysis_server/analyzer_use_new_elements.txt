@@ -417,6 +417,7 @@ lib/src/services/correction/dart/replace_with_is_nan.dart
 lib/src/services/correction/dart/replace_with_named_constant.dart
 lib/src/services/correction/dart/replace_with_not_null_aware.dart
 lib/src/services/correction/dart/replace_with_null_aware.dart
+lib/src/services/correction/dart/replace_with_part_of_uri.dart
 lib/src/services/correction/dart/replace_with_tear_off.dart
 lib/src/services/correction/dart/replace_with_unicode_escape.dart
 lib/src/services/correction/dart/replace_with_wildcard.dart
