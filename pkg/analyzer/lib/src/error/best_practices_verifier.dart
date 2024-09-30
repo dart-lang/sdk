@@ -1848,7 +1848,7 @@ class _InvalidAccessVerifier {
       }
     }
 
-    bool isVisibleForTemplateApplied = _isVisibleForTemplateApplied(element);
+    var isVisibleForTemplateApplied = _isVisibleForTemplateApplied(element);
     if (isVisibleForTemplateApplied) {
       if (_inTemplateSource || _inExportDirective(node)) {
         return;
@@ -1862,17 +1862,31 @@ class _InvalidAccessVerifier {
       }
     }
 
-    bool hasVisibleForOverriding = _hasVisibleForOverriding(element);
+    var (name, errorEntity) = _getIdentifierNameAndErrorEntity(node, element);
+
+    var hasVisibleForOverriding = _hasVisibleForOverriding(element);
+    if (hasVisibleForOverriding) {
+      var parent = node.parent;
+      if (parent is MethodInvocation && parent.target is SuperExpression ||
+          parent is PropertyAccess && parent.target is SuperExpression) {
+        var grandparent = parent?.parent;
+        var methodDeclaration =
+            grandparent?.thisOrAncestorOfType<MethodDeclaration>();
+        if (methodDeclaration?.name.lexeme == name) {
+          return;
+        }
+      }
+    }
 
     // At this point, [identifier] was not cleared as protected access, nor
     // cleared as access for templates or testing. Report a violation for each
     // annotation present.
-    var (name, errorEntity) = _getIdentifierNameAndErrorEntity(node, element);
 
     var definingClass = element.enclosingElement3;
     if (definingClass == null) {
       return;
     }
+
     if (hasProtected) {
       _errorReporter.atEntity(
         errorEntity,
@@ -1880,6 +1894,7 @@ class _InvalidAccessVerifier {
         arguments: [name, definingClass.source!.uri],
       );
     }
+
     if (isVisibleForTemplateApplied) {
       _errorReporter.atEntity(
         errorEntity,
@@ -1897,24 +1912,11 @@ class _InvalidAccessVerifier {
     }
 
     if (hasVisibleForOverriding) {
-      var parent = node.parent;
-      var validOverride = false;
-      if (parent is MethodInvocation && parent.target is SuperExpression ||
-          parent is PropertyAccess && parent.target is SuperExpression) {
-        var grandparent = parent?.parent;
-        var methodDeclaration =
-            grandparent?.thisOrAncestorOfType<MethodDeclaration>();
-        if (methodDeclaration?.name.lexeme == name) {
-          validOverride = true;
-        }
-      }
-      if (!validOverride) {
-        _errorReporter.atEntity(
-          errorEntity,
-          WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
-          arguments: [name],
-        );
-      }
+      _errorReporter.atEntity(
+        errorEntity,
+        WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
+        arguments: [name],
+      );
     }
   }
 
