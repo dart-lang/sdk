@@ -383,6 +383,7 @@ lib/src/services/correction/dart/remove_unused_local_variable.dart
 lib/src/services/correction/dart/remove_unused_parameter.dart
 lib/src/services/correction/dart/remove_var.dart
 lib/src/services/correction/dart/remove_var_keyword.dart
+lib/src/services/correction/dart/rename_to_camel_case.dart
 lib/src/services/correction/dart/replace_boolean_with_bool.dart
 lib/src/services/correction/dart/replace_cascade_with_dot.dart
 lib/src/services/correction/dart/replace_colon_with_equals.dart
