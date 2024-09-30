@@ -291,6 +291,7 @@ lib/src/services/correction/dart/extend_class_for_mixin.dart
 lib/src/services/correction/dart/extract_local_variable.dart
 lib/src/services/correction/dart/flutter_move_down.dart
 lib/src/services/correction/dart/flutter_move_up.dart
+lib/src/services/correction/dart/flutter_remove_widget.dart
 lib/src/services/correction/dart/flutter_swap_with_child.dart
 lib/src/services/correction/dart/flutter_swap_with_parent.dart
 lib/src/services/correction/dart/flutter_wrap_generic.dart
