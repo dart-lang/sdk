@@ -41,7 +41,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     var testFile = convertPath('$testPackageLibPath/test.dart');
     newFile(testFile, '');
     var result = await (await session).getResolvedLibraryValid(testFile);
-    var sets = manager.forLibrary(result.element);
+    var sets = manager.forLibrary(result.element2);
     expect(sets, hasLength(1));
     var elementMatcher = ElementMatcher(
         importedUris: [Uri.parse('package:p1/test.dart')],
@@ -72,7 +72,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     var testFile = convertPath('$testPackageLibPath/test.dart');
     newFile(testFile, '');
     var result = await (await session).getResolvedLibraryValid(testFile);
-    var sets = manager.forLibrary(result.element);
+    var sets = manager.forLibrary(result.element2);
     expect(sets, hasLength(2));
 
     var elementMatcher = ElementMatcher(
@@ -112,7 +112,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     var testFile = convertPath('$testPackageLibPath/test.dart');
     newFile(testFile, '');
     var result = await (await session).getResolvedLibraryValid(testFile);
-    var sets = manager.forLibrary(result.element);
+    var sets = manager.forLibrary(result.element2);
     expect(sets, hasLength(2));
   }
 
@@ -123,7 +123,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     var testFile = convertPath('$testPackageLibPath/test.dart');
     newFile(testFile, '');
     var result = await (await session).getResolvedLibraryValid(testFile);
-    var sets = manager.forLibrary(result.element);
+    var sets = manager.forLibrary(result.element2);
     expect(sets, hasLength(0));
   }
 

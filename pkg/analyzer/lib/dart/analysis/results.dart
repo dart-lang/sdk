@@ -295,6 +295,10 @@ abstract class ResolvedUnitResult
   @experimental
   LibraryElement2 get libraryElement2;
 
+  /// The fragment corresponding to the [unit].
+  @experimental
+  LibraryFragment get libraryFragment;
+
   /// The type provider used when resolving the compilation [unit].
   TypeProvider get typeProvider;
 
