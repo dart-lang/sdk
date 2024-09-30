@@ -149,14 +149,6 @@ class MergedTypeConstraint<
     }
   }
 
-  void mergeInTypeSchemaUpper(
-      SharedTypeSchemaView<TypeStructure> constraint,
-      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameter,
-              TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations) {
-    upper = typeAnalyzerOperations.typeSchemaGlb(upper, constraint);
-  }
-
   void mergeInTypeSchemaLower(
       SharedTypeSchemaView<TypeStructure> constraint,
       TypeAnalyzerOperations<TypeStructure, Variable, TypeParameter,
@@ -165,45 +157,17 @@ class MergedTypeConstraint<
     lower = typeAnalyzerOperations.typeSchemaLub(lower, constraint);
   }
 
+  void mergeInTypeSchemaUpper(
+      SharedTypeSchemaView<TypeStructure> constraint,
+      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
+          typeAnalyzerOperations) {
+    upper = typeAnalyzerOperations.typeSchemaGlb(upper, constraint);
+  }
+
   @override
   String toString() {
     return '${lower} <: <type> <: ${upper}';
-  }
-}
-
-/// The origin of a type constraint, for the purposes of producing a human
-/// readable error message during type inference as well as determining whether
-/// the constraint was used to fix the type parameter or not.
-abstract class TypeConstraintOrigin<
-    TypeStructure extends SharedTypeStructure<TypeStructure>,
-    Variable extends Object,
-    TypeParameter extends Object,
-    TypeDeclarationType extends Object,
-    TypeDeclaration extends Object> {
-  const TypeConstraintOrigin();
-
-  List<String> formatError(
-      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameter,
-              TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations);
-}
-
-class UnknownTypeConstraintOrigin<
-        TypeStructure extends SharedTypeStructure<TypeStructure>,
-        Variable extends Object,
-        InferableParameter extends Object,
-        TypeDeclarationType extends Object,
-        TypeDeclaration extends Object>
-    extends TypeConstraintOrigin<TypeStructure, Variable, InferableParameter,
-        TypeDeclarationType, TypeDeclaration> {
-  const UnknownTypeConstraintOrigin();
-
-  @override
-  List<String> formatError(
-      TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
-              TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations) {
-    return <String>[];
   }
 }
 
@@ -353,5 +317,41 @@ class TypeConstraintFromReturnType<
       "declared as '${declaredType.getDisplayString()}'",
       "used where  '${contextType.getDisplayString()}' is required."
     ];
+  }
+}
+
+/// The origin of a type constraint, for the purposes of producing a human
+/// readable error message during type inference as well as determining whether
+/// the constraint was used to fix the type parameter or not.
+abstract class TypeConstraintOrigin<
+    TypeStructure extends SharedTypeStructure<TypeStructure>,
+    Variable extends Object,
+    TypeParameter extends Object,
+    TypeDeclarationType extends Object,
+    TypeDeclaration extends Object> {
+  const TypeConstraintOrigin();
+
+  List<String> formatError(
+      TypeAnalyzerOperations<TypeStructure, Variable, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
+          typeAnalyzerOperations);
+}
+
+class UnknownTypeConstraintOrigin<
+        TypeStructure extends SharedTypeStructure<TypeStructure>,
+        Variable extends Object,
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
+    extends TypeConstraintOrigin<TypeStructure, Variable, InferableParameter,
+        TypeDeclarationType, TypeDeclaration> {
+  const UnknownTypeConstraintOrigin();
+
+  @override
+  List<String> formatError(
+      TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
+              TypeDeclarationType, TypeDeclaration>
+          typeAnalyzerOperations) {
+    return <String>[];
   }
 }

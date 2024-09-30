@@ -63,16 +63,6 @@ abstract interface class TypeAnalyzerOperations<
   SharedTypeView<TypeStructure> futureType(
       SharedTypeView<TypeStructure> argumentType);
 
-  /// Returns the type schema `Future` with omitted nullability and type
-  /// argument [argumentTypeSchema].
-  ///
-  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
-  /// [TypeAnalyzerOperationsMixin] and implement [futureTypeInternal] to
-  /// receive a concrete implementation of [futureTypeSchema] instead of
-  /// implementing [futureTypeSchema] directly.
-  SharedTypeSchemaView<TypeStructure> futureTypeSchema(
-      SharedTypeSchemaView<TypeStructure> argumentTypeSchema);
-
   /// [futureTypeInternal] should be implemented by concrete classes
   /// implementing [TypeAnalyzerOperations]. The implementations of [futureType]
   /// and [futureTypeSchema] are provided by mixing in
@@ -98,6 +88,16 @@ abstract interface class TypeAnalyzerOperations<
   /// step too.
   TypeStructure futureTypeInternal(TypeStructure typeStructure);
 
+  /// Returns the type schema `Future` with omitted nullability and type
+  /// argument [argumentTypeSchema].
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [futureTypeInternal] to
+  /// receive a concrete implementation of [futureTypeSchema] instead of
+  /// implementing [futureTypeSchema] directly.
+  SharedTypeSchemaView<TypeStructure> futureTypeSchema(
+      SharedTypeSchemaView<TypeStructure> argumentTypeSchema);
+
   /// If [type] was introduced by a class, mixin, enum, or extension type,
   /// returns a [TypeDeclarationKind] indicating what kind of thing it was
   /// introduced by. Otherwise, returns `null`.
@@ -107,6 +107,8 @@ abstract interface class TypeAnalyzerOperations<
   /// extension type declarations, `T` and `S` are types.
   TypeDeclarationKind? getTypeDeclarationKind(
       SharedTypeView<TypeStructure> type);
+
+  TypeDeclarationKind? getTypeDeclarationKindInternal(TypeStructure type);
 
   /// Returns variance for of the type parameter at index [parameterIndex] in
   /// [typeDeclaration].
@@ -125,8 +127,6 @@ abstract interface class TypeAnalyzerOperations<
   TypeDeclarationKind? getTypeSchemaDeclarationKind(
       SharedTypeSchemaView<TypeStructure> typeSchema);
 
-  TypeDeclarationKind? getTypeDeclarationKindInternal(TypeStructure type);
-
   /// Computes the greatest lower bound of [type1] and [type2].
   ///
   /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
@@ -134,16 +134,6 @@ abstract interface class TypeAnalyzerOperations<
   /// concrete implementation of [glb] instead of implementing [glb] directly.
   SharedTypeView<TypeStructure> glb(
       SharedTypeView<TypeStructure> type1, SharedTypeView<TypeStructure> type2);
-
-  /// Computes the greatest lower bound of [typeSchema1] and [typeSchema2].
-  ///
-  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
-  /// [TypeAnalyzerOperationsMixin] and implement [glbInternal] to receive a
-  /// concrete implementation of [typeSchemaGlb] instead of implementing
-  /// [typeSchemaGlb] directly.
-  SharedTypeSchemaView<TypeStructure> typeSchemaGlb(
-      SharedTypeSchemaView<TypeStructure> typeSchema1,
-      SharedTypeSchemaView<TypeStructure> typeSchema2);
 
   /// [glbInternal] should be implemented by concrete classes implementing
   /// [TypeAnalyzerOperations]. The implementations of [glb] and [typeSchemaGlb]
@@ -200,6 +190,9 @@ abstract interface class TypeAnalyzerOperations<
   /// type `X`.
   bool isInterfaceType(SharedTypeView<TypeStructure> type);
 
+  @override
+  bool isNever(SharedTypeView<TypeStructure> type);
+
   /// Returns `true` if `Null` is not a subtype of all types matching
   /// [typeSchema].
   ///
@@ -213,6 +206,16 @@ abstract interface class TypeAnalyzerOperations<
   /// Returns `true` if [type] is `Object` from `dart:core`. The method returns
   /// `false` for `Object?` and `Object*`.
   bool isObject(SharedTypeView<TypeStructure> type);
+
+  /// The concrete classes implementing [TypeAnalyzerOperations] should
+  /// implement [isSubtypeOfInternal] in order to receive the implementations of
+  /// [typeIsSubtypeOfTypeSchema], [typeSchemaIsSubtypeOfType], and
+  /// [typeSchemaIsSubtypeOfTypeSchema] by mixing in
+  /// [TypeAnalyzerOperationsMixin].
+  bool isSubtypeOfInternal(TypeStructure left, TypeStructure right);
+
+  @override
+  bool isTypeParameterType(SharedTypeView<TypeStructure> type);
 
   /// Returns `true` if the type [type] satisfies the type schema [typeSchema].
   bool isTypeSchemaSatisfied(
@@ -234,15 +237,6 @@ abstract interface class TypeAnalyzerOperations<
   /// directly.
   SharedTypeView<TypeStructure> listType(
       SharedTypeView<TypeStructure> elementType);
-
-  /// Returns the type schema `List`, with type argument [elementTypeSchema].
-  ///
-  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
-  /// [TypeAnalyzerOperationsMixin] and implement [listTypeInternal] to receive
-  /// a concrete implementation of [listTypeSchema] instead of implementing
-  /// [listTypeSchema] directly.
-  SharedTypeSchemaView<TypeStructure> listTypeSchema(
-      SharedTypeSchemaView<TypeStructure> elementTypeSchema);
 
   /// [listTypeInternal] should be implemented by concrete classes implementing
   /// [TypeAnalyzerOperations]. The implementations of [listType] and
@@ -268,6 +262,15 @@ abstract interface class TypeAnalyzerOperations<
   /// step too.
   TypeStructure listTypeInternal(TypeStructure elementType);
 
+  /// Returns the type schema `List`, with type argument [elementTypeSchema].
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [listTypeInternal] to receive
+  /// a concrete implementation of [listTypeSchema] instead of implementing
+  /// [listTypeSchema] directly.
+  SharedTypeSchemaView<TypeStructure> listTypeSchema(
+      SharedTypeSchemaView<TypeStructure> elementTypeSchema);
+
   /// Computes the least upper bound of [type1] and [type2].
   ///
   /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
@@ -275,16 +278,6 @@ abstract interface class TypeAnalyzerOperations<
   /// concrete implementation of [lub] instead of implementing [lub] directly.
   SharedTypeView<TypeStructure> lub(
       SharedTypeView<TypeStructure> type1, SharedTypeView<TypeStructure> type2);
-
-  /// Computes the least upper bound of [typeSchema1] and [typeSchema2].
-  ///
-  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
-  /// [TypeAnalyzerOperationsMixin] and implement [lubInternal] to receive a
-  /// concrete implementation of [typeSchemaLub] instead of implementing
-  /// [typeSchemaLub] directly.
-  SharedTypeSchemaView<TypeStructure> typeSchemaLub(
-      SharedTypeSchemaView<TypeStructure> typeSchema1,
-      SharedTypeSchemaView<TypeStructure> typeSchema2);
 
   /// [lubInternal] should be implemented by concrete classes implementing
   /// [TypeAnalyzerOperations]. The implementations of [lub] and [typeSchemaLub]
@@ -318,15 +311,6 @@ abstract interface class TypeAnalyzerOperations<
   SharedTypeView<TypeStructure> makeNullable(
       SharedTypeView<TypeStructure> type);
 
-  /// Computes the nullable form of [typeSchema].
-  ///
-  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
-  /// [TypeAnalyzerOperationsMixin] and implement [makeNullableInternal] to
-  /// receive a concrete implementation of [makeTypeSchemaNullable] instead of
-  /// implementing [makeTypeSchemaNullable] directly.
-  SharedTypeSchemaView<TypeStructure> makeTypeSchemaNullable(
-      SharedTypeSchemaView<TypeStructure> typeSchema);
-
   /// [makeNullableInternal] should be implemented by concrete classes
   /// implementing [TypeAnalyzerOperations]. The implementations of
   /// [makeNullable] and [makeTypeSchemaNullable] are provided by mixing in
@@ -352,6 +336,15 @@ abstract interface class TypeAnalyzerOperations<
   /// step too.
   TypeStructure makeNullableInternal(TypeStructure type);
 
+  /// Computes the nullable form of [typeSchema].
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [makeNullableInternal] to
+  /// receive a concrete implementation of [makeTypeSchemaNullable] instead of
+  /// implementing [makeTypeSchemaNullable] directly.
+  SharedTypeSchemaView<TypeStructure> makeTypeSchemaNullable(
+      SharedTypeSchemaView<TypeStructure> typeSchema);
+
   /// Returns the type `Map`, with type arguments.
   ///
   /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
@@ -361,18 +354,6 @@ abstract interface class TypeAnalyzerOperations<
   SharedTypeView<TypeStructure> mapType({
     required SharedTypeView<TypeStructure> keyType,
     required SharedTypeView<TypeStructure> valueType,
-  });
-
-  /// Returns the type schema `Map`, with type arguments [keyTypeSchema] and
-  /// [valueTypeSchema].
-  ///
-  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
-  /// [TypeAnalyzerOperationsMixin] and implement [mapTypeInternal] to receive a
-  /// concrete implementation of [makeTypeSchemaNullable] instead of
-  /// implementing [makeTypeSchemaNullable] directly.
-  SharedTypeSchemaView<TypeStructure> mapTypeSchema({
-    required SharedTypeSchemaView<TypeStructure> keyTypeSchema,
-    required SharedTypeSchemaView<TypeStructure> valueTypeSchema,
   });
 
   /// [mapTypeInternal] should be implemented by concrete classes implementing
@@ -403,6 +384,18 @@ abstract interface class TypeAnalyzerOperations<
     required TypeStructure valueType,
   });
 
+  /// Returns the type schema `Map`, with type arguments [keyTypeSchema] and
+  /// [valueTypeSchema].
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [mapTypeInternal] to receive a
+  /// concrete implementation of [makeTypeSchemaNullable] instead of
+  /// implementing [makeTypeSchemaNullable] directly.
+  SharedTypeSchemaView<TypeStructure> mapTypeSchema({
+    required SharedTypeSchemaView<TypeStructure> keyTypeSchema,
+    required SharedTypeSchemaView<TypeStructure> valueTypeSchema,
+  });
+
   /// If [type] takes the form `FutureOr<T>`, `FutureOr<T>?`, or `FutureOr<T>*`
   /// for some `T`, returns the type `T`. Otherwise returns `null`.
   ///
@@ -412,17 +405,6 @@ abstract interface class TypeAnalyzerOperations<
   /// implementing [matchFutureOr] directly.
   SharedTypeView<TypeStructure>? matchFutureOr(
       SharedTypeView<TypeStructure> type);
-
-  /// If [typeSchema] takes the form `FutureOr<T>`, `FutureOr<T>?`, or
-  /// `FutureOr<T>*` for some `T`, returns the type schema `T`. Otherwise
-  /// returns `null`.
-  ///
-  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
-  /// [TypeAnalyzerOperationsMixin] and implement [matchFutureOrInternal] to
-  /// receive a concrete implementation of [matchTypeSchemaFutureOr] instead of
-  /// implementing [matchTypeSchemaFutureOr] directly.
-  SharedTypeSchemaView<TypeStructure>? matchTypeSchemaFutureOr(
-      SharedTypeSchemaView<TypeStructure> typeSchema);
 
   /// [matchFutureOrInternal] should be implemented by concrete classes
   /// implementing [TypeAnalyzerOperations]. The implementations of
@@ -471,16 +453,6 @@ abstract interface class TypeAnalyzerOperations<
   SharedTypeView<TypeStructure>? matchIterableType(
       SharedTypeView<TypeStructure> type);
 
-  /// If [typeSchema] is the type schema `Iterable<T>?` (or a subtype thereof),
-  /// for some `T`, returns the type `T`. Otherwise returns `null`.
-  ///
-  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
-  /// [TypeAnalyzerOperationsMixin] and implement [matchIterableTypeInternal] to
-  /// receive a concrete implementation of [matchIterableTypeSchema] instead of
-  /// implementing [matchIterableTypeSchema] directly.
-  SharedTypeSchemaView<TypeStructure>? matchIterableTypeSchema(
-      SharedTypeSchemaView<TypeStructure> typeSchema);
-
   /// [matchIterableTypeInternal] should be implemented by concrete classes
   /// implementing [TypeAnalyzerOperations]. The implementations of
   /// [matchIterableType] and [matchIterableTypeSchema] are provided by mixing
@@ -505,6 +477,16 @@ abstract interface class TypeAnalyzerOperations<
   /// constructing a future type, for the sake of uniformity, and to simplify
   /// the abstraction step too.
   TypeStructure? matchIterableTypeInternal(TypeStructure type);
+
+  /// If [typeSchema] is the type schema `Iterable<T>?` (or a subtype thereof),
+  /// for some `T`, returns the type `T`. Otherwise returns `null`.
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [matchIterableTypeInternal] to
+  /// receive a concrete implementation of [matchIterableTypeSchema] instead of
+  /// implementing [matchIterableTypeSchema] directly.
+  SharedTypeSchemaView<TypeStructure>? matchIterableTypeSchema(
+      SharedTypeSchemaView<TypeStructure> typeSchema);
 
   /// If [type] is a subtype of the type `List<T>?` for some `T`, returns the
   /// type `T`.  Otherwise returns `null`.
@@ -533,10 +515,25 @@ abstract interface class TypeAnalyzerOperations<
           TypeStructure>?
       matchTypeDeclarationType(SharedTypeView<TypeStructure> type);
 
+  /// If [typeSchema] takes the form `FutureOr<T>`, `FutureOr<T>?`, or
+  /// `FutureOr<T>*` for some `T`, returns the type schema `T`. Otherwise
+  /// returns `null`.
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [matchFutureOrInternal] to
+  /// receive a concrete implementation of [matchTypeSchemaFutureOr] instead of
+  /// implementing [matchTypeSchemaFutureOr] directly.
+  SharedTypeSchemaView<TypeStructure>? matchTypeSchemaFutureOr(
+      SharedTypeSchemaView<TypeStructure> typeSchema);
+
   /// Computes `NORM` of [type].
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/normalization.md`
   SharedTypeView<TypeStructure> normalize(SharedTypeView<TypeStructure> type);
+
+  @override
+  SharedTypeView<TypeStructure> promoteToNonNull(
+      SharedTypeView<TypeStructure> type);
 
   /// Builds the client specific record type.
   ///
@@ -547,16 +544,6 @@ abstract interface class TypeAnalyzerOperations<
   SharedTypeView<TypeStructure> recordType(
       {required List<SharedTypeView<TypeStructure>> positional,
       required List<(String, SharedTypeView<TypeStructure>)> named});
-
-  /// Builds the client specific record type schema.
-  ///
-  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
-  /// [TypeAnalyzerOperationsMixin] and implement [recordTypeInternal] to
-  /// receive a concrete implementation of [recordTypeSchema] instead of
-  /// implementing [recordTypeSchema] directly.
-  SharedTypeSchemaView<TypeStructure> recordTypeSchema(
-      {required List<SharedTypeSchemaView<TypeStructure>> positional,
-      required List<(String, SharedTypeSchemaView<TypeStructure>)> named});
 
   /// [recordTypeInternal] should be implemented by concrete classes
   /// implementing [TypeAnalyzerOperations]. The implementations of [recordType]
@@ -585,9 +572,23 @@ abstract interface class TypeAnalyzerOperations<
       {required List<TypeStructure> positional,
       required List<(String, TypeStructure)> named});
 
+  /// Builds the client specific record type schema.
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [recordTypeInternal] to
+  /// receive a concrete implementation of [recordTypeSchema] instead of
+  /// implementing [recordTypeSchema] directly.
+  SharedTypeSchemaView<TypeStructure> recordTypeSchema(
+      {required List<SharedTypeSchemaView<TypeStructure>> positional,
+      required List<(String, SharedTypeSchemaView<TypeStructure>)> named});
+
   /// Returns the type schema `Stream`, with type argument [elementTypeSchema].
   SharedTypeSchemaView<TypeStructure> streamTypeSchema(
       SharedTypeSchemaView<TypeStructure> elementTypeSchema);
+
+  @override
+  SharedTypeView<TypeStructure>? tryPromoteToType(
+      SharedTypeView<TypeStructure> to, SharedTypeView<TypeStructure> from);
 
   /// Returns `true` if [leftType] is a subtype of the greatest closure of
   /// [rightSchema].
@@ -604,6 +605,16 @@ abstract interface class TypeAnalyzerOperations<
   /// implementing it directly.
   bool typeIsSubtypeOfTypeSchema(SharedTypeView<TypeStructure> leftType,
       SharedTypeSchemaView<TypeStructure> rightSchema);
+
+  /// Computes the greatest lower bound of [typeSchema1] and [typeSchema2].
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [glbInternal] to receive a
+  /// concrete implementation of [typeSchemaGlb] instead of implementing
+  /// [typeSchemaGlb] directly.
+  SharedTypeSchemaView<TypeStructure> typeSchemaGlb(
+      SharedTypeSchemaView<TypeStructure> typeSchema1,
+      SharedTypeSchemaView<TypeStructure> typeSchema2);
 
   /// Returns `true` if the least closure of [leftSchema] is a subtype of
   /// [rightType].
@@ -638,12 +649,15 @@ abstract interface class TypeAnalyzerOperations<
       SharedTypeSchemaView<TypeStructure> leftSchema,
       SharedTypeSchemaView<TypeStructure> rightSchema);
 
-  /// The concrete classes implementing [TypeAnalyzerOperations] should
-  /// implement [isSubtypeOfInternal] in order to receive the implementations of
-  /// [typeIsSubtypeOfTypeSchema], [typeSchemaIsSubtypeOfType], and
-  /// [typeSchemaIsSubtypeOfTypeSchema] by mixing in
-  /// [TypeAnalyzerOperationsMixin].
-  bool isSubtypeOfInternal(TypeStructure left, TypeStructure right);
+  /// Computes the least upper bound of [typeSchema1] and [typeSchema2].
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [lubInternal] to receive a
+  /// concrete implementation of [typeSchemaLub] instead of implementing
+  /// [typeSchemaLub] directly.
+  SharedTypeSchemaView<TypeStructure> typeSchemaLub(
+      SharedTypeSchemaView<TypeStructure> typeSchema1,
+      SharedTypeSchemaView<TypeStructure> typeSchema2);
 
   /// Converts a type into a corresponding type schema.
   SharedTypeSchemaView<TypeStructure> typeToSchema(
@@ -652,20 +666,6 @@ abstract interface class TypeAnalyzerOperations<
   /// Returns [type] suffixed with the [suffix].
   SharedTypeView<TypeStructure> withNullabilitySuffix(
       SharedTypeView<TypeStructure> type, NullabilitySuffix suffix);
-
-  @override
-  bool isNever(SharedTypeView<TypeStructure> type);
-
-  @override
-  bool isTypeParameterType(SharedTypeView<TypeStructure> type);
-
-  @override
-  SharedTypeView<TypeStructure> promoteToNonNull(
-      SharedTypeView<TypeStructure> type);
-
-  @override
-  SharedTypeView<TypeStructure>? tryPromoteToType(
-      SharedTypeView<TypeStructure> to, SharedTypeView<TypeStructure> from);
 }
 
 mixin TypeAnalyzerOperationsMixin<
@@ -711,12 +711,10 @@ mixin TypeAnalyzerOperationsMixin<
   }
 
   @override
-  SharedTypeSchemaView<TypeStructure> typeSchemaGlb(
-      SharedTypeSchemaView<TypeStructure> typeSchema1,
-      SharedTypeSchemaView<TypeStructure> typeSchema2) {
-    return new SharedTypeSchemaView(glbInternal(
-        typeSchema1.unwrapTypeSchemaView(),
-        typeSchema2.unwrapTypeSchemaView()));
+  bool isSubtypeOf(SharedTypeView<TypeStructure> leftType,
+      SharedTypeView<TypeStructure> rightType) {
+    return isSubtypeOfInternal(
+        leftType.unwrapTypeView(), rightType.unwrapTypeView());
   }
 
   @override
@@ -737,15 +735,6 @@ mixin TypeAnalyzerOperationsMixin<
       SharedTypeView<TypeStructure> type2) {
     return new SharedTypeView(
         lubInternal(type1.unwrapTypeView(), type2.unwrapTypeView()));
-  }
-
-  @override
-  SharedTypeSchemaView<TypeStructure> typeSchemaLub(
-      SharedTypeSchemaView<TypeStructure> typeSchema1,
-      SharedTypeSchemaView<TypeStructure> typeSchema2) {
-    return new SharedTypeSchemaView(lubInternal(
-        typeSchema1.unwrapTypeSchemaView(),
-        typeSchema2.unwrapTypeSchemaView()));
   }
 
   @override
@@ -787,13 +776,6 @@ mixin TypeAnalyzerOperationsMixin<
   }
 
   @override
-  SharedTypeSchemaView<TypeStructure>? matchTypeSchemaFutureOr(
-      SharedTypeSchemaView<TypeStructure> typeSchema) {
-    return matchFutureOrInternal(typeSchema.unwrapTypeSchemaView())
-        ?.wrapSharedTypeSchemaView();
-  }
-
-  @override
   SharedTypeView<TypeStructure>? matchIterableType(
       SharedTypeView<TypeStructure> type) {
     return matchIterableTypeInternal(type.unwrapTypeView())
@@ -804,6 +786,13 @@ mixin TypeAnalyzerOperationsMixin<
   SharedTypeSchemaView<TypeStructure>? matchIterableTypeSchema(
       SharedTypeSchemaView<TypeStructure> typeSchema) {
     return matchIterableTypeInternal(typeSchema.unwrapTypeSchemaView())
+        ?.wrapSharedTypeSchemaView();
+  }
+
+  @override
+  SharedTypeSchemaView<TypeStructure>? matchTypeSchemaFutureOr(
+      SharedTypeSchemaView<TypeStructure> typeSchema) {
+    return matchFutureOrInternal(typeSchema.unwrapTypeSchemaView())
         ?.wrapSharedTypeSchemaView();
   }
 
@@ -826,17 +815,19 @@ mixin TypeAnalyzerOperationsMixin<
   }
 
   @override
-  bool isSubtypeOf(SharedTypeView<TypeStructure> leftType,
-      SharedTypeView<TypeStructure> rightType) {
-    return isSubtypeOfInternal(
-        leftType.unwrapTypeView(), rightType.unwrapTypeView());
-  }
-
-  @override
   bool typeIsSubtypeOfTypeSchema(SharedTypeView<TypeStructure> leftType,
       SharedTypeSchemaView<TypeStructure> rightSchema) {
     return isSubtypeOfInternal(
         leftType.unwrapTypeView(), rightSchema.unwrapTypeSchemaView());
+  }
+
+  @override
+  SharedTypeSchemaView<TypeStructure> typeSchemaGlb(
+      SharedTypeSchemaView<TypeStructure> typeSchema1,
+      SharedTypeSchemaView<TypeStructure> typeSchema2) {
+    return new SharedTypeSchemaView(glbInternal(
+        typeSchema1.unwrapTypeSchemaView(),
+        typeSchema2.unwrapTypeSchemaView()));
   }
 
   @override
@@ -855,9 +846,342 @@ mixin TypeAnalyzerOperationsMixin<
   }
 
   @override
+  SharedTypeSchemaView<TypeStructure> typeSchemaLub(
+      SharedTypeSchemaView<TypeStructure> typeSchema1,
+      SharedTypeSchemaView<TypeStructure> typeSchema2) {
+    return new SharedTypeSchemaView(lubInternal(
+        typeSchema1.unwrapTypeSchemaView(),
+        typeSchema2.unwrapTypeSchemaView()));
+  }
+
+  @override
   SharedTypeSchemaView<TypeStructure> typeToSchema(
       SharedTypeView<TypeStructure> type) {
     return new SharedTypeSchemaView(type.unwrapTypeView());
+  }
+}
+
+/// Abstract interface of a type constraint generator.
+abstract class TypeConstraintGenerator<
+    TypeStructure extends SharedTypeStructure<TypeStructure>,
+    Variable extends Object,
+    InferableParameter extends Object,
+    TypeDeclarationType extends Object,
+    TypeDeclaration extends Object,
+    AstNode extends Object> {
+  /// The current sate of the constraint generator.
+  ///
+  /// The states of the generator obtained via [currentState] can be treated as
+  /// checkpoints in the constraint generation process, and the generator can
+  /// be rolled back to a state via [restoreState].
+  TypeConstraintGeneratorState get currentState;
+
+  /// True if FutureOr types are required to have the empty [NullabilitySuffix]
+  /// when they are matched.
+  ///
+  /// For more information about the discrepancy between the Analyzer and the
+  /// CFE in treatment of FutureOr types, see
+  /// https://github.com/dart-lang/sdk/issues/55344 and
+  /// https://github.com/dart-lang/sdk/issues/51156#issuecomment-2158825417.
+  bool get enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr;
+
+  /// Abstract type operations to be used in the matching methods.
+  TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
+      TypeDeclarationType, TypeDeclaration> get typeAnalyzerOperations;
+
+  /// Returns the type arguments of the supertype of [type] that is an
+  /// instantiation of [typeDeclaration]. If none of the supertypes of [type]
+  /// are instantiations of [typeDeclaration], returns null.
+  List<TypeStructure>? getTypeArgumentsAsInstanceOf(
+      TypeDeclarationType type, TypeDeclaration typeDeclaration);
+
+  /// Matches [p] against [q] as a subtype against supertype and returns true if
+  /// [p] and [q] are both FutureOr, with or without nullability suffixes as
+  /// defined by [enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr],
+  /// and [p] is a subtype of [q] under some constraints imposed on type
+  /// parameters occurring in [q], and false otherwise.
+  ///
+  /// An invariant of the type inference is that only [p] or [q] may be a
+  /// schema (in other words, may contain the unknown type `_`); the other must
+  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
+  /// `false`, [q] may contain `_`.
+  ///
+  /// As the generator computes the constraints making the relation possible,
+  /// it changes its internal state. The current state of the generator can be
+  /// obtained by [currentState], and the generator can be restored to a state
+  /// via [restoreState]. All of the shared constraint generation methods are
+  /// supposed to restore the generator to the prior state in case of a
+  /// mismatch, taking that responsibility away from the caller.
+  bool performSubtypeConstraintGenerationForFutureOr(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting}) {
+    // If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
+    if (typeAnalyzerOperations.matchFutureOrInternal(q) case TypeStructure q0?
+        when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
+            q.nullabilitySuffix == NullabilitySuffix.none) {
+      final TypeConstraintGeneratorState state = currentState;
+
+      // If `P` is `FutureOr<P0>` and `P0` is a subtype match for `Q0` under
+      // constraint set `C`.
+      if (typeAnalyzerOperations.matchFutureOrInternal(p) case TypeStructure p0?
+          when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
+              p.nullabilitySuffix == NullabilitySuffix.none) {
+        if (performSubtypeConstraintGenerationInternal(p0, q0,
+            leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+          return true;
+        }
+        restoreState(state);
+      }
+
+      // Or if `P` is a subtype match for `Future<Q0>` under non-empty
+      // constraint set `C`.
+      bool isMatchWithFuture = performSubtypeConstraintGenerationInternal(
+          p, typeAnalyzerOperations.futureTypeInternal(q0),
+          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting);
+      bool matchWithFutureAddsConstraints = currentState != state;
+      if (isMatchWithFuture && matchWithFutureAddsConstraints) {
+        return true;
+      }
+      restoreState(state);
+
+      // Or if `P` is a subtype match for `Q0` under constraint set `C`.
+      if (performSubtypeConstraintGenerationInternal(p, q0,
+          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        return true;
+      }
+      restoreState(state);
+
+      // Or if `P` is a subtype match for `Future<Q0>` under empty
+      // constraint set `C`.
+      if (isMatchWithFuture && !matchWithFutureAddsConstraints) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// Matches [p] against [q] as a subtype against supertype and returns true if
+  /// [p] and [q] are both type declaration types as defined by the enum
+  /// [TypeDeclarationKind], and [p] is a subtype of [q] under some constraints
+  /// imposed on type parameters occurring in [q], and false otherwise.
+  ///
+  /// An invariant of the type inference is that only [p] or [q] may be a
+  /// schema (in other words, may contain the unknown type `_`); the other must
+  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
+  /// `false`, [q] may contain `_`.
+  ///
+  /// As the generator computes the constraints making the relation possible, it
+  /// changes its internal state. The current state of the generator can be
+  /// obtained by [currentState], and the generator can be restored to a state
+  /// via [restoreState]. All of the shared constraint generation methods are
+  /// supposed to restore the generator to the prior state in case of a
+  /// mismatch, taking that responsibility away from the caller.
+  bool? performSubtypeConstraintGenerationForTypeDeclarationTypes(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting}) {
+    switch ((
+      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(p)),
+      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(q))
+    )) {
+      // If `P` is `C<M0, ..., Mk> and `Q` is `C<N0, ..., Nk>`, then the match
+      // holds under constraints `C0 + ... + Ck`:
+      //   If `Mi` is a subtype match for `Ni` with respect to L under
+      //   constraints `Ci`.
+      case (
+            TypeDeclarationMatchResult(
+              typeDeclarationKind: TypeDeclarationKind pTypeDeclarationKind,
+              typeDeclaration: TypeDeclaration pDeclarationObject,
+              typeArguments: List<TypeStructure> pTypeArguments
+            ),
+            TypeDeclarationMatchResult(
+              typeDeclarationKind: TypeDeclarationKind qTypeDeclarationKind,
+              typeDeclaration: TypeDeclaration qDeclarationObject,
+              typeArguments: List<TypeStructure> qTypeArguments
+            )
+          )
+          when pTypeDeclarationKind == qTypeDeclarationKind &&
+              pDeclarationObject == qDeclarationObject:
+        return _interfaceTypeArguments(
+            pDeclarationObject, pTypeArguments, qTypeArguments, leftSchema,
+            astNodeForTesting: astNodeForTesting);
+
+      case (TypeDeclarationMatchResult(), TypeDeclarationMatchResult()):
+        return _interfaceTypes(p, q, leftSchema,
+            astNodeForTesting: astNodeForTesting);
+
+      case (
+          TypeDeclarationMatchResult? pMatched,
+          TypeDeclarationMatchResult? qMatched
+        ):
+        assert(pMatched == null || qMatched == null);
+        return null;
+    }
+  }
+
+  /// [performSubtypeConstraintGenerationInternal] should be implemented by
+  /// concrete classes implementing [TypeConstraintGenerator]. The
+  /// implementations of [performSubtypeConstraintGenerationLeftSchema] and
+  /// [performSubtypeConstraintGenerationRightSchema] are provided by mixing in
+  /// [TypeConstraintGeneratorMixin], which defines
+  /// [performSubtypeConstraintGenerationLeftSchema] and
+  /// [performSubtypeConstraintGenerationRightSchema] in terms of
+  /// [performSubtypeConstraintGenerationInternal].
+  ///
+  /// The main purpose of this method is to avoid code duplication in the
+  /// concrete classes implementing [TypeAnalyzerOperations], so they can
+  /// implement only one member, in this case
+  /// [performSubtypeConstraintGenerationInternal], and receive the
+  /// implementation of both [performSubtypeConstraintGenerationLeftSchema] and
+  /// [performSubtypeConstraintGenerationRightSchema] from the mixin.
+  bool performSubtypeConstraintGenerationInternal(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting});
+
+  /// Matches type schema [p] against type [q] as a subtype against supertype,
+  /// assuming [p] is the constraining type schema, and [q] contains the type
+  /// parameters to constrain, and returns true if [p] is a subtype of [q]
+  /// under some constraints, and false otherwise.
+  ///
+  /// As the generator computes the constraints making the relation possible,
+  /// it changes its internal state. The current state of the generator can be
+  /// obtained by [currentState], and the generator can be restored to a state
+  /// via [restoreState]. All of the shared constraint generation methods are
+  /// supposed to restore the generator to the prior state in case of a
+  /// mismatch, taking that responsibility away from the caller.
+  ///
+  /// The algorithm for subtype constraint generation is described in
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation
+  bool performSubtypeConstraintGenerationLeftSchema(
+      SharedTypeSchemaView<TypeStructure> p, SharedTypeView<TypeStructure> q,
+      {required AstNode? astNodeForTesting});
+
+  /// Matches type [p] against type schema [q] as a subtype against supertype,
+  /// assuming [p] contains the type parameters to constrain, and [q] is the
+  /// constraining type schema, and returns true if [p] is a subtype of [q]
+  /// under some constraints, and false otherwise.
+  ///
+  /// As the generator computes the constraints making the relation possible,
+  /// it changes its internal state. The current state of the generator can be
+  /// obtained by [currentState], and the generator can be restored to a state
+  /// via [restoreState]. All of the shared constraint generation methods are
+  /// supposed to restore the generator to the prior state in case of a
+  /// mismatch, taking that responsibility away from the caller.
+  ///
+  /// The algorithm for subtype constraint generation is described in
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation
+  bool performSubtypeConstraintGenerationRightSchema(
+      SharedTypeView<TypeStructure> p, SharedTypeSchemaView<TypeStructure> q,
+      {required AstNode? astNodeForTesting});
+
+  /// Restores the constraint generator to [state].
+  ///
+  /// The [state] to restore the constraint generator to can be obtained via
+  /// [currentState].
+  void restoreState(TypeConstraintGeneratorState state);
+
+  /// Match arguments [pTypeArguments] of P against arguments [qTypeArguments]
+  /// of Q, taking into account the variance of type variables in [declaration].
+  /// If returns `false`, the constraints are unchanged.
+  bool _interfaceTypeArguments(
+      TypeDeclaration declaration,
+      List<TypeStructure> pTypeArguments,
+      List<TypeStructure> qTypeArguments,
+      bool leftSchema,
+      {required AstNode? astNodeForTesting}) {
+    assert(pTypeArguments.length == qTypeArguments.length);
+
+    final TypeConstraintGeneratorState state = currentState;
+
+    for (int i = 0; i < pTypeArguments.length; i++) {
+      Variance variance =
+          typeAnalyzerOperations.getTypeParameterVariance(declaration, i);
+      TypeStructure M = pTypeArguments[i];
+      TypeStructure N = qTypeArguments[i];
+      if ((variance == Variance.covariant || variance == Variance.invariant) &&
+          !performSubtypeConstraintGenerationInternal(M, N,
+              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        restoreState(state);
+        return false;
+      }
+      if ((variance == Variance.contravariant ||
+              variance == Variance.invariant) &&
+          !performSubtypeConstraintGenerationInternal(N, M,
+              leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
+        restoreState(state);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool _interfaceTypes(TypeStructure p, TypeStructure q, bool leftSchema,
+      {required AstNode? astNodeForTesting}) {
+    if (p.nullabilitySuffix != NullabilitySuffix.none) {
+      return false;
+    }
+
+    if (q.nullabilitySuffix != NullabilitySuffix.none) {
+      return false;
+    }
+
+    // If `P` is `C0<M0, ..., Mk>` and `Q` is `C1<N0, ..., Nj>` then the match
+    // holds with respect to `L` under constraints `C`:
+    //   If `C1<B0, ..., Bj>` is a superinterface of `C0<M0, ..., Mk>` and
+    //   `C1<B0, ..., Bj>` is a subtype match for `C1<N0, ..., Nj>` with
+    //   respect to `L` under constraints `C`.
+
+    if ((
+      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(p)),
+      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(q))
+    )
+        case (
+          TypeDeclarationMatchResult(
+            typeDeclarationType: TypeDeclarationType pTypeDeclarationType
+          ),
+          TypeDeclarationMatchResult(
+            typeDeclaration: TypeDeclaration qTypeDeclaration,
+            typeArguments: List<TypeStructure> qTypeArguments
+          )
+        )) {
+      if (getTypeArgumentsAsInstanceOf(pTypeDeclarationType, qTypeDeclaration)
+          case List<TypeStructure> typeArguments) {
+        return _interfaceTypeArguments(
+            qTypeDeclaration, typeArguments, qTypeArguments, leftSchema,
+            astNodeForTesting: astNodeForTesting);
+      }
+    }
+
+    return false;
+  }
+}
+
+mixin TypeConstraintGeneratorMixin<
+        TypeStructure extends SharedTypeStructure<TypeStructure>,
+        Variable extends Object,
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object,
+        AstNode extends Object>
+    on TypeConstraintGenerator<TypeStructure, Variable, InferableParameter,
+        TypeDeclarationType, TypeDeclaration, AstNode> {
+  @override
+  bool performSubtypeConstraintGenerationLeftSchema(
+      SharedTypeSchemaView<TypeStructure> p, SharedTypeView<TypeStructure> q,
+      {required AstNode? astNodeForTesting}) {
+    return performSubtypeConstraintGenerationInternal(
+        p.unwrapTypeSchemaView(), q.unwrapTypeView(),
+        leftSchema: true, astNodeForTesting: astNodeForTesting);
+  }
+
+  @override
+  bool performSubtypeConstraintGenerationRightSchema(
+      SharedTypeView<TypeStructure> p, SharedTypeSchemaView<TypeStructure> q,
+      {required AstNode? astNodeForTesting}) {
+    return performSubtypeConstraintGenerationInternal(
+        p.unwrapTypeView(), q.unwrapTypeSchemaView(),
+        leftSchema: false, astNodeForTesting: astNodeForTesting);
   }
 }
 
@@ -1042,302 +1366,6 @@ enum Variance {
   }
 }
 
-/// Abstract interface of a type constraint generator.
-abstract class TypeConstraintGenerator<
-    TypeStructure extends SharedTypeStructure<TypeStructure>,
-    Variable extends Object,
-    InferableParameter extends Object,
-    TypeDeclarationType extends Object,
-    TypeDeclaration extends Object,
-    AstNode extends Object> {
-  /// The current sate of the constraint generator.
-  ///
-  /// The states of the generator obtained via [currentState] can be treated as
-  /// checkpoints in the constraint generation process, and the generator can
-  /// be rolled back to a state via [restoreState].
-  TypeConstraintGeneratorState get currentState;
-
-  /// Restores the constraint generator to [state].
-  ///
-  /// The [state] to restore the constraint generator to can be obtained via
-  /// [currentState].
-  void restoreState(TypeConstraintGeneratorState state);
-
-  /// Abstract type operations to be used in the matching methods.
-  TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
-      TypeDeclarationType, TypeDeclaration> get typeAnalyzerOperations;
-
-  /// True if FutureOr types are required to have the empty [NullabilitySuffix]
-  /// when they are matched.
-  ///
-  /// For more information about the discrepancy between the Analyzer and the
-  /// CFE in treatment of FutureOr types, see
-  /// https://github.com/dart-lang/sdk/issues/55344 and
-  /// https://github.com/dart-lang/sdk/issues/51156#issuecomment-2158825417.
-  bool get enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr;
-
-  /// Matches type [p] against type schema [q] as a subtype against supertype,
-  /// assuming [p] contains the type parameters to constrain, and [q] is the
-  /// constraining type schema, and returns true if [p] is a subtype of [q]
-  /// under some constraints, and false otherwise.
-  ///
-  /// As the generator computes the constraints making the relation possible,
-  /// it changes its internal state. The current state of the generator can be
-  /// obtained by [currentState], and the generator can be restored to a state
-  /// via [restoreState]. All of the shared constraint generation methods are
-  /// supposed to restore the generator to the prior state in case of a
-  /// mismatch, taking that responsibility away from the caller.
-  ///
-  /// The algorithm for subtype constraint generation is described in
-  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation
-  bool performSubtypeConstraintGenerationRightSchema(
-      SharedTypeView<TypeStructure> p, SharedTypeSchemaView<TypeStructure> q,
-      {required AstNode? astNodeForTesting});
-
-  /// Matches type schema [p] against type [q] as a subtype against supertype,
-  /// assuming [p] is the constraining type schema, and [q] contains the type
-  /// parameters to constrain, and returns true if [p] is a subtype of [q]
-  /// under some constraints, and false otherwise.
-  ///
-  /// As the generator computes the constraints making the relation possible,
-  /// it changes its internal state. The current state of the generator can be
-  /// obtained by [currentState], and the generator can be restored to a state
-  /// via [restoreState]. All of the shared constraint generation methods are
-  /// supposed to restore the generator to the prior state in case of a
-  /// mismatch, taking that responsibility away from the caller.
-  ///
-  /// The algorithm for subtype constraint generation is described in
-  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation
-  bool performSubtypeConstraintGenerationLeftSchema(
-      SharedTypeSchemaView<TypeStructure> p, SharedTypeView<TypeStructure> q,
-      {required AstNode? astNodeForTesting});
-
-  /// [performSubtypeConstraintGenerationInternal] should be implemented by
-  /// concrete classes implementing [TypeConstraintGenerator]. The
-  /// implementations of [performSubtypeConstraintGenerationLeftSchema] and
-  /// [performSubtypeConstraintGenerationRightSchema] are provided by mixing in
-  /// [TypeConstraintGeneratorMixin], which defines
-  /// [performSubtypeConstraintGenerationLeftSchema] and
-  /// [performSubtypeConstraintGenerationRightSchema] in terms of
-  /// [performSubtypeConstraintGenerationInternal].
-  ///
-  /// The main purpose of this method is to avoid code duplication in the
-  /// concrete classes implementing [TypeAnalyzerOperations], so they can
-  /// implement only one member, in this case
-  /// [performSubtypeConstraintGenerationInternal], and receive the
-  /// implementation of both [performSubtypeConstraintGenerationLeftSchema] and
-  /// [performSubtypeConstraintGenerationRightSchema] from the mixin.
-  bool performSubtypeConstraintGenerationInternal(
-      TypeStructure p, TypeStructure q,
-      {required bool leftSchema, required AstNode? astNodeForTesting});
-
-  /// Matches [p] against [q] as a subtype against supertype and returns true if
-  /// [p] and [q] are both FutureOr, with or without nullability suffixes as
-  /// defined by [enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr],
-  /// and [p] is a subtype of [q] under some constraints imposed on type
-  /// parameters occurring in [q], and false otherwise.
-  ///
-  /// An invariant of the type inference is that only [p] or [q] may be a
-  /// schema (in other words, may contain the unknown type `_`); the other must
-  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
-  /// `false`, [q] may contain `_`.
-  ///
-  /// As the generator computes the constraints making the relation possible,
-  /// it changes its internal state. The current state of the generator can be
-  /// obtained by [currentState], and the generator can be restored to a state
-  /// via [restoreState]. All of the shared constraint generation methods are
-  /// supposed to restore the generator to the prior state in case of a
-  /// mismatch, taking that responsibility away from the caller.
-  bool performSubtypeConstraintGenerationForFutureOr(
-      TypeStructure p, TypeStructure q,
-      {required bool leftSchema, required AstNode? astNodeForTesting}) {
-    // If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
-    if (typeAnalyzerOperations.matchFutureOrInternal(q) case TypeStructure q0?
-        when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
-            q.nullabilitySuffix == NullabilitySuffix.none) {
-      final TypeConstraintGeneratorState state = currentState;
-
-      // If `P` is `FutureOr<P0>` and `P0` is a subtype match for `Q0` under
-      // constraint set `C`.
-      if (typeAnalyzerOperations.matchFutureOrInternal(p) case TypeStructure p0?
-          when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
-              p.nullabilitySuffix == NullabilitySuffix.none) {
-        if (performSubtypeConstraintGenerationInternal(p0, q0,
-            leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-          return true;
-        }
-        restoreState(state);
-      }
-
-      // Or if `P` is a subtype match for `Future<Q0>` under non-empty
-      // constraint set `C`.
-      bool isMatchWithFuture = performSubtypeConstraintGenerationInternal(
-          p, typeAnalyzerOperations.futureTypeInternal(q0),
-          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting);
-      bool matchWithFutureAddsConstraints = currentState != state;
-      if (isMatchWithFuture && matchWithFutureAddsConstraints) {
-        return true;
-      }
-      restoreState(state);
-
-      // Or if `P` is a subtype match for `Q0` under constraint set `C`.
-      if (performSubtypeConstraintGenerationInternal(p, q0,
-          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-        return true;
-      }
-      restoreState(state);
-
-      // Or if `P` is a subtype match for `Future<Q0>` under empty
-      // constraint set `C`.
-      if (isMatchWithFuture && !matchWithFutureAddsConstraints) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /// Matches [p] against [q] as a subtype against supertype and returns true if
-  /// [p] and [q] are both type declaration types as defined by the enum
-  /// [TypeDeclarationKind], and [p] is a subtype of [q] under some constraints
-  /// imposed on type parameters occurring in [q], and false otherwise.
-  ///
-  /// An invariant of the type inference is that only [p] or [q] may be a
-  /// schema (in other words, may contain the unknown type `_`); the other must
-  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
-  /// `false`, [q] may contain `_`.
-  ///
-  /// As the generator computes the constraints making the relation possible, it
-  /// changes its internal state. The current state of the generator can be
-  /// obtained by [currentState], and the generator can be restored to a state
-  /// via [restoreState]. All of the shared constraint generation methods are
-  /// supposed to restore the generator to the prior state in case of a
-  /// mismatch, taking that responsibility away from the caller.
-  bool? performSubtypeConstraintGenerationForTypeDeclarationTypes(
-      TypeStructure p, TypeStructure q,
-      {required bool leftSchema, required AstNode? astNodeForTesting}) {
-    switch ((
-      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(p)),
-      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(q))
-    )) {
-      // If `P` is `C<M0, ..., Mk> and `Q` is `C<N0, ..., Nk>`, then the match
-      // holds under constraints `C0 + ... + Ck`:
-      //   If `Mi` is a subtype match for `Ni` with respect to L under
-      //   constraints `Ci`.
-      case (
-            TypeDeclarationMatchResult(
-              typeDeclarationKind: TypeDeclarationKind pTypeDeclarationKind,
-              typeDeclaration: TypeDeclaration pDeclarationObject,
-              typeArguments: List<TypeStructure> pTypeArguments
-            ),
-            TypeDeclarationMatchResult(
-              typeDeclarationKind: TypeDeclarationKind qTypeDeclarationKind,
-              typeDeclaration: TypeDeclaration qDeclarationObject,
-              typeArguments: List<TypeStructure> qTypeArguments
-            )
-          )
-          when pTypeDeclarationKind == qTypeDeclarationKind &&
-              pDeclarationObject == qDeclarationObject:
-        return _interfaceTypeArguments(
-            pDeclarationObject, pTypeArguments, qTypeArguments, leftSchema,
-            astNodeForTesting: astNodeForTesting);
-
-      case (TypeDeclarationMatchResult(), TypeDeclarationMatchResult()):
-        return _interfaceTypes(p, q, leftSchema,
-            astNodeForTesting: astNodeForTesting);
-
-      case (
-          TypeDeclarationMatchResult? pMatched,
-          TypeDeclarationMatchResult? qMatched
-        ):
-        assert(pMatched == null || qMatched == null);
-        return null;
-    }
-  }
-
-  /// Match arguments [pTypeArguments] of P against arguments [qTypeArguments]
-  /// of Q, taking into account the variance of type variables in [declaration].
-  /// If returns `false`, the constraints are unchanged.
-  bool _interfaceTypeArguments(
-      TypeDeclaration declaration,
-      List<TypeStructure> pTypeArguments,
-      List<TypeStructure> qTypeArguments,
-      bool leftSchema,
-      {required AstNode? astNodeForTesting}) {
-    assert(pTypeArguments.length == qTypeArguments.length);
-
-    final TypeConstraintGeneratorState state = currentState;
-
-    for (int i = 0; i < pTypeArguments.length; i++) {
-      Variance variance =
-          typeAnalyzerOperations.getTypeParameterVariance(declaration, i);
-      TypeStructure M = pTypeArguments[i];
-      TypeStructure N = qTypeArguments[i];
-      if ((variance == Variance.covariant || variance == Variance.invariant) &&
-          !performSubtypeConstraintGenerationInternal(M, N,
-              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-        restoreState(state);
-        return false;
-      }
-      if ((variance == Variance.contravariant ||
-              variance == Variance.invariant) &&
-          !performSubtypeConstraintGenerationInternal(N, M,
-              leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
-        restoreState(state);
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  bool _interfaceTypes(TypeStructure p, TypeStructure q, bool leftSchema,
-      {required AstNode? astNodeForTesting}) {
-    if (p.nullabilitySuffix != NullabilitySuffix.none) {
-      return false;
-    }
-
-    if (q.nullabilitySuffix != NullabilitySuffix.none) {
-      return false;
-    }
-
-    // If `P` is `C0<M0, ..., Mk>` and `Q` is `C1<N0, ..., Nj>` then the match
-    // holds with respect to `L` under constraints `C`:
-    //   If `C1<B0, ..., Bj>` is a superinterface of `C0<M0, ..., Mk>` and
-    //   `C1<B0, ..., Bj>` is a subtype match for `C1<N0, ..., Nj>` with
-    //   respect to `L` under constraints `C`.
-
-    if ((
-      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(p)),
-      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(q))
-    )
-        case (
-          TypeDeclarationMatchResult(
-            typeDeclarationType: TypeDeclarationType pTypeDeclarationType
-          ),
-          TypeDeclarationMatchResult(
-            typeDeclaration: TypeDeclaration qTypeDeclaration,
-            typeArguments: List<TypeStructure> qTypeArguments
-          )
-        )) {
-      if (getTypeArgumentsAsInstanceOf(pTypeDeclarationType, qTypeDeclaration)
-          case List<TypeStructure> typeArguments) {
-        return _interfaceTypeArguments(
-            qTypeDeclaration, typeArguments, qTypeArguments, leftSchema,
-            astNodeForTesting: astNodeForTesting);
-      }
-    }
-
-    return false;
-  }
-
-  /// Returns the type arguments of the supertype of [type] that is an
-  /// instantiation of [typeDeclaration]. If none of the supertypes of [type]
-  /// are instantiations of [typeDeclaration], returns null.
-  List<TypeStructure>? getTypeArgumentsAsInstanceOf(
-      TypeDeclarationType type, TypeDeclaration typeDeclaration);
-}
-
 /// Representation of the state of [TypeConstraintGenerator].
 ///
 /// The state can be obtained via [TypeConstraintGenerator.currentState]. A
@@ -1348,31 +1376,3 @@ abstract class TypeConstraintGenerator<
 /// constraints generated so far. Since the count only increases as the
 /// generator proceeds, restoring to a state means discarding some constraints.
 extension type TypeConstraintGeneratorState(int count) {}
-
-mixin TypeConstraintGeneratorMixin<
-        TypeStructure extends SharedTypeStructure<TypeStructure>,
-        Variable extends Object,
-        InferableParameter extends Object,
-        TypeDeclarationType extends Object,
-        TypeDeclaration extends Object,
-        AstNode extends Object>
-    on TypeConstraintGenerator<TypeStructure, Variable, InferableParameter,
-        TypeDeclarationType, TypeDeclaration, AstNode> {
-  @override
-  bool performSubtypeConstraintGenerationLeftSchema(
-      SharedTypeSchemaView<TypeStructure> p, SharedTypeView<TypeStructure> q,
-      {required AstNode? astNodeForTesting}) {
-    return performSubtypeConstraintGenerationInternal(
-        p.unwrapTypeSchemaView(), q.unwrapTypeView(),
-        leftSchema: true, astNodeForTesting: astNodeForTesting);
-  }
-
-  @override
-  bool performSubtypeConstraintGenerationRightSchema(
-      SharedTypeView<TypeStructure> p, SharedTypeSchemaView<TypeStructure> q,
-      {required AstNode? astNodeForTesting}) {
-    return performSubtypeConstraintGenerationInternal(
-        p.unwrapTypeView(), q.unwrapTypeSchemaView(),
-        leftSchema: false, astNodeForTesting: astNodeForTesting);
-  }
-}

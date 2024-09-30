@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -50,7 +50,8 @@ class EncapsulateField extends ResolvedCorrectionProducer {
     }
     var field = fields.first;
     var nameToken = field.name;
-    var fieldElement = field.declaredElement as FieldElement;
+    var fieldFragment = field.declaredFragment as FieldFragment;
+    var fieldElement = fieldFragment.element;
     // should have a public name
     var name = nameToken.lexeme;
     if (Identifier.isPrivateName(name)) {
@@ -63,15 +64,15 @@ class EncapsulateField extends ResolvedCorrectionProducer {
 
     // Should be in a class or mixin.
     List<ClassMember> classMembers;
-    InterfaceElement parentElement;
+    InterfaceElement2 parentElement;
     var parent = fieldDeclaration.parent;
     switch (parent) {
       case ClassDeclaration():
         classMembers = parent.members;
-        parentElement = parent.declaredElement!;
+        parentElement = parent.declaredFragment!.element;
       case MixinDeclaration():
         classMembers = parent.members;
-        parentElement = parent.declaredElement!;
+        parentElement = parent.declaredFragment!.element;
       default:
         return;
     }
@@ -129,7 +130,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
         }
 
         // Write getter.
-        var overriddenGetters = inheritanceManager.getOverridden2(
+        var overriddenGetters = inheritanceManager.getOverridden4(
           parentElement,
           Name(null, name),
         );
@@ -137,7 +138,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
         builder.write('  ${typeCode}get $name => _$name;');
 
         // Write setter.
-        var overriddenSetters = inheritanceManager.getOverridden2(
+        var overriddenSetters = inheritanceManager.getOverridden4(
           parentElement,
           Name(null, '$name='),
         );
@@ -152,15 +153,15 @@ class EncapsulateField extends ResolvedCorrectionProducer {
   void _updateReferencesInConstructor(
     DartFileEditBuilder builder,
     ConstructorDeclaration constructor,
-    FieldElement fieldElement,
+    FieldElement2 fieldElement,
     String name,
   ) {
     for (var parameter in constructor.parameters.parameters) {
       var identifier = parameter.name;
-      var parameterElement = parameter.declaredElement;
+      var parameterElement = parameter.declaredFragment?.element;
       if (identifier != null &&
-          parameterElement is FieldFormalParameterElement &&
-          parameterElement.field == fieldElement) {
+          parameterElement is FieldFormalParameterElement2 &&
+          parameterElement.field2 == fieldElement) {
         if (parameter.isNamed && parameter is DefaultFormalParameter) {
           var normalParam = parameter.parameter;
           if (normalParam is FieldFormalParameter) {
@@ -182,7 +183,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
     }
     for (var initializer in constructor.initializers) {
       if (initializer is ConstructorFieldInitializer &&
-          initializer.fieldName.staticElement == fieldElement) {
+          initializer.fieldName.element == fieldElement) {
         builder.addSimpleReplacement(
           range.node(initializer.fieldName),
           '_$name',
@@ -194,7 +195,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
   void _updateReferencesInConstructors(
     DartFileEditBuilder builder,
     List<ClassMember> classMembers,
-    FieldElement fieldElement,
+    FieldElement2 fieldElement,
     String name,
   ) {
     for (var constructor in classMembers) {

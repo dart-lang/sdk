@@ -71,34 +71,53 @@ abstract interface class SharedVoidTypeStructure<
         TypeStructure extends SharedTypeStructure<TypeStructure>>
     implements SharedTypeStructure<TypeStructure> {}
 
-extension type SharedTypeView<
-        TypeStructure extends SharedTypeStructure<TypeStructure>>(
-    SharedTypeStructure<TypeStructure> _typeStructure) implements Object {
-  TypeStructure unwrapTypeView() => _typeStructure as TypeStructure;
-
-  NullabilitySuffix get nullabilitySuffix => _typeStructure.nullabilitySuffix;
-
-  String getDisplayString() => _typeStructure.getDisplayString();
-}
+extension type SharedDynamicTypeSchemaView<
+            TypeStructure extends SharedTypeStructure<TypeStructure>>(
+        SharedDynamicTypeStructure<TypeStructure> _typeStructure)
+    implements SharedTypeSchemaView<TypeStructure> {}
 
 extension type SharedDynamicTypeView<
             TypeStructure extends SharedTypeStructure<TypeStructure>>(
         SharedDynamicTypeStructure<TypeStructure> _typeStructure)
     implements SharedTypeView<TypeStructure> {}
 
+extension type SharedInvalidTypeSchemaView<
+            TypeStructure extends SharedTypeStructure<TypeStructure>>(
+        SharedInvalidTypeStructure<TypeStructure> _typeStructure)
+    implements SharedTypeSchemaView<TypeStructure> {}
+
 extension type SharedInvalidTypeView<
             TypeStructure extends SharedTypeStructure<TypeStructure>>(
         SharedInvalidTypeStructure<TypeStructure> _typeStructure)
     implements SharedTypeView<TypeStructure> {}
 
+extension type SharedNamedTypeSchemaView<
+        TypeStructure extends SharedTypeStructure<TypeStructure>>(
+    SharedNamedTypeStructure<TypeStructure> _typeStructure) implements Object {}
+
 extension type SharedNamedTypeView<
             TypeStructure extends SharedTypeStructure<TypeStructure>>(
         SharedNamedTypeStructure<TypeStructure> _namedTypeStructure)
     implements Object {
+  String get name => _namedTypeStructure.name;
+
   SharedTypeView<TypeStructure> get type =>
       new SharedTypeView(_namedTypeStructure.type);
+}
 
-  String get name => _namedTypeStructure.name;
+extension type SharedRecordTypeSchemaView<
+            TypeStructure extends SharedTypeStructure<TypeStructure>>(
+        SharedRecordTypeStructure<TypeStructure> _typeStructure)
+    implements SharedTypeSchemaView<TypeStructure> {
+  List<SharedNamedTypeSchemaView<TypeStructure>> get namedTypes {
+    return _typeStructure.namedTypes
+        as List<SharedNamedTypeSchemaView<TypeStructure>>;
+  }
+
+  List<SharedTypeSchemaView<TypeStructure>> get positionalTypes {
+    return _typeStructure.positionalTypes
+        as List<SharedTypeSchemaView<TypeStructure>>;
+  }
 }
 
 extension type SharedRecordTypeView<
@@ -116,48 +135,24 @@ extension type SharedRecordTypeView<
   }
 }
 
-extension type SharedVoidTypeView<
-            TypeStructure extends SharedTypeStructure<TypeStructure>>(
-        SharedVoidTypeStructure<TypeStructure> _typeStructure)
-    implements SharedTypeView<TypeStructure> {}
-
 extension type SharedTypeSchemaView<
         TypeStructure extends SharedTypeStructure<TypeStructure>>(
     SharedTypeStructure<TypeStructure> _typeStructure) implements Object {
-  TypeStructure unwrapTypeSchemaView() => _typeStructure as TypeStructure;
-
   NullabilitySuffix get nullabilitySuffix => _typeStructure.nullabilitySuffix;
 
   String getDisplayString() => _typeStructure.getDisplayString();
+
+  TypeStructure unwrapTypeSchemaView() => _typeStructure as TypeStructure;
 }
 
-extension type SharedDynamicTypeSchemaView<
-            TypeStructure extends SharedTypeStructure<TypeStructure>>(
-        SharedDynamicTypeStructure<TypeStructure> _typeStructure)
-    implements SharedTypeSchemaView<TypeStructure> {}
-
-extension type SharedInvalidTypeSchemaView<
-            TypeStructure extends SharedTypeStructure<TypeStructure>>(
-        SharedInvalidTypeStructure<TypeStructure> _typeStructure)
-    implements SharedTypeSchemaView<TypeStructure> {}
-
-extension type SharedNamedTypeSchemaView<
+extension type SharedTypeView<
         TypeStructure extends SharedTypeStructure<TypeStructure>>(
-    SharedNamedTypeStructure<TypeStructure> _typeStructure) implements Object {}
+    SharedTypeStructure<TypeStructure> _typeStructure) implements Object {
+  NullabilitySuffix get nullabilitySuffix => _typeStructure.nullabilitySuffix;
 
-extension type SharedRecordTypeSchemaView<
-            TypeStructure extends SharedTypeStructure<TypeStructure>>(
-        SharedRecordTypeStructure<TypeStructure> _typeStructure)
-    implements SharedTypeSchemaView<TypeStructure> {
-  List<SharedNamedTypeSchemaView<TypeStructure>> get namedTypes {
-    return _typeStructure.namedTypes
-        as List<SharedNamedTypeSchemaView<TypeStructure>>;
-  }
+  String getDisplayString() => _typeStructure.getDisplayString();
 
-  List<SharedTypeSchemaView<TypeStructure>> get positionalTypes {
-    return _typeStructure.positionalTypes
-        as List<SharedTypeSchemaView<TypeStructure>>;
-  }
+  TypeStructure unwrapTypeView() => _typeStructure as TypeStructure;
 }
 
 /// Note that there is no `SharedUnknownTypeView`, only
@@ -173,6 +168,11 @@ extension type SharedVoidTypeSchemaView<
             TypeStructure extends SharedTypeStructure<TypeStructure>>(
         SharedVoidTypeStructure<TypeStructure> _typeStructure)
     implements SharedTypeSchemaView<TypeStructure> {}
+
+extension type SharedVoidTypeView<
+            TypeStructure extends SharedTypeStructure<TypeStructure>>(
+        SharedVoidTypeStructure<TypeStructure> _typeStructure)
+    implements SharedTypeView<TypeStructure> {}
 
 /// Extension methods of [SharedTypeStructureExtension] are intended to avoid
 /// explicit null-testing on types before wrapping them into [SharedTypeView] or
@@ -193,12 +193,12 @@ extension type SharedVoidTypeSchemaView<
 extension SharedTypeStructureExtension<
         TypeStructure extends SharedTypeStructure<TypeStructure>>
     on SharedTypeStructure<TypeStructure> {
-  SharedTypeView<TypeStructure> wrapSharedTypeView() {
-    return new SharedTypeView(this);
-  }
-
   SharedTypeSchemaView<TypeStructure> wrapSharedTypeSchemaView() {
     return new SharedTypeSchemaView(this);
+  }
+
+  SharedTypeView<TypeStructure> wrapSharedTypeView() {
+    return new SharedTypeView(this);
   }
 }
 

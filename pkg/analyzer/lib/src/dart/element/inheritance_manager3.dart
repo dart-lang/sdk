@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
 
 /// Failure because of there is no most specific signature in [candidates].
@@ -408,6 +409,18 @@ class InheritanceManager3 {
   List<ExecutableElement>? getOverridden2(InterfaceElement element, Name name) {
     var interface = getInterface(element);
     return interface.overridden[name];
+  }
+
+  /// Return all members of mixins, superclasses, and interfaces that a member
+  /// with the given [name], defined in the [element], would override; or `null`
+  /// if no members would be overridden.
+  List<ExecutableElement2>? getOverridden4(
+      InterfaceElement2 element, Name name) {
+    var interface = getInterface2(element);
+    var fragments = interface.overridden[name];
+    return fragments
+        ?.map((fragment) => fragment.asElement2 as ExecutableElement2)
+        .toList();
   }
 
   /// Remove interfaces for classes defined in specified libraries.
