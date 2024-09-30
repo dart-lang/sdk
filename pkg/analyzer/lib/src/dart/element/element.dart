@@ -6715,6 +6715,9 @@ mixin MaybeAugmentedExtensionElementMixin on MaybeAugmentedInstanceElementMixin
   ExtensionElementImpl get declaration;
 
   @override
+  ExtensionElementImpl get firstFragment => declaration;
+
+  @override
   DartType get thisType => extendedType;
 }
 
@@ -6732,6 +6735,9 @@ mixin MaybeAugmentedExtensionTypeElementMixin
 
   @override
   ExtensionTypeElementImpl get declaration;
+
+  @override
+  ExtensionTypeElementImpl get firstFragment => declaration;
 
   @override
   ConstructorElement2 get primaryConstructor2 =>
