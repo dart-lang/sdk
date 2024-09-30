@@ -296,6 +296,7 @@ lib/src/services/correction/dart/flutter_swap_with_child.dart
 lib/src/services/correction/dart/flutter_swap_with_parent.dart
 lib/src/services/correction/dart/flutter_wrap_generic.dart
 lib/src/services/correction/dart/ignore_diagnostic.dart
+lib/src/services/correction/dart/import_add_show.dart
 lib/src/services/correction/dart/inline_invocation.dart
 lib/src/services/correction/dart/inline_typedef.dart
 lib/src/services/correction/dart/insert_body.dart

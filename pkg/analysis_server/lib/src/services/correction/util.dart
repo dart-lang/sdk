@@ -185,6 +185,11 @@ Map<String, Element> getImportNamespace(LibraryImportElement imp) {
   return imp.namespace.definedNames;
 }
 
+/// Returns the namespace of the given [LibraryImportElement].
+Map<String, Element2> getImportNamespace2(LibraryImport imp) {
+  return imp.namespace.definedNames2;
+}
+
 /// Computes the best URI to import [what] into [from].
 String getLibrarySourceUri(
     path.Context pathContext, LibraryElement from, Uri what) {
