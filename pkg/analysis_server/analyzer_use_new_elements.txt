@@ -474,6 +474,8 @@ lib/src/services/correction/fix/pubspec/fix_generator.dart
 lib/src/services/correction/fix/pubspec/fix_kind.dart
 lib/src/services/correction/fix_internal.dart
 lib/src/services/correction/levenshtein.dart
+lib/src/services/correction/name_suggestion.dart
+lib/src/services/correction/organize_imports.dart
 lib/src/services/correction/selection_analyzer.dart
 lib/src/services/correction/sort_members.dart
 lib/src/services/correction/source_buffer.dart
