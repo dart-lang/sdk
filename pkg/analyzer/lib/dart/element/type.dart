@@ -70,7 +70,7 @@ abstract class DartType implements SharedTypeStructure<DartType> {
   /// dart:async library.
   bool get isDartAsyncFuture;
 
-  /// Return `true` if this type represents the type 'FutureOr<T>' defined in
+  /// Return `true` if this type represents the type `FutureOr<T>` defined in
   /// the dart:async library.
   bool get isDartAsyncFutureOr;
 

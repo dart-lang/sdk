@@ -7,9 +7,10 @@ import 'package:kernel/core_types.dart';
 
 import 'factory_specializer.dart';
 
-/// Replaces invocation of Map factory constructors with
-/// factories of VM-specific classes.
-/// new LinkedHashMap<K, V>() => new _Map<K, V>()
+/// Replaces invocation of Map factory constructors with factories of
+/// VM-specific classes.
+///
+///     new LinkedHashMap<K, V>() => new _Map<K, V>()
 class MapFactorySpecializer extends BaseSpecializer {
   final Procedure _linkedHashMapDefaultFactory;
   final Constructor _internalLinkedHashMapConstructor;

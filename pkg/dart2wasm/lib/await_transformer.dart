@@ -12,7 +12,7 @@ import 'state_machine.dart' as stateMachineCodeGen;
 /// This pass lifts `await` expressions to the top-level. After the pass, all
 /// `await` expressions will have the form:
 ///
-///   final $temp = await <simple expr>;
+///     final $temp = await <simple expr>;
 ///
 /// where `<simple expr>` is an expression without `await`.
 ///

@@ -6,7 +6,11 @@
 /// Helps rolling dependency to the newest version available
 /// (or a target version).
 ///
-/// Usage: ./tools/manage_deps.dart bump <dependency> [--branch <branch>] [--target <ref>]
+/// Usage:
+///
+/// ```bash
+/// ./tools/manage_deps.dart bump <dependency> [--branch <branch>] [--target <ref>]
+/// ```
 ///
 /// This will:
 /// 0. Check that git is clean

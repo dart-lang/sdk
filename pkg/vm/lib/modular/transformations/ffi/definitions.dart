@@ -36,6 +36,8 @@ import 'native_type_cfe.dart';
 /// Checks and elaborates the dart:ffi compounds and their fields.
 ///
 /// Input:
+///
+/// ```
 /// final class Coord extends Struct {
 ///   @Double()
 ///   double x;
@@ -45,8 +47,11 @@ import 'native_type_cfe.dart';
 ///
 ///   Pointer<Coord> next;
 /// }
+/// ```
 ///
 /// Output:
+///
+/// ```
 /// final class Coord extends Struct {
 ///   Coord.#fromTypedDataBase(Pointer<Coord> coord) : super._(coord);
 ///
@@ -61,6 +66,7 @@ import 'native_type_cfe.dart';
 ///
 ///   static int get #sizeOf => (const [24, 20, 24])[_abi()];
 /// }
+/// ```
 void transformLibraries(
   Component component,
   CoreTypes coreTypes,

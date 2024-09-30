@@ -217,10 +217,10 @@ class _StringTable {
   late final List<String?> _strings;
 
   /// The structure of the table:
-  ///   <bytes with encoded strings>
-  ///   <the length of the bytes> <-- [startOffset]
-  ///   <the number strings>
-  ///   <the array of lengths of individual strings>
+  ///   - `<bytes with encoded strings>`
+  ///   - `<the length of the bytes> <-- [startOffset]`
+  ///   - `<the number strings>`
+  ///   - `<the array of lengths of individual strings>`
   _StringTable({
     required Uint8List bytes,
     required int startOffset,

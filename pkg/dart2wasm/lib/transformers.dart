@@ -781,21 +781,21 @@ class _AsyncStarFrame {
 
 /// Converts `pushWasmArray<T>(array, length, elem, nextCapacity)` to:
 ///
-///   if (array.length == length) {
-///     final newArray = WasmArray<T>(nextCapacity);
-///     newArray.copy(0, array, 0, length);
-///     array = newArray;
-///   }
-///   array[length] = elem;
-///   length += 1;
+///     if (array.length == length) {
+///       final newArray = WasmArray<T>(nextCapacity);
+///       newArray.copy(0, array, 0, length);
+///       array = newArray;
+///     }
+///     array[length] = elem;
+///     length += 1;
 ///
 /// and `popWasmArray<T>(array, length)` to block expression:
 ///
-///   {
-///     length -= 1;
-///     final T _value = array[length];
-///     array[length] = null;
-///   } => _value
+///     {
+///       length -= 1;
+///       final T _value = array[length];
+///       array[length] = null;
+///     } => _value
 ///
 /// This allows unboxing growable list in class fields.
 ///

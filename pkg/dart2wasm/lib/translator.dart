@@ -1251,7 +1251,7 @@ class Translator with KernelNodes {
     b.i32_wrap_i64();
   }
 
-  /// Get the WasmListBase._data field of type WasmArray<Object?>.
+  /// Get the `WasmListBase._data` field of type `WasmArray<Object?>`.
   void getListBaseArray(w.InstructionsBuilder b) {
     ClassInfo info = classInfo[listBaseClass]!;
     b.struct_get(info.struct, FieldIndex.listArray);

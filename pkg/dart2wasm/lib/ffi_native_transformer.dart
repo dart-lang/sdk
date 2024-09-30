@@ -23,15 +23,15 @@ import 'abi.dart' show kWasmAbiEnumIndex;
 ///
 /// Example:
 ///
-///   @Native<Int8 Function(Int8, Int8)>(symbol: "addInt8")
-///   external int addInt8(int a, int b);
+///     @Native<Int8 Function(Int8, Int8)>(symbol: "addInt8")
+///     external int addInt8(int a, int b);
 ///
 /// Converted to:
 ///
-///   external static wasm::WasmI32 addInt8_$import(wasm::WasmI32 a, wasm::WasmI32 b);
+///     external static wasm::WasmI32 addInt8_$import(wasm::WasmI32 a, wasm::WasmI32 b);
 ///
-///   static int addInt8(int a, int b) =>
-///     addInt8_$import(WasmI32::int8FromInt(a), WasmI32::int8FromInt(b)).toIntSigned();
+///     static int addInt8(int a, int b) =>
+///       addInt8_$import(WasmI32::int8FromInt(a), WasmI32::int8FromInt(b)).toIntSigned();
 ///
 void transformLibraries(
     Component component,

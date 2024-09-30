@@ -590,7 +590,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     );
   }
 
-  /// If `P` is `C<M0, ..., Mk> and `Q` is `C<N0, ..., Nk>`, then the match
+  /// If `P` is `C<M0, ..., Mk>` and `Q` is `C<N0, ..., Nk>`, then the match
   /// holds under constraints `C0 + ... + Ck`:
   ///   If `Mi` is a subtype match for `Ni` with respect to L under
   ///   constraints `Ci`.

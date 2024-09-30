@@ -27,11 +27,14 @@ abstract class DDCTypeEnvironment {
   /// Returns all class type parameters in this type environment.
   ///
   /// For the example:
+  ///
+  /// ```
   /// Class Foo<T> {
   ///   method<U> {
   ///     ... // this
   ///   }
   /// }
+  /// ```
   ///
   /// classTypeParameters in this would return ['T'].
   List<TypeParameter> get classTypeParameters;
@@ -39,11 +42,14 @@ abstract class DDCTypeEnvironment {
   /// Returns all class type parameters in this type environment.
   ///
   /// For the example:
+  ///
+  /// ```
   /// Class Foo<T> {
   ///   method<U> {
   ///     ... // this
   ///   }
   /// }
+  /// ```
   ///
   /// functionTypeParameters this would return ['U'].
   List<TypeParameter> get functionTypeParameters;
