@@ -429,6 +429,7 @@ lib/src/services/correction/dart/sort_constructor_first.dart
 lib/src/services/correction/dart/sort_unnamed_constructor_first.dart
 lib/src/services/correction/dart/split_and_condition.dart
 lib/src/services/correction/dart/split_multiple_declarations.dart
+lib/src/services/correction/dart/split_variable_declaration.dart
 lib/src/services/correction/dart/surround_with_parentheses.dart
 lib/src/services/correction/dart/update_sdk_constraints.dart
 lib/src/services/correction/dart/use_curly_braces.dart
