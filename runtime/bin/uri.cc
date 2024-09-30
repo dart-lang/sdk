@@ -10,8 +10,6 @@
 #include "platform/allocation.h"
 #include "platform/utils.h"
 
-// TODO(https://dartbug.com/55925): Move this file to bin/.
-
 namespace dart {
 
 static CStringUniquePtr MakeCopyOfString(const char* str) {
