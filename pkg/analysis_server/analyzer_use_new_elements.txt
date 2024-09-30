@@ -312,6 +312,7 @@ lib/src/services/correction/dart/make_required_named_parameters_first.dart
 lib/src/services/correction/dart/make_return_type_nullable.dart
 lib/src/services/correction/dart/make_super_invocation_last.dart
 lib/src/services/correction/dart/organize_imports.dart
+lib/src/services/correction/dart/qualify_reference.dart
 lib/src/services/correction/dart/remove_annotation.dart
 lib/src/services/correction/dart/remove_argument.dart
 lib/src/services/correction/dart/remove_assertion.dart
