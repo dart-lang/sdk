@@ -6,7 +6,11 @@
 
 import 'dart:io';
 
+import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
+import 'package:linter/src/rules/analyzer_use_new_elements.dart';
+
+import 'checks/driver.dart';
 
 /// Lists files yet to be migrated to the new element model.
 main() async {
@@ -17,10 +21,38 @@ main() async {
       print(rule);
     }
   }
+
+  print('-' * 20);
+  print('-' * 20);
+
+  var errors = await getOldElementModelAccesses(rulesDir.absolute.path);
+
+  var errorFiles = <String>{};
+  for (var error in errors) {
+    errorFiles.add(error.source.fullName);
+  }
+
+  print('Migrated files:\n\n');
+  for (var rule in ruleFiles) {
+    if (!errorFiles.any((f) => f.endsWith(rule))) {
+      print(rule);
+    }
+  }
 }
 
-List<String> get migratedFiles =>
+final List<String> migratedFiles =
     File('analyzer_use_new_elements.txt').readAsLinesSync();
 
-List<String> get ruleFiles =>
-    Directory('lib/src/rules').listSync().map((r) => r.path).sorted();
+final List<String> ruleFiles = rulesDir
+    .listSync(recursive: true)
+    .where((f) => f.path.endsWith('.dart'))
+    .map((r) => r.path)
+    .sorted();
+
+final Directory rulesDir = Directory('lib/src/rules');
+
+Future<List<AnalysisError>> getOldElementModelAccesses(String directory) async {
+  var results = await Driver([AnalyzerUseNewElements(useOptInFile: false)])
+      .analyze([directory]);
+  return results;
+}
