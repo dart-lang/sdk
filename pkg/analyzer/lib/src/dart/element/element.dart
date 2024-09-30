@@ -189,7 +189,14 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
   /// pattern variable with the same name within the same pattern.
   bool isDuplicate = false;
 
-  BindPatternVariableElementImpl(this.node, super.name, super.offset);
+  BindPatternVariableElementImpl(this.node, super.name, super.offset) {
+    _element2 = BindPatternVariableElementImpl2(this);
+  }
+
+  @override
+  BindPatternVariableElementImpl2 get element2 {
+    return _element2 as BindPatternVariableElementImpl2;
+  }
 }
 
 class BindPatternVariableElementImpl2 extends PatternVariableElementImpl2
@@ -6512,8 +6519,7 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
 /// A concrete implementation of a [LocalVariableElement].
 class LocalVariableElementImpl extends NonParameterVariableElementImpl
     implements LocalVariableElement {
-  late final LocalVariableElementImpl2? element2 =
-      LocalVariableElementImpl2(this);
+  late LocalVariableElementImpl2 _element2 = LocalVariableElementImpl2(this);
 
   @override
   late bool hasInitializer;
@@ -6521,6 +6527,8 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
   LocalVariableElementImpl(super.name, super.offset);
+
+  LocalVariableElementImpl2 get element2 => _element2;
 
   @override
   String get identifier {

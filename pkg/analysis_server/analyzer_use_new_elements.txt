@@ -341,6 +341,7 @@ lib/src/services/correction/dart/remove_initializer.dart
 lib/src/services/correction/dart/remove_interpolation_braces.dart
 lib/src/services/correction/dart/remove_invocation.dart
 lib/src/services/correction/dart/remove_late.dart
+lib/src/services/correction/dart/remove_leading_underscore.dart
 lib/src/services/correction/dart/remove_lexeme.dart
 lib/src/services/correction/dart/remove_library_name.dart
 lib/src/services/correction/dart/remove_method_declaration.dart
