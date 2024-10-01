@@ -21,10 +21,10 @@ import 'library_builder.dart';
 class PrefixBuilder extends BuilderImpl {
   final String name;
 
-  final NameSpace _exportNameSpace = new NameSpaceImpl();
+  final NameSpace _prefixNameSpace = new NameSpaceImpl();
 
-  late final LookupScope _exportScope =
-      new NameSpaceLookupScope(_exportNameSpace, ScopeKind.library, "top");
+  late final LookupScope _prefixScope =
+      new NameSpaceLookupScope(_prefixNameSpace, ScopeKind.library, "top");
 
   @override
   final SourceLibraryBuilder parent;
@@ -50,50 +50,44 @@ class PrefixBuilder extends BuilderImpl {
     assert(deferred == (loadLibraryBuilder != null),
         "LoadLibraryBuilder must be provided iff prefix is deferred.");
     if (loadLibraryBuilder != null) {
-      addToExportScope('loadLibrary', loadLibraryBuilder!,
-          importOffset: importOffset,
-          prefixOffset: prefixOffset,
-          fromImport: false);
+      addToPrefixScope('loadLibrary', loadLibraryBuilder!,
+          importOffset: importOffset, prefixOffset: prefixOffset);
     }
   }
 
-  LookupScope get exportScope => _exportScope;
+  LookupScope get prefixScope => _prefixScope;
 
   void forEachExtension(void Function(ExtensionBuilder) f) {
-    _exportNameSpace.forEachLocalExtension(f);
+    _prefixNameSpace.forEachLocalExtension(f);
   }
 
   LibraryDependency? get dependency => loadLibraryBuilder?.importDependency;
 
   /// Lookup a member with [name] in the export scope.
   Builder? lookup(String name, int charOffset, Uri fileUri) {
-    return _exportScope.lookupGetable(name, charOffset, fileUri);
+    return _prefixScope.lookupGetable(name, charOffset, fileUri);
   }
 
-  void addToExportScope(String name, Builder member,
-      {required int importOffset,
-      required int prefixOffset,
-      required bool fromImport}) {
+  void addToPrefixScope(String name, Builder member,
+      {required int importOffset, required int prefixOffset}) {
     if (deferred && member is ExtensionBuilder) {
       parent.addProblem(templateDeferredExtensionImport.withArguments(name),
           importOffset, noLength, fileUri);
     }
 
     Builder? existing =
-        _exportNameSpace.lookupLocalMember(name, setter: member.isSetter);
+        _prefixNameSpace.lookupLocalMember(name, setter: member.isSetter);
     Builder result;
     if (existing != null) {
-      result = computeAmbiguousDeclarationForScope(
-          parent, parent.nameSpace, name, existing, member,
-          uriOffset: new UriOffset(fileUri, prefixOffset),
-          isExport: !fromImport,
-          isImport: fromImport);
+      result = computeAmbiguousDeclarationForImport(
+          parent, name, existing, member,
+          uriOffset: new UriOffset(fileUri, prefixOffset));
     } else {
       result = member;
     }
-    _exportNameSpace.addLocalMember(name, result, setter: member.isSetter);
+    _prefixNameSpace.addLocalMember(name, result, setter: member.isSetter);
     if (member is ExtensionBuilder) {
-      _exportNameSpace.addExtension(member);
+      _prefixNameSpace.addExtension(member);
     }
   }
 

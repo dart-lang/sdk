@@ -693,7 +693,7 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
       memberName = name.substring(0, name.length - 1);
       isSetter = true;
     }
-    Builder? builder = libraryBuilder.nameSpace
+    Builder? builder = libraryBuilder.libraryNameSpace
         .lookupLocalMember(memberName, setter: isSetter);
     if (builder == null) {
       return new Future.error(

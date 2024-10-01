@@ -4141,7 +4141,7 @@ class PrefixUseGenerator extends Generator {
           fileOffset,
           lengthForToken(token));
     }
-    Object result = _helper.scopeLookup(prefix.exportScope, nameToken,
+    Object result = _helper.scopeLookup(prefix.prefixScope, nameToken,
         prefix: prefix, prefixToken: token);
     if (prefix.deferred) {
       if (result is Generator) {

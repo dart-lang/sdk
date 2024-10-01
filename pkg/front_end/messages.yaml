@@ -2578,10 +2578,7 @@ DuplicatedExport:
     lib2.dart: "class A {}"
     main.dart: "export 'lib1.dart'; export 'lib2.dart';"
 
-DuplicatedExportInType:
-  problemMessage: "'#name' is exported from both '#uri' and '#uri2'."
-
-DuplicatedImportInType:
+DuplicatedImport:
   problemMessage: "'#name' is imported from both '#uri' and '#uri2'."
   analyzerCode: AMBIGUOUS_IMPORT
   script:

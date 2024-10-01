@@ -860,9 +860,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       if (existing != builder) {
         _importNameSpace.addLocalMember(
             name,
-            computeAmbiguousDeclarationForScope(_problemReporting,
-                libraryBuilder.nameSpace, name, existing, builder,
-                uriOffset: new UriOffset(fileUri, charOffset), isImport: true),
+            computeAmbiguousDeclarationForImport(
+                _problemReporting, name, existing, builder,
+                uriOffset: new UriOffset(fileUri, charOffset)),
             setter: builder.isSetter);
       }
     } else {
@@ -1302,7 +1302,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   bool addPrefixFragment(
       String name, PrefixFragment prefixFragment, int charOffset) {
     Builder? existing =
-        libraryBuilder.nameSpace.lookupLocalMember(name, setter: false);
+        libraryBuilder.libraryNameSpace.lookupLocalMember(name, setter: false);
     if (existing is PrefixBuilder) {
       assert(existing.next is! PrefixBuilder);
       int? deferredFileOffset;
@@ -1344,7 +1344,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     }
     // TODO(johnniwinther): For enhanced parts, this should be the prefix name
     //  space for the compilation unit.
-    libraryBuilder.nameSpace.addLocalMember(
+    libraryBuilder.libraryNameSpace.addLocalMember(
         name, prefixFragment.createPrefixBuilder(),
         setter: false);
     return true;

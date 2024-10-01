@@ -39,7 +39,7 @@ void main() {}
   ];
   for (LibraryBuilder builder in builders) {
     if (builder is! DillLibraryBuilder) continue;
-    builder.nameSpace.forEachLocalMember((name, member) {
+    builder.libraryNameSpace.forEachLocalMember((name, member) {
       if (member is! DillTypeAliasBuilder) return;
       try {
         member.type;
