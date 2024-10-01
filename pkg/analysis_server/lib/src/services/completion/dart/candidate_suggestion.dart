@@ -148,7 +148,7 @@ final class ClosureSuggestion extends CandidateSuggestion {
 }
 
 /// The information about a candidate suggestion based on a constructor.
-final class ConstructorSuggestion extends ImportableSuggestion
+final class ConstructorSuggestion extends ExecutableSuggestion
     implements ElementBasedSuggestion {
   @override
   final ConstructorElement element;
@@ -180,7 +180,11 @@ final class ConstructorSuggestion extends ImportableSuggestion
     required this.isRedirect,
     required this.suggestUnnamedAsNew,
     required super.matcherScore,
-  }) : assert((isTearOff ? 1 : 0) | (isRedirect ? 1 : 0) < 2);
+  })  : assert((isTearOff ? 1 : 0) | (isRedirect ? 1 : 0) < 2),
+        super(
+            kind: isTearOff || isRedirect
+                ? CompletionSuggestionKind.IDENTIFIER
+                : CompletionSuggestionKind.INVOCATION);
 
   @override
   String get completion {
@@ -273,7 +277,7 @@ sealed class ExecutableSuggestion extends ImportableSuggestion {
 }
 
 /// The information about a candidate suggestion based on an extension.
-final class ExtensionSuggestion extends ImportableSuggestion
+final class ExtensionSuggestion extends ExecutableSuggestion
     implements ElementBasedSuggestion {
   @override
   final ExtensionElement element;
@@ -282,7 +286,8 @@ final class ExtensionSuggestion extends ImportableSuggestion
   ExtensionSuggestion(
       {required super.importData,
       required this.element,
-      required super.matcherScore});
+      required super.matcherScore,
+      super.kind = CompletionSuggestionKind.INVOCATION});
 
   @override
   String get completion => '$completionPrefix${element.name!}';
@@ -997,24 +1002,17 @@ final class SuperParameterSuggestion extends CandidateSuggestion
 
 /// The information about a candidate suggestion based on a top-level getter or
 /// setter.
-final class TopLevelFunctionSuggestion extends ImportableSuggestion
+final class TopLevelFunctionSuggestion extends ExecutableSuggestion
     implements ElementBasedSuggestion {
   @override
   final FunctionElement element;
-
-  /// The kind of suggestion to be made, either
-  /// [CompletionSuggestionKind.IDENTIFIER] or
-  /// [CompletionSuggestionKind.INVOCATION].
-  final CompletionSuggestionKind kind;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   TopLevelFunctionSuggestion(
       {required super.importData,
       required this.element,
-      required this.kind,
-      required super.matcherScore})
-      : assert(kind == CompletionSuggestionKind.IDENTIFIER ||
-            kind == CompletionSuggestionKind.INVOCATION);
+      required super.kind,
+      required super.matcherScore});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -1155,9 +1153,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         suggestConstructor(suggestion.element,
             hasClassName: suggestion.hasClassName,
             completion: completion,
-            kind: suggestion.isRedirect || suggestion.isTearOff
-                ? CompletionSuggestionKind.IDENTIFIER
-                : CompletionSuggestionKind.INVOCATION,
+            kind: suggestion.kind,
             prefix: suggestion.prefix,
             suggestUnnamedAsNew: suggestion.suggestUnnamedAsNew,
             relevance: relevance);
@@ -1174,7 +1170,9 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         }
       case ExtensionSuggestion():
         suggestExtension(suggestion.element,
-            prefix: suggestion.prefix, relevance: relevance);
+            prefix: suggestion.prefix,
+            relevance: relevance,
+            kind: suggestion.kind);
       case ExtensionTypeSuggestion():
         suggestInterface(suggestion.element,
             prefix: suggestion.prefix, relevance: relevance);
@@ -1219,9 +1217,11 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
       case LoadLibraryFunctionSuggestion():
         suggestLoadLibraryFunction(
           suggestion.element,
+          kind: suggestion.kind,
         );
       case LocalFunctionSuggestion():
-        suggestTopLevelFunction(suggestion.element, relevance: relevance);
+        suggestTopLevelFunction(suggestion.element,
+            relevance: relevance, kind: suggestion.kind);
       case LocalVariableSuggestion():
         suggestLocalVariable(
           element: suggestion.element,

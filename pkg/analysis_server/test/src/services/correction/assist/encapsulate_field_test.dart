@@ -403,6 +403,56 @@ class A {
 ''');
   }
 
+  Future<void> test_named_formalParameter_noType() async {
+    await resolveTestCode('''
+class C {
+  var foo;
+
+  C({required this.foo});
+}
+''');
+    await assertHasAssistAt('foo;', '''
+class C {
+  var _foo;
+
+  get foo => _foo;
+
+  set foo(value) {
+    _foo = value;
+  }
+
+  C({required foo}) : _foo = foo;
+}
+''');
+  }
+
+  Future<void> test_named_formalParameter_prefixedType() async {
+    await resolveTestCode('''
+import 'dart:math' as math;
+
+class C {
+  math.Random foo;
+
+  C({required this.foo});
+}
+''');
+    await assertHasAssistAt('foo;', '''
+import 'dart:math' as math;
+
+class C {
+  math.Random _foo;
+
+  math.Random get foo => _foo;
+
+  set foo(math.Random value) {
+    _foo = value;
+  }
+
+  C({required math.Random foo}) : _foo = foo;
+}
+''');
+  }
+
   Future<void> test_named_super_initializer() async {
     await resolveTestCode('''
 class A {}

@@ -25,6 +25,7 @@ import 'type_schema_environment.dart';
 /// based on an attempt to make one type schema a subtype of another.
 class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         DartType,
+        NamedType,
         VariableDeclaration,
         StructuralParameter,
         TypeDeclarationType,
@@ -33,6 +34,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     with
         shared.TypeConstraintGeneratorMixin<
             DartType,
+            NamedType,
             VariableDeclaration,
             StructuralParameter,
             TypeDeclarationType,
@@ -632,11 +634,12 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       _protoConstraints.length = baseConstraintCount;
     }
 
-    bool? result = performSubtypeConstraintGenerationForTypeDeclarationTypes(
-        p, q,
-        leftSchema: constrainSupertype, astNodeForTesting: treeNodeForTesting);
-    if (result != null) {
-      return result;
+    bool? constraintGenerationResult =
+        performSubtypeConstraintGenerationForTypeDeclarationTypes(p, q,
+            leftSchema: constrainSupertype,
+            astNodeForTesting: treeNodeForTesting);
+    if (constraintGenerationResult != null) {
+      return constraintGenerationResult;
     }
 
     // If Q is Function then the match holds under no constraints:
@@ -644,90 +647,16 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // If P is a function type.
     if (typeOperations.isDartCoreFunction(new SharedTypeView(q)) &&
         // Coverage-ignore(suite): Not run.
-        typeOperations.isFunctionType(new SharedTypeView(p))) {
+        p is FunctionType) {
       return true;
     }
 
-    // A function type (M0,..., Mn, [M{n+1}, ..., Mm]) -> R0 is a subtype match
-    // for a function type (N0,..., Nk, [N{k+1}, ..., Nr]) -> R1 with respect to
-    // L under constraints C0 + ... + Cr + C
-    //
-    // If R0 is a subtype match for a type R1 with respect to L under
-    // constraints C.  If n <= k and r <= m.  And for i in 0...r, Ni is a
-    // subtype match for Mi with respect to L under constraints Ci.
-    if (typeOperations.isFunctionType(new SharedTypeView(p)) &&
-        typeOperations.isFunctionType(new SharedTypeView(q)) &&
-        (p as FunctionType).typeParameters.isEmpty &&
-        (q as FunctionType).typeParameters.isEmpty &&
-        p.namedParameters.isEmpty &&
-        q.namedParameters.isEmpty &&
-        p.requiredParameterCount <= q.requiredParameterCount &&
-        p.positionalParameters.length >= q.positionalParameters.length) {
-      final int baseConstraintCount = _protoConstraints.length;
-
-      if (_isNullabilityAwareSubtypeMatch(p.returnType, q.returnType,
-          constrainSupertype: constrainSupertype,
-          treeNodeForTesting: treeNodeForTesting)) {
-        bool isMatch = true;
-        for (int i = 0; isMatch && i < q.positionalParameters.length; ++i) {
-          isMatch = isMatch &&
-              _isNullabilityAwareSubtypeMatch(
-                  q.positionalParameters[i], p.positionalParameters[i],
-                  constrainSupertype: !constrainSupertype,
-                  treeNodeForTesting: treeNodeForTesting);
-        }
-        if (isMatch) return true;
-      }
-      // Coverage-ignore-block(suite): Not run.
-      _protoConstraints.length = baseConstraintCount;
-    }
-
-    // Function types with named parameters are treated analogously to the
-    // positional parameter case above.
-    if (typeOperations.isFunctionType(new SharedTypeView(p)) &&
-        typeOperations.isFunctionType(new SharedTypeView(q)) &&
-        (p as FunctionType).typeParameters.isEmpty &&
-        (q as FunctionType).typeParameters.isEmpty &&
-        p.positionalParameters.length == p.requiredParameterCount &&
-        q.positionalParameters.length == q.requiredParameterCount &&
-        p.requiredParameterCount == q.requiredParameterCount &&
-        (p.namedParameters.isNotEmpty ||
-            // Coverage-ignore(suite): Not run.
-            q.namedParameters.isNotEmpty)) {
-      final int baseConstraintCount = _protoConstraints.length;
-
-      if (_isNullabilityAwareSubtypeMatch(p.returnType, q.returnType,
-          constrainSupertype: constrainSupertype,
-          treeNodeForTesting: treeNodeForTesting)) {
-        bool isMatch = true;
-        for (int i = 0;
-            isMatch && i < p.positionalParameters.length;
-            // Coverage-ignore(suite): Not run.
-            ++i) {
-          // Coverage-ignore-block(suite): Not run.
-          isMatch = isMatch &&
-              _isNullabilityAwareSubtypeMatch(
-                  q.positionalParameters[i], p.positionalParameters[i],
-                  constrainSupertype: !constrainSupertype,
-                  treeNodeForTesting: treeNodeForTesting);
-        }
-        Map<String, DartType> pNamedTypes = {};
-        for (int i = 0; isMatch && i < p.namedParameters.length; ++i) {
-          pNamedTypes[p.namedParameters[i].name] = p.namedParameters[i].type;
-        }
-        for (int i = 0; isMatch && i < q.namedParameters.length; ++i) {
-          isMatch =
-              isMatch && pNamedTypes.containsKey(q.namedParameters[i].name);
-          isMatch = isMatch &&
-              _isNullabilityAwareSubtypeMatch(q.namedParameters[i].type,
-                  pNamedTypes[q.namedParameters[i].name]!,
-                  constrainSupertype: !constrainSupertype,
-                  treeNodeForTesting: treeNodeForTesting);
-        }
-        if (isMatch) return true;
-      }
-      // Coverage-ignore-block(suite): Not run.
-      _protoConstraints.length = baseConstraintCount;
+    constraintGenerationResult =
+        performSubtypeConstraintGenerationForFunctionTypes(p, q,
+            leftSchema: constrainSupertype,
+            astNodeForTesting: treeNodeForTesting);
+    if (constraintGenerationResult != null) {
+      return constraintGenerationResult;
     }
 
     // A generic function type <T0 extends B00, ..., Tn extends B0n>F0 is a
@@ -747,10 +676,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // with respect to L under constraints C0.  And C1 is C02 + ... + Cn2 + C0.
     // And C2 is C1 with each constraint replaced with its closure with respect
     // to [Z0, ..., Zn].
-    if (typeOperations.isFunctionType(new SharedTypeView(p)) &&
-        typeOperations.isFunctionType(new SharedTypeView(q)) &&
-        (p as FunctionType).typeParameters.isNotEmpty &&
-        (q as FunctionType).typeParameters.isNotEmpty &&
+    if (p is FunctionType &&
+        q is FunctionType &&
+        p.typeParameters.isNotEmpty &&
+        q.typeParameters.isNotEmpty &&
         p.typeParameters.length == q.typeParameters.length) {
       final int baseConstraintCount = _protoConstraints.length;
 
@@ -1052,12 +981,12 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
           subtype as InterfaceType, supertype as InterfaceType,
           treeNodeForTesting: treeNodeForTesting);
     }
-    if (typeOperations.isFunctionType(new SharedTypeView(subtype))) {
+    if (subtype is FunctionType) {
       if (typeOperations.isInterfaceType(new SharedTypeView(supertype))) {
         return supertype == _environment.coreTypes.functionLegacyRawType ||
             supertype == _environment.coreTypes.objectLegacyRawType;
       } else if (supertype is FunctionType) {
-        return _isFunctionSubtypeMatch(subtype as FunctionType, supertype,
+        return _isFunctionSubtypeMatch(subtype, supertype,
             treeNodeForTesting: treeNodeForTesting);
       }
     }

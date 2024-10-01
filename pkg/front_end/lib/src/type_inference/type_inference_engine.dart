@@ -722,11 +722,6 @@ class OperationsCfe
   }
 
   @override
-  bool isFunctionType(SharedTypeView<DartType> type) {
-    return type.unwrapTypeView() is FunctionType;
-  }
-
-  @override
   DartType? matchFutureOrInternal(DartType type) {
     if (type is! FutureOrType) {
       return null;

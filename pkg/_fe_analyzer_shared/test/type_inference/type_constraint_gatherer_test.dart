@@ -12,6 +12,214 @@ import '../mini_ast.dart';
 import '../mini_types.dart';
 
 main() {
+  group('performSubtypeConstraintGenerationForFunctionTypes:', () {
+    test('Matching functions with no parameters', () {
+      var tcg = _TypeConstraintGatherer({});
+      check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+              Type('void Function()'), Type('void Function()'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .equals(true);
+      check(tcg._constraints).isEmpty();
+    });
+
+    group('Matching functions with positional parameters:', () {
+      test('None optional', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function(int, String)'), Type('void Function(T, U)'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .equals(true);
+        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+      });
+
+      test('Some optional on LHS', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function(int, [String])'),
+                Type('void Function(T, U)'),
+                leftSchema: false,
+                astNodeForTesting: Node.placeholder()))
+            .equals(true);
+        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+      });
+    });
+
+    group('Non-matching functions with positional parameters:', () {
+      test('Non-matching due to return types', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('int Function(int)'), Type('String Function(int)'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .equals(null);
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to parameter types', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function(int)'), Type('void Function(String)'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .equals(null);
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to optional parameters on RHS', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function()'), Type('void Function([int])'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .equals(null);
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to more parameters being required on LHS', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function(int)'), Type('void Function([int])'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .equals(null);
+        check(tcg._constraints).isEmpty();
+      });
+    });
+
+    group('Matching functions with named parameters:', () {
+      test('None optional', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function({required int x, required String y})'),
+                Type('void Function({required T x, required U y})'),
+                leftSchema: false,
+                astNodeForTesting: Node.placeholder()))
+            .equals(true);
+        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+      });
+
+      test('Some optional on LHS', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function({required int x, String y})'),
+                Type('void Function({required T x, required U y})'),
+                leftSchema: false,
+                astNodeForTesting: Node.placeholder()))
+            .equals(true);
+        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+      });
+
+      test('Optional named parameter on LHS', () {
+        var tcg = _TypeConstraintGatherer({'T'});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function(int, {String x})'),
+                Type('void Function(T)'),
+                leftSchema: false,
+                astNodeForTesting: Node.placeholder()))
+            .equals(true);
+        check(tcg._constraints).unorderedEquals(['T <: int']);
+      });
+
+      test('Extra optional named parameter on LHS', () {
+        var tcg = _TypeConstraintGatherer({'T'});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function({String x, int y})'),
+                Type('void Function({T y})'),
+                leftSchema: false,
+                astNodeForTesting: Node.placeholder()))
+            .equals(true);
+        check(tcg._constraints).unorderedEquals(['T <: int']);
+      });
+    });
+
+    group('Non-matching functions with named parameters:', () {
+      test('Non-matching due to return types', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('int Function({int x})'), Type('String Function({int x})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .equals(null);
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to named parameter types', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function({int x})'),
+                Type('void Function({String x})'),
+                leftSchema: false,
+                astNodeForTesting: Node.placeholder()))
+            .equals(null);
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to required named parameter on LHS', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function({required int x})'),
+                Type('void Function()'),
+                leftSchema: false,
+                astNodeForTesting: Node.placeholder()))
+            .equals(null);
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to optional named parameter on RHS', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function()'), Type('void Function({int x})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .equals(null);
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to named parameter on RHS, with decoys on LHS',
+          () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function({int x, int y})'),
+                Type('void Function({int z})'),
+                leftSchema: false,
+                astNodeForTesting: Node.placeholder()))
+            .equals(null);
+        check(tcg._constraints).isEmpty();
+      });
+    });
+
+    test('Matching functions with named and positional parameters', () {
+      var tcg = _TypeConstraintGatherer({'T', 'U'});
+      check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+              Type('void Function(int, {String y})'),
+              Type('void Function(T, {U y})'),
+              leftSchema: false,
+              astNodeForTesting: Node.placeholder()))
+          .equals(true);
+      check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+    });
+
+    group('Non-matching functions with named and positional parameters:', () {
+      test(
+          'Non-matching due to LHS not accepting optional positional parameter',
+          () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function(int, {String x})'),
+                Type('void Function(int, [String])'),
+                leftSchema: false,
+                astNodeForTesting: Node.placeholder()))
+            .equals(null);
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to positional parameter length mismatch', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('void Function(int, {String x})'),
+                Type('void Function(int, String)'),
+                leftSchema: false,
+                astNodeForTesting: Node.placeholder()))
+            .equals(null);
+        check(tcg._constraints).isEmpty();
+      });
+    });
+  });
+
   group('performSubtypeConstraintGenerationForFutureOr:', () {
     test('FutureOr matches FutureOr with constraints based on arguments', () {
       // `FutureOr<T> <# FutureOr<int>` reduces to `T <# int`
@@ -308,11 +516,11 @@ main() {
   });
 }
 
-class _TypeConstraintGatherer extends TypeConstraintGenerator<Type, Var,
-        TypeParameter, Type, String, Node>
+class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
+        NamedFunctionParameter, Var, TypeParameter, Type, String, Node>
     with
-        TypeConstraintGeneratorMixin<Type, Var, TypeParameter, Type, String,
-            Node> {
+        TypeConstraintGeneratorMixin<Type, NamedFunctionParameter, Var,
+            TypeParameter, Type, String, Node> {
   final _typeVariablesBeingConstrained = <TypeParameter>{};
 
   @override

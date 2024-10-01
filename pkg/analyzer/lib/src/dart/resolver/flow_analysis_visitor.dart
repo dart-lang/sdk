@@ -530,11 +530,6 @@ class TypeSystemOperations
   }
 
   @override
-  bool isFunctionType(SharedTypeView<DartType> type) {
-    return type.unwrapTypeView() is FunctionType;
-  }
-
-  @override
   bool isInterfaceType(SharedTypeView<DartType> type) {
     DartType unwrappedType = type.unwrapTypeView();
     return unwrappedType is InterfaceType &&

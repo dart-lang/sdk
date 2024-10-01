@@ -248,7 +248,11 @@ abstract class DynamicType implements DartType {}
 ///   T<sub>xk</sub> xk}) &rarr; T</i>.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionType implements DartType {
+abstract class FunctionType
+    implements
+        DartType,
+        SharedFunctionTypeStructure<DartType, TypeParameterElement,
+            ParameterElement> {
   @override
   Null get element;
 
@@ -298,6 +302,7 @@ abstract class FunctionType implements DartType {
   List<ParameterElement> get parameters;
 
   /// The type of object returned by this type of function.
+  @override
   DartType get returnType;
 
   /// The formal type parameters of this generic function; for example,
@@ -307,6 +312,7 @@ abstract class FunctionType implements DartType {
   // These are distinct from the `typeParameters` list, which contains type
   // parameters from surrounding contexts, and thus are free type variables
   // from the perspective of this function type.
+  @override
   List<TypeParameterElement> get typeFormals;
 
   /// The type parameters.

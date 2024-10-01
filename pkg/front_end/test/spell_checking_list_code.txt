@@ -866,6 +866,7 @@ initializer's
 injecting
 inlines
 insertion
+insists
 inspect
 inspecting
 inspection
@@ -1801,6 +1802,7 @@ tails
 taking
 talk
 talks
+tandem
 target's
 tarjan
 tarjan's

@@ -106,13 +106,80 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
-  FunctionTypeImpl({
-    required this.typeFormals,
+  @override
+  final List<DartType> positionalParameterTypes;
+
+  @override
+  final int requiredPositionalParameterCount;
+
+  @override
+  final List<ParameterElement> sortedNamedParameters;
+
+  factory FunctionTypeImpl({
+    required List<TypeParameterElement> typeFormals,
     required List<ParameterElement> parameters,
+    required DartType returnType,
+    required NullabilitySuffix nullabilitySuffix,
+    InstantiatedTypeAliasElement? alias,
+  }) {
+    int? firstNamedParameterIndex;
+    var requiredPositionalParameterCount = 0;
+    var positionalParameterTypes = <DartType>[];
+    List<ParameterElement> sortedNamedParameters;
+
+    // Check if already sorted.
+    var namedParametersAlreadySorted = true;
+    var lastNamedParameterName = '';
+    for (var i = 0; i < parameters.length; ++i) {
+      var parameter = parameters[i];
+      if (parameter.isNamed) {
+        firstNamedParameterIndex ??= i;
+        var name = parameter.name;
+        if (lastNamedParameterName.compareTo(name) > 0) {
+          namedParametersAlreadySorted = false;
+          break;
+        }
+        lastNamedParameterName = name;
+      } else {
+        positionalParameterTypes.add(parameter.type);
+        if (parameter.isRequiredPositional) {
+          requiredPositionalParameterCount++;
+        }
+      }
+    }
+    sortedNamedParameters = firstNamedParameterIndex == null
+        ? const []
+        : parameters.sublist(firstNamedParameterIndex, parameters.length);
+    if (!namedParametersAlreadySorted) {
+      // Sort named parameters.
+      sortedNamedParameters.sort((a, b) => a.name.compareTo(b.name));
+
+      // Combine into a new list, with sorted named parameters.
+      parameters = parameters.toList();
+      parameters.replaceRange(
+          firstNamedParameterIndex!, parameters.length, sortedNamedParameters);
+    }
+    return FunctionTypeImpl._(
+        typeFormals: typeFormals,
+        parameters: parameters,
+        returnType: returnType,
+        nullabilitySuffix: nullabilitySuffix,
+        positionalParameterTypes: positionalParameterTypes,
+        requiredPositionalParameterCount: requiredPositionalParameterCount,
+        sortedNamedParameters: sortedNamedParameters,
+        alias: alias);
+  }
+
+  FunctionTypeImpl._({
+    required this.typeFormals,
+    required this.parameters,
     required this.returnType,
     required this.nullabilitySuffix,
+    required this.positionalParameterTypes,
+    required this.requiredPositionalParameterCount,
+    required this.sortedNamedParameters,
     super.alias,
-  }) : parameters = _sortNamedParameters(parameters);
+  });
 
   @override
   Null get element => null;
@@ -305,11 +372,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
-    return FunctionTypeImpl(
+    return FunctionTypeImpl._(
       typeFormals: typeFormals,
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
+      positionalParameterTypes: positionalParameterTypes,
+      requiredPositionalParameterCount: requiredPositionalParameterCount,
+      sortedNamedParameters: sortedNamedParameters,
       alias: alias,
     );
   }
@@ -414,44 +484,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
     }
     return true;
-  }
-
-  /// If named parameters are already sorted in [parameters], return it.
-  /// Otherwise, return a new list, in which named parameters are sorted.
-  static List<ParameterElement> _sortNamedParameters(
-    List<ParameterElement> parameters,
-  ) {
-    int? firstNamedParameterIndex;
-
-    // Check if already sorted.
-    var namedParametersAlreadySorted = true;
-    var lastNamedParameterName = '';
-    for (var i = 0; i < parameters.length; ++i) {
-      var parameter = parameters[i];
-      if (parameter.isNamed) {
-        firstNamedParameterIndex ??= i;
-        var name = parameter.name;
-        if (lastNamedParameterName.compareTo(name) > 0) {
-          namedParametersAlreadySorted = false;
-          break;
-        }
-        lastNamedParameterName = name;
-      }
-    }
-    if (namedParametersAlreadySorted) {
-      return parameters;
-    }
-
-    // Sort named parameters.
-    var namedParameters =
-        parameters.sublist(firstNamedParameterIndex!, parameters.length);
-    namedParameters.sort((a, b) => a.name.compareTo(b.name));
-
-    // Combine into a new list, with sorted named parameters.
-    var newParameters = parameters.toList();
-    newParameters.replaceRange(
-        firstNamedParameterIndex, parameters.length, namedParameters);
-    return newParameters;
   }
 }
 

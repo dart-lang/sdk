@@ -88,11 +88,19 @@ class EncapsulateField extends ResolvedCorrectionProducer {
       // rename field
       builder.addSimpleReplacement(range.token(nameToken), '_$name');
 
+      String fieldTypeCode;
+      var type = fieldDeclaration.fields.type;
+      if (type == null) {
+        fieldTypeCode = '';
+      } else {
+        fieldTypeCode = utils.getNodeText(type);
+      }
       _updateReferencesInConstructors(
         builder,
         classMembers,
         fieldElement,
         name,
+        fieldTypeCode,
       );
 
       // Write getter and setter.
@@ -155,6 +163,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
     ConstructorDeclaration constructor,
     FieldElement2 fieldElement,
     String name,
+    String fieldTypeCode,
   ) {
     for (var parameter in constructor.parameters.parameters) {
       var identifier = parameter.name;
@@ -166,9 +175,10 @@ class EncapsulateField extends ResolvedCorrectionProducer {
           var normalParam = parameter.parameter;
           if (normalParam is FieldFormalParameter) {
             var start = normalParam.thisKeyword;
-            var type = parameterElement.type.getDisplayString();
             builder.addSimpleReplacement(
-                range.startEnd(start, normalParam.period), '$type ');
+              range.startEnd(start, normalParam.period),
+              fieldTypeCode.isNotEmpty ? '$fieldTypeCode ' : '',
+            );
 
             var previous = constructor.separator ?? constructor.parameters;
             var replacement = constructor.initializers.isEmpty
@@ -197,6 +207,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
     List<ClassMember> classMembers,
     FieldElement2 fieldElement,
     String name,
+    String fieldTypeCode,
   ) {
     for (var constructor in classMembers) {
       if (constructor is ConstructorDeclaration) {
@@ -205,6 +216,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
           constructor,
           fieldElement,
           name,
+          fieldTypeCode,
         );
       }
     }

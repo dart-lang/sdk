@@ -137,11 +137,14 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
   /// equivalent, or keep them as is.
   bool _keepUserInteropTypes = false;
 
+  final _visitedTypes = <DartType>{};
+
   EraseNonJSInteropTypes();
 
   @override
   DartType perform(DartType type, {bool keepUserInteropTypes = false}) {
     _keepUserInteropTypes = keepUserInteropTypes;
+    _visitedTypes.clear();
     return super.perform(type);
   }
 
@@ -160,6 +163,8 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
 
   @override
   DartType? visitTypeParameterType(TypeParameterType type) {
+    // Visiting the bound may result in a cycle e.g. `class C<T extends C<T>>`.
+    if (!_visitedTypes.add(type)) return type;
     // If the bound is a JS interop type, replace it with its `dart:js_interop`
     // equivalent.
     var newBound = type.bound.accept(this);

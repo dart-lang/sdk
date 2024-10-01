@@ -2958,11 +2958,6 @@ class MiniAstOperations
   }
 
   @override
-  bool isFunctionType(SharedTypeView<Type> type) {
-    return type.unwrapTypeView() is FunctionType;
-  }
-
-  @override
   bool isInterfaceType(SharedTypeView<Type> type) {
     Type unwrappedType = type.unwrapTypeView();
     return unwrappedType is PrimaryType && unwrappedType.isInterfaceType;
