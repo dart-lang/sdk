@@ -342,6 +342,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     "Inline invocation of '{0}'",
   );
+  static const INVERT_CONDITIONAL_EXPRESSION = AssistKind(
+    'dart.assist.invertConditional',
+    DartAssistKindPriority.DEFAULT,
+    'Invert conditional expression',
+  );
   static const INVERT_IF_STATEMENT = AssistKind(
     'dart.assist.invertIf',
     DartAssistKindPriority.DEFAULT,

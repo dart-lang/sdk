@@ -488,12 +488,11 @@ String computeHashString(
         List<String> lines, int startIndex, int nextIndex, IOSink listSink) =>
     hex.encode(computeHashValue(lines, startIndex, nextIndex, listSink));
 
-/// Computes and adds hashes to \LMHash{} lines in [lines] (which
-/// must be on the line numbers specified in [hashEvents]), and emits
-/// sectioning markers and hash values to [listSink], along with
-/// "comments" containing the simplified text (using the format
-/// '  % <text>', where the text is one, long line, for easy grepping
-/// etc.).
+/// Computes and adds hashes to \LMHash{} lines in [lines] (which must be on the
+/// line numbers specified in [hashEvents]), and emits sectioning markers and
+/// hash values to [listSink], along with "comments" containing the simplified
+/// text (using the format `'  % <text>'`, where the text is one, long line, for
+/// easy grepping etc.).
 void addHashMarks(
     List<String> lines, List<HashEvent> hashEvents, IOSink listSink) {
   for (var hashEvent in hashEvents) {

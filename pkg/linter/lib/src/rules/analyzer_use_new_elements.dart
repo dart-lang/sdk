@@ -62,8 +62,12 @@ class AnalyzerUseNewElements extends LintRule {
     correctionMessage: 'Try using the new elements.',
   );
 
-  AnalyzerUseNewElements()
-      : super(
+  /// Whether to use or bypass the opt-in file.
+  bool useOptInFile;
+
+  AnalyzerUseNewElements({
+    this.useOptInFile = true,
+  }) : super(
           name: code.name,
           description: _desc,
           state: State.internal(),
@@ -86,6 +90,10 @@ class AnalyzerUseNewElements extends LintRule {
   }
 
   bool _isEnabledForFile(LinterContext context) {
+    if (!useOptInFile) {
+      return true;
+    }
+
     if (context.package case PubPackage pubPackage) {
       if (_FilesRegistry.get(pubPackage) case var filesRegistry?) {
         var file = context.definingUnit.file;

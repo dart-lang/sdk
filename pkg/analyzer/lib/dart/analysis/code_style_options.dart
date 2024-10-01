@@ -34,6 +34,9 @@ abstract class CodeStyleOptions {
   /// context.
   bool get useFormatter;
 
+  /// Return `true` if URIs should be always added with a package scheme.
+  bool get usePackageUris;
+
   /// Return `true` if URIs should be "relative", meaning without a scheme,
   /// whenever possible.
   bool get useRelativeUris;

@@ -36,7 +36,7 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var constructorNameNode = node.constructorName;
-    if (constructorNameNode.staticElement?.isFactory != true) {
+    if (constructorNameNode.element?.isFactory != true) {
       return;
     }
     var staticType = node.staticType;

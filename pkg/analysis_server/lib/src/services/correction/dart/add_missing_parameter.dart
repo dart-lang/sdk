@@ -31,8 +31,8 @@ class AddMissingParameter extends MultiCorrectionProducer {
       return const [];
     }
 
-    var includeOptional = executableParameters.optionalPositional.isEmpty &&
-        executableParameters.named.isEmpty;
+    var includeOptional = executableParameters.optionalPositional2.isEmpty &&
+        executableParameters.named2.isEmpty;
     return <ResolvedCorrectionProducer>[
       _AddMissingRequiredPositionalParameter(executableParameters,
           context: context),
@@ -56,10 +56,11 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var prefix = _executableParameters.required.isNotEmpty ? ', [' : '[';
-    if (_executableParameters.required.isNotEmpty) {
+    var prefix = _executableParameters.required2.isNotEmpty ? ', [' : '[';
+    if (_executableParameters.required2.isNotEmpty) {
+      var lastElement = _executableParameters.required2.last;
       var prevNode = await _executableParameters
-          .getParameterNode(_executableParameters.required.last);
+          .getParameterNode2(lastElement.firstFragment!);
       await _addParameter(builder, prevNode?.end, prefix, ']');
     } else {
       var parameterList = await _executableParameters.getParameterList();
@@ -89,7 +90,7 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
       return;
     }
     List<Expression> arguments = argumentList.arguments;
-    var numRequired = _executableParameters.required.length;
+    var numRequired = _executableParameters.required2.length;
     if (numRequired >= arguments.length) {
       return;
     }
@@ -118,15 +119,17 @@ class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (_executableParameters.required.isNotEmpty) {
+    if (_executableParameters.required2.isNotEmpty) {
+      var lastElement = _executableParameters.required2.last;
       var prevNode = await _executableParameters
-          .getParameterNode(_executableParameters.required.last);
+          .getParameterNode2(lastElement.firstFragment!);
       await _addParameter(builder, prevNode?.end, ', ', '');
     } else {
       var parameterList = await _executableParameters.getParameterList();
       var offset = parameterList?.leftParenthesis.end;
-      var suffix =
-          _executableParameters.executable.parameters.isNotEmpty ? ', ' : '';
+      var suffix = _executableParameters.executable2.formalParameters.isNotEmpty
+          ? ', '
+          : '';
       await _addParameter(builder, offset, '', suffix);
     }
   }

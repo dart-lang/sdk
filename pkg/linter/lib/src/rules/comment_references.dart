@@ -87,11 +87,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expression.isSynthetic) return;
 
     if (expression is Identifier &&
-        expression.staticElement == null &&
+        expression.element == null &&
         !linkReferences.contains(expression.name)) {
       rule.reportLint(expression);
     } else if (expression is PropertyAccess &&
-        expression.propertyName.staticElement == null) {
+        expression.propertyName.element == null) {
       var target = expression.target;
       if (target is PrefixedIdentifier) {
         var name = '${target.name}.${expression.propertyName.name}';

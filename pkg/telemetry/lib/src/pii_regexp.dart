@@ -31,7 +31,7 @@ class _RegExpList {
 }
 
 /// An ordered list of regular expressions to be substituted out and replaced
-/// with a generic '<path>' string. To be applied in sequence.
+/// with a generic `<path>` string. To be applied in sequence.
 /// The regular expressions here intentionally eat all characters after a
 /// path is identified, with the hope of catching all potential complex
 /// pathnames and assuming that most error messages will have any paths last.
@@ -54,7 +54,7 @@ final _piiPathRegexps = _RegExpList([
 ], '<path>');
 
 /// An ordered list of regular expressions to be substituted out and replaced
-/// with a generic '<filename>' string.  To be applied after
+/// with a generic `<filename>` string.  To be applied after
 /// all paths from [_piiPathRegexps] are applied.   This is somewhat less
 /// all-encompassing than the path finder, above, just to try and grab things
 /// that could be file names but without being quite so greedy or depending

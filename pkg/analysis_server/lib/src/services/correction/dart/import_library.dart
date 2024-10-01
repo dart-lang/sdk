@@ -131,9 +131,11 @@ class ImportLibrary extends MultiCorrectionProducer {
   ///
   /// If [includeRelativeFix] is `false`, only one correction, with an absolute
   /// import path, is returned. Otherwise, a correction with an absolute import
-  /// path and a correction with a relative path are returned. If the
-  /// `prefer_relative_imports` lint rule is enabled, the relative path is
-  /// returned first.
+  /// path and a correction with a relative path are returned.
+  /// If the `always_use_package_imports` lint rule is active then only the
+  /// package import is returned.
+  /// If `prefer_relative_imports` is active then the relative path is returned.
+  /// Otherwise, both are returned in the order: absolute, relative.
   List<ResolvedCorrectionProducer> _importLibrary(
     FixKind fixKind,
     Uri library, {
@@ -141,17 +143,18 @@ class ImportLibrary extends MultiCorrectionProducer {
   }) {
     if (!includeRelativeFix) {
       return [_ImportAbsoluteLibrary(fixKind, library, context: context)];
-    } else if (getCodeStyleOptions(unitResult.file).useRelativeUris) {
-      return [
-        _ImportRelativeLibrary(fixKind, library, context: context),
-        _ImportAbsoluteLibrary(fixKind, library, context: context),
-      ];
-    } else {
-      return [
-        _ImportAbsoluteLibrary(fixKind, library, context: context),
-        _ImportRelativeLibrary(fixKind, library, context: context),
-      ];
     }
+    var codeStyleOptions = getCodeStyleOptions(unitResult.file);
+    if (codeStyleOptions.usePackageUris) {
+      return [_ImportAbsoluteLibrary(fixKind, library, context: context)];
+    }
+    if (codeStyleOptions.useRelativeUris) {
+      return [_ImportRelativeLibrary(fixKind, library, context: context)];
+    }
+    return [
+      _ImportAbsoluteLibrary(fixKind, library, context: context),
+      _ImportRelativeLibrary(fixKind, library, context: context),
+    ];
   }
 
   Future<List<ResolvedCorrectionProducer>> _importLibraryForElement(
@@ -377,6 +380,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       return await _importLibraryForElement(typeName, const [
         ElementKind.CLASS,
         ElementKind.ENUM,
+        ElementKind.EXTENSION_TYPE,
         ElementKind.FUNCTION_TYPE_ALIAS,
         ElementKind.MIXIN,
         ElementKind.TYPE_ALIAS,

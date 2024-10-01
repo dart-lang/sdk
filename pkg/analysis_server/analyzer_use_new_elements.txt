@@ -213,6 +213,7 @@ lib/src/services/correction/dart/add_key_to_constructors.dart
 lib/src/services/correction/dart/add_late.dart
 lib/src/services/correction/dart/add_leading_newline_to_string.dart
 lib/src/services/correction/dart/add_missing_enum_like_case_clauses.dart
+lib/src/services/correction/dart/add_missing_parameter.dart
 lib/src/services/correction/dart/add_missing_parameter_named.dart
 lib/src/services/correction/dart/add_missing_required_argument.dart
 lib/src/services/correction/dart/add_ne_null.dart
@@ -321,6 +322,8 @@ lib/src/services/correction/dart/make_super_invocation_last.dart
 lib/src/services/correction/dart/make_variable_not_final.dart
 lib/src/services/correction/dart/make_variable_nullable.dart
 lib/src/services/correction/dart/move_annotation_to_library_directive.dart
+lib/src/services/correction/dart/move_doc_comment_to_library_directive.dart
+lib/src/services/correction/dart/move_type_arguments_to_class.dart
 lib/src/services/correction/dart/organize_imports.dart
 lib/src/services/correction/dart/qualify_reference.dart
 lib/src/services/correction/dart/remove_abstract.dart
@@ -472,6 +475,8 @@ lib/src/services/correction/fix/pubspec/fix_generator.dart
 lib/src/services/correction/fix/pubspec/fix_kind.dart
 lib/src/services/correction/fix_internal.dart
 lib/src/services/correction/levenshtein.dart
+lib/src/services/correction/name_suggestion.dart
+lib/src/services/correction/organize_imports.dart
 lib/src/services/correction/selection_analyzer.dart
 lib/src/services/correction/sort_members.dart
 lib/src/services/correction/source_buffer.dart

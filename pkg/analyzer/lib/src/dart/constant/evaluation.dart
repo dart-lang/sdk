@@ -656,7 +656,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     }
 
     // Used for the [DartObjectComputer], which will handle any exceptions.
-    DartObjectImpl rightOperandComputer() {
+    DartObjectImpl computeRightOperand() {
       var constant = evaluateConstant(node.rightOperand);
       switch (constant) {
         case DartObjectImpl():
@@ -674,8 +674,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           return error;
         }
       }
-      return _dartObjectComputer.lazyAnd(
-          node, leftResult, rightOperandComputer);
+      return _dartObjectComputer.lazyAnd(node, leftResult, computeRightOperand);
     } else if (operatorType == TokenType.BAR_BAR) {
       if (leftResult.toBoolValue() == true) {
         var error = _reportNotPotentialConstants(node.rightOperand);
@@ -683,7 +682,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           return error;
         }
       }
-      return _dartObjectComputer.lazyOr(node, leftResult, rightOperandComputer);
+      return _dartObjectComputer.lazyOr(node, leftResult, computeRightOperand);
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
       if (leftResult.isNull != true) {
         var error = _reportNotPotentialConstants(node.rightOperand);

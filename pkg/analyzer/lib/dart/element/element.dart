@@ -2575,7 +2575,9 @@ abstract class TypeAliasElement
   /// Note that this always instantiates the typedef itself, so for a
   /// [TypeAliasElement] the returned [DartType] might still be a generic
   /// type, with type formals. For example, if the typedef is:
+  ///
   ///     typedef F<T> = void Function<U>(T, U);
+  ///
   /// then `F<int>` will produce `void Function<U>(int, U)`.
   DartType instantiate({
     required List<DartType> typeArguments,
