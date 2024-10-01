@@ -106,6 +106,10 @@ enum ScopeKind {
 
   /// Scope for type parameters of declarations
   typeParameters,
+
+  import,
+
+  prefix,
 }
 
 abstract class LookupScope {
@@ -443,7 +447,7 @@ class SourceLibraryBuilderScope extends BaseNameSpaceLookupScope {
   NameSpace get _nameSpace => _compilationUnit.libraryBuilder.libraryNameSpace;
 
   @override
-  LookupScope? get _parent => _compilationUnit.libraryBuilder.importScope;
+  LookupScope? get _parent => _compilationUnit.libraryBuilder.prefixScope;
 }
 
 abstract class ConstructorScope {

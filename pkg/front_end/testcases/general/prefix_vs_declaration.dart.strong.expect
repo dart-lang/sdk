@@ -1,0 +1,21 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/prefix_vs_declaration.dart:5:40: Error: 'prefix' is already declared in this scope.
+// import 'prefix_vs_declaration.dart' as prefix;
+//                                        ^^^^^^
+// pkg/front_end/testcases/general/prefix_vs_declaration.dart:7:7: Context: Previous declaration of 'prefix'.
+// class prefix {}
+//       ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///prefix_vs_declaration.dart" as prefix;
+
+class prefix extends core::Object {
+  synthetic constructor •() → self::prefix
+    : super core::Object::•()
+    ;
+}

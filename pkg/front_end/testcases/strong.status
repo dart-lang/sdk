@@ -81,6 +81,7 @@ dart2wasm/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # p
 records/nullable_access_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 general/constructor_inference_interdependence: semiFuzzFailureOnForceRebuildBodies # sealed class ending up in another library.
 general/shadow_export: semiFuzzFailureOnForceRebuildBodies # Uses exports
+general/export_vs_prefix: semiFuzzFailureOnForceRebuildBodies # Uses exports
 
 # FUZZ FRAMEWORK FAILURES
 general/script_tag_in_part_file: SemiFuzzFailure # `#!/usr/bin/env dart` goes away

@@ -1117,11 +1117,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           }
         });
       } else {
+        // Coverage-ignore-block(suite): Not run.
         assert(
             declaration is PrefixBuilder ||
-                // Coverage-ignore(suite): Not run.
                 declaration is DynamicTypeDeclarationBuilder ||
-                // Coverage-ignore(suite): Not run.
                 declaration is NeverTypeDeclarationBuilder,
             "Unexpected top level member $declaration "
             "(${declaration.runtimeType}).");
@@ -1302,6 +1301,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   bool addPrefixFragment(
       String name, PrefixFragment prefixFragment, int charOffset) {
     Builder? existing =
+        libraryBuilder.prefixNameSpace.lookupLocalMember(name, setter: false);
+    existing ??=
         libraryBuilder.libraryNameSpace.lookupLocalMember(name, setter: false);
     if (existing is PrefixBuilder) {
       assert(existing.next is! PrefixBuilder);
@@ -1344,7 +1345,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     }
     // TODO(johnniwinther): For enhanced parts, this should be the prefix name
     //  space for the compilation unit.
-    libraryBuilder.libraryNameSpace.addLocalMember(
+    libraryBuilder.prefixNameSpace.addLocalMember(
         name, prefixFragment.createPrefixBuilder(),
         setter: false);
     return true;
