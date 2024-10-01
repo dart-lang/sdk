@@ -1,5 +1,7 @@
-# 5.0.0
+# 5.0.0-wip
 - Updated the `devtools_shared` dependency to version `^11.0.0`.
+- Made `runDartDevelopmentServiceFromCLI` pass the specified bind address
+  directly into `startDartDevelopmentService` without resolving the address.
 
 # 4.2.7
 - Added a new constant `RpcErrorCodes.kConnectionDisposed = -32010` for requests

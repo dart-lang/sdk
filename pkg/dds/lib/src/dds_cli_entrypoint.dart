@@ -55,21 +55,18 @@ ${argParser.usage}
     argResults[DartDevelopmentServiceOptions.vmServiceUriOption],
   );
 
-  // Prefer IPv4 addresses if we can't determine the address type from the
-  // VM service host.
-  final preferredProtocolType =
-      InternetAddress.tryParse(remoteVmServiceUri.host)?.type ??
-          InternetAddressType.IPv4;
-
-  // Resolve the address which is potentially provided by the user.
-  late InternetAddress address;
+  // Ensure that the bind address, which is potentially provided by the user,
+  // can be resolved at all, and check whether it can be resolved to an IPv4
+  // address.
+  bool doesBindAddressResolveToIpv4Address = false;
   final bindAddress =
       argResults[DartDevelopmentServiceOptions.bindAddressOption];
   try {
     final addresses = await InternetAddress.lookup(bindAddress);
-    for (int i = 0; i < addresses.length; i++) {
-      address = addresses[i];
-      if (address.type == preferredProtocolType) break;
+    for (final address in addresses) {
+      if (address.type == InternetAddressType.IPv4) {
+        doesBindAddressResolveToIpv4Address = true;
+      }
     }
   } on SocketException catch (e, st) {
     writeErrorResponse('Invalid bind address: $bindAddress', st);
@@ -86,7 +83,7 @@ ${argParser.usage}
   }
   final serviceUri = Uri(
     scheme: 'http',
-    host: address.address,
+    host: bindAddress,
     port: port,
   );
   final disableServiceAuthCodes =
@@ -118,7 +115,9 @@ ${argParser.usage}
       remoteVmServiceUri,
       serviceUri: serviceUri,
       enableAuthCodes: !disableServiceAuthCodes,
-      ipv6: address.type == InternetAddressType.IPv6,
+      // Only use IPv6 to serve DDS if the bind address cannot be resolved to an
+      // IPv4 address.
+      ipv6: !doesBindAddressResolveToIpv4Address,
       devToolsConfiguration: serveDevTools && devToolsBuildDirectory != null
           ? DevToolsConfiguration(
               enable: serveDevTools,

@@ -13,7 +13,6 @@ import 'package:dartdev/src/utils.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:native_assets_builder/native_assets_builder.dart';
-import 'package:native_assets_cli/native_assets_cli.dart';
 import 'package:native_assets_cli/native_assets_cli_internal.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart'; // For possible --target-os values.
@@ -145,11 +144,11 @@ class BuildCommand extends DartdevCommand {
     final buildResult = await nativeAssetsBuildRunner.build(
       workingDirectory: workingDirectory,
       target: target,
-      linkModePreference: LinkModePreferenceImpl.dynamic,
-      buildMode: BuildModeImpl.release,
+      linkModePreference: LinkModePreference.dynamic,
+      buildMode: BuildMode.release,
       includeParentEnvironment: true,
       supportedAssetTypes: [
-        NativeCodeAsset.type,
+        CodeAsset.type,
       ],
       targetMacOSVersion: targetMacOSVersion,
       linkingEnabled: true,
@@ -190,13 +189,13 @@ class BuildCommand extends DartdevCommand {
             recordUseEnabled ? Uri.file(recordedUsagesPath!) : null,
         workingDirectory: workingDirectory,
         target: target,
-        linkModePreference: LinkModePreferenceImpl.dynamic,
-        buildMode: BuildModeImpl.release,
+        linkModePreference: LinkModePreference.dynamic,
+        buildMode: BuildMode.release,
         includeParentEnvironment: true,
         buildResult: buildResult,
         targetMacOSVersion: targetMacOSVersion,
         supportedAssetTypes: [
-          NativeCodeAsset.type,
+          CodeAsset.type,
         ],
       );
 
@@ -209,11 +208,11 @@ class BuildCommand extends DartdevCommand {
       Uri? assetsDartUri;
       final allAssets = [...buildResult.assets, ...linkResult.assets];
       final staticAssets = allAssets
-          .whereType<NativeCodeAssetImpl>()
-          .where((e) => e.linkMode == StaticLinkingImpl());
+          .whereType<CodeAsset>()
+          .where((e) => e.linkMode == StaticLinking());
       if (staticAssets.isNotEmpty) {
         stderr.write(
-            """'dart build' does not yet support NativeCodeAssets with static linking.
+            """'dart build' does not yet support CodeAssets with static linking.
 Use linkMode as dynamic library instead.""");
         return 255;
       }
@@ -247,8 +246,8 @@ Use linkMode as dynamic library instead.""");
     return 0;
   }
 
-  List<({AssetImpl asset, KernelAsset target})> _targetMapping(
-    Iterable<AssetImpl> assets,
+  List<({Asset asset, KernelAsset target})> _targetMapping(
+    Iterable<Asset> assets,
     Target target,
   ) {
     return [
@@ -258,7 +257,7 @@ Use linkMode as dynamic library instead.""");
   }
 
   void _copyAssets(
-    List<({AssetImpl asset, KernelAsset target})> assetTargetLocations,
+    List<({Asset asset, KernelAsset target})> assetTargetLocations,
     Uri output,
   ) {
     for (final (asset: asset, target: target) in assetTargetLocations) {
@@ -303,33 +302,33 @@ extension on Uri {
   }
 }
 
-extension on AssetImpl {
+extension on Asset {
   KernelAsset targetLocation(Target target) {
     return switch (this) {
-      NativeCodeAssetImpl nativeAsset => nativeAsset.targetLocation(target),
-      DataAssetImpl dataAsset => dataAsset.targetLocation(target),
-      AssetImpl() => throw UnimplementedError(),
+      CodeAsset nativeAsset => nativeAsset.targetLocation(target),
+      DataAsset dataAsset => dataAsset.targetLocation(target),
+      Asset() => throw UnimplementedError(),
     };
   }
 }
 
-extension on NativeCodeAssetImpl {
+extension on CodeAsset {
   KernelAsset targetLocation(Target target) {
     final KernelAssetPath kernelAssetPath;
     switch (linkMode) {
-      case DynamicLoadingSystemImpl dynamicLoading:
+      case DynamicLoadingSystem dynamicLoading:
         kernelAssetPath = KernelAssetSystemPath(dynamicLoading.uri);
-      case LookupInExecutableImpl _:
+      case LookupInExecutable _:
         kernelAssetPath = KernelAssetInExecutable();
-      case LookupInProcessImpl _:
+      case LookupInProcess _:
         kernelAssetPath = KernelAssetInProcess();
-      case DynamicLoadingBundledImpl _:
+      case DynamicLoadingBundled _:
         kernelAssetPath = KernelAssetRelativePath(
           Uri(path: path.join(_libOutputDirectory, file!.pathSegments.last)),
         );
       default:
         throw Exception(
-          'Unsupported NativeCodeAsset linkMode ${linkMode.runtimeType} in asset $this',
+          'Unsupported CodeAsset linkMode ${linkMode.runtimeType} in asset $this',
         );
     }
     return KernelAsset(
@@ -340,7 +339,7 @@ extension on NativeCodeAssetImpl {
   }
 }
 
-extension on DataAssetImpl {
+extension on DataAsset {
   KernelAsset targetLocation(Target target) {
     return KernelAsset(
       id: id,

@@ -202,8 +202,7 @@ void main(List<String> args) {
       final directory =
           Directory.fromUri(dartAppUri.resolve('bin/add_asset_link'));
       expect(directory.existsSync(), true);
-      final dylib =
-          OSImpl.current.libraryFileName('add', DynamicLoadingBundledImpl());
+      final dylib = OS.current.libraryFileName('add', DynamicLoadingBundled());
       expect(
         File.fromUri(directory.uri.resolve('lib/$dylib')).existsSync(),
         true,
@@ -241,9 +240,9 @@ void main(List<String> args) {
         () async {
       await recordUseTest('drop_dylib_recording', (dartAppUri) async {
         final addLib =
-            OSImpl.current.libraryFileName('add', DynamicLoadingBundledImpl());
-        final mulitplyLib = OSImpl.current
-            .libraryFileName('multiply', DynamicLoadingBundledImpl());
+            OS.current.libraryFileName('add', DynamicLoadingBundled());
+        final mulitplyLib =
+            OS.current.libraryFileName('multiply', DynamicLoadingBundled());
         // Now try using the add symbol only, so the multiply library is
         // tree-shaken.
 
