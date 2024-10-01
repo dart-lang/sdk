@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -42,8 +42,9 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement;
-    if (element is! LocalVariableElement && element is! ParameterElement) {
+    var element = node.element;
+    if (element is! LocalVariableElement2 &&
+        element is! FormalParameterElement) {
       return;
     }
 

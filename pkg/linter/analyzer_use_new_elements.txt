@@ -42,10 +42,13 @@ lib/src/rules/curly_braces_in_flow_control_structures.dart
 lib/src/rules/dangling_library_doc_comments.dart
 lib/src/rules/directives_ordering.dart
 lib/src/rules/discarded_futures.dart
+lib/src/rules/do_not_use_environment.dart
+lib/src/rules/document_ignores.dart
 lib/src/rules/empty_catches.dart
 lib/src/rules/empty_constructor_bodies.dart
 lib/src/rules/empty_statements.dart
 lib/src/rules/enable_null_safety.dart
+lib/src/rules/eol_at_end_of_file.dart
 lib/src/rules/erase_dart_type_extension_types.dart
 lib/src/rules/file_names.dart
 lib/src/rules/flutter_style_todos.dart
