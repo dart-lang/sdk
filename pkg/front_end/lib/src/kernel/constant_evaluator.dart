@@ -3380,19 +3380,23 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (condition is AbortConstant) return condition;
 
     if (shouldBeUnevaluated) {
-      // Coverage-ignore-block(suite): Not run.
-      Expression? message = null;
-      if (statement.message != null) {
-        enterLazy();
-        Constant constant = _evaluateSubexpression(statement.message!);
-        if (constant is AbortConstant) return constant;
-        message = _wrap(constant);
-        leaveLazy();
+      if (instanceBuilder != null) {
+        Expression? message = null;
+        if (statement.message != null) {
+          enterLazy();
+          Constant constant = _evaluateSubexpression(statement.message!);
+          if (constant is AbortConstant) return constant;
+          message = _wrap(constant);
+          leaveLazy();
+        }
+        instanceBuilder!.asserts.add(new AssertStatement(_wrap(condition),
+            message: message,
+            conditionStartOffset: statement.conditionStartOffset,
+            conditionEndOffset: statement.conditionEndOffset));
+      } else {
+        assert(inExtensionTypeConstConstructor);
+        return null;
       }
-      instanceBuilder!.asserts.add(new AssertStatement(_wrap(condition),
-          message: message,
-          conditionStartOffset: statement.conditionStartOffset,
-          conditionEndOffset: statement.conditionEndOffset));
     } else if (condition is BoolConstant) {
       if (!condition.value) {
         if (statement.message == null) {
@@ -4543,6 +4547,13 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         Constant result = _handleFunctionInvocation(
             node.target.function, typeArguments, positional, named);
         inExtensionTypeConstConstructor = oldInExtensionTypeConstructor;
+        if (shouldBeUnevaluated) {
+          return unevaluated(
+              node,
+              new StaticInvocation(target,
+                  unevaluatedArguments(positional, named, arguments.types),
+                  isConst: node.isConst));
+        }
         return result;
       } else {
         return createEvaluationErrorConstant(
