@@ -62,7 +62,7 @@ class DartToolingDaemon {
   }
 
   late final Peer _clientPeer;
-  late final Future _done;
+  late final Future<void> _done;
   final _subscribedStreamControllers = <String, StreamController<DTDEvent>>{};
 
   /// Terminates the connection with the Dart Tooling Daemon.
@@ -199,7 +199,7 @@ class DartToolingDaemon {
       throw DartToolingDaemonConnectionException.callResponseMissingType(json);
     }
 
-    //TODO(danchevalier): Find out how to get access to the id.
+    // TODO(danchevalier): Find out how to get access to the id.
     return DTDResponse('-1', type, json);
   }
 
