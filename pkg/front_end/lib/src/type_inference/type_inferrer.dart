@@ -80,10 +80,6 @@ abstract class TypeInferrer {
 /// Concrete implementation of [TypeInferrer] specialized to work with kernel
 /// objects.
 class TypeInferrerImpl implements TypeInferrer {
-  /// Marker object to indicate that a function takes an unknown number
-  /// of arguments.
-  final FunctionType unknownFunction;
-
   final TypeInferenceEngine engine;
 
   final OperationsCfe operations;
@@ -132,8 +128,7 @@ class TypeInferrerImpl implements TypeInferrer {
       this.thisType,
       this.libraryBuilder,
       this.assignedVariables,
-      this.dataForTesting,
-      this.unknownFunction)
+      this.dataForTesting)
       : instrumentation = isTopLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         operations = new OperationsCfe(engine.typeSchemaEnvironment,
@@ -307,17 +302,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables,
     InferenceDataForTesting? dataForTesting,
     this.benchmarker,
-    FunctionType unknownFunctionNonNullable,
-  ) : impl = new TypeInferrerImpl(
-          engine,
-          uriForInstrumentation,
-          topLevel,
-          thisType,
-          library,
-          assignedVariables,
-          dataForTesting,
-          unknownFunctionNonNullable,
-        );
+  ) : impl = new TypeInferrerImpl(engine, uriForInstrumentation, topLevel,
+            thisType, library, assignedVariables, dataForTesting);
 
   @override
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables =>
