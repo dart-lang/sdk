@@ -96,7 +96,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 387;
+  static const int DATA_VERSION = 388;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -1840,9 +1840,9 @@ class AnalysisDriver {
   String _getResolvedUnitSignature(LibraryFileKind library, FileState file) {
     ApiSignature signature = ApiSignature();
     signature.addUint32List(_saltForResolution);
-    if (file.workspacePackage is PubPackage) {
-      signature.addString(
-          (file.workspacePackage as PubPackage).pubspecContent ?? '');
+    if (file.workspacePackage case PubPackage pubPackage) {
+      signature.addString(pubPackage.pubspecContent ?? '');
+      signature.addString(pubPackage.analyzerUseNewElementsContent ?? '');
     }
     signature.addString(library.file.uriStr);
     signature.addString(library.libraryCycle.apiSignature);

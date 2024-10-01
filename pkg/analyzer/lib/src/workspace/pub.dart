@@ -23,6 +23,15 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+/// Return the content of the [file], `null` if cannot be read.
+String? _fileContentOrNull(File file) {
+  try {
+    return file.readAsStringSync();
+  } catch (_) {
+    return null;
+  }
+}
+
 /// Check if the given list of path components contains a package build
 /// generated directory, it would have the following path segments,
 /// '.dart_tool/build/generated'.
@@ -356,15 +365,6 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     return null;
   }
 
-  /// Return the content of the [file], `null` if cannot be read.
-  static String? _fileContentOrNull(File file) {
-    try {
-      return file.readAsStringSync();
-    } catch (_) {
-      return null;
-    }
-  }
-
   /// See https://buganizer.corp.google.com/issues/273584249
   ///
   /// Check if `/home/workspace/third_party/dart/my/pubspec.yaml`
@@ -398,6 +398,9 @@ class PubPackage extends WorkspacePackage {
 
   final String? pubspecContent;
 
+  // TODO(scheglov): remove when we are done migrating
+  final String? analyzerUseNewElementsContent;
+
   final Pubspec? pubspec;
 
   final File pubspecFile;
@@ -416,11 +419,29 @@ class PubPackage extends WorkspacePackage {
     var pubspec = Pubspec.parse(pubspecContent);
     var packageName = pubspec.name?.value.text;
     return PubPackage._(
-        root, workspace, pubspecContent, pubspecFile, pubspec, packageName);
+      root,
+      workspace,
+      pubspecContent,
+      pubspecFile,
+      pubspec,
+      packageName,
+      analyzerUseNewElementsContent: _fileContentOrNull(
+        pubspecFile.parent.getChildAssumingFile(
+          'analyzer_use_new_elements.txt',
+        ),
+      ),
+    );
   }
 
-  PubPackage._(this.root, this.workspace, this.pubspecContent, this.pubspecFile,
-      this.pubspec, this._name);
+  PubPackage._(
+    this.root,
+    this.workspace,
+    this.pubspecContent,
+    this.pubspecFile,
+    this.pubspec,
+    this._name, {
+    required this.analyzerUseNewElementsContent,
+  });
 
   /// The version range for the SDK specified for this package , or `null` if
   /// it is ill-formatted or not set.
