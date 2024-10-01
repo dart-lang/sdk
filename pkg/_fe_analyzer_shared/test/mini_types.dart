@@ -30,15 +30,16 @@ class DynamicType extends _SpecialSimpleType
 /// `_fe_analyzer_shared` package.
 ///
 /// Type parameters are not (yet) supported.
-class FunctionType extends Type {
-  /// The return type.
+class FunctionType extends Type
+    implements
+        SharedFunctionTypeStructure<Type, Never, NamedFunctionParameter> {
+  @override
   final Type returnType;
 
   /// A list of the types of positional parameters.
   final List<Type> positionalParameters;
 
-  /// The number of elements of [positionalParameters] that are required
-  /// parameters.
+  @override
   final int requiredPositionalParameterCount;
 
   /// A list of the named parameters, sorted by name.
@@ -56,6 +57,15 @@ class FunctionType extends Type {
           'namedParameters not properly sorted');
     }
   }
+
+  @override
+  List<Type> get positionalParameterTypes => positionalParameters;
+
+  @override
+  List<NamedFunctionParameter> get sortedNamedParameters => namedParameters;
+
+  @override
+  List<Never> get typeFormals => const [];
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
@@ -163,7 +173,9 @@ class InvalidType extends _SpecialSimpleType
 }
 
 /// A named parameter of a function type.
-class NamedFunctionParameter extends NamedType {
+class NamedFunctionParameter extends NamedType
+    implements SharedNamedFunctionParameterStructure<Type> {
+  @override
   final bool isRequired;
 
   NamedFunctionParameter(

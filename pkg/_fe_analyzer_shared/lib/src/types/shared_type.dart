@@ -11,6 +11,31 @@ abstract interface class SharedDynamicTypeStructure<
     implements SharedTypeStructure<TypeStructure> {}
 
 /// Common interface for data structures used by the implementations to
+/// represent function types.
+abstract interface class SharedFunctionTypeStructure<
+    TypeStructure extends SharedTypeStructure<TypeStructure>,
+    TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
+    FunctionParameterStructure extends SharedNamedFunctionParameterStructure<
+        TypeStructure>> implements SharedTypeStructure<TypeStructure> {
+  /// All the positional parameter types, starting with the required ones, and
+  /// followed by the optional ones.
+  List<TypeStructure> get positionalParameterTypes;
+
+  /// The number of elements of [positionalParameterTypes] that are required
+  /// parameters.
+  int get requiredPositionalParameterCount;
+
+  /// The return type.
+  TypeStructure get returnType;
+
+  /// All the named parameters, sorted by name.
+  List<FunctionParameterStructure> get sortedNamedParameters;
+
+  /// The type parameters of the function type.
+  List<TypeParameterStructure> get typeFormals;
+}
+
+/// Common interface for data structures used by the implementations to
 /// represent a type resulting from a compile-time error.
 ///
 /// The implementations may choose to suppress further errors that arise from
@@ -18,6 +43,20 @@ abstract interface class SharedDynamicTypeStructure<
 abstract interface class SharedInvalidTypeStructure<
         TypeStructure extends SharedTypeStructure<TypeStructure>>
     implements SharedTypeStructure<TypeStructure> {}
+
+/// Common interface for data structures used by the implementations to
+/// represent a named parameter of a function type.
+abstract interface class SharedNamedFunctionParameterStructure<
+    TypeStructure extends SharedTypeStructure<TypeStructure>> {
+  /// Whether this named parameter is required.
+  bool get isRequired;
+
+  /// The name of the parameter.
+  String get name;
+
+  /// The type of the parameter.
+  TypeStructure get type;
+}
 
 /// Common interface for data structures used by the implementations to
 /// represent a name/type pair.

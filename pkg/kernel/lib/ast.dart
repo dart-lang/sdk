@@ -74,6 +74,8 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
     show
         SharedDynamicTypeStructure,
+        SharedNamedFunctionParameterStructure,
+        SharedFunctionTypeStructure,
         SharedInvalidTypeStructure,
         SharedNamedTypeStructure,
         SharedRecordTypeStructure,
@@ -11605,7 +11607,9 @@ class InterfaceType extends TypeDeclarationType {
 }
 
 /// A possibly generic function type.
-class FunctionType extends DartType {
+class FunctionType extends DartType
+    implements
+        SharedFunctionTypeStructure<DartType, StructuralParameter, NamedType> {
   final List<StructuralParameter> typeParameters;
   final int requiredParameterCount;
   final List<DartType> positionalParameters;
@@ -11614,6 +11618,7 @@ class FunctionType extends DartType {
   @override
   final Nullability declaredNullability;
 
+  @override
   final DartType returnType;
 
   @override
@@ -11641,6 +11646,18 @@ class FunctionType extends DartType {
         Nullability.nonNullable => true,
         Nullability.legacy => true,
       };
+
+  @override
+  List<DartType> get positionalParameterTypes => positionalParameters;
+
+  @override
+  int get requiredPositionalParameterCount => requiredParameterCount;
+
+  @override
+  List<NamedType> get sortedNamedParameters => namedParameters;
+
+  @override
+  List<StructuralParameter> get typeFormals => typeParameters;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitFunctionType(this);
@@ -12176,7 +12193,10 @@ class ExtensionType extends TypeDeclarationType {
 
 /// A named parameter in [FunctionType].
 class NamedType extends Node
-    implements Comparable<NamedType>, SharedNamedTypeStructure<DartType> {
+    implements
+        Comparable<NamedType>,
+        SharedNamedTypeStructure<DartType>,
+        SharedNamedFunctionParameterStructure<DartType> {
   // Flag used for serialization if [isRequired].
   static const int FlagRequiredNamedType = 1 << 0;
 
@@ -12184,6 +12204,7 @@ class NamedType extends Node
   final String name;
   @override
   final DartType type;
+  @override
   final bool isRequired;
 
   const NamedType(this.name, this.type, {this.isRequired = false});

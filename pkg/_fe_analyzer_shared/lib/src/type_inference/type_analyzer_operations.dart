@@ -182,9 +182,6 @@ abstract interface class TypeAnalyzerOperations<
   /// non-negative n, and some types T1, ..., Tn.
   bool isExtensionType(SharedTypeView<TypeStructure> type);
 
-  /// Returns `true` if [type] is `F`, `F?`, or `F*` for some function type `F`.
-  bool isFunctionType(SharedTypeView<TypeStructure> type);
-
   /// Returns `true` if [type] is `A<T1, ..., Tn>`, `A<T1, ..., Tn>?`, or
   /// `A<T1, ..., Tn>*` for some class, mixin, or enum A, some non-negative n,
   /// and some types T1, ..., Tn. The method returns `false` if [type] is an
@@ -868,6 +865,8 @@ mixin TypeAnalyzerOperationsMixin<
 /// Abstract interface of a type constraint generator.
 abstract class TypeConstraintGenerator<
     TypeStructure extends SharedTypeStructure<TypeStructure>,
+    FunctionParameterStructure extends SharedNamedFunctionParameterStructure<
+        TypeStructure>,
     Variable extends Object,
     TypeParameterStructure extends SharedTypeParameterStructure<TypeStructure>,
     TypeDeclarationType extends Object,
@@ -898,6 +897,156 @@ abstract class TypeConstraintGenerator<
   /// are instantiations of [typeDeclaration], returns null.
   List<TypeStructure>? getTypeArgumentsAsInstanceOf(
       TypeDeclarationType type, TypeDeclaration typeDeclaration);
+
+  /// Matches [p] against [q] as a subtype against supertype and returns true if
+  /// [p] and [q] are both function types, and [p] is a subtype of [q] under
+  /// some constraints imposed on type parameters occurring in [q]; false if
+  /// both [p] and [q] are function types, but [p] can't possibly be a subtype
+  /// of [q] under any constraints; and null otherwise.
+  ///
+  /// An invariant of the type inference is that only [p] or [q] may be a
+  /// schema (in other words, may contain the unknown type `_`); the other must
+  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
+  /// `false`, [q] may contain `_`.
+  ///
+  /// As the generator computes the constraints making the relation possible, it
+  /// changes its internal state. The current state of the generator can be
+  /// obtained by [currentState], and the generator can be restored to a state
+  /// via [restoreState]. All of the shared constraint generation methods are
+  /// supposed to restore the generator to the prior state in case of a
+  /// mismatch, taking that responsibility away from the caller.
+  bool? performSubtypeConstraintGenerationForFunctionTypes(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting}) {
+    if (p is SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
+            FunctionParameterStructure> &&
+        q is SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
+            FunctionParameterStructure>) {
+      // A function type (M0,..., Mn, [M{n+1}, ..., Mm]) -> R0 is a subtype
+      // match for a function type (N0,..., Nk, [N{k+1}, ..., Nr]) -> R1 with
+      // respect to L under constraints C0 + ... + Cr + C
+      //
+      // If R0 is a subtype match for a type R1 with respect to L under
+      // constraints C.  If n <= k and r <= m.  And for i in 0...r, Ni is a
+      // subtype match for Mi with respect to L under constraints Ci.
+
+      if (p.typeFormals.isEmpty &&
+          q.typeFormals.isEmpty &&
+          p.sortedNamedParameters.isEmpty &&
+          q.sortedNamedParameters.isEmpty &&
+          p.requiredPositionalParameterCount <=
+              q.requiredPositionalParameterCount &&
+          p.positionalParameterTypes.length >=
+              q.positionalParameterTypes.length) {
+        final TypeConstraintGeneratorState state = currentState;
+
+        if (!performSubtypeConstraintGenerationInternal(
+            p.returnType, q.returnType,
+            leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+          restoreState(state);
+          return null;
+        }
+        for (int i = 0; i < q.positionalParameterTypes.length; ++i) {
+          if (!performSubtypeConstraintGenerationInternal(
+              q.positionalParameterTypes[i], p.positionalParameterTypes[i],
+              leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
+            restoreState(state);
+            return null;
+          }
+        }
+        return true;
+      } else if (p.typeFormals.isEmpty &&
+          q.typeFormals.isEmpty &&
+          p.positionalParameterTypes.length ==
+              p.requiredPositionalParameterCount &&
+          q.positionalParameterTypes.length ==
+              q.requiredPositionalParameterCount &&
+          p.requiredPositionalParameterCount ==
+              q.requiredPositionalParameterCount &&
+          p.sortedNamedParameters.isNotEmpty &&
+          q.sortedNamedParameters.length <= p.sortedNamedParameters.length) {
+        // Function types with named parameters are treated analogously to the
+        // positional parameter case above.
+
+        final TypeConstraintGeneratorState state = currentState;
+
+        if (!performSubtypeConstraintGenerationInternal(
+            p.returnType, q.returnType,
+            leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+          restoreState(state);
+          return null;
+        }
+        for (int i = 0; i < p.positionalParameterTypes.length; ++i) {
+          if (!performSubtypeConstraintGenerationInternal(
+              q.positionalParameterTypes[i], p.positionalParameterTypes[i],
+              leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
+            restoreState(state);
+            return null;
+          }
+        }
+        // Consume parameter names from p and q in order. Since the named
+        // parameters in p and q are already sorted by name, we can do this by
+        // iterating through both lists in tandem.
+        int i = 0;
+        int j = 0;
+        while (true) {
+          // Determine whether the next parameter should be consumed from p,
+          // q, or both (because the next set of names matches). If the next
+          // parameter should be consumed from p, comparisonResult will be set
+          // to a value < 0. If the next parameter should be consumed from q,
+          // comparisonResult will be set to a value > 0. If the next
+          // parameter should be consumed from both, comparisonResult will be
+          // set to 0.
+          int comparisonResult;
+          if (i >= p.sortedNamedParameters.length) {
+            if (j >= q.sortedNamedParameters.length) {
+              // No parameters left.
+              return true;
+            } else {
+              // No more parameters in p, so the next parameter must come from
+              // q.
+              comparisonResult = 1;
+            }
+          } else if (j >= q.sortedNamedParameters.length) {
+            // No more parameters in q, so the next parameter must come from
+            // p.
+            comparisonResult = -1;
+          } else {
+            comparisonResult = p.sortedNamedParameters[i].name
+                .compareTo(q.sortedNamedParameters[j].name);
+          }
+          if (comparisonResult > 0) {
+            // Extra parameter in q that q that doesn't exist in p. No match.
+            restoreState(state);
+            return null;
+          } else if (comparisonResult < 0) {
+            // Extra parameter in p that doesn't exist in q. Ok if not
+            // required.
+            if (p.sortedNamedParameters[i].isRequired) {
+              restoreState(state);
+              return null;
+            } else {
+              i++;
+            }
+          } else {
+            // The next parameter in p and q matches, so match their types.
+            if (!performSubtypeConstraintGenerationInternal(
+                q.sortedNamedParameters[j].type,
+                p.sortedNamedParameters[i].type,
+                leftSchema: !leftSchema,
+                astNodeForTesting: astNodeForTesting)) {
+              restoreState(state);
+              return null;
+            }
+            i++;
+            j++;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
 
   /// Matches [p] against [q] as a subtype against supertype and returns true if
   /// [p] and [q] are both FutureOr, with or without nullability suffixes as
@@ -968,7 +1117,9 @@ abstract class TypeConstraintGenerator<
   /// Matches [p] against [q] as a subtype against supertype and returns true if
   /// [p] and [q] are both type declaration types as defined by the enum
   /// [TypeDeclarationKind], and [p] is a subtype of [q] under some constraints
-  /// imposed on type parameters occurring in [q], and false otherwise.
+  /// imposed on type parameters occurring in [q]; false if both [p] and [q] are
+  /// type declaration types, but [p] can't possibly be a subtype of [q] under
+  /// any constraints; and null otherwise.
   ///
   /// An invariant of the type inference is that only [p] or [q] may be a
   /// schema (in other words, may contain the unknown type `_`); the other must
@@ -1163,6 +1314,10 @@ abstract class TypeConstraintGenerator<
 
 mixin TypeConstraintGeneratorMixin<
         TypeStructure extends SharedTypeStructure<TypeStructure>,
+        // Work around https://github.com/dart-lang/dart_style/issues/1568
+        // ignore: lines_longer_than_80_chars
+        FunctionParameterStructure extends SharedNamedFunctionParameterStructure<
+            TypeStructure>,
         Variable extends Object,
         // Work around https://github.com/dart-lang/dart_style/issues/1568
         // ignore: lines_longer_than_80_chars
@@ -1170,8 +1325,14 @@ mixin TypeConstraintGeneratorMixin<
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object,
         AstNode extends Object>
-    on TypeConstraintGenerator<TypeStructure, Variable, TypeParameterStructure,
-        TypeDeclarationType, TypeDeclaration, AstNode> {
+    on TypeConstraintGenerator<
+        TypeStructure,
+        FunctionParameterStructure,
+        Variable,
+        TypeParameterStructure,
+        TypeDeclarationType,
+        TypeDeclaration,
+        AstNode> {
   @override
   bool performSubtypeConstraintGenerationLeftSchema(
       SharedTypeSchemaView<TypeStructure> p, SharedTypeView<TypeStructure> q,
