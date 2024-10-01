@@ -196,7 +196,8 @@ abstract class ClassFragment implements InterfaceFragment {
 /// type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ConstructorElement2 implements ExecutableElement2, _Fragmented {
+abstract class ConstructorElement2
+    implements ExecutableElement2, FragmentedElement {
   @override
   ConstructorElement2 get baseElement;
 
@@ -605,7 +606,7 @@ abstract class FieldFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FormalParameterElement
-    implements PromotableElement2, _Annotatable, _Fragmented {
+    implements PromotableElement2, _Annotatable, FragmentedElement {
   @override
   FormalParameterElement get baseElement;
 
@@ -764,6 +765,16 @@ abstract class Fragment {
   Fragment? get previousFragment;
 }
 
+/// An element that can be defined by multiple fragments.
+abstract class FragmentedElement {
+  /// The first fragment in the chain of fragments that are merged to make this
+  /// element. Or `null` if this element is synthetic, so has no fragments.
+  ///
+  /// The other fragments in the chain can be accessed using
+  /// [Fragment.nextFragment].
+  Fragment? get firstFragment;
+}
+
 /// An element that has a [FunctionType] as its [type].
 ///
 /// This also provides convenient access to the parameters and return type.
@@ -795,7 +806,7 @@ abstract class FunctionTypedFragment implements TypeParameterizedFragment {
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class GenericFunctionTypeElement2
-    implements FunctionTypedElement2, _Fragmented {}
+    implements FunctionTypedElement2, FragmentedElement {}
 
 /// The portion of a [GenericFunctionTypeElement2] coming from a single
 /// declaration.
@@ -819,7 +830,7 @@ abstract class GenericFunctionTypeFragment implements FunctionTypedFragment {
 /// top-level variable or a field. Induced getters are synthetic.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class GetterElement implements ExecutableElement2, _Fragmented {
+abstract class GetterElement implements ExecutableElement2, FragmentedElement {
   @override
   GetterElement get baseElement;
 
@@ -1059,7 +1070,8 @@ abstract class LabelElement2 implements Element2 {
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryElement2 implements Element2, _Annotatable, _Fragmented {
+abstract class LibraryElement2
+    implements Element2, _Annotatable, FragmentedElement {
   /// The classes defined in this library.
   ///
   /// There is no guarantee of the order in which the classes will be returned.
@@ -1368,7 +1380,7 @@ abstract class LocalVariableElement2 implements PromotableElement2 {
 /// method.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MethodElement2 implements ExecutableElement2, _Fragmented {
+abstract class MethodElement2 implements ExecutableElement2, FragmentedElement {
   @override
   MethodElement2 get baseElement;
 
@@ -1476,7 +1488,7 @@ abstract class PatternVariableElement2 implements LocalVariableElement2 {
 /// A prefix used to import one or more libraries into another library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PrefixElement2 implements Element2, _Fragmented {
+abstract class PrefixElement2 implements Element2, FragmentedElement {
   @override
   LibraryElement2 get enclosingElement2;
 
@@ -1558,7 +1570,7 @@ abstract class PromotableFragment implements VariableFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingElement2
-    implements VariableElement2, _Annotatable, _Fragmented {
+    implements VariableElement2, _Annotatable, FragmentedElement {
   /// The getter associated with this variable.
   ///
   /// If this variable was explicitly defined (is not synthetic) then the
@@ -1647,7 +1659,7 @@ abstract class PropertyInducingFragment
 /// top-level variable or a field. Induced setters are synthetic.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class SetterElement implements ExecutableElement2, _Fragmented {
+abstract class SetterElement implements ExecutableElement2, FragmentedElement {
   @override
   SetterElement get baseElement;
 
@@ -1716,7 +1728,7 @@ abstract class SuperFormalParameterFragment implements FormalParameterFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TopLevelFunctionElement
-    implements ExecutableElement2, _Fragmented {
+    implements ExecutableElement2, FragmentedElement {
   @override
   TopLevelFunctionElement get baseElement;
 
@@ -1835,7 +1847,7 @@ abstract class TypeAliasFragment
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeDefiningElement2
-    implements Element2, _Annotatable, _Fragmented {
+    implements Element2, _Annotatable, FragmentedElement {
   // TODO(brianwilkerson): Evaluate to see whether this type is actually needed
   //  after converting clients to the new API.
 }
@@ -2120,14 +2132,4 @@ abstract class _Annotatable {
   /// Returns `null` if the element is not declared in the SDK, or doesn't have
   /// a `@Since()` annotation applied to it.
   Version? get sinceSdkVersion;
-}
-
-/// An element that can be defined by multiple fragments.
-abstract class _Fragmented {
-  /// The first fragment in the chain of fragments that are merged to make this
-  /// element. Or `null` if this element is synthetic, so has no fragments.
-  ///
-  /// The other fragments in the chain can be accessed using
-  /// [Fragment.nextFragment].
-  Fragment? get firstFragment;
 }

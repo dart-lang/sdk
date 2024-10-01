@@ -451,6 +451,7 @@ lib/src/services/correction/dart/use_not_eq_null.dart
 lib/src/services/correction/dart/use_rethrow.dart
 lib/src/services/correction/dart/wrap_in_text.dart
 lib/src/services/correction/dart/wrap_in_unawaited.dart
+lib/src/services/correction/executable_parameters.dart
 lib/src/services/correction/fix.dart
 lib/src/services/correction/fix/analysis_options/fix_generator.dart
 lib/src/services/correction/fix/data_driven/accessor.dart

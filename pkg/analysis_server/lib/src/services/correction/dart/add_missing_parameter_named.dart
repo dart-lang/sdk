@@ -54,7 +54,7 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
     }
 
     // We cannot add named parameters when there are positional positional.
-    if (context.optionalPositional2.isNotEmpty) {
+    if (context.optionalPositional.isNotEmpty) {
       return;
     }
 
@@ -71,13 +71,13 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
       }
     }
 
-    if (context.named2.isNotEmpty) {
-      var prevNode =
-          await context.getParameterNode2(context.named2.last.firstFragment!);
+    if (context.named.isNotEmpty) {
+      var lastFirst = context.named.last.firstFragment!;
+      var prevNode = await context.getParameterNode2(lastFirst);
       await addParameter(prevNode?.end, ', ', '');
-    } else if (context.required2.isNotEmpty) {
-      var prevNode = await context
-          .getParameterNode2(context.required2.last.firstFragment!);
+    } else if (context.required.isNotEmpty) {
+      var lastFirst = context.required.last.firstFragment!;
+      var prevNode = await context.getParameterNode2(lastFirst);
       await addParameter(prevNode?.end, ', {', '}');
     } else {
       var parameterList = await context.getParameterList();
