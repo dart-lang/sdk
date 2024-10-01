@@ -470,14 +470,15 @@ class SuggestionBuilder {
 
   /// Add a suggestion for the `loadLibrary` [function] associated with a
   /// prefix.
-  void suggestLoadLibraryFunction(FunctionElement function) {
+  void suggestLoadLibraryFunction(FunctionElement function,
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
     // TODO(brianwilkerson): This might want to use the context type rather than
     //  a fixed value.
     var relevance = Relevance.loadLibrary;
     _addBuilder(
       _createCompletionSuggestionBuilder(
         function,
-        kind: CompletionSuggestionKind.INVOCATION,
+        kind: kind,
         relevance: relevance,
         isNotImported: isNotImportedLibrary,
       ),
