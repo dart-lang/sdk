@@ -111,6 +111,30 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
     ]);
   }
 
+  test_cyclicGenericInterfaceType_as() async {
+    await _testCasts([
+      _AsCast('Object', 'A<T>', lint: false)
+    ], typeDeclarations: [
+      r'''
+      class A<T extends A<T>> {}
+      '''
+    ], typeParameters: [
+      'T extends A<T>'
+    ]);
+  }
+
+  test_cyclicGenericInterfaceType_is() async {
+    await _testChecks([
+      _IsCheck('Object', 'A<T>', lint: false)
+    ], typeDeclarations: [
+      r'''
+      class A<T extends A<T>> {}
+      '''
+    ], typeParameters: [
+      'T extends A<T>'
+    ]);
+  }
+
   // TODO(srujzs): Some of the following type tests should result in an error,
   // but `canBeSubtypeOf` doesn't nest for function types.
   test_functionTypesAs_function_type_with_js_types_as() async {
@@ -1057,7 +1081,7 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
     var code =
         StringBuffer("// ignore: unused_import\nimport 'dart:html' hide JS;\n"
             "// ignore: unused_import\nimport 'dart:js';\n"
-            "import 'dart:js_interop';\n"
+            "// ignore: unused_import\nimport 'dart:js_interop';\n"
             "// ignore: unused_import\nimport 'package:js/js.dart' as js;\n");
     for (var typeDeclaration in typeDeclarations) {
       code.write('$typeDeclaration\n');
