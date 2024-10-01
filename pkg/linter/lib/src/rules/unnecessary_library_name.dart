@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../linter_lint_codes.dart';
 
 const _desc = r"Don't have a library name in a `library` declaration.";
@@ -24,10 +25,7 @@ class UnnecessaryLibraryName extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (!context.libraryElement!.featureSet
-        .isEnabled(Feature.unnamedLibraries)) {
-      return;
-    }
+    if (!context.isEnabled(Feature.unnamedLibraries)) return;
 
     var visitor = _Visitor(this);
     registry.addLibraryDirective(this, visitor);

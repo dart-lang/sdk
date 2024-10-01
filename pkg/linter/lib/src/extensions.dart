@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -544,6 +545,12 @@ extension InterfaceTypeExtension on InterfaceType {
     searchSupertypes(this, {}, interfaceTypes);
     return interfaceTypes;
   }
+}
+
+extension LinterContextExtension on LinterContext {
+  /// Whether the given [feature] is enabled in this linter context.
+  bool isEnabled(Feature feature) =>
+      libraryElement2!.featureSet.isEnabled(feature);
 }
 
 extension MethodDeclarationExtension on MethodDeclaration {
