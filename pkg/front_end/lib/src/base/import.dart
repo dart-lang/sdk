@@ -89,10 +89,8 @@ class Import {
       }
 
       add = (String name, Builder member) {
-        prefixFragment.builder.addToExportScope(name, member,
-            importOffset: importOffset,
-            prefixOffset: prefixOffset,
-            fromImport: true);
+        prefixFragment.builder.addToPrefixScope(name, member,
+            importOffset: importOffset, prefixOffset: prefixOffset);
       };
     }
     NameIterator<Builder> iterator = importedLibraryBuilder!.exportNameSpace

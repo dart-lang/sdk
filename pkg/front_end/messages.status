@@ -211,9 +211,7 @@ DuplicatedDeclarationUse/script2: Fail # Wrong error.
 DuplicatedDefinition/analyzerCode: Fail
 DuplicatedDefinition/example: Fail
 DuplicatedExport/part_wrapped_script: Fail # Exporting file in the (now) part.
-DuplicatedExportInType/analyzerCode: Fail
-DuplicatedExportInType/example: Fail
-DuplicatedImportInType/part_wrapped_script: Fail # Importing file in the (now) part.
+DuplicatedImport/part_wrapped_script: Fail # Importing file in the (now) part.
 DuplicatedLibraryExport/part_wrapped_script: Fail # Exporting file in the (now) part.
 DuplicatedLibraryImport/part_wrapped_script: Fail # Importing file in the (now) part.
 DuplicatedModifier/part_wrapped_script1: Fail

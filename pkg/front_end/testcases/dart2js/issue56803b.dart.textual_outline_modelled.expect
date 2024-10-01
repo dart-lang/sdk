@@ -1,0 +1,10 @@
+class Ext {
+  const Ext()
+      : assert(maybe != null, "Must not be null"),
+        _ = "OK";
+  final String _;
+}
+
+const String? maybe = bool.fromEnvironment("not there") ? "string" : null;
+
+void main() {}

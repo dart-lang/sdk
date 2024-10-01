@@ -650,7 +650,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
             // Clear cached calculations that points (potential) to now replaced
             // things.
-            for (Builder builder in builder.nameSpace.localMembers) {
+            for (Builder builder in builder.libraryNameSpace.localMembers) {
               if (builder is DillClassBuilder) {
                 builder.clearCachedValues();
               }
@@ -1034,7 +1034,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (builder.isBuiltAndMarked) {
           // Clear cached calculations in classes which upon calculation can
           // mark things as needed.
-          for (Builder builder in builder.nameSpace.localMembers) {
+          for (Builder builder in builder.libraryNameSpace.localMembers) {
             if (builder is DillClassBuilder) {
               builder.clearCachedValues();
             }
@@ -1880,7 +1880,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Class? cls;
       if (className != null) {
-        Builder? scopeMember = libraryBuilder.nameSpace
+        Builder? scopeMember = libraryBuilder.libraryNameSpace
             .lookupLocalMember(className, setter: false);
         if (scopeMember is ClassBuilder) {
           cls = scopeMember.cls;
@@ -1896,7 +1896,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (indexOfDot >= 0) {
           String beforeDot = methodName.substring(0, indexOfDot);
           String afterDot = methodName.substring(indexOfDot + 1);
-          Builder? builder = libraryBuilder.nameSpace
+          Builder? builder = libraryBuilder.libraryNameSpace
               .lookupLocalMember(beforeDot, setter: false);
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
@@ -1984,14 +1984,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               mayImplementRestrictedTypes: false);
       SourceLibraryBuilder debugLibrary = debugCompilationUnit.createLibrary();
       debugLibrary.buildNameSpace();
-      libraryBuilder.nameSpace.forEachLocalMember((name, member) {
-        debugLibrary.nameSpace.addLocalMember(name, member, setter: false);
+      libraryBuilder.libraryNameSpace.forEachLocalMember((name, member) {
+        debugLibrary.libraryNameSpace
+            .addLocalMember(name, member, setter: false);
       });
-      libraryBuilder.nameSpace.forEachLocalSetter((name, member) {
-        debugLibrary.nameSpace.addLocalMember(name, member, setter: true);
+      libraryBuilder.libraryNameSpace.forEachLocalSetter((name, member) {
+        debugLibrary.libraryNameSpace
+            .addLocalMember(name, member, setter: true);
       });
-      libraryBuilder.nameSpace.forEachLocalExtension((member) {
-        debugLibrary.nameSpace.addExtension(member);
+      libraryBuilder.libraryNameSpace.forEachLocalExtension((member) {
+        debugLibrary.libraryNameSpace.addExtension(member);
       });
       debugLibrary.buildScopes(lastGoodKernelTarget.loader.coreLibrary);
       _ticker.logMs("Created debug library");
