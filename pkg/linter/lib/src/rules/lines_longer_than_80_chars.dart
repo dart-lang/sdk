@@ -168,7 +168,7 @@ class _Visitor extends SimpleAstVisitor {
         end = lineInfo.getOffsetOfLine(i + 1) - 1;
         var length = end - start;
         if (length > 80) {
-          var content = node.declaredElement?.source.contents.data;
+          var content = node.declaredFragment?.source.contents.data;
           if (content != null &&
               content[end] == _lf &&
               content[end - 1] == _cr) {
