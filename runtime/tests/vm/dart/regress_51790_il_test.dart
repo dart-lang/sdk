@@ -59,7 +59,6 @@ void matchIL$sumAll(FlowGraph graph) {
         ]),
     'B3' <<
         match.block('Target', [
-          match.GenericCheckBound(),
           'v135' << match.LoadIndexed('v114', match.any),
           if (is32BitConfiguration)
             'v45' << match.BinaryInt32Op('v130', match.any)

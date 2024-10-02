@@ -4030,6 +4030,10 @@ class BranchInstr : public Instruction {
     return comparison()->RequiredInputRepresentation(i);
   }
 
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return comparison()->SpeculativeModeOfInput(index);
+  }
+
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   void set_constant_target(TargetEntryInstr* target) {
@@ -5448,6 +5452,10 @@ class IfThenElseInstr : public Definition {
 
   virtual Representation RequiredInputRepresentation(intptr_t i) const {
     return comparison()->RequiredInputRepresentation(i);
+  }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return comparison()->SpeculativeModeOfInput(index);
   }
 
   virtual CompileType ComputeType() const;
