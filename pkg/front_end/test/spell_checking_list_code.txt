@@ -1178,6 +1178,7 @@ occasionally
 occupied
 offending
 ogham
+okay
 oked
 omitting
 op

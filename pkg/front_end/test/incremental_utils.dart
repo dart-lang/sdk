@@ -17,12 +17,18 @@ import 'package:kernel/kernel.dart'
         Procedure,
         RecursiveVisitor;
 
-List<int> postProcess(Component c) {
-  postProcessComponent(c);
+List<int> postProcess(Component c, {bool clearMetadata = true}) {
+  postProcessComponent(c, clearMetadata: clearMetadata);
   return serializeComponent(c);
 }
 
-void postProcessComponent(Component c) {
+void postProcessComponent(Component c, {bool clearMetadata = true}) {
+  if (clearMetadata) {
+    // For now metadata isn't great for recompiles because it will only contain
+    // what was just compiled. To avoid failures caused by this we for now just
+    // clear the metadata.
+    c.metadata.clear();
+  }
   c.libraries.sort((l1, l2) {
     return "${l1.fileUri}".compareTo("${l2.fileUri}");
   });

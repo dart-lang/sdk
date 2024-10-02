@@ -1,0 +1,44 @@
+library;
+import self as self;
+import "main_lib2.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+
+static field mai::Class cls = new mai::Class::•();
+static field mai::int i = new mai::int::•();
+
+library;
+import self as self2;
+import "main_lib2.dart" as mai;
+additionalExports = (mai::int,
+  mai::Class)
+
+export "dart:core" show int;
+export "org-dartlang-testcase:///main_lib2.dart";
+export "dart:test" show Class;
+
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+class int extends core::Object {
+  synthetic constructor •() → mai::int
+    : super core::Object::•()
+    ;
+}
+class Class extends core::Object {
+  synthetic constructor •() → mai::Class
+    : super core::Object::•()
+    ;
+}
+
+library;
+import self as self3;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self3::Class
+    : super core::Object::•()
+    ;
+}
