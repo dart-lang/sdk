@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 
@@ -204,19 +203,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   String? get name => null;
 
   @override
-  Map<String, DartType> get namedParameterTypes {
-    // TODO(brianwilkerson): This implementation breaks the contract because the
-    //  parameters will not necessarily be returned in the order in which they
-    //  were declared.
-    Map<String, DartType> types = <String, DartType>{};
-    _forEachParameterType(ParameterKind.NAMED, (name, type) {
-      types[name] = type;
-    });
-    _forEachParameterType(ParameterKind.NAMED_REQUIRED, (name, type) {
-      types[name] = type;
-    });
-    return types;
-  }
+  Map<String, DartType> get namedParameterTypes => {
+        for (var parameter in sortedNamedParameters)
+          parameter.name: parameter.type
+      };
 
   @override
   List<String> get normalParameterNames => parameters
@@ -225,13 +215,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       .toList();
 
   @override
-  List<DartType> get normalParameterTypes {
-    List<DartType> types = <DartType>[];
-    _forEachParameterType(ParameterKind.REQUIRED, (name, type) {
-      types.add(type);
-    });
-    return types;
-  }
+  List<DartType> get normalParameterTypes =>
+      positionalParameterTypes.sublist(0, requiredPositionalParameterCount);
 
   @override
   List<String> get optionalParameterNames => parameters
@@ -240,13 +225,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       .toList();
 
   @override
-  List<DartType> get optionalParameterTypes {
-    List<DartType> types = <DartType>[];
-    _forEachParameterType(ParameterKind.POSITIONAL, (name, type) {
-      types.add(type);
-    });
-    return types;
-  }
+  List<DartType> get optionalParameterTypes =>
+      positionalParameterTypes.sublist(requiredPositionalParameterCount);
 
   @override
   List<TypeParameterElement2> get typeParameters => typeFormals
@@ -401,16 +381,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         requiredPositionalParameterCount,
         Object.hashAll(positionalParameterTypes),
         namedParameterInfo);
-  }
-
-  void _forEachParameterType(
-      ParameterKind kind, void Function(String name, DartType type) callback) {
-    for (var parameter in parameters) {
-      // ignore: deprecated_member_use_from_same_package
-      if (parameter.parameterKind == kind) {
-        callback(parameter.name, parameter.type);
-      }
-    }
   }
 
   /// Given two functions [f1] and [f2] where f1 and f2 are known to be
