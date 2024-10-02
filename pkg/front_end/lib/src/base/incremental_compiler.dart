@@ -542,6 +542,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ..setMainMethodAndMode(mainMethod?.reference, true, compiledMode!)
         ..problemsAsJson = problemsAsJson;
 
+      // Copy the metadata *just created*. This will likely not contain metadata
+      // about other libraries.
+      result.metadata.addAll(componentWithDill.metadata);
+
       // We're now done. Allow any waiting compile to start.
       Completer<dynamic> currentlyCompilingLocal = _currentlyCompiling!;
       _currentlyCompiling = null;
