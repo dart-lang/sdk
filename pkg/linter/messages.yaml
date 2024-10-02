@@ -1131,7 +1131,7 @@ LintCode:
     problemMessage: "Don't use the type 'FutureOr<void>'."
     correctionMessage: "Try using 'Future<void>?' or 'void'."
     addedIn: "3.6-wip"
-    categories: [errorProne]
+    categories: [errorProne, unintentional]
     hasPublishedDocs: true
     documentation: |-
       #### Description

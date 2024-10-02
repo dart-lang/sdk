@@ -219,7 +219,8 @@ abstract class LintRule {
   /// Short description suitable for display in console output.
   final String description;
 
-  /// Lint groups (for example, 'style', 'errors', 'pub').
+  /// Deprecated field of lint groups (for example, 'style', 'errors', 'pub').
+  @Deprecated('Lint rule categories are no longer used.')
   final Set<String> categories;
 
   /// Lint name.
@@ -230,6 +231,7 @@ abstract class LintRule {
 
   LintRule({
     required this.name,
+    @Deprecated('Lint rule categories are no longer used. Remove the argument.')
     this.categories = const <String>{},
     required this.description,
     @Deprecated("Specify 'details' for a short description and consider "
@@ -339,46 +341,6 @@ abstract class LintRule {
     );
     reporter.reportError(error);
   }
-}
-
-abstract final class LintRuleCategory {
-  /// A category of rules that align with the Effective Dart style guide.
-  static const String effectiveDart = 'effective dart';
-
-  /// A category of rules that protect against error-prone code.
-  static const String errorProne = 'error-prone';
-
-  /// A category of rules that help to write Flutter code.
-  static const String flutter = 'flutter';
-
-  /// A category of rules that promote language feature usage.
-  static const String languageFeatureUsage = 'language feature usage';
-
-  /// A category of rules that protect against possibly memory-leaking code.
-  static const String memoryLeaks = 'memory leaks';
-
-  /// A category of rules that protect against non-performant code.
-  static const String nonPerformant = 'non-performant';
-
-  /// A category representing Pub-related rules.
-  static const String pub = 'pub';
-
-  /// A category of rules that promote a healthy public interface.
-  static const String publicInterface = 'public interface';
-
-  /// A category representing matters of style, largely derived from Effective
-  /// Dart.
-  static const String style = 'style';
-
-  /// A category of rules that protect against code that probably doesn't do
-  /// what you think it does, or that shouldn't be used as it is.
-  static const String unintentional = 'unintentional';
-
-  /// A category of rules that protect against unused code.
-  static const String unusedCode = 'unused code';
-
-  /// A category of rules that help to write code deployed to the web.
-  static const String web = 'web';
 }
 
 /// Provides access to information needed by lint rules that is not available

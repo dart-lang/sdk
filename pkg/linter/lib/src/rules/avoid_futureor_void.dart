@@ -26,7 +26,6 @@ class AvoidFutureOrVoid extends LintRule {
       : super(
             name: 'avoid_futureor_void',
             description: _desc,
-            categories: {LintRuleCategory.unintentional},
             state: State.experimental());
 
   @override
