@@ -2679,6 +2679,23 @@ LintCode:
       extension on String {}
       ```
     deprecatedDetails: |-
+      From [Effective Dart](https://dart.dev/effective-dart/style#do-name-extensions-using-uppercamelcase):
+
+      **DO** name extensions using `UpperCamelCase`.
+
+      Extensions should capitalize the first letter of each word (including
+      the first word), and use no separators.
+
+      **GOOD:**
+      ```dart
+      extension MyFancyList<T> on List<T> { 
+        // ... 
+      }
+
+      extension SmartIterable<T> on Iterable<T> {
+        // ...
+      }
+      ```
   camel_case_types:
     problemMessage: "The type name '{0}' isn't an UpperCamelCase identifier."
     correctionMessage: "Try changing the name to follow the UpperCamelCase style."
@@ -2709,22 +2726,24 @@ LintCode:
       class C {}
       ```
     deprecatedDetails: |-
-      From [Effective Dart](https://dart.dev/effective-dart/style#do-name-extensions-using-uppercamelcase):
+      From [Effective Dart](https://dart.dev/effective-dart/style#do-name-types-using-uppercamelcase):
 
-      **DO** name extensions using `UpperCamelCase`.
+      **DO** name types using UpperCamelCase.
 
-      Extensions should capitalize the first letter of each word (including
+      Classes and typedefs should capitalize the first letter of each word (including
       the first word), and use no separators.
 
       **GOOD:**
       ```dart
-      extension MyFancyList<T> on List<T> {
+      class SliderMenu {
         // ...
       }
 
-      extension SmartIterable<T> on Iterable<T> {
+      class HttpRequest {
         // ...
       }
+
+      typedef num Adder(num x, num y);
       ```
   cancel_subscriptions:
     problemMessage: "Uncancelled instance of 'StreamSubscription'."
@@ -4278,6 +4297,7 @@ LintCode:
   erase_dart_type_extension_types:
     problemMessage: "Unsafe use of 'DartType' in an 'is' check."
     correctionMessage: "Ensure DartType extension types are erased by using a helper method."
+    addedIn: "3.3"
     categories: [errorProne]
     hasPublishedDocs: false
     todo: |-
@@ -9522,7 +9542,6 @@ LintCode:
     problemMessage: "An uninitialized variable should have an explicit type annotation."
     correctionMessage: "Try adding a type annotation."
     hasPublishedDocs: true
-    deprecatedDetails: |-
   prefer_void_to_null:
     problemMessage: "Unnecessary use of the type 'Null'."
     correctionMessage: "Try using 'void' instead."

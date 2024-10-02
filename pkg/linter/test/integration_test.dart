@@ -36,11 +36,6 @@ void main() {
       });
     });
 
-    test('messages.yaml', () {
-      var errors = checkMessagesYaml();
-      if (errors != null) {
-        fail(errors);
-      }
-    });
+    test('messages.yaml', checkMessagesYaml);
   });
 }
