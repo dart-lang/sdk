@@ -821,7 +821,7 @@ abstract final class DartFixKind {
   );
   static const IMPORT_LIBRARY_PREFIX = FixKind(
     'dart.fix.import.libraryPrefix',
-    49,
+    DartFixKindPriority.standard + 5,
     "Use imported library '{0}' with prefix '{1}'",
   );
   static const IMPORT_LIBRARY_PROJECT1 = FixKind(
