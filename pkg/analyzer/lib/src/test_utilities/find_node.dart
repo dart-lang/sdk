@@ -524,6 +524,10 @@ class FindNode {
     return _node(search, (n) => n is ImportDirective);
   }
 
+  ImportPrefixReference importPrefixReference(String search) {
+    return _node(search, (n) => n is ImportPrefixReference);
+  }
+
   IndexExpression index(String search) {
     return _node(search, (n) => n is IndexExpression);
   }
