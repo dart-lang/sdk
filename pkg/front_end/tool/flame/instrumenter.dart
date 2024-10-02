@@ -136,21 +136,13 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
     }
   }
   bool reportCandidates = candidates.isEmpty && candidatesRaw.isEmpty;
-  setupWantedMap(candidates, candidatesRaw);
 
   installAdditionalTargets();
 
-  FileSystemDependencyTracker tracker = new FileSystemDependencyTracker();
-  ParsedOptions parsedOptions =
-      ParsedOptions.parse(arguments, optionSpecification);
-  ProcessedOptions options =
-      analyzeCommandLine(tracker, "compile", parsedOptions, true);
-  Uri? output = options.output;
-  if (output == null) throw "No output";
-  if (!output.isScheme("file")) throw "Output won't be saved";
+  Uri output = parseCompilerArguments(arguments);
 
-  print("Compiling the instrumentation library.");
-  Uri instrumentationLibDill = tmpDir.uri.resolve("instrumenter.dill");
+  Map<String, Set<String>> wanted = setupWantedMap(candidates, candidatesRaw);
+
   String libFilename = "instrumenter_lib.dart";
   if (doCount) {
     libFilename = "instrumenter_lib_counter.dart";
@@ -159,10 +151,145 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
   } else if (doSingleTimer) {
     libFilename = "instrumenter_lib_single_timer.dart";
   }
+
+  await compileInstrumentationLibrary(
+      tmpDir,
+      new TimerCounterInstrumenterConfig(
+          libFilename: libFilename,
+          reportCandidates: reportCandidates,
+          wanted: wanted,
+          includeAll: reportCandidates,
+          includeConstructors:
+              !reportCandidates || doCount || doTimer || doSingleTimer),
+      arguments,
+      output);
+}
+
+Uri parseCompilerArguments(List<String> arguments) {
+  installAdditionalTargets();
+  FileSystemDependencyTracker tracker = new FileSystemDependencyTracker();
+  ParsedOptions parsedOptions =
+      ParsedOptions.parse(arguments, optionSpecification);
+  ProcessedOptions options =
+      analyzeCommandLine(tracker, "compile", parsedOptions, true);
+  Uri? output = options.output;
+  if (output == null) throw "No output";
+  if (!output.isScheme("file")) throw "Output won't be saved";
+  return output;
+}
+
+abstract class InstrumenterConfig {
+  String get libFilename;
+  String get beforeName;
+  String get enterName;
+  String get exitName;
+  String get afterName;
+
+  bool includeProcedure(Procedure procedure);
+  bool includeConstructor(Constructor constructor);
+
+  Arguments createBeforeArguments(
+      List<Procedure> procedures, List<Constructor> constructors);
+
+  Arguments createAfterArguments(
+      List<Procedure> procedures, List<Constructor> constructors);
+
+  Arguments createEnterArguments(int id, Member member);
+
+  Arguments createExitArguments(int id, Member member);
+}
+
+class TimerCounterInstrumenterConfig implements InstrumenterConfig {
+  @override
+  final String libFilename;
+  final bool reportCandidates;
+  final bool includeAll;
+  final bool includeConstructors;
+  final Map<String, Set<String>> wanted;
+
+  TimerCounterInstrumenterConfig(
+      {required this.libFilename,
+      required this.reportCandidates,
+      required this.includeAll,
+      required this.includeConstructors,
+      required this.wanted});
+
+  @override
+  String get beforeName => 'initialize';
+
+  @override
+  String get enterName => 'enter';
+
+  @override
+  String get exitName => 'exit';
+
+  @override
+  String get afterName => 'report';
+
+  @override
+  bool includeProcedure(Procedure p) {
+    if (includeAll) return true;
+    String name = getProcedureName(p);
+    Set<String> procedureNamesWantedInFile =
+        wanted[p.fileUri.pathSegments.last] ?? const {};
+    return procedureNamesWantedInFile.contains(name) ||
+        !procedureNamesWantedInFile.contains("*");
+  }
+
+  @override
+  bool includeConstructor(Constructor c) {
+    if (!includeConstructors) return false;
+    if (includeAll) return true;
+    String name = getConstructorName(c);
+    Set<String> constructorNamesWantedInFile =
+        wanted[c.fileUri.pathSegments.last] ?? const {};
+    return constructorNamesWantedInFile.contains(name) ||
+        constructorNamesWantedInFile.contains("*");
+  }
+
+  @override
+  Arguments createBeforeArguments(
+      List<Procedure> procedures, List<Constructor> constructors) {
+    return new Arguments([
+      new IntLiteral(procedures.length + constructors.length),
+      new BoolLiteral(reportCandidates),
+    ]);
+  }
+
+  @override
+  Arguments createAfterArguments(
+      List<Procedure> procedures, List<Constructor> constructors) {
+    return new Arguments([
+      new ListLiteral([
+        ...procedures
+            .map((p) => new StringLiteral("${p.fileUri.pathSegments.last}|"
+                "${getProcedureName(p)}")),
+        ...constructors
+            .map((c) => new StringLiteral("${c.fileUri.pathSegments.last}|"
+                "${getConstructorName(c)}")),
+      ]),
+    ]);
+  }
+
+  @override
+  Arguments createEnterArguments(int id, Member member) {
+    return new Arguments([new IntLiteral(id)]);
+  }
+
+  @override
+  Arguments createExitArguments(int id, Member member) {
+    return new Arguments([new IntLiteral(id)]);
+  }
+}
+
+Future<void> compileInstrumentationLibrary(Directory tmpDir,
+    InstrumenterConfig config, List<String> arguments, Uri output) async {
+  print("Compiling the instrumentation library.");
+  Uri instrumentationLibDill = tmpDir.uri.resolve("instrumenter.dill");
   await fasta_compile.main([
     "--omit-platform",
     "-o=${instrumentationLibDill.toFilePath()}",
-    Platform.script.resolve(libFilename).toFilePath()
+    Platform.script.resolve(config.libFilename).toFilePath()
   ]);
   if (!File.fromUri(instrumentationLibDill).existsSync()) {
     throw "Instrumentation library didn't compile as expected.";
@@ -176,50 +303,46 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
   List<int> bytes = new File.fromUri(output).readAsBytesSync();
   new BinaryBuilder(bytes).readComponent(component);
 
+  bytes = File.fromUri(instrumentationLibDill).readAsBytesSync();
+  new BinaryBuilder(bytes).readComponent(component);
+
   List<Procedure> procedures = [];
   List<Constructor> constructors = [];
   for (Library lib in component.libraries) {
     if (lib.importUri.scheme == "dart") continue;
     for (Class c in lib.classes) {
-      addIfWantedProcedures(procedures, c.procedures,
-          includeAll: reportCandidates);
-      if (!reportCandidates || doCount || doTimer || doSingleTimer) {
-        addIfWantedConstructors(constructors, c.constructors,
-            includeAll: reportCandidates);
-      }
+      addIfWantedProcedures(config, procedures, c.procedures);
+      addIfWantedConstructors(config, constructors, c.constructors);
     }
-    addIfWantedProcedures(procedures, lib.procedures,
-        includeAll: reportCandidates);
+    addIfWantedProcedures(config, procedures, lib.procedures);
   }
   print("Procedures: ${procedures.length}");
   print("Constructors: ${constructors.length}");
 
-  bytes = File.fromUri(instrumentationLibDill).readAsBytesSync();
-  new BinaryBuilder(bytes).readComponent(component);
-
   // TODO: Check that this is true.
-  Library instrumenterLib = component.libraries.last;
-  Procedure instrumenterInitialize =
-      instrumenterLib.procedures.firstWhere((p) => p.name.text == "initialize");
-  Procedure instrumenterEnter =
-      instrumenterLib.procedures.firstWhere((p) => p.name.text == "enter");
-  Procedure instrumenterExit =
-      instrumenterLib.procedures.firstWhere((p) => p.name.text == "exit");
-  Procedure instrumenterReport =
-      instrumenterLib.procedures.firstWhere((p) => p.name.text == "report");
+  Library instrumenterLib = component.libraries
+      .singleWhere((lib) => lib.fileUri.path.endsWith(config.libFilename));
+  Procedure instrumenterInitialize = instrumenterLib.procedures
+      .singleWhere((p) => p.name.text == config.beforeName);
+  Procedure instrumenterEnter = instrumenterLib.procedures
+      .singleWhere((p) => p.name.text == config.enterName);
+  Procedure instrumenterExit = instrumenterLib.procedures
+      .singleWhere((p) => p.name.text == config.exitName);
+  Procedure instrumenterReport = instrumenterLib.procedures
+      .singleWhere((p) => p.name.text == config.afterName);
 
   int id = 0;
   for (Procedure p in procedures) {
     int thisId = id++;
-    wrapProcedure(p, thisId, instrumenterEnter, instrumenterExit);
+    wrapProcedure(config, p, thisId, instrumenterEnter, instrumenterExit);
   }
   for (Constructor c in constructors) {
     int thisId = id++;
-    wrapConstructor(c, thisId, instrumenterEnter, instrumenterExit);
+    wrapConstructor(config, c, thisId, instrumenterEnter, instrumenterExit);
   }
 
-  initializeAndReport(component.mainMethod!, instrumenterInitialize, procedures,
-      constructors, instrumenterReport, reportCandidates);
+  initializeAndReport(config, component.mainMethod!, instrumenterInitialize,
+      procedures, constructors, instrumenterReport);
 
   print("Writing output.");
   String outString = output.toFilePath() + ".instrumented.dill";
@@ -227,40 +350,26 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
   print("Wrote to $outString");
 }
 
-void addIfWantedProcedures(List<Procedure> output, List<Procedure> input,
-    {required bool includeAll}) {
+void addIfWantedProcedures(
+    InstrumenterConfig config, List<Procedure> output, List<Procedure> input) {
   for (Procedure p in input) {
     if (p.function.body == null) continue;
     // Yielding functions doesn't work well with the begin/end scheme.
     if (p.function.dartAsyncMarker == AsyncMarker.SyncStar) continue;
     if (p.function.dartAsyncMarker == AsyncMarker.AsyncStar) continue;
-    if (!includeAll) {
-      String name = getProcedureName(p);
-      Set<String> procedureNamesWantedInFile =
-          wanted[p.fileUri.pathSegments.last] ?? const {};
-      if (!procedureNamesWantedInFile.contains(name) &&
-          !procedureNamesWantedInFile.contains("*")) {
-        continue;
-      }
+    if (config.includeProcedure(p)) {
+      output.add(p);
     }
-    output.add(p);
   }
 }
 
-void addIfWantedConstructors(List<Constructor> output, List<Constructor> input,
-    {required bool includeAll}) {
+void addIfWantedConstructors(InstrumenterConfig config,
+    List<Constructor> output, List<Constructor> input) {
   for (Constructor c in input) {
     if (c.isExternal) continue;
-    if (!includeAll) {
-      String name = getConstructorName(c);
-      Set<String> constructorNamesWantedInFile =
-          wanted[c.fileUri.pathSegments.last] ?? const {};
-      if (!constructorNamesWantedInFile.contains(name) &&
-          !constructorNamesWantedInFile.contains("*")) {
-        continue;
-      }
+    if (config.includeConstructor(c)) {
+      output.add(c);
     }
-    output.add(c);
   }
 }
 
@@ -282,7 +391,9 @@ String getConstructorName(Constructor c) {
   return "${parent.name}.$name";
 }
 
-void setupWantedMap(List<String> candidates, List<String> candidatesRaw) {
+Map<String, Set<String>> setupWantedMap(
+    List<String> candidates, List<String> candidatesRaw) {
+  Map<String, Set<String>> wanted = {};
   for (String filename in candidates) {
     File f = new File(filename);
     if (!f.existsSync()) throw "$filename doesn't exist.";
@@ -305,67 +416,54 @@ void setupWantedMap(List<String> candidates, List<String> candidatesRaw) {
       existingInFile.add(displayName);
     }
   }
+  return wanted;
 }
 
-Map<String, Set<String>> wanted = {};
-
 void initializeAndReport(
+    InstrumenterConfig config,
     Procedure mainProcedure,
     Procedure initializeProcedure,
     List<Procedure> procedures,
     List<Constructor> constructors,
-    Procedure instrumenterReport,
-    bool reportCandidates) {
+    Procedure instrumenterReport) {
   Block block = new Block([
-    new ExpressionStatement(new StaticInvocation(
-        initializeProcedure,
-        new Arguments([
-          new IntLiteral(procedures.length + constructors.length),
-          new BoolLiteral(reportCandidates),
-        ]))),
+    new ExpressionStatement(new StaticInvocation(initializeProcedure,
+        config.createBeforeArguments(procedures, constructors))),
     new TryFinally(
         mainProcedure.function.body as Statement,
-        new ExpressionStatement(new StaticInvocation(
-            instrumenterReport,
-            new Arguments([
-              new ListLiteral([
-                ...procedures.map(
-                    (p) => new StringLiteral("${p.fileUri.pathSegments.last}|"
-                        "${getProcedureName(p)}")),
-                ...constructors.map(
-                    (c) => new StringLiteral("${c.fileUri.pathSegments.last}|"
-                        "${getConstructorName(c)}")),
-              ]),
-            ])))),
+        new ExpressionStatement(new StaticInvocation(instrumenterReport,
+            config.createAfterArguments(procedures, constructors)))),
   ]);
   mainProcedure.function.body = block;
   block.parent = mainProcedure.function;
 }
 
-void wrapProcedure(Procedure p, int id, Procedure instrumenterEnter,
-    Procedure instrumenterExit) {
+void wrapProcedure(InstrumenterConfig config, Procedure p, int id,
+    Procedure instrumenterEnter, Procedure instrumenterExit) {
   Block block = new Block([
     new ExpressionStatement(new StaticInvocation(
-        instrumenterEnter, new Arguments([new IntLiteral(id)]))),
+        instrumenterEnter, config.createEnterArguments(id, p))),
     p.function.body as Statement
   ]);
   TryFinally tryFinally = new TryFinally(
       block,
       new ExpressionStatement(new StaticInvocation(
-          instrumenterExit, new Arguments([new IntLiteral(id)]))));
+          instrumenterExit, config.createExitArguments(id, p))));
   p.function.body = tryFinally;
   tryFinally.parent = p.function;
 }
 
-void wrapConstructor(Constructor c, int id, Procedure instrumenterEnter,
-    Procedure instrumenterExit) {
+void wrapConstructor(InstrumenterConfig config, Constructor c, int id,
+    Procedure instrumenterEnter, Procedure instrumenterExit) {
+  Arguments enterArguments = config.createEnterArguments(id, c);
+  Arguments exitArguments = config.createExitArguments(id, c);
   if (c.function.body == null || c.function.body is EmptyStatement) {
     // We just completely replace the body.
     Block block = new Block([
-      new ExpressionStatement(new StaticInvocation(
-          instrumenterEnter, new Arguments([new IntLiteral(id)]))),
-      new ExpressionStatement(new StaticInvocation(
-          instrumenterExit, new Arguments([new IntLiteral(id)]))),
+      new ExpressionStatement(
+          new StaticInvocation(instrumenterEnter, enterArguments)),
+      new ExpressionStatement(
+          new StaticInvocation(instrumenterExit, exitArguments)),
     ]);
     c.function.body = block;
     block.parent = c.function;
@@ -374,8 +472,8 @@ void wrapConstructor(Constructor c, int id, Procedure instrumenterEnter,
 
   // We retain the original body as with procedures.
   Block block = new Block([
-    new ExpressionStatement(new StaticInvocation(
-        instrumenterEnter, new Arguments([new IntLiteral(id)]))),
+    new ExpressionStatement(
+        new StaticInvocation(instrumenterEnter, enterArguments)),
     c.function.body as Statement,
   ]);
   TryFinally tryFinally = new TryFinally(
