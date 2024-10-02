@@ -2411,9 +2411,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType inferredTypeArgument,
       Map<TreeNode, DartType> inferredSpreadTypes,
       Map<Expression, DartType> inferredConditionTypes) {
-    // TODO(cstefantsova): Ensure the flow analysis is properly invoked when it
-    // supports null-aware elements.
-
     ExpressionInferenceResult expressionResult = inferElement(
         element.expression,
         inferredTypeArgument.withDeclaredNullability(Nullability.nullable),
