@@ -1777,10 +1777,6 @@ class Harness {
     operations.addSuperInterfaces(className, template);
   }
 
-  void addTypeVariable(String name, {String? bound}) {
-    operations.addTypeVariable(name, bound: bound);
-  }
-
   void disableFieldPromotion() {
     assert(!_started);
     _fieldPromotionEnabled = false;
@@ -2840,10 +2836,6 @@ class MiniAstOperations
     _typeSystem.addSuperInterfaces(className, template);
   }
 
-  TypeParameter addTypeVariable(String name, {String? bound}) {
-    return _typeSystem.addTypeVariable(name, bound: bound);
-  }
-
   void addVariance(String typeName, List<Variance> varianceByArgument) {
     _variance[typeName] = varianceByArgument;
   }
@@ -2883,7 +2875,7 @@ class MiniAstOperations
 
   @override
   Type futureTypeInternal(Type argumentType) {
-    return PrimaryType('Future', args: [argumentType]);
+    return PrimaryType(TypeRegistry.future, args: [argumentType]);
   }
 
   @override
@@ -2978,9 +2970,13 @@ class MiniAstOperations
         unwrappedType is VoidType ||
         unwrappedType is NullType) {
       return false;
-    } else if (unwrappedType is PromotedTypeVariableType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none) {
-      return isNonNullable(SharedTypeSchemaView(unwrappedType.promotion));
+    } else if (unwrappedType
+        case TypeParameterType(
+          :var promotion,
+          nullabilitySuffix: NullabilitySuffix.none
+        )) {
+      return promotion != null &&
+          isNonNullable(SharedTypeSchemaView(promotion));
     } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return false;
     } else if (matchFutureOrInternal(unwrappedType) case Type typeArgument?) {
@@ -3018,7 +3014,7 @@ class MiniAstOperations
   @override
   bool isTypeParameterType(SharedTypeView<Type> type) {
     Type unwrappedType = type.unwrapTypeView();
-    return unwrappedType is PromotedTypeVariableType &&
+    return unwrappedType is TypeParameterType &&
         unwrappedType.nullabilitySuffix == NullabilitySuffix.none;
   }
 
@@ -3038,13 +3034,13 @@ class MiniAstOperations
   @override
   SharedTypeSchemaView<Type> iterableTypeSchema(
       SharedTypeSchemaView<Type> elementTypeSchema) {
-    return SharedTypeSchemaView(PrimaryType('Iterable',
+    return SharedTypeSchemaView(PrimaryType(TypeRegistry.iterable,
         args: [elementTypeSchema.unwrapTypeSchemaView()]));
   }
 
   @override
   Type listTypeInternal(Type elementType) {
-    return PrimaryType('List', args: [elementType]);
+    return PrimaryType(TypeRegistry.list, args: [elementType]);
   }
 
   @override
@@ -3087,7 +3083,7 @@ class MiniAstOperations
     required Type keyType,
     required Type valueType,
   }) {
-    return PrimaryType('Map', args: [keyType, valueType]);
+    return PrimaryType(TypeRegistry.map, args: [keyType, valueType]);
   }
 
   @override
@@ -3100,7 +3096,15 @@ class MiniAstOperations
 
   @override
   TypeParameter? matchInferableParameter(SharedTypeView<Type> type) {
-    return _typeSystem.matchTypeParameterType(type.unwrapTypeView());
+    if (type.unwrapTypeView()
+        case TypeParameterType(
+          :var typeParameter,
+          nullabilitySuffix: NullabilitySuffix.none
+        )) {
+      return typeParameter;
+    } else {
+      return null;
+    }
   }
 
   @override
@@ -3210,7 +3214,7 @@ class MiniAstOperations
   @override
   SharedTypeSchemaView<Type> streamTypeSchema(
       SharedTypeSchemaView<Type> elementTypeSchema) {
-    return SharedTypeSchemaView(PrimaryType('Stream',
+    return SharedTypeSchemaView(PrimaryType(TypeRegistry.stream,
         args: [elementTypeSchema.unwrapTypeSchemaView()]));
   }
 
