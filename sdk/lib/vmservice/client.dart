@@ -23,6 +23,11 @@ abstract class Client {
   /// The set of streams the client is subscribed to.
   final streams = <String>{};
 
+  /// Pairs of 1) the ID of a Service ID zone created by this client and 2) the
+  /// ID of the isolate in which that zone was created.
+  final List<({String serviceIdZoneId, String isolateId})>
+      createdServiceIdZones = [];
+
   /// The set of user tags that the client wants to receive CPU samples for.
   final profilerUserTagFilters = <String>{};
 
