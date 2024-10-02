@@ -498,13 +498,9 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     } else {
       uri = computeLibraryUri(declaration);
       otherUri = computeLibraryUri(other);
-      if (otherUri.isScheme("dart") &&
-          // Coverage-ignore(suite): Not run.
-          !uri.isScheme("dart")) {
+      if (otherUri.isScheme("dart") && !uri.isScheme("dart")) {
         preferred = declaration;
-      } else if (uri.isScheme("dart") &&
-          // Coverage-ignore(suite): Not run.
-          !otherUri.isScheme("dart")) {
+      } else if (uri.isScheme("dart") && !otherUri.isScheme("dart")) {
         preferred = other;
       }
     }

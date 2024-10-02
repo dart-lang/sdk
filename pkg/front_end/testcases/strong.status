@@ -91,6 +91,7 @@ inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForce
 dart2js/tear_off_patch/main: SemiFuzzFailure
 dartdevc/factory_patch/main: SemiFuzzFailure
 general/constructor_patch/main: SemiFuzzFailure
+general/export_dart_conflict/main: SemiFuzzFailure
 general/factory_patch/main: SemiFuzzFailure
 general/inject_private_patch/main: SemiFuzzFailure
 general/inject_public/main: SemiFuzzFailure
