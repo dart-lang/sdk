@@ -12600,7 +12600,7 @@ class TypeParameterType extends DartType {
   @override
   Nullability declaredNullability;
 
-  TypeParameter parameter;
+  final TypeParameter parameter;
 
   TypeParameterType(this.parameter, this.declaredNullability);
 
@@ -12659,20 +12659,7 @@ class TypeParameterType extends DartType {
       return true;
     } else if (other is TypeParameterType) {
       if (nullability != other.nullability) return false;
-      if (parameter != other.parameter) {
-        if (parameter.isStructuralParameter) {
-          // Function type parameters are also equal by assumption.
-          if (assumptions == null) {
-            return false;
-          }
-          if (!assumptions.isAssumed(parameter, other.parameter)) {
-            return false;
-          }
-        } else {
-          return false;
-        }
-      }
-      return true;
+      return parameter == other.parameter;
     } else {
       return false;
     }
@@ -12680,10 +12667,7 @@ class TypeParameterType extends DartType {
 
   @override
   int get hashCode {
-    // TODO(johnniwinther): Since we use a unification strategy for function
-    //  type parameter equality, we have to assume they can end up being
-    //  equal. Maybe we should change the equality strategy.
-    int hash = parameter.isStructuralParameter ? 0 : parameter.hashCode;
+    int hash = parameter.hashCode;
     int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
     hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
     return hash;
@@ -12838,9 +12822,6 @@ class StructuralParameterType extends DartType {
 
   @override
   int get hashCode {
-    // TODO(johnniwinther): Since we use a unification strategy for function
-    //  type parameter equality, we have to assume they can end up being
-    //  equal. Maybe we should change the equality strategy.
     int hash = 0;
     int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
     hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
@@ -13221,8 +13202,6 @@ class TypeParameter extends TreeNode implements Annotatable {
   void toTextInternal(AstPrinter printer) {
     printer.writeTypeParameterName(this);
   }
-
-  bool get isStructuralParameter => declaration == null;
 }
 
 /// Declaration of a type variable by a [FunctionType]

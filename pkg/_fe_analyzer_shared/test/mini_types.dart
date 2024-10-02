@@ -20,7 +20,8 @@ class DynamicType extends _SpecialSimpleType
   static final instance = DynamicType._();
 
   DynamicType._()
-      : super._('dynamic', nullabilitySuffix: NullabilitySuffix.none);
+      : super._(TypeRegistry.dynamic_,
+            nullabilitySuffix: NullabilitySuffix.none);
 
   @override
   Type withNullability(NullabilitySuffix suffix) => this;
@@ -136,7 +137,7 @@ class FunctionType extends Type
 class FutureOrType extends PrimaryType {
   FutureOrType(Type typeArgument,
       {super.nullabilitySuffix = NullabilitySuffix.none})
-      : super._withSpecialName('FutureOr', args: [typeArgument]);
+      : super._special(TypeRegistry.futureOr, args: [typeArgument]);
 
   Type get typeArgument => args.single;
 
@@ -160,13 +161,19 @@ class FutureOrType extends PrimaryType {
       FutureOrType(typeArgument, nullabilitySuffix: suffix);
 }
 
+/// A type name that represents an ordinary interface type.
+class InterfaceTypeName extends TypeNameInfo {
+  InterfaceTypeName._(super.name);
+}
+
 /// Representation of an invalid type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
 class InvalidType extends _SpecialSimpleType
     implements SharedInvalidTypeStructure<Type> {
   static final instance = InvalidType._();
 
-  InvalidType._() : super._('error', nullabilitySuffix: NullabilitySuffix.none);
+  InvalidType._()
+      : super._(TypeRegistry.error_, nullabilitySuffix: NullabilitySuffix.none);
 
   @override
   Type withNullability(NullabilitySuffix suffix) => this;
@@ -201,7 +208,7 @@ class NeverType extends _SpecialSimpleType {
   static final instance = NeverType._();
 
   NeverType._({super.nullabilitySuffix = NullabilitySuffix.none})
-      : super._('Never');
+      : super._(TypeRegistry.never);
 
   @override
   Type withNullability(NullabilitySuffix suffix) =>
@@ -213,7 +220,8 @@ class NeverType extends _SpecialSimpleType {
 class NullType extends _SpecialSimpleType {
   static final instance = NullType._();
 
-  NullType._() : super._('Null', nullabilitySuffix: NullabilitySuffix.none);
+  NullType._()
+      : super._(TypeRegistry.null_, nullabilitySuffix: NullabilitySuffix.none);
 
   @override
   Type withNullability(NullabilitySuffix suffix) => this;
@@ -231,52 +239,42 @@ class ParseError extends Error {
 
 /// Representation of a primary type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.  A primary type is either an interface type
-/// with zero or more type parameters (e.g. `double`, or `Map<int, String>`), a
-/// reference to a type parameter, or one of the special types whose name is a
-/// single word (e.g. `dynamic`).
+/// with zero or more type parameters (e.g. `double`, or `Map<int, String>`) or
+/// one of the special types whose name is a single word (e.g. `dynamic`).
 class PrimaryType extends Type {
-  /// Names of primary types not originating from a class, a mixin, or an enum.
-  static const List<String> namedNonInterfaceTypes = [
-    'dynamic',
-    'error',
-    'FutureOr',
-    'Never',
-    'Null',
-    'void'
-  ];
-
-  /// The name of the type.
-  final String name;
+  /// Information about the type name.
+  final TypeNameInfo nameInfo;
 
   /// The type arguments, or `const []` if there are no type arguments.
   final List<Type> args;
 
-  PrimaryType(this.name,
+  PrimaryType(InterfaceTypeName nameInfo,
+      {List<Type> args = const [],
+      NullabilitySuffix nullabilitySuffix = NullabilitySuffix.none})
+      : this._(nameInfo, args: args, nullabilitySuffix: nullabilitySuffix);
+
+  PrimaryType._(this.nameInfo,
       {this.args = const [], super.nullabilitySuffix = NullabilitySuffix.none})
-      : super._() {
-    if (namedNonInterfaceTypes.contains(name)) {
-      throw StateError('Tried to create a PrimaryType with special name $name');
-    }
+      : super._();
+
+  PrimaryType._special(SpecialTypeName nameInfo,
+      {List<Type> args = const [],
+      NullabilitySuffix nullabilitySuffix = NullabilitySuffix.none})
+      : this._(nameInfo, args: args, nullabilitySuffix: nullabilitySuffix);
+
+  bool get isInterfaceType {
+    return nameInfo is InterfaceTypeName;
   }
 
-  PrimaryType._withSpecialName(this.name,
-      {this.args = const [], super.nullabilitySuffix = NullabilitySuffix.none})
-      : super._() {
-    if (!namedNonInterfaceTypes.contains(name)) {
-      throw StateError(
-          'Tried to use PrimaryType._withSpecialName with non-special name '
-          '$name');
-    }
-  }
-
-  bool get isInterfaceType => !namedNonInterfaceTypes.contains(name);
+  /// The name of the type.
+  String get name => nameInfo.name;
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
     List<Type>? newArgs =
         args.closureWithRespectToUnknown(covariant: covariant);
     if (newArgs == null) return null;
-    return PrimaryType(name,
+    return PrimaryType._(nameInfo,
         args: newArgs, nullabilitySuffix: nullabilitySuffix);
   }
 
@@ -284,57 +282,17 @@ class PrimaryType extends Type {
   Type? recursivelyDemote({required bool covariant}) {
     List<Type>? newArgs = args.recursivelyDemote(covariant: covariant);
     if (newArgs == null) return null;
-    return PrimaryType(name,
+    return PrimaryType._(nameInfo,
         args: newArgs, nullabilitySuffix: nullabilitySuffix);
   }
 
   @override
   Type withNullability(NullabilitySuffix suffix) =>
-      PrimaryType(name, args: args, nullabilitySuffix: suffix);
+      PrimaryType._(nameInfo, args: args, nullabilitySuffix: suffix);
 
   @override
   String _toStringWithoutSuffix({required bool parenthesizeIfComplex}) =>
       args.isEmpty ? name : '$name<${args.join(', ')}>';
-}
-
-/// Representation of a promoted type parameter type suitable for unit testing
-/// of code in the `_fe_analyzer_shared` package.  A promoted type parameter is
-/// often written using the syntax `a&b`, where `a` is the type parameter and
-/// `b` is what it's promoted to.  For example, `T&int` represents the type
-/// parameter `T`, promoted to `int`.
-class PromotedTypeVariableType extends Type {
-  final Type innerType;
-
-  final Type promotion;
-
-  PromotedTypeVariableType(this.innerType, this.promotion,
-      {super.nullabilitySuffix = NullabilitySuffix.none})
-      : super._();
-
-  @override
-  Type? closureWithRespectToUnknown({required bool covariant}) {
-    var newPromotion =
-        promotion.closureWithRespectToUnknown(covariant: covariant);
-    if (newPromotion == null) return null;
-    return PromotedTypeVariableType(innerType, newPromotion,
-        nullabilitySuffix: nullabilitySuffix);
-  }
-
-  @override
-  Type? recursivelyDemote({required bool covariant}) =>
-      (covariant ? innerType : NeverType.instance)
-          .withNullability(nullabilitySuffix);
-
-  @override
-  Type withNullability(NullabilitySuffix suffix) =>
-      PromotedTypeVariableType(innerType, promotion, nullabilitySuffix: suffix);
-
-  @override
-  String _toStringWithoutSuffix({required bool parenthesizeIfComplex}) =>
-      _parenthesizeIf(
-          parenthesizeIfComplex,
-          '${innerType.toString(parenthesizeIfComplex: true)}&'
-          '${promotion.toString(parenthesizeIfComplex: true)}');
 }
 
 class RecordType extends Type implements SharedRecordTypeStructure<Type> {
@@ -448,6 +406,17 @@ class RecordType extends Type implements SharedRecordTypeStructure<Type> {
   }
 }
 
+/// A type name that represents one of Dart's built-in "special" types, such as:
+/// - `dynamic`
+/// - `error` (to represent an invalid type)
+/// - `FutureOr`
+/// - `Never`
+/// - `Null`
+/// - `void`
+class SpecialTypeName extends TypeNameInfo {
+  SpecialTypeName._(super.name);
+}
+
 /// Representation of a type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
 abstract class Type implements SharedTypeStructure<Type> {
@@ -526,18 +495,220 @@ abstract class Type implements SharedTypeStructure<Type> {
   String _toStringWithoutSuffix({required bool parenthesizeIfComplex});
 }
 
-class TypeParameter implements SharedTypeParameterStructure<Type> {
+/// Information about a single type name recognized by the [Type] parser.
+sealed class TypeNameInfo {
   final String name;
 
-  final Type bound;
+  TypeNameInfo(this.name);
+}
 
-  TypeParameter({required this.name, required this.bound});
+/// A type name that represents a type variable.
+class TypeParameter extends TypeNameInfo
+    implements SharedTypeParameterStructure<Type> {
+  /// The type variable's bound. Defaults to `Object?`.
+  Type bound;
+
+  TypeParameter._(super.name) : bound = Type('Object?');
 
   @override
   String get displayName => name;
 
   @override
   String toString() => name;
+}
+
+/// Representation of a type parameter type suitable for unit testing of code in
+/// the `_fe_analyzer_shared` package. A type parameter type might be promoted,
+/// in which case it is often written using the syntax `a&b`, where `a` is the
+/// type parameter and `b` is what it's promoted to.  For example, `T&int`
+/// represents the type parameter `T`, promoted to `int`.
+class TypeParameterType extends Type {
+  /// The type parameter this type is based on.
+  final TypeParameter typeParameter;
+
+  /// If non-null, the promoted type.
+  final Type? promotion;
+
+  TypeParameterType(this.typeParameter,
+      {this.promotion,
+      NullabilitySuffix super.nullabilitySuffix = NullabilitySuffix.none})
+      : super._();
+
+  /// The type parameter's bound.
+  Type get bound => typeParameter.bound;
+
+  @override
+  Type? closureWithRespectToUnknown({required bool covariant}) {
+    var newPromotion =
+        promotion?.closureWithRespectToUnknown(covariant: covariant);
+    if (newPromotion == null) return null;
+    return TypeParameterType(typeParameter,
+        promotion: newPromotion, nullabilitySuffix: nullabilitySuffix);
+  }
+
+  @override
+  Type? recursivelyDemote({required bool covariant}) {
+    if (!covariant) {
+      return NeverType.instance.withNullability(nullabilitySuffix);
+    } else if (promotion == null) {
+      return null;
+    } else {
+      return TypeParameterType(typeParameter,
+          nullabilitySuffix: nullabilitySuffix);
+    }
+  }
+
+  @override
+  Type withNullability(NullabilitySuffix suffix) =>
+      TypeParameterType(typeParameter,
+          promotion: promotion, nullabilitySuffix: suffix);
+
+  @override
+  String _toStringWithoutSuffix({required bool parenthesizeIfComplex}) {
+    if (promotion case var promotion?) {
+      return _parenthesizeIf(
+          parenthesizeIfComplex,
+          '${typeParameter.name}&'
+          '${promotion.toString(parenthesizeIfComplex: true)}');
+    } else {
+      return typeParameter.name;
+    }
+  }
+}
+
+/// Container for static methods that can be used to customize the "mini types"
+/// representation used in `_fe_analyzer_shared` unit tests.
+///
+/// Thanks to Dart's scoping rules, it's possible for a single identifier to
+/// represent an interface type in some contexts, a special type like `Null` in
+/// other contexts, and a type parameter name in other contexts. But allowing a
+/// single name to have multiple meanings isn't useful in `_fe_analyzer_shared`
+/// unit tests, and opens up greater risk of confusion. Therefore, the "mini
+/// types" representation does not permit it; every test must register each type
+/// name it intends to use, specifying its meaning, before using that name in a
+/// call to the [Type] constructor. This registration can happen either within
+/// the test itself or in a callback passed to `setUp`.
+abstract final class TypeRegistry {
+  /// Type names that have been registered using [_add].
+  static Map<String, TypeNameInfo>? _typeNameInfoMap;
+
+  /// The [TypeNameInfo] object representing the special type `dynamic`.
+  static final dynamic_ = SpecialTypeName._('dynamic');
+
+  /// The [TypeNameInfo] object representing the special type `error`.
+  static final error_ = SpecialTypeName._('error');
+
+  /// The [TypeNameInfo] object representing the interface type `Future`.
+  static final future = InterfaceTypeName._('Future');
+
+  /// The [TypeNameInfo] object representing the special type `FutureOr`.
+  static final futureOr = SpecialTypeName._('FutureOr');
+
+  /// The [TypeNameInfo] object representing the interface type `Iterable`.
+  static final iterable = InterfaceTypeName._('Iterable');
+
+  /// The [TypeNameInfo] object representing the interface type `List`.
+  static final list = InterfaceTypeName._('List');
+
+  /// The [TypeNameInfo] object representing the interface type `Map`.
+  static final map = InterfaceTypeName._('Map');
+
+  /// The [TypeNameInfo] object representing the special type `Never`.
+  static final never = SpecialTypeName._('Never');
+
+  /// The [TypeNameInfo] object representing the special type `Null`.
+  static final null_ = SpecialTypeName._('Null');
+
+  /// The [TypeNameInfo] object representing the interface type `Stream`.
+  static final stream = InterfaceTypeName._('Stream');
+
+  /// The [TypeNameInfo] object representing the special type `void`.
+  static final void_ = SpecialTypeName._('void');
+
+  /// Gets [_typeNameInfoMap], throwing an exception if it has not been
+  /// initialized.
+  static Map<String, TypeNameInfo> get _typeNameInfoMapOrThrow =>
+      _typeNameInfoMap ??
+      (throw StateError(
+          'TypeRegistry not initialized (call `TypeRegistry.init` from a test '
+          '`setUp` callback)'));
+
+  factory TypeRegistry._() => throw StateError('Do not construct');
+
+  /// Registers [name] as the name of an ordinary interface type.
+  static InterfaceTypeName addInterfaceTypeName(String name) {
+    var interfaceTypeName = InterfaceTypeName._(name);
+    _add(interfaceTypeName);
+    return interfaceTypeName;
+  }
+
+  /// Registers [name] as the name of a type parameter.
+  static TypeParameter addTypeParameter(String name) {
+    var typeParameter = TypeParameter._(name);
+    _add(typeParameter);
+    return typeParameter;
+  }
+
+  /// Initializes the "mini type" infrastructure.
+  ///
+  /// This method must be called from a `setUp` callback before any unit test
+  /// that makes use of mini types.
+  static void init() {
+    assert(StackTrace.current.toString().contains('runSetUps'),
+        'Should be called from a test `setUp` method');
+    if (_typeNameInfoMap != null) {
+      throw StateError(
+          'init() already called. Did you forget to call uninit() from '
+          '`tearDown`?');
+    }
+    _typeNameInfoMap = {};
+    // Set up some common built-in type names.
+    addInterfaceTypeName('bool');
+    addInterfaceTypeName('double');
+    _add(dynamic_);
+    _add(error_);
+    _add(future);
+    _add(futureOr);
+    addInterfaceTypeName('int');
+    _add(iterable);
+    _add(list);
+    _add(map);
+    _add(never);
+    _add(null_);
+    addInterfaceTypeName('num');
+    addInterfaceTypeName('Object');
+    _add(stream);
+    addInterfaceTypeName('String');
+    _add(void_);
+  }
+
+  /// Retrieves the [TypeNameInfo] corresponding to [name].
+  static TypeNameInfo lookup(String name) =>
+      _typeNameInfoMapOrThrow[name] ??
+      (throw StateError(
+          'Unknown type name $name (use `TypeRegistry.add...` first)'));
+
+  /// Un-does the operation of [init], rendering the "mini type" infrastructure
+  /// unusable.
+  ///
+  /// This method should be called from a `tearDown` callback, complementing the
+  /// call to [init] in a `setUp` callback.
+  static void uninit() {
+    // Note: don't complain if `_typeNameInfoMap` is `null`, because we don't
+    // want to produce confusing failure messages if a test runs into trouble
+    // while trying to initialize itself.
+    _typeNameInfoMap = null;
+  }
+
+  /// Registers [info] as information about a type name.
+  static void _add(TypeNameInfo info) {
+    var name = info.name;
+    var infoMap = _typeNameInfoMapOrThrow;
+    if (infoMap.containsKey(name)) {
+      throw StateError('Type name $name already registered');
+    }
+    infoMap[name] = info;
+  }
 }
 
 class TypeSystem {
@@ -548,7 +719,8 @@ class TypeSystem {
     'Future': (_) => [Type('Object')],
     'int': (_) => [Type('num'), Type('Object')],
     'Iterable': (_) => [Type('Object')],
-    'List': (args) => [PrimaryType('Iterable', args: args), Type('Object')],
+    'List': (args) =>
+        [PrimaryType(TypeRegistry.iterable, args: args), Type('Object')],
     'Map': (_) => [Type('Object')],
     'Object': (_) => [],
     'num': (_) => [Type('Object')],
@@ -559,19 +731,12 @@ class TypeSystem {
 
   static final _objectType = Type('Object');
 
-  final Map<String, TypeParameter> _typeVariables = {};
-
   final Map<String, List<Type> Function(List<Type>)> _superInterfaceTemplates =
       Map.of(_coreSuperInterfaceTemplates);
 
   void addSuperInterfaces(
       String className, List<Type> Function(List<Type>) template) {
     _superInterfaceTemplates[className] = template;
-  }
-
-  TypeParameter addTypeVariable(String name, {String? bound}) {
-    return _typeVariables[name] =
-        TypeParameter(name: name, bound: Type(bound ?? 'Object?'));
   }
 
   Type factor(Type t, Type s) {
@@ -605,13 +770,17 @@ class TypeSystem {
     // Else if T is FutureOr<R> and Future<R> <: S then factor(R, S)
     if (t is FutureOrType) {
       var r = t.typeArgument;
-      if (isSubtype(PrimaryType('Future', args: [r]), s)) return factor(r, s);
+      if (isSubtype(PrimaryType(TypeRegistry.future, args: [r]), s)) {
+        return factor(r, s);
+      }
     }
 
     // Else if T is FutureOr<R> and R <: S then factor(Future<R>, S)
     if (t is FutureOrType) {
       var r = t.typeArgument;
-      if (isSubtype(r, s)) return factor(PrimaryType('Future', args: [r]), s);
+      if (isSubtype(r, s)) {
+        return factor(PrimaryType(TypeRegistry.future, args: [r]), s);
+      }
     }
 
     // Else T
@@ -625,14 +794,34 @@ class TypeSystem {
     //   and type variables but not for composite types.  We only check it for
     //   types with a single name and no type arguments (this covers both
     //   primitive types and type variables).
-    if (t0 is PrimaryType &&
-        t0.nullabilitySuffix == NullabilitySuffix.none &&
-        t0.args.isEmpty &&
-        t1 is PrimaryType &&
-        t1.nullabilitySuffix == NullabilitySuffix.none &&
-        t1.args.isEmpty &&
-        t0.name == t1.name) {
-      return true;
+    switch ((t0, t1)) {
+      case (
+            PrimaryType(
+              nameInfo: var t0Info,
+              nullabilitySuffix: NullabilitySuffix.none,
+              args: []
+            ),
+            PrimaryType(
+              nameInfo: var t1Info,
+              nullabilitySuffix: NullabilitySuffix.none,
+              args: []
+            )
+          )
+          when t0Info == t1Info:
+      case (
+            TypeParameterType(
+              typeParameter: var x0,
+              promotion: null,
+              nullabilitySuffix: NullabilitySuffix.none
+            ),
+            TypeParameterType(
+              typeParameter: var x1,
+              promotion: null,
+              nullabilitySuffix: NullabilitySuffix.none
+            )
+          )
+          when x0 == x1:
+        return true;
     }
 
     // Unknown types (note: this is not in the spec, but necessary because there
@@ -661,16 +850,22 @@ class TypeSystem {
         t1.name == 'Object') {
       // - if T0 is an unpromoted type variable with bound B then T0 <: T1 iff
       //   B <: Object
-      if (t0 is PrimaryType &&
-          t0.nullabilitySuffix == NullabilitySuffix.none &&
-          _isTypeVar(t0)) {
-        return isSubtype(_typeVarBound(t0), _objectType);
+      if (t0
+          case TypeParameterType(
+            bound: var b,
+            promotion: null,
+            nullabilitySuffix: NullabilitySuffix.none
+          )) {
+        return isSubtype(b, _objectType);
       }
 
       // - if T0 is a promoted type variable X & S then T0 <: T1 iff S <: Object
-      if (t0 is PromotedTypeVariableType &&
-          t0.nullabilitySuffix == NullabilitySuffix.none) {
-        return isSubtype(t0.promotion, _objectType);
+      if (t0
+          case TypeParameterType(
+            promotion: var s?,
+            nullabilitySuffix: NullabilitySuffix.none
+          )) {
+        return isSubtype(s, _objectType);
       }
 
       // - if T0 is FutureOr<S> for some S, then T0 <: T1 iff S <: Object.
@@ -702,7 +897,10 @@ class TypeSystem {
     // Left Null: if T0 is Null then:
     if (t0 is NullType) {
       // - if T1 is a type variable (promoted or not) the query is false
-      if (_isTypeVar(t1)) return false;
+      if (t1
+          case TypeParameterType(nullabilitySuffix: NullabilitySuffix.none)) {
+        return false;
+      }
 
       // - If T1 is FutureOr<S> for some S, then the query is true iff
       //   Null <: S.
@@ -739,7 +937,7 @@ class TypeSystem {
       var s0 = t0.typeArgument;
 
       // - T0 <: T1 iff Future<S0> <: T1 and S0 <: T1
-      return isSubtype(PrimaryType('Future', args: [s0]), t1) &&
+      return isSubtype(PrimaryType(TypeRegistry.future, args: [s0]), t1) &&
           isSubtype(s0, t1);
     }
 
@@ -752,30 +950,49 @@ class TypeSystem {
 
     // Type Variable Reflexivity 1: if T0 is a type variable X0 or a promoted
     // type variables X0 & S0 and T1 is X0 then:
-    if (_isTypeVar(t0) &&
-        _isTypeVar(t1) &&
-        t1 is PrimaryType &&
-        matchTypeParameterType(t0) == matchTypeParameterType(t1) &&
-        t1.nullabilitySuffix == NullabilitySuffix.none &&
-        t1.args.isEmpty) {
+    if ((t0, t1)
+        case (
+          TypeParameterType(
+            typeParameter: var x0,
+            nullabilitySuffix: NullabilitySuffix.none
+          ),
+          TypeParameterType(
+            typeParameter: var x1,
+            promotion: null,
+            nullabilitySuffix: NullabilitySuffix.none
+          )
+        ) when x0 == x1) {
       // - T0 <: T1
       return true;
     }
 
     // Type Variable Reflexivity 2: if T0 is a type variable X0 or a promoted
     // type variables X0 & S0 and T1 is X0 & S1 then:
-    if (t1 is PromotedTypeVariableType &&
-        matchTypeParameterType(t0) == matchTypeParameterType(t1) &&
-        t1.nullabilitySuffix == NullabilitySuffix.none) {
+    if ((t0, t1)
+        case (
+          TypeParameterType(
+            typeParameter: var x0,
+            nullabilitySuffix: NullabilitySuffix.none
+          ),
+          TypeParameterType(
+            typeParameter: var x1,
+            promotion: var s1?,
+            nullabilitySuffix: NullabilitySuffix.none
+          )
+        ) when x0 == x1) {
       // - T0 <: T1 iff T0 <: S1.
-      return isSubtype(t0, t1.promotion);
+      return isSubtype(t0, s1);
     }
 
     // Right Promoted Variable: if T1 is a promoted type variable X1 & S1 then:
-    if (t1 is PromotedTypeVariableType &&
-        t1.nullabilitySuffix == NullabilitySuffix.none) {
+    if (t1
+        case TypeParameterType(
+          typeParameter: var x1,
+          promotion: var s1?,
+          nullabilitySuffix: NullabilitySuffix.none
+        )) {
       // - T0 <: T1 iff T0 <: X1 and T0 <: S1
-      return isSubtype(t0, t1.innerType) && isSubtype(t0, t1.promotion);
+      return isSubtype(t0, TypeParameterType(x1)) && isSubtype(t0, s1);
     }
 
     // Right FutureOr: if T1 is FutureOr<S1> then:
@@ -783,17 +1000,23 @@ class TypeSystem {
       var s1 = t1.typeArgument;
 
       // - T0 <: T1 iff any of the following hold:
-      return
-          //   - either T0 <: Future<S1>
-          isSubtype(t0, PrimaryType('Future', args: [s1])) ||
-              //   - or T0 <: S1
-              isSubtype(t0, s1) ||
-              //   - or T0 is X0 and X0 has bound S0 and S0 <: T1
-              t0 is PrimaryType &&
-                  _isTypeVar(t0) &&
-                  isSubtype(_typeVarBound(t0), t1) ||
-              //   - or T0 is X0 & S0 and S0 <: T1
-              t0 is PromotedTypeVariableType && isSubtype(t0.promotion, t1);
+      //   - either T0 <: Future<S1>
+      if (isSubtype(t0, PrimaryType(TypeRegistry.future, args: [s1]))) {
+        return true;
+      }
+      //   - or T0 <: S1
+      if (isSubtype(t0, s1)) return true;
+      //   - or T0 is X0 and X0 has bound S0 and S0 <: T1
+      if (t0 case TypeParameterType(bound: var s0, promotion: null)
+          when isSubtype(s0, t1)) {
+        return true;
+      }
+      //   - or T0 is X0 & S0 and S0 <: T1
+      if (t0 case TypeParameterType(promotion: var s0?)
+          when isSubtype(s0, t1)) {
+        return true;
+      }
+      return false;
     }
 
     // Right Nullable: if T1 is S1? then:
@@ -801,29 +1024,33 @@ class TypeSystem {
       var s1 = t1.withNullability(NullabilitySuffix.none);
 
       // - T0 <: T1 iff any of the following hold:
-      return
-          //   - either T0 <: S1
-          isSubtype(t0, s1) ||
-              //   - or T0 <: Null
-              isSubtype(t0, NullType.instance) ||
-              //   - or T0 is X0 and X0 has bound S0 and S0 <: T1
-              t0 is PrimaryType &&
-                  _isTypeVar(t0) &&
-                  isSubtype(_typeVarBound(t0), t1) ||
-              //   - or T0 is X0 & S0 and S0 <: T1
-              t0 is PromotedTypeVariableType && isSubtype(t0.promotion, t1);
+      //   - either T0 <: S1
+      if (isSubtype(t0, s1)) return true;
+      //   - or T0 <: Null
+      if (isSubtype(t0, NullType.instance)) return true;
+      //   - or T0 is X0 and X0 has bound S0 and S0 <: T1
+      if (t0 case TypeParameterType(bound: var s0, promotion: null)
+          when isSubtype(s0, t1)) {
+        return true;
+      }
+      //   - or T0 is X0 & S0 and S0 <: T1
+      if (t0 case TypeParameterType(promotion: var s0?)
+          when isSubtype(s0, t1)) {
+        return true;
+      }
+      return false;
     }
 
     // Left Promoted Variable: T0 is a promoted type variable X0 & S0
-    if (t0 is PromotedTypeVariableType) {
+    if (t0 case TypeParameterType(promotion: var s0?)) {
       // - and S0 <: T1
-      if (isSubtype(t0.promotion, t1)) return true;
+      if (isSubtype(s0, t1)) return true;
     }
 
     // Left Type Variable Bound: T0 is a type variable X0 with bound B0
-    if (t0 is PrimaryType && _isTypeVar(t0)) {
+    if (t0 case TypeParameterType(bound: var b0, promotion: null)) {
       // - and B0 <: T1
-      if (isSubtype(_typeVarBound(t0), t1)) return true;
+      if (isSubtype(b0, t1)) return true;
     }
 
     // Function Type/Function: T0 is a function type and T1 is Function
@@ -864,7 +1091,7 @@ class TypeSystem {
 
     // Super-Interface: T0 is an interface type with super-interfaces S0,...Sn
     bool isSuperInterfaceSubtype() {
-      if (t0 is! PrimaryType || _isTypeVar(t0)) return false;
+      if (t0 is! PrimaryType) return false;
       var superInterfaceTemplate = _superInterfaceTemplates[t0.name];
       if (superInterfaceTemplate == null) {
         assert(false, 'Superinterfaces for $t0 not known');
@@ -1033,21 +1260,6 @@ class TypeSystem {
     return false;
   }
 
-  TypeParameter? matchTypeParameterType(Type t) {
-    if (t is PromotedTypeVariableType &&
-        t.nullabilitySuffix == NullabilitySuffix.none) {
-      var typeVar = matchTypeParameterType(t.innerType);
-      assert(typeVar != null);
-      return typeVar;
-    } else if (t is PrimaryType &&
-        t.nullabilitySuffix == NullabilitySuffix.none &&
-        t.args.isEmpty) {
-      return _typeVariables[t.name];
-    } else {
-      return null;
-    }
-  }
-
   bool _isTop(Type t) {
     if (t is PrimaryType) {
       return t is DynamicType || t is InvalidType || t is VoidType;
@@ -1056,10 +1268,6 @@ class TypeSystem {
     }
     return false;
   }
-
-  bool _isTypeVar(Type t) => matchTypeParameterType(t) != null;
-
-  Type _typeVarBound(Type t) => matchTypeParameterType(t)!.bound;
 }
 
 /// Representation of the unknown type suitable for unit testing of code in the
@@ -1089,7 +1297,8 @@ class VoidType extends _SpecialSimpleType
     implements SharedVoidTypeStructure<Type> {
   static final instance = VoidType._();
 
-  VoidType._() : super._('void', nullabilitySuffix: NullabilitySuffix.none);
+  VoidType._()
+      : super._(TypeRegistry.void_, nullabilitySuffix: NullabilitySuffix.none);
 
   @override
   Type withNullability(NullabilitySuffix suffix) => this;
@@ -1102,9 +1311,9 @@ class VoidType extends _SpecialSimpleType
 /// that don't need special functionality for the [closureWithRespectToUnknown]
 /// and [recursivelyDemote] methods.
 abstract class _SpecialSimpleType extends PrimaryType {
-  _SpecialSimpleType._(super.name,
+  _SpecialSimpleType._(super.nameInfo,
       {super.nullabilitySuffix = NullabilitySuffix.none})
-      : super._withSpecialName();
+      : super._special();
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) => null;
@@ -1250,9 +1459,14 @@ class _TypeParser {
       _next();
       return type.withNullability(NullabilitySuffix.star);
     } else if (_currentToken == '&') {
-      _next();
-      var promotion = _parseUnsuffixedType();
-      return PromotedTypeVariableType(type, promotion);
+      if (type case TypeParameterType(promotion: null)) {
+        _next();
+        var promotion = _parseUnsuffixedType();
+        return TypeParameterType(type.typeParameter, promotion: promotion);
+      } else {
+        _parseFailure(
+            'The type to the left of & must be an unpromoted type parameter');
+      }
     } else if (_currentToken == 'Function') {
       _next();
       if (_currentToken != '(') {
@@ -1373,38 +1587,49 @@ class _TypeParser {
     } else {
       typeArgs = const [];
     }
-    if (typeName == 'dynamic') {
-      if (typeArgs.isNotEmpty) {
-        throw ParseError('`dynamic` does not accept type arguments');
-      }
-      return DynamicType.instance;
-    } else if (typeName == 'error') {
-      if (typeArgs.isNotEmpty) {
-        throw ParseError('`error` does not accept type arguments');
-      }
-      return InvalidType.instance;
-    } else if (typeName == 'FutureOr') {
-      if (typeArgs.length != 1) {
-        throw ParseError('`FutureOr` requires exactly one type argument');
-      }
-      return FutureOrType(typeArgs.single);
-    } else if (typeName == 'Never') {
-      if (typeArgs.isNotEmpty) {
-        throw ParseError('`Never` does not accept type arguments');
-      }
-      return NeverType.instance;
-    } else if (typeName == 'Null') {
-      if (typeArgs.isNotEmpty) {
-        throw ParseError('`Null` does not accept type arguments');
-      }
-      return NullType.instance;
-    } else if (typeName == 'void') {
-      if (typeArgs.isNotEmpty) {
-        throw ParseError('`void` does not accept type arguments');
-      }
-      return VoidType.instance;
-    } else {
-      return PrimaryType(typeName, args: typeArgs);
+    var nameInfo = TypeRegistry.lookup(typeName);
+    switch (nameInfo) {
+      case TypeParameter():
+        if (typeArgs.isNotEmpty) {
+          throw ParseError('Type parameter types do not accept type arguments');
+        }
+        return TypeParameterType(nameInfo);
+      case InterfaceTypeName():
+        return PrimaryType(nameInfo, args: typeArgs);
+      case SpecialTypeName():
+        if (typeName == 'dynamic') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`dynamic` does not accept type arguments');
+          }
+          return DynamicType.instance;
+        } else if (typeName == 'error') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`error` does not accept type arguments');
+          }
+          return InvalidType.instance;
+        } else if (typeName == 'FutureOr') {
+          if (typeArgs.length != 1) {
+            throw ParseError('`FutureOr` requires exactly one type argument');
+          }
+          return FutureOrType(typeArgs.single);
+        } else if (typeName == 'Never') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`Never` does not accept type arguments');
+          }
+          return NeverType.instance;
+        } else if (typeName == 'Null') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`Null` does not accept type arguments');
+          }
+          return NullType.instance;
+        } else if (typeName == 'void') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`void` does not accept type arguments');
+          }
+          return VoidType.instance;
+        } else {
+          throw UnimplementedError('Unknown special type name: $typeName');
+        }
     }
   }
 

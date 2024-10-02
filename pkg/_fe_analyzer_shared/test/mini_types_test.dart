@@ -8,21 +8,35 @@ import 'package:test/test.dart';
 import 'mini_types.dart';
 
 main() {
+  late TypeParameter t;
+  late TypeParameter u;
+  late TypeParameter v;
+
+  setUp(() {
+    TypeRegistry.init();
+    t = TypeRegistry.addTypeParameter('T');
+    u = TypeRegistry.addTypeParameter('U');
+    v = TypeRegistry.addTypeParameter('V');
+  });
+
+  tearDown(() {
+    TypeRegistry.uninit();
+  });
+
   group('toString:', () {
     group('FunctionType:', () {
       group('positional parameters:', () {
         test('all required', () {
           expect(
-              FunctionType(
-                      PrimaryType('T'), [PrimaryType('U'), PrimaryType('V')])
-                  .toString(),
+              FunctionType(TypeParameterType(t),
+                  [TypeParameterType(u), TypeParameterType(v)]).toString(),
               'T Function(U, V)');
         });
 
         test('all optional', () {
           expect(
-              FunctionType(
-                      PrimaryType('T'), [PrimaryType('U'), PrimaryType('V')],
+              FunctionType(TypeParameterType(t),
+                      [TypeParameterType(u), TypeParameterType(v)],
                       requiredPositionalParameterCount: 0)
                   .toString(),
               'T Function([U, V])');
@@ -30,8 +44,8 @@ main() {
 
         test('mixed required and optional', () {
           expect(
-              FunctionType(
-                      PrimaryType('T'), [PrimaryType('U'), PrimaryType('V')],
+              FunctionType(TypeParameterType(t),
+                      [TypeParameterType(u), TypeParameterType(v)],
                       requiredPositionalParameterCount: 1)
                   .toString(),
               'T Function(U, [V])');
@@ -40,30 +54,29 @@ main() {
 
       test('named parameters', () {
         expect(
-            FunctionType(PrimaryType('T'), [], namedParameters: [
+            FunctionType(TypeParameterType(t), [], namedParameters: [
               NamedFunctionParameter(
-                  isRequired: false, type: PrimaryType('U'), name: 'x'),
+                  isRequired: false, type: TypeParameterType(u), name: 'x'),
               NamedFunctionParameter(
-                  isRequired: true, type: PrimaryType('V'), name: 'y')
+                  isRequired: true, type: TypeParameterType(v), name: 'y')
             ]).toString(),
             'T Function({U x, required V y})');
       });
 
       test('positional and named parameters', () {
         expect(
-            FunctionType(PrimaryType('T'), [
-              PrimaryType('U')
+            FunctionType(TypeParameterType(t), [
+              TypeParameterType(u)
             ], namedParameters: [
               NamedFunctionParameter(
-                  isRequired: false, type: PrimaryType('V'), name: 'y')
+                  isRequired: false, type: TypeParameterType(v), name: 'y')
             ]).toString(),
             'T Function(U, {V y})');
       });
 
       test('needs parentheses', () {
         expect(
-            PromotedTypeVariableType(
-                    PrimaryType('T'), FunctionType(VoidType.instance, []))
+            TypeParameterType(t, promotion: FunctionType(VoidType.instance, []))
                 .toString(),
             'T&(void Function())');
       });
@@ -71,48 +84,36 @@ main() {
 
     group('PrimaryType:', () {
       test('simple', () {
-        expect(PrimaryType('T').toString(), 'T');
+        expect(TypeParameterType(t).toString(), 'T');
       });
 
       test('with arguments', () {
         expect(
-            PrimaryType('Map', args: [PrimaryType('T'), PrimaryType('U')])
-                .toString(),
+            PrimaryType(TypeRegistry.map,
+                args: [TypeParameterType(t), TypeParameterType(u)]).toString(),
             'Map<T, U>');
       });
     });
 
     group('PromotedTypeVariableType:', () {
       test('basic', () {
-        expect(
-            PromotedTypeVariableType(PrimaryType('T'), PrimaryType('U'))
-                .toString(),
+        expect(TypeParameterType(t, promotion: TypeParameterType(u)).toString(),
             'T&U');
-      });
-
-      test('needs parentheses (left)', () {
-        expect(
-            PromotedTypeVariableType(
-                    PromotedTypeVariableType(
-                        PrimaryType('T'), PrimaryType('U')),
-                    PrimaryType('V'))
-                .toString(),
-            '(T&U)&V');
       });
 
       test('needs parentheses (right)', () {
         expect(
-            PromotedTypeVariableType(
-                    PrimaryType('T'),
-                    PromotedTypeVariableType(
-                        PrimaryType('U'), PrimaryType('V')))
+            TypeParameterType(t,
+                    promotion:
+                        TypeParameterType(u, promotion: TypeParameterType(v)))
                 .toString(),
             'T&(U&V)');
       });
 
       test('needs parentheses (question)', () {
         expect(
-            PromotedTypeVariableType(PrimaryType('T'), PrimaryType('U'),
+            TypeParameterType(t,
+                    promotion: TypeParameterType(u),
                     nullabilitySuffix: NullabilitySuffix.question)
                 .toString(),
             '(T&U)?');
@@ -120,7 +121,8 @@ main() {
 
       test('needs parentheses (star)', () {
         expect(
-            PromotedTypeVariableType(PrimaryType('T'), PrimaryType('U'),
+            TypeParameterType(t,
+                    promotion: TypeParameterType(u),
                     nullabilitySuffix: NullabilitySuffix.star)
                 .toString(),
             '(T&U)*');
@@ -130,16 +132,15 @@ main() {
     group('QuestionType:', () {
       test('basic', () {
         expect(
-            PrimaryType('T', nullabilitySuffix: NullabilitySuffix.question)
+            TypeParameterType(t, nullabilitySuffix: NullabilitySuffix.question)
                 .toString(),
             'T?');
       });
 
       test('needs parentheses', () {
         expect(
-            PromotedTypeVariableType(
-                    PrimaryType('T'),
-                    PrimaryType('U',
+            TypeParameterType(t,
+                    promotion: TypeParameterType(u,
                         nullabilitySuffix: NullabilitySuffix.question))
                 .toString(),
             'T&(U?)');
@@ -154,7 +155,7 @@ main() {
 
       test('single positional argument', () {
         expect(
-            RecordType(positionalTypes: [PrimaryType('T')], namedTypes: [])
+            RecordType(positionalTypes: [TypeParameterType(t)], namedTypes: [])
                 .toString(),
             '(T,)');
       });
@@ -162,35 +163,35 @@ main() {
       test('multiple positional arguments', () {
         expect(
             RecordType(
-                positionalTypes: [PrimaryType('T'), PrimaryType('U')],
+                positionalTypes: [TypeParameterType(t), TypeParameterType(u)],
                 namedTypes: []).toString(),
             '(T, U)');
       });
 
       test('single named argument', () {
         expect(
-            RecordType(
-                    positionalTypes: [],
-                    namedTypes: [NamedType(name: 't', type: PrimaryType('T'))])
-                .toString(),
+            RecordType(positionalTypes: [], namedTypes: [
+              NamedType(name: 't', type: TypeParameterType(t))
+            ]).toString(),
             '({T t})');
       });
 
       test('multiple named arguments', () {
         expect(
             RecordType(positionalTypes: [], namedTypes: [
-              NamedType(name: 't', type: PrimaryType('T')),
-              NamedType(name: 'u', type: PrimaryType('U'))
+              NamedType(name: 't', type: TypeParameterType(t)),
+              NamedType(name: 'u', type: TypeParameterType(u))
             ]).toString(),
             '({T t, U u})');
       });
 
       test('both positional and named arguments', () {
         expect(
-            RecordType(
-                    positionalTypes: [PrimaryType('T')],
-                    namedTypes: [NamedType(name: 'u', type: PrimaryType('U'))])
-                .toString(),
+            RecordType(positionalTypes: [
+              TypeParameterType(t)
+            ], namedTypes: [
+              NamedType(name: 'u', type: TypeParameterType(u))
+            ]).toString(),
             '(T, {U u})');
       });
     });
@@ -198,15 +199,16 @@ main() {
     group('StarType:', () {
       test('basic', () {
         expect(
-            PrimaryType('T', nullabilitySuffix: NullabilitySuffix.star)
+            TypeParameterType(t, nullabilitySuffix: NullabilitySuffix.star)
                 .toString(),
             'T*');
       });
 
       test('needs parentheses', () {
         expect(
-            PromotedTypeVariableType(PrimaryType('T'),
-                    PrimaryType('U', nullabilitySuffix: NullabilitySuffix.star))
+            TypeParameterType(t,
+                    promotion: TypeParameterType(u,
+                        nullabilitySuffix: NullabilitySuffix.star))
                 .toString(),
             'T&(U*)');
       });
@@ -222,24 +224,24 @@ main() {
 
     group('primary type:', () {
       test('no type args', () {
-        var t = Type('int') as PrimaryType;
-        expect(t.name, 'int');
-        expect(t.args, isEmpty);
+        var type = Type('int') as PrimaryType;
+        expect(type.name, 'int');
+        expect(type.args, isEmpty);
       });
 
       test('type arg', () {
-        var t = Type('List<int>') as PrimaryType;
-        expect(t.name, 'List');
-        expect(t.args, hasLength(1));
-        expect(t.args[0].type, 'int');
+        var type = Type('List<int>') as PrimaryType;
+        expect(type.name, 'List');
+        expect(type.args, hasLength(1));
+        expect(type.args[0].type, 'int');
       });
 
       test('type args', () {
-        var t = Type('Map<int, String>') as PrimaryType;
-        expect(t.name, 'Map');
-        expect(t.args, hasLength(2));
-        expect(t.args[0].type, 'int');
-        expect(t.args[1].type, 'String');
+        var type = Type('Map<int, String>') as PrimaryType;
+        expect(type.name, 'Map');
+        expect(type.args, hasLength(2));
+        expect(type.args[0].type, 'int');
+        expect(type.args[1].type, 'String');
       });
 
       test('invalid type arg separator', () {
@@ -255,8 +257,8 @@ main() {
       });
 
       test('FutureOr', () {
-        var t = Type('FutureOr<int>') as FutureOrType;
-        expect(t.typeArgument.type, 'int');
+        var type = Type('FutureOr<int>') as FutureOrType;
+        expect(type.typeArgument.type, 'int');
       });
 
       test('Never', () {
@@ -277,31 +279,31 @@ main() {
     });
 
     test('unknown type', () {
-      var t = Type('_');
-      expect(t, TypeMatcher<UnknownType>());
+      var type = Type('_');
+      expect(type, TypeMatcher<UnknownType>());
     });
 
     test('question type', () {
-      var t = Type('int?');
-      expect(t.nullabilitySuffix, NullabilitySuffix.question);
-      expect(t.withNullability(NullabilitySuffix.none).type, 'int');
+      var type = Type('int?');
+      expect(type.nullabilitySuffix, NullabilitySuffix.question);
+      expect(type.withNullability(NullabilitySuffix.none).type, 'int');
     });
 
     test('star type', () {
-      var t = Type('int*');
-      expect(t.nullabilitySuffix, NullabilitySuffix.star);
-      expect(t.withNullability(NullabilitySuffix.none).type, 'int');
+      var type = Type('int*');
+      expect(type.nullabilitySuffix, NullabilitySuffix.star);
+      expect(type.withNullability(NullabilitySuffix.none).type, 'int');
     });
 
     test('promoted type variable', () {
-      var t = Type('T&int') as PromotedTypeVariableType;
-      expect(t.innerType.type, 'T');
-      expect(t.promotion.type, 'int');
+      var type = Type('T&int') as TypeParameterType;
+      expect(type.typeParameter, t);
+      expect(type.promotion!.type, 'int');
     });
 
     test('parenthesized type', () {
-      var t = Type('(int)');
-      expect(t.type, 'int');
+      var type = Type('(int)');
+      expect(type.type, 'int');
     });
 
     test('invalid token terminating parenthesized type', () {
@@ -310,101 +312,101 @@ main() {
 
     group('function type:', () {
       test('no parameters', () {
-        var t = Type('int Function()') as FunctionType;
-        expect(t.returnType.type, 'int');
-        expect(t.positionalParameters, isEmpty);
-        expect(t.requiredPositionalParameterCount, 0);
-        expect(t.namedParameters, isEmpty);
+        var type = Type('int Function()') as FunctionType;
+        expect(type.returnType.type, 'int');
+        expect(type.positionalParameters, isEmpty);
+        expect(type.requiredPositionalParameterCount, 0);
+        expect(type.namedParameters, isEmpty);
       });
 
       test('required positional parameter', () {
-        var t = Type('int Function(String)') as FunctionType;
-        expect(t.returnType.type, 'int');
-        expect(t.positionalParameters, hasLength(1));
-        expect(t.positionalParameters[0].type, 'String');
-        expect(t.requiredPositionalParameterCount, 1);
-        expect(t.namedParameters, isEmpty);
+        var type = Type('int Function(String)') as FunctionType;
+        expect(type.returnType.type, 'int');
+        expect(type.positionalParameters, hasLength(1));
+        expect(type.positionalParameters[0].type, 'String');
+        expect(type.requiredPositionalParameterCount, 1);
+        expect(type.namedParameters, isEmpty);
       });
 
       test('required positional parameters', () {
-        var t = Type('int Function(String, double)') as FunctionType;
-        expect(t.returnType.type, 'int');
-        expect(t.positionalParameters, hasLength(2));
-        expect(t.positionalParameters[0].type, 'String');
-        expect(t.positionalParameters[1].type, 'double');
-        expect(t.requiredPositionalParameterCount, 2);
-        expect(t.namedParameters, isEmpty);
+        var type = Type('int Function(String, double)') as FunctionType;
+        expect(type.returnType.type, 'int');
+        expect(type.positionalParameters, hasLength(2));
+        expect(type.positionalParameters[0].type, 'String');
+        expect(type.positionalParameters[1].type, 'double');
+        expect(type.requiredPositionalParameterCount, 2);
+        expect(type.namedParameters, isEmpty);
       });
 
       test('optional positional parameter', () {
-        var t = Type('int Function([String])') as FunctionType;
-        expect(t.returnType.type, 'int');
-        expect(t.positionalParameters, hasLength(1));
-        expect(t.positionalParameters[0].type, 'String');
-        expect(t.requiredPositionalParameterCount, 0);
-        expect(t.namedParameters, isEmpty);
+        var type = Type('int Function([String])') as FunctionType;
+        expect(type.returnType.type, 'int');
+        expect(type.positionalParameters, hasLength(1));
+        expect(type.positionalParameters[0].type, 'String');
+        expect(type.requiredPositionalParameterCount, 0);
+        expect(type.namedParameters, isEmpty);
       });
 
       test('optional positional parameters', () {
-        var t = Type('int Function([String, double])') as FunctionType;
-        expect(t.returnType.type, 'int');
-        expect(t.positionalParameters, hasLength(2));
-        expect(t.positionalParameters[0].type, 'String');
-        expect(t.positionalParameters[1].type, 'double');
-        expect(t.requiredPositionalParameterCount, 0);
-        expect(t.namedParameters, isEmpty);
+        var type = Type('int Function([String, double])') as FunctionType;
+        expect(type.returnType.type, 'int');
+        expect(type.positionalParameters, hasLength(2));
+        expect(type.positionalParameters[0].type, 'String');
+        expect(type.positionalParameters[1].type, 'double');
+        expect(type.requiredPositionalParameterCount, 0);
+        expect(type.namedParameters, isEmpty);
       });
 
       group('named parameter:', () {
         test('not required', () {
-          var t = Type('int Function({String x})') as FunctionType;
-          expect(t.returnType.type, 'int');
-          expect(t.positionalParameters, isEmpty);
-          expect(t.requiredPositionalParameterCount, 0);
-          expect(t.namedParameters, hasLength(1));
-          expect(t.namedParameters[0].isRequired, false);
-          expect(t.namedParameters[0].type.type, 'String');
-          expect(t.namedParameters[0].name, 'x');
+          var type = Type('int Function({String x})') as FunctionType;
+          expect(type.returnType.type, 'int');
+          expect(type.positionalParameters, isEmpty);
+          expect(type.requiredPositionalParameterCount, 0);
+          expect(type.namedParameters, hasLength(1));
+          expect(type.namedParameters[0].isRequired, false);
+          expect(type.namedParameters[0].type.type, 'String');
+          expect(type.namedParameters[0].name, 'x');
         });
 
         test('required', () {
-          var t = Type('int Function({required String x})') as FunctionType;
-          expect(t.returnType.type, 'int');
-          expect(t.positionalParameters, isEmpty);
-          expect(t.requiredPositionalParameterCount, 0);
-          expect(t.namedParameters, hasLength(1));
-          expect(t.namedParameters[0].isRequired, true);
-          expect(t.namedParameters[0].type.type, 'String');
-          expect(t.namedParameters[0].name, 'x');
+          var type = Type('int Function({required String x})') as FunctionType;
+          expect(type.returnType.type, 'int');
+          expect(type.positionalParameters, isEmpty);
+          expect(type.requiredPositionalParameterCount, 0);
+          expect(type.namedParameters, hasLength(1));
+          expect(type.namedParameters[0].isRequired, true);
+          expect(type.namedParameters[0].type.type, 'String');
+          expect(type.namedParameters[0].name, 'x');
         });
       });
 
       test('named parameters', () {
-        var t = Type('int Function({String x, double y})') as FunctionType;
-        expect(t.returnType.type, 'int');
-        expect(t.positionalParameters, isEmpty);
-        expect(t.requiredPositionalParameterCount, 0);
-        expect(t.namedParameters, hasLength(2));
-        expect(t.namedParameters[0].isRequired, false);
-        expect(t.namedParameters[0].type.type, 'String');
-        expect(t.namedParameters[0].name, 'x');
-        expect(t.namedParameters[1].isRequired, false);
-        expect(t.namedParameters[1].type.type, 'double');
-        expect(t.namedParameters[1].name, 'y');
+        var type = Type('int Function({String x, double y})') as FunctionType;
+        expect(type.returnType.type, 'int');
+        expect(type.positionalParameters, isEmpty);
+        expect(type.requiredPositionalParameterCount, 0);
+        expect(type.namedParameters, hasLength(2));
+        expect(type.namedParameters[0].isRequired, false);
+        expect(type.namedParameters[0].type.type, 'String');
+        expect(type.namedParameters[0].name, 'x');
+        expect(type.namedParameters[1].isRequired, false);
+        expect(type.namedParameters[1].type.type, 'double');
+        expect(type.namedParameters[1].name, 'y');
       });
 
       test('named parameter sorting', () {
-        var t = Type('int Function({double y, String x})') as FunctionType;
-        expect(t.returnType.type, 'int');
-        expect(t.positionalParameters, isEmpty);
-        expect(t.requiredPositionalParameterCount, 0);
-        expect(t.namedParameters, hasLength(2));
-        expect(t.namedParameters[0].isRequired, false);
-        expect(t.namedParameters[0].type.type, 'String');
-        expect(t.namedParameters[0].name, 'x');
-        expect(t.namedParameters[1].isRequired, false);
-        expect(t.namedParameters[1].type.type, 'double');
-        expect(t.namedParameters[1].name, 'y');
+        var type = Type('int Function({double y, String x})') as FunctionType;
+        expect(type.returnType.type, 'int');
+        expect(type.positionalParameters, isEmpty);
+        expect(type.requiredPositionalParameterCount, 0);
+        expect(type.namedParameters, hasLength(2));
+        expect(type.namedParameters[0].isRequired, false);
+        expect(type.namedParameters[0].type.type, 'String');
+        expect(type.namedParameters[0].name, 'x');
+        expect(type.namedParameters[1].isRequired, false);
+        expect(type.namedParameters[1].type.type, 'double');
+        expect(type.namedParameters[1].name, 'y');
       });
 
       test('invalid parameter separator', () {
@@ -419,25 +421,25 @@ main() {
 
     group('record type:', () {
       test('no fields', () {
-        var t = Type('()') as RecordType;
-        expect(t.positionalTypes, isEmpty);
-        expect(t.namedTypes, isEmpty);
+        var type = Type('()') as RecordType;
+        expect(type.positionalTypes, isEmpty);
+        expect(type.namedTypes, isEmpty);
       });
 
       test('named field', () {
-        var t = Type('({int x})') as RecordType;
-        expect(t.positionalTypes, isEmpty);
-        expect(t.namedTypes, hasLength(1));
-        expect(t.namedTypes[0].name, 'x');
-        expect(t.namedTypes[0].type.type, 'int');
+        var type = Type('({int x})') as RecordType;
+        expect(type.positionalTypes, isEmpty);
+        expect(type.namedTypes, hasLength(1));
+        expect(type.namedTypes[0].name, 'x');
+        expect(type.namedTypes[0].type.type, 'int');
       });
 
       test('named field followed by comma', () {
-        var t = Type('({int x,})') as RecordType;
-        expect(t.positionalTypes, isEmpty);
-        expect(t.namedTypes, hasLength(1));
-        expect(t.namedTypes[0].name, 'x');
-        expect(t.namedTypes[0].type.type, 'int');
+        var type = Type('({int x,})') as RecordType;
+        expect(type.positionalTypes, isEmpty);
+        expect(type.namedTypes, hasLength(1));
+        expect(type.namedTypes[0].name, 'x');
+        expect(type.namedTypes[0].type.type, 'int');
       });
 
       test('named field followed by invalid token', () {
@@ -449,13 +451,13 @@ main() {
       });
 
       test('named fields', () {
-        var t = Type('({int x, String y})') as RecordType;
-        expect(t.positionalTypes, isEmpty);
-        expect(t.namedTypes, hasLength(2));
-        expect(t.namedTypes[0].name, 'x');
-        expect(t.namedTypes[0].type.type, 'int');
-        expect(t.namedTypes[1].name, 'y');
-        expect(t.namedTypes[1].type.type, 'String');
+        var type = Type('({int x, String y})') as RecordType;
+        expect(type.positionalTypes, isEmpty);
+        expect(type.namedTypes, hasLength(2));
+        expect(type.namedTypes[0].name, 'x');
+        expect(type.namedTypes[0].type.type, 'int');
+        expect(type.namedTypes[1].name, 'y');
+        expect(type.namedTypes[1].type.type, 'String');
       });
 
       test('curly braces followed by invalid token', () {
@@ -467,38 +469,38 @@ main() {
       });
 
       test('positional field', () {
-        var t = Type('(int,)') as RecordType;
-        expect(t.namedTypes, isEmpty);
-        expect(t.positionalTypes, hasLength(1));
-        expect(t.positionalTypes[0].type, 'int');
+        var type = Type('(int,)') as RecordType;
+        expect(type.namedTypes, isEmpty);
+        expect(type.positionalTypes, hasLength(1));
+        expect(type.positionalTypes[0].type, 'int');
       });
 
       group('positional fields:', () {
         test('two', () {
-          var t = Type('(int, String)') as RecordType;
-          expect(t.namedTypes, isEmpty);
-          expect(t.positionalTypes, hasLength(2));
-          expect(t.positionalTypes[0].type, 'int');
-          expect(t.positionalTypes[1].type, 'String');
+          var type = Type('(int, String)') as RecordType;
+          expect(type.namedTypes, isEmpty);
+          expect(type.positionalTypes, hasLength(2));
+          expect(type.positionalTypes[0].type, 'int');
+          expect(type.positionalTypes[1].type, 'String');
         });
 
         test('three', () {
-          var t = Type('(int, String, double)') as RecordType;
-          expect(t.namedTypes, isEmpty);
-          expect(t.positionalTypes, hasLength(3));
-          expect(t.positionalTypes[0].type, 'int');
-          expect(t.positionalTypes[1].type, 'String');
-          expect(t.positionalTypes[2].type, 'double');
+          var type = Type('(int, String, double)') as RecordType;
+          expect(type.namedTypes, isEmpty);
+          expect(type.positionalTypes, hasLength(3));
+          expect(type.positionalTypes[0].type, 'int');
+          expect(type.positionalTypes[1].type, 'String');
+          expect(type.positionalTypes[2].type, 'double');
         });
       });
 
       test('named and positional fields', () {
-        var t = Type('(int, {String x})') as RecordType;
-        expect(t.positionalTypes, hasLength(1));
-        expect(t.positionalTypes[0].type, 'int');
-        expect(t.namedTypes, hasLength(1));
-        expect(t.namedTypes[0].name, 'x');
-        expect(t.namedTypes[0].type.type, 'String');
+        var type = Type('(int, {String x})') as RecordType;
+        expect(type.positionalTypes, hasLength(1));
+        expect(type.positionalTypes[0].type, 'int');
+        expect(type.namedTypes, hasLength(1));
+        expect(type.namedTypes[0].name, 'x');
+        expect(type.namedTypes[0].type.type, 'String');
       });
 
       test('terminated by invalid token', () {

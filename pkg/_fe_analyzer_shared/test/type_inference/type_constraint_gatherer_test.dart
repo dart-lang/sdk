@@ -12,6 +12,18 @@ import '../mini_ast.dart';
 import '../mini_types.dart';
 
 main() {
+  setUp(() {
+    TypeRegistry.init();
+    TypeRegistry.addInterfaceTypeName('Contravariant');
+    TypeRegistry.addInterfaceTypeName('Invariant');
+    TypeRegistry.addInterfaceTypeName('MyListOfInt');
+    TypeRegistry.addInterfaceTypeName('Unrelated');
+  });
+
+  tearDown(() {
+    TypeRegistry.uninit();
+  });
+
   group('performSubtypeConstraintGenerationForFunctionTypes:', () {
     test('Matching functions with no parameters', () {
       var tcg = _TypeConstraintGatherer({});
@@ -536,7 +548,7 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
           false}) {
     for (var typeVariableName in typeVariablesBeingConstrained) {
       _typeVariablesBeingConstrained
-          .add(typeAnalyzerOperations.addTypeVariable(typeVariableName));
+          .add(TypeRegistry.addTypeParameter(typeVariableName));
     }
   }
 
