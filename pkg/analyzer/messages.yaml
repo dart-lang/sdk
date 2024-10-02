@@ -4102,15 +4102,13 @@ CompileTimeErrorCode:
 
       ```dart
       %uri="lib/part.dart"
-      part of lib;
+      part of 'test.dart';
       ```
 
       The following code produces this diagnostic because the file `part.dart` is
       included multiple times:
 
       ```dart
-      library lib;
-
       part 'part.dart';
       part [!'part.dart'!];
       ```
@@ -4120,8 +4118,6 @@ CompileTimeErrorCode:
       Remove all except the first of the duplicated part directives:
 
       ```dart
-      library lib;
-
       part 'part.dart';
       ```
   DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:

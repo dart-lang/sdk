@@ -4887,15 +4887,13 @@ multiple part directives.
 Given a file `part.dart` containing
 
 ```dart
-part of lib;
+part of 'test.dart';
 ```
 
 The following code produces this diagnostic because the file `part.dart` is
 included multiple times:
 
 ```dart
-library lib;
-
 part 'part.dart';
 part [!'part.dart'!];
 ```
@@ -4905,8 +4903,6 @@ part [!'part.dart'!];
 Remove all except the first of the duplicated part directives:
 
 ```dart
-library lib;
-
 part 'part.dart';
 ```
 
