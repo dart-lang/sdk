@@ -136,6 +136,7 @@ class _FilesRegistry {
   /// Note, we cache statically, to reload restart the server.
   static _FilesRegistry? get(PubPackage pubPackage) {
     var rootFolder = pubPackage.pubspecFile.parent;
+    var separator = rootFolder.provider.pathContext.separator;
 
     if (_registry.containsKey(rootFolder)) {
       return _registry[rootFolder];
@@ -148,7 +149,9 @@ class _FilesRegistry {
           .readAsStringSync()
           .trim()
           .split('\n')
-          .map((line) => line.trim())
+          // The file always uses forward slashes, so convert to the correct
+          // slash for this platform.
+          .map((line) => line.trim().replaceAll('/', separator))
           .toList();
       var result = _FilesRegistry(
         rootFolder: rootFolder,

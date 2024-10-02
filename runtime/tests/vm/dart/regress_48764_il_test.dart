@@ -63,7 +63,6 @@ void matchIL$main_testForIn(FlowGraph graph) {
         ]),
     'B3' <<
         match.block('Target', [
-          match.GenericCheckBound(),
           if (is32BitConfiguration)
             'v37' << match.BinaryInt32Op('v124', match.any)
           else

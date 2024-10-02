@@ -214,6 +214,10 @@ void Dwarf::WriteAbbreviations(DwarfWriteStream* stream) {
   stream->uleb128(DW_FORM_string);
   stream->uleb128(DW_AT_decl_file);
   stream->uleb128(DW_FORM_udata);
+  stream->uleb128(DW_AT_decl_line);
+  stream->uleb128(DW_FORM_udata);
+  stream->uleb128(DW_AT_decl_column);
+  stream->uleb128(DW_FORM_udata);
   stream->uleb128(DW_AT_inline);
   stream->uleb128(DW_FORM_udata);
   stream->uleb128(0);
@@ -324,6 +328,10 @@ void Dwarf::WriteAbstractFunctions(DwarfWriteStream* stream) {
     name = function.QualifiedUserVisibleName();
     script = function.script();
     const intptr_t file = LookupScript(script);
+    intptr_t line = 0;
+    intptr_t column = 0;
+    script.GetTokenLocation(function.token_pos(), &line, &column);
+
     auto const name_cstr =
         ImageWriter::Deobfuscate(zone_, deobfuscation_trie_, name.ToCString());
 
@@ -331,6 +339,8 @@ void Dwarf::WriteAbstractFunctions(DwarfWriteStream* stream) {
     stream->uleb128(kAbstractFunction);
     stream->string(name_cstr);        // DW_AT_name
     stream->uleb128(file);            // DW_AT_decl_file
+    stream->uleb128(line);            // DW_AT_decl_line
+    stream->uleb128(column);          // DW_AT_decl_column
     stream->uleb128(DW_INL_inlined);  // DW_AT_inline
     stream->uleb128(0);               // End of children.
   }

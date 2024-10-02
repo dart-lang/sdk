@@ -3590,6 +3590,53 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
   return compare;
 }
 
+static bool IsSingleUseUnboxOrConstant(Value* use) {
+  return (use->definition()->IsUnbox() && use->IsSingleUse()) ||
+         use->definition()->IsConstant();
+}
+
+// Canonicalize [instr]. Either return [instr] or a new
+// comparison instruction which is not inserted into the flow graph.
+static ComparisonInstr* CanonicalizeEqualityCompare(EqualityCompareInstr* instr,
+                                                    FlowGraph* flow_graph) {
+  if (instr->is_null_aware()) {
+    ASSERT(instr->operation_cid() == kMintCid);
+    // Select more efficient instructions based on operand types.
+    CompileType* left_type = instr->left()->Type();
+    CompileType* right_type = instr->right()->Type();
+    if (left_type->IsNull() || left_type->IsNullableSmi() ||
+        right_type->IsNull() || right_type->IsNullableSmi()) {
+      return new StrictCompareInstr(
+          instr->source(),
+          (instr->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
+          instr->left()->CopyWithType(), instr->right()->CopyWithType(),
+          /*needs_number_check=*/false, DeoptId::kNone);
+    } else {
+      // Null-aware EqualityCompare takes boxed inputs, so make sure
+      // unmatched representations are still allowed when converting
+      // EqualityCompare to the unboxed instruction.
+      if (!left_type->is_nullable() && !right_type->is_nullable() &&
+          flow_graph->unmatched_representations_allowed()) {
+        instr->set_null_aware(false);
+      }
+    }
+  } else {
+    if ((instr->operation_cid() == kMintCid) &&
+        IsSingleUseUnboxOrConstant(instr->left()) &&
+        IsSingleUseUnboxOrConstant(instr->right()) &&
+        (instr->left()->Type()->IsNullableSmi() ||
+         instr->right()->Type()->IsNullableSmi()) &&
+        flow_graph->unmatched_representations_allowed()) {
+      return new StrictCompareInstr(
+          instr->source(),
+          (instr->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
+          instr->left()->CopyWithType(), instr->right()->CopyWithType(),
+          /*needs_number_check=*/false, DeoptId::kNone);
+    }
+  }
+  return instr;
+}
+
 static bool BindsToGivenConstant(Value* v, intptr_t expected) {
   return v->BindsToConstant() && v->BoundConstant().IsSmi() &&
          (Smi::Cast(v->BoundConstant()).Value() == expected);
@@ -3641,7 +3688,8 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
     }
     ComparisonInstr* comp = replacement->AsComparison();
     if ((comp == nullptr) || comp->CanDeoptimize() ||
-        comp->HasUnmatchedInputRepresentations()) {
+        ((comp->SpeculativeModeOfInputs() == kGuardInputs) &&
+         comp->HasUnmatchedInputRepresentations())) {
       return this;
     }
 
@@ -3704,9 +3752,19 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
         flow_graph->CopyDeoptTarget(this, bit_and);
         SetComparison(test);
         bit_and->RemoveFromGraph();
+        return this;
       }
     }
+
+    auto replacement = CanonicalizeEqualityCompare(
+        comparison()->AsEqualityCompare(), flow_graph);
+    if (replacement != comparison()) {
+      SetComparison(replacement);
+      replacement->ClearSSATempIndex();
+      replacement->ClearTempIndex();
+    }
   }
+
   return this;
 }
 
@@ -3723,48 +3781,11 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
   return replacement;
 }
 
-static bool IsSingleUseUnboxOrConstant(Value* use) {
-  return (use->definition()->IsUnbox() && use->IsSingleUse()) ||
-         use->definition()->IsConstant();
-}
-
 Definition* EqualityCompareInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (is_null_aware()) {
-    ASSERT(operation_cid() == kMintCid);
-    // Select more efficient instructions based on operand types.
-    CompileType* left_type = left()->Type();
-    CompileType* right_type = right()->Type();
-    if (left_type->IsNull() || left_type->IsNullableSmi() ||
-        right_type->IsNull() || right_type->IsNullableSmi()) {
-      auto replacement = new StrictCompareInstr(
-          source(),
-          (kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
-          left()->CopyWithType(), right()->CopyWithType(),
-          /*needs_number_check=*/false, DeoptId::kNone);
-      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
-      return replacement;
-    } else {
-      // Null-aware EqualityCompare takes boxed inputs, so make sure
-      // unmatched representations are still allowed when converting
-      // EqualityCompare to the unboxed instruction.
-      if (!left_type->is_nullable() && !right_type->is_nullable() &&
-          flow_graph->unmatched_representations_allowed()) {
-        set_null_aware(false);
-      }
-    }
-  } else {
-    if ((operation_cid() == kMintCid) && IsSingleUseUnboxOrConstant(left()) &&
-        IsSingleUseUnboxOrConstant(right()) &&
-        (left()->Type()->IsNullableSmi() || right()->Type()->IsNullableSmi()) &&
-        flow_graph->unmatched_representations_allowed()) {
-      auto replacement = new StrictCompareInstr(
-          source(),
-          (kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
-          left()->CopyWithType(), right()->CopyWithType(),
-          /*needs_number_check=*/false, DeoptId::kNone);
-      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
-      return replacement;
-    }
+  auto replacement = CanonicalizeEqualityCompare(this, flow_graph);
+  if (replacement != this) {
+    flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
+    return replacement;
   }
   return this;
 }

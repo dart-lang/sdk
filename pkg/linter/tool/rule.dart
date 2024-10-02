@@ -13,7 +13,7 @@ import 'package:path/path.dart' as path;
 
 import '../test/test_constants.dart';
 import 'changelog.dart';
-import 'messages_data.dart';
+import 'messages_info.dart';
 
 /// Generates rule and rule test stub files (into `src/rules` and `test/rules`
 /// respectively), as well as the rule index (`rules.dart`).
@@ -239,14 +239,11 @@ import 'analyzer.dart';
   names.add(libName);
   names.sort();
 
-  var categories = messagesYaml.categoryMappings;
   var imports = <String>[];
-  for (var name in names) {
-    var rule = Registry.ruleRegistry.getRule(name);
-    var pathPrefix = rule != null && categories[rule.name]!.contains('pub')
-        ? path.join('rules', 'pub')
-        : 'rules';
-    imports.add("import '$pathPrefix/$name.dart';");
+  for (var rule in messagesRuleInfo.values) {
+    var pathPrefix =
+        rule.categories.contains('pub') ? path.join('rules', 'pub') : 'rules';
+    imports.add("import '$pathPrefix/${rule.name}.dart';");
   }
 
   //ignore: prefer_foreach

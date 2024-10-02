@@ -24,6 +24,12 @@ DECLARE_FLAG(bool, trace_constant_propagation);
 // Quick access to the locally defined zone() method.
 #define Z (zone())
 
+#define TRACE_RANGE_ANALYSIS(statement)                                        \
+  if (FLAG_support_il_printer && FLAG_trace_range_analysis &&                  \
+      CompilerState::ShouldTrace()) {                                          \
+    statement;                                                                 \
+  }
+
 #if defined(DEBUG)
 static void CheckRangeForRepresentation(const Assert& assert,
                                         const Instruction* instr,
@@ -482,11 +488,10 @@ bool RangeAnalysis::InferRange(JoinOperator op,
 
     if (!range.Equals(defn->range())) {
 #ifndef PRODUCT
-      if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
-        THR_Print("%c [%" Pd "] %s:  %s => %s\n", OpPrefix(op), iteration,
-                  defn->ToCString(), Range::ToCString(defn->range()),
-                  Range::ToCString(&range));
-      }
+      TRACE_RANGE_ANALYSIS(THR_Print("%c [%" Pd "] %s:  %s => %s\n",
+                                     OpPrefix(op), iteration, defn->ToCString(),
+                                     Range::ToCString(defn->range()),
+                                     Range::ToCString(&range)));
 #endif  // !PRODUCT
       defn->set_range(range);
       return true;
@@ -767,10 +772,9 @@ class BoundsCheckGeneralizer {
         ConstructUpperBound(check->index()->definition(), check);
     if (upper_bound == UnwrapConstraint(check->index()->definition())) {
       // Unable to construct upper bound for the index.
-      if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
-        THR_Print("Failed to construct upper bound for %s index\n",
-                  check->ToCString());
-      }
+      TRACE_RANGE_ANALYSIS(
+          THR_Print("Failed to construct upper bound for %s index\n",
+                    check->ToCString()));
       return;
     }
 
@@ -778,10 +782,8 @@ class BoundsCheckGeneralizer {
     // together. This will expose more redundancies when we are going to emit
     // upper bound through scheduler.
     if (!Simplify(&upper_bound, nullptr)) {
-      if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
-        THR_Print("Failed to simplify upper bound for %s index\n",
-                  check->ToCString());
-      }
+      TRACE_RANGE_ANALYSIS(THR_Print(
+          "Failed to simplify upper bound for %s index\n", check->ToCString()));
       return;
     }
     upper_bound = ApplyConstraints(upper_bound, check);
@@ -794,12 +796,10 @@ class BoundsCheckGeneralizer {
     GrowableArray<Definition*> non_positive_symbols;
     if (!FindNonPositiveSymbols(&non_positive_symbols, upper_bound)) {
 #ifndef PRODUCT
-      if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
-        THR_Print(
-            "Failed to generalize %s index to %s"
-            " (can't ensure positivity)\n",
-            check->ToCString(), IndexBoundToCString(upper_bound));
-      }
+      TRACE_RANGE_ANALYSIS(
+          THR_Print("Failed to generalize %s index to %s"
+                    " (can't ensure positivity)\n",
+                    check->ToCString(), IndexBoundToCString(upper_bound)));
 #endif  // !PRODUCT
       return;
     }
@@ -829,22 +829,18 @@ class BoundsCheckGeneralizer {
 // Can't prove that lower bound is positive even with additional checks
 // against potentially non-positive symbols. Give up.
 #ifndef PRODUCT
-      if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
-        THR_Print(
-            "Failed to generalize %s index to %s"
-            " (lower bound is not positive)\n",
-            check->ToCString(), IndexBoundToCString(upper_bound));
-      }
+      TRACE_RANGE_ANALYSIS(
+          THR_Print("Failed to generalize %s index to %s"
+                    " (lower bound is not positive)\n",
+                    check->ToCString(), IndexBoundToCString(upper_bound)));
 #endif  // !PRODUCT
       return;
     }
 
 #ifndef PRODUCT
-    if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
-      THR_Print("For %s computed index bounds [%s, %s]\n", check->ToCString(),
-                IndexBoundToCString(lower_bound),
-                IndexBoundToCString(upper_bound));
-    }
+    TRACE_RANGE_ANALYSIS(THR_Print(
+        "For %s computed index bounds [%s, %s]\n", check->ToCString(),
+        IndexBoundToCString(lower_bound), IndexBoundToCString(upper_bound)));
 #endif  // !PRODUCT
 
     // At this point we know that 0 <= index < UpperBound(index) under
@@ -863,9 +859,8 @@ class BoundsCheckGeneralizer {
       precondition->mark_generalized();
       precondition = scheduler_.Emit(precondition, check);
       if (precondition == nullptr) {
-        if (FLAG_trace_range_analysis) {
-          THR_Print("  => failed to insert positivity constraint\n");
-        }
+        TRACE_RANGE_ANALYSIS(
+            THR_Print("  => failed to insert positivity constraint\n"));
         scheduler_.Rollback();
         return;
       }
@@ -876,24 +871,20 @@ class BoundsCheckGeneralizer {
         new Value(upper_bound), DeoptId::kNone);
     new_check->mark_generalized();
     if (new_check->IsRedundant()) {
-      if (FLAG_trace_range_analysis) {
-        THR_Print("  => generalized check is redundant\n");
-      }
+      TRACE_RANGE_ANALYSIS(THR_Print("  => generalized check is redundant\n"));
       RemoveGeneralizedCheck(check);
       return;
     }
 
     new_check = scheduler_.Emit(new_check, check);
     if (new_check != nullptr) {
-      if (FLAG_trace_range_analysis) {
-        THR_Print("  => generalized check was hoisted into B%" Pd "\n",
-                  new_check->GetBlock()->block_id());
-      }
+      TRACE_RANGE_ANALYSIS(
+          THR_Print("  => generalized check was hoisted into B%" Pd "\n",
+                    new_check->GetBlock()->block_id()));
       RemoveGeneralizedCheck(check);
     } else {
-      if (FLAG_trace_range_analysis) {
-        THR_Print("  => generalized check can't be hoisted\n");
-      }
+      TRACE_RANGE_ANALYSIS(
+          THR_Print("  => generalized check can't be hoisted\n"));
       scheduler_.Rollback();
     }
   }
@@ -3190,9 +3181,13 @@ void CheckBoundBaseInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
+  TRACE_RANGE_ANALYSIS(
+      THR_Print("Checking if range check is redundant, index %s, length %s\n",
+                index->ToCString(), length->ToCString()));
   if (index->BindsToSmiConstant() && length->BindsToSmiConstant()) {
     const auto index_val = index->BoundSmiConstant();
     const auto length_val = length->BoundSmiConstant();
+    TRACE_RANGE_ANALYSIS(THR_Print("  ... constant index and length\n"));
     return (0 <= index_val && index_val < length_val);
   }
 
@@ -3201,6 +3196,7 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
   Range* index_range = index_defn->range();
   if (index_range == nullptr) {
     if (!index->BindsToSmiConstant()) {
+      TRACE_RANGE_ANALYSIS(THR_Print("  ... index without a range\n"));
       return false;
     }
     // index_defn itself is not necessarily the constant.
@@ -3214,6 +3210,7 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
 
   // Range of the index is not positive. Check can't be redundant.
   if (Range::ConstantMinSmi(index_range).ConstantValue() < 0) {
+    TRACE_RANGE_ANALYSIS(THR_Print("  ... index can be negative\n"));
     return false;
   }
 
@@ -3223,11 +3220,16 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
       RangeBoundary::FromDefinition(length->definition());
   RangeBoundary length_lower = array_length.LowerBound();
   if (max_upper.OverflowedSmi() || length_lower.OverflowedSmi()) {
+    TRACE_RANGE_ANALYSIS(
+        THR_Print("  ... max index (%s) or min length (%s) overflows Smi\n",
+                  max.ToCString(), array_length.ToCString()));
     return false;
   }
 
   // Try to compare constant boundaries.
   if (max_upper.ConstantValue() < length_lower.ConstantValue()) {
+    TRACE_RANGE_ANALYSIS(THR_Print("  ... max index (%s) >= min length (%s)\n",
+                                   max.ToCString(), array_length.ToCString()));
     return true;
   }
 
@@ -3235,18 +3237,27 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
       array_length,
       RangeBoundary::MaxConstant(RangeBoundary::kRangeBoundaryInt64));
   if (canonical_length.OverflowedSmi()) {
+    TRACE_RANGE_ANALYSIS(
+        THR_Print("  ... canonical length boundary (%s) overflows Smi\n",
+                  canonical_length.ToCString()));
     return false;
   }
 
   // Try symbolic comparison.
   do {
     if (DependOnSameSymbol(max, canonical_length)) {
+      TRACE_RANGE_ANALYSIS(THR_Print(
+          "  ... max index (%s) and length (%s) depend on the same symbol\n",
+          max.ToCString(), canonical_length.ToCString()));
       return max.offset() < canonical_length.offset();
     }
   } while (CanonicalizeMaxBoundary(&max) ||
            CanonicalizeMinBoundary(&canonical_length));
 
   // Failed to prove that maximum is bounded with array length.
+  TRACE_RANGE_ANALYSIS(THR_Print(
+      "  ... max index (%s) and length (%s) depend on distinct symbols\n",
+      max.ToCString(), canonical_length.ToCString()));
   return false;
 }
 

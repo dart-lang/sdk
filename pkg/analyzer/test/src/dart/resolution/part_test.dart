@@ -545,18 +545,18 @@ PartDirective
 
   test_inLibrary_withPart_partOfName() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.4
 library my.lib;
 part 'b.dart';
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
 part of my.lib;
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(ParserErrorCode.PART_OF_NAME, 8, 6),
-    ]);
+    assertNoErrorsInResult();
 
     await resolveFile2(a);
     assertNoErrorsInResult();

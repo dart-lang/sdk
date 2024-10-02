@@ -984,7 +984,7 @@ void f(A a, B b) {
 
   Future<void> test_createChange_outsideOfProject_referenceInPart() async {
     newFile('/home/part.dart', r'''
-part of test;
+part of 'test/bin/test.dart';
 
 void foo(A a) {
   a.test();
@@ -995,8 +995,6 @@ void foo(A a) {
     testFilePath = convertPath('/home/test/bin/test.dart');
 
     await indexTestUnit('''
-library test;
-
 part '../../part.dart';
 
 class A {
@@ -1011,8 +1009,6 @@ void f(A a) {
     refactoring.newName = 'newName';
 
     await assertSuccessfulRefactoring('''
-library test;
-
 part '../../part.dart';
 
 class A {

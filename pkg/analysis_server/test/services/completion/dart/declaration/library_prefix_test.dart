@@ -353,7 +353,6 @@ class C {
     newFile(testFilePath, 'part of testB;');
     newFile('$testPackageLibPath/b.dart', '''
 // ignore_for_file: unused_import
-library testB;
 import "a.dart" as t0;
 import "dart:math" as m0;
 part "test.dart";
@@ -363,7 +362,7 @@ void f() {
 }
 ''');
     await computeSuggestions('''
-part of testB;
+part of 'b.dart';
 void f() {
   new ^
   String x = "hello";
