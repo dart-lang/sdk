@@ -203,7 +203,10 @@ void f() {
     var highlights = await getDocumentHighlights(mainFileUri, pos);
 
     if (code.ranges.isEmpty) {
-      expect(highlights, isNull);
+      // When there are no ranges, we expect an empty result (not null) because
+      // a null may cause an editor to fall back to a text search (VS Code
+      // does) which can lead to confusing results.
+      expect(highlights, isEmpty);
     } else {
       var highlightRanges = highlights!.map((h) => h.range).toList();
       expect(highlightRanges, equals(code.ranges.map((r) => r.range)));
