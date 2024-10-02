@@ -294,6 +294,7 @@ class FileResolver {
         for (var filePath in result) {
           await collectReferences2(filePath, performance!);
         }
+        _clearFileSystemStateParsedCache();
       }
       return references;
     });
@@ -419,6 +420,7 @@ class FileResolver {
         targetLibrary: kind,
         performance: performance,
       );
+      _clearFileSystemStateParsedCache();
     });
 
     return libraryContext!.elementFactory.libraryOfUri2(uri);
@@ -532,6 +534,7 @@ class FileResolver {
         path: libraryFile.path,
         performance: performance,
       );
+      _clearFileSystemStateParsedCache();
       var unit = libraryResult.units.firstWhereOrNull(
         (unitResult) => unitResult.path == path,
       );
@@ -593,6 +596,7 @@ class FileResolver {
           libraryKind,
           typeSystemOperations: typeSystemOperations,
         );
+        _clearFileSystemStateParsedCache();
 
         var analysisResult = performance!.run('analyze', (performance) {
           return libraryAnalyzer.analyzeForCompletion(
@@ -696,6 +700,10 @@ class FileResolver {
     });
   }
 
+  void _clearFileSystemStateParsedCache() {
+    fsState?.parsedFileStateCache.clear();
+  }
+
   /// Make sure that [fsState], [contextObjects], and [libraryContext] are
   /// created and configured with the given [fileAnalysisOptions].
   ///
@@ -709,6 +717,10 @@ class FileResolver {
   /// system. And there are lints that are enabled for one package, but not
   /// for another.
   void _createContext(String path, AnalysisOptionsImpl fileAnalysisOptions) {
+    // Clear it here too, so that even if we miss the invocation somewhere,
+    // we still eventually do it, and so limit the number of cached items.
+    _clearFileSystemStateParsedCache();
+
     if (contextObjects != null) {
       libraryContext!.analysisContext.analysisOptions = fileAnalysisOptions;
       return;
