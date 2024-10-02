@@ -7,7 +7,7 @@ import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'dart_tooling_daemon.dart';
 
 /// A DTD response that indicates success.
-class Success extends _SuccessResponse {
+class Success extends _SuccessResponse<Null> {
   const Success();
 
   factory Success.fromDTDResponse(DTDResponse response) {
@@ -18,7 +18,7 @@ class Success extends _SuccessResponse {
   @override
   String get type => _type;
 
-  static final _type = 'Success';
+  static const _type = 'Success';
 }
 
 /// A DTD response that indicates success and contains a single String value.
@@ -34,7 +34,7 @@ class StringResponse extends _SuccessResponse<String> {
   @override
   String get type => _type;
 
-  static final _type = 'StringResponse';
+  static const _type = 'StringResponse';
 }
 
 /// A DTD response that indicates success and contains a single boolean value.
@@ -50,7 +50,7 @@ class BoolResponse extends _SuccessResponse<bool> {
   @override
   String get type => _type;
 
-  static final _type = 'BoolResponse';
+  static const _type = 'BoolResponse';
 }
 
 /// A DTD response that indicates success and contains a single [List] of
@@ -68,7 +68,7 @@ class StringListResponse extends _SuccessResponse<List<String>> {
   @override
   String get type => _type;
 
-  static final _type = 'ListResponse';
+  static const _type = 'ListResponse';
 }
 
 /// A DTD response that indicates success and contains a single optional value

@@ -52,7 +52,7 @@ void main(List<String> args) async {
         // ExampleServer.getServerState.
         final getStateRequest = GetStateRequest.fromParams(params);
 
-        final duration = const Duration(minutes: 45);
+        const duration = Duration(minutes: 45);
         final status =
             getStateRequest.verbose ? 'The server is running' : 'Running';
 

@@ -60,7 +60,7 @@ final class ClassSuggestion extends ImportableSuggestion
 }
 
 /// The information about a candidate suggestion based on a constructor.
-final class ClosureSuggestion extends CandidateSuggestion {
+final class ClosureSuggestion extends CandidateSuggestion with SuggestionData {
   /// The type that the closure must conform to.
   final FunctionType functionType;
 
@@ -75,8 +75,6 @@ final class ClosureSuggestion extends CandidateSuggestion {
 
   /// The identation to be used for a multi-line completion.
   final String indent;
-
-  _SuggestionData? _data;
 
   /// Initialize a newly created candidate suggestion to suggest a closure that
   /// conforms to the given [functionType].
@@ -98,19 +96,7 @@ final class ClosureSuggestion extends CandidateSuggestion {
     return _data!.completion;
   }
 
-  /// Text to be displayed in a completion pop-up.
-  String get displayText {
-    _init();
-    return _data!.displayText;
-  }
-
-  /// The offset, from the beginning of the inserted text, where the cursor
-  /// should be positioned.
-  int get selectionOffset {
-    _init();
-    return _data!.selectionOffset;
-  }
-
+  @override
   void _init() {
     if (_data != null) {
       return;
@@ -142,8 +128,7 @@ final class ClosureSuggestion extends CandidateSuggestion {
       stringBuffer.write(',');
     }
     var completion = stringBuffer.toString();
-    _data =
-        _SuggestionData(completion, selectionOffset, displayText: displayText);
+    _data = _Data(completion, selectionOffset, displayText: displayText);
   }
 }
 
@@ -655,7 +640,8 @@ final class MixinSuggestion extends ImportableSuggestion
 }
 
 /// Suggest the name of a named parameter in the argument list of an invocation.
-final class NamedArgumentSuggestion extends CandidateSuggestion {
+final class NamedArgumentSuggestion extends CandidateSuggestion
+    with SuggestionData {
   /// The parameter whose name is to be suggested.
   final ParameterElement parameter;
 
@@ -673,8 +659,6 @@ final class NamedArgumentSuggestion extends CandidateSuggestion {
 
   String preferredQuoteForStrings;
 
-  _SuggestionData? _data;
-
   NamedArgumentSuggestion({
     required this.parameter,
     required this.appendColon,
@@ -691,13 +675,10 @@ final class NamedArgumentSuggestion extends CandidateSuggestion {
     return _data!.completion;
   }
 
-  /// The offset, from the beginning of the inserted text, where the cursor
-  /// should be positioned.
-  int get selectionOffset {
-    _init();
-    return _data!.selectionOffset;
-  }
+  @override
+  String get displayText => completion;
 
+  @override
   void _init() {
     if (_data != null) {
       return;
@@ -727,7 +708,7 @@ final class NamedArgumentSuggestion extends CandidateSuggestion {
     if (appendComma) {
       completion += ',';
     }
-    _data = _SuggestionData(completion, selectionOffset);
+    _data = _Data(completion, selectionOffset);
   }
 }
 
@@ -852,12 +833,11 @@ final class RecordFieldSuggestion extends CandidateSuggestion {
 
 /// The information about a candidate suggestion based on a named field of
 /// a record type.
-final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion {
+final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion
+    with SuggestionData {
   final RecordTypeNamedField field;
   final bool appendColon;
   final bool appendComma;
-
-  _SuggestionData? _data;
 
   RecordLiteralNamedFieldSuggestion.newField({
     required this.field,
@@ -877,13 +857,10 @@ final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion {
     return _data!.completion;
   }
 
-  /// The offset, from the beginning of the inserted text, where the cursor
-  /// should be positioned.
-  int get selectionOffset {
-    _init();
-    return _data!.selectionOffset;
-  }
+  @override
+  String get displayText => completion;
 
+  @override
   void _init() {
     if (_data != null) {
       return;
@@ -899,13 +876,13 @@ final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion {
     if (appendComma) {
       completion += ',';
     }
-    _data = _SuggestionData(completion, selectionOffset);
+    _data = _Data(completion, selectionOffset);
   }
 }
 
 /// The information about a candidate suggestion for Flutter's `setState` method.
 final class SetStateMethodSuggestion extends ExecutableSuggestion
-    with MemberSuggestion {
+    with MemberSuggestion, SuggestionData {
   @override
   final MethodElement element;
 
@@ -916,8 +893,6 @@ final class SetStateMethodSuggestion extends ExecutableSuggestion
 
   /// The identation to be used for a multi-line completion.
   final String indent;
-
-  _SuggestionData? _data;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   SetStateMethodSuggestion(
@@ -934,19 +909,7 @@ final class SetStateMethodSuggestion extends ExecutableSuggestion
     return _data!.completion;
   }
 
-  /// Text to be displayed in a completion pop-up.
-  String get displayText {
-    _init();
-    return _data!.displayText;
-  }
-
-  /// The offset, from the beginning of the inserted text, where the cursor
-  /// should be positioned.
-  int get selectionOffset {
-    _init();
-    return _data!.selectionOffset;
-  }
-
+  @override
   void _init() {
     if (_data != null) {
       return;
@@ -959,8 +922,7 @@ final class SetStateMethodSuggestion extends ExecutableSuggestion
     buffer.writeln();
     buffer.write('$indent});');
     var completion = buffer.toString();
-    _data = _SuggestionData(completion, selectionOffset,
-        displayText: 'setState(() {});');
+    _data = _Data(completion, selectionOffset, displayText: 'setState(() {});');
   }
 }
 
@@ -983,6 +945,27 @@ final class StaticFieldSuggestion extends ImportableSuggestion
     var enclosingElement = element.enclosingElement3;
     return '$completionPrefix${enclosingElement.name}.${element.name}';
   }
+}
+
+/// Behavior common to suggestions where completion text, [selectionOffset],
+/// and [displayText] is computed.
+mixin SuggestionData {
+  _Data? _data;
+
+  /// Text to be displayed in a completion pop-up.
+  String get displayText {
+    _init();
+    return _data!.displayText;
+  }
+
+  /// The offset, from the beginning of the inserted text, where the cursor
+  /// should be positioned.
+  int get selectionOffset {
+    _init();
+    return _data!.selectionOffset;
+  }
+
+  void _init();
 }
 
 /// The information about a candidate suggestion based on a parameter from a
@@ -1094,15 +1077,14 @@ final class UriSuggestion extends CandidateSuggestion {
 }
 
 /// Information computed for some the code completion suggestions.
-class _SuggestionData {
+class _Data {
   String displayText;
 
   int selectionOffset;
 
   String completion;
 
-  _SuggestionData(this.completion, this.selectionOffset,
-      {this.displayText = ''});
+  _Data(this.completion, this.selectionOffset, {this.displayText = ''});
 }
 
 extension on String {

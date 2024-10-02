@@ -23,8 +23,8 @@ void main(List<String> args) async {
 
   final dtdSecret = args.length >= 3 ? args[2] : null;
 
-  // Create the client that will be talking to the FileSystem service..
-  DartToolingDaemon? client = await DartToolingDaemon.connect(
+  // Create the client that will be talking to the FileSystem service.
+  final client = await DartToolingDaemon.connect(
     Uri.parse(dtdUrl),
   );
 

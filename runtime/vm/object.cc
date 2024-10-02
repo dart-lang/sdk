@@ -8067,12 +8067,12 @@ void PatchClass::set_script(const Script& value) const {
 }
 
 uword Function::Hash() const {
-  uword hash = String::HashRawSymbol(name());
-  if (IsClosureFunction()) {
-    hash = hash ^ token_pos().Hash();
+  uint32_t hash = String::HashRawSymbol(name());
+  if (IsNonImplicitClosureFunction()) {
+    hash = CombineHashes(hash, token_pos().Hash());
   }
   if (Owner()->IsClass()) {
-    hash = hash ^ Class::Hash(Class::RawCast(Owner()));
+    hash = CombineHashes(hash, Class::Hash(Class::RawCast(Owner())));
   }
   return hash;
 }

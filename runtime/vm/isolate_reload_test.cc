@@ -6815,6 +6815,74 @@ abstract class A5 { }
   check_class_hierarchy_state();
 }
 
+// https://github.com/flutter/flutter/issues/153536
+TEST_CASE(IsolateReload_ClosureHashStablity) {
+  const char* kScript =
+      "var retained;\n"
+      "var retainedHashes;\n"
+      "static1() {} \n"
+      "static2<T>() {} \n"
+      "static3<T extends num>() {} \n"
+      "class Foo {\n"
+      "  method1() {}\n"
+      "  method2<T>() {}\n"
+      "  method3<T extends num>() {}\n"
+      "}\n"
+      "extension Ext on Foo {\n"
+      "  extensionMethod1() {}\n"
+      "  extensionMethod2<T>() {}\n"
+      "  extensionMethod3<T extends num>() {}\n"
+      "}\n"
+      "main() {\n"
+      "  local1() {}\n"
+      "  local2<T>() {}\n"
+      "  local3<T extends num>() {}\n"
+      "  var f = new Foo();\n"
+      "  retained = [ static1, static2<String>, static3,\n"
+      "               f.method1, f.method2<String>, f.method3,\n"
+      "               f.extensionMethod1, f.extensionMethod2<String>,\n"
+      "               f.extensionMethod3,\n"
+      "               local1, local2<String>, local3 ];\n"
+      "  retainedHashes = retained.map((c) => c.hashCode).toList();\n"
+      "  return 'Setup';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_VALID(Dart_FinalizeAllClasses());
+  EXPECT_STREQ("Setup", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "extraFunctionShiftingDownAllTokenPositions() {}\n"
+      "var retained;\n"
+      "var retainedHashes;\n"
+      "static1() {} \n"
+      "static2<T>() {} \n"
+      "static3<T extends num>() {} \n"
+      "class Foo {\n"
+      "  method1() {}\n"
+      "  method2<T>() {}\n"
+      "  method3<T extends num>() {}\n"
+      "}\n"
+      "extension Ext on Foo {\n"
+      "  extensionMethod1() {}\n"
+      "  extensionMethod2<T>() {}\n"
+      "  extensionMethod3<T extends num>() {}\n"
+      "}\n"
+      "main() {\n"
+      "  for (var i = 0; i < retained.length; i++) {\n"
+      "    if (retained[i].hashCode != retainedHashes[i]){\n"
+      "      return 'Changed: ${retained[i]}';\n"
+      "    }\n"
+      "  }\n"
+      "  return 'Okay';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+}
+
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
