@@ -486,6 +486,8 @@ abstract class RenameRefactoring implements Refactoring {
       nameNode = node.name;
     } else if (node is ImportDirective) {
       nameNode = node;
+    } else if (node is ImportPrefixReference) {
+      nameNode = node;
     } else if (node is InstanceCreationExpression) {
       nameNode = node;
     } else if (node is LibraryDirective) {

@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 
@@ -94,6 +93,9 @@ class DynamicTypeImpl extends TypeImpl
 
 /// The type of a function, method, constructor, getter, or setter.
 class FunctionTypeImpl extends TypeImpl implements FunctionType {
+  @override
+  late int hashCode = _computeHashCode();
+
   @override
   final DartType returnType;
 
@@ -196,44 +198,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       .map((fragment) => (fragment as FormalParameterFragment).element)
       .toList();
 
-  @override
-  int get hashCode {
-    // Reference the arrays of parameters
-    var normalParameterTypes = this.normalParameterTypes;
-    var optionalParameterTypes = this.optionalParameterTypes;
-    var namedParameterTypes = this.namedParameterTypes.values;
-    // Generate the hashCode
-    var code = returnType.hashCode;
-    for (int i = 0; i < normalParameterTypes.length; i++) {
-      code = (code << 1) + normalParameterTypes[i].hashCode;
-    }
-    for (int i = 0; i < optionalParameterTypes.length; i++) {
-      code = (code << 1) + optionalParameterTypes[i].hashCode;
-    }
-    for (DartType type in namedParameterTypes) {
-      code = (code << 1) + type.hashCode;
-    }
-    return code;
-  }
-
   @Deprecated('Check element, or use getDisplayString()')
   @override
   String? get name => null;
 
   @override
-  Map<String, DartType> get namedParameterTypes {
-    // TODO(brianwilkerson): This implementation breaks the contract because the
-    //  parameters will not necessarily be returned in the order in which they
-    //  were declared.
-    Map<String, DartType> types = <String, DartType>{};
-    _forEachParameterType(ParameterKind.NAMED, (name, type) {
-      types[name] = type;
-    });
-    _forEachParameterType(ParameterKind.NAMED_REQUIRED, (name, type) {
-      types[name] = type;
-    });
-    return types;
-  }
+  Map<String, DartType> get namedParameterTypes => {
+        for (var parameter in sortedNamedParameters)
+          parameter.name: parameter.type
+      };
 
   @override
   List<String> get normalParameterNames => parameters
@@ -242,13 +215,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       .toList();
 
   @override
-  List<DartType> get normalParameterTypes {
-    List<DartType> types = <DartType>[];
-    _forEachParameterType(ParameterKind.REQUIRED, (name, type) {
-      types.add(type);
-    });
-    return types;
-  }
+  List<DartType> get normalParameterTypes =>
+      positionalParameterTypes.sublist(0, requiredPositionalParameterCount);
 
   @override
   List<String> get optionalParameterNames => parameters
@@ -257,13 +225,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       .toList();
 
   @override
-  List<DartType> get optionalParameterTypes {
-    List<DartType> types = <DartType>[];
-    _forEachParameterType(ParameterKind.POSITIONAL, (name, type) {
-      types.add(type);
-    });
-    return types;
-  }
+  List<DartType> get optionalParameterTypes =>
+      positionalParameterTypes.sublist(requiredPositionalParameterCount);
 
   @override
   List<TypeParameterElement2> get typeParameters => typeFormals
@@ -384,14 +347,40 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     );
   }
 
-  void _forEachParameterType(
-      ParameterKind kind, void Function(String name, DartType type) callback) {
-    for (var parameter in parameters) {
-      // ignore: deprecated_member_use_from_same_package
-      if (parameter.parameterKind == kind) {
-        callback(parameter.name, parameter.type);
+  int _computeHashCode() {
+    if (typeFormals.isNotEmpty) {
+      // Two generic function types are considered equivalent even if their type
+      // formals have different names, so we need to normalize to a standard set
+      // of type formals before taking the hash code.
+      //
+      // Note: when creating the standard set of type formals, we ignore bounds.
+      // This means that two function types that differ only in their type
+      // parameter bounds will receive the same hash code; this should be rare
+      // enough that it won't be a problem.
+      return instantiate([
+        for (var i = 0; i < typeFormals.length; i++)
+          TypeParameterTypeImpl(
+              element: TypeParameterElementImpl.synthetic('T$i'),
+              nullabilitySuffix: NullabilitySuffix.none)
+      ]).hashCode;
+    }
+
+    List<Object>? namedParameterInfo;
+    if (sortedNamedParameters.isNotEmpty) {
+      namedParameterInfo = [];
+      for (var namedParameter in sortedNamedParameters) {
+        namedParameterInfo.add(namedParameter.isRequired);
+        namedParameterInfo.add(namedParameter.name);
+        namedParameterInfo.add(namedParameter.type);
       }
     }
+
+    return Object.hash(
+        nullabilitySuffix,
+        returnType,
+        requiredPositionalParameterCount,
+        Object.hashAll(positionalParameterTypes),
+        namedParameterInfo);
   }
 
   /// Given two functions [f1] and [f2] where f1 and f2 are known to be

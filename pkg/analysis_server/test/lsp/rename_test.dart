@@ -668,6 +668,20 @@ import 'dart:async' as myNewPrefix;
         content, 'myNewPrefix', expectedContent);
   }
 
+  Future<void> test_rename_importWithPrefix_atUse() {
+    const content = '''
+import 'dart:async' as asyync;
+
+void f(asy^ync.Future f1, asyync.Future f2) {}
+''';
+    const expectedContent = '''
+import 'dart:async' as async;
+
+void f(async.Future f1, async.Future f2) {}
+''';
+    return _test_rename_withDocumentChanges(content, 'async', expectedContent);
+  }
+
   Future<void> test_rename_invalidRenameLocation() {
     const content = '''
 void f() {

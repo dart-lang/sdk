@@ -1029,8 +1029,22 @@ class DwarfAssemblyStream : public DwarfWriteStream {
   void u8(uint64_t value) {
     stream_->Printf("%s %" Pu64 "\n", kSizeDirectives[kInt64SizeLog2], value);
   }
-  void string(const char* cstr) {               // NOLINT
-    stream_->Printf(".string \"%s\"\n", cstr);  // NOLINT
+  void string(const char* cstr) {        // NOLINT
+    stream_->WriteString(".string \"");  // NOLINT
+    while (char c = *cstr++) {
+      if (c == '"') {
+        stream_->WriteString("\\\"");
+      } else if (c == '\\') {
+        stream_->WriteString("\\\\");
+      } else if (c == '\n') {
+        stream_->WriteString("\\n");
+      } else if (c == '\r') {
+        stream_->WriteString("\\r");
+      } else {
+        stream_->WriteByte(c);
+      }
+    }
+    stream_->WriteString("\"\n");
   }
   void WritePrefixedLength(const char* prefix, std::function<void()> body) {
     ASSERT(prefix != nullptr);

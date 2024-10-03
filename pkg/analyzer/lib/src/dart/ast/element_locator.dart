@@ -177,6 +177,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitImportPrefixReference(ImportPrefixReference node) {
+    return node.element;
+  }
+
+  @override
   Element? visitIndexExpression(IndexExpression node) {
     return node.staticElement;
   }

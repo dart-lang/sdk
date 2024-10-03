@@ -9,6 +9,7 @@
 #include "vm/elf.h"
 #include "vm/image_snapshot.h"
 #include "vm/object_store.h"
+#include "vm/version.h"
 
 namespace dart {
 
@@ -277,8 +278,9 @@ void Dwarf::WriteDebugInfo(DwarfWriteStream* stream) {
         zone_, IsolateGroup::Current()->object_store()->root_library());
     const String& root_uri = String::Handle(zone_, root_library.url());
     stream->string(root_uri.ToCString());  // DW_AT_name
-    stream->string("Dart VM");             // DW_AT_producer
-    stream->string("");                    // DW_AT_comp_dir
+    const char* producer = zone_->PrintToString("Dart %s\n", Version::String());
+    stream->string(producer);  // DW_AT_producer
+    stream->string("");        // DW_AT_comp_dir
 
     // DW_AT_low_pc
     // The lowest instruction address in this object file that is part of our
