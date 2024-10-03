@@ -71,6 +71,7 @@ abstract interface class SharedNamedTypeStructure<
 abstract interface class SharedRecordTypeStructure<
         TypeStructure extends SharedTypeStructure<TypeStructure>>
     implements SharedTypeStructure<TypeStructure> {
+  /// All the named fields, sorted by name.
   List<SharedNamedTypeStructure<TypeStructure>> get namedTypes;
 
   List<TypeStructure> get positionalTypes;

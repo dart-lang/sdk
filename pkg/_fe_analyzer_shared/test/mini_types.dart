@@ -306,7 +306,12 @@ class RecordType extends Type implements SharedRecordTypeStructure<Type> {
     required this.positionalTypes,
     required this.namedTypes,
     super.nullabilitySuffix = NullabilitySuffix.none,
-  }) : super._();
+  }) : super._() {
+    for (var i = 1; i < namedTypes.length; i++) {
+      assert(namedTypes[i - 1].name.compareTo(namedTypes[i].name) < 0,
+          'namedTypes not properly sorted');
+    }
+  }
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
@@ -1423,6 +1428,7 @@ class _TypeParser {
       _parseFailure('Must have at least one named type between {}');
     }
     _next();
+    namedTypes.sort((a, b) => a.name.compareTo(b.name));
     return namedTypes;
   }
 
