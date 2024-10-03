@@ -201,6 +201,9 @@ abstract class ConstructorElement2
   @override
   ConstructorElement2 get baseElement;
 
+  @override
+  ConstructorFragment? get firstFragment;
+
   /// Whether the constructor is a const constructor.
   bool get isConst;
 
@@ -839,6 +842,9 @@ abstract class GetterElement implements ExecutableElement2, FragmentedElement {
   SetterElement? get correspondingSetter2;
 
   @override
+  GetterFragment? get firstFragment;
+
+  @override
   String get name;
 
   /// The field or top-level variable associated with this getter.
@@ -948,6 +954,9 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   ///
   /// The list is empty for [MixinElement].
   List<ConstructorElement2> get constructors2;
+
+  @override
+  InterfaceFragment get firstFragment;
 
   /// The interfaces that are implemented by this class.
   ///
@@ -1384,6 +1393,9 @@ abstract class MethodElement2 implements ExecutableElement2, FragmentedElement {
   @override
   MethodElement2 get baseElement;
 
+  @override
+  MethodFragment? get firstFragment;
+
   /// Whether the method defines an operator.
   ///
   /// The test might be based on the name of the executable element, in which
@@ -1571,6 +1583,9 @@ abstract class PromotableFragment implements VariableFragment {
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingElement2
     implements VariableElement2, _Annotatable, FragmentedElement {
+  @override
+  PropertyInducingFragment? get firstFragment;
+
   /// The getter associated with this variable.
   ///
   /// If this variable was explicitly defined (is not synthetic) then the
@@ -1668,6 +1683,9 @@ abstract class SetterElement implements ExecutableElement2, FragmentedElement {
   GetterElement? get correspondingGetter2;
 
   @override
+  SetterFragment? get firstFragment;
+
+  @override
   String get name;
 
   /// The field or top-level variable associated with this setter.
@@ -1732,6 +1750,9 @@ abstract class TopLevelFunctionElement
   @override
   TopLevelFunctionElement get baseElement;
 
+  @override
+  TopLevelFunctionFragment get firstFragment;
+
   /// Whether the function represents `identical` from the `dart:core` library.
   bool get isDartCoreIdentical;
 
@@ -1762,6 +1783,9 @@ abstract class TopLevelFunctionFragment implements ExecutableFragment {
 abstract class TopLevelVariableElement2 implements PropertyInducingElement2 {
   @override
   TopLevelVariableElement2 get baseElement;
+
+  @override
+  TopLevelVariableFragment? get firstFragment;
 
   /// Whether the field was explicitly marked as being external.
   bool get isExternal;
@@ -1802,6 +1826,9 @@ abstract class TypeAliasElement2
 
   @override
   LibraryElement2 get enclosingElement2;
+
+  @override
+  TypeAliasFragment get firstFragment;
 
   @override
   String get name;
@@ -1873,6 +1900,9 @@ abstract class TypeParameterElement2 implements TypeDefiningElement2 {
   /// able to distinguish between an implicit and explicit bound is needed by
   /// the instantiate to bounds algorithm.`
   DartType? get bound;
+
+  @override
+  TypeParameterFragment? get firstFragment;
 
   @override
   LibraryElement2 get library2;

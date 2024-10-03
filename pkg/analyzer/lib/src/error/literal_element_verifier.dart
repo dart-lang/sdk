@@ -105,6 +105,20 @@ class LiteralElementVerifier {
       } else if (forMap) {
         _verifySpreadForMap(isNullAware, expression);
       }
+    } else if (element is NullAwareElement) {
+      if (forList || forSet) {
+        if (elementType is! VoidType &&
+            _errorVerifier.checkForUseOfVoidResult(element.value)) {
+          return;
+        }
+        _checkAssignableToElementType(
+            typeSystem.promoteToNonNull(element.value.typeOrThrow), element);
+      } else {
+        errorReporter.atNode(
+          element,
+          CompileTimeErrorCode.EXPRESSION_IN_MAP,
+        );
+      }
     }
   }
 
@@ -124,6 +138,11 @@ class LiteralElementVerifier {
     }
 
     var keyType = entry.key.typeOrThrow;
+    // If the key is null-aware, the entry is only added when the key is not
+    // `null`, so the key type to check should be promoted to non-null.
+    if (entry.keyQuestion != null) {
+      keyType = typeSystem.promoteToNonNull(keyType);
+    }
     if (!typeSystem.isAssignableTo(keyType, mapKeyType,
         strictCasts: _strictCasts)) {
       errorReporter.atNode(
@@ -134,6 +153,11 @@ class LiteralElementVerifier {
     }
 
     var valueType = entry.value.typeOrThrow;
+    // If the value is null-aware, the entry is only added when the value is not
+    // `null`, so the value type to check should be promoted to non-null.
+    if (entry.valueQuestion != null) {
+      valueType = typeSystem.promoteToNonNull(valueType);
+    }
     if (!typeSystem.isAssignableTo(valueType, mapValueType,
         strictCasts: _strictCasts)) {
       errorReporter.atNode(

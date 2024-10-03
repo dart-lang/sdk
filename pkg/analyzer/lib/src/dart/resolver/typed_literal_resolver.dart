@@ -226,6 +226,8 @@ class TypedLiteralResolver {
 
       // TODO(brianwilkerson): Report this as an error.
       return _typeProvider.dynamicType;
+    } else if (element is NullAwareElement) {
+      return _typeSystem.promoteToNonNull(element.value.typeOrThrow);
     }
     throw StateError('Unhandled element type ${element.runtimeType}');
   }
@@ -358,9 +360,17 @@ class TypedLiteralResolver {
       return _InferredCollectionElementTypeInformation.forIfElement(
           _typeSystem, thenType, elseType);
     } else if (element is MapLiteralEntry) {
+      var keyType = element.key.staticType;
+      if (keyType != null && element.keyQuestion != null) {
+        keyType = _typeSystem.promoteToNonNull(keyType);
+      }
+      var valueType = element.value.staticType;
+      if (valueType != null && element.valueQuestion != null) {
+        valueType = _typeSystem.promoteToNonNull(valueType);
+      }
       return _InferredCollectionElementTypeInformation(
-        keyType: element.key.staticType,
-        valueType: element.value.staticType,
+        keyType: keyType,
+        valueType: valueType,
       );
     } else if (element is SpreadElement) {
       var expressionType = element.expression.typeOrThrow;
@@ -411,6 +421,9 @@ class TypedLiteralResolver {
       }
 
       return _InferredCollectionElementTypeInformation();
+    } else if (element is NullAwareElement) {
+      return _InferredCollectionElementTypeInformation(
+          elementType: _typeSystem.promoteToNonNull(element.value.typeOrThrow));
     } else {
       throw StateError('Unknown element type ${element.runtimeType}');
     }

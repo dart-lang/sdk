@@ -3128,16 +3128,30 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       {CollectionLiteralContext? context}) {
     inferenceLogWriter?.enterElement(node);
     checkUnreachableNode(node);
+
+    // If the key is null-aware, the context of the expression under `?` should
+    // be changed to the nullable version of the downwards context.
+    var keyTypeContext = context?.keyType;
+    if (keyTypeContext != null && node.keyQuestion != null) {
+      keyTypeContext = typeSystem.makeNullable(keyTypeContext);
+    }
     var keyType = analyzeExpression(node.key,
-        SharedTypeSchemaView(context?.keyType ?? UnknownInferredType.instance));
+        SharedTypeSchemaView(keyTypeContext ?? UnknownInferredType.instance));
     popRewrite();
+
     flowAnalysis.flow?.nullAwareMapEntry_valueBegin(node.key, keyType,
         isKeyNullAware: node.keyQuestion != null);
-    analyzeExpression(
-        node.value,
-        SharedTypeSchemaView(
-            context?.valueType ?? UnknownInferredType.instance));
+
+    // If the value is null-aware, the context of the expression under `?`
+    // should be changed to the nullable version of the downwards context.
+    var valueTypeContext = context?.valueType;
+    if (valueTypeContext != null && node.valueQuestion != null) {
+      valueTypeContext = typeSystem.makeNullable(valueTypeContext);
+    }
+    analyzeExpression(node.value,
+        SharedTypeSchemaView(valueTypeContext ?? UnknownInferredType.instance));
     popRewrite();
+
     flowAnalysis.flow
         ?.nullAwareMapEntry_end(isKeyNullAware: node.keyQuestion != null);
     inferenceLogWriter?.exitElement(node);
@@ -3311,6 +3325,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     analyzeExpression(node.value,
         SharedTypeSchemaView(elementType ?? UnknownInferredType.instance));
+    popRewrite();
 
     inferenceLogWriter?.exitElement(node);
   }
