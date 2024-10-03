@@ -53,18 +53,15 @@ class ImportAddHide extends MultiCorrectionProducer {
 }
 
 class _ImportAddHide extends ResolvedCorrectionProducer {
-  _ImportAddHide(this.importDirective, this.element, {required super.context});
-
   final ImportDirective importDirective;
   final Element element;
+
+  _ImportAddHide(this.importDirective, this.element, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.
       CorrectionApplicability.singleLocation;
-
-  @override
-  FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_HIDE;
 
   @override
   List<String> get fixArguments {
@@ -73,15 +70,18 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
     if (aliasStr != null) {
       alias = " as '$aliasStr'";
     }
-    return [elementName, importStr, alias];
+    return [_elementName, _importStr, alias];
   }
 
-  String get importStr => importDirective.uri.stringValue ?? '';
-  String get elementName => element.name ?? '';
+  @override
+  FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_HIDE;
+
+  String get _elementName => element.name ?? '';
+  String get _importStr => importDirective.uri.stringValue ?? '';
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (elementName.isEmpty || importStr.isEmpty) {
+    if (_elementName.isEmpty || _importStr.isEmpty) {
       return;
     }
 
@@ -93,7 +93,7 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
     if (hide.isNotEmpty) {
       return await builder.addDartFileEdit(file, (builder) {
         var hideCombinator = hide.first;
-        var allNames = <String>[elementName];
+        var allNames = <String>[_elementName];
         for (var name in hideCombinator.hiddenNames) {
           allNames.add(name.name);
         }
@@ -105,7 +105,7 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      var hideCombinator = ' hide $elementName';
+      var hideCombinator = ' hide $_elementName';
       builder.addSimpleInsertion(importDirective.end - 1, hideCombinator);
     });
   }
