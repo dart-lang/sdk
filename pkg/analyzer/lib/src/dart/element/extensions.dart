@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -159,6 +160,11 @@ extension LibraryExtension on LibraryElement? {
     var self = this;
     return self?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
   }
+}
+
+extension LibraryExtension2 on LibraryElement2? {
+  bool get hasWildcardVariablesFeatureEnabled2 =>
+      this?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 }
 
 extension ParameterElementExtensions on ParameterElement {

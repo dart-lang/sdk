@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../linter_lint_codes.dart';
 
 const _desc = r'Use case expressions that are valid in Dart 3.0.';
@@ -28,6 +29,10 @@ class InvalidCasePatterns extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
+    // This lint rule is only meant for code which does not have 'patterns'
+    // enabled.
+    if (context.isEnabled(Feature.patterns)) return;
+
     var visitor = _Visitor(this);
     registry.addSwitchCase(this, visitor);
   }
@@ -40,12 +45,6 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitSwitchCase(SwitchCase node) {
-    var featureSet = node.thisOrAncestorOfType<CompilationUnit>()?.featureSet;
-    if (featureSet != null && featureSet.isEnabled(Feature.patterns)) {
-      // This lint rule is only meant for code which does not have 'patterns'
-      // enabled.
-      return;
-    }
     var expression = node.expression.unParenthesized;
     if (expression is SetOrMapLiteral) {
       if (expression.constKeyword == null) {
@@ -89,7 +88,7 @@ class _Visitor extends SimpleAstVisitor {
 extension on SimpleIdentifier {
   bool isDartCoreIdentifier({required String named}) {
     if (name != named) return false;
-    var library = staticElement?.library;
+    var library = element?.library2;
     return library != null && library.isDartCore;
   }
 }
