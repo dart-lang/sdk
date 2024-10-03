@@ -26,9 +26,7 @@ class NoWildcardVariableUses extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (context.libraryElement.hasWildcardVariablesFeatureEnabled) {
-      return;
-    }
+    if (context.libraryElement2.hasWildcardVariablesFeatureEnabled2) return;
 
     var visitor = _Visitor(this);
     registry.addSimpleIdentifier(this, visitor);
