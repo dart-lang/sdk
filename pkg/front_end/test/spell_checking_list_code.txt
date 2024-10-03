@@ -523,6 +523,7 @@ dsdk
 dso
 dsos
 dst
+dummies
 dummy
 dumping
 dupdate
@@ -1082,6 +1083,7 @@ mimic
 min
 mini
 minutes
+misc
 miss
 mistakes
 misuse
