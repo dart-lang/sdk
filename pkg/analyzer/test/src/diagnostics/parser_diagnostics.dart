@@ -23,11 +23,13 @@ class ParserDiagnosticsTest {
     String expected, {
     bool withCheckingLinking = false,
     bool withOffsets = false,
+    bool withTokenPreviousNext = false,
   }) {
     var actual = _parsedNodeText(
       node,
       withCheckingLinking: withCheckingLinking,
       withOffsets: withOffsets,
+      withTokenPreviousNext: withTokenPreviousNext,
     );
     if (actual != expected) {
       print(actual);
@@ -68,6 +70,7 @@ class ParserDiagnosticsTest {
     AstNode node, {
     required bool withCheckingLinking,
     required bool withOffsets,
+    required bool withTokenPreviousNext,
   }) {
     var buffer = StringBuffer();
     var sink = TreeStringSink(
@@ -83,7 +86,8 @@ class ParserDiagnosticsTest {
         sink: sink,
         elementPrinter: elementPrinter,
         configuration: ResolvedNodeTextConfiguration()
-          ..withCheckingLinking = withCheckingLinking,
+          ..withCheckingLinking = withCheckingLinking
+          ..withTokenPreviousNext = withTokenPreviousNext,
         withResolution: false,
         withOffsets: withOffsets,
       ),
