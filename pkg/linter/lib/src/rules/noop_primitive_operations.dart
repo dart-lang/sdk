@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../ast.dart';
+import '../extensions.dart';
 import '../linter_lint_codes.dart';
 
 const _desc = r'Noop primitive operations.';
@@ -61,7 +61,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var type = node.realTarget?.staticType;
     if (type == null) {
       // print(xxx.toString())
-      if (node.methodName.staticElement.isDartCorePrint &&
+      if (node.methodName.element.isDartCorePrint &&
           node.argumentList.arguments.length == 1) {
         _checkToStringInvocation(node.argumentList.arguments.first);
       }

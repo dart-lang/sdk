@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
@@ -357,6 +358,15 @@ extension ElementExtension on Element {
   bool get isMacro {
     var self = this;
     return self is ClassElementImpl && self.isMacro;
+  }
+}
+
+extension ElementExtension2 on Element2? {
+  bool get isDartCorePrint {
+    var self = this;
+    return self is TopLevelFunctionElement &&
+        self.name == 'print' &&
+        (self.firstFragment?.libraryFragment.element.isDartCore ?? false);
   }
 }
 
