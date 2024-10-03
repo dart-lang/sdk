@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     InterfaceType? current = type;
     while (current != null) {
-      if (current.element.hasImmutable) return true;
+      if (current.element3.hasImmutable) return true;
       current = current.superclass;
     }
 
