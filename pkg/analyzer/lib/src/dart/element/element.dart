@@ -5703,6 +5703,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return declarations.toList();
   }
 
+  @Deprecated('Use CompilationUnitElement.libraryExports')
   @override
   List<LibraryElementImpl> get exportedLibraries {
     return libraryExports
@@ -5712,6 +5713,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
         .toList();
   }
 
+  @Deprecated('Use CompilationUnitElement.libraryExports')
   @override
   List<LibraryElement2> get exportedLibraries2 =>
       exportedLibraries.cast<LibraryElement2>();
@@ -5832,6 +5834,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
         .toList();
   }
 
+  @Deprecated('Not used anymore')
   @override
   bool get isBrowserApplication =>
       entryPoint != null && isOrImportsBrowserLibrary;
@@ -5856,6 +5859,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   /// Return `true` if the receiver directly or indirectly imports the
   /// 'dart:html' libraries.
+  @Deprecated('Not used anymore')
   bool get isOrImportsBrowserLibrary {
     List<LibraryElement> visited = <LibraryElement>[];
     var htmlLibSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
