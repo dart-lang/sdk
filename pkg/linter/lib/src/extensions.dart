@@ -366,7 +366,7 @@ extension ElementExtension2 on Element2? {
     var self = this;
     return self is TopLevelFunctionElement &&
         self.name == 'print' &&
-        (self.firstFragment?.libraryFragment.element.isDartCore ?? false);
+        self.firstFragment.libraryFragment.element.isDartCore;
   }
 }
 
