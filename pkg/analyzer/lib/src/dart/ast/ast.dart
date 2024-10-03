@@ -13255,7 +13255,7 @@ final class NullAwareElementImpl extends CollectionElementImpl
   @override
   void resolveElement(
       ResolverVisitor resolver, CollectionLiteralContext? context) {
-    // resolver.visitNullAwareElement(this, context: context);
+    resolver.visitNullAwareElement(this, context: context);
     resolver.pushRewrite(null);
   }
 
