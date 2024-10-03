@@ -4489,10 +4489,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as foo @21
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @21
       topLevelVariables
         a1 @30
           reference: <testLibraryFragment>::@topLevelVariable::a1
@@ -5219,10 +5219,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart deferred as a @28
       prefixes
-        a
-          reference: <testLibraryFragment>::@prefix::a
+        <testLibraryFragment>::@prefix2::a
+          fragments: @28
       topLevelVariables
         x @35
           reference: <testLibraryFragment>::@topLevelVariable::x

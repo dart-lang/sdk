@@ -31,7 +31,7 @@ main() {
 SimpleIdentifier
   token: p
   staticElement: <testLibraryFragment>::@prefix::p
-  element: <testLibraryFragment>::@prefix::p
+  element: <testLibraryFragment>::@prefix2::p
   staticType: InvalidType
 ''');
   }
@@ -63,7 +63,7 @@ ForStatement
     iterable: SimpleIdentifier
       token: p
       staticElement: <testLibraryFragment>::@prefix::p
-      element: <testLibraryFragment>::@prefix::p
+      element: <testLibraryFragment>::@prefix2::p
       staticType: InvalidType
   rightParenthesis: )
   body: Block
@@ -111,7 +111,7 @@ InstanceCreationExpression
           base: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a
           substitution: {T: dynamic}
         staticElement: <testLibraryFragment>::@prefix::p
-        element: <testLibraryFragment>::@prefix::p
+        element: <testLibraryFragment>::@prefix2::p
         staticType: InvalidType
     rightParenthesis: )
   staticType: C<dynamic>

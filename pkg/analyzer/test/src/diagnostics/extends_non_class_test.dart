@@ -199,7 +199,7 @@ ExtendsClause
       name: p
       period: .
       element: <testLibraryFragment>::@prefix::p
-      element2: <testLibraryFragment>::@prefix::p
+      element2: <testLibraryFragment>::@prefix2::p
     name: A
     element: <null>
     element2: <null>
@@ -303,7 +303,7 @@ ExtendsClause
       name: p
       period: .
       element: <testLibraryFragment>::@prefix::p
-      element2: <testLibraryFragment>::@prefix::p
+      element2: <testLibraryFragment>::@prefix2::p
     name: A
     element: <null>
     element2: <null>

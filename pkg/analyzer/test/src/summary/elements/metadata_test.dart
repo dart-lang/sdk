@@ -265,7 +265,7 @@ library
                 prefix: SimpleIdentifier
                   token: a @23
                   staticElement: <testLibraryFragment>::@prefix::a
-                  element: <testLibraryFragment>::@prefix::a
+                  element: <testLibraryFragment>::@prefix2::a
                   staticType: null
                 period: . @24
                 identifier: SimpleIdentifier
@@ -295,10 +295,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as a @19
       prefixes
-        a
-          reference: <testLibraryFragment>::@prefix::a
+        <testLibraryFragment>::@prefix2::a
+          fragments: @19
       classes
         class C @39
           reference: <testLibraryFragment>::@class::C
@@ -1493,7 +1493,7 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix2::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
@@ -1530,10 +1530,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as foo @21
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @21
       classes
         class C @48
           reference: <testLibraryFragment>::@class::C
@@ -1594,7 +1594,7 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix2::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
@@ -1635,10 +1635,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as foo @21
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @21
       classes
         class C @48
           reference: <testLibraryFragment>::@class::C
@@ -1699,7 +1699,7 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix2::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
@@ -1745,10 +1745,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as foo @21
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @21
       classes
         class C @52
           reference: <testLibraryFragment>::@class::C
@@ -2273,7 +2273,7 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix2::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
@@ -2304,10 +2304,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as foo @21
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @21
       classes
         class C @42
           reference: <testLibraryFragment>::@class::C
@@ -2368,7 +2368,7 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix2::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
@@ -2401,10 +2401,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as foo @21
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @21
       classes
         class C @42
           reference: <testLibraryFragment>::@class::C
@@ -2465,7 +2465,7 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix2::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
@@ -2503,10 +2503,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as foo @21
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @21
       classes
         class C @46
           reference: <testLibraryFragment>::@class::C
@@ -8899,7 +8899,7 @@ library
                 prefix: SimpleIdentifier
                   token: a @23
                   staticElement: <testLibraryFragment>::@prefix::a
-                  element: <testLibraryFragment>::@prefix::a
+                  element: <testLibraryFragment>::@prefix2::a
                   staticType: null
                 period: . @24
                 identifier: SimpleIdentifier
@@ -8923,10 +8923,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as a @19
       prefixes
-        a
-          reference: <testLibraryFragment>::@prefix::a
+        <testLibraryFragment>::@prefix2::a
+          fragments: @19
       classes
         class C @33
           reference: <testLibraryFragment>::@class::C
@@ -10790,7 +10790,7 @@ library
                 prefix: SimpleIdentifier
                   token: foo @27
                   staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix2::foo
                   staticType: null
                 period: . @30
                 identifier: SimpleIdentifier
@@ -10820,10 +10820,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as foo @21
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @21
       classes
         class C @41
           reference: <testLibraryFragment>::@class::C
@@ -11246,7 +11246,7 @@ library
                 prefix: SimpleIdentifier
                   token: foo @29
                   staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix2::foo
                   staticType: null
                 period: . @32
                 identifier: SimpleIdentifier
@@ -11270,10 +11270,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        dart:async
+        dart:async as foo @23
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @23
       classes
         class C @43
           reference: <testLibraryFragment>::@class::C
@@ -11395,7 +11395,7 @@ library
                 prefix: SimpleIdentifier
                   token: foo @29
                   staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix2::foo
                   staticType: null
                 period: . @32
                 identifier: SimpleIdentifier
@@ -11428,10 +11428,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        dart:async
+        dart:async as foo @23
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @23
       classes
         class C @49
           reference: <testLibraryFragment>::@class::C
@@ -11484,7 +11484,7 @@ library
                 prefix: SimpleIdentifier
                   token: foo @29
                   staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix2::foo
                   staticType: null
                 period: . @32
                 identifier: SimpleIdentifier
@@ -11517,10 +11517,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        dart:async
+        dart:async as foo @23
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @23
       classes
         class C @52
           reference: <testLibraryFragment>::@class::C
@@ -11636,7 +11636,7 @@ library
                 prefix: SimpleIdentifier
                   token: foo @29
                   staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix::foo
+                  element: <testLibraryFragment>::@prefix2::foo
                   staticType: null
                 period: . @32
                 identifier: SimpleIdentifier
@@ -11663,10 +11663,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        dart:async
+        dart:async as foo @23
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @23
       classes
         class C @45
           reference: <testLibraryFragment>::@class::C

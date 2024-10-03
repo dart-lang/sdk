@@ -1508,7 +1508,7 @@ abstract class PrefixElement2 implements Element2, FragmentedElement {
   PrefixFragment get firstFragment;
 
   /// The imports that share this prefix.
-  List<LibraryImport> get imports2;
+  List<LibraryImport> get imports;
 
   @override
   LibraryElement2 get library2;
@@ -1533,6 +1533,9 @@ abstract class PrefixFragment implements Fragment {
 
   @override
   LibraryFragment? get enclosingFragment;
+
+  /// Whether the [LibraryImport] is deferred.
+  bool get isDeferred;
 
   @override
   String get name;

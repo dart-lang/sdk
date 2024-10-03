@@ -131,7 +131,7 @@ extension ElementOrNullExtension on Element? {
       // TODO(scheglov): we lose types here
       return self.declaration.asElement2;
     } else if (self is PrefixElementImpl) {
-      return self;
+      return self.element2;
     } else {
       return (self as Fragment?)?.element;
     }

@@ -893,7 +893,7 @@ InstanceCreationExpression
         name: p
         period: .
         element: <testLibraryFragment>::@prefix::p
-        element2: <testLibraryFragment>::@prefix::p
+        element2: <testLibraryFragment>::@prefix2::p
       name: Foo
       element: package:test/a.dart::<fragment>::@class::Foo
       element2: package:test/a.dart::<fragment>::@class::Foo#element
@@ -1003,7 +1003,7 @@ InstanceCreationExpression
         name: p
         period: .
         element: <testLibraryFragment>::@prefix::p
-        element2: <testLibraryFragment>::@prefix::p
+        element2: <testLibraryFragment>::@prefix2::p
       name: Foo
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1314,8 +1314,8 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: prefix
-      element: <testLibraryFragment>::@prefix::prefix
-      element2: <testLibraryFragment>::@prefix::prefix
+      element: <null>
+      element2: <testLibraryFragment>::@prefix2::prefix
       type: InvalidType
     staticElement: <null>
     element: <null>
@@ -1363,7 +1363,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::<fragment>::@class::A#element
@@ -1431,7 +1431,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::<fragment>::@class::A#element
@@ -1481,7 +1481,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::<fragment>::@class::A#element
@@ -1538,7 +1538,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::<fragment>::@class::A#element
@@ -1592,7 +1592,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::<fragment>::@class::A#element
@@ -1631,7 +1631,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1696,7 +1696,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1753,7 +1753,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::<fragment>::@class::A#element
@@ -1798,7 +1798,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::<fragment>::@class::A#element
@@ -1845,7 +1845,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: Foo
       element: <null>
       element2: <null>

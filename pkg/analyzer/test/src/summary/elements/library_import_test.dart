@@ -452,10 +452,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart deferred as p @28
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @28
 ''');
   }
 
@@ -530,16 +530,16 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        dart:async
-        dart:async
-        dart:async
+        dart:async as i1 @23
+        dart:async as i2 @70
+        dart:async as i3 @117
       prefixes
-        i1
-          reference: <testLibraryFragment>::@prefix::i1
-        i2
-          reference: <testLibraryFragment>::@prefix::i2
-        i3
-          reference: <testLibraryFragment>::@prefix::i3
+        <testLibraryFragment>::@prefix2::i1
+          fragments: @23
+        <testLibraryFragment>::@prefix2::i2
+          fragments: @70
+        <testLibraryFragment>::@prefix2::i3
+          fragments: @117
 ''');
   }
 
@@ -849,10 +849,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as a @19
       prefixes
-        a
-          reference: <testLibraryFragment>::@prefix::a
+        <testLibraryFragment>::@prefix2::a
+          fragments: @19
       topLevelVariables
         c @26
           reference: <testLibraryFragment>::@topLevelVariable::c
@@ -943,10 +943,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/test.dart
+        package:test/test.dart as p @22
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @22
       classes
         class C @31
           reference: <testLibraryFragment>::@class::C
@@ -1462,8 +1462,58 @@ import 'dart:async' as p1;
 import 'dart:collection' as p2;
 import 'dart:math' as p1;
 ''');
-    var prefixNames = library.prefixes.map((e) => e.name).toList();
-    expect(prefixNames, unorderedEquals(['p1', 'p2']));
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  libraryImports
+    dart:async as p1 @23
+      enclosingElement3: <testLibraryFragment>
+    dart:collection as p2 @55
+      enclosingElement3: <testLibraryFragment>
+    dart:math as p1 @23
+      enclosingElement3: <testLibraryFragment>
+  prefixes
+    p1 @23
+      reference: <testLibraryFragment>::@prefix::p1
+      enclosingElement3: <testLibraryFragment>
+    p2 @55
+      reference: <testLibraryFragment>::@prefix::p2
+      enclosingElement3: <testLibraryFragment>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      libraryImports
+        dart:async as p1 @23
+          enclosingElement3: <testLibraryFragment>
+        dart:collection as p2 @55
+          enclosingElement3: <testLibraryFragment>
+        dart:math as p1 @23
+          enclosingElement3: <testLibraryFragment>
+      libraryImportPrefixes
+        p1 @23
+          reference: <testLibraryFragment>::@prefix::p1
+          enclosingElement3: <testLibraryFragment>
+        p2 @55
+          reference: <testLibraryFragment>::@prefix::p2
+          enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        dart:async as p1 @23
+        dart:collection as p2 @55
+        dart:math as p1 @81
+      prefixes
+        <testLibraryFragment>::@prefix2::p1
+          fragments: @23 @81
+        <testLibraryFragment>::@prefix2::p2
+          fragments: @55
+''');
   }
 
   test_metadata_importDirective() async {

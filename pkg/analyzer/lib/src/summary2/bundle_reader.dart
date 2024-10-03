@@ -1226,6 +1226,9 @@ class LibraryReader {
         containerLibrary: containerLibrary,
         containerUnit: containerUnit,
       ),
+      prefix2: _readLibraryImportPrefixFragment(
+        libraryFragment: containerUnit,
+      ),
       uri: _readDirectiveUri(
         libraryElement: libraryElement,
         containerLibrary: containerLibrary,
@@ -1286,6 +1289,37 @@ class LibraryReader {
     }
 
     return LibraryLanguageVersion(package: package, override: override);
+  }
+
+  PrefixFragmentImpl? _readLibraryImportPrefixFragment({
+    required CompilationUnitElementImpl libraryFragment,
+  }) {
+    return _reader.readOptionalObject((reader) {
+      var name = _reader.readStringReference();
+      var isDeferred = _reader.readBool();
+      var fragment = PrefixFragmentImpl(
+        enclosingFragment: libraryFragment,
+        name: name,
+        nameOffset: -1,
+        isDeferred: isDeferred,
+      );
+
+      var containerRef = libraryFragment.reference!;
+      var reference = containerRef.getChild('@prefix2').getChild(name);
+      var element = reference.element2 as PrefixElementImpl2?;
+
+      if (element == null) {
+        element = PrefixElementImpl2(
+          reference: reference,
+          firstFragment: fragment,
+        );
+      } else {
+        element.addFragment(fragment);
+      }
+
+      fragment.element = element;
+      return fragment;
+    });
   }
 
   void _readLibraryOrAugmentationElement({

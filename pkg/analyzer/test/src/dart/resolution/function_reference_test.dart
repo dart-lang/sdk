@@ -175,7 +175,7 @@ FunctionReference
           name: a
           period: .
           element: <testLibraryFragment>::@prefix::a
-          element2: <testLibraryFragment>::@prefix::a
+          element2: <testLibraryFragment>::@prefix2::a
         name: Future
         element: dart:async::<fragment>::@class::Future
         element2: dart:async::<fragment>::@class::Future#element
@@ -455,7 +455,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@prefix::a
-      element: <testLibraryFragment>::@prefix::a
+      element: <testLibraryFragment>::@prefix2::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -1340,7 +1340,7 @@ ImplicitCallReference
       prefix: SimpleIdentifier
         token: prefix
         staticElement: <testLibraryFragment>::@prefix::prefix
-        element: <testLibraryFragment>::@prefix::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1397,7 +1397,7 @@ ImplicitCallReference
     prefix: SimpleIdentifier
       token: prefix
       staticElement: <testLibraryFragment>::@prefix::prefix
-      element: <testLibraryFragment>::@prefix::prefix
+      element: <testLibraryFragment>::@prefix2::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2397,7 +2397,7 @@ FunctionReference
       prefix: SimpleIdentifier
         token: prefix
         staticElement: <testLibraryFragment>::@prefix::prefix
-        element: <testLibraryFragment>::@prefix::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -2453,7 +2453,7 @@ FunctionReference
       prefix: SimpleIdentifier
         token: prefix
         staticElement: <testLibraryFragment>::@prefix::prefix
-        element: <testLibraryFragment>::@prefix::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -2799,7 +2799,7 @@ ExpressionStatement
     prefix: SimpleIdentifier
       token: prefix
       staticElement: <testLibraryFragment>::@prefix::prefix
-      element: <testLibraryFragment>::@prefix::prefix
+      element: <testLibraryFragment>::@prefix2::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3360,7 +3360,7 @@ FunctionReference
       prefix: SimpleIdentifier
         token: a
         staticElement: <testLibraryFragment>::@prefix::a
-        element: <testLibraryFragment>::@prefix::a
+        element: <testLibraryFragment>::@prefix2::a
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -3415,7 +3415,7 @@ FunctionReference
       prefix: SimpleIdentifier
         token: prefix
         staticElement: <testLibraryFragment>::@prefix::prefix
-        element: <testLibraryFragment>::@prefix::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -3471,7 +3471,7 @@ FunctionReference
       prefix: SimpleIdentifier
         token: prefix
         staticElement: <testLibraryFragment>::@prefix::prefix
-        element: <testLibraryFragment>::@prefix::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -3718,7 +3718,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@prefix::a
-      element: <testLibraryFragment>::@prefix::a
+      element: <testLibraryFragment>::@prefix2::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3766,7 +3766,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@prefix::a
-      element: <testLibraryFragment>::@prefix::a
+      element: <testLibraryFragment>::@prefix2::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3924,7 +3924,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: prefix
       staticElement: <testLibraryFragment>::@prefix::prefix
-      element: <testLibraryFragment>::@prefix::prefix
+      element: <testLibraryFragment>::@prefix2::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3970,7 +3970,7 @@ FunctionReference
       prefix: SimpleIdentifier
         token: prefix
         staticElement: <testLibraryFragment>::@prefix::prefix
-        element: <testLibraryFragment>::@prefix::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -4169,7 +4169,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@prefix::a
-      element: <testLibraryFragment>::@prefix::a
+      element: <testLibraryFragment>::@prefix2::a
       staticType: null
     period: .
     identifier: SimpleIdentifier

@@ -636,9 +636,12 @@ class InformativeDataApplier {
 
         var prefixElement = element.prefix?.element;
         if (prefixElement is PrefixElementImpl) {
-          prefixElement.nameOffset = info.prefixOffset;
+          if (prefixElement.nameOffset == -1) {
+            prefixElement.nameOffset = info.prefixOffset;
+          }
         }
 
+        element.prefix2?.nameOffset = info.prefixOffset;
         _applyToCombinators(element.combinators, info.combinators);
       },
     );

@@ -383,7 +383,7 @@ ConstructorReference
         name: a
         period: .
         element: <testLibraryFragment>::@prefix::a
-        element2: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix2::a
       name: TA
       element: package:test/a.dart::<fragment>::@typeAlias::TA
       element2: package:test/a.dart::<fragment>::@typeAlias::TA#element
@@ -423,7 +423,7 @@ ConstructorReference
         name: a
         period: .
         element: <testLibraryFragment>::@prefix::a
-        element2: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix2::a
       name: TA
       element: package:test/a.dart::<fragment>::@typeAlias::TA
       element2: package:test/a.dart::<fragment>::@typeAlias::TA#element
@@ -462,7 +462,7 @@ ConstructorReference
         name: a
         period: .
         element: <testLibraryFragment>::@prefix::a
-        element2: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix2::a
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::<fragment>::@class::A#element
@@ -501,7 +501,7 @@ ConstructorReference
         name: a
         period: .
         element: <testLibraryFragment>::@prefix::a
-        element2: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix2::a
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::<fragment>::@class::A#element
@@ -1504,7 +1504,7 @@ ConstructorReference
         name: a
         period: .
         element: <testLibraryFragment>::@prefix::a
-        element2: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix2::a
       name: TA
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1556,7 +1556,7 @@ ConstructorReference
         name: a
         period: .
         element: <testLibraryFragment>::@prefix::a
-        element2: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix2::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1611,7 +1611,7 @@ ConstructorReference
         name: a
         period: .
         element: <testLibraryFragment>::@prefix::a
-        element2: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix2::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1663,7 +1663,7 @@ ConstructorReference
         name: a
         period: .
         element: <testLibraryFragment>::@prefix::a
-        element2: <testLibraryFragment>::@prefix::a
+        element2: <testLibraryFragment>::@prefix2::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <

@@ -3962,7 +3962,7 @@ library
                     prefix: SimpleIdentifier
                       token: prefix0 @108
                       staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-                      element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                      element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
                       staticType: null
                     period: . @115
                     identifier: SimpleIdentifier
@@ -4021,7 +4021,7 @@ library
                     prefix: SimpleIdentifier
                       token: prefix0 @107
                       staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-                      element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                      element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
                       staticType: null
                     period: . @114
                     identifier: SimpleIdentifier
@@ -4085,7 +4085,7 @@ library
                     prefix: SimpleIdentifier
                       token: prefix0 @106
                       staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-                      element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                      element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
                       staticType: null
                     period: . @113
                     identifier: SimpleIdentifier
@@ -4530,7 +4530,7 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @98
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
                   staticType: null
                 period: . @105
                 identifier: SimpleIdentifier
@@ -4694,7 +4694,7 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @98
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
                   staticType: null
                 period: . @105
                 identifier: SimpleIdentifier
@@ -4757,7 +4757,7 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @98
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
                   staticType: null
                 period: . @105
                 identifier: SimpleIdentifier
@@ -4825,7 +4825,7 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @98
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
                   staticType: null
                 period: . @105
                 identifier: SimpleIdentifier
@@ -4891,7 +4891,7 @@ library
             prefix: SimpleIdentifier
               token: prefix0 @78
               staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
               staticType: null
             period: . @85
             identifier: SimpleIdentifier
@@ -5000,7 +5000,7 @@ library
             prefix: SimpleIdentifier
               token: prefix0 @78
               staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
               staticType: null
             period: . @85
             identifier: SimpleIdentifier
@@ -5068,7 +5068,7 @@ library
             prefix: SimpleIdentifier
               token: prefix0 @78
               staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
               staticType: null
             period: . @85
             identifier: SimpleIdentifier
@@ -5138,7 +5138,7 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @86
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
                   staticType: null
                 period: . @93
                 identifier: SimpleIdentifier
@@ -5879,10 +5879,10 @@ library
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as prefix0 @67
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
       classes
         class A @91
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
@@ -6040,13 +6040,13 @@ library
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
-        dart:core
+        package:test/a.dart as prefix0 @67
+        dart:core as prefix1 @98
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-        prefix1
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix1
+          fragments: @98
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
@@ -6214,13 +6214,13 @@ library
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
-        dart:core
+        package:test/a.dart as prefix0 @67
+        dart:core as prefix1 @98
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-        prefix1
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix1
+          fragments: @98
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
@@ -6359,13 +6359,13 @@ library
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
-        dart:core
+        package:test/a.dart as prefix0 @67
+        dart:core as prefix1 @98
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-        prefix1
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix1
+          fragments: @98
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
@@ -6514,13 +6514,13 @@ library
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
-        dart:core
+        package:test/a.dart as prefix0 @67
+        dart:core as prefix1 @98
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-        prefix1
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix1
+          fragments: @98
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
@@ -10838,10 +10838,10 @@ library
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/test.dart
+        package:test/test.dart as prefix0 @70
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @70
       classes
         class C @86
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
@@ -12559,10 +12559,10 @@ library
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        dart:core
+        dart:core as prefix0 @57
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @57
       classes
         class A @81
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
@@ -12775,13 +12775,13 @@ library
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/json_serializable.dart
-        dart:core
+        package:test/json_serializable.dart as prefix0 @83
+        dart:core as prefix1 @114
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-        prefix1
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @83
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix1
+          fragments: @114
       classes
         class A @138
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
@@ -17913,10 +17913,10 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
-        package:test/append.dart
+        package:test/append.dart as prefix @24
       prefixes
-        prefix
-          reference: <testLibraryFragment>::@prefix::prefix
+        <testLibraryFragment>::@prefix2::prefix
+          fragments: @24
       classes
         class A @84
           reference: <testLibraryFragment>::@class::A
@@ -18019,10 +18019,10 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
-        package:test/append.dart
+        package:test/append.dart as prefix @24
       prefixes
-        prefix
-          reference: <testLibraryFragment>::@prefix::prefix
+        <testLibraryFragment>::@prefix2::prefix
+          fragments: @24
       classes
         class A @90
           reference: <testLibraryFragment>::@class::A
@@ -18482,10 +18482,10 @@ library
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as prefix0 @67
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
       classes
         class MyClass @83
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
@@ -18917,10 +18917,10 @@ library
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as prefix0 @67
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
       classes
         class A @104
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A

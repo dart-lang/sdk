@@ -120,11 +120,10 @@ class ElementPrinter {
         _sink.write('<null>');
       case NeverElementImpl():
         _sink.write('Never@-1');
-      case PrefixElementImpl element:
-        // TODO(scheglov): update when implemented
-        writeReference(element.reference!);
+      case PrefixElementImpl2 element:
+        writeReference(element.reference);
       default:
-        throw UnimplementedError('${element.runtimeType} $element');
+        throw UnimplementedError('(${element.runtimeType}) $element');
     }
   }
 

@@ -137,7 +137,7 @@ FunctionExpressionInvocation
       name: p
       period: .
       element: <testLibraryFragment>::@prefix::p
-      element2: <testLibraryFragment>::@prefix::p
+      element2: <testLibraryFragment>::@prefix2::p
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -189,7 +189,7 @@ FunctionExpressionInvocation
       name: p
       period: .
       element: <testLibraryFragment>::@prefix::p
-      element2: <testLibraryFragment>::@prefix::p
+      element2: <testLibraryFragment>::@prefix2::p
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -401,7 +401,7 @@ PropertyAccess
       name: p
       period: .
       element: <testLibraryFragment>::@prefix::p
-      element2: <testLibraryFragment>::@prefix::p
+      element2: <testLibraryFragment>::@prefix2::p
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -449,7 +449,7 @@ PropertyAccess
       name: p
       period: .
       element: <testLibraryFragment>::@prefix::p
-      element2: <testLibraryFragment>::@prefix::p
+      element2: <testLibraryFragment>::@prefix2::p
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -708,7 +708,7 @@ MethodInvocation
       name: p
       period: .
       element: <testLibraryFragment>::@prefix::p
-      element2: <testLibraryFragment>::@prefix::p
+      element2: <testLibraryFragment>::@prefix2::p
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -760,7 +760,7 @@ MethodInvocation
       name: p
       period: .
       element: <testLibraryFragment>::@prefix::p
-      element2: <testLibraryFragment>::@prefix::p
+      element2: <testLibraryFragment>::@prefix2::p
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -1016,7 +1016,7 @@ BinaryExpression
       name: p
       period: .
       element: <testLibraryFragment>::@prefix::p
-      element2: <testLibraryFragment>::@prefix::p
+      element2: <testLibraryFragment>::@prefix2::p
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1066,7 +1066,7 @@ BinaryExpression
       name: p
       period: .
       element: <testLibraryFragment>::@prefix::p
-      element2: <testLibraryFragment>::@prefix::p
+      element2: <testLibraryFragment>::@prefix2::p
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -1305,7 +1305,7 @@ AssignmentExpression
         name: p
         period: .
         element: <testLibraryFragment>::@prefix::p
-        element2: <testLibraryFragment>::@prefix::p
+        element2: <testLibraryFragment>::@prefix2::p
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1368,7 +1368,7 @@ AssignmentExpression
         name: p
         period: .
         element: <testLibraryFragment>::@prefix::p
-        element2: <testLibraryFragment>::@prefix::p
+        element2: <testLibraryFragment>::@prefix2::p
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1574,7 +1574,7 @@ AssignmentExpression
         name: p
         period: .
         element: <testLibraryFragment>::@prefix::p
-        element2: <testLibraryFragment>::@prefix::p
+        element2: <testLibraryFragment>::@prefix2::p
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1638,7 +1638,7 @@ AssignmentExpression
         name: p
         period: .
         element: <testLibraryFragment>::@prefix::p
-        element2: <testLibraryFragment>::@prefix::p
+        element2: <testLibraryFragment>::@prefix2::p
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <

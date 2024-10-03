@@ -191,7 +191,7 @@ class _Element2Writer extends _AbstractElementWriter {
     required super.configuration,
   });
 
-  void writeLibraryElement(LibraryElement2 e) {
+  void writeLibraryElement(LibraryElementImpl e) {
     expect(e.enclosingElement2, isNull);
 
     _sink.writelnWithIndent('library');
@@ -199,7 +199,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeReference(e as ElementImpl);
 
       var name = e.name;
-      if (name != null && name.isNotEmpty) {
+      if (name.isNotEmpty) {
         _sink.writelnWithIndent('name: $name');
       }
 
@@ -213,17 +213,7 @@ class _Element2Writer extends _AbstractElementWriter {
       //   _writeLibraryExportElement,
       // );
 
-      // TODO(brianwilkerson): Consider adding `fragments` as a convenience
-      //  getter in `_Fragmented`
-      var fragments = <LibraryFragment>[];
-      for (LibraryFragment? fragment = e.firstFragment;
-          fragment != null;
-          fragment = fragment.nextFragment) {
-        fragments.add(fragment);
-        expect(fragment.element, same(e));
-      }
-
-      _writeFragmentList('fragments', null, fragments, _writeLibraryFragment);
+      _writeFragmentList('fragments', null, e.fragments, _writeLibraryFragment);
 
       _writeElementList('classes', e, e.classes, _writeInstanceElement);
       _writeElementList('enums', e, e.enums, _writeInstanceElement);
@@ -244,7 +234,7 @@ class _Element2Writer extends _AbstractElementWriter {
       if (configuration.withExportScope) {
         _sink.writelnWithIndent('exportedReferences');
         _sink.withIndent(() {
-          _writeExportedReferences(e as LibraryElementImpl);
+          _writeExportedReferences(e);
         });
         _sink.writelnWithIndent('exportNamespace');
         _sink.withIndent(() {
@@ -252,8 +242,7 @@ class _Element2Writer extends _AbstractElementWriter {
         });
       }
 
-      _writeFieldNameNonPromotabilityInfo(
-          (e as LibraryElementImpl).fieldNameNonPromotabilityInfo);
+      _writeFieldNameNonPromotabilityInfo(e.fieldNameNonPromotabilityInfo);
       _writeMacroDiagnostics(e);
     });
   }
@@ -965,6 +954,15 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
+  void _writeImportElementPrefix(PrefixFragmentImpl? fragment) {
+    if (fragment != null) {
+      _sink.writeIf(fragment.isDeferred, ' deferred');
+      _sink.write(' as ');
+      _sink.write(fragment.name);
+      _sink.write(' @${fragment.nameOffset}');
+    }
+  }
+
   void _writeInstanceElement(InstanceElement2 e) {
     _sink.writeIndentedLine(() {
       switch (e) {
@@ -1134,8 +1132,8 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _writeLibraryFragment(LibraryFragment f) {
-    var reference = (f as CompilationUnitElementImpl).reference!;
+  void _writeLibraryFragment(CompilationUnitElementImpl f) {
+    var reference = f.reference!;
     _sink.writeIndentedLine(() {
       _elementPrinter.writeReference(reference);
     });
@@ -1205,7 +1203,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
       _sink.writeIf(e.isSynthetic, ' synthetic');
-      // _writeImportElementPrefix(e.prefix);
+      _writeImportElementPrefix(e.prefix2);
     });
 
     _sink.withIndent(() {
@@ -1584,13 +1582,19 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _writePrefixElement(PrefixElement2 e) {
+  void _writePrefixElement(PrefixElementImpl2 e) {
     _sink.writeIndentedLine(() {
-      _writeElementName(e);
+      _elementPrinter.writeElement2(e);
     });
 
     _sink.withIndent(() {
-      _writeElementReference('reference', e);
+      _sink.writeIndentedLine(() {
+        _sink.write('fragments: ');
+        _sink.write(e.fragments.map((f) {
+          expect(f.element, same(e));
+          return '@${f.nameOffset}';
+        }).join(' '));
+      });
     });
   }
 
