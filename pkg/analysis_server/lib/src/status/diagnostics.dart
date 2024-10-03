@@ -256,6 +256,55 @@ class AstPage extends DiagnosticPageWithNav {
   }
 }
 
+class ByteStoreTimingPage extends DiagnosticPageWithNav
+    with PerformanceChartMixin {
+  ByteStoreTimingPage(DiagnosticsSite site)
+      : super(site, 'byte-store-timing', 'FileByteStore Timings',
+            description: 'FileByteStore Timing statistics.');
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    h3('FileByteStore Timings');
+
+    var byteStoreTimings = server.byteStoreTimings
+        ?.where((timing) =>
+            timing.readCount != 0 || timing.readTime != Duration.zero)
+        .toList();
+    if (byteStoreTimings == null || byteStoreTimings.isEmpty) {
+      p(
+        'There are currently no timings. '
+        'Try refreshing after the server has performed initial analysis.',
+      );
+      return;
+    }
+
+    buf.writeln('<table>');
+    buf.writeln(
+        '<tr><th>Files Read</th><th>Time Taken</th><th>&nbsp;</th></tr>');
+    for (var i = 0; i < byteStoreTimings.length - 1; i++) {
+      var timing = byteStoreTimings[i];
+      if (timing.readCount == 0) {
+        continue;
+      }
+
+      var nextTiming =
+          i <= byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
+      var duration =
+          (nextTiming?.time ?? DateTime.now()).difference(timing.time);
+      var description =
+          'Between <em>${timing.reason}</em> and <em>${nextTiming?.reason ?? 'now'} (${printMilliseconds(duration.inMilliseconds)})</em>.';
+      buf.writeln(
+        '<tr>'
+        '<td class="right">${timing.readCount} files</td>'
+        '<td class="right">${printMilliseconds(timing.readTime.inMilliseconds)}</td>'
+        '<td>$description</td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
+  }
+}
+
 class CollectReportPage extends DiagnosticPage {
   CollectReportPage(DiagnosticsSite site)
       : super(site, 'collectreport', 'Collect Report',
@@ -1055,6 +1104,7 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
       pages.add(LspRegistrationsPage(this, server));
     }
     pages.add(TimingPage(this));
+    pages.add(ByteStoreTimingPage(this));
 
     var profiler = ProcessProfiler.getProfilerForPlatform();
     if (profiler != null) {
@@ -1596,9 +1646,9 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
 
     var id = int.tryParse(params['id'] ?? '');
     if (id == null) {
-      return _generateList(items, itemsSlow);
+      _generateList(items, itemsSlow);
     } else {
-      return _generateDetails(id, items, itemsSlow);
+      _generateDetails(id, items, itemsSlow);
     }
   }
 
