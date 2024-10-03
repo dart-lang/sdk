@@ -604,8 +604,12 @@ external T JS<T>(String codeTemplate,
 
 /// Methods used by the wasm runtime.
 @pragma("wasm:export", "\$listLength")
-WasmI32 _listLength(List list) => list.length.toWasmI32();
+WasmI32 _listLength(WasmExternRef? ref) =>
+    unsafeCastOpaque<List>(unsafeCast<WasmExternRef>(ref).internalize())
+        .length
+        .toWasmI32();
 
 @pragma("wasm:export", "\$listRead")
-WasmExternRef? _listRead(List<Object?> list, WasmI32 index) =>
-    jsifyRaw(list[index.toIntSigned()]);
+WasmExternRef? _listRead(WasmExternRef? ref, WasmI32 index) =>
+    jsifyRaw(unsafeCastOpaque<List>(
+        unsafeCast<WasmExternRef>(ref).internalize())[index.toIntSigned()]);

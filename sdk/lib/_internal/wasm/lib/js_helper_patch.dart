@@ -597,14 +597,16 @@ OneByteString _stringAllocate1_10(
 }
 
 @pragma("wasm:export", "\$stringRead1")
-WasmI32 _stringRead1(WasmExternRef ref, WasmI32 index) {
-  final string = unsafeCastOpaque<OneByteString>(ref.internalize());
+WasmI32 _stringRead1(WasmExternRef? ref, WasmI32 index) {
+  final string = unsafeCastOpaque<OneByteString>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   return string.codeUnitAtUnchecked(index.toIntSigned()).toWasmI32();
 }
 
 @pragma("wasm:export", "\$stringWrite1")
-void _stringWrite1(WasmExternRef ref, WasmI32 index, WasmI32 codePoint) {
-  final string = unsafeCastOpaque<OneByteString>(ref.internalize());
+void _stringWrite1(WasmExternRef? ref, WasmI32 index, WasmI32 codePoint) {
+  final string = unsafeCastOpaque<OneByteString>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   string.setUnchecked(index.toIntSigned(), codePoint.toIntSigned());
 }
 
@@ -614,79 +616,92 @@ TwoByteString _stringAllocate2(WasmI32 length) {
 }
 
 @pragma("wasm:export", "\$stringRead2")
-WasmI32 _stringRead2(WasmExternRef ref, WasmI32 index) {
-  final string = unsafeCastOpaque<TwoByteString>(ref.internalize());
+WasmI32 _stringRead2(WasmExternRef? ref, WasmI32 index) {
+  final string = unsafeCastOpaque<TwoByteString>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   return string.codeUnitAtUnchecked(index.toIntSigned()).toWasmI32();
 }
 
 @pragma("wasm:export", "\$stringWrite2")
-void _stringWrite2(WasmExternRef ref, WasmI32 index, WasmI32 codePoint) {
-  final string = unsafeCastOpaque<TwoByteString>(ref.internalize());
+void _stringWrite2(WasmExternRef? ref, WasmI32 index, WasmI32 codePoint) {
+  final string = unsafeCastOpaque<TwoByteString>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   string.setUnchecked(index.toIntSigned(), codePoint.toIntSigned());
 }
 
 @pragma("wasm:export", "\$wasmI8ArrayGet")
-WasmI32 _wasmI8ArrayGet(WasmExternRef ref, WasmI32 index) {
-  final array = unsafeCastOpaque<WasmArray<WasmI8>>(ref.internalize());
+WasmI32 _wasmI8ArrayGet(WasmExternRef? ref, WasmI32 index) {
+  final array = unsafeCastOpaque<WasmArray<WasmI8>>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   return array.readUnsigned(index.toIntUnsigned()).toWasmI32();
 }
 
 @pragma("wasm:export", "\$wasmI8ArraySet")
-void _wasmI8ArraySet(WasmExternRef ref, WasmI32 index, WasmI32 value) {
-  final array = unsafeCastOpaque<WasmArray<WasmI8>>(ref.internalize());
+void _wasmI8ArraySet(WasmExternRef? ref, WasmI32 index, WasmI32 value) {
+  final array = unsafeCastOpaque<WasmArray<WasmI8>>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   array.write(index.toIntUnsigned(), value.toIntUnsigned());
 }
 
 @pragma("wasm:export", "\$wasmI16ArrayGet")
-WasmI32 _wasmI16ArrayGet(WasmExternRef ref, WasmI32 index) {
-  final array = unsafeCastOpaque<WasmArray<WasmI16>>(ref.internalize());
+WasmI32 _wasmI16ArrayGet(WasmExternRef? ref, WasmI32 index) {
+  final array = unsafeCastOpaque<WasmArray<WasmI16>>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   return array.readUnsigned(index.toIntUnsigned()).toWasmI32();
 }
 
 @pragma("wasm:export", "\$wasmI16ArraySet")
-void _wasmI16ArraySet(WasmExternRef ref, WasmI32 index, WasmI32 value) {
-  final array = unsafeCastOpaque<WasmArray<WasmI16>>(ref.internalize());
+void _wasmI16ArraySet(WasmExternRef? ref, WasmI32 index, WasmI32 value) {
+  final array = unsafeCastOpaque<WasmArray<WasmI16>>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   array.write(index.toIntUnsigned(), value.toIntUnsigned());
 }
 
 @pragma("wasm:export", "\$wasmI32ArrayGet")
-WasmI32 _wasmI32ArrayGet(WasmExternRef ref, WasmI32 index) {
-  final array = unsafeCastOpaque<WasmArray<WasmI32>>(ref.internalize());
+WasmI32 _wasmI32ArrayGet(WasmExternRef? ref, WasmI32 index) {
+  final array = unsafeCastOpaque<WasmArray<WasmI32>>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   return array.readUnsigned(index.toIntUnsigned()).toWasmI32();
 }
 
 @pragma("wasm:export", "\$wasmI32ArraySet")
-void _wasmI32ArraySet(WasmExternRef ref, WasmI32 index, WasmI32 value) {
-  final array = unsafeCastOpaque<WasmArray<WasmI32>>(ref.internalize());
+void _wasmI32ArraySet(WasmExternRef? ref, WasmI32 index, WasmI32 value) {
+  final array = unsafeCastOpaque<WasmArray<WasmI32>>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   array.write(index.toIntUnsigned(), value.toIntUnsigned());
 }
 
 @pragma("wasm:export", "\$wasmF32ArrayGet")
-WasmF32 _wasmF32ArrayGet(WasmExternRef ref, WasmI32 index) {
-  final array = unsafeCastOpaque<WasmArray<WasmF32>>(ref.internalize());
+WasmF32 _wasmF32ArrayGet(WasmExternRef? ref, WasmI32 index) {
+  final array = unsafeCastOpaque<WasmArray<WasmF32>>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   return array[index.toIntUnsigned()];
 }
 
 @pragma("wasm:export", "\$wasmF32ArraySet")
-void _wasmF32ArraySet(WasmExternRef ref, WasmI32 index, WasmF32 value) {
-  final array = unsafeCastOpaque<WasmArray<WasmF32>>(ref.internalize());
+void _wasmF32ArraySet(WasmExternRef? ref, WasmI32 index, WasmF32 value) {
+  final array = unsafeCastOpaque<WasmArray<WasmF32>>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   array[index.toIntUnsigned()] = value;
 }
 
 @pragma("wasm:export", "\$wasmF64ArrayGet")
-WasmF64 _wasmF64ArrayGet(WasmExternRef ref, WasmI32 index) {
-  final array = unsafeCastOpaque<WasmArray<WasmF64>>(ref.internalize());
+WasmF64 _wasmF64ArrayGet(WasmExternRef? ref, WasmI32 index) {
+  final array = unsafeCastOpaque<WasmArray<WasmF64>>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   return array[index.toIntUnsigned()];
 }
 
 @pragma("wasm:export", "\$wasmF64ArraySet")
-void _wasmF64ArraySet(WasmExternRef ref, WasmI32 index, WasmF64 value) {
-  final array = unsafeCastOpaque<WasmArray<WasmF64>>(ref.internalize());
+void _wasmF64ArraySet(WasmExternRef? ref, WasmI32 index, WasmF64 value) {
+  final array = unsafeCastOpaque<WasmArray<WasmF64>>(
+      unsafeCast<WasmExternRef>(ref).internalize());
   array[index.toIntUnsigned()] = value;
 }
 
 @pragma("wasm:export", "\$byteDataGetUint8")
-WasmI32 _byteDataGetUint8(WasmExternRef ref, WasmI32 index) {
-  final byteData = unsafeCastOpaque<ByteData>(ref.internalize());
+WasmI32 _byteDataGetUint8(WasmExternRef? ref, WasmI32 index) {
+  final byteData =
+      unsafeCastOpaque<ByteData>(unsafeCast<WasmExternRef>(ref).internalize());
   return byteData.getUint8(index.toIntSigned()).toWasmI32();
 }
